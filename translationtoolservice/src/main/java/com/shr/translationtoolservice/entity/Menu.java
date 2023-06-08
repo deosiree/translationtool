@@ -1,7 +1,6 @@
 package com.shr.translationtoolservice.entity;
 
 import lombok.Data;
-import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.util.List;
 
