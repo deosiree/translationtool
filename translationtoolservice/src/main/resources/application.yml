@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: translationTool
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.16.189.64:3306/translationtool?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=UTC
+    username: root
+    password: root
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+server:
+  port: 8080
+
+mybatis:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+#是否开启swagger
+swagger:
+  enabled: true
+
+ldap:
+  ldapURL: ldap://10.16.2.171:389
+  accountSuffix: "@sp5000.com"
+  base: "DC=sp5000,DC=com"
+
+
+
