@@ -1,7 +1,7 @@
 export default {
     // 开发环境
     dev: {
-        baseUrl: "开发环境公共地址"
+        baseUrl: "http://localhost:18001"
     },
     //线上接口
     prod: {

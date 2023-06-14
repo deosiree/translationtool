@@ -7,7 +7,7 @@ import store from '@/store'
 // 创建axios实例
 const service = axios.create({
 	//这里拿线上接口测试
-	baseURL: env.prod.baseUrl,
+	baseURL: env.dev.baseUrl,
     headers:{ //请求头
         'Content-Type': 'application/json;charset=UTF-8',
     },
