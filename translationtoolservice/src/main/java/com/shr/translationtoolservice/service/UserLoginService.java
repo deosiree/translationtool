@@ -8,5 +8,5 @@ import java.util.Map;
 public interface UserLoginService {
     User getUserInfo(String jobNumber);
 
-    Result login(String account, String passWard);
+    Result login(String account, String password);
 }

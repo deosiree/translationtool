@@ -10,7 +10,7 @@ spring:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
 server:
-  port: 8080
+  port: 18001
 
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml

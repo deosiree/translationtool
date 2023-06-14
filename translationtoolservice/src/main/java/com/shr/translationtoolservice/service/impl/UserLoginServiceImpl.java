@@ -49,9 +49,9 @@ public class UserLoginServiceImpl implements UserLoginService {
     }
 
     @Override
-    public Result login(String account, String passWard) {
+    public Result login(String account, String password) {
         // 通过ldap鉴权
-        Boolean flag = ldapUtils.LDAP_AUTH_AD(account, passWard);
+        Boolean flag = ldapUtils.LDAP_AUTH_AD(account, password);
         if (!flag) {
             return Result.fail(ResultCode.LOGIN_FAIL.getCode(), ResultCode.LOGIN_FAIL.getMessage());
         }

@@ -16,15 +16,15 @@ public class Result<T> {
     private Integer code;
 
     /** 描述 */
-    private String massage;
+    private String message;
 
     /** 描述 */
-    private T date;
+    private T data;
 
-    public Result(Integer code, String massage, T date) {
+    public Result(Integer code, String message, T data) {
         this.code = code;
-        this.massage = massage;
-        this.date = date;
+        this.message = message;
+        this.data = data;
     }
 
     public static Result ok(){

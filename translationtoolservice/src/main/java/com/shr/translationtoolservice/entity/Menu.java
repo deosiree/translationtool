@@ -36,6 +36,10 @@ public class Menu {
     */
     private String icon;
 
+    private String name;
+
+    private String component;
+
     private List<Menu> children;
 
     private List<Authority> authorities;

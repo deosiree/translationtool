@@ -11,10 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -31,13 +28,23 @@ public class UserLoginController {
     @PostMapping("/login")
     @ApiOperation("用户登录")
     @PassToken
-    public Result login(@RequestParam String account, @RequestParam String passWard){
-        if (account.isEmpty() || passWard.isEmpty()){
+    @CrossOrigin
+    public Result login(@RequestParam("account") String account, @RequestParam("password") String password){
+        if (account.isEmpty() || password.isEmpty()){
             log.info("用户名或密码为空，登录失败");
             return Result.fail(ResultCode.ACCOUNT_PASSWARD_NULL.getCode(),ResultCode.ACCOUNT_PASSWARD_NULL.getMessage());
         }
-        Result result = userLoginService.login(account, passWard);
+        Result result = userLoginService.login(account, password);
         return result;
+    }
+
+    @PostMapping("/testToken")
+    @ApiOperation("测试token")
+    @CrossOrigin
+    public Result testToken(HttpServletRequest request){
+        String token = request.getHeader(Constant.TOKEN);
+//        return Result.ok(JWTTokenUtils.getUserName(token));
+        return Result.fail(ResultCode.LOGIN_EXPIRED.getCode(),ResultCode.LOGIN_EXPIRED.getMessage());
     }
 
 }
