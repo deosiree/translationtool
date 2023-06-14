@@ -5,6 +5,6 @@ export default {
     },
     //线上接口
     prod: {
-        baseUrl: "http://10.16.189.64:8080"
+        baseUrl: "http://10.16.189.64:18001"
     }
 };
