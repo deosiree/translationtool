@@ -1,5 +1,5 @@
 import router from '@/router/index'
-import {fnAddDynamicMenuRoutes} from '@/router/asyncRouter'
+import {fnAddDynamicMenuRoutes, initRouter} from '@/router/asyncRouter'
 import store from '@/store'
 import { message } from 'ant-design-vue';
  
@@ -16,8 +16,9 @@ router.beforeEach((to, from,next) => {
       // 判断是否已经获取过动态菜单，未获取，则需要获取一次  页面刷新获取一次
       if (store.state.menu.length != 0 && isLoad) {
         //获取路由
-        let menuRouter = fnAddDynamicMenuRoutes(store.state.menu)
-        //动态添加路由
+        let menuRouter = initRouter(store.state.menu)
+        // console.log("menuRouter:",menuRouter)
+        // 动态添加路由
         router.addRoute(menuRouter);
         next({...to, replace: true})
         //将路由存入vuex

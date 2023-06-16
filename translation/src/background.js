@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow ,Menu,ipcMain,globalShortcut} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -9,14 +9,15 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
-
+let win;
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     // width: 800,
     // height: 600,
     width: 1440,
     height: 768,
+    frame: false,//去除原有的标题栏
     webPreferences: {
       
       // Use pluginOptions.nodeIntegration, leave this alone
@@ -35,8 +36,22 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
+   //开启开发者工具
+  globalShortcut.register('Alt+Shift+D', () => {
+    win.webContents.openDevTools({mode:'detach'}) //开启开发者工具
+  })
 }
-
+// 删除默认菜单
+Menu.setApplicationMenu(null)
+ipcMain.on('min', e=> win.minimize());
+ipcMain.on('max', e=> {
+    if (win.isMaximized()) {
+      win.unmaximize()
+    } else {
+      win.maximize()
+    }
+});
+ipcMain.on('close', e=> win.close());
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar

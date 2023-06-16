@@ -145,7 +145,7 @@ export default ({
       margin: 16px;
     }
     .ant-layout{
-      height: 100%;
+      height: calc(100% - 30px);
     }
     .ant-layout-header{
       display:flex;
