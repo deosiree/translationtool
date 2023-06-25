@@ -19,4 +19,5 @@ public interface RoleMapper {
 
     Role getRoleByDefault();
 
+    String getRoleIDByName(String id);
 }

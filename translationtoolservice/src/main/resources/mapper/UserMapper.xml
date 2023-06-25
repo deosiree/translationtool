@@ -10,6 +10,16 @@
     <result column="department" jdbcType="VARCHAR" property="department" />
     <result column="role_id" jdbcType="VARCHAR" property="roleId" />
   </resultMap>
+  <resultMap id="BaseConfigResUserMap" type="com.shr.translationtoolservice.entity.ConfigResUser">
+    <!--@mbg.generated-->
+    <!--@Table t_user-->
+    <id column="id" jdbcType="VARCHAR" property="id"/>
+    <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+    <result column="job_number" jdbcType="VARCHAR" property="jobNumber"/>
+    <result column="department" jdbcType="VARCHAR" property="department"/>
+    <result column="role_id" jdbcType="VARCHAR" property="roleId"/>
+    <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+  </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     id, user_name, job_number, department, role_id
@@ -99,4 +109,93 @@
       role_id = #{roleId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+
+
+
+  <select id="querUser" resultMap="BaseConfigResUserMap">
+    select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
+    from t_user t1 join t_role t2 on 1=1
+    <if test="user.userName != null and user.userName != ''">
+      and
+      user_name= #{user.userName,jdbcType=VARCHAR}
+    </if>
+    <if test="user.jobNumber != null and user.jobNumber != ''">
+      and
+      job_number= #{user.jobNumber,jdbcType=VARCHAR}
+    </if>
+    <if test="user.department != null and user.department != ''">
+      and
+      department= #{user.department,jdbcType=VARCHAR}
+    </if>
+    <if test="user.roleId != null and user.roleId != ''">
+      and
+
+      role_id= #{user.roleId,jdbcType=VARCHAR}
+
+    </if>
+    and
+    t1.role_id=t2.id
+
+  </select>
+
+
+  <delete id="deleteUserInfoByList" parameterType="java.util.List">
+    DELETE FROM t_user WHERE id in(
+    <foreach collection="list" item="idList" index="index" separator=",">
+      #{idList,jdbcType=VARCHAR}
+    </foreach>
+    );
+  </delete>
+
+  <update id="updateUserInfo" parameterType="com.shr.translationtoolservice.entity.ConfigResUser">
+    <!--@mbg.generated-->
+    update t_user
+    <set>
+
+      <if test="user.userName != null and user.userName != ''">
+
+        user_name= #{user.userName,jdbcType=VARCHAR},
+      </if>
+      <if test="user.jobNumber != null and user.jobNumber != ''">
+
+        job_number= #{user.jobNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="user.department != null and user.department != ''">
+        department= #{user.department,jdbcType=VARCHAR},
+      </if>
+      <if test="user.roleName != null and user.roleName != ''">
+
+        role_id= (select t2.id from t_role t2 where t2.role_name= #{user.roleName,jdbcType=VARCHAR}),
+      </if>
+    </set>
+    where id = #{user.id,jdbcType=VARCHAR}
+  </update>
+
+
+
+  <select id="queryRoleInfo" resultMap="BaseResultMap">
+    select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
+    from t_user t1 join t_role t2 on 1=1
+    <if test="user.userName != null and user.userName != ''">
+      and
+      user_name= #{user.userName,jdbcType=VARCHAR}
+    </if>
+    <if test="user.jobNumber != null and user.jobNumber != ''">
+      and
+      job_number= #{user.jobNumber,jdbcType=VARCHAR}
+    </if>
+    <if test="user.department != null and user.department != ''">
+      and
+      department= #{user.department,jdbcType=VARCHAR}
+    </if>
+    <if test="user.roleId != null and user.roleId != ''">
+      and
+
+      role_id= #{user.roleId,jdbcType=VARCHAR}
+
+    </if>
+    and
+    t1.role_id=t2.id
+
+  </select>
 </mapper>

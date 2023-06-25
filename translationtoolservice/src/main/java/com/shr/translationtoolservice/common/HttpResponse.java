@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.util;
+package com.shr.translationtoolservice.common;
 
 
 /**

@@ -1,11 +1,14 @@
 package com.shr.translationtoolservice.controller;
 
+import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.PassToken;
 import com.shr.translationtoolservice.entity.ConfigResUser;
+import com.shr.translationtoolservice.entity.Role;
+import com.shr.translationtoolservice.entity.RoleEntity;
 import com.shr.translationtoolservice.entity.User;
 import com.shr.translationtoolservice.service.ConfigManageInterface;
 import com.shr.translationtoolservice.service.impl.ConfigManageServiceImpl;
-import com.shr.translationtoolservice.util.HttpResponse;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +19,7 @@ import java.util.List;
 
 /**
  * @ClassName ConfigManageController
- * @Description TODO
+ * @Description
  * @USER: Cola
  * @Date 2023/6/20 0020 14:07
  **/
@@ -38,12 +41,22 @@ public class ConfigManageController extends BaseController {
         return checkResult(userRes);
     }
 
-    @PostMapping("/changeUser")
+    @PostMapping("/addUser")
+    @ApiOperation("新增用户")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> addUser(@RequestBody ConfigResUser user){
+        String  userRes = configManageService.addUser(user);
+
+        return checkResult(userRes);
+    }
+
+    @PostMapping("/updateUserInfo")
     @ApiOperation("修改用户信息")
     @PassToken
     @CrossOrigin
-    public HttpResponse<Integer> changeUserInfo(@RequestBody ConfigResUser user){
-        Integer res = configManageService.changeUserInfo(user);
+    public HttpResponse<Integer> updateUserInfo(@RequestBody ConfigResUser user){
+        Integer res = configManageService.updateUserInfo(user);
         return checkResult(res);
     }
 
@@ -54,5 +67,42 @@ public class ConfigManageController extends BaseController {
     public HttpResponse<Integer> deleteUserInfoByList(@RequestBody List<String> idList){
         Integer res = configManageService.deleteUserInfoByList(idList);
         return checkResult(res);
+    }
+
+
+    @PostMapping("/queryRoleInfo")
+    @ApiOperation("查询角色信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<List<RoleEntity>> queryRoleInfo( String userName){
+        List<RoleEntity> roleRes = configManageService.queryRoleInfo(userName);
+        return checkResult(roleRes);
+    }
+
+    @PostMapping("/deleteRoleInfo")
+    @ApiOperation("删除角色信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<Integer> deleteRoleInfo( String id){
+
+        return checkResult(configManageService.deleteRoleInfo(id));
+    }
+
+    @PostMapping("/updateRoleInfo")
+    @ApiOperation("修改角色信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<Integer> updateRoleInfo( Role role){
+
+        return checkResult(configManageService.updateRoleInfo(role));
+    }
+
+    @PostMapping("/addRoleInfo")
+    @ApiOperation("新增角色信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<Integer> insertSelective( Role role){
+
+        return checkResult(configManageService.insertSelective(role));
     }
 }

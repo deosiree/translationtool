@@ -1,6 +1,8 @@
 package com.shr.translationtoolservice.service;
 
 import com.shr.translationtoolservice.entity.ConfigResUser;
+import com.shr.translationtoolservice.entity.Role;
+import com.shr.translationtoolservice.entity.RoleEntity;
 
 import java.util.List;
 
@@ -10,5 +12,15 @@ public interface ConfigManageInterface {
 
     Integer deleteUserInfoByList(List<String> idList);
 
-    Integer changeUserInfo(ConfigResUser user);
+    Integer updateUserInfo(ConfigResUser user);
+
+    List<RoleEntity> queryRoleInfo(String userName);
+
+    Integer deleteRoleInfo(String id);
+
+    Integer updateRoleInfo(Role role);
+
+    Integer insertSelective(Role role);
+
+    String addUser(ConfigResUser user);
 }

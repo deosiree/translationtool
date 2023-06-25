@@ -13,6 +13,8 @@
     <!--@mbg.generated-->
     id, role_name, `describe`, is_default
   </sql>
+
+
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
@@ -20,6 +22,14 @@
     from t_role
     where id = #{id,jdbcType=VARCHAR}
   </select>
+  <select id="getRoleIDByName" parameterType="java.lang.String" resultType="java.lang.String">
+    <!--@mbg.generated-->
+    select
+     id
+    from t_role
+    where role_name = #{roleName,jdbcType=VARCHAR}
+  </select>
+
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     <!--@mbg.generated-->
     delete from t_role
