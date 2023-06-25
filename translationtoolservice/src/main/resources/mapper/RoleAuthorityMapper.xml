@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.RoleAuthorityMapper">
+   <!-- <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.RoleAuthority">
+        &lt;!&ndash;@mbg.generated&ndash;&gt;
+        &lt;!&ndash;@Table t_authority&ndash;&gt;
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="role_id" jdbcType="VARCHAR" property="roleID"/>
+        <result column="authority_id" jdbcType="VARCHAR" property="authorityID"/>
+    </resultMap>-->
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, role_id, authority_id
+    </sql>
+
+    <insert id="bindPermission" parameterType="java.lang.String">
+         insert into t_role_authority (role_id, authority_id)
+         values (#{roleID,jdbcType=VARCHAR},#{authID,jdbcType=VARCHAR})
+    </insert>
+    <delete id="deleteAuthorityByID" parameterType="java.lang.String">
+        <!--@mbg.generated-->
+        delete from t_role_authority
+        where role_id = #{roleId,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>
