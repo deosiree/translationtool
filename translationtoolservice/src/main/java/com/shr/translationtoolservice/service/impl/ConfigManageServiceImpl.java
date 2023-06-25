@@ -1,12 +1,10 @@
 package com.shr.translationtoolservice.service.impl;
 
 
+import com.shr.translationtoolservice.dao.RoleAuthorityMapper;
 import com.shr.translationtoolservice.dao.RoleMapper;
 import com.shr.translationtoolservice.dao.UserMapper;
-import com.shr.translationtoolservice.entity.ConfigResUser;
-import com.shr.translationtoolservice.entity.Role;
-import com.shr.translationtoolservice.entity.RoleEntity;
-import com.shr.translationtoolservice.entity.User;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.ConfigManageInterface;
 import com.shr.translationtoolservice.util.CommonUtils;
 import org.junit.platform.commons.util.StringUtils;
@@ -30,7 +28,8 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     RoleMapper roleMapper;
     @Autowired
     CommonUtils commonUtils;
-
+    @Autowired
+    RoleAuthorityMapper roleAuthorityMapper;
     @Override
     public List<ConfigResUser> queryUserInfo(ConfigResUser user) {
         List<ConfigResUser> configResUser = userMapper.querUser(user);
@@ -100,5 +99,16 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         }
         int res = userMapper.updateUserInfo(configResUser);
         return res;
+    }
+
+    @Override
+    public Integer bindPermission(RoleAuthority roleAuthority) {
+
+        int result =0;
+        roleAuthorityMapper.deleteAuthorityByID(roleAuthority.getRoleID());
+        for (String authId : roleAuthority.getAuthorityIDList()){
+           result  += roleAuthorityMapper.bindPermission(authId,roleAuthority.getRoleID());
+        }
+        return result;
     }
 }

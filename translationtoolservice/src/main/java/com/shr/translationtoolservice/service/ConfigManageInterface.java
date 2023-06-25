@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.service;
 
 import com.shr.translationtoolservice.entity.ConfigResUser;
 import com.shr.translationtoolservice.entity.Role;
+import com.shr.translationtoolservice.entity.RoleAuthority;
 import com.shr.translationtoolservice.entity.RoleEntity;
 
 import java.util.List;
@@ -25,4 +26,6 @@ public interface ConfigManageInterface {
     String addUser(ConfigResUser user);
 
     Integer bindRoleInfo(ConfigResUser configResUser);
+
+    Integer bindPermission(RoleAuthority roleAuthority);
 }

@@ -2,10 +2,7 @@ package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.PassToken;
-import com.shr.translationtoolservice.entity.ConfigResUser;
-import com.shr.translationtoolservice.entity.Role;
-import com.shr.translationtoolservice.entity.RoleEntity;
-import com.shr.translationtoolservice.entity.User;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.ConfigManageInterface;
 import com.shr.translationtoolservice.service.impl.ConfigManageServiceImpl;
 
@@ -113,5 +110,14 @@ public class ConfigManageController extends BaseController {
     public HttpResponse<Integer> bindRoleInfo( ConfigResUser configResUser){
 
         return checkResult(configManageService.bindRoleInfo(configResUser));
+    }
+
+    @PostMapping("/bindPermission")
+    @ApiOperation("绑定权限信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<Integer> bindPermission( @RequestBody RoleAuthority roleAuthority){
+
+        return checkResult(configManageService.bindPermission(roleAuthority));
     }
 }
