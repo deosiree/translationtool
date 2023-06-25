@@ -92,4 +92,13 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
         return id;
     }
+
+    @Override
+    public Integer bindRoleInfo(ConfigResUser configResUser) {
+        if (StringUtils.isBlank(configResUser.getRoleId())){
+            configResUser.setRoleId(roleMapper.getRoleIDByName(configResUser.getRoleName()));
+        }
+        int res = userMapper.updateUserInfo(configResUser);
+        return res;
+    }
 }

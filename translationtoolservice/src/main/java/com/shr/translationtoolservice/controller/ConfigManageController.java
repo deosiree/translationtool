@@ -101,8 +101,17 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("新增角色信息")
     @PassToken
     @CrossOrigin
-    public HttpResponse<Integer> insertSelective( Role role){
+    public HttpResponse<Integer> addRoleInfo( Role role){
 
         return checkResult(configManageService.insertSelective(role));
+    }
+
+    @PostMapping("/bindRoleInfo")
+    @ApiOperation("绑定角色信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<Integer> bindRoleInfo( ConfigResUser configResUser){
+
+        return checkResult(configManageService.bindRoleInfo(configResUser));
     }
 }

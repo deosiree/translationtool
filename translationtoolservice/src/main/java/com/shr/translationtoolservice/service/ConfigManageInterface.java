@@ -23,4 +23,6 @@ public interface ConfigManageInterface {
     Integer insertSelective(Role role);
 
     String addUser(ConfigResUser user);
+
+    Integer bindRoleInfo(ConfigResUser configResUser);
 }
