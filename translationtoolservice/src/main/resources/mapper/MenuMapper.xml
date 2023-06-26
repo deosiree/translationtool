@@ -10,12 +10,13 @@
     <result column="url" jdbcType="VARCHAR" property="url" />
     <result column="rank" jdbcType="INTEGER" property="rank" />
     <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="active_icon" jdbcType="VARCHAR" property="activeIcon" />
     <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="component" jdbcType="VARCHAR" property="component" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, parent_id, menu_name, url, `rank`, icon , name , component
+    id, parent_id, menu_name, url, `rank`, icon ,active_icon , name , component
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->

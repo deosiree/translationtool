@@ -35,6 +35,10 @@ public class Menu {
     * 图标
     */
     private String icon;
+    /**
+     * 激活图标
+     */
+    private String activeIcon;
 
     private String name;
 
