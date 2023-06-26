@@ -8,25 +8,25 @@ public interface ConfigManageInterface {
 
 
 
-    Integer deleteUserInfoByList(List<String> idList);
+    String deleteUserInfoByList(List<String> idList);
 
-    Integer updateUserInfo(ConfigResUser user);
+    String updateUserInfo(ConfigResUser user);
 
     List<Role> queryRoleInfo(String roleName,
                                    Integer pageIndex,
                                    Integer pageSize);
 
-    Integer deleteRoleInfo(List<String> id);
+    String deleteRoleInfo(List<String> id);
 
-    Integer updateRoleInfo(Role role);
+    String updateRoleInfo(Role role);
 
-    Integer insertSelective(Role role);
+    String insertRoleInfo(Role role);
 
     String addUser(ConfigResUser user);
 
-    Integer bindRoleInfo(ConfigResUser configResUser);
+    String bindRoleInfo(ConfigResUser configResUser);
 
-    Integer bindPermission(RoleAuthority roleAuthority);
+    String bindPermission(RoleAuthority roleAuthority);
 
     List<ConfigResUser>  queryUserInfo(ConfigResUser user, Integer pageIndex, Integer pageIndex1);
 
@@ -34,5 +34,13 @@ public interface ConfigManageInterface {
 
     int getRoleTotaNum(String roleName);
 
-   //List<EntryVersion> queryVersionInfo(String , Integer , Integer );
+    List<EntryVersion> queryVersionInfo(String versionName, Integer pageIndex, Integer pageSize);
+
+    int getVersionTotaNum(String versionName);
+
+    String updateVersionInfo(EntryVersion entryVersion);
+
+    String deleteVersionInfo(List<String> idList);
+
+    String addVersionInfo(EntryVersion entryVersion);
 }

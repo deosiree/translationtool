@@ -22,7 +22,8 @@
     from t_role
     where id = #{id,jdbcType=VARCHAR}
   </select>
-  <select id="getRoleIDByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+
+  <select id="getRoleByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
     select
     <include refid="Base_Column_List"/>
@@ -30,12 +31,23 @@
 
     <if test="roleName != null and roleName != ''">
       where
-      role_name= #{roleName,jdbcType=VARCHAR}
+      role_name like CONCAT('%','${roleName}','%' )
     </if>
+
+  </select>
+
+
+  <select id="getRole" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_role
+
     <if test="limit >= 0 and offset >= 0">
       LIMIT #{limit} OFFSET #{offset}
     </if>
   </select>
+
   <select id="getRoleTotaNum" parameterType="java.lang.String" resultType="int">
     <!--@mbg.generated-->
     select count(1)

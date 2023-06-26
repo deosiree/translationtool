@@ -43,6 +43,7 @@
     values (#{id,jdbcType=VARCHAR}, #{userName,jdbcType=VARCHAR}, #{jobNumber,jdbcType=VARCHAR}, 
       #{department,jdbcType=VARCHAR}, #{roleId,jdbcType=VARCHAR})
   </insert>
+
   <insert id="insertSelective" parameterType="com.shr.translationtoolservice.entity.User">
     <!--@mbg.generated-->
     insert into t_user
@@ -81,6 +82,7 @@
       </if>
     </trim>
   </insert>
+
   <update id="updateByPrimaryKeySelective" parameterType="com.shr.translationtoolservice.entity.User">
     <!--@mbg.generated-->
     update t_user
@@ -143,7 +145,7 @@
     from t_user t1  join t_role t2 on 1=1
     <if test="user.userName != null and user.userName != ''">
       and
-      user_name= #{user.userName,jdbcType=VARCHAR}
+      user_name like CONCAT('%','${user.userName}','%' )
     </if>
     <if test="user.jobNumber != null and user.jobNumber != ''">
       and
@@ -195,68 +197,11 @@
       </if>
       <if test="user.roleName != null and user.roleName != ''">
 
-        role_id= (select t2.id from t_role t2 where t2.role_name= #{user.roleName,jdbcType=VARCHAR}),
+        role_id=  #{user.roleId,jdbcType=VARCHAR}),
       </if>
     </set>
     where id = #{user.id,jdbcType=VARCHAR}
   </update>
 
 
-
-<!--  <select id="queryRoleInfo" resultMap="BaseResultMap">
-    select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
-    from t_user t1 join t_role t2 on 1=1
-    <if test="user.userName != null and user.userName != ''">
-      and
-      user_name= #{user.userName,jdbcType=VARCHAR}
-    </if>
-    <if test="user.jobNumber != null and user.jobNumber != ''">
-      and
-      job_number= #{user.jobNumber,jdbcType=VARCHAR}
-    </if>
-    <if test="user.department != null and user.department != ''">
-      and
-      department= #{user.department,jdbcType=VARCHAR}
-    </if>
-    <if test="user.roleId != null and user.roleId != ''">
-      and
-
-      role_id= #{user.roleId,jdbcType=VARCHAR}
-
-    </if>
-    and
-    t1.role_id=t2.id
-
-    <if test="limit >= 0 and offset >= 0">
-      LIMIT #{limit} OFFSET #{offset}
-    </if>
-
-  </select>-->
-
- <!-- <select id="getRoleTotaNum" resultMap="BaseResultMap">
-    select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
-    from t_user t1 join t_role t2 on 1=1
-    <if test="user.userName != null and user.userName != ''">
-      and
-      user_name= #{user.userName,jdbcType=VARCHAR}
-    </if>
-    <if test="user.jobNumber != null and user.jobNumber != ''">
-      and
-      job_number= #{user.jobNumber,jdbcType=VARCHAR}
-    </if>
-    <if test="user.department != null and user.department != ''">
-      and
-      department= #{user.department,jdbcType=VARCHAR}
-    </if>
-    <if test="user.roleId != null and user.roleId != ''">
-      and
-
-      role_id= #{user.roleId,jdbcType=VARCHAR}
-
-    </if>
-    and
-    t1.role_id=t2.id
-
-
-  </select>-->
 </mapper>
