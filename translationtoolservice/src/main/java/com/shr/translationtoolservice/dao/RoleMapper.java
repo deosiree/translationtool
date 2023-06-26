@@ -10,7 +10,7 @@ import java.util.List;
 @Mapper
 public interface RoleMapper {
     int deleteByPrimaryKey(String id);
-
+    int deleteByList(List<String> idList);
     int insert(Role record);
 
     int insertSelective(Role record);

@@ -52,6 +52,16 @@
     delete from t_role
     where id = #{id,jdbcType=VARCHAR}
   </delete>
+  <delete id="deleteByList" parameterType="java.util.List">
+    <!--@mbg.generated-->
+    delete from t_role
+    where id in(
+    <foreach collection="list" item="idList" index="index" separator=",">
+      #{idList,jdbcType=VARCHAR}
+    </foreach>
+    );
+  </delete>
+
   <insert id="insert" parameterType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
     insert into t_role (id, role_name, `describe`, 

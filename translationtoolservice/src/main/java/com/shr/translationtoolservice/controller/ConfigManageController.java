@@ -90,9 +90,9 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/deleteRoleInfo")
     @ApiOperation("删除角色信息")
     @CrossOrigin
-    public HttpResponse<Integer> deleteRoleInfo( String id){
+    public HttpResponse<Integer> deleteRoleInfo( @RequestBody List<String> roleIDs){
 
-        return checkResult(configManageService.deleteRoleInfo(id));
+        return checkResult(configManageService.deleteRoleInfo(roleIDs));
     }
 
     @PostMapping("/updateRoleInfo")
@@ -126,4 +126,6 @@ public class ConfigManageController extends BaseController {
 
         return checkResult(configManageService.bindPermission(roleAuthority));
     }
+
+
 }

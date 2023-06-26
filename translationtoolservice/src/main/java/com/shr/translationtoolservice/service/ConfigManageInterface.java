@@ -16,7 +16,7 @@ public interface ConfigManageInterface {
                                    Integer pageIndex,
                                    Integer pageSize);
 
-    Integer deleteRoleInfo(String id);
+    Integer deleteRoleInfo(List<String> id);
 
     Integer updateRoleInfo(Role role);
 

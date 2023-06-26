@@ -36,9 +36,8 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     @Autowired
     RoleAuthorityMapper roleAuthorityMapper;
     private final static Logger logger = Logger.getLogger("ConfigManageServiceImpl");
-
     @Override
-    public List<ConfigResUser> queryUserInfo(ConfigResUser user,
+    public List<ConfigResUser>  queryUserInfo(ConfigResUser user,
                                              Integer pageIndex,
                                              Integer pageSize) {
 
@@ -47,6 +46,8 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             int offset = (pageIndex - 1) * pageSize;
             configResUser = userMapper.querUser(user, pageSize, offset);
         }
+
+
 
 
         return configResUser;
@@ -77,20 +78,20 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public List<Role> queryRoleInfo(String roleName,
-                                    Integer pageIndex,
-                                    Integer pageSize) {
+                                          Integer pageIndex,
+                                          Integer pageSize) {
         List<Role> roleEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            roleEntities = roleMapper.getRoleIDByName(roleName, pageSize, offset);
+            roleEntities = roleMapper.getRoleIDByName(roleName,pageSize,offset);
         }
         return roleEntities;
 
     }
 
     @Override
-    public Integer deleteRoleInfo(String id) {
-        return roleMapper.deleteByPrimaryKey(id);
+    public Integer deleteRoleInfo(List<String> idList) {
+        return roleMapper.deleteByList(idList);
     }
 
     @Override
@@ -110,11 +111,12 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         String id = commonUtils.getUUID();
         newUser.setId(id);
 
-        if (StringUtils.isBlank(user.getRoleId())) {
-            List<Role> roles = roleMapper.getRoleIDByName(user.getRoleName(), 10, 0);
-            if (roles.size() == 1) {
+        if (StringUtils.isBlank(user.getRoleId())){
+            final List<Role> roleIDByName = roleMapper.getRoleIDByName(user.getRoleName(), 10, 0);
+            List<Role> roles = roleIDByName;
+            if (roles.size()==1){
                 newUser.setRoleId(roles.get(0).getId());
-            } else {
+            }else {
                 logger.warning(" role return warning ！");
                 return "";
             }
@@ -125,18 +127,18 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         newUser.setDepartment(user.getDepartment());
         newUser.setJobNumber(user.getJobNumber());
 
-        int a = userMapper.insertSelective(newUser);
+        int a= userMapper.insertSelective(newUser);
 
         return id;
     }
 
     @Override
     public Integer bindRoleInfo(ConfigResUser configResUser) {
-        if (StringUtils.isBlank(configResUser.getRoleId())) {
-            List<Role> roles = roleMapper.getRoleIDByName(configResUser.getRoleName(), 10, 0);
-            if (roles.size() == 1) {
+        if (StringUtils.isBlank(configResUser.getRoleId())){
+            List<Role> roles = roleMapper.getRoleIDByName(configResUser.getRoleName(),10,0);
+            if (roles.size()==1){
                 configResUser.setRoleId(roles.get(0).getId());
-            } else {
+            }else {
                 logger.warning(" role return waring !");
             }
 
@@ -148,10 +150,10 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     @Override
     public Integer bindPermission(RoleAuthority roleAuthority) {
 
-        int result = 0;
+        int result =0;
         roleAuthorityMapper.deleteAuthorityByID(roleAuthority.getRoleID());
-        for (String authId : roleAuthority.getAuthorityIDList()) {
-            result += roleAuthorityMapper.bindPermission(authId, roleAuthority.getRoleID());
+        for (String authId : roleAuthority.getAuthorityIDList()){
+           result  += roleAuthorityMapper.bindPermission(authId,roleAuthority.getRoleID());
         }
         return result;
     }
