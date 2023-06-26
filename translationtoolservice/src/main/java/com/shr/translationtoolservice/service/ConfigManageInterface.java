@@ -33,4 +33,6 @@ public interface ConfigManageInterface {
     int getUserTotalNum(ConfigResUser user);
 
     int getRoleTotaNum(String roleName);
+
+   //List<EntryVersion> queryVersionInfo(String , Integer , Integer );
 }

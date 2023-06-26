@@ -33,11 +33,11 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("查询用户信息")
     @PassToken
     @CrossOrigin
-    public HttpResponse<ResponseListModel<ConfigResUser>>  queryUserInfo(@RequestBody ConfigResUser user,
-                                                           @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                                           @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
+    public HttpResponse<ResponseListModel<ConfigResUser>> queryUserInfo(@RequestBody ConfigResUser user,
+                                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<ConfigResUser> result = new ResponseListModel<>();
-        List<ConfigResUser>  configResUsers = configManageService.queryUserInfo(user,pageIndex,pageSize);
+        List<ConfigResUser> configResUsers = configManageService.queryUserInfo(user, pageIndex, pageSize);
         int total = configManageService.getUserTotalNum(user);
         result.setList(configResUsers);
         result.setTotalNum(total);
@@ -47,8 +47,8 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/addUser")
     @ApiOperation("新增用户")
     @CrossOrigin
-    public HttpResponse<String> addUser(@RequestBody ConfigResUser user){
-        String  userRes = configManageService.addUser(user);
+    public HttpResponse<String> addUser(@RequestBody ConfigResUser user) {
+        String userRes = configManageService.addUser(user);
 
         return checkResult(userRes);
     }
@@ -56,7 +56,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/updateUserInfo")
     @ApiOperation("编辑用户信息")
     @CrossOrigin
-    public HttpResponse<Integer> updateUserInfo(@RequestBody ConfigResUser user){
+    public HttpResponse<Integer> updateUserInfo(@RequestBody ConfigResUser user) {
         Integer res = configManageService.updateUserInfo(user);
         return checkResult(res);
     }
@@ -64,7 +64,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/deleteUser")
     @ApiOperation("删除用户信息")
     @CrossOrigin
-    public HttpResponse<Integer> deleteUserInfoByList(@RequestBody List<String> idList){
+    public HttpResponse<Integer> deleteUserInfoByList(@RequestBody List<String> idList) {
         Integer res = configManageService.deleteUserInfoByList(idList);
         return checkResult(res);
     }
@@ -74,11 +74,11 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("查询角色信息")
     @PassToken
     @CrossOrigin
-    public HttpResponse<ResponseListModel> queryRoleInfo( String roleName,
+    public HttpResponse<ResponseListModel> queryRoleInfo(String roleName,
                                                          @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                                         @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
+                                                         @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<Role> result = new ResponseListModel<>();
-        List<Role> roleRes = configManageService.queryRoleInfo(roleName,pageIndex,pageSize);
+        List<Role> roleRes = configManageService.queryRoleInfo(roleName, pageIndex, pageSize);
         int total = configManageService.getRoleTotaNum(roleName);
         result.setList(roleRes);
 
@@ -90,7 +90,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/deleteRoleInfo")
     @ApiOperation("删除角色信息")
     @CrossOrigin
-    public HttpResponse<Integer> deleteRoleInfo( @RequestBody List<String> roleIDs){
+    public HttpResponse<Integer> deleteRoleInfo(@RequestBody List<String> roleIDs) {
 
         return checkResult(configManageService.deleteRoleInfo(roleIDs));
     }
@@ -98,7 +98,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/updateRoleInfo")
     @ApiOperation("编辑角色信息")
     @CrossOrigin
-    public HttpResponse<Integer> updateRoleInfo( Role role){
+    public HttpResponse<Integer> updateRoleInfo(Role role) {
 
         return checkResult(configManageService.updateRoleInfo(role));
     }
@@ -106,7 +106,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/addRoleInfo")
     @ApiOperation("新增角色信息")
     @CrossOrigin
-    public HttpResponse<Integer> addRoleInfo( Role role){
+    public HttpResponse<Integer> addRoleInfo(Role role) {
 
         return checkResult(configManageService.insertSelective(role));
     }
@@ -114,7 +114,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/bindRoleInfo")
     @ApiOperation("绑定角色信息")
     @CrossOrigin
-    public HttpResponse<Integer> bindRoleInfo( ConfigResUser configResUser){
+    public HttpResponse<Integer> bindRoleInfo(ConfigResUser configResUser) {
 
         return checkResult(configManageService.bindRoleInfo(configResUser));
     }
@@ -122,10 +122,27 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/bindPermission")
     @ApiOperation("绑定权限信息")
     @CrossOrigin
-    public HttpResponse<Integer> bindPermission( @RequestBody RoleAuthority roleAuthority){
+    public HttpResponse<Integer> bindPermission(@RequestBody RoleAuthority roleAuthority) {
 
         return checkResult(configManageService.bindPermission(roleAuthority));
     }
-
-
 }
+
+/*
+    @PostMapping("/queryVersionInfo")
+    @ApiOperation("查询版本信息")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> queryVersionInfo( String versionName,
+                                                             @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
+        ResponseListModel<EntryVersion> result = new ResponseListModel<>();
+        List<EntryVersion> roleRes = configManageService.queryVersionInfo(versionName,pageIndex,pageSize);
+        i//nt total = configManageService.getVersionTotaNum(versionName);
+        result.setList(roleRes);
+
+        result.setTotalNum(total);
+
+        return checkResult(result);
+    }}
+*/

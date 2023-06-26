@@ -111,16 +111,17 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         String id = commonUtils.getUUID();
         newUser.setId(id);
 
-        if (StringUtils.isBlank(user.getRoleId())){
-            final List<Role> roleIDByName = roleMapper.getRoleIDByName(user.getRoleName(), 10, 0);
-            List<Role> roles = roleIDByName;
+        //如果没有角色信息，默认设置2
+        if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())){
+            List<Role> roles = roleMapper.getRoleIDByName(user.getRoleName(), 10, 0);
             if (roles.size()==1){
                 newUser.setRoleId(roles.get(0).getId());
             }else {
-                logger.warning(" role return warning ！");
-                return "";
+                logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
+                newUser.setRoleId("2");
             }
-
+        }else {
+            newUser.setRoleId("2");
         }
 
         newUser.setUserName(user.getUserName());
