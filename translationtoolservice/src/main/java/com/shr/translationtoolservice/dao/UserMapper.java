@@ -23,11 +23,17 @@ public interface UserMapper {
     int updateByPrimaryKey(User record);
 
 
-    List<ConfigResUser> querUser(@Param("user") ConfigResUser user);
+    List<ConfigResUser> querUser(@Param("user") ConfigResUser user,
+                                 @Param("limit") int limit,
+                                 @Param("offset") int offset);
 
     Integer deleteUserInfoByList(List<String> idList);
 
     Integer updateUserInfo(@Param("user") ConfigResUser user);
 
-    List<RoleEntity> queryRoleInfo(String userName);
+
+
+    int getUserTotalNum(@Param("user") ConfigResUser user);
+
+
 }

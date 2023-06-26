@@ -1,7 +1,11 @@
 package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.Role;
+import com.shr.translationtoolservice.entity.RoleEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface RoleMapper {
@@ -18,6 +22,12 @@ public interface RoleMapper {
     int updateByPrimaryKey(Role record);
 
     Role getRoleByDefault();
+   /* List<RoleEntity> queryRoleInfo(String userName,
+                                   @Param("limit") int limit,
+                                   @Param("offset") int offset);*/
+    List<Role>  getRoleIDByName(@Param("roleName") String roleName,
+                          @Param("limit") int limit,
+                          @Param("offset") int offset);
 
-    String getRoleIDByName(String id);
+    int getRoleTotaNum(@Param("roleName") String roleName);
 }

@@ -22,14 +22,31 @@
     from t_role
     where id = #{id,jdbcType=VARCHAR}
   </select>
-  <select id="getRoleIDByName" parameterType="java.lang.String" resultType="java.lang.String">
+  <select id="getRoleIDByName" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select
-     id
+    <include refid="Base_Column_List"/>
     from t_role
-    where role_name = #{roleName,jdbcType=VARCHAR}
-  </select>
 
+    <if test="roleName != null and roleName != ''">
+      where
+      role_name= #{roleName,jdbcType=VARCHAR}
+    </if>
+    <if test="limit >= 0 and offset >= 0">
+      LIMIT #{limit} OFFSET #{offset}
+    </if>
+  </select>
+  <select id="getRoleTotaNum" parameterType="java.lang.String" resultType="int">
+    <!--@mbg.generated-->
+    select count(1)
+    from t_role
+
+    <if test="roleName != null and roleName != ''">
+      where
+      role_name= #{roleName,jdbcType=VARCHAR}
+    </if>
+
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     <!--@mbg.generated-->
     delete from t_role

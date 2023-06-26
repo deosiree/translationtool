@@ -33,14 +33,19 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("查询用户信息")
     @PassToken
     @CrossOrigin
-    public HttpResponse<List<ConfigResUser>> queryUserInfo(@RequestBody ConfigResUser user){
-        List<ConfigResUser> userRes = configManageService.queryUserInfo(user);
-        return checkResult(userRes);
+    public HttpResponse<ResponseListModel<ConfigResUser>>  queryUserInfo(@RequestBody ConfigResUser user,
+                                                           @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                           @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
+        ResponseListModel<ConfigResUser> result = new ResponseListModel<>();
+        List<ConfigResUser>  configResUsers = configManageService.queryUserInfo(user,pageIndex,pageSize);
+        int total = configManageService.getUserTotalNum(user);
+        result.setList(configResUsers);
+        result.setTotalNum(total);
+        return checkResult(result);
     }
 
     @PostMapping("/addUser")
     @ApiOperation("新增用户")
-    @PassToken
     @CrossOrigin
     public HttpResponse<String> addUser(@RequestBody ConfigResUser user){
         String  userRes = configManageService.addUser(user);
@@ -49,8 +54,7 @@ public class ConfigManageController extends BaseController {
     }
 
     @PostMapping("/updateUserInfo")
-    @ApiOperation("修改用户信息")
-    @PassToken
+    @ApiOperation("编辑用户信息")
     @CrossOrigin
     public HttpResponse<Integer> updateUserInfo(@RequestBody ConfigResUser user){
         Integer res = configManageService.updateUserInfo(user);
@@ -59,7 +63,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/deleteUser")
     @ApiOperation("删除用户信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<Integer> deleteUserInfoByList(@RequestBody List<String> idList){
         Integer res = configManageService.deleteUserInfoByList(idList);
@@ -71,14 +74,21 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("查询角色信息")
     @PassToken
     @CrossOrigin
-    public HttpResponse<List<RoleEntity>> queryRoleInfo( String userName){
-        List<RoleEntity> roleRes = configManageService.queryRoleInfo(userName);
-        return checkResult(roleRes);
+    public HttpResponse<ResponseListModel> queryRoleInfo( String roleName,
+                                                         @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                         @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
+        ResponseListModel<Role> result = new ResponseListModel<>();
+        List<Role> roleRes = configManageService.queryRoleInfo(roleName,pageIndex,pageSize);
+        int total = configManageService.getRoleTotaNum(roleName);
+        result.setList(roleRes);
+
+        result.setTotalNum(total);
+
+        return checkResult(result);
     }
 
     @PostMapping("/deleteRoleInfo")
     @ApiOperation("删除角色信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<Integer> deleteRoleInfo( String id){
 
@@ -86,8 +96,7 @@ public class ConfigManageController extends BaseController {
     }
 
     @PostMapping("/updateRoleInfo")
-    @ApiOperation("修改角色信息")
-    @PassToken
+    @ApiOperation("编辑角色信息")
     @CrossOrigin
     public HttpResponse<Integer> updateRoleInfo( Role role){
 
@@ -96,7 +105,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/addRoleInfo")
     @ApiOperation("新增角色信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<Integer> addRoleInfo( Role role){
 
@@ -105,7 +113,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/bindRoleInfo")
     @ApiOperation("绑定角色信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<Integer> bindRoleInfo( ConfigResUser configResUser){
 
@@ -114,7 +121,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/bindPermission")
     @ApiOperation("绑定权限信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<Integer> bindPermission( @RequestBody RoleAuthority roleAuthority){
 

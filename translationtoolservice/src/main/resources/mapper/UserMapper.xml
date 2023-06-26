@@ -111,6 +111,32 @@
   </update>
 
 
+  <select id="getUserTotalNum" resultType="int">
+    select count(1)
+    from t_user t1 join t_role t2 on 1=1
+    <if test="user.userName != null and user.userName != ''">
+      and
+      user_name= #{user.userName,jdbcType=VARCHAR}
+    </if>
+    <if test="user.jobNumber != null and user.jobNumber != ''">
+      and
+      job_number= #{user.jobNumber,jdbcType=VARCHAR}
+    </if>
+    <if test="user.department != null and user.department != ''">
+      and
+      department= #{user.department,jdbcType=VARCHAR}
+    </if>
+    <if test="user.roleId != null and user.roleId != ''">
+      and
+
+      role_id= #{user.roleId,jdbcType=VARCHAR}
+
+    </if>
+    and
+    t1.role_id=t2.id
+
+
+  </select>
 
   <select id="querUser" resultMap="BaseConfigResUserMap">
     select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
@@ -135,6 +161,10 @@
     </if>
     and
     t1.role_id=t2.id
+
+    <if test="limit >= 0 and offset >= 0">
+      LIMIT #{limit} OFFSET #{offset}
+    </if>
 
   </select>
 
@@ -173,7 +203,7 @@
 
 
 
-  <select id="queryRoleInfo" resultMap="BaseResultMap">
+<!--  <select id="queryRoleInfo" resultMap="BaseResultMap">
     select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
     from t_user t1 join t_role t2 on 1=1
     <if test="user.userName != null and user.userName != ''">
@@ -197,5 +227,36 @@
     and
     t1.role_id=t2.id
 
-  </select>
+    <if test="limit >= 0 and offset >= 0">
+      LIMIT #{limit} OFFSET #{offset}
+    </if>
+
+  </select>-->
+
+ <!-- <select id="getRoleTotaNum" resultMap="BaseResultMap">
+    select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
+    from t_user t1 join t_role t2 on 1=1
+    <if test="user.userName != null and user.userName != ''">
+      and
+      user_name= #{user.userName,jdbcType=VARCHAR}
+    </if>
+    <if test="user.jobNumber != null and user.jobNumber != ''">
+      and
+      job_number= #{user.jobNumber,jdbcType=VARCHAR}
+    </if>
+    <if test="user.department != null and user.department != ''">
+      and
+      department= #{user.department,jdbcType=VARCHAR}
+    </if>
+    <if test="user.roleId != null and user.roleId != ''">
+      and
+
+      role_id= #{user.roleId,jdbcType=VARCHAR}
+
+    </if>
+    and
+    t1.role_id=t2.id
+
+
+  </select>-->
 </mapper>

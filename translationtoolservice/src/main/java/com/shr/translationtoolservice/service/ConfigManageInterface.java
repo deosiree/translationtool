@@ -1,21 +1,20 @@
 package com.shr.translationtoolservice.service;
 
-import com.shr.translationtoolservice.entity.ConfigResUser;
-import com.shr.translationtoolservice.entity.Role;
-import com.shr.translationtoolservice.entity.RoleAuthority;
-import com.shr.translationtoolservice.entity.RoleEntity;
+import com.shr.translationtoolservice.entity.*;
 
 import java.util.List;
 
 public interface ConfigManageInterface {
 
-    List<ConfigResUser> queryUserInfo(ConfigResUser user);
+
 
     Integer deleteUserInfoByList(List<String> idList);
 
     Integer updateUserInfo(ConfigResUser user);
 
-    List<RoleEntity> queryRoleInfo(String userName);
+    List<Role> queryRoleInfo(String roleName,
+                                   Integer pageIndex,
+                                   Integer pageSize);
 
     Integer deleteRoleInfo(String id);
 
@@ -28,4 +27,10 @@ public interface ConfigManageInterface {
     Integer bindRoleInfo(ConfigResUser configResUser);
 
     Integer bindPermission(RoleAuthority roleAuthority);
+
+    List<ConfigResUser>  queryUserInfo(ConfigResUser user, Integer pageIndex, Integer pageIndex1);
+
+    int getUserTotalNum(ConfigResUser user);
+
+    int getRoleTotaNum(String roleName);
 }
