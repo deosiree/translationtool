@@ -141,9 +141,9 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
                 return ErrorCodeList.UPDATE_ERROR;
             }
             user.setRoleId(role.getId());
-        }else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())){
+        }/*else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())){
             return ErrorCodeList.INPUT_IS_NULL;
-        }
+        }*/
 
         int update = userMapper.updateUserInfo(user);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
@@ -248,7 +248,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         newUser.setUserName(user.getUserName());
         newUser.setDepartment(user.getDepartment());
         newUser.setJobNumber(user.getJobNumber());
-
+        newUser.setRoleId(user.getRoleId());
         int insert = userMapper.insertSelective(newUser);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
