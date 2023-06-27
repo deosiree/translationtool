@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -16,4 +17,9 @@ public class CommonUtils {
         String uuid = UUID.randomUUID().toString();
         return uuid;
     }
+    public boolean checkPage(int pageIndex, int pageSize)
+    {
+        return StringUtils.isNotBlank(String.valueOf(pageIndex)) && StringUtils.isNotBlank(String.valueOf(pageSize));
+    }
+
 }

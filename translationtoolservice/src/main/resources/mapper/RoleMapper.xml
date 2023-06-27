@@ -13,6 +13,8 @@
     <!--@mbg.generated-->
     id, role_name, `describe`, is_default
   </sql>
+
+
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
@@ -20,11 +22,65 @@
     from t_role
     where id = #{id,jdbcType=VARCHAR}
   </select>
+  <update id="updateDefault0" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
+
+    update t_role set is_default = 0 where is_default = 1
+
+  </update>
+
+
+
+  <select id="getRoleByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.Role">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_role
+
+    <if test="roleName != null and roleName != ''">
+      where
+      role_name like CONCAT('%','${roleName}','%' )
+    </if>
+
+  </select>
+
+
+  <select id="getRole" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_role
+
+    <if test="limit >= 0 and offset >= 0">
+      LIMIT #{limit} OFFSET #{offset}
+    </if>
+  </select>
+
+  <select id="getRoleTotaNum" parameterType="java.lang.String" resultType="int">
+    <!--@mbg.generated-->
+    select count(1)
+    from t_role
+
+    <if test="roleName != null and roleName != ''">
+      where
+      role_name= #{roleName,jdbcType=VARCHAR}
+    </if>
+
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     <!--@mbg.generated-->
     delete from t_role
     where id = #{id,jdbcType=VARCHAR}
   </delete>
+  <delete id="deleteByList" parameterType="java.util.List">
+    <!--@mbg.generated-->
+    delete from t_role
+    where id in(
+    <foreach collection="list" item="idList" index="index" separator=",">
+      #{idList,jdbcType=VARCHAR}
+    </foreach>
+    );
+  </delete>
+
   <insert id="insert" parameterType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
     insert into t_role (id, role_name, `describe`, 

@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.util;
+package com.shr.translationtoolservice.common;
 
 
 /**
@@ -16,7 +16,7 @@ public class HttpResponse<T> {
 
 
     public enum Type {
-        OK(0), ERROR(1), UNAUTHORIZED(2), INTERNAL_ERROR(3);
+        OK(200), ERROR(201), UNAUTHORIZED(206), INTERNAL_ERROR(203);
         int val;
         Type(int val) {
             this.val = val;

@@ -24,5 +24,4 @@ public class ConfigResUser {
 
     private String roleName;
 
-    private String isDefault;
 }
