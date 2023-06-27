@@ -28,7 +28,18 @@
 
   </update>
 
+  <select id="matchRoleByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_role
 
+    <if test="roleName != null and roleName != ''">
+      where
+      role_name like CONCAT('%','${roleName}','%' )
+    </if>
+
+  </select>
 
   <select id="getRoleByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
@@ -38,7 +49,7 @@
 
     <if test="roleName != null and roleName != ''">
       where
-      role_name like CONCAT('%','${roleName}','%' )
+      role_name =#{roleName}
     </if>
 
   </select>

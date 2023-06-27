@@ -28,7 +28,9 @@ public interface RoleMapper {
     List<Role> getRole( @Param("limit") int limit,
                   @Param("offset") int offset);
 
-    Role  getRoleByName(@Param("roleName") String roleName);
+    List<Role> matchRoleByName(@Param("roleName") String roleName);
+
+    Role getRoleByName(@Param("roleName") String roleName);
 
     int getRoleTotaNum(@Param("roleName") String roleName);
 

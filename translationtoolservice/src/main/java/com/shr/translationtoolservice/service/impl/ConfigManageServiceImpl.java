@@ -13,9 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -163,7 +165,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
                 roleEntities = roleMapper.getRole(pageSize, offset);
             }
         } else {
-            roleEntities.add(roleMapper.getRoleByName(roleName));
+            roleEntities.addAll(roleMapper.matchRoleByName(roleName));
         }
 
         return roleEntities;
