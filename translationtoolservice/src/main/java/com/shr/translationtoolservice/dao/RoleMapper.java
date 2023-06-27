@@ -31,4 +31,6 @@ public interface RoleMapper {
     Role  getRoleByName(@Param("roleName") String roleName);
 
     int getRoleTotaNum(@Param("roleName") String roleName);
+
+    int updateDefault0();
 }

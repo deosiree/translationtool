@@ -181,9 +181,12 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String updateRoleInfo(Role role) {
-        //TODO : 修改default 将之前1的值改成0
-        if (1 == role.getIsDefault()){
-
+        if (Objects.nonNull(role.getIsDefault()) && 1 == role.getIsDefault()){
+            int update = roleMapper.updateDefault0();
+            if (update != ConstantInterface.DB_SUCCESS_RESULT){
+                logger.info(" **** is_default 1 => 0 error ! **** ");
+                return ErrorCodeList.UPDATE_ERROR;
+            }
         }
         int update = roleMapper.updateByPrimaryKeySelective(role);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
@@ -222,13 +225,24 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         //如果没有角色信息，默认设置2
         if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())) {
             Role role = roleMapper.getRoleByName(user.getRoleName());
-            if (Objects.isNull(role)) {
+            if (Objects.isNull(role) || StringUtils.isBlank(role.getId())) {
                 logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
-                newUser.setRoleId("2");
+                String roleID = getDefaultRoleID();
+                if (StringUtils.isBlank(roleID)){
+                    logger.warning(" **** 未找到用户角色ID ！ **** ");
+                    return ErrorCodeList.INSERT_ERROR;
+                }
+
+                newUser.setRoleId(roleID);
             }
             newUser.setRoleId(role.getId());
         } else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())) {
-            newUser.setRoleId("2");
+            String roleID = getDefaultRoleID();
+            if (StringUtils.isBlank(roleID)){
+                logger.warning(" **** 未找到用户角色ID ！ **** ");
+                return ErrorCodeList.INSERT_ERROR;
+            }
+            newUser.setRoleId(roleID);
         }
 
         newUser.setUserName(user.getUserName());
@@ -240,6 +254,17 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             return ErrorCodeList.INSERT_ERROR;
         }
         return id;
+    }
+
+    //查找用户角色ID
+    public String getDefaultRoleID(){
+        logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
+        Role userRole = roleMapper.getRoleByName("用户");
+        if (Objects.isNull(userRole)){
+            logger.warning( " **** 未找到用户角色 ！ **** ");
+            return "error";
+        }
+        return userRole.getId();
     }
 
     @Override
