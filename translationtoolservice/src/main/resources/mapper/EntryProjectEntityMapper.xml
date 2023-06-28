@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.EntryProjectEntityMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryProjectEntity">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
+            <result property="entry" column="entry" jdbcType="VARCHAR"/>
+            <result property="entryLength" column="entry_length" jdbcType="DOUBLE"/>
+            <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
+            <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
+            <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
+            <result property="entryState" column="entry_state" jdbcType="INTEGER"/>
+            <result property="creator" column="creator" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="update" column="update" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="version" column="version" jdbcType="VARCHAR"/>
+            <result property="isLatestVersion" column="is_latest_version" jdbcType="INTEGER"/>
+            <result property="entryLabel" column="entry_label" jdbcType="VARCHAR"/>
+            <result property="partOfSpeech" column="part_of_speech" jdbcType="VARCHAR"/>
+            <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
+            <result property="repeatEntryId" column="repeat_entry_id" jdbcType="VARCHAR"/>
+            <result property="english" column="english" jdbcType="VARCHAR"/>
+            <result property="englishLength" column="english_length" jdbcType="DOUBLE"/>
+            <result property="englishTranslateState" column="english_translate_state" jdbcType="VARCHAR"/>
+            <result property="englishDisable" column="english_disable" jdbcType="VARCHAR"/>
+            <result property="englishDisableLength" column="english_disable_length" jdbcType="DOUBLE"/>
+            <result property="russian" column="russian" jdbcType="VARCHAR"/>
+            <result property="russianLength" column="russian_length" jdbcType="DOUBLE"/>
+            <result property="russianTranslateState" column="russian_translate_state" jdbcType="VARCHAR"/>
+            <result property="spanish" column="spanish" jdbcType="VARCHAR"/>
+            <result property="spanishLength" column="spanish_length" jdbcType="DOUBLE"/>
+            <result property="spanishTranslateState" column="spanish_translate_state" jdbcType="VARCHAR"/>
+            <result property="french" column="french" jdbcType="VARCHAR"/>
+            <result property="frenchLength" column="french_length" jdbcType="DOUBLE"/>
+            <result property="frenchTranslateState" column="french_translate_state" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,abbr,entry,
+        entry_length,chinese_interpretation,english_interpretation,
+        entry_source,entry_state,creator,
+        create_time,update,update_time,
+        version,is_latest_version,entry_label,
+        part_of_speech,classify_id,repeat_entry_id,
+        english,english_length,english_translate_state,
+        english_disable,english_disable_length,russian,
+        russian_length,russian_translate_state,spanish,
+        spanish_length,spanish_translate_state,french,
+        french_length,french_translate_state
+    </sql>
+</mapper>

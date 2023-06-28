@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.EntryOperateMapper">
+  <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryOperate">
+    <!--@mbg.generated-->
+    <!--@Table t_menu-->
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="operator" jdbcType="VARCHAR" property="operator" />
+    <result column="operate_time" jdbcType="VARCHAR" property="operateTime" />
+    <result column="operate_content" jdbcType="VARCHAR" property="operateContent" />
+    <result column="entry_id" jdbcType="VARCHAR" property="entryId" />
+    <result column="notes" jdbcType="VARCHAR" property="notes" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, parent_id, menu_name, url, `rank`, icon ,active_icon , name , component
+  </sql>
+
+</mapper>

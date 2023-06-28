@@ -15,13 +15,22 @@ spring:
 server:
   port: 18001
 
-logging.level.com.shr.centralized.inspect.restful.dao.DevicePointDao : debug
+logging.level.com.shr.translationtoolservice.dao : debug
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
   type-aliases-package: com.shr.translationtoolservice.entity
   configuration:
     cache-enable: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #call-setters-on-nulls: true
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.shr.translationtoolservice.entity
+  configuration:
+    cache-enable: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #call-setters-on-nulls: true
 #是否开启swagger
 swagger:
   enabled: true

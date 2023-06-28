@@ -17,7 +17,7 @@ public interface RoleMapper {
 
     Role selectByPrimaryKey(String id);
 
-    int updateByPrimaryKeySelective(Role record);
+    int updateEntry(@Param("role") Role role);
 
     int updateByPrimaryKey(Role record);
 
@@ -35,4 +35,6 @@ public interface RoleMapper {
     int getRoleTotaNum(@Param("roleName") String roleName);
 
     int updateDefault0();
+
+    String getDefault1();
 }

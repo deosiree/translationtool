@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -30,6 +31,7 @@ import java.util.logging.Logger;
  **/
 @Service
 @Slf4j
+@Transactional
 public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Autowired
@@ -107,11 +109,11 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String deleteVersionInfo(List<String> idList) {
-        int delete =  entryVersionMapper.deleteVersionInfo(idList);
+        int delete = entryVersionMapper.deleteVersionInfo(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
-        return  ConstantInterface.OK_STR;
+        return ConstantInterface.OK_STR;
     }
 
     @Override
@@ -136,16 +138,14 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String updateUserInfo(ConfigResUser user) {
-        if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())){
+        if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())) {
             Role role = roleMapper.getRoleByName(user.getRoleName());
             //未找到角色信息
-            if (Objects.isNull(role)){
+            if (Objects.isNull(role)) {
                 return ErrorCodeList.UPDATE_ERROR;
             }
             user.setRoleId(role.getId());
-        }/*else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())){
-            return ErrorCodeList.INPUT_IS_NULL;
-        }*/
+        }
 
         int update = userMapper.updateUserInfo(user);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
@@ -183,14 +183,10 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String updateRoleInfo(Role role) {
-        if (Objects.nonNull(role.getIsDefault()) && 1 == role.getIsDefault()){
-            int update = roleMapper.updateDefault0();
-            if (update != ConstantInterface.DB_SUCCESS_RESULT){
-                logger.info(" **** is_default 1 => 0 error ! **** ");
-                return ErrorCodeList.UPDATE_ERROR;
-            }
+        if (Objects.nonNull(role.getIsDefault()) && 1 == role.getIsDefault()) {
+             roleMapper.updateDefault0();
         }
-        int update = roleMapper.updateByPrimaryKeySelective(role);
+        int update = roleMapper.updateEntry(role);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
@@ -203,8 +199,11 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         if (findRoleSameName(role.getRoleName())) {
             return ErrorCodeList.NAME_EXIST;
         }
-        if (Objects.isNull(role.getIsDefault())){
+        if (Objects.isNull(role.getIsDefault())) {
             role.setIsDefault(0);
+            //其他角色default改成0
+        }else if ("1".equals(role.getIsDefault())){
+            roleMapper.updateDefault0();
         }
         role.setId(commonUtils.getUUID());
         int insert = roleMapper.insertSelective(role);
@@ -230,7 +229,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             if (Objects.isNull(role) || StringUtils.isBlank(role.getId())) {
                 logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
                 String roleID = getDefaultRoleID();
-                if (StringUtils.isBlank(roleID)){
+                if (StringUtils.isBlank(roleID)) {
                     logger.warning(" **** 未找到用户角色ID ！ **** ");
                     return ErrorCodeList.INSERT_ERROR;
                 }
@@ -239,12 +238,19 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             }
             newUser.setRoleId(role.getId());
         } else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())) {
+
+            //设置默认用户角色
             String roleID = getDefaultRoleID();
-            if (StringUtils.isBlank(roleID)){
+            if (StringUtils.isBlank(roleID)) {
                 logger.warning(" **** 未找到用户角色ID ！ **** ");
                 return ErrorCodeList.INSERT_ERROR;
             }
             newUser.setRoleId(roleID);
+            //
+        } else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())) {
+            String roleID = roleMapper.getDefault1();
+
+            user.setRoleId(roleID);
         }
 
         newUser.setUserName(user.getUserName());
@@ -259,11 +265,11 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     }
 
     //查找用户角色ID
-    public String getDefaultRoleID(){
+    public String getDefaultRoleID() {
         logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
         Role userRole = roleMapper.getRoleByName("用户");
-        if (Objects.isNull(userRole)){
-            logger.warning( " **** 未找到用户角色 ！ **** ");
+        if (Objects.isNull(userRole)) {
+            logger.warning(" **** 未找到用户角色 ！ **** ");
             return "error";
         }
         return userRole.getId();

@@ -142,7 +142,7 @@
 
   <select id="querUser" resultMap="BaseConfigResUserMap">
     select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
-    from t_user t1  join t_role t2 on 1=1
+    from t_user t1 left join t_role t2 on   t1.role_id = t2.id
     <if test="user.userName != null and user.userName != ''">
       and
       user_name like CONCAT('%','${user.userName}','%' )
@@ -161,8 +161,6 @@
       role_id= #{user.roleId,jdbcType=VARCHAR}
 
     </if>
-    and
-    t1.role_id=t2.id
 
     <if test="limit >= 0 and offset >= 0">
       LIMIT #{limit} OFFSET #{offset}
@@ -197,8 +195,9 @@
       </if>
       <if test="user.roleName != null and user.roleName != ''">
 
-        role_id=  #{user.roleId,jdbcType=VARCHAR}),
+        role_id=  #{user.roleId,jdbcType=VARCHAR},
       </if>
+
     </set>
     where id = #{user.id,jdbcType=VARCHAR}
   </update>
