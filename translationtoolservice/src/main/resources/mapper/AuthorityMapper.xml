@@ -105,4 +105,11 @@
     from t_authority
     where id in (select authority_id from t_role_authority where role_id = #{roleId,jdbcType=VARCHAR})
   </select>
+  <select id="selectByMenuId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_authority
+    where menu_id =  #{menuId,jdbcType=VARCHAR}
+  </select>
+
 </mapper>

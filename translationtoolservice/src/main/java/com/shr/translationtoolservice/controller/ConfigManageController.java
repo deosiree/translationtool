@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ import java.util.Objects;
 public class ConfigManageController extends BaseController {
     @Autowired
     ConfigManageInterface configManageService;
+
 
 
     @PostMapping("/queryUser")
@@ -140,12 +142,13 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/bindPermission")
     @ApiOperation("绑定权限信息")
     @CrossOrigin
-    public HttpResponse<String> bindPermission(@RequestBody RoleAuthority roleAuthority) {
+    @Transactional
+    public HttpResponse<String> bindPermission(@RequestBody RoleAuthorityRes roleAuthorityRes) {
 
-        if (Objects.isNull(roleAuthority)){
+        if (Objects.isNull(roleAuthorityRes) || StringUtils.isBlank(roleAuthorityRes.getRoleID()) ){
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
-        return checkResult(configManageService.bindPermission(roleAuthority));
+        return checkResult(configManageService.bindPermission(roleAuthorityRes));
     }
 
     @PostMapping("/queryVersionInfo")
@@ -167,7 +170,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/updateVersionInfo")
     @ApiOperation("编辑版本信息")
-    @PassToken
     @CrossOrigin
     //TODO
     public HttpResponse<String> updateVersionInfo(EntryVersion entryVersion) {
@@ -179,7 +181,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/deleteVersionInfo")
     @ApiOperation("删除版本信息")
-    @PassToken
     @CrossOrigin
     //TODO
     public HttpResponse<String> deleteVersionInfo(@RequestBody List<String> idList) {
@@ -191,14 +192,26 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/addVersionInfo")
     @ApiOperation("新增版本信息")
-    @PassToken
     @CrossOrigin
-    //TODO
     public HttpResponse<String> addVersionInfo(EntryVersion entryVersion) {
         if (Objects.isNull(entryVersion) || StringUtils.isBlank(entryVersion.getName())){
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
         return checkResult(configManageService.addVersionInfo(entryVersion));
+    }
+
+    @PostMapping("/getMenuInfoByRole")
+    @ApiOperation("菜单角色配置查询")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<ResponseListModel<Menu>> getMenuInfoByRole( String roleID) {
+        ResponseListModel<Menu> result = new ResponseListModel<>();
+        if (StringUtils.isBlank(roleID)) {
+            return checkResult(result);
+        }
+        result.setList(configManageService.getMenuInfoByRole(roleID));
+        result.setTotalNum(configManageService.getMenuTotal());
+        return checkResult(result);
     }
 
 

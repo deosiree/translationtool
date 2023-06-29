@@ -99,7 +99,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return entry;
     }
 
-    //
+    //判断list 是否满足 pageindex 的页码要求
     private boolean checkPage(List list, Integer pageIndex, Integer pageSize) {
         if (list.size() < pageSize) {
             return false;

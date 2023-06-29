@@ -20,4 +20,8 @@ public interface MenuMapper {
     int updateByPrimaryKey(Menu record);
 
     List<Menu> selectByRoleId(String roleId);
+
+    List<Menu> selectAllInfo();
+
+    int selectMenyTotal();
 }

@@ -47,15 +47,6 @@ public class EntryController extends BaseController{
     @Autowired
     EntryProductEntityService entryProductEntityService;
 
-    @PostMapping("/insertEntry")
-    @ResponseBody
-    @ApiOperation("新增词条")
-    public Result insertEntry(HttpServletRequest request){
-        String token = request.getHeader(Constant.TOKEN);
-        return Result.ok(JWTTokenUtils.getUserName(token));
-    }
-
-
     //查询词条信息
     @PostMapping("/searchEntry")
     @ApiOperation("词条查询")
@@ -92,6 +83,50 @@ public class EntryController extends BaseController{
 
          return checkResult(result);
     }
+
+
+    //新增词条
+    @PostMapping("/insertEntry")
+    @ApiOperation("新增词条")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> insertEntry(@RequestBody EntryReqEntry entryReqEntry){
+
+
+
+
+        return checkResult("result");
+    }
+
+    //新增词条
+    @PostMapping("/updateEntry")
+    @ApiOperation("编辑词条")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> updateEntry(@RequestBody EntryReqEntry entryReqEntry){
+
+
+
+
+        return checkResult("result");
+    }
+
+    //新增词条
+    @PostMapping("/deleteEntry")
+    @ApiOperation("删除词条")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> deleteEntry(@RequestBody EntryReqEntry entryReqEntry){
+
+
+
+
+        return checkResult("result");
+    }
+
+
+
+
     //批量审核
     @PostMapping("/bathAudit")
     @ApiOperation("批量审核")
