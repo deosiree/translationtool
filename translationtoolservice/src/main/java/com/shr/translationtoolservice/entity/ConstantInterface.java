@@ -31,7 +31,7 @@ public class ConstantInterface {
     public static final int DB_SUCCESS_RESULT = 1;
     public static final String XLS_SUFFIX = ".xls";
     public static final String TASK_ENABLE = "0";
-    public static final String TASK_DISABLE = "1";
+    public static final String IS_DEFAULT = "1";
     public static final String OK_STR = "OK";
     public static final String FAIL_STR = "Fail";
     public static final String DEVICE_POS = "device_pos\":\"";
@@ -44,6 +44,9 @@ public class ConstantInterface {
     public static final String ZIP_SUFFIX = ".zip";
     public static final String AUDIT_PATH = "/**";
 
+    public static final String PROJECT_TABLE = "project";
+    public static final String PRODUCT_TABLE = "product";
+    public static final String COMMON_TABLE = "common";
 
 
 

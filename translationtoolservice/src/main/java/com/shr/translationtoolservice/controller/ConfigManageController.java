@@ -102,6 +102,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/deleteRoleInfo")
     @ApiOperation("删除角色信息")
     @CrossOrigin
+    @Transactional
     public HttpResponse<String> deleteRoleInfo(@RequestBody List<String> roleIDs) {
         if (CollectionUtils.isEmpty(roleIDs)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);

@@ -13,7 +13,7 @@ import lombok.Data;
  */
 @TableName(value ="t_role_authority")
 @Data
-public class RoleAuthorityEntry implements Serializable {
+public class RoleAuthorityEntity implements Serializable {
     /**
      * 
      */

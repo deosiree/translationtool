@@ -1,12 +1,10 @@
 package com.shr.translationtoolservice.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.entity.EntryProjectEntity;
-import com.shr.translationtoolservice.entity.EntryReqEntry;
+import com.shr.translationtoolservice.entity.EntryReqEntity;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.dao.EntryProjectEntityMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
@@ -30,7 +28,7 @@ public class EntryProjectEntityServiceImpl extends ServiceImpl<EntryProjectEntit
 
 
     //TODO
-    public List<EntryProjectEntity> searchEntry(EntryReqEntry reqEntry, Integer pageIndex, Integer pageSize) {
+    public List<EntryProjectEntity> searchEntry(EntryReqEntity reqEntry, Integer pageIndex, Integer pageSize) {
         QueryWrapper<EntryProjectEntity> queryWrapper = new QueryWrapper<EntryProjectEntity>();
         queryWrapper.eq(StringUtils.isNotBlank(reqEntry.getEntry()),"entry", reqEntry.getEntry());
         queryWrapper.eq(StringUtils.isNotBlank(reqEntry.getCreator()),"creator", reqEntry.getCreator());

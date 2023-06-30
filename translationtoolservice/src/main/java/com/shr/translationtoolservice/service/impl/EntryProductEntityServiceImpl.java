@@ -4,8 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.entity.EntryProductEntity;
-import com.shr.translationtoolservice.entity.EntryProjectEntity;
-import com.shr.translationtoolservice.entity.EntryReqEntry;
+import com.shr.translationtoolservice.entity.EntryReqEntity;
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.dao.EntryProductEntityMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
@@ -28,7 +27,7 @@ public class EntryProductEntityServiceImpl extends ServiceImpl<EntryProductEntit
     EntryProductEntityMapper entryProductEntityMapper;
 
     @Override
-    public List<EntryProductEntity> searchEntry(EntryReqEntry reqEntry, Integer pageIndex, Integer pageSize) {
+    public List<EntryProductEntity> searchEntry(EntryReqEntity reqEntry, Integer pageIndex, Integer pageSize) {
         QueryWrapper<EntryProductEntity> queryWrapper = new QueryWrapper<EntryProductEntity>();
         queryWrapper.eq(StringUtils.isNotBlank(reqEntry.getEntry()),"entry", reqEntry.getEntry());
         queryWrapper.eq(StringUtils.isNotBlank(reqEntry.getCreator()),"creator", reqEntry.getCreator());

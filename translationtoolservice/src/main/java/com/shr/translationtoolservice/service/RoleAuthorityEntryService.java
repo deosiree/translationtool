@@ -1,11 +1,11 @@
 package com.shr.translationtoolservice.service;
 
-import com.shr.translationtoolservice.entity.RoleAuthorityEntry;
+import com.shr.translationtoolservice.entity.RoleAuthorityEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
  *
  */
-public interface RoleAuthorityEntryService extends IService<RoleAuthorityEntry> {
+public interface RoleAuthorityEntryService extends IService<RoleAuthorityEntity> {
 
 }

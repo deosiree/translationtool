@@ -1,22 +1,29 @@
 package com.shr.translationtoolservice.service;
 
-import com.shr.translationtoolservice.entity.EntryProjectEntity;
-import com.shr.translationtoolservice.entity.SearchCondition;
-import com.shr.translationtoolservice.entity.EntryReqEntry;
+import com.shr.translationtoolservice.entity.EntryParentEntity;
+import com.shr.translationtoolservice.entity.ResponseListModel;
+import com.shr.translationtoolservice.entity.EntryReqEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public interface EntryManagementService {
     //查询词条信息
-    List searchEntry(@RequestBody EntryReqEntry entryReqEntry,
-                                         @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                         @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
+    ResponseListModel searchEntry(@RequestBody EntryReqEntity entryReqEntity,
+                                  @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                  @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
     //批量审核
     String bathAudit(List<String> id);
 
-    List getAllEntry(EntryReqEntry entryReqEntry, Integer pageIndex, Integer pageSize);
+    List getAllEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize);
+
+    String insertEntry(EntryParentEntity entryReqEntry, String type);
+
+    String updateEntry(EntryParentEntity entryParentEntity, String type);
+
+    String deleteEntry(EntryParentEntity entryParentEntity, String type);
 }

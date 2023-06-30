@@ -1,9 +1,11 @@
 package com.shr.translationtoolservice.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 @Data
 public class Authority {
+
     /**
     * 主键
     */
@@ -28,4 +30,9 @@ public class Authority {
     * 菜单id
     */
     private String menuId;
+
+    @TableField("'rank'")
+    private int  rank;
+
+    private boolean clecked;
 }

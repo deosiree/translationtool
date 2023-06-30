@@ -9,4 +9,5 @@ public class RoleAuthorityRes {
     private String id;
     private String roleID;
     private List<String> authorityIDList;
+    private List<String> menuIDList;
 }

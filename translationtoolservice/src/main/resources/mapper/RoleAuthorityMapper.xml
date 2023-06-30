@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.shr.translationtoolservice.dao.RoleAuthorityMapper">
-    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.RoleAuthorityEntry">
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.RoleAuthorityEntity">
         <!--@mbg.generated-->
         <!--@Table t_authority-->
         <id column="id" jdbcType="VARCHAR" property="id"/>

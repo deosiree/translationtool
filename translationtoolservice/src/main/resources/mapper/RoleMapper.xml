@@ -153,7 +153,7 @@
       <if test="role.describe != null and role.describe != '' ">
         `describe` = #{role.describe,jdbcType=VARCHAR},
       </if>
-      <if test="role.isDefault != null and role.isDefault != '' ">
+      <if test="role.isDefault != null   ">
         is_default = #{role.isDefault,jdbcType=INTEGER},
       </if>
     </set>

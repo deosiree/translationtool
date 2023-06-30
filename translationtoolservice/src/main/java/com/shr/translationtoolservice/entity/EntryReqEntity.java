@@ -12,7 +12,7 @@ import java.util.Date;
  * @Date 2023/6/19 0019 14:08
  **/
 @Data
-public class EntryReqEntry {
+public class EntryReqEntity {
 
     @Description(value = "词条内容")
     private String entry;
