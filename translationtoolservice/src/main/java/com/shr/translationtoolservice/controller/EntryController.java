@@ -1,12 +1,13 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.Constant;
+import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.PassToken;
 import com.shr.translationtoolservice.common.Result;
 import com.shr.translationtoolservice.entity.SearchCondition;
 import com.shr.translationtoolservice.entity.Term;
 import com.shr.translationtoolservice.service.TermManagementService;
-import com.shr.translationtoolservice.util.HttpResponse;
+
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.EntryVersionMapper">
+  <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryVersion">
+    <!--@mbg.generated-->
+    <!--@Table t_user-->
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="is_default" jdbcType="VARCHAR" property="isDefault" />
+    <result column="is_select" jdbcType="VARCHAR" property="isSelect" />
+    <result column="notes" jdbcType="VARCHAR" property="notes" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, is_default, is_select, notes
+  </sql>
+  <select id="queryVersionInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_entry_version
+
+    <if test="limit >= 0 and offset >= 0">
+      LIMIT #{limit} OFFSET #{offset}
+    </if>
+  </select>
+
+  <select id="queryVersionInfoByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.EntryVersion">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_entry_version
+
+    <if test="versionName != null and versionName != ''">
+      where
+      name like CONCAT('%','${versionName}','%' )
+    </if>
+
+  </select>
+
+  <select id="getVersionTotalNum" parameterType="java.lang.String" resultType="int">
+    select
+    count(1)
+    from t_entry_version
+
+    <if test="versionName != null and versionName != ''">
+      where
+      name like CONCAT('%','${versionName}','%' )
+    </if>
+    <if test="limit >= 0 and offset >= 0">
+      LIMIT #{limit} OFFSET #{offset}
+    </if>
+
+  </select>
+
+
+  <update id="updateVersionInfo" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
+    <!--@mbg.generated-->
+    update t_entry_version
+    <set>
+
+      <if test="entryVersion.name != null and entryVersion.name != ''">
+
+        'name'= #{entryVersion.name,jdbcType=VARCHAR},
+      </if>
+      <if test="entryVersion.isDefault != null and entryVersion.isDefault != ''">
+
+        is_default= #{entryVersion.isDefault,jdbcType=VARCHAR},
+      </if>
+      <if test="entryVersion.isSelect != null and entryVersion.isSelect != ''">
+        is_select= #{entryVersion.isSelect,jdbcType=VARCHAR},
+      </if>
+      <if test="entryVersion.notes != null and entryVersion.notes != ''">
+
+        notes= #{entryVersion.notes,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{entryVersion.id,jdbcType=VARCHAR}
+  </update>
+
+
+  <delete id="deleteVersionInfo" parameterType="java.util.List">
+    DELETE FROM t_entry_version WHERE id in(
+    <foreach collection="list" item="idList" index="index" separator=",">
+      #{idList,jdbcType=VARCHAR}
+    </foreach>
+    );
+  </delete>
+
+
+  <insert id="addVersionInfo" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
+    <!--@mbg.generated-->
+    insert into t_entry_version
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="name != null">
+        'name',
+      </if>
+      <if test="isDefault != null">
+        is_default,
+      </if>
+      <if test="isSelect != null">
+        is_select,
+      </if>
+      <if test="notes != null">
+        notes,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="isDefault != null">
+        #{isDefault,jdbcType=VARCHAR},
+      </if>
+      <if test="is_select != null">
+        #{is_select,jdbcType=VARCHAR},
+      </if>
+      <if test="notes != null">
+        #{notes,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>
