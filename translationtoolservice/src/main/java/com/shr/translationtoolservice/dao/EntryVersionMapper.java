@@ -18,10 +18,10 @@ public interface EntryVersionMapper {
 
     int getVersionTotalNum(String versionName);
 
-    Integer updateVersionInfo(EntryVersion entryVersion);
+    Integer updateVersionInfo(@Param("entryVersion") EntryVersion entryVersion);
 
     Integer deleteVersionInfo(List<String> idList);
 
-    Integer addVersionInfo(EntryVersion entryVersion);
+    Integer addVersionInfo(@Param("entryVersion") EntryVersion entryVersion);
 
 }

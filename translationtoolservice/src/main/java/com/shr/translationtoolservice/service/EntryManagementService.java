@@ -17,7 +17,7 @@ public interface EntryManagementService {
                                   @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                   @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
     //批量审核
-    String bathAudit(List<String> id);
+    String bathAudit(List<String> id,String type);
 
     List getAllEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize);
 

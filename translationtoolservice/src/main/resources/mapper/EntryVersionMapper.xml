@@ -6,13 +6,13 @@
     <!--@Table t_user-->
     <id column="id" jdbcType="VARCHAR" property="id" />
     <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="is_default" jdbcType="VARCHAR" property="isDefault" />
-    <result column="is_select" jdbcType="VARCHAR" property="isSelect" />
+    <result column="is_default" jdbcType="INTEGER" property="isDefault" />
+    <result column="is_select" jdbcType="INTEGER" property="isSelect" />
     <result column="notes" jdbcType="VARCHAR" property="notes" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, is_default, is_select, notes
+    id, name,is_default, is_select, notes
   </sql>
   <select id="queryVersionInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
@@ -59,14 +59,14 @@
 
       <if test="entryVersion.name != null and entryVersion.name != ''">
 
-        'name'= #{entryVersion.name,jdbcType=VARCHAR},
+        name= #{entryVersion.name,jdbcType=VARCHAR},
       </if>
-      <if test="entryVersion.isDefault != null and entryVersion.isDefault != ''">
+      <if test="entryVersion.isDefault != null ">
 
-        is_default= #{entryVersion.isDefault,jdbcType=VARCHAR},
+        is_default= #{entryVersion.isDefault,jdbcType=INTEGER},
       </if>
-      <if test="entryVersion.isSelect != null and entryVersion.isSelect != ''">
-        is_select= #{entryVersion.isSelect,jdbcType=VARCHAR},
+      <if test="entryVersion.isSelect != null ">
+        is_select= #{entryVersion.isSelect,jdbcType=INTEGER},
       </if>
       <if test="entryVersion.notes != null and entryVersion.notes != ''">
 
@@ -90,37 +90,37 @@
     <!--@mbg.generated-->
     insert into t_entry_version
     <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="id != null">
+      <if test="entryVersion.id != null and entryVersion.id != ''">
         id,
       </if>
-      <if test="name != null">
-        'name',
+      <if test="entryVersion.name != null">
+        name,
       </if>
-      <if test="isDefault != null">
+      <if test="entryVersion.isDefault != null">
         is_default,
       </if>
-      <if test="isSelect != null">
+      <if test="entryVersion.isSelect != null">
         is_select,
       </if>
-      <if test="notes != null">
+      <if test="entryVersion.notes != null">
         notes,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        #{id,jdbcType=VARCHAR},
+      <if test="entryVersion.id != null">
+        #{entryVersion.id,jdbcType=VARCHAR},
       </if>
-      <if test="name != null">
-        #{name,jdbcType=VARCHAR},
+      <if test="entryVersion.name != null">
+        #{entryVersion.name,jdbcType=VARCHAR},
       </if>
-      <if test="isDefault != null">
-        #{isDefault,jdbcType=VARCHAR},
+      <if test="entryVersion.isDefault != null">
+        ${entryVersion.isDefault},
       </if>
-      <if test="is_select != null">
-        #{is_select,jdbcType=VARCHAR},
+      <if test="entryVersion.isSelect != null">
+        ${entryVersion.isSelect},
       </if>
-      <if test="notes != null">
-        #{notes,jdbcType=VARCHAR},
+      <if test="entryVersion.notes != null">
+        #{entryVersion.notes,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>

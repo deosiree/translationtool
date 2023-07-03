@@ -251,7 +251,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     //TODO
-    public String bathAudit(List<String> id) {
+    public String bathAudit(List<String> id,String type) {
+
 
         return null;
     }
