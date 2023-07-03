@@ -9,9 +9,14 @@ const routes = [
     component: Login
   },
   {
+    path: '/notPermission',
+    name: 'notPermission',
+    component: () => import('@/views/empty/notPermission.vue'),
+  },
+  {
     path: '/translate',
     name: 'translate',
-    component: () => import('@/views/layout/index.vue'),
+    component: () => import('@/views/layout/layout.vue'),
     children: [
       
     ]

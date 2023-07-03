@@ -54,6 +54,7 @@ export default({
 
 .ant-tabs-content{
   height: 100%;
+  position: relative;
 }
 .ant-tabs-tab-btn{
   font-size: 12px;

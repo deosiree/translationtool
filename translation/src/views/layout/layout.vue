@@ -1,11 +1,11 @@
 <template>
     <div class="layout">
-        <a-row type="flex" :gutter="16">
-            <a-col flex="75px">
+        <a-row type="flex">
+            <a-col flex="60px">
                 <div class="menu">
                     <template v-for='(item,index) in menu' :key="index">
                         <div :class="isActive === index ? 'menuItem active' : 'menuItem'" @click="clickMenu(item.url,index)">
-                            <img src="../../assets/title/data.png"/>
+                            <img :src="isActive === index ? menuIcon[item.activeIcon] : menuIcon[item.icon]"/>
                             <span>{{item.menuName}}</span>
                         </div>
                     </template>
@@ -13,7 +13,7 @@
             </a-col>
             <a-col flex="auto">
                 <div class="content">
-                    <div style="width:100%;height:100%;background-color:white;padding:10px">
+                    <div style="width:100%;height:100%;background-color:white;padding:10px;">
                         <router-view />
                     </div>
                 </div>
@@ -22,14 +22,22 @@
     </div>
 </template>
 <script>
+import Work from '../../assets/title/work.png'
+import WorkActive from '../../assets/title/work_active.png'
+import Entry from '../../assets/title/entry.png'
+import EntryActive from '../../assets/title/entry_active.png'
+import Config from '../../assets/title/config.png'
+import ConfigActive from '../../assets/title/config_active.png'
 export default ({
   name: 'layout',
   components: {
+    
   },
   data() {
     return {
-      menu: [],
-      isActive: 0
+        menuIcon:{'Work':Work,'WorkActive':WorkActive,'Entry':Entry,'EntryActive':EntryActive,'Config':Config,'ConfigActive':ConfigActive},
+        menu: [],
+        isActive: 0
     };
   },
   mounted() {
@@ -55,8 +63,7 @@ export default ({
 .layout{
     width: 100%;
     height: calc(100% - 30px);
-    /* border: 1px solid red; */
-    padding: 10px;
+    padding: 10px 10px 10px 0;
 }
 .ant-row{
     height: 100%;
@@ -65,7 +72,7 @@ export default ({
     width: 100%;
     height: 100%;
     background-color: rgb(243,243,243);
-    padding: 5px 3px;
+    padding: 10px 0px;
     text-align: center;
 }
 .content{
@@ -77,12 +84,12 @@ export default ({
 .menu .menuItem{
     width: 100%;
     height: 60px;
-    border-bottom: 1px solid #d7dad8;
+    border-bottom: 1px solid #E7E7E7;
     position: relative;
 }
 .menuItem img{
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     position:absolute;
     left: 0;
     right: 0;
@@ -93,11 +100,11 @@ export default ({
     position:absolute;
     left: 0;
     right: 0;
-    top: 35px;
+    top: 38px;
     margin: 0 auto;
     text-align: center;
-    font-size: 10px;
-    color: #7c7c7c;
+    font-size: 12px;
+    color: #000000;
 }
 .menuItem:hover span{
     color: rgb(87,159,249);
@@ -106,6 +113,6 @@ export default ({
     background-color: white;
 }
 .active span{
-    color: rgb(87,159,249);
+    color: #369FFF;
 }
 </style>

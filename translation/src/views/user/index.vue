@@ -1,155 +1,416 @@
 <template>
     <div class="search">
-        <a-input v-model:value="userName" placeholder="请输入用户名称" />
-        <a-button type="primary" size="middle" style="margin-left:10px">查询</a-button>
+        <!-- <a-input v-model:value="userName" placeholder="请输入用户名称" />
+        <a-button type="primary" size="middle" style="margin-left:10px" @click="getUserList">查询</a-button>
         <div>
-            <a-button type="primary" size="middle" style="margin-left:10px">
+            <a-button type="primary" size="middle" style="margin-left:10px" @click="handleAdd" v-if="authority.includes('addUser')">
                 <template #icon><PlusOutlined /></template>
                 新增
             </a-button>
-            <a-button type="primary" size="middle" style="margin-left:10px">
+            <a-button type="primary" size="middle" style="margin-left:10px" @click="deleteBatch" v-if="authority.includes('deleteUser')">
+                <template #icon><DeleteOutlined /></template>
+                批量删除
+            </a-button>
+        </div> -->
+        <a-form
+            :model="search"
+            name="horizontal_login"
+            layout="inline"
+            autocomplete="off"
+        >
+            <a-form-item
+            label="用户名"
+            name="userName"
+            >
+                <a-input v-model:value="search.userName" placeholder="请输入用户名"></a-input>
+            </a-form-item>
+            <a-form-item
+            label="部门"
+            name="department"
+            >
+                <a-input v-model:value="search.department" placeholder="请输入部门"></a-input>
+            </a-form-item>
+            <a-form-item
+            label="角色"
+            name="roleId"
+            >
+                <a-select
+                v-model:value="search.roleId"
+                style="width: 180px"
+                placeholder="Please select a country"
+                >
+                    <template v-for="(item,index) in roles" :key="index">
+                        <a-select-option :value="item.id">{{item.roleName}}</a-select-option>
+                    </template>
+                </a-select>
+            </a-form-item>
+        </a-form>
+        <div>
+            <a-button type="primary" size="middle" style="margin-left:10px" @click="getUserList">查询</a-button>
+            <a-button type="primary" size="middle" @click="reset" style="margin-left:10px;background-color:#36BF7D;border:#36BF7D">重置</a-button>
+            <a-button type="primary" size="middle" style="margin-left:10px" @click="handleAdd" v-if="authority.includes('addUser')">
+                <template #icon><PlusOutlined /></template>
+                新增
+            </a-button>
+            <a-button type="primary" size="middle" style="margin-left:10px" @click="deleteBatch" v-if="authority.includes('deleteUser')">
                 <template #icon><DeleteOutlined /></template>
                 批量删除
             </a-button>
         </div>
     </div>
     <a-table 
+    class="ant-table-striped"
     :columns="columns" 
     :data-source="dataSource" 
-    :row-selection="rowSelection"
     :customRow="doubleClick"
-    bordered>
-        <template v-for="col in ['name', 'age', 'address']" #[col]="{ text, record }" :key="col">
-        <div>
-            <a-input
-                v-if="editableData[record.key]"
-                v-model:value="editableData[record.key][col]"
-                style="margin: -5px 0"
-            />
-            <template v-else>
-            {{ text }}
+    :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+    :row-key="record => record.id"
+    :scroll="{ y: tableHeight }"
+    :pagination='false'
+    :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+    @change="handleTableChange"
+    ref="userTable"
+    bordered
+    >
+        <!-- <template v-slot:num="slotProps">
+            {{(pagination.current - 1) * pagination.pageSize + slotProps.index + 1}}
+            {{slotProps.index + 1}}
+        </template> -->
+        <template #bodyCell="{ column, text, record }">
+            <template v-if="['userName', 'jobNumber', 'department','roleName','roleId'].includes(column.dataIndex)">
+                <div>
+                    <template v-if="editableData[record.id]">
+                        <a-select
+                        v-if="column.dataIndex === 'roleName'"
+                        ref="select"
+                        v-model:value="editableData[record.id]['roleId']"
+                        style="width: 120px"
+                        @change="handleChangeRole(record.id)"
+                        >
+                            <template v-for="(item,index) in roles" :key="index">
+                                <a-select-option :value="item.id">{{item.roleName}}</a-select-option>
+                            </template>
+                        </a-select>
+                        <a-input
+                            v-else
+                            v-model:value="editableData[record.id][column.dataIndex]"
+                            style="margin: -5px 0"
+                        />
+
+                    </template>
+                    <template v-else>
+                        {{ text }}
+                    </template>
+                </div>
             </template>
-        </div>
-        </template>
-        <template #operation="{ record }">
-        <div class="editable-row-operations">
-            <span v-if="editableData[record.key]">
-            <a @click="save(record)">Save</a>
-            <a-popconfirm title="Sure to cancel?" @confirm="cancel(record.key)">
-                <a>Cancel</a>
-            </a-popconfirm>
-            </span>
-            <span v-else>
-            <a @click="edit(record.key)">Edit</a>
-            </span>
-        </div>
+            <template v-else-if="column.dataIndex === 'operation'">
+                <div class="editable-row-operations">
+                <span v-if="editableData[record.id]">
+                    <a-button type="primary" ghost size="small" @click="save(record.id)">保存</a-button>
+                    <a-popconfirm title="确认取消?" @confirm="cancel(record.id)">
+                    <a-button type="primary" ghost size="small">取消</a-button>
+                    </a-popconfirm>
+                </span>
+                <span v-else>
+                    <a-button type="primary" ghost size="small" 
+                    @click="edit(record.id)" v-if="authority.includes('updateUserInfo')">编辑</a-button>
+                    <a-popconfirm title="确认删除?" @confirm="deleteUser(record.id)" v-if="authority.includes('deleteUser')">
+                        <a-button type="primary" ghost size="small" >删除</a-button>
+                    </a-popconfirm>
+                </span>
+                </div>
+            </template>
         </template>
     </a-table>
 </template>
 <script>
 import {
   PlusOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons-vue';
+import { cloneDeep } from 'lodash-es';
+import { message,Modal } from 'ant-design-vue';
+import { defineComponent, ref, createVNode } from 'vue';
+import { 
+    queryUser,
+    addUser,
+    updateUserInfo,
+    deleteUser
+} from "@/http/api/user";
+import { queryRoleInfo } from "@/http/api/role";
 export default {
     components:{
         PlusOutlined,
-        DeleteOutlined
+        DeleteOutlined,
     },
     data() {
         return{
+            name:"user",
             userName:"",
+            selectedRowKeys:[],
+            tableHeight: document.documentElement.clientHeight - 280 + 'px',
+            roles:[],
             columns:[
-                {
-                    title: 'name',
-                    dataIndex: 'name',
-                    width: '25%',
-                    slots: { customRender: 'name' },
-                },
-                {
-                    title: 'age',
-                    dataIndex: 'age',
-                    width: '15%',
-                    slots: { customRender: 'age' },
-                },
-                {
-                    title: 'address',
-                    dataIndex: 'address',
-                    width: '40%',
-                    slots: { customRender: 'address' },
-                },
-                {
-                    title: 'operation',
-                    dataIndex: 'operation',
-                    slots: { customRender: 'operation' },
-                },
+                {title: "序号",dataIndex: 'index',align:'center',width:70,customRender: (text, record, index, column) => {
+                    return text.index + 1
+                }},
+                {title: '用户名',dataIndex: 'userName',align:'center',width: '15%'},
+                {title: '工号', dataIndex: 'jobNumber',align:'center',width: '15%'},
+                {title: '部门',dataIndex: 'department',align:'center',},
+                {title: '角色',dataIndex: 'roleName',align:'center',width: '20%'},
+                // {title: '操作',dataIndex: 'operation',align:'center',width:150},
             ],
-            dataSource: [
-                {
-                    key: '1',
-                    name: 'John Brown',
-                    age: 32,
-                    address: 'New York No. 1 Lake Park',
-                },
-                {
-                    key: '2',
-                    name: 'Joe Black',
-                    age: 42,
-                    address: 'London No. 1 Lake Park',
-                },
-                {
-                    key: '3',
-                    name: 'Jim Green',
-                    age: 32,
-                    address: 'Sidney No. 1 Lake Park',
-                },
-                {
-                    key: '4',
-                    name: 'Jim Red',
-                    age: 32,
-                    address: 'London No. 2 Lake Park',
-                },
-            ],
+            dataSource: [],
             editableData:{},
-            rowSelection:[]
+            rowSelection:[],
+            pagination:{
+                current: 1,
+                pageSize: 20,
+                total: 0,
+                showTotal: (total) =>{
+                    return `共 `+total+` 条`
+                } 
+            },
+            authority:[],
+            search:{
+                userName: '',
+                department: '',
+                roleId:''
+            }
         }
     },
-    methods: {
-        onSelectChange(){
+    mounted () {
+        let _this = this
+        this.$nextTick(() => {
+            this.init()
+            /** 控制table的高度 */
+            window.onresize = function () {
+                this.tableHeight = document.documentElement.clientHeight - 310 + 'px'
+                // console.log("aaa:",this.tableHeight)
+                // _this.$refs.userTable.refresh(true)
+                // console.log(_this.$refs.userTable)
+            }
+        })
         
+    },
+    methods: {
+        //初始化
+        init(){
+            //获取用户权限
+            this.getAuthority()
+            this.getUserList()
+            this.getRoles()
         },
-        edit(key){
-            this.editableData[key] = this.dataSource.filter(item => key === item.key)[0]
+        //获取用户权限
+        getAuthority(){
+            let authoritys = this.$store.state.authority;
+            authoritys.filter(item => {
+                if(item.name === this.name){
+                    item.authorities.filter(temp =>{
+                        this.authority.push(temp.authorityCode)
+                    })
+                }
+            })
+            // 权限中含有 编辑  删除  绑定权限时 表格展示操作栏
+            if(this.authority.includes('updateUserInfo') || this.authority.includes('deleteUser')){
+                let operation = {title: '操作',dataIndex: 'operation',align:'center',width:200}
+                this.columns.push(operation)
+            }
         },
-        cancel(key){
-            delete this.editableData[key];
+        //获取用户列表
+        getUserList(){
+            queryUser(this.search).then((res) => {
+                this.pagination.total = res.data.totalNum
+                this.dataSource = res.data.list
+            })
         },
-        save(record){
-            console.log(record)
+        //获取角色列表
+        getRoles(){
+            queryRoleInfo().then((res) => {
+                this.roles = res.data.list
+            })
+        },
+        //编辑
+        edit(id){
+            // if(JSON.stringify(this.editableData) !== '{}'){
+            //     let tempKey
+            //     for(let key in this.editableData){
+            //         tempKey = key
+            //     }
+            //     Modal.confirm({
+            //         title: '数据未保存，是否保存?',
+            //         icon: createVNode(ExclamationCircleOutlined),
+            //         // content: 'Bla bla ...',
+            //         okText: '保存',
+            //         cancelText: '取消',
+            //         onOk: () => {
+            //             this.save(tempKey)
+            //             this.edit(id)
+            //         }
+            //     });
+            // }else{
+            //     this.editableData[id] = cloneDeep(this.dataSource.filter(item => id === item.id)[0])
+            // }
+            this.editableData[id] = cloneDeep(this.dataSource.filter(item => id === item.id)[0])
+        },
+        //取消
+        cancel(id){
+            delete this.editableData[id];
+            if(id.startsWith("new")){
+                //从dataSource中删除
+                this.dataSource.some((item,i) => {
+                    if(item.id === id){
+                        this.dataSource.splice(i,1)
+                        return true
+                    }
+                })
+            }
+        },
+        //保存
+        save(id){
+            // Object.assign(this.dataSource.filter(item => id === item.id)[0], this.editableData[id]);
+            if(this.editableData[id].userName === '' || this.editableData[id].userName === null){
+                message.warning("请输入用户名！")
+                return
+            }
+            if(id.startsWith('new')){
+                //调用新增接口
+                addUser(this.editableData[id]).then((res) => {
+                    this.dataSource.filter(item => {
+                        if(item.id === id){
+                            item.id = res.data
+                            return true
+                        }
+                    })
+                    message.success("新增成功！")
+                    delete this.editableData[id];
+                })
+            }else{
+                //调用修改接口
+                updateUserInfo(this.editableData[id]).then((res) => {
+                    message.success("编辑成功！")
+                    Object.assign(this.dataSource.filter(item => id === item.id)[0], this.editableData[id]);
+                    delete this.editableData[id];
+                })
+            }
         },
         //双击表格行 可编辑
         doubleClick(record, index){
             return {
                 onDblclick: (event) => {
-                    this.editableData[record.key] = this.dataSource.filter(item => record.key === item.key)[0]
+                    this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                 }
             }
         },
-        
+        //新增
+        handleAdd(){
+            const newData = {
+                id: `new${this.dataSource.length + 1}`,
+                userName: '',
+                jobNumber: '',
+                roleName: '',
+                roleId:''
+            };
+            this.dataSource.push(newData);
+            this.editableData[newData.id] = newData;
+        },
+        onSelectChange(selectedRowKeys){
+            this.selectedRowKeys = selectedRowKeys
+        },
+        // 批量删除
+        deleteBatch(){
+            Modal.confirm({
+                title: '是否确认删除?',
+                icon: createVNode(ExclamationCircleOutlined),
+                // content: 'Bla bla ...',
+                okText: '确认',
+                cancelText: '取消',
+                onOk: () => {
+                    console.log(this.selectedRowKeys)
+                    deleteUser(this.selectedRowKeys).then((res) => {
+                        message.success("删除成功！")
+                        this.getUserList()
+                        this.selectedRowKeys = []
+                    })
+                }
+            });
+        },
+        // 删除
+        deleteUser(id){
+            console.log("删除：",id)
+            let data = [id]
+            deleteUser(data).then((res) => {
+                message.success("删除成功！")
+                 this.getUserList()
+            })
+        },
+        handleChangeRole(id){
+            let roleId = this.editableData[id].roleId
+            let roleName
+            this.roles.filter(item =>{
+                if(item.id === roleId){
+                    roleName = item.roleName
+                }
+            })
+            this.editableData[id].roleName = roleName
+        },
+        //分页
+        handleTableChange(pagination){
+            this.pagination.current = pagination.current
+            this.getUserList()
+        },
+        // 重置
+        reset(){
+            this.search.userName = ''
+            this.search.department = ''
+            this.search.roleId = ''
+
+            this.getUserList()
+        }
     },
 }
 </script>
 <style scoped>
-.editable-row-operations a {
+.editable-row-operations button {
   margin-right: 8px;
 }
 .search{
-    height: 40px;
+    height: 60px;
+    line-height: 60px;
+    background-color: #F3F3F3;
+    position: relative;
+    margin-bottom: 10px;
+    padding: 0 10px;
 }
-.search input{
-    width: 30%;
+.ant-form{
+    width: 100%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0 10px;
+}
+.ant-form input{
+    width: 180px;
 }
 .search div{
-    float: right;
+   float: right;
+}
+
+</style>
+<style>
+.ant-table-wrapper{
+    width: 100%;
+    position: absolute;
+}
+.ant-btn-background-ghost span{
+    font-size: 12px;
+}
+.ant-table-striped .table-striped td {
+  background-color: #fafafa;
+}
+.ant-table-striped .ant-table-cell {
+  padding: 10px!important;
 }
 </style>

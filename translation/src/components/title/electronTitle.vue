@@ -146,12 +146,12 @@ export default {
   color: white;
 }
 .user .userLogo{
-  width:25px;
-  height:25px; 
+  width:20px;
+  height:20px; 
   background-image: url("../../assets/title/user.png");
   background-size: 100%;
   background-repeat: no-repeat;
   float: right;
-  margin: 3px 0px 0px 5px;
+  margin: 5px 0px 0px 5px;
 }
 </style>

@@ -44,13 +44,12 @@ response => {
         // 如果是token过期，跳转至登录
         message.error("登录已过期，请重新登录！");
          // 移除token，跳转至登录页面
-        // sessionStorage.removeItem('token')
         store.commit("removeData")
         router.push({ path: '/' })
       }else{
+        // console.log("-----------------------")
         message.error(response.data.message || '请求失败!')
-        // return response.data;
-        return Promise.reject(response);
+        return Promise.reject(response)
       }
       return Promise.resolve(response.data)
     }
@@ -59,6 +58,5 @@ error => {
     // 对响应错误做点什么
     return Promise.reject(error);
 }
-
 );
 export default service;
