@@ -52,4 +52,11 @@
         spanish_length,spanish_translate_state,french,
         french_length,french_translate_state
     </sql>
+    <update id="auditByIds" parameterType="java.util.List">
+        update t_entry_project set entry_state = #{state,jdbcType=VARCHAR} where id in (
+        <foreach collection="idList" item="idList" index="index" separator=",">
+            #{idList,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </update>
 </mapper>

@@ -85,7 +85,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
                 entryVersions = entryVersionMapper.queryVersionInfo(pageSize, offset);
             }
         } else {
-            entryVersions.add(entryVersionMapper.queryVersionInfoByName(versionName));
+            entryVersions.addAll(entryVersionMapper.queryVersionInfoByName(versionName));
         }
 
         return entryVersions;
@@ -100,14 +100,31 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     @Override
     public String updateVersionInfo(EntryVersion entryVersion) {
         //重名校验
-        if (findVersionSameName(entryVersion.getName())) {
+        if (findVersionSameName(entryVersion.getName(), entryVersion.getId())) {
             return ErrorCodeList.NAME_EXIST;
+        }
+        //isDefault 判断
+        if (Objects.nonNull(entryVersion.getIsDefault()) && 1 == entryVersion.getIsDefault()) {
+            for (EntryVersion entryVersion1 : checkOnlyDefault(entryVersion)) {
+                if (!entryVersion.getId().equals(entryVersion1.getId())){
+                    entryVersionMapper.updateDefault0();
+                }
+            }
         }
         int update = entryVersionMapper.updateVersionInfo(entryVersion);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
         return ConstantInterface.OK_STR;
+    }
+
+    //查看default 是否大于1
+    private List<EntryVersion> checkOnlyDefault(EntryVersion entryVersion) {
+        boolean a;
+        int isDeault = entryVersion.getIsDefault();
+        List<EntryVersion> entryVersions = entryVersionMapper.getVersionByDefault(isDeault);
+        return entryVersions;
+
     }
 
     @Override
@@ -123,6 +140,19 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     public String addVersionInfo(EntryVersion entryVersion) {
         String uuid = commonUtils.getUUID();
         entryVersion.setId(uuid);
+        //重名校验
+        if (findVersionSameName(entryVersion.getName(), entryVersion.getId())) {
+            return ErrorCodeList.NAME_EXIST;
+        }
+
+
+        //isDefault 判断
+        if (Objects.nonNull(entryVersion.getIsDefault()) && 1 == entryVersion.getIsDefault()) {
+             List<EntryVersion> entryVersions = checkOnlyDefault(entryVersion);
+            if (entryVersions.size()>0) {
+                 entryVersionMapper.updateDefault0();
+            }
+        }
         int insert = entryVersionMapper.addVersionInfo(entryVersion);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
@@ -148,7 +178,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             menu.setAuthorities(authorities1);
 
         }
-        List<Menu> menus1 =menus.stream().sorted(Comparator.comparing(Menu::getRank)).collect(Collectors.toList());
+        List<Menu> menus1 = menus.stream().sorted(Comparator.comparing(Menu::getRank)).collect(Collectors.toList());
         return menus1;
     }
 
@@ -346,7 +376,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
         roleAuthorityEntity.setRoleId(roleAuthorityRes.getRoleID());
 
-         roleAuthorityEntryMapper.deleteAuthorityByID(roleAuthorityRes.getRoleID());
+        roleAuthorityEntryMapper.deleteAuthorityByID(roleAuthorityRes.getRoleID());
 
         for (String authId : roleAuthorityRes.getAuthorityIDList()) {
             roleAuthorityEntity.setId(commonUtils.getUUID());
@@ -378,7 +408,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         }
 
         //绑定菜单
-       // List<String> menuIDByRoleID = roleMenuEntryMapper.getMenuIDByRoleID(roleAuthorityRes.getRoleID());
+        // List<String> menuIDByRoleID = roleMenuEntryMapper.getMenuIDByRoleID(roleAuthorityRes.getRoleID());
         RoleMenuEntry roleMenuEntry = new RoleMenuEntry();
 
         roleMenuEntry.setRoleId(roleAuthorityEntity.getRoleId());
@@ -434,10 +464,14 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     }
 
     //校验版本重名 重名 true
-    private boolean findVersionSameName(String versionName) {
-        EntryVersion entryVersion = entryVersionMapper.queryVersionInfoByName(versionName);
-        if (Objects.nonNull(entryVersion)) {
-            return true;
+    private boolean findVersionSameName(String versionName, String id) {
+        List<EntryVersion> entryVersions = entryVersionMapper.queryVersionInfoByName(versionName);
+        if (Objects.nonNull(entryVersions) &&  entryVersions.size()>0) {
+            for (EntryVersion entryVersion : entryVersions) {
+                if (!id.equals(entryVersion.getId()) && versionName.equals(entryVersion.getName())) {
+                    return true;
+                }
+            }
         }
         return false;
     }

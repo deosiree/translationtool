@@ -52,6 +52,20 @@
   </select>
 
 
+  <select id="getVersionByDefault" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from t_entry_version
+    where 1=1
+    <if test="isDefault != null ">
+
+      and is_default= ${isDefault}
+    </if>
+
+
+  </select>
+
+
   <update id="updateVersionInfo" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
     <!--@mbg.generated-->
     update t_entry_version
@@ -74,6 +88,12 @@
       </if>
     </set>
     where id = #{entryVersion.id,jdbcType=VARCHAR}
+  </update>
+
+  <update id="updateDefault0">
+
+    update t_entry_version set is_default = 0 where is_default = 1
+
   </update>
 
 

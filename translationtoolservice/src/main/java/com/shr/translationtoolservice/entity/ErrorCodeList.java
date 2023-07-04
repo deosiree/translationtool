@@ -17,6 +17,7 @@ public class ErrorCodeList {
     public static final String PARAM_IS_ILL = "入参非法。";
     public static final String INSERT_ERROR = "新增失败。";
     public static final String UPDATE_ERROR = "更新失败。";
+    public static final String UPDATE_RES_DEFAULT = "Default大于1条。";
     public static final String UPDATE_NOT_EXIST= "找不到对应数据";
     public static final String BRIEF_IS_NOT_JSON = "brief不是json格式。";
     public static final String UPDATE_LOSE_PRIMARYKEY="修改时缺少主键";

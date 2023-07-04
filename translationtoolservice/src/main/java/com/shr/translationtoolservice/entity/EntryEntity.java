@@ -1,20 +1,22 @@
 package com.shr.translationtoolservice.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
- * 工程词条表
- * @TableName t_entry_project
- */
-@TableName(value ="t_entry_project")
+ * @ClassName EntryEntity
+ * @Description TODO
+ * @USER: Cola
+ * @Date 2023/7/3 0003 14:40
+ **/
 @Data
-public class EntryProjectEntity implements Serializable {
+public class EntryEntity {
+
+    private String type;
+
     /**
      * 主键
      */
@@ -69,7 +71,7 @@ public class EntryProjectEntity implements Serializable {
     /**
      * 修改人
      */
-    @TableField("`update`")
+
     private String update;
 
     /**

@@ -14,7 +14,7 @@ public interface EntryVersionMapper {
     List<EntryVersion> queryVersionInfo(@Param("limit") int limit,
                                         @Param("offset") int offset);
 
-    EntryVersion queryVersionInfoByName(String versionName);
+    List<EntryVersion> queryVersionInfoByName(String versionName);
 
     int getVersionTotalNum(String versionName);
 
@@ -24,4 +24,7 @@ public interface EntryVersionMapper {
 
     Integer addVersionInfo(@Param("entryVersion") EntryVersion entryVersion);
 
+    List<EntryVersion> getVersionByDefault(int isDeault);
+
+    int updateDefault0();
 }

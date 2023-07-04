@@ -15,6 +15,9 @@ import java.util.List;
 public interface EntryCommonEntityMapper extends BaseMapper<EntryCommonEntity> {
     @Override
     List<EntryCommonEntity> selectList(@Param("ew") Wrapper<EntryCommonEntity> queryWrapper);
+
+    int auditByIds(@Param("idList") List<String> idList,@Param("state") String state);
+
 }
 
 

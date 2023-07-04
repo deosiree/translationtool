@@ -16,6 +16,9 @@ import java.util.List;
 public interface EntryProductEntityMapper extends BaseMapper<EntryProductEntity> {
     @Override
     List<EntryProductEntity> selectList(@Param("ew") Wrapper<EntryProductEntity> queryWrapper);
+
+    int auditByIds(@Param("idList") List<String> idList,@Param("state") String state);
+
 }
 
 
