@@ -14,8 +14,12 @@ spring:
       matching-strategy: ANT_PATH_MATCHER
 server:
   port: 18001
+baidu:
+  translate:
+    appid: 20230705001734655
+    securityKey: Msyn6CIJy97uY1MXLW0c
 
-logging.level.com.shr.translationtoolservice.dao : debug
+logging.level.com.shr.translationtoolservice.dao: debug
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
   type-aliases-package: com.shr.translationtoolservice.entity

@@ -12,6 +12,7 @@ import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.CompareUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 
+import com.shr.translationtoolservice.util.Translate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
@@ -41,6 +42,8 @@ import java.util.Objects;
 @Slf4j
 public class EntryManagementServiceImpl implements EntryManagementService {
     @Autowired
+    Translate translate;
+    @Autowired
     EntryProductEntityMapper entryProductEntityMapper;
     @Autowired
     EntryProjectEntityMapper entryProjectEntityMapper;
@@ -54,6 +57,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryMapper entryMapper;
     @Autowired
     EntryOperateMapper entryOperateMapper;
+    @Autowired
+    EntryVersionMapper entryVersionMapper;
+    @Autowired
+    IndexMapper indexMapper;
 
     @Autowired
     CommonUtils commonUtils;
@@ -134,88 +141,141 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String insertEntry(EntryEntity entryEntity) {
-        //project
-        if (ConstantInterface.PROJECT_TABLE.equals(entryEntity.getType())) {
-            EntryProjectEntity entryProjectEntity = new EntryProjectEntity();
-            BeanUtils.copyProperties(entryEntity, entryProjectEntity);
-            String uuid = commonUtils.getUUID();
-            entryProjectEntity.setId(uuid);
-            int insert = entryProjectEntityMapper.insert(entryProjectEntity);
-            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.INSERT_ERROR;
-            }
+    public String insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
 
-            return uuid;
-            //工程表
-        } else if (ConstantInterface.PRODUCT_TABLE.equals(entryEntity.getType())) {
-            EntryProductEntity entryProductEntity = new EntryProductEntity();
-            BeanUtils.copyProperties(entryEntity, entryProductEntity);
-            String uuid = commonUtils.getUUID();
-            entryProductEntity.setId(uuid);
-            int insert = entryProductEntityMapper.insert(entryProductEntity);
-            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.INSERT_ERROR;
-            }
-
-            return uuid;
-            //公共表
-        } else if (ConstantInterface.COMMON_TABLE.equals(entryEntity.getType())) {
-            EntryCommonEntity entryCommonEntity = new EntryCommonEntity();
-            BeanUtils.copyProperties(entryEntity, entryCommonEntity);
-            String uuid = commonUtils.getUUID();
-            entryCommonEntity.setId(uuid);
-            int insert = entryCommonEntityMapper.insert(entryCommonEntity);
-            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.INSERT_ERROR;
-            }
-
-            return uuid;
+        List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity);
+        if (entryEntities.size() > 0) {
+            return ErrorCodeList.ABBR_HAS_EXIST;
         }
-        return ErrorCodeList.INSERT_ERROR;
+        String uuid = commonUtils.getUUID();
+        entryEntity.setId(uuid);
+        //构建字符长度
+        constructEntry(entryEntity);
+
+        //创建人
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        if (StringUtils.isBlank(entryEntity.getCreator())) {
+            entryEntity.setCreator(userName);
+        }
+        if (Objects.isNull(entryEntity.getCreateTime())) {
+            SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+            entryEntity.setCreateTime(new Date(System.currentTimeMillis()));
+        }
+
+
+        int insert = entryMapper.insert(entryEntity);
+        if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        EntryOperate entryOperate = new EntryOperate();
+
+        entryOperate.setOperateContent(" 新增词条 ");
+        int insert1 = constructOperate(entryOperate, entryEntity.getTableName(), entryEntity.getId(), request);
+
+
+        if (insert1 != ConstantInterface.DB_SUCCESS_RESULT) {
+            log.error(" t_entry_operate update insert error ! ");
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return ConstantInterface.OK_STR;
     }
 
-    @Override
-    public String updateEntry(EntryEntity entryEntity) {
-        if (ConstantInterface.PROJECT_TABLE.equals(entryEntity.getType())) {
-            EntryProjectEntity entryProjectEntity = new EntryProjectEntity();
-            BeanUtils.copyProperties(entryEntity, entryProjectEntity);
-            QueryWrapper queryWrapper = new QueryWrapper();
-            queryWrapper.eq("id", entryProjectEntity.getId());
-            int update = entryProjectEntityMapper.update(entryProjectEntity, queryWrapper);
-            if (update != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
-            }
-
-            return ConstantInterface.OK_STR;
-            //工程表
-        } else if (ConstantInterface.PRODUCT_TABLE.equals(entryEntity.getType())) {
-
-            EntryProductEntity entryProductEntity = new EntryProductEntity();
-            BeanUtils.copyProperties(entryEntity, entryProductEntity);
-            QueryWrapper queryWrapper = new QueryWrapper();
-            queryWrapper.eq("id", entryProductEntity.getId());
-            int update = entryProductEntityMapper.update(entryProductEntity, queryWrapper);
-            if (update != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
-            }
-
-            return ConstantInterface.OK_STR;
-            //公共表
-        } else if (ConstantInterface.COMMON_TABLE.equals(entryEntity.getType())) {
-            EntryCommonEntity entryCommonEntity = new EntryCommonEntity();
-            BeanUtils.copyProperties(entryEntity, entryCommonEntity);
-
-            QueryWrapper queryWrapper = new QueryWrapper();
-            queryWrapper.eq("id", entryCommonEntity.getId());
-            int update = entryCommonEntityMapper.update(entryCommonEntity, queryWrapper);
-            if (update != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
-            }
-
-            return ConstantInterface.OK_STR;
+    private void constructEntry(EntryEntity entryEntity) {
+        if (StringUtils.isNotBlank(entryEntity.getEntry())) {
+            entryEntity.setEntryLength(entryEntity.getEntry().length());
         }
-        return ErrorCodeList.UPDATE_ERROR;
+        if (StringUtils.isNotBlank(entryEntity.getEnglish())) {
+            entryEntity.setEnglishLength(entryEntity.getEnglish().length());
+            entryEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
+        }else {
+            entryEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+        }
+        if (StringUtils.isNotBlank(entryEntity.getEnglishDisable())) {
+            entryEntity.setEnglishDisableLength(entryEntity.getEnglishDisable().length());
+        }
+        if (StringUtils.isNotBlank(entryEntity.getRussian())) {
+            entryEntity.setRussianLength(entryEntity.getRussian().length());
+            entryEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
+        }else {
+            entryEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
+        }
+        if (StringUtils.isNotBlank(entryEntity.getSpanish())) {
+            entryEntity.setSpanishLength(entryEntity.getSpanish().length());
+            entryEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
+        }else {
+            entryEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
+        }
+        if (StringUtils.isNotBlank(entryEntity.getFrench())) {
+            entryEntity.setFrenchLength(entryEntity.getFrench().length());
+            entryEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
+        }else {
+            entryEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+        }
+        //是否最新版本
+        if (StringUtils.isNotBlank(entryEntity.getVersion())) {
+            EntryVersion newVersion = entryVersionMapper.getNewVersion();
+            if (entryEntity.getVersion().equals(newVersion.getName())) {
+                entryEntity.setIsLatestVersion(1);
+            } else {
+                entryEntity.setIsLatestVersion(0);
+            }
+        }
+        Index index = indexMapper.getIndexByEntryId(entryEntity.getId());
+        if (!Objects.isNull(index)) {
+            entryEntity.setRepeatEntryId(index.getRepeatEntryId());
+        }
+
+
+    }
+
+
+    @Override
+    public String updateEntry(EntryEntity entryEntity, HttpServletRequest request) {
+        EntryEntity beforEntry = entryMapper.selectById(entryEntity.getId(),entryEntity.getTableName());
+        constructEntry(entryEntity);
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+        entryEntity.setUpdate(userName);
+        entryEntity.setUpdateTime(new Date(System.currentTimeMillis()));
+        int update = entryMapper.updateById(entryEntity);
+        if (update != ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        if (Objects.isNull(entryEntity.getEntryState())){
+            entryEntity.setEntryState(beforEntry.getEntryState());
+        }
+        //更新操作记录表
+        EntryOperate entryOperate = new EntryOperate();
+        List<ComparisonResult> results = new ArrayList<>();
+        OperateContentEntity operateContentEntity = new OperateContentEntity();
+        try {
+            EntryEntity afterEntry = entryMapper.selectById(entryEntity.getId(),entryEntity.getTableName());
+            results = CompareUtils.compareFields(beforEntry, afterEntry, EntryEntity.class);
+            if (results.size() == 0) {
+                log.error(" t_entry_operate compare result is null ! ");
+                return ErrorCodeList.INSERT_ERROR;
+            }
+            operateContentEntity.setResults(results);
+            operateContentEntity.setEntryID(entryEntity.getId());
+            String res = " 词条ID : " + operateContentEntity.getEntryID() + ", 修改内容 : ";
+            for (ComparisonResult comparisonResult : operateContentEntity.getResults()) {
+                res += comparisonResult.getStr() + " ; ";
+            }
+            entryOperate.setOperateContent(res);
+            int insert = constructOperate(entryOperate,entryEntity.getTableName(),entryEntity.getId(),request);
+            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+                log.error(" t_entry_operate update insert error ! ");
+                return ErrorCodeList.INSERT_ERROR;
+            }
+        } catch (Exception e) {
+            log.error(" ComparisonResult 类型对比异常 ！ ");
+            log.error(e.getMessage());
+        }
+        return ConstantInterface.OK_STR;
+
+
     }
 
     @Override
@@ -279,47 +339,35 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 if (Objects.isNull(entryEntity)) {
                     return ErrorCodeList.UPDATE_ERROR;
                 }
-                //更新操作记录表
-                EntryEntity entryEntity1 = entryMapper.selectById(entryID,tableName);
-
-
-                String token = request.getHeader("token");
-                String userName = JWTTokenUtils.getUserName(token);
                 EntryOperate entryOperate = new EntryOperate();
-                Date date = new Date();
-                entryOperate.setOperateTime(date);
-                entryOperate.setOperator(userName);
-                entryOperate.setId(commonUtils.getUUID());
-                entryOperate.setEntryId(entryID);
-                entryOperate.setType(tableName);
+
+                //更新操作记录表
+                EntryEntity entryEntity1 = entryMapper.selectById(entryID, tableName);
+
                 List<ComparisonResult> results = new ArrayList<>();
                 OperateContentEntity operateContentEntity = new OperateContentEntity();
                 try {
-                    results = CompareUtils.compareFields(entryEntity, entryEntity1,EntryEntity.class);
-                    if (results.size()==0){
+                    results = CompareUtils.compareFields(entryEntity, entryEntity1, EntryEntity.class);
+                    if (results.size() == 0) {
                         log.error(" t_entry_operate compare result is null ! ");
                         return ErrorCodeList.INSERT_ERROR;
                     }
                     operateContentEntity.setResults(results);
                     operateContentEntity.setEntryID(entryID);
                     String res = " 词条ID : " + operateContentEntity.getEntryID() + ", 修改内容 : ";
-                    for (ComparisonResult comparisonResult: operateContentEntity.getResults()){
-                       res += comparisonResult.getStr() + " ; ";
+                    for (ComparisonResult comparisonResult : operateContentEntity.getResults()) {
+                        res += comparisonResult.getStr() + " ; ";
                     }
                     entryOperate.setOperateContent(res);
-                    int insert = entryOperateMapper.insert(entryOperate);
-                    if (insert != ConstantInterface.DB_SUCCESS_RESULT){
+                    int insert = constructOperate(entryOperate, entryGroupEntity.getTableName(), entryID, request);
+                    if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
                         log.error(" t_entry_operate update insert error ! ");
                         return ErrorCodeList.INSERT_ERROR;
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     log.error(" ComparisonResult 类型对比异常 ！ ");
                     log.error(e.getMessage());
                 }
-
-
-
-                boolean operateResult = updateEntryOperate(entryEntity, entryEntity);
 
 
             }
@@ -330,15 +378,24 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return ConstantInterface.OK_STR;
     }
 
-    private boolean updateEntryOperate(EntryEntity oldEntryEntity,EntryEntity newEntryEntity) {
-        return true;
+    private int constructOperate(EntryOperate entryOperate, String tableName, String entryId, HttpServletRequest request) {
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        Date date = new Date();
+        entryOperate.setOperateTime(date);
+        entryOperate.setOperator(userName);
+        entryOperate.setId(commonUtils.getUUID());
+        entryOperate.setEntryId(entryId);
+        entryOperate.setType(tableName);
 
-
+        int insert = entryOperateMapper.insert(entryOperate);
+        return insert;
     }
+
 
     private EntryEntity auditByID(String tableName, String entryID, int state) {
 
-        EntryEntity entryEntity = entryMapper.selectById(entryID,tableName);
+        EntryEntity entryEntity = entryMapper.selectById(entryID, tableName);
 
         int update = entryMapper.auditById(tableName, entryID, state);
 

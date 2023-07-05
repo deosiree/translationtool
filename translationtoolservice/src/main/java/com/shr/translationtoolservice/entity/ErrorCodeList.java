@@ -28,6 +28,7 @@ public class ErrorCodeList {
     public static final String FILENOTEXIST = "文件不存在";
     public static final String OBJECT_HAS_EXIST = "对象已存在。";
     public static final String EXPORT_ERROR = "导出失败";
+    public static final String ABBR_HAS_EXIST = "对象已存在。";
 
     private final static List<String> ErrorCodeList = new ArrayList<>();
 

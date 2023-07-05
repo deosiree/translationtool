@@ -18,7 +18,7 @@ import java.util.Date;
 public class EntryEntity {
 
 
-    private String type;
+    private String tableName;
 
     /**
      * 主键
@@ -29,37 +29,37 @@ public class EntryEntity {
     /**
      * abbr
      */
-
+    @AnjiDescription("abbr")
     private String abbr;
 
     /**
      * 词条
      */
-
+    @AnjiDescription("词条")
     private String entry;
 
     /**
      * 词条字符数
      */
-
-    private Double entryLength;
+    @AnjiDescription("词条字符数")
+    private int entryLength;
 
     /**
      * 中文释义
      */
-
+    @AnjiDescription("中文释义")
     private String chineseInterpretation;
 
     /**
      * 英文释义
      */
-
+    @AnjiDescription("英文释义")
     private String englishInterpretation;
 
     /**
      * 词条来源
      */
-
+    @AnjiDescription("词条来源")
     private String entrySource;
 
     /**
@@ -71,13 +71,13 @@ public class EntryEntity {
     /**
      * 创建人
      */
-
+    @AnjiDescription("创建人")
     private String creator;
 
     /**
      * 创建时间
      */
-
+    @AnjiDescription("创建时间")
     private Date createTime;
 
     /**
@@ -85,114 +85,133 @@ public class EntryEntity {
      */
 
     @TableField("`update`")
+    @AnjiDescription("修改人")
     private String update;
 
     /**
      * 修改时间
      */
-
+    @AnjiDescription("修改时间")
     private Date updateTime;
 
     /**
      * 版本
      */
-
+    @AnjiDescription("版本")
     private String version;
 
     /**
      * 是否最新版本   1 是  0 否
      */
-
-    private Integer isLatestVersion;
+    @AnjiDescription("词条")
+    private int isLatestVersion;
 
     /**
      * 词条标签
      */
+    @AnjiDescription("词条标签")
     private String entryLabel;
 
     /**
      * 词性备注
      */
+    @AnjiDescription("词性备注")
     private String partOfSpeech;
 
     /**
      * 词条所属分类
      */
+    @AnjiDescription("词条所属分类")
     private String classifyId;
 
     /**
      * 重复词条id
      */
+    @AnjiDescription("重复词条id")
     private String repeatEntryId;
 
     /**
      * 英文翻译
      */
+    @AnjiDescription("英文翻译")
     private String english;
 
     /**
      * 英文字符数
      */
-    private Double englishLength;
+    @AnjiDescription("英文字符数")
+    private int englishLength;
 
     /**
      * 英文翻译状态
      */
+    @AnjiDescription("英文翻译状态")
     private String englishTranslateState;
 
     /**
      * 英文禁用术语
      */
+    @AnjiDescription("英文禁用术语")
     private String englishDisable;
 
     /**
      * 英文禁用数据字符数
      */
-    private Double englishDisableLength;
+    @AnjiDescription("英文禁用数据字符数")
+    private int englishDisableLength;
 
     /**
      * 俄文翻译
      */
+    @AnjiDescription("俄文翻译")
     private String russian;
 
     /**
      * 俄文翻译字符数
      */
-    private Double russianLength;
+    @AnjiDescription("俄文翻译字符数")
+    private int russianLength;
 
     /**
      * 俄文翻译状态
      */
+    @AnjiDescription("俄文翻译状态")
     private String russianTranslateState;
 
     /**
      * 西文翻译
      */
+    @AnjiDescription("西文翻译")
     private String spanish;
 
     /**
      * 西文翻译字符数
      */
-    private Double spanishLength;
+    @AnjiDescription("西文翻译字符数")
+    private int spanishLength;
 
     /**
      * 西文翻译状态
      */
+    @AnjiDescription("西文翻译状态")
     private String spanishTranslateState;
 
     /**
      * 法文翻译
      */
+    @AnjiDescription("法文翻译")
     private String french;
 
     /**
      * 法文字符数
      */
-    private Double frenchLength;
+    @AnjiDescription("法文字符数")
+    private int frenchLength;
 
     /**
      * 法文翻译状态
      */
+    @AnjiDescription("法文翻译状态")
     private String frenchTranslateState;
 
     @TableField(exist = false)

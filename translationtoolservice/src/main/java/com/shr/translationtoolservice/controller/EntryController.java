@@ -66,11 +66,12 @@ public class EntryController extends BaseController {
     @ApiOperation("新增词条")
     @PassToken
     @CrossOrigin
-    public HttpResponse<String> insertEntry(@RequestBody EntryEntity entryEntity) {
-        if (StringUtils.isBlank(entryEntity.getType())) {
+    @Transactional
+    public HttpResponse<String> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
+        if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
-        return checkResult(entryManagementService.insertEntry(entryEntity));
+        return checkResult(entryManagementService.insertEntry(entryEntity,request));
     }
 
     //新增词条
@@ -78,11 +79,12 @@ public class EntryController extends BaseController {
     @ApiOperation("编辑词条")
     @PassToken
     @CrossOrigin
-    public HttpResponse<String> updateEntry(@RequestBody EntryEntity entryEntity) {
-        if (StringUtils.isBlank(entryEntity.getType())) {
+    @Transactional
+    public HttpResponse<String> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
+        if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
-        return checkResult(entryManagementService.updateEntry(entryEntity));
+        return checkResult(entryManagementService.updateEntry(entryEntity,request));
     }
 
     //新增词条

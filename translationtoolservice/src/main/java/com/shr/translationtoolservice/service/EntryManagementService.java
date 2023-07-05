@@ -19,9 +19,9 @@ public interface EntryManagementService {
 
     List getAllEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize);
 
-    String insertEntry(EntryEntity entryEntity);
+    String insertEntry(EntryEntity entryEntity,HttpServletRequest request);
 
-    String updateEntry(EntryEntity entryEntity);
+    String updateEntry(EntryEntity entryEntity,HttpServletRequest request);
 
     String deleteEntry(EntryGroupEntity entryGroupEntity);
 }

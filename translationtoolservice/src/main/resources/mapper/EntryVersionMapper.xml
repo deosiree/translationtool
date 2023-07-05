@@ -65,6 +65,14 @@
 
   </select>
 
+  <select id="getNewVersion" resultType="com.shr.translationtoolservice.entity.EntryVersion">
+    select
+    <include refid="Base_Column_List"/>
+    from t_entry_version
+    order by name desc limit 1
+
+
+  </select>
 
   <update id="updateVersionInfo" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
     <!--@mbg.generated-->

@@ -140,12 +140,22 @@ public class CompareUtils {
             System.out.println("LocalDateTime");
             r1 = localDateTimeToString(o1);
             r2 = localDateTimeToString(o2);
+        }else if (ot instanceof Date) {
+            System.out.println("LocalDateTime");
+            r1 = localDateTimeToString(o1);
+            r2 = localDateTimeToString(o2);
         }
         ComparisonResult result = new ComparisonResult();
+        //更新时间跳过
+      /*  if (name.equals("update") || name.equals("updateTime")){
+            return;
+        }*/
+
+
         result.setKey(name);
         result.setPrevious(r1);
         result.setLater(r2);
-        String str = name + " 字段值修改 " + r1 + " => " + r2;
+        String str = name + " 字段值修改 ( " + r1 + " ) => ( " + r2 + " )  ";
         result.setStr(str);
         list.add(result);
 

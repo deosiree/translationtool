@@ -43,6 +43,9 @@ public class ConstantInterface {
     public static final Short ROBOT_NUM = 2;
     public static final String ZIP_SUFFIX = ".zip";
     public static final String AUDIT_PATH = "/**";
+    public static final String UNTRANSLATED = "未翻译";
+    public static final String TRANSLATED = "已翻译";
+    public static final String TRANSLATING = "正在翻译";
 
     public static final String PROJECT_TABLE = "project";
     public static final String PRODUCT_TABLE = "product";

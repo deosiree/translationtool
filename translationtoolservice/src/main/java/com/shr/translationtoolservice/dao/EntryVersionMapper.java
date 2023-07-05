@@ -27,4 +27,6 @@ public interface EntryVersionMapper {
     List<EntryVersion> getVersionByDefault(int isDeault);
 
     int updateDefault0();
+
+    EntryVersion getNewVersion();
 }

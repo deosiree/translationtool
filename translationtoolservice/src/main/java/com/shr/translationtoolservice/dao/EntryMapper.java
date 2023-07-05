@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * @Entity com.shr.translationtoolservice.entity.EntryProjectEntity
+ * @Entity com.shr.translationtoolservice.entity.EntryEntity
  */
 @Mapper
 public interface EntryMapper extends BaseMapper<EntryEntity> {
@@ -19,11 +19,15 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
 
     EntryEntity selectById(String id,String tableName);
 
-
+    int insert(@Param("entryEntity") EntryEntity entryEntity);
 
     int auditByIds(@Param("idList") List<String> idList,@Param("state") String state);
 
     int auditById(String tableName,String id,@Param("state") int state);
+
+    List<EntryEntity> selectByAbbr(@Param("entryEntity") EntryEntity entryEntity);
+
+    int updateById(@Param("entryEntity") EntryEntity entryEntity);
 }
 
 
