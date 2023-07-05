@@ -14,7 +14,8 @@
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, parent_id, menu_name, url, `rank`, icon ,active_icon , name , component
+    id, operator, operateTime, operateContent, entryId, notes ,`type`
   </sql>
+
 
 </mapper>

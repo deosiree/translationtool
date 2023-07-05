@@ -1,6 +1,9 @@
 package com.shr.translationtoolservice.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * @ClassName EntryOperate
@@ -10,10 +13,11 @@ import lombok.Data;
  **/
 
 @Data
+@TableName(value ="t_entry_operate")
 public class EntryOperate {
     private String id;
     private String operator;
-    private String operateTime;
+    private Date operateTime;
     private String operateContent;
     private String entryId;
     private String notes;

@@ -2,6 +2,8 @@ package com.shr.translationtoolservice.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.shr.translationtoolservice.common.AnjiDescription;
+
 import lombok.Data;
 
 import java.util.Date;
@@ -15,6 +17,7 @@ import java.util.Date;
 @Data
 public class EntryEntity {
 
+
     private String type;
 
     /**
@@ -26,67 +29,80 @@ public class EntryEntity {
     /**
      * abbr
      */
+
     private String abbr;
 
     /**
      * 词条
      */
+
     private String entry;
 
     /**
      * 词条字符数
      */
+
     private Double entryLength;
 
     /**
      * 中文释义
      */
+
     private String chineseInterpretation;
 
     /**
      * 英文释义
      */
+
     private String englishInterpretation;
 
     /**
      * 词条来源
      */
+
     private String entrySource;
 
     /**
      * 词条状态
      */
+    @AnjiDescription("词条状态")
     private Integer entryState;
 
     /**
      * 创建人
      */
+
     private String creator;
 
     /**
      * 创建时间
      */
+
     private Date createTime;
 
     /**
      * 修改人
      */
 
+    @TableField("`update`")
     private String update;
 
     /**
      * 修改时间
      */
+
     private Date updateTime;
 
     /**
      * 版本
      */
+
     private String version;
 
     /**
      * 是否最新版本   1 是  0 否
      */
+
     private Integer isLatestVersion;
 
     /**

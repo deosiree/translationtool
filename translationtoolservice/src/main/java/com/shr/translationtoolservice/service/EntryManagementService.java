@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Service
@@ -14,7 +15,7 @@ public interface EntryManagementService {
                                   @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                   @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
     //批量审核
-    String bathAudit(List<EntryGroupEntity> entryGroupEntities);
+    String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request);
 
     List getAllEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize);
 

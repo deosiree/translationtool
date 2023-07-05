@@ -11,14 +11,18 @@ import com.shr.translationtoolservice.service.EntryManagementService;
 
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -101,11 +105,14 @@ public class EntryController extends BaseController {
     @ApiOperation("批量审核")
     @PassToken
     @CrossOrigin
-    public HttpResponse<String> bathAudit(@RequestBody List<EntryGroupEntity> entryGroupEntities) {
+    @Transactional
+    public HttpResponse<String> bathAudit(@RequestBody List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request) {
+
+
         if (CollectionUtils.isEmpty(entryGroupEntities)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
-        String result = entryManagementService.bathAudit(entryGroupEntities);
+        String result = entryManagementService.bathAudit(entryGroupEntities,state,request);
 
         return checkResult(result);
     }

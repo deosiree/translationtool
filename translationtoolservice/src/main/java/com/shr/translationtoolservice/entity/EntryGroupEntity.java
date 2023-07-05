@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.entity;
 
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,11 +14,11 @@ import java.util.List;
 @Data
 public class EntryGroupEntity {
 
-    //审核ID
+    //词条ID
     List<String > ids;
     //表类型
-    String type;
-    //审核状态
-    String state;
+    String tableName;
+
+
 
 }

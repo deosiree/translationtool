@@ -1,15 +1,18 @@
 package com.shr.translationtoolservice.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.shr.translationtoolservice.dao.EntryCommonEntityMapper;
-import com.shr.translationtoolservice.dao.EntryProductEntityMapper;
-import com.shr.translationtoolservice.dao.EntryProjectEntityMapper;
+import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.EntryCommonEntityService;
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.service.EntryManagementService;
 import com.shr.translationtoolservice.util.CommonUtils;
+import com.shr.translationtoolservice.util.CompareUtils;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
+
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -17,8 +20,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @ClassName TermManagementServiceImpl
@@ -39,6 +50,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryProductEntityService entryProductEntityService;
     @Autowired
     EntryCommonEntityService entryCommonEntityService;
+    @Autowired
+    EntryMapper entryMapper;
+    @Autowired
+    EntryOperateMapper entryOperateMapper;
 
     @Autowired
     CommonUtils commonUtils;
@@ -164,7 +179,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     public String updateEntry(EntryEntity entryEntity) {
         if (ConstantInterface.PROJECT_TABLE.equals(entryEntity.getType())) {
             EntryProjectEntity entryProjectEntity = new EntryProjectEntity();
-            BeanUtils.copyProperties(entryEntity,entryProjectEntity);
+            BeanUtils.copyProperties(entryEntity, entryProjectEntity);
             QueryWrapper queryWrapper = new QueryWrapper();
             queryWrapper.eq("id", entryProjectEntity.getId());
             int update = entryProjectEntityMapper.update(entryProjectEntity, queryWrapper);
@@ -176,8 +191,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             //工程表
         } else if (ConstantInterface.PRODUCT_TABLE.equals(entryEntity.getType())) {
 
-            EntryProductEntity entryProductEntity =new EntryProductEntity();
-            BeanUtils.copyProperties(entryEntity,entryProductEntity);
+            EntryProductEntity entryProductEntity = new EntryProductEntity();
+            BeanUtils.copyProperties(entryEntity, entryProductEntity);
             QueryWrapper queryWrapper = new QueryWrapper();
             queryWrapper.eq("id", entryProductEntity.getId());
             int update = entryProductEntityMapper.update(entryProductEntity, queryWrapper);
@@ -188,8 +203,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             return ConstantInterface.OK_STR;
             //公共表
         } else if (ConstantInterface.COMMON_TABLE.equals(entryEntity.getType())) {
-            EntryCommonEntity entryCommonEntity =new EntryCommonEntity();
-            BeanUtils.copyProperties(entryEntity,entryCommonEntity);
+            EntryCommonEntity entryCommonEntity = new EntryCommonEntity();
+            BeanUtils.copyProperties(entryEntity, entryCommonEntity);
 
             QueryWrapper queryWrapper = new QueryWrapper();
             queryWrapper.eq("id", entryCommonEntity.getId());
@@ -205,21 +220,21 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String deleteEntry(EntryGroupEntity entryGroupEntity) {
-        if (ConstantInterface.PROJECT_TABLE.equals(entryGroupEntity.getType())) {
+        if (ConstantInterface.PROJECT_TABLE_Name.equals(entryGroupEntity.getTableName())) {
             int delete = entryProjectEntityMapper.deleteBatchIds(entryGroupEntity.getIds());
             if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
                 return ErrorCodeList.UPDATE_ERROR;
             }
             return ConstantInterface.OK_STR;
             //工程表
-        } else if (ConstantInterface.PRODUCT_TABLE.equals(entryGroupEntity.getType())) {
+        } else if (ConstantInterface.PRODUCT_TABLE_Name.equals(entryGroupEntity.getTableName())) {
             int delete = entryProductEntityMapper.deleteBatchIds(entryGroupEntity.getIds());
             if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
                 return ErrorCodeList.UPDATE_ERROR;
             }
             return ConstantInterface.OK_STR;
             //公共表
-        } else if (ConstantInterface.COMMON_TABLE.equals(entryGroupEntity.getType())) {
+        } else if (ConstantInterface.COMMON_TABLE_Name.equals(entryGroupEntity.getTableName())) {
             int delete = entryCommonEntityMapper.deleteBatchIds(entryGroupEntity.getIds());
             if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
                 return ErrorCodeList.UPDATE_ERROR;
@@ -249,34 +264,90 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     //TODO
-    public String bathAudit(List<EntryGroupEntity> entryGroupEntities) {
-        for (EntryGroupEntity entryGroupEntity : entryGroupEntities){
+    public String bathAudit(List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request) {
 
 
-            if (ConstantInterface.PROJECT_TABLE.equals(entryGroupEntity.getType())) {
-                int delete = entryProjectEntityMapper.auditByIds(entryGroupEntity.getIds(),entryGroupEntity.getState());
-                if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+        for (EntryGroupEntity entryGroupEntity : entryGroupEntities) {
+
+            List<String> entryIDs = entryGroupEntity.getIds();
+            String tableName = entryGroupEntity.getTableName();
+            for (String entryID : entryIDs) {
+
+
+                //批量审核
+                EntryEntity entryEntity = auditByID(tableName, entryID, state);
+                if (Objects.isNull(entryEntity)) {
                     return ErrorCodeList.UPDATE_ERROR;
                 }
-                //工程表
-            } else if (ConstantInterface.PRODUCT_TABLE.equals(entryGroupEntity.getType())) {
-                int delete = entryProductEntityMapper.auditByIds(entryGroupEntity.getIds(),entryGroupEntity.getState());
-                if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
+                //更新操作记录表
+                EntryEntity entryEntity1 = entryMapper.selectById(entryID,tableName);
+
+
+                String token = request.getHeader("token");
+                String userName = JWTTokenUtils.getUserName(token);
+                EntryOperate entryOperate = new EntryOperate();
+                Date date = new Date();
+                entryOperate.setOperateTime(date);
+                entryOperate.setOperator(userName);
+                entryOperate.setId(commonUtils.getUUID());
+                entryOperate.setEntryId(entryID);
+                entryOperate.setType(tableName);
+                List<ComparisonResult> results = new ArrayList<>();
+                OperateContentEntity operateContentEntity = new OperateContentEntity();
+                try {
+                    results = CompareUtils.compareFields(entryEntity, entryEntity1,EntryEntity.class);
+                    if (results.size()==0){
+                        log.error(" t_entry_operate compare result is null ! ");
+                        return ErrorCodeList.INSERT_ERROR;
+                    }
+                    operateContentEntity.setResults(results);
+                    operateContentEntity.setEntryID(entryID);
+                    String res = " 词条ID : " + operateContentEntity.getEntryID() + ", 修改内容 : ";
+                    for (ComparisonResult comparisonResult: operateContentEntity.getResults()){
+                       res += comparisonResult.getStr() + " ; ";
+                    }
+                    entryOperate.setOperateContent(res);
+                    int insert = entryOperateMapper.insert(entryOperate);
+                    if (insert != ConstantInterface.DB_SUCCESS_RESULT){
+                        log.error(" t_entry_operate update insert error ! ");
+                        return ErrorCodeList.INSERT_ERROR;
+                    }
+                }catch (Exception e){
+                    log.error(" ComparisonResult 类型对比异常 ！ ");
+                    log.error(e.getMessage());
                 }
-                //公共表
-            } else if (ConstantInterface.COMMON_TABLE.equals(entryGroupEntity.getType())) {
-                int delete = entryCommonEntityMapper.auditByIds(entryGroupEntity.getIds(),entryGroupEntity.getState());
-                if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
-                }
-            }else {
-                return ErrorCodeList.DELETE_ERROR;
+
+
+
+                boolean operateResult = updateEntryOperate(entryEntity, entryEntity);
+
+
             }
 
         }
 
 
         return ConstantInterface.OK_STR;
+    }
+
+    private boolean updateEntryOperate(EntryEntity oldEntryEntity,EntryEntity newEntryEntity) {
+        return true;
+
+
+    }
+
+    private EntryEntity auditByID(String tableName, String entryID, int state) {
+
+        EntryEntity entryEntity = entryMapper.selectById(entryID,tableName);
+
+        int update = entryMapper.auditById(tableName, entryID, state);
+
+        if (update != ConstantInterface.DB_SUCCESS_RESULT) {
+            return entryEntity;
+        }
+        return entryEntity;
+        //工程表
+
+
     }
 }

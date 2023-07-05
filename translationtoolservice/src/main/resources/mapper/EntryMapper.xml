@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.shr.translationtoolservice.dao.EntryProjectEntityMapper">
+<mapper namespace="com.shr.translationtoolservice.dao.EntryMapper">
 
-    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryProjectEntity">
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryEntity">
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
         <result property="entry" column="entry" jdbcType="VARCHAR"/>
@@ -43,7 +43,7 @@
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
         entry_source,entry_state,creator,
-        create_time,update,update_time,
+        create_time,`update`,update_time,
         version,is_latest_version,entry_label,
         part_of_speech,classify_id,repeat_entry_id,
         english,english_length,english_translate_state,
@@ -54,7 +54,7 @@
     </sql>
 
     <update id="auditByIds" parameterType="java.util.List">
-        update t_entry_project set entry_state = #{state,jdbcType=VARCHAR} where id in (
+        update #{tableName,jdbcType=VARCHAR} set entry_state = #{state,jdbcType=VARCHAR} where id in (
         <foreach collection="idList" item="idList" index="index" separator=",">
             #{idList,jdbcType=VARCHAR}
         </foreach>
@@ -62,6 +62,10 @@
     </update>
 
     <update id="auditById" parameterType="String">
-        update t_entry_project set entry_state = #{state,jdbcType=VARCHAR} where id = #{id,jdbcType=VARCHAR}
+        update  ${tableName} set entry_state = #{state,jdbcType=INTEGER} where id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <select id="selectById" parameterType="String" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/> from   ${tableName} where id = #{id,jdbcType=VARCHAR}
+    </select>
 </mapper>
