@@ -23,5 +23,5 @@ public interface EntryManagementService {
 
     String updateEntry(EntryEntity entryEntity,HttpServletRequest request);
 
-    String deleteEntry(EntryGroupEntity entryGroupEntity);
+    String deleteEntry(List<EntryEntity> entryEntities,String tableName);
 }

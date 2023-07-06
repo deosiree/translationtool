@@ -279,29 +279,13 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String deleteEntry(EntryGroupEntity entryGroupEntity) {
-        if (ConstantInterface.PROJECT_TABLE_Name.equals(entryGroupEntity.getTableName())) {
-            int delete = entryProjectEntityMapper.deleteBatchIds(entryGroupEntity.getIds());
-            if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
-            }
-            return ConstantInterface.OK_STR;
-            //工程表
-        } else if (ConstantInterface.PRODUCT_TABLE_Name.equals(entryGroupEntity.getTableName())) {
-            int delete = entryProductEntityMapper.deleteBatchIds(entryGroupEntity.getIds());
-            if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
-            }
-            return ConstantInterface.OK_STR;
-            //公共表
-        } else if (ConstantInterface.COMMON_TABLE_Name.equals(entryGroupEntity.getTableName())) {
-            int delete = entryCommonEntityMapper.deleteBatchIds(entryGroupEntity.getIds());
-            if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
-            }
-            return ConstantInterface.OK_STR;
+    public String deleteEntry(List<EntryEntity> entryEntities,String tableName) {
+        int delete = entryMapper.deleteEntries(entryEntities,tableName);
+        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
         }
-        return ErrorCodeList.DELETE_ERROR;
+        return ConstantInterface.OK_STR;
+        
     }
 
     //判断list 是否满足 pageindex 的页码要求

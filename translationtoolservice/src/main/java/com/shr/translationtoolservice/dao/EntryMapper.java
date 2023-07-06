@@ -28,6 +28,8 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     List<EntryEntity> selectByAbbr(@Param("entryEntity") EntryEntity entryEntity);
 
     int updateById(@Param("entryEntity") EntryEntity entryEntity);
+
+    int deleteEntries(@Param("entryEntities") List<EntryEntity> entryEntities,@Param("tableName") String tableName);
 }
 
 

@@ -92,12 +92,13 @@ public class EntryController extends BaseController {
     @ApiOperation("删除词条")
     @PassToken
     @CrossOrigin
-    public HttpResponse<String> deleteEntry(@RequestBody EntryGroupEntity entryGroupEntity) {
-        if (CollectionUtils.isEmpty(entryGroupEntity.getIds())) {
+    public HttpResponse<String> deleteEntry(@RequestBody List<EntryEntity> entryEntities,String tableName) {
+        if (CollectionUtils.isEmpty(entryEntities) || StringUtils.isBlank(tableName)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
 
-        return checkResult(entryManagementService.deleteEntry(entryGroupEntity));
+
+        return checkResult(entryManagementService.deleteEntry(entryEntities,tableName));
 
     }
 

@@ -179,6 +179,14 @@
         where id = #{entryEntity.id,jdbcType=VARCHAR}
     </update>
 
+<delete id="deleteEntries" parameterType="arraylist">
+    DELETE FROM   ${tableName} WHERE id in(
+    <foreach collection="list" item="entryEntity" index="index" separator=",">
+        #{entryEntity.id,jdbcType=VARCHAR}
+    </foreach>
+    );
+</delete>
+
 
     <insert id="insert" parameterType="com.shr.translationtoolservice.entity.EntryEntity">
 
