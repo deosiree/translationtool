@@ -30,4 +30,6 @@ public interface EntryManagementService {
     EntryOperate queryOperate(String entryId);
 
     List<EntryEntity> selectRepeEntry(String mergeState);
+
+    String entryMerge(List<EntryEntity> entryEntity);
 }

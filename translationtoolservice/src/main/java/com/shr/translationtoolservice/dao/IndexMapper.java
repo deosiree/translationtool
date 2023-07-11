@@ -10,7 +10,9 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface IndexMapper extends BaseMapper<Index> {
-    Index getIndexByEntryId(@Param("entryId") String entryId);
+    Index getIndexByEntry(@Param("entry") String entry);
+
+
 }
 
 

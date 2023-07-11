@@ -102,6 +102,10 @@
         #{entryEntity.version,jdbcType=VARCHAR}
     </select>
 
+
+
+
+
     <select id="selectRepeEntry" parameterType="String" resultMap="BaseResultMap">
         ( select
         <include refid="t1_Column_List"/>,

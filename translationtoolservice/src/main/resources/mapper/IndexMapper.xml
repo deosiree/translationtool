@@ -17,11 +17,12 @@
         id,entry,repeat_entry_id,
         table1,table2,table3
     </sql>
-    
-    <select id="getIndexByEntryId" parameterType="String" resultType="com.shr.translationtoolservice.entity.Index">
+
+    <select id="getIndexByEntry" parameterType="String" resultType="com.shr.translationtoolservice.entity.Index">
         select
         <include refid="Base_Column_List"/>
         from t_index
-        where entry = #{entryId,jdbcType=VARCHAR}
+        where entry = #{entry,jdbcType=VARCHAR}
     </select>
+
 </mapper>

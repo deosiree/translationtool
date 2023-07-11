@@ -90,9 +90,9 @@ public class EntryController extends BaseController {
     @ApiOperation("词条合并")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> entryMerge(@RequestBody List<EntryEntity> entryEntity,HttpServletRequest request) {
+    public HttpResponse<String> entryMerge(@RequestBody List<EntryEntity> entryEntities,HttpServletRequest request) {
 
-        return checkResult(null);
+        return checkResult( entryManagementService.entryMerge(entryEntities));
     }
 
     @PostMapping("/getReEntry")

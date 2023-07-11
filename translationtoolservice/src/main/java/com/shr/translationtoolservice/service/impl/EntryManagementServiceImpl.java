@@ -161,6 +161,52 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return entryEntities;
     }
 
+    @Override
+    public String entryMerge(List<EntryEntity> entryEntities) {
+        Index index = new Index();
+        index.setRepeatEntryId(commonUtils.getUUID());
+        int i = 0;
+        if (entryEntities.size() > 0) {
+
+            for (EntryEntity entryEntity : entryEntities) {
+                i+=1;
+                Index index1 = indexMapper.getIndexByEntry(entryEntity.getEntry());
+                //如果存在 返回异常
+                if (!Objects.isNull(index1)){
+                    return ErrorCodeList.OBJECT_HAS_EXIST;
+                }
+
+
+                //更新词条
+                entryEntity.setRepeatEntryId(index.getRepeatEntryId());
+                int update = entryMapper.updateById(entryEntity);
+                if (update != ConstantInterface.DB_SUCCESS_RESULT) {
+                    return ErrorCodeList.UPDATE_ERROR;
+                }
+                //写入index
+                index.setEntry(entryEntity.getEntry());
+                switch (i) {
+                    case 1:
+                        index.setTable1(entryEntity.getTableName());
+
+                    case 2:
+                        index.setTable2(entryEntity.getTableName());
+                        break;
+                    case 3:
+                        index.setTable3(entryEntity.getTableName());
+                        break;
+                }
+
+            }
+        }
+        int insert = indexMapper.insert(index);
+        if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+            log.error(" t_entry_operate update insert error ! ");
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
 
     @Override
     public String insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
@@ -244,7 +290,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 entryEntity.setIsLatestVersion(0);
             }
         }
-        Index index = indexMapper.getIndexByEntryId(entryEntity.getId());
+        Index index = indexMapper.getIndexByEntry(entryEntity.getEntry());
         if (!Objects.isNull(index)) {
             entryEntity.setRepeatEntryId(index.getRepeatEntryId());
         }

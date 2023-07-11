@@ -35,6 +35,8 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     List<EntryEntity> selectByName(@Param("entryEntity") EntryEntity entryEntity);
 
     List<EntryEntity> selectRepeEntry(String repeatEntryId);
+
+
 }
 
 
