@@ -37,6 +37,7 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     List<EntryEntity> selectRepeEntry(String repeatEntryId);
 
 
+    List<EntryEntity> selectListByEntry(EntryEntity entryEntity, Integer pageSize, int offset);
 }
 
 

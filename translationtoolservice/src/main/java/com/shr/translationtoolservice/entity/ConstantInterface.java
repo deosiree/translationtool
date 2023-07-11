@@ -51,7 +51,7 @@ public class ConstantInterface {
     public static final String PRODUCT_TABLE = "product";
     public static final String COMMON_TABLE = "common";
 
-
+    public static final String TIME_ZERO = " 00:00:00";
     public static final String PROJECT_TABLE_Name = "t_entry_project";
     public static final String PRODUCT_TABLE_Name = "t_entry_product";
     public static final String COMMON_TABLE_Name = "t_entry_common";

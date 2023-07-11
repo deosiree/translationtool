@@ -20,6 +20,8 @@ public class EntryEntity {
 
     private String tableName;
 
+    private Date createEndRTime;
+
     /**
      * 主键
      */

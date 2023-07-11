@@ -11,13 +11,13 @@ import java.util.List;
 @Service
 public interface EntryManagementService {
     //查询词条信息
-    ResponseListModel searchEntry(@RequestBody EntryReqEntity entryReqEntity,
+    ResponseListModel searchEntry(@RequestBody EntryEntity entryEntity,
                                   @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                   @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
     //批量审核
     String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request);
 
-    List getAllEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize);
+    List<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize);
 
     String insertEntry(EntryEntity entryEntity,HttpServletRequest request);
 
@@ -32,4 +32,7 @@ public interface EntryManagementService {
     List<EntryEntity> selectRepeEntry(String mergeState);
 
     String entryMerge(List<EntryEntity> entryEntity);
+
+    List<EntryClassify> getEntryClassfy(Integer pageIndex,
+                                        Integer pageSize);
 }

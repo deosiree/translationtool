@@ -3,6 +3,9 @@ package com.shr.translationtoolservice.dao;
 import com.shr.translationtoolservice.entity.EntryClassify;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @Entity com.shr.translationtoolservice.entity.EntryClassify
@@ -10,6 +13,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
 
+    List<EntryClassify>  getEntryClassfyByIds( Integer limit, int offset);
 }
 
 

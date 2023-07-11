@@ -54,11 +54,11 @@ public class EntryController extends BaseController {
     @ApiOperation("词条查询")
     @PassToken
     @CrossOrigin
-    public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryReqEntity entryReqEntity,
+    public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryEntity entryEntity,
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
 
-        return checkResult(  entryManagementService.searchEntry(entryReqEntity, pageIndex, pageSize));
+        return checkResult(  entryManagementService.searchEntry(entryEntity, pageIndex, pageSize));
     }
 
 
@@ -133,11 +133,13 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类查询")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryClassfy(List<String>  classfyIds) {
+    public HttpResponse<ResponseListModel> getEntryClassfy(  @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
+        entryClassifies = entryManagementService.getEntryClassfy(pageIndex,pageSize);
         responseListModel.setList(entryClassifies);
-        responseListModel.setTotalNum(1);
+        responseListModel.setTotalNum(entryClassifies.size());
         return checkResult(responseListModel);
 
     }

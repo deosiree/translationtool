@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -62,6 +63,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryVersionMapper entryVersionMapper;
     @Autowired
     IndexMapper indexMapper;
+    @Autowired
+    EntryClassifyMapper entryClassifyMapper;
+    @Autowired
+    EntryLabelMapper entryLabelMapper;
 
     @Autowired
     CommonUtils commonUtils;
@@ -69,75 +74,110 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryProjectEntityService entryProjectEntityService;
 
     @Override
-    public ResponseListModel searchEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize) {
+    public ResponseListModel searchEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
+        //校验前端日期格式
+
+        if (Objects.nonNull(entryEntity.getCreateTime()) && entryEntity.getCreateTime().toString().length() < 10) {
+            String time = entryEntity.getCreateTime().toString() + ConstantInterface.TIME_ZERO;
+            entryEntity.setCreateTime(new Date(time));
+        }
+        if (Objects.nonNull(entryEntity.getCreateEndRTime()) && entryEntity.getCreateEndRTime().toString().length() < 10) {
+            String time = entryEntity.getCreateEndRTime().toString() + ConstantInterface.TIME_ZERO;
+            entryEntity.setCreateEndRTime(new Date(time));
+        }
         ResponseListModel result = new ResponseListModel<>();
-        QueryWrapper<EntryProjectEntity> projectEntityQueryWrapper = new QueryWrapper<EntryProjectEntity>();
+        List<EntryEntity> entryEntities = getAllEntry(entryEntity, pageIndex, pageSize);
+        result.setList(entryEntities);
+        result.setTotalNum(entryEntities.size());
+
+
+
+       /* QueryWrapper<EntryProjectEntity> projectEntityQueryWrapper = new QueryWrapper<EntryProjectEntity>();
         QueryWrapper<EntryProductEntity> productEntityQueryWrapper = new QueryWrapper<>();
         QueryWrapper<EntryCommonEntity> commonEntityQueryWrapper = new QueryWrapper<>();
-
-        if (StringUtils.isBlank(entryReqEntity.getLexicon())) {
-            result.setList(getAllEntry(entryReqEntity, pageIndex, pageSize));
+            result.setList(getAllEntry(entryEntity, pageIndex, pageSize));
+        if (StringUtils.isBlank(entryEntity.getTableName())) {
+            result.setList(getAllEntry(entryEntity, pageIndex, pageSize));
             int total = entryCommonEntityMapper.selectCount(commonEntityQueryWrapper)
                     + entryProductEntityMapper.selectCount(productEntityQueryWrapper) + entryProjectEntityMapper.selectCount(projectEntityQueryWrapper);
             result.setTotalNum(total);
             //产品表
-        } else if (ConstantInterface.PROJECT_TABLE.equals(entryReqEntity.getLexicon())) {
-            result.setList(entryProjectEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
-            result.setTotalNum(entryProjectEntityMapper.selectCount(projectEntityQueryWrapper));
-            //工程表
-        } else if (ConstantInterface.PRODUCT_TABLE.equals(entryReqEntity.getLexicon())) {
-            result.setList(entryProductEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
-            result.setTotalNum(entryProductEntityMapper.selectCount(productEntityQueryWrapper));
-            //公共表
-        } else if (ConstantInterface.COMMON_TABLE.equals(entryReqEntity.getLexicon())) {
-            result.setList(entryCommonEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
-            result.setTotalNum(entryCommonEntityMapper.selectCount(commonEntityQueryWrapper));
-        }
+
+            } else if (ConstantInterface.PROJECT_TABLE.equals(entryEntity.getTableName())) {
+                List<EntryEntity> entryEntities = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
+                result.setList(entryEntities);
+                result.setTotalNum(entryEntities.size());
+                //工程表
+            } else if (ConstantInterface.PRODUCT_TABLE.equals(entryReqEntity.getLexicon())) {
+                result.setList(entryProductEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
+                result.setTotalNum(entryProductEntityMapper.selectCount(productEntityQueryWrapper));
+                //公共表
+            } else if (ConstantInterface.COMMON_TABLE.equals(entryReqEntity.getLexicon())) {
+                result.setList(entryCommonEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
+                result.setTotalNum(entryCommonEntityMapper.selectCount(commonEntityQueryWrapper));
+            }*/
+
         return result;
     }
 
     //先查project表，不够再查 product ，最后再查comm
     @Override
-    public List getAllEntry(EntryReqEntity entryReqEntity, Integer pageIndex, Integer pageSize) {
-        List entry = new ArrayList();
+    public List<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
+        List<EntryEntity> entry = new ArrayList();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            if (entryEntity.getTableName().contains(",")) {
+                String[] tableNames = entryEntity.getTableName().split(",");
 
-        List projectEntities = entryProjectEntityService.searchEntry(entryReqEntity, pageIndex, pageSize);
-        if (CollectionUtils.isEmpty(projectEntities)) {
-            return entry;
+
+                for (String tableName : tableNames) {
+                    entryEntity.setTableName(tableName);
+                    List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
+                    entry.addAll(entryEntity1);
+                    if (checkPage(entryEntity1, pageIndex, pageSize)) {
+                        return entry;
+                    }
+                    pageSize = pageIndex - entryEntity1.size() / pageSize;
+
+                }
+            } else {
+                entryEntity.setTableName(entryEntity.getTableName());
+                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
+                entry.addAll(entryEntity1);
+
+            }
+
+
         }
-        entry.addAll(projectEntities);
+     /*
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            entryEntity.setTableName(ConstantInterface.PROJECT_TABLE_Name);
+            List<EntryEntity> entryEntity_project =  entryMapper.selectListByEntry(entryEntity, pageSize, offset);
+            entry.addAll(entryEntity_project);
+            if (checkPage(entryEntity_project, pageIndex, pageSize)) {
+                return entry;
+            }
+
+            int pageLastIndex = pageIndex - entryEntity_project.size() / pageSize;
+            entryEntity.setTableName(ConstantInterface.PROJECT_TABLE_Name);
+            List<EntryEntity> entryEntity_product = entryMapper.selectListByEntry(entryEntity, pageLastIndex, pageSize);
 
 
-        //先查project 查出页码和参数页码相同 即返回
-        if (checkPage(projectEntities, pageIndex, pageSize)) {
-            return entry;
+            entry.addAll(entryEntity_product);
+
+            if (checkPage(entryEntity_product, pageIndex, pageSize)) {
+                return entry;
+            }
+
+
+            //剩余页码
+            int pageLastIndex1 = pageLastIndex - entryEntity_product.size() / pageSize;
+            List<EntryEntity> entryEntity_common = entryMapper.selectListByEntry(entryEntity, pageLastIndex1, pageSize);
+
+            entry.addAll(entryEntity_common);
         }
-
-        //第一页没满的时候
-
-        //剩余页码
-
-        int pageLastIndex = pageIndex - projectEntities.size() / pageSize;
-
-
-        List productEntities = entryProductEntityService.searchEntry(entryReqEntity, pageLastIndex, pageSize);
-        if (CollectionUtils.isEmpty(productEntities)) {
-            return entry;
-        }
-        entry.addAll(productEntities);
-
-        if (checkPage(productEntities, pageIndex, pageSize)) {
-            return entry;
-        }
-
-
-        //剩余页码
-        int pageLastIndex1 = pageLastIndex - productEntities.size() / pageSize;
-        List commonEntities = entryCommonEntityService.searchEntry(entryReqEntity, pageLastIndex1, pageSize);
-        if (CollectionUtils.isEmpty(commonEntities)) {
-            return entry;
-        }
-        entry.addAll(commonEntities);
+*/
         return entry;
     }
 
@@ -169,10 +209,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (entryEntities.size() > 0) {
 
             for (EntryEntity entryEntity : entryEntities) {
-                i+=1;
+                i += 1;
                 Index index1 = indexMapper.getIndexByEntry(entryEntity.getEntry());
                 //如果存在 返回异常
-                if (!Objects.isNull(index1)){
+                if (!Objects.isNull(index1)) {
                     return ErrorCodeList.OBJECT_HAS_EXIST;
                 }
 
@@ -207,6 +247,19 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return ConstantInterface.OK_STR;
     }
 
+    @Override
+    public List<EntryClassify> getEntryClassfy(Integer pageIndex,
+                                               Integer pageSize) {
+        List<EntryClassify> entryClassifies = new ArrayList<>();
+
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            entryClassifies = entryClassifyMapper.getEntryClassfyByIds(pageSize, offset);
+        }
+        return entryClassifies;
+
+    }
+
 
     @Override
     public String insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
@@ -220,6 +273,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         entryEntity.setId(uuid);
         //构建字符长度
         constructEntry(entryEntity);
+        if (Objects.isNull(entryEntity.getEntryState() ) ){
+            entryEntity.setEntryState(1);
+        }
 
         //创建人
         String token = request.getHeader("token");
@@ -228,10 +284,20 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             entryEntity.setCreator(userName);
         }
         if (Objects.isNull(entryEntity.getCreateTime())) {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-            entryEntity.setCreateTime(new Date(System.currentTimeMillis()));
+            Date date = new Date(System.currentTimeMillis());
+            entryEntity.setCreateTime(date);
         }
 
+        String lable = entryEntity.getEntryLabel();
+        QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper();
+        queryWrapper.eq("name",lable);
+        EntryLabel entryLabel = entryLabelMapper.selectOne(queryWrapper);
+        if (Objects.isNull(entryLabel)){
+            EntryLabel entryLabel1 = new EntryLabel();
+            entryLabel1.setId(commonUtils.getUUID());
+            entryLabel1.setLabelName(lable);
+            entryLabelMapper.insert(entryLabel1);
+        }
 
         int insert = entryMapper.insert(entryEntity);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
@@ -305,7 +371,6 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         constructEntry(entryEntity);
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
         entryEntity.setUpdate(userName);
         entryEntity.setUpdateTime(new Date(System.currentTimeMillis()));
         int update = entryMapper.updateById(entryEntity);
