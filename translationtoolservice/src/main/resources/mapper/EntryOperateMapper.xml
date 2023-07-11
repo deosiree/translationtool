@@ -17,5 +17,8 @@
     id, operator, operateTime, operateContent, entryId, notes ,`type`
   </sql>
 
-
+<select id="selectByEntryId" parameterType="String" resultType="com.shr.translationtoolservice.entity.EntryOperate">
+    select  <include refid="Base_Column_List" />
+    from t_entry_operate where entry_id =   #{entryId,jdbcType=VARCHAR}
+</select>
 </mapper>

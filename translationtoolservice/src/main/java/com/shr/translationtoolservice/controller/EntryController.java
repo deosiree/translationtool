@@ -23,7 +23,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/entry")
@@ -55,16 +58,13 @@ public class EntryController extends BaseController {
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
 
-        ResponseListModel result = new ResponseListModel<>();
-        entryManagementService.searchEntry(entryReqEntity, pageIndex, pageSize);
-        return checkResult(result);
+        return checkResult(  entryManagementService.searchEntry(entryReqEntity, pageIndex, pageSize));
     }
 
 
     //新增词条
     @PostMapping("/insertEntry")
     @ApiOperation("新增词条")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<String> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
@@ -77,7 +77,6 @@ public class EntryController extends BaseController {
     //新增词条
     @PostMapping("/updateEntry")
     @ApiOperation("编辑词条")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<String> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
@@ -87,10 +86,98 @@ public class EntryController extends BaseController {
         return checkResult(entryManagementService.updateEntry(entryEntity,request));
     }
 
+    @PostMapping("/entryMerge")
+    @ApiOperation("词条合并")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> entryMerge(@RequestBody List<EntryEntity> entryEntity,HttpServletRequest request) {
+
+        return checkResult(null);
+    }
+
+    @PostMapping("/getReEntry")
+    @ApiOperation("重复词条查询")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> entryMerge(String mergeState) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryEntity> entryEntities = new ArrayList<>();
+        entryEntities = entryManagementService.selectRepeEntry(mergeState);
+        responseListModel.setList(entryEntities);
+        responseListModel.setTotalNum(entryEntities.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/importEntry")
+    @ApiOperation("导入")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> importEntry(File file) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        return checkResult(null);
+    }
+
+    @PostMapping("/outEntry")
+    @ApiOperation("导出")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> outEntry(List<String>  entryIds) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        return checkResult(null);
+
+    }
+
+    @PostMapping("/getEntryClassfy")
+    @ApiOperation("词条分类查询")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getEntryClassfy(List<String>  classfyIds) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryClassify> entryClassifies = new ArrayList<>();
+        responseListModel.setList(entryClassifies);
+        responseListModel.setTotalNum(1);
+        return checkResult(responseListModel);
+
+    }
+
+
+    @PostMapping("/updateEntryClassfy")
+    @ApiOperation("词条分类修改")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> updateEntryClassfy(EntryClassify entryClassify) {
+
+        return checkResult(null);
+
+    }
+
+    @PostMapping("/deleteEntryClassfy")
+    @ApiOperation("词条分类删除")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> deleteEntryClassfy(List<String>  ids) {
+
+        return checkResult(null);
+
+    }
+
+
+    @PostMapping("/addEntryClassfy")
+    @ApiOperation("词条分类新增")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> addEntryClassfy(EntryClassify  entryClassifies) {
+
+        return checkResult(null);
+
+    }
+
+
     //新增词条
     @PostMapping("/deleteEntry")
     @ApiOperation("删除词条")
-    @PassToken
     @CrossOrigin
     public HttpResponse<String> deleteEntry(@RequestBody List<EntryEntity> entryEntities,String tableName) {
         if (CollectionUtils.isEmpty(entryEntities) || StringUtils.isBlank(tableName)) {
@@ -106,7 +193,6 @@ public class EntryController extends BaseController {
     //批量审核
     @PostMapping("/bathAudit")
     @ApiOperation("批量审核")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<String> bathAudit(@RequestBody List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request) {
@@ -118,6 +204,33 @@ public class EntryController extends BaseController {
         String result = entryManagementService.bathAudit(entryGroupEntities,state,request);
 
         return checkResult(result);
+    }
+
+
+    @PostMapping("/getOperateByEntryId")
+    @ApiOperation("操作记录查询")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<EntryOperate> queryOperate(String  entryId) {
+
+
+        EntryOperate operate = entryManagementService.queryOperate(entryId);
+
+        return checkResult(operate);
+    }
+
+
+
+    @PostMapping("/translate")
+    @ApiOperation("翻译词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<TranslateEntity> translate(EntryEntity entryEntity) {
+
+
+        TranslateEntity translateEntity = entryManagementService.translate(entryEntity);
+        return checkResult(translateEntity);
     }
 
 

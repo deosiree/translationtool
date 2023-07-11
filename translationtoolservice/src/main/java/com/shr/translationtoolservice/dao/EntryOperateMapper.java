@@ -11,4 +11,5 @@ import java.util.List;
 @Mapper
 public interface EntryOperateMapper extends BaseMapper<EntryOperate> {
 
+    EntryOperate selectByEntryId(String entryId);
 }

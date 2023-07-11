@@ -47,4 +47,5 @@ public interface ConfigManageInterface {
     List<Menu> getMenuInfoByRole(String roleID);
 
     int getMenuTotal();
+
 }

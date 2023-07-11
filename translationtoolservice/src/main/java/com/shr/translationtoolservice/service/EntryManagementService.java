@@ -24,4 +24,10 @@ public interface EntryManagementService {
     String updateEntry(EntryEntity entryEntity,HttpServletRequest request);
 
     String deleteEntry(List<EntryEntity> entryEntities,String tableName);
+
+    TranslateEntity translate(EntryEntity entryEntity);
+
+    EntryOperate queryOperate(String entryId);
+
+    List<EntryEntity> selectRepeEntry(String mergeState);
 }

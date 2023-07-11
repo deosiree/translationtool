@@ -41,6 +41,8 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     AuthorityMapper authorityMapper;
     @Autowired
     RoleMenuEntryMapper roleMenuEntryMapper;
+    @Autowired
+    EntryOperateMapper entryOperateMapper;
 
     @Autowired
     MenuMapper menuMapper;
@@ -186,6 +188,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     public int getMenuTotal() {
         return menuMapper.selectMenyTotal();
     }
+
 
     @Override
     public String deleteUserInfoByList(List<String> idList) {
@@ -385,26 +388,6 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             int insert = roleAuthorityEntryMapper.insertPermission(roleAuthorityEntity);
 
 
-
-
-
-          /*  List<RoleAuthorityEntity> roleAuthorityEntries = roleAuthorityEntryMapper.selectPermiss(roleAuthorityEntity);
-            //如果不存在进行insert
-            if (CollectionUtils.isEmpty(roleAuthorityEntries)) {
-
-                int insert = roleAuthorityEntryMapper.insertPermission(roleAuthorityEntity);
-                if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
-                }
-                //存在进行删除 再insert
-            } else {
-                int delete = roleAuthorityEntryMapper.deleteAuthorityByID(roleAuthorityRes.getRoleID());
-                if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
-                }
-
-            }*/
-
         }
 
         //绑定菜单
@@ -420,25 +403,6 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             roleMenuEntry.setMenuId(menuId);
             int insert = roleMenuEntryMapper.insertMenuIDByRoleID(roleMenuEntry);
 
-
-
-
-        /*    if (CollectionUtils.isEmpty(menuIDByRoleID)) {
-
-                int insert = roleMenuEntryMapper.insertMenuIDByRoleID(roleMenuEntry);
-                if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
-                }
-            } else {
-                int delete1 = roleMenuEntryMapper.deleteByRoleId(roleAuthorityRes.getRoleID());
-                if (delete1 < ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
-                }
-                int insert = roleMenuEntryMapper.insertMenuIDByRoleID(roleMenuEntry);
-                if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                    return ErrorCodeList.UPDATE_ERROR;
-                }
-            }*/
         }
 
         return ConstantInterface.OK_STR;

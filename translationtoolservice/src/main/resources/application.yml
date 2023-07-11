@@ -14,6 +14,7 @@ spring:
       matching-strategy: ANT_PATH_MATCHER
 server:
   port: 18001
+
 baidu:
   translate:
     appid: 20230705001734655

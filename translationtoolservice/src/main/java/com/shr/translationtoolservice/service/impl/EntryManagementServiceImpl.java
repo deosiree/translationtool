@@ -27,10 +27,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName TermManagementServiceImpl
@@ -141,10 +142,32 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
+    public EntryOperate queryOperate(String entryId) {
+
+        return entryOperateMapper.selectByEntryId(entryId);
+    }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    @Override
+    public List<EntryEntity> selectRepeEntry(String repeatEntryId) {
+        List<EntryEntity> entryEntities = new ArrayList<>();
+        //合并和未合并sql 增加过滤
+        entryEntities = entryMapper.selectRepeEntry(repeatEntryId).stream().distinct().collect(Collectors.toList());
+
+        return entryEntities;
+    }
+
+
+    @Override
     public String insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
 
         List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity);
-        if (entryEntities.size() > 0) {
+        List<EntryEntity> entryEntities1 = entryMapper.selectByName(entryEntity);
+        if (entryEntities.size() + entryEntities1.size() > 0) {
             return ErrorCodeList.ABBR_HAS_EXIST;
         }
         String uuid = commonUtils.getUUID();
@@ -159,7 +182,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             entryEntity.setCreator(userName);
         }
         if (Objects.isNull(entryEntity.getCreateTime())) {
-            SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
             entryEntity.setCreateTime(new Date(System.currentTimeMillis()));
         }
 
@@ -188,7 +211,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (StringUtils.isNotBlank(entryEntity.getEnglish())) {
             entryEntity.setEnglishLength(entryEntity.getEnglish().length());
             entryEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
-        }else {
+        } else {
             entryEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getEnglishDisable())) {
@@ -197,19 +220,19 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (StringUtils.isNotBlank(entryEntity.getRussian())) {
             entryEntity.setRussianLength(entryEntity.getRussian().length());
             entryEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
-        }else {
+        } else {
             entryEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getSpanish())) {
             entryEntity.setSpanishLength(entryEntity.getSpanish().length());
             entryEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
-        }else {
+        } else {
             entryEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getFrench())) {
             entryEntity.setFrenchLength(entryEntity.getFrench().length());
             entryEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
-        }else {
+        } else {
             entryEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
         }
         //是否最新版本
@@ -232,18 +255,18 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String updateEntry(EntryEntity entryEntity, HttpServletRequest request) {
-        EntryEntity beforEntry = entryMapper.selectById(entryEntity.getId(),entryEntity.getTableName());
+        EntryEntity beforEntry = entryMapper.selectById(entryEntity.getId(), entryEntity.getTableName());
         constructEntry(entryEntity);
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
         entryEntity.setUpdate(userName);
         entryEntity.setUpdateTime(new Date(System.currentTimeMillis()));
         int update = entryMapper.updateById(entryEntity);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
-        if (Objects.isNull(entryEntity.getEntryState())){
+        if (Objects.isNull(entryEntity.getEntryState())) {
             entryEntity.setEntryState(beforEntry.getEntryState());
         }
         //更新操作记录表
@@ -251,7 +274,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         List<ComparisonResult> results = new ArrayList<>();
         OperateContentEntity operateContentEntity = new OperateContentEntity();
         try {
-            EntryEntity afterEntry = entryMapper.selectById(entryEntity.getId(),entryEntity.getTableName());
+            EntryEntity afterEntry = entryMapper.selectById(entryEntity.getId(), entryEntity.getTableName());
             results = CompareUtils.compareFields(beforEntry, afterEntry, EntryEntity.class);
             if (results.size() == 0) {
                 log.error(" t_entry_operate compare result is null ! ");
@@ -264,7 +287,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 res += comparisonResult.getStr() + " ; ";
             }
             entryOperate.setOperateContent(res);
-            int insert = constructOperate(entryOperate,entryEntity.getTableName(),entryEntity.getId(),request);
+            int insert = constructOperate(entryOperate, entryEntity.getTableName(), entryEntity.getId(), request);
             if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
                 log.error(" t_entry_operate update insert error ! ");
                 return ErrorCodeList.INSERT_ERROR;
@@ -279,13 +302,32 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String deleteEntry(List<EntryEntity> entryEntities,String tableName) {
-        int delete = entryMapper.deleteEntries(entryEntities,tableName);
+    public String deleteEntry(List<EntryEntity> entryEntities, String tableName) {
+        int delete = entryMapper.deleteEntries(entryEntities, tableName);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
         return ConstantInterface.OK_STR;
-        
+
+    }
+
+    @Override
+    public TranslateEntity translate(EntryEntity entryEntity) {
+        String english = translate.getTranslateResult(entryEntity.getEntry(), ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+        String russia = translate.getTranslateResult(entryEntity.getEntry(), ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+        String spanish = translate.getTranslateResult(entryEntity.getEntry(), ConstantInterface.AUTO, ConstantInterface.SPANISH);
+        String french = translate.getTranslateResult(entryEntity.getEntry(), ConstantInterface.AUTO, ConstantInterface.FRENCH);
+        entryEntity.setEnglish(english);
+        entryEntity.setRussian(russia);
+        entryEntity.setSpanish(spanish);
+        entryEntity.setFrench(french);
+        entryMapper.updateById(entryEntity);
+        TranslateEntity translateEntity = new TranslateEntity();
+        translateEntity.setEnglish(english);
+        translateEntity.setFrench(french);
+        translateEntity.setRussian(russia);
+        translateEntity.setSpanish(spanish);
+        return translateEntity;
     }
 
     //判断list 是否满足 pageindex 的页码要求

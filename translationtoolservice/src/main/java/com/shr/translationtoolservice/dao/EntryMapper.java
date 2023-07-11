@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Entity com.shr.translationtoolservice.entity.EntryEntity
@@ -30,6 +31,10 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     int updateById(@Param("entryEntity") EntryEntity entryEntity);
 
     int deleteEntries(@Param("entryEntities") List<EntryEntity> entryEntities,@Param("tableName") String tableName);
+
+    List<EntryEntity> selectByName(@Param("entryEntity") EntryEntity entryEntity);
+
+    List<EntryEntity> selectRepeEntry(String repeatEntryId);
 }
 
 
