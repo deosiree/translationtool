@@ -1,4 +1,4 @@
-package  com.shr.translationtoolservice.entity;
+package com.shr.translationtoolservice.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -8,36 +8,27 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * 词条分类表
- * @TableName t_entry_classify
+ * 词库表
+ * @TableName t_thesaurus
  */
-@TableName(value ="t_entry_classify")
+@TableName(value ="t_thesaurus")
 @Data
-public class EntryClassify implements Serializable {
-
-
-
-    EntryClassify children;
+public class Thesaurus implements Serializable {
     /**
-     * 
+     * 主键
      */
     @TableId
     private String id;
 
     /**
-     * 父id
+     * 词库代码
      */
-    private String parentId;
+    private String tableCode;
 
     /**
-     * 分类名称
+     * 词库名称
      */
-    private String name;
-
-    /**
-     * 序号
-     */
-    private Integer index;
+    private String tableName;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

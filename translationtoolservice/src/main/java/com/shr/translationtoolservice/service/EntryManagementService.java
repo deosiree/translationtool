@@ -17,7 +17,7 @@ public interface EntryManagementService {
     //批量审核
     String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request);
 
-    List<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize);
+    ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize);
 
     String insertEntry(EntryEntity entryEntity,HttpServletRequest request);
 
@@ -33,6 +33,7 @@ public interface EntryManagementService {
 
     String entryMerge(List<EntryEntity> entryEntity);
 
-    List<EntryClassify> getEntryClassfy(Integer pageIndex,
-                                        Integer pageSize);
+    List<EntryClassify> getEntryClassfy();
+
+    List<Thesaurus> getThesaurus();
 }

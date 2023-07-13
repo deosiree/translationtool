@@ -13,7 +13,9 @@ import java.util.List;
 @Mapper
 public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
 
-    List<EntryClassify>  getEntryClassfyByIds( Integer limit, int offset);
+    List<EntryClassify>  getEntryClassfyByIds();
+
+    EntryClassify selectByParentId(String parentId);
 }
 
 

@@ -1,6 +1,5 @@
 package com.shr.translationtoolservice.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
@@ -13,21 +12,14 @@ import com.shr.translationtoolservice.util.CompareUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 
 import com.shr.translationtoolservice.util.Translate;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -67,6 +59,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryClassifyMapper entryClassifyMapper;
     @Autowired
     EntryLabelMapper entryLabelMapper;
+    @Autowired
+    ThesaurusMapper thesaurusMapper;
+
 
     @Autowired
     CommonUtils commonUtils;
@@ -77,108 +72,94 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     public ResponseListModel searchEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
         //校验前端日期格式
 
-        if (Objects.nonNull(entryEntity.getCreateTime()) && entryEntity.getCreateTime().toString().length() < 10) {
-            String time = entryEntity.getCreateTime().toString() + ConstantInterface.TIME_ZERO;
-            entryEntity.setCreateTime(new Date(time));
+        if (StringUtils.isNotBlank(entryEntity.getCreateTime()) && entryEntity.getCreateTime().length() < 10) {
+            String time = entryEntity.getCreateTime() + ConstantInterface.TIME_ZERO;
+            entryEntity.setCreateTime(new Date(time).toString());
         }
-        if (Objects.nonNull(entryEntity.getCreateEndRTime()) && entryEntity.getCreateEndRTime().toString().length() < 10) {
+        if (StringUtils.isNotBlank(entryEntity.getCreateEndRTime()) && entryEntity.getCreateEndRTime().length() < 10) {
             String time = entryEntity.getCreateEndRTime().toString() + ConstantInterface.TIME_ZERO;
-            entryEntity.setCreateEndRTime(new Date(time));
+            entryEntity.setCreateEndRTime(new Date(time).toString());
         }
-        ResponseListModel result = new ResponseListModel<>();
-        List<EntryEntity> entryEntities = getAllEntry(entryEntity, pageIndex, pageSize);
-        result.setList(entryEntities);
-        result.setTotalNum(entryEntities.size());
+
+        ResponseListModel<EntryEntity> responseListModel = getAllEntry(entryEntity, pageIndex, pageSize);
 
 
 
-       /* QueryWrapper<EntryProjectEntity> projectEntityQueryWrapper = new QueryWrapper<EntryProjectEntity>();
-        QueryWrapper<EntryProductEntity> productEntityQueryWrapper = new QueryWrapper<>();
-        QueryWrapper<EntryCommonEntity> commonEntityQueryWrapper = new QueryWrapper<>();
-            result.setList(getAllEntry(entryEntity, pageIndex, pageSize));
-        if (StringUtils.isBlank(entryEntity.getTableName())) {
-            result.setList(getAllEntry(entryEntity, pageIndex, pageSize));
-            int total = entryCommonEntityMapper.selectCount(commonEntityQueryWrapper)
-                    + entryProductEntityMapper.selectCount(productEntityQueryWrapper) + entryProjectEntityMapper.selectCount(projectEntityQueryWrapper);
-            result.setTotalNum(total);
-            //产品表
-
-            } else if (ConstantInterface.PROJECT_TABLE.equals(entryEntity.getTableName())) {
-                List<EntryEntity> entryEntities = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
-                result.setList(entryEntities);
-                result.setTotalNum(entryEntities.size());
-                //工程表
-            } else if (ConstantInterface.PRODUCT_TABLE.equals(entryReqEntity.getLexicon())) {
-                result.setList(entryProductEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
-                result.setTotalNum(entryProductEntityMapper.selectCount(productEntityQueryWrapper));
-                //公共表
-            } else if (ConstantInterface.COMMON_TABLE.equals(entryReqEntity.getLexicon())) {
-                result.setList(entryCommonEntityService.searchEntry(entryReqEntity, pageIndex, pageSize));
-                result.setTotalNum(entryCommonEntityMapper.selectCount(commonEntityQueryWrapper));
-            }*/
-
-        return result;
+        return responseListModel;
     }
 
     //先查project表，不够再查 product ，最后再查comm
-    @Override
-    public List<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
+  @Override
+    public ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
+
+        ResponseListModel<EntryEntity> result = new ResponseListModel<>();
+        int total =0;
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'Z'");
+
         List<EntryEntity> entry = new ArrayList();
+
+        List<String> tableNames1 = new ArrayList<>();
+
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
             if (entryEntity.getTableName().contains(",")) {
                 String[] tableNames = entryEntity.getTableName().split(",");
 
-
                 for (String tableName : tableNames) {
+                    tableNames1.add(tableName);
                     entryEntity.setTableName(tableName);
+/*
+                    if (StringUtils.isNotBlank(sql)) {
+                        String sql1 = constructSql(entryEntity);
+                        sql =  ConstantInterface.SEARCH + entryEntity.getTableName() + ConstantInterface.CONDITION;
+                    }
+                    sql = sql + ConstantInterface.UNION + ConstantInterface.SEARCH+ entryEntity.getTableName() + ConstantInterface.CONDITION;
+
+
                     List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
                     entry.addAll(entryEntity1);
                     if (checkPage(entryEntity1, pageIndex, pageSize)) {
                         return entry;
                     }
-                    pageSize = pageIndex - entryEntity1.size() / pageSize;
-
+                    pageSize = pageIndex - entryEntity1.size() / pageSize;*/
                 }
+
+
+                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntries(entryEntity,tableNames1, pageSize, offset);
+                total = entryMapper.selectListByEntriesTotal(entryEntity,tableNames1).size();
+                entry.addAll(entryEntity1);
             } else {
                 entryEntity.setTableName(entryEntity.getTableName());
                 List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
+                total = entryMapper.selectListByEntryTotal(entryEntity);
                 entry.addAll(entryEntity1);
 
             }
 
 
         }
-     /*
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            int offset = (pageIndex - 1) * pageSize;
-            entryEntity.setTableName(ConstantInterface.PROJECT_TABLE_Name);
-            List<EntryEntity> entryEntity_project =  entryMapper.selectListByEntry(entryEntity, pageSize, offset);
-            entry.addAll(entryEntity_project);
-            if (checkPage(entryEntity_project, pageIndex, pageSize)) {
-                return entry;
-            }
+        result.setTotalNum(total);
+        result.setList(entry);
+        return result;
+    }
 
-            int pageLastIndex = pageIndex - entryEntity_project.size() / pageSize;
-            entryEntity.setTableName(ConstantInterface.PROJECT_TABLE_Name);
-            List<EntryEntity> entryEntity_product = entryMapper.selectListByEntry(entryEntity, pageLastIndex, pageSize);
-
-
-            entry.addAll(entryEntity_product);
-
-            if (checkPage(entryEntity_product, pageIndex, pageSize)) {
-                return entry;
-            }
-
-
-            //剩余页码
-            int pageLastIndex1 = pageLastIndex - entryEntity_product.size() / pageSize;
-            List<EntryEntity> entryEntity_common = entryMapper.selectListByEntry(entryEntity, pageLastIndex1, pageSize);
-
-            entry.addAll(entryEntity_common);
-        }
-*/
-        return entry;
+    private String constructSql(EntryEntity entryEntity) {
+        String sql= " select   id,abbr,entry,\n" +
+                "        entry_length,chinese_interpretation,english_interpretation,\n" +
+                "        entry_source,entry_state,creator,\n" +
+                "        create_time,`update`,update_time,\n" +
+                "        version,is_latest_version,entry_label,\n" +
+                "        part_of_speech,classify_id,repeat_entry_id,\n" +
+                "        english,english_length,english_translate_state,\n" +
+                "        english_disable,english_disable_length,russian,\n" +
+                "        russian_length,russian_translate_state,spanish,\n" +
+                "        spanish_length,spanish_translate_state,french,\n" +
+                "        french_length,french_translate_state " +
+                entryEntity.getTableName() +
+                " as tableName from " +
+                entryEntity.getTableName()
+                ;
+        return sql;
     }
 
     @Override
@@ -248,16 +229,58 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<EntryClassify> getEntryClassfy(Integer pageIndex,
-                                               Integer pageSize) {
+    //TODO
+    public List<EntryClassify> getEntryClassfy() {
         List<EntryClassify> entryClassifies = new ArrayList<>();
+        List<EntryClassify> entryClassifieRes = new ArrayList<>();
 
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            int offset = (pageIndex - 1) * pageSize;
-            entryClassifies = entryClassifyMapper.getEntryClassfyByIds(pageSize, offset);
+        entryClassifies = entryClassifyMapper.getEntryClassfyByIds();
+
+        for (EntryClassify entryClassify : entryClassifies) {
+
+             constructEntryClassfy(entryClassify,entryClassifieRes);
+
         }
-        return entryClassifies;
+        return entryClassifieRes;
 
+    }
+
+    private void constructEntryClassfy(EntryClassify entryClassify,List<EntryClassify> entryClassifies) {
+        if ("0".equals(entryClassify.getParentId())) {
+            if (entryClassifies.contains(entryClassify)){
+                return;
+            }
+            entryClassifies.add(entryClassify);
+            return;
+        }else {
+            int index = 0;
+            if (!CollectionUtils.isEmpty(entryClassifies)){
+                for (EntryClassify entryClassify1 : entryClassifies){
+                    if (entryClassify1.getId().equals(entryClassify.getParentId())){
+                        entryClassifies.remove(index);
+                        if (CollectionUtils.isEmpty(entryClassifies)){
+                            break;
+                        }
+                    }
+                    index +=1;
+                }
+
+            }
+
+            EntryClassify entryClassify1 = entryClassifyMapper.selectByParentId(entryClassify.getParentId());
+            entryClassify1.setChildren(entryClassify);
+            constructEntryClassfy(entryClassify1,entryClassifies);
+
+        }
+
+
+    }
+
+    @Override
+    public List<Thesaurus> getThesaurus() {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        List<Thesaurus> thesauruses = thesaurusMapper.selectList(queryWrapper);
+        return thesauruses;
     }
 
 
@@ -273,7 +296,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         entryEntity.setId(uuid);
         //构建字符长度
         constructEntry(entryEntity);
-        if (Objects.isNull(entryEntity.getEntryState() ) ){
+        if (Objects.isNull(entryEntity.getEntryState())) {
             entryEntity.setEntryState(1);
         }
 
@@ -283,16 +306,16 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (StringUtils.isBlank(entryEntity.getCreator())) {
             entryEntity.setCreator(userName);
         }
-        if (Objects.isNull(entryEntity.getCreateTime())) {
+        if (StringUtils.isBlank(entryEntity.getCreateTime())) {
             Date date = new Date(System.currentTimeMillis());
-            entryEntity.setCreateTime(date);
+            entryEntity.setCreateTime(date.toString());
         }
 
         String lable = entryEntity.getEntryLabel();
         QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("name",lable);
+        queryWrapper.eq("name", lable);
         EntryLabel entryLabel = entryLabelMapper.selectOne(queryWrapper);
-        if (Objects.isNull(entryLabel)){
+        if (Objects.isNull(entryLabel)) {
             EntryLabel entryLabel1 = new EntryLabel();
             entryLabel1.setId(commonUtils.getUUID());
             entryLabel1.setLabelName(lable);

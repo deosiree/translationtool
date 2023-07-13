@@ -12,6 +12,7 @@ import com.shr.translationtoolservice.service.EntryManagementService;
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.Translate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -57,10 +58,26 @@ public class EntryController extends BaseController {
     public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryEntity entryEntity,
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-
+        ResponseListModel result = new ResponseListModel<>();
+        if (StringUtils.isBlank(entryEntity.getTableName())){
+            return checkResult(result);
+        }
         return checkResult(  entryManagementService.searchEntry(entryEntity, pageIndex, pageSize));
     }
 
+    //新增词条
+    @PostMapping("/getThesaurus")
+    @ApiOperation("查询词库")
+    @CrossOrigin
+    @PassToken
+    @Transactional
+    public HttpResponse<ResponseListModel> getThesaurus() {
+        ResponseListModel result = new ResponseListModel<>();
+         List<Thesaurus> thesaurus = entryManagementService.getThesaurus();
+        result.setList(thesaurus);
+        result.setTotalNum(thesaurus.size());
+        return checkResult(result);
+    }
 
     //新增词条
     @PostMapping("/insertEntry")
@@ -98,6 +115,7 @@ public class EntryController extends BaseController {
     @PostMapping("/getReEntry")
     @ApiOperation("重复词条查询")
     @CrossOrigin
+    @PassToken
     @Transactional
     public HttpResponse<ResponseListModel> entryMerge(String mergeState) {
         ResponseListModel responseListModel = new ResponseListModel();
@@ -132,12 +150,12 @@ public class EntryController extends BaseController {
     @PostMapping("/getEntryClassfy")
     @ApiOperation("词条分类查询")
     @CrossOrigin
+    @PassToken
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryClassfy(  @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+    public HttpResponse<ResponseListModel> getEntryClassfy( ) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
-        entryClassifies = entryManagementService.getEntryClassfy(pageIndex,pageSize);
+        entryClassifies = entryManagementService.getEntryClassfy();
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
         return checkResult(responseListModel);

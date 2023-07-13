@@ -19,10 +19,13 @@
 <select id="getEntryClassfyByIds"  resultMap="BaseResultMap">
     select  <include refid="Base_Column_List"/>
      from t_entry_classify
-    <if test="limit >= 0 and offset >= 0">
-        LIMIT #{limit} OFFSET #{offset}
-    </if>
+
 </select>
 
+    <select id="selectByParentId"  resultType="com.shr.translationtoolservice.entity.EntryClassify">
+        select  <include refid="Base_Column_List"/>
+        from t_entry_classify where id =  #{parentId,jdbcType=VARCHAR}
+
+    </select>
 
 </mapper>

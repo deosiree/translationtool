@@ -37,7 +37,13 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     List<EntryEntity> selectRepeEntry(String repeatEntryId);
 
 
-    List<EntryEntity> selectListByEntry(EntryEntity entryEntity, Integer pageSize, int offset);
+    List<EntryEntity> selectListByEntry(EntryEntity entryEntity, Integer limit, int offset);
+
+    List<EntryEntity> selectListByEntries(@Param("entryEntity") EntryEntity entryEntity,@Param("tableNames") List<String> tableNames, Integer limit, int offset);
+
+    List<EntryEntity>  selectListByEntriesTotal(@Param("entryEntity") EntryEntity entryEntity,@Param("tableNames") List<String> tableNames);
+
+    int selectListByEntryTotal(@Param("entryEntity") EntryEntity entryEntity);
 }
 
 

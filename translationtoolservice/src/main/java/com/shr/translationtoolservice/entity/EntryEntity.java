@@ -20,7 +20,7 @@ public class EntryEntity {
 
     private String tableName;
 
-    private Date createEndRTime;
+    private String createEndRTime;
 
     /**
      * 主键
@@ -80,7 +80,7 @@ public class EntryEntity {
      * 创建时间
      */
     @AnjiDescription("创建时间")
-    private Date createTime;
+    private String createTime;
 
     /**
      * 修改人
