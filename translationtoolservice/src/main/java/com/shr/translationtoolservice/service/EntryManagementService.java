@@ -15,7 +15,7 @@ public interface EntryManagementService {
                                   @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                   @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
     //批量审核
-    String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request);
+    String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request,String note);
 
     ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize);
 
@@ -36,4 +36,10 @@ public interface EntryManagementService {
     List<EntryClassify> getEntryClassfy();
 
     List<Thesaurus> getThesaurus();
+
+    String addEntryClassfy(EntryClassify entryClassify);
+
+    String updateEntryClassfy(EntryClassify entryClassify);
+
+    String deleteEntryClassfy(List<String> idList);
 }

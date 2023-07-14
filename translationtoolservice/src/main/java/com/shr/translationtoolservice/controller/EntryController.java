@@ -169,7 +169,8 @@ public class EntryController extends BaseController {
     @Transactional
     public HttpResponse<String> updateEntryClassfy(EntryClassify entryClassify) {
 
-        return checkResult(null);
+
+        return checkResult(entryManagementService.updateEntryClassfy(entryClassify));
 
     }
 
@@ -177,9 +178,9 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类删除")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> deleteEntryClassfy(List<String>  ids) {
+    public HttpResponse<String> deleteEntryClassfy(@RequestBody List<String>  idList) {
 
-        return checkResult(null);
+        return checkResult(entryManagementService.deleteEntryClassfy(idList));
 
     }
 
@@ -188,9 +189,10 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类新增")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> addEntryClassfy(EntryClassify  entryClassifies) {
+    public HttpResponse<String> addEntryClassfy(EntryClassify  entryClassify) {
 
-        return checkResult(null);
+
+        return checkResult(entryManagementService.addEntryClassfy(entryClassify));
 
     }
 
@@ -215,13 +217,13 @@ public class EntryController extends BaseController {
     @ApiOperation("批量审核")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> bathAudit(@RequestBody List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request) {
+    public HttpResponse<String> bathAudit(@RequestBody List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request,String note) {
 
 
         if (CollectionUtils.isEmpty(entryGroupEntities)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
-        String result = entryManagementService.bathAudit(entryGroupEntities,state,request);
+        String result = entryManagementService.bathAudit(entryGroupEntities,state,request,note);
 
         return checkResult(result);
     }

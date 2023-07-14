@@ -37,6 +37,7 @@ public class EntryClassify implements Serializable {
     /**
      * 序号
      */
+    @TableField("`index`")
     private Integer index;
 
     @TableField(exist = false)

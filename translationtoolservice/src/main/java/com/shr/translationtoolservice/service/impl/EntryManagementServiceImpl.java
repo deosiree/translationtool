@@ -283,6 +283,35 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return thesauruses;
     }
 
+    @Override
+    public String addEntryClassfy(EntryClassify entryClassify) {
+        entryClassify.setId(commonUtils.getUUID());
+        int insert = entryClassifyMapper.insert(entryClassify);
+        if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+            log.error(" t_entry_operate update insert error ! ");
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String updateEntryClassfy(EntryClassify entryClassify) {
+        int update = entryClassifyMapper.updateById(entryClassify);
+        if (update != ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String deleteEntryClassfy(List<String> idList) {
+        int delete = entryClassifyMapper.deleteBatchIds(idList);
+        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
 
     @Override
     public String insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
@@ -484,7 +513,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     //TODO
-    public String bathAudit(List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request) {
+    public String bathAudit(List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request,String note) {
 
 
         for (EntryGroupEntity entryGroupEntity : entryGroupEntities) {
@@ -519,6 +548,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                         res += comparisonResult.getStr() + " ; ";
                     }
                     entryOperate.setOperateContent(res);
+                    entryOperate.setNotes(note);
                     int insert = constructOperate(entryOperate, entryGroupEntity.getTableName(), entryID, request);
                     if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
                         log.error(" t_entry_operate update insert error ! ");
