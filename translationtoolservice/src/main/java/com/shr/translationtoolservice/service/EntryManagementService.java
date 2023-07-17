@@ -12,12 +12,12 @@ import java.util.List;
 public interface EntryManagementService {
     //查询词条信息
     ResponseListModel searchEntry(@RequestBody EntryEntity entryEntity,
+                                  String entryState,
                                   @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                   @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
     //批量审核
     String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request,String note);
 
-    ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize);
 
     String insertEntry(EntryEntity entryEntity,HttpServletRequest request);
 

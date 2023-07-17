@@ -69,19 +69,19 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryProjectEntityService entryProjectEntityService;
 
     @Override
-    public ResponseListModel searchEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
+    public ResponseListModel searchEntry(EntryEntity entryEntity,  String entryState,Integer pageIndex, Integer pageSize) {
         //校验前端日期格式
 
-        if (StringUtils.isNotBlank(entryEntity.getCreateTime()) && entryEntity.getCreateTime().length() < 10) {
-            String time = entryEntity.getCreateTime() + ConstantInterface.TIME_ZERO;
-            entryEntity.setCreateTime(new Date(time).toString());
+        if (Objects.nonNull(entryEntity.getCreateTime()) && entryEntity.getCreateTime().toString().length() < 10) {
+            String time = entryEntity.getCreateTime().toString() + ConstantInterface.TIME_ZERO;
+            entryEntity.setCreateTime(new Date(time));
         }
-        if (StringUtils.isNotBlank(entryEntity.getCreateEndRTime()) && entryEntity.getCreateEndRTime().length() < 10) {
+        if (Objects.nonNull(entryEntity.getCreateEndRTime()) && entryEntity.getCreateEndRTime().toString().length() < 10) {
             String time = entryEntity.getCreateEndRTime().toString() + ConstantInterface.TIME_ZERO;
-            entryEntity.setCreateEndRTime(new Date(time).toString());
+            entryEntity.setCreateEndRTime(new Date(time));
         }
 
-        ResponseListModel<EntryEntity> responseListModel = getAllEntry(entryEntity, pageIndex, pageSize);
+        ResponseListModel<EntryEntity> responseListModel = getAllEntry(entryEntity, pageIndex, pageSize,entryState);
 
 
 
@@ -89,8 +89,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     //先查project表，不够再查 product ，最后再查comm
-  @Override
-    public ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize) {
+
+    public ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize,String entryState) {
 
         ResponseListModel<EntryEntity> result = new ResponseListModel<>();
         int total =0;
@@ -108,30 +108,16 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 for (String tableName : tableNames) {
                     tableNames1.add(tableName);
                     entryEntity.setTableName(tableName);
-/*
-                    if (StringUtils.isNotBlank(sql)) {
-                        String sql1 = constructSql(entryEntity);
-                        sql =  ConstantInterface.SEARCH + entryEntity.getTableName() + ConstantInterface.CONDITION;
-                    }
-                    sql = sql + ConstantInterface.UNION + ConstantInterface.SEARCH+ entryEntity.getTableName() + ConstantInterface.CONDITION;
-
-
-                    List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
-                    entry.addAll(entryEntity1);
-                    if (checkPage(entryEntity1, pageIndex, pageSize)) {
-                        return entry;
-                    }
-                    pageSize = pageIndex - entryEntity1.size() / pageSize;*/
                 }
 
-
-                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntries(entryEntity,tableNames1, pageSize, offset);
-                total = entryMapper.selectListByEntriesTotal(entryEntity,tableNames1).size();
+                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntries(entryEntity,tableNames1, pageSize, offset,entryState);
+                total = entryMapper.selectListByEntriesTotal(entryEntity,tableNames1,entryState).size();
                 entry.addAll(entryEntity1);
             } else {
                 entryEntity.setTableName(entryEntity.getTableName());
-                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset);
-                total = entryMapper.selectListByEntryTotal(entryEntity);
+                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset,entryState);
+
+                total = entryMapper.selectListByEntryTotal(entryEntity,entryState);
                 entry.addAll(entryEntity1);
 
             }
@@ -335,14 +321,14 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (StringUtils.isBlank(entryEntity.getCreator())) {
             entryEntity.setCreator(userName);
         }
-        if (StringUtils.isBlank(entryEntity.getCreateTime())) {
+        if (Objects.isNull(entryEntity.getCreateTime())) {
             Date date = new Date(System.currentTimeMillis());
-            entryEntity.setCreateTime(date.toString());
+            entryEntity.setCreateTime(date);
         }
 
         String lable = entryEntity.getEntryLabel();
         QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("name", lable);
+        queryWrapper.eq("label_name", lable);
         EntryLabel entryLabel = entryLabelMapper.selectOne(queryWrapper);
         if (Objects.isNull(entryLabel)) {
             EntryLabel entryLabel1 = new EntryLabel();

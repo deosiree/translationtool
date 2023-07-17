@@ -43,7 +43,7 @@
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
         entry_source,entry_state,creator,
-        create_time,`update`,update_time,
+        DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time ,`update`,  DATE_FORMAT(update_time, '%Y-%m-%d %H:%i:%s') as update_time,
         version,is_latest_version,entry_label,
         part_of_speech,classify_id,repeat_entry_id,
         english,english_length,english_translate_state,
@@ -303,8 +303,8 @@
             <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
                 and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
             </if>
-            <if test="entryEntity.entryState != null  and entryEntity.entryState != 0">
-                and  entry_state = #{entryEntity.entryState,jdbcType=INTEGER}
+            <if test="entryState != null  and entryState != ''">
+                and  entry_state in (${entryState})
             </if>
             <if test="entryEntity.creator != null and entryEntity.creator != ''">
                 and  creator like CONCAT('%','${entryEntity.creator}','%' )
@@ -377,9 +377,11 @@
             </if>
 
         </foreach>
+        order by update_time desc
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
+
     </select>
 
 
@@ -412,8 +414,8 @@
             <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
                 and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
             </if>
-            <if test="entryEntity.entryState != null  and entryEntity.entryState != 0">
-                and  entry_state = #{entryEntity.entryState,jdbcType=INTEGER}
+            <if test="entryState != null  and entryState != ''">
+                and  entry_state in  (${entryState})
             </if>
             <if test="entryEntity.creator != null and entryEntity.creator != ''">
                 and  creator like CONCAT('%','${entryEntity.creator}','%' )
@@ -512,8 +514,8 @@
         <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
             and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
         </if>
-        <if test="entryEntity.entryState != null  and entryEntity.entryState != 0">
-            and  entry_state = #{entryEntity.entryState,jdbcType=INTEGER}
+        <if test="entryState != null  and entryState != ''">
+            and  entry_state in  (${entryState})
         </if>
         <if test="entryEntity.creator != null and entryEntity.creator != ''">
             and  creator like CONCAT('%','${entryEntity.creator}','%' )
@@ -584,10 +586,12 @@
         <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
             and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
         </if>
-
+        order by update_time desc
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
+
+
     </select>
 
     <select id="selectListByEntryTotal" parameterType="com.shr.translationtoolservice.entity.EntryEntity" resultType="int">
@@ -613,8 +617,8 @@
         <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
             and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
         </if>
-        <if test="entryEntity.entryState != null  and entryEntity.entryState != 0">
-            and  entry_state = #{entryEntity.entryState,jdbcType=INTEGER}
+        <if test="entryState != null  and entryState != ''">
+            and  entry_state in  (${entryState})
         </if>
         <if test="entryEntity.creator != null and entryEntity.creator != ''">
             and  creator like CONCAT('%','${entryEntity.creator}','%' )
@@ -724,10 +728,10 @@
             <if test="entryEntity.createTime != null">
                 create_time,
             </if>
-            <if test="entryEntity.update != null">
+            <if test="entryEntity.update == null">
                 `update`,
             </if>
-            <if test="entryEntity.updateTime != null">
+            <if test="entryEntity.updateTime == null">
                 update_time,
             </if>
             <if test="entryEntity.version != null">
@@ -822,11 +826,11 @@
             <if test="entryEntity.createTime != null">
                 #{entryEntity.createTime,jdbcType=DATETIMEOFFSET},
             </if>
-            <if test="entryEntity.update != null">
-                #{entryEntity.update,jdbcType=VARCHAR},
+            <if test="entryEntity.update == null">
+                #{entryEntity.creator,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.updateTime != null">
-                #{entryEntity.updateTime,jdbcType=DATETIMEOFFSET},
+            <if test="entryEntity.updateTime == null">
+                #{entryEntity.createTime,jdbcType=DATETIMEOFFSET},
             </if>
             <if test="entryEntity.version != null">
                 #{entryEntity.version,jdbcType=VARCHAR},

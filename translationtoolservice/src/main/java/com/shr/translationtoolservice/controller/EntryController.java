@@ -56,13 +56,14 @@ public class EntryController extends BaseController {
     @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryEntity entryEntity,
+                                                       String entryState,
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel result = new ResponseListModel<>();
         if (StringUtils.isBlank(entryEntity.getTableName())){
             return checkResult(result);
         }
-        return checkResult(  entryManagementService.searchEntry(entryEntity, pageIndex, pageSize));
+        return checkResult(  entryManagementService.searchEntry(entryEntity, entryState,pageIndex, pageSize));
     }
 
     //新增词条
@@ -254,6 +255,7 @@ public class EntryController extends BaseController {
         TranslateEntity translateEntity = entryManagementService.translate(entryEntity);
         return checkResult(translateEntity);
     }
+
 
 
 }

@@ -2,9 +2,11 @@ package com.shr.translationtoolservice.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.shr.translationtoolservice.common.AnjiDescription;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -20,7 +22,8 @@ public class EntryEntity {
 
     private String tableName;
 
-    private String createEndRTime;
+
+    private Date createEndRTime;
 
     /**
      * 主键
@@ -79,8 +82,10 @@ public class EntryEntity {
     /**
      * 创建时间
      */
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @AnjiDescription("创建时间")
-    private String createTime;
+    private Date createTime;
 
     /**
      * 修改人
@@ -94,6 +99,8 @@ public class EntryEntity {
      * 修改时间
      */
     @AnjiDescription("修改时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date updateTime;
 
     /**
