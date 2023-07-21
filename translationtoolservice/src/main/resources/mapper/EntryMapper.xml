@@ -272,7 +272,7 @@
             #{entryEntity.id,jdbcType=VARCHAR}
         </foreach>
         );
-    </delete>
+</delete>
 
     <select id="selectListByEntries" parameterType="String" resultMap="BaseResultMap">
 

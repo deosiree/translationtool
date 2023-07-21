@@ -41,7 +41,7 @@ public class JWTInterceptor implements HandlerInterceptor {
             if (verify){
                 //获取访问的接口名称
                 String requestURI = request.getRequestURI();
-                //判断当前用户是否有该接口的访问权限
+                //判断当前用户是否有该接口的访问权限 TODO ： 查权限表URL
                 if (JWTTokenUtils.getAuthority(token).contains(requestURI)){
                     return true;
                 }

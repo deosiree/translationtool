@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -131,7 +132,7 @@ public class EntryController extends BaseController {
     @ApiOperation("导入")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> importEntry(File file) {
+    public HttpResponse<String> importEntry(MultipartFile file) {
         ResponseListModel responseListModel = new ResponseListModel();
 
         return checkResult(null);

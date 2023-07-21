@@ -69,7 +69,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     EntryProjectEntityService entryProjectEntityService;
 
     @Override
-    public ResponseListModel searchEntry(EntryEntity entryEntity,  String entryState,Integer pageIndex, Integer pageSize) {
+    public ResponseListModel searchEntry(EntryEntity entryEntity, String entryState, Integer pageIndex, Integer pageSize) {
         //校验前端日期格式
 
         if (Objects.nonNull(entryEntity.getCreateTime()) && entryEntity.getCreateTime().toString().length() < 10) {
@@ -81,8 +81,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             entryEntity.setCreateEndRTime(new Date(time));
         }
 
-        ResponseListModel<EntryEntity> responseListModel = getAllEntry(entryEntity, pageIndex, pageSize,entryState);
-
+        ResponseListModel<EntryEntity> responseListModel = getAllEntry(entryEntity, pageIndex, pageSize, entryState);
 
 
         return responseListModel;
@@ -90,10 +89,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     //先查project表，不够再查 product ，最后再查comm
 
-    public ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize,String entryState) {
+    public ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize, String entryState) {
 
         ResponseListModel<EntryEntity> result = new ResponseListModel<>();
-        int total =0;
+        int total = 0;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'Z'");
 
         List<EntryEntity> entry = new ArrayList();
@@ -110,14 +109,14 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                     entryEntity.setTableName(tableName);
                 }
 
-                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntries(entryEntity,tableNames1, pageSize, offset,entryState);
-                total = entryMapper.selectListByEntriesTotal(entryEntity,tableNames1,entryState).size();
+                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntries(entryEntity, tableNames1, pageSize, offset, entryState);
+                total = entryMapper.selectListByEntriesTotal(entryEntity, tableNames1, entryState).size();
                 entry.addAll(entryEntity1);
             } else {
                 entryEntity.setTableName(entryEntity.getTableName());
-                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset,entryState);
+                List<EntryEntity> entryEntity1 = entryMapper.selectListByEntry(entryEntity, pageSize, offset, entryState);
 
-                total = entryMapper.selectListByEntryTotal(entryEntity,entryState);
+                total = entryMapper.selectListByEntryTotal(entryEntity, entryState);
                 entry.addAll(entryEntity1);
 
             }
@@ -130,7 +129,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     private String constructSql(EntryEntity entryEntity) {
-        String sql= " select   id,abbr,entry,\n" +
+        String sql = " select   id,abbr,entry,\n" +
                 "        entry_length,chinese_interpretation,english_interpretation,\n" +
                 "        entry_source,entry_state,creator,\n" +
                 "        create_time,`update`,update_time,\n" +
@@ -143,8 +142,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 "        french_length,french_translate_state " +
                 entryEntity.getTableName() +
                 " as tableName from " +
-                entryEntity.getTableName()
-                ;
+                entryEntity.getTableName();
         return sql;
     }
 
@@ -218,48 +216,28 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     //TODO
     public List<EntryClassify> getEntryClassfy() {
         List<EntryClassify> entryClassifies = new ArrayList<>();
-        List<EntryClassify> entryClassifieRes = new ArrayList<>();
-
         entryClassifies = entryClassifyMapper.getEntryClassfyByIds();
-
-        for (EntryClassify entryClassify : entryClassifies) {
-
-             constructEntryClassfy(entryClassify,entryClassifieRes);
-
-        }
-        return entryClassifieRes;
-
-    }
-
-    private void constructEntryClassfy(EntryClassify entryClassify,List<EntryClassify> entryClassifies) {
-        if ("0".equals(entryClassify.getParentId())) {
-            if (entryClassifies.contains(entryClassify)){
-                return;
+// 返回的树形数据
+        List<EntryClassify> tree = new ArrayList<EntryClassify>();
+        // 第一次遍历
+        for (EntryClassify classify : entryClassifies) {
+            // 找到根节点，这里我的根节点的pid为0
+            if (classify.getParentId().equals("0")) {
+                tree.add(classify);
             }
-            entryClassifies.add(entryClassify);
-            return;
-        }else {
-            int index = 0;
-            if (!CollectionUtils.isEmpty(entryClassifies)){
-                for (EntryClassify entryClassify1 : entryClassifies){
-                    if (entryClassify1.getId().equals(entryClassify.getParentId())){
-                        entryClassifies.remove(index);
-                        if (CollectionUtils.isEmpty(entryClassifies)){
-                            break;
-                        }
-                    }
-                    index +=1;
+            // 定义list用于存储子节点
+            List<EntryClassify> children = new ArrayList<EntryClassify>();
+            // 再次遍历list，找到子节点
+            for (EntryClassify node : entryClassifies) {
+                // 子节点的pid等于父节点的id
+                if (node.getParentId().equals(classify.getKey())) {
+                    children.add(node);
                 }
-
             }
-
-            EntryClassify entryClassify1 = entryClassifyMapper.selectByParentId(entryClassify.getParentId());
-            entryClassify1.setChildren(entryClassify);
-            constructEntryClassfy(entryClassify1,entryClassifies);
-
+            // 给父节点设置子节点
+            classify.setChildren(children);
         }
-
-
+        return tree;
     }
 
     @Override
@@ -271,7 +249,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String addEntryClassfy(EntryClassify entryClassify) {
-        entryClassify.setId(commonUtils.getUUID());
+        entryClassify.setKey(commonUtils.getUUID());
         int insert = entryClassifyMapper.insert(entryClassify);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" t_entry_operate update insert error ! ");
@@ -291,7 +269,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String deleteEntryClassfy(List<String> idList) {
-        int delete = entryClassifyMapper.deleteBatchIds(idList);
+        int delete = entryClassifyMapper.deleteByIds(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
@@ -499,7 +477,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     //TODO
-    public String bathAudit(List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request,String note) {
+    public String bathAudit(List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request, String note) {
 
 
         for (EntryGroupEntity entryGroupEntity : entryGroupEntities) {

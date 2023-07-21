@@ -5,6 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import lombok.Data;
 
 /**
@@ -16,13 +20,13 @@ import lombok.Data;
 public class EntryClassify implements Serializable {
 
 
-
-    EntryClassify children;
+    List<EntryClassify> children;
     /**
      * 
      */
     @TableId
-    private String id;
+    @TableField("id")
+    private String key;
 
     /**
      * 父id
@@ -32,7 +36,8 @@ public class EntryClassify implements Serializable {
     /**
      * 分类名称
      */
-    private String name;
+    @TableField("name")
+    private String title;
 
     /**
      * 序号
