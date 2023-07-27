@@ -1,7 +1,11 @@
 package com.shr.translationtoolservice.util;
 
 import com.shr.translationtoolservice.common.AnjiDescription;
+import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.entity.ComparisonResult;
+import org.junit.platform.commons.util.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -19,8 +23,11 @@ import java.util.*;
  * @Date 2023/7/4 0004 16:51
  **/
 
+@Component
 public class CompareUtils {
 
+    @Autowired
+    EntryClassifyMapper entryClassifyMapper;
     private final static String DATE_FORMATTR_SECOND = "yyyy-MM-dd HH:mm:ss";
 
     /**
@@ -150,15 +157,56 @@ public class CompareUtils {
       /*  if (name.equals("update") || name.equals("updateTime")){
             return;
         }*/
+    /*    if ("update".equals(name) || "updateTime".equals(name) ||  "entryLength".equals(name)  ||  "classifyId".equals(name)
+                || "englishLength".equals(name) || "englishTranslateState".equals(name) || "englishDisable".equals(name) || "englishDisableLength".equals(name)
+                || "russianLength".equals(name) || "russianhTranslateState".equals(name) || "russianDisable".equals(name) || "russianDisableLength".equals(name)
+                || "spanishLength".equals(name) || "spanishhTranslateState".equals(name) || "spanishDisable".equals(name) || "spanishDisableLength".equals(name)
+                || "frenchLength".equals(name) || "frenchhTranslateState".equals(name) || "frenchDisable".equals(name) || "frenchDisableLength".equals(name)
 
+        ){
+            return;
+        }
+        HashMap<String, String> entryName = constructEntryName();*/
 
         result.setKey(name);
         result.setPrevious(r1);
         result.setLater(r2);
-        String str = name + " 字段值修改 ( " + r1 + " ) => ( " + r2 + " )  ";
+        String str = "";
+
+     /*   if (StringUtils.isBlank(r1)){
+            str = entryName.get(name) + " 新增值为： " + r2 ;
+        }else {
+            str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  " ;
+        }*/
+
         result.setStr(str);
         list.add(result);
 
+    }
+    private static HashMap<String, String> constructEntryName(){
+        HashMap<String, String> entryName = new HashMap<>();
+        entryName.put("entry","词条");
+        entryName.put("abbr","abbr");
+        entryName.put("chineseInterpretation","中文释义");
+        entryName.put("englishInterpretation","英文释义");
+        entryName.put("entrySource","词条来源");
+        entryName.put("entryState","词条状态");
+        entryName.put("creator","创建人");
+        entryName.put("createTime","创建时间");
+        entryName.put("update","修改人");
+        entryName.put("updateTime","修改时间");
+        entryName.put("version","版本");
+        entryName.put("isLatestVersion","是否最新版本");
+        entryName.put("entryLabel","词条标签");
+        entryName.put("partOfSpeech","词性备注");
+        entryName.put("classifyId","词条所属分类");
+        entryName.put("repeatEntryId","重复词条id");
+        entryName.put("english","英文翻译");
+        entryName.put("russian","俄文翻译");
+        entryName.put("spanish","西文翻译");
+        entryName.put("french","法文翻译");
+
+        return entryName;
     }
 
     private static boolean compareField(Object o1, Object o2) {

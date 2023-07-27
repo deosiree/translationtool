@@ -86,11 +86,12 @@ public class EntryController extends BaseController {
     @ApiOperation("新增词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
+    public HttpResponse<EntryEntity> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
         if (StringUtils.isBlank(entryEntity.getTableName())) {
-            return checkResult(ErrorCodeList.INPUT_IS_NULL);
+
+            return checkResult(null,ErrorCodeList.TBALE_IS_NULL);
         }
-        return checkResult(entryManagementService.insertEntry(entryEntity,request));
+        return entryManagementService.insertEntry(entryEntity,request);
     }
 
     //新增词条
@@ -203,13 +204,13 @@ public class EntryController extends BaseController {
     @PostMapping("/deleteEntry")
     @ApiOperation("删除词条")
     @CrossOrigin
-    public HttpResponse<String> deleteEntry(@RequestBody List<EntryEntity> entryEntities,String tableName) {
-        if (CollectionUtils.isEmpty(entryEntities) || StringUtils.isBlank(tableName)) {
+    public HttpResponse<String> deleteEntry(@RequestBody List<String> idList,String tableName) {
+        if (CollectionUtils.isEmpty(idList) || StringUtils.isBlank(tableName)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
 
 
-        return checkResult(entryManagementService.deleteEntry(entryEntities,tableName));
+        return checkResult(entryManagementService.deleteEntry(idList,tableName));
 
     }
 
@@ -236,12 +237,14 @@ public class EntryController extends BaseController {
     @PassToken
     @CrossOrigin
     @Transactional
-    public HttpResponse<EntryOperate> queryOperate(String  entryId) {
+    public HttpResponse<ResponseListModel> queryOperate(@RequestBody EntryOperate  entryOperate) {
 
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryOperate> operate = entryManagementService.queryOperate(entryOperate);
+        responseListModel.setList(operate);
+        responseListModel.setTotalNum(operate.size());
 
-        EntryOperate operate = entryManagementService.queryOperate(entryId);
-
-        return checkResult(operate);
+        return checkResult(responseListModel);
     }
 
 
@@ -250,11 +253,25 @@ public class EntryController extends BaseController {
     @ApiOperation("翻译词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<TranslateEntity> translate(EntryEntity entryEntity) {
+    public HttpResponse<TranslateEntity> translate(EntryEntity entryEntity,String souce) {
 
 
         TranslateEntity translateEntity = entryManagementService.translate(entryEntity);
         return checkResult(translateEntity);
+    }
+
+    @PostMapping("/queryLabel")
+    @ApiOperation("标签查询")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> queryLabel() {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryLabel> entryLabels = entryManagementService.queryLabel();
+        responseListModel.setList(entryLabels);
+        responseListModel.setTotalNum(entryLabels.size());
+        return checkResult(responseListModel);
     }
 
 

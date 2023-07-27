@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 
@@ -103,7 +104,8 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("删除角色信息")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> deleteRoleInfo(@RequestBody List<String> roleIDs) {
+    public HttpResponse<String> deleteRoleInfo(@RequestBody List<String> roleIDs, HttpServletRequest request) {
+
         if (CollectionUtils.isEmpty(roleIDs)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }

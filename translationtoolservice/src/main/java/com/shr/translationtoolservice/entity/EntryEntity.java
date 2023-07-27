@@ -112,7 +112,7 @@ public class EntryEntity {
     /**
      * 是否最新版本   1 是  0 否
      */
-    @AnjiDescription("词条")
+    @AnjiDescription("是否最新版本   1 是  0 否")
     private int isLatestVersion;
 
     /**

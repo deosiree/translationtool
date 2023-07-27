@@ -13,8 +13,10 @@ public class ErrorCodeList {
     public static final String NAME_EXIST = "名称已存在。";
     public static final String OBJECT_NOT_EXIST = "对象不存在。";
     public static final String INPUT_IS_NULL = "入参为空。";
+    public static final String TBALE_IS_NULL = "tableName 不能为空。";
     public static final String PRIORITY_IS_ILL = "优先级非法。";
     public static final String PARAM_IS_ILL = "入参非法。";
+    public static final String SUCCESS = "success";
     public static final String INSERT_ERROR = "新增失败。";
     public static final String UPDATE_ERROR = "更新失败。";
     public static final String UPDATE_RES_DEFAULT = "Default大于1条。";

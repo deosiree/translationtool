@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.service;
 
+import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,15 +20,15 @@ public interface EntryManagementService {
     String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request,String note);
 
 
-    String insertEntry(EntryEntity entryEntity,HttpServletRequest request);
+    HttpResponse<EntryEntity> insertEntry(EntryEntity entryEntity, HttpServletRequest request);
 
     String updateEntry(EntryEntity entryEntity,HttpServletRequest request);
 
-    String deleteEntry(List<EntryEntity> entryEntities,String tableName);
+    String deleteEntry(List<String> idList,String tableName);
 
     TranslateEntity translate(EntryEntity entryEntity);
 
-    EntryOperate queryOperate(String entryId);
+    List<EntryOperate> queryOperate(EntryOperate entryId);
 
     List<EntryEntity> selectRepeEntry(String mergeState);
 
@@ -42,4 +43,6 @@ public interface EntryManagementService {
     String updateEntryClassfy(EntryClassify entryClassify);
 
     String deleteEntryClassfy(List<String> idList);
+
+    List<EntryLabel> queryLabel();
 }

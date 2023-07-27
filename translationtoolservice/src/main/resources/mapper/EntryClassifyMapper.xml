@@ -29,7 +29,12 @@
         from t_entry_classify where id =  #{parentId,jdbcType=VARCHAR}
 
     </select>
+    <select id="selectById" resultType="com.shr.translationtoolservice.entity.EntryClassify">
+        select    id `key`,parent_id,`name` `title`,
+        `index`
+        from t_entry_classify where id =  #{parentId,jdbcType=VARCHAR}
 
+    </select>
     <insert id="insert" parameterType="com.shr.translationtoolservice.entity.EntryClassify">
         INSERT INTO t_entry_classify
         <trim prefix="(" suffix=")" suffixOverrides=",">

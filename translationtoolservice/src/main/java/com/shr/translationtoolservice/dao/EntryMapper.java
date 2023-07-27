@@ -30,7 +30,7 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
 
     int updateById(@Param("entryEntity") EntryEntity entryEntity);
 
-    int deleteEntries(@Param("entryEntities") List<EntryEntity> entryEntities,@Param("tableName") String tableName);
+    int deleteEntries(@Param("idList") List<String> idList,@Param("tableName") String tableName);
 
     List<EntryEntity> selectByName(@Param("entryEntity") EntryEntity entryEntity);
 

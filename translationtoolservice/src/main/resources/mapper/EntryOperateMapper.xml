@@ -21,4 +21,21 @@
     select  <include refid="Base_Column_List" />
     from t_entry_operate where entry_id =   #{entryId,jdbcType=VARCHAR}
 </select>
+
+
+  <select id="selectListByOperate" parameterType="com.shr.translationtoolservice.entity.EntryOperate" resultMap="BaseResultMap">
+    select  <include refid="Base_Column_List" />
+    from t_entry_operate where 1=1
+
+
+    <if test="entryOperate.entryId != null and eentryOperate.entryId != ''">
+      and  entry_id =   #{entryOperate.entryId,jdbcType=VARCHAR}
+    </if>
+    <if test="entryOperate.operator != null and eentryOperate.operator != ''">
+      and  operator =   #{entryOperate.operator,jdbcType=VARCHAR}
+    </if>
+    <if test="entryOperate.operator != null and eentryOperate.operator != ''">
+      and  operator =   #{entryOperate.operator,jdbcType=VARCHAR}
+    </if>
+  </select>
 </mapper>

@@ -268,8 +268,8 @@
 
     <delete id="deleteEntries" parameterType="arraylist">
         DELETE FROM ${tableName} WHERE id in(
-        <foreach collection="list" item="entryEntity" index="index" separator=",">
-            #{entryEntity.id,jdbcType=VARCHAR}
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
         </foreach>
         );
 </delete>
