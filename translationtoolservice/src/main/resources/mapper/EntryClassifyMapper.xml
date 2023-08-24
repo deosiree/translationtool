@@ -9,11 +9,12 @@
         <result property="parentId" column="parent_id" jdbcType="VARCHAR"/>
         <result property="title" column="name" jdbcType="VARCHAR"/>
         <result property="index" column="index" jdbcType="INTEGER"/>
+        <result property="maxByte" column="max_byte" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id ,parent_id,`name`,
-        `index`
+        `index`,max_byte
     </sql>
 
     <select id="getEntryClassfyByIds" resultMap="BaseResultMap">
@@ -23,16 +24,29 @@
 
     </select>
 
+
+    <select id="getEntryClassfyByParentId" parameterType="arraylist" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify
+        where parent_id in (
+
+        <foreach collection="ids" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
+
     <select id="selectByParentId" resultType="com.shr.translationtoolservice.entity.EntryClassify">
-        select    id `key`,parent_id,`name` `title`,
+        select      id `key`,parent_id,`name` `title`,
         `index`
         from t_entry_classify where id =  #{parentId,jdbcType=VARCHAR}
 
     </select>
     <select id="selectById" resultType="com.shr.translationtoolservice.entity.EntryClassify">
-        select    id `key`,parent_id,`name` `title`,
+        select       id `key`,parent_id,`name` `title`,
         `index`
-        from t_entry_classify where id =  #{parentId,jdbcType=VARCHAR}
+        from t_entry_classify where id =  #{id,jdbcType=VARCHAR}
 
     </select>
     <insert id="insert" parameterType="com.shr.translationtoolservice.entity.EntryClassify">
@@ -47,6 +61,12 @@
             <if test="entryClassify.title != null">
                 `name`,
             </if>
+            <if test="entryClassify.index != null">
+                `index`,
+            </if>
+            <if test="entryClassify.maxByte != null">
+                `max_byte`,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryClassify.key != null">
@@ -57,6 +77,12 @@
             </if>
             <if test="entryClassify.title != null">
                 #{entryClassify.title,jdbcType=VARCHAR},
+            </if>
+            <if test="entryClassify.index != null">
+                #{entryClassify.index,jdbcType=VARCHAR},
+            </if>
+            <if test="entryClassify.maxByte != null">
+                #{entryClassify.maxByte,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -82,6 +108,9 @@
             </if>
             <if test="entryClassify.title != null  and entryClassify.title != ''">
                 `name` = #{entryClassify.title ,jdbcType=VARCHAR},
+            </if>
+            <if test="entryClassify.maxByte != null  and entryClassify.title != ''">
+                `max_byte` = #{entryClassify.maxByte ,jdbcType=VARCHAR},
             </if>
 
         </set>

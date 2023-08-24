@@ -45,6 +45,12 @@ public class EntryClassify implements Serializable {
     @TableField("`index`")
     private Integer index;
 
+    /**
+     * 序号
+     */
+    @TableField("`maxbyte`")
+    private Integer maxByte;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

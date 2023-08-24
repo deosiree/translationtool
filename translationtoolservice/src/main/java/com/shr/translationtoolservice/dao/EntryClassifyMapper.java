@@ -15,7 +15,9 @@ public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
 
     List<EntryClassify>  getEntryClassfyByIds();
 
-    EntryClassify selectById(String parentId);
+    List<EntryClassify>  getEntryClassfyByParentId(List<String> ids);
+
+    EntryClassify selectById(String id);
 
     int insert(@Param("entryClassify") EntryClassify entryClassify);
 

@@ -12,4 +12,9 @@
     <sql id="Base_Column_List">
         id,label_name
     </sql>
+
+    <delete id="deleteLabel" parameterType="arraylist">
+
+
+    </delete>
 </mapper>

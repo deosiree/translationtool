@@ -24,13 +24,15 @@ public interface EntryManagementService {
 
     String updateEntry(EntryEntity entryEntity,HttpServletRequest request);
 
-    String deleteEntry(List<String> idList,String tableName);
+    String deleteEntry(List<String> idList );
 
-    TranslateEntity translate(EntryEntity entryEntity);
+    TranslateEntities translate(String name);
 
     List<EntryOperate> queryOperate(EntryOperate entryId);
 
-    List<EntryEntity> selectRepeEntry(String mergeState);
+    List<EntryEntity> selectNoMergeEntry(String entry);
+
+    List<EntryEntity> selectMergeEntry(String entry);
 
     String entryMerge(List<EntryEntity> entryEntity);
 
@@ -45,4 +47,10 @@ public interface EntryManagementService {
     String deleteEntryClassfy(List<String> idList);
 
     List<EntryLabel> queryLabel();
+
+    String deleteLabel(List<String> idList);
+
+    String addLabel(EntryLabel entryLabel);
+
+    String updateLabel(EntryLabel entryLabel);
 }

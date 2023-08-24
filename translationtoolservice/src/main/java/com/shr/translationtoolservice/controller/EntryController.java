@@ -12,6 +12,8 @@ import com.shr.translationtoolservice.service.EntryManagementService;
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.RedisUtil;
+
 import com.shr.translationtoolservice.util.Translate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -22,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -61,9 +65,9 @@ public class EntryController extends BaseController {
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel result = new ResponseListModel<>();
-        if (StringUtils.isBlank(entryEntity.getTableName())){
+       /* if (StringUtils.isBlank(entryEntity.getTableName())){
             return checkResult(result);
-        }
+        }*/
         return checkResult(  entryManagementService.searchEntry(entryEntity, entryState,pageIndex, pageSize));
     }
 
@@ -87,10 +91,10 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<EntryEntity> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
-        if (StringUtils.isBlank(entryEntity.getTableName())) {
+      /*  if (StringUtils.isBlank(entryEntity.getTableName())) {
 
             return checkResult(null,ErrorCodeList.TBALE_IS_NULL);
-        }
+        }*/
         return entryManagementService.insertEntry(entryEntity,request);
     }
 
@@ -100,9 +104,9 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
-        if (StringUtils.isBlank(entryEntity.getTableName())) {
+    /*    if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
-        }
+        }*/
         return checkResult(entryManagementService.updateEntry(entryEntity,request));
     }
 
@@ -115,15 +119,29 @@ public class EntryController extends BaseController {
         return checkResult( entryManagementService.entryMerge(entryEntities));
     }
 
-    @PostMapping("/getReEntry")
-    @ApiOperation("重复词条查询")
+    @PostMapping("/getEntryNoMerge")
+    @ApiOperation("未合并词条查询")
     @CrossOrigin
     @PassToken
     @Transactional
-    public HttpResponse<ResponseListModel> entryMerge(String mergeState) {
+    public HttpResponse<ResponseListModel> getEntryMerge(String entry) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryEntity> entryEntities = new ArrayList<>();
-        entryEntities = entryManagementService.selectRepeEntry(mergeState);
+        entryEntities = entryManagementService.selectNoMergeEntry(entry);
+        responseListModel.setList(entryEntities);
+        responseListModel.setTotalNum(entryEntities.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/getEntryMerge")
+    @ApiOperation("已合并词条查询")
+    @CrossOrigin
+    @PassToken
+    @Transactional
+    public HttpResponse<ResponseListModel> getEntryNoMerge(String entry) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryEntity> entryEntities = new ArrayList<>();
+        entryEntities = entryManagementService.selectMergeEntry(entry);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
         return checkResult(responseListModel);
@@ -204,13 +222,11 @@ public class EntryController extends BaseController {
     @PostMapping("/deleteEntry")
     @ApiOperation("删除词条")
     @CrossOrigin
-    public HttpResponse<String> deleteEntry(@RequestBody List<String> idList,String tableName) {
-        if (CollectionUtils.isEmpty(idList) || StringUtils.isBlank(tableName)) {
+    public HttpResponse<String> deleteEntry(@RequestBody List<String> idList) {
+        if (CollectionUtils.isEmpty(idList)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }
-
-
-        return checkResult(entryManagementService.deleteEntry(idList,tableName));
+        return checkResult(entryManagementService.deleteEntry(idList));
 
     }
 
@@ -248,15 +264,16 @@ public class EntryController extends BaseController {
     }
 
 
+    @Autowired
+    RedisUtil redisUtil ;
 
     @PostMapping("/translate")
     @ApiOperation("翻译词条")
     @CrossOrigin
+    @PassToken
     @Transactional
-    public HttpResponse<TranslateEntity> translate(EntryEntity entryEntity,String souce) {
-
-
-        TranslateEntity translateEntity = entryManagementService.translate(entryEntity);
+    public HttpResponse<TranslateEntities> translate(String name) {
+        TranslateEntities translateEntity = entryManagementService.translate(name);
         return checkResult(translateEntity);
     }
 
@@ -274,6 +291,32 @@ public class EntryController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/deleteLabel")
+    @ApiOperation("标签删除")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> deleteLabel(@RequestBody List<String> idList) {
 
+        return checkResult(entryManagementService.deleteLabel(idList));
+    }
 
+    @PostMapping("/addLabel")
+    @ApiOperation("标签新增")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> addLabel(@RequestBody EntryLabel entryLabel) {
+
+        return checkResult(entryManagementService.addLabel(entryLabel));
+    }
+    @PostMapping("/updateLabel")
+    @ApiOperation("标签更新")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> updateLabel(@RequestBody EntryLabel entryLabel) {
+
+        return checkResult(entryManagementService.updateLabel(entryLabel));
+    }
 }

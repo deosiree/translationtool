@@ -60,7 +60,7 @@
     t1.create_time as create_time,t1.`update` as `update`,t1.update_time as update_time,
     t1.version as version,t1.is_latest_version as is_latest_version,t1.entry_label as entry_label,
     t1.part_of_speech as part_of_speech ,t1.classify_id as classify_id,
-    t2.repeat_entry_id,
+    t1.repeat_entry_id,
     t1.english as english,t1.english_length,t1.english_translate_state,
     t1.english_disable,t1.english_disable_length,t1.russian,
     t1.russian_length,t1.russian_translate_state,t1.spanish,
@@ -106,66 +106,41 @@
 
 
 
-    <select id="selectRepeEntry" parameterType="String" resultMap="BaseResultMap">
-        ( select
-        <include refid="t1_Column_List"/>,
-        't_entry_project' tableName
-        from t_entry_project t1 join t_entry_product t2 on t1.entry = t2.entry and t1.version = t2.version
-        <if test="repeatEntryId != null  and repeatEntryId != ''">
-            and t1.repeat_entry_id != null
-        </if>
-        )
+    <select id="selectNoMerge" parameterType="String" resultMap="BaseResultMap">
 
-        union all
-        (select
-        <include refid="t1_Column_List"/>,
-        't_entry_product' tableName
-        from t_entry_product t1 join t_entry_project t2 on t1.entry = t2.entry and t1.version = t2.version
-        <if test="repeatEntryId != null  and repeatEntryId != ''">
-            and t1.repeat_entry_id != null
+
+        select  <include refid="t1_Column_List"/>
+        from t_entry_common t1
+        where entry in(
+        select entry from t_entry_common
+        where entry in (
+        select entry from t_entry_common t1 where t1.repeat_entry_id is null or  t1.repeat_entry_id = ''
+        <if test="entry != null and entry != ''">
+        and t1.entry like CONCAT( '%','${entry}','%' )
         </if>
         )
-        union all
-        (select
-        <include refid="t1_Column_List"/>,
-        't_entry_product' tableName
-        from t_entry_product t1 join t_entry_common t2 on t1.entry = t2.entry and t1.version = t2.version
-        <if test="repeatEntryId != null  and repeatEntryId != ''">
-            and t1.repeat_entry_id != null
-        </if>
-        )
-        union all
-        (select
-        <include refid="t1_Column_List"/>,
-        't_entry_common' tableName
-        from t_entry_common t1 join t_entry_product t2 on t1.entry = t2.entry and t1.version = t2.version
-        <if test="repeatEntryId != null  and repeatEntryId != ''">
-            and t1.repeat_entry_id != null
-        </if>
-        )
-        union all
-        (select
-        <include refid="t1_Column_List"/>,
-        't_entry_common' tableName
-        from t_entry_common t1 join t_entry_project t2 on t1.entry = t2.entry and t1.version = t2.version
-        <if test="repeatEntryId != null  and repeatEntryId != ''">
-            and t1.repeat_entry_id != null
-        </if>
-        )
-        union all
-        (select
-        <include refid="t1_Column_List"/>,
-        't_entry_project' tableName
-        from t_entry_project t1 join t_entry_common t2 on t1.entry = t2.entry and t1.version = t2.version
-        <if test="repeatEntryId != null  and repeatEntryId != ''">
-            and t1.repeat_entry_id != null
-        </if>
-        )
+        group by entry
+        having count(entry) >=2 )
+        order by entry
+
     </select>
 
+    <select id="selectMerge" parameterType="String" resultMap="BaseResultMap">
+        select
+        <include refid="t1_Column_List"/>
+
+        from t_entry_common t1  where
+             t1.repeat_entry_id is not null and  t1.repeat_entry_id != ''
+        <if test="entry != null and entry != ''">
+            and t1.entry like CONCAT( '%','${entry}','%' )
+        </if>
+        order by entry
+
+
+    </select>
 
     <update id="updateById" parameterType="com.shr.translationtoolservice.entity.EntryEntity">
-        update ${entryEntity.tableName}
+        update t_entry_common
         <set>
 
             <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
@@ -181,7 +156,7 @@
                 chinese_interpretation = #{entryEntity.chineseInterpretation,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.englishInterpretation != null and entryEntity.englishInterpretation != ''">
-                englishinterpretation = #{entryEntity.englishInterpretation,jdbcType=VARCHAR},
+                english_interpretation = #{entryEntity.englishInterpretation,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
                 entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR},
@@ -211,13 +186,13 @@
                 entry_label = #{entryEntity.entryLabel,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.partOfSpeech != null and entryEntity.partOfSpeech != ''">
-                entry_label = #{entryEntity.partOfSpeech,jdbcType=VARCHAR},
+                part_of_speech = #{entryEntity.partOfSpeech,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.classifyId != null and entryEntity.classifyId != ''">
                 classify_id = #{entryEntity.classifyId,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.repeatEntryId != null and entryEntity.repeatEntryId != ''">
-                classify_id = #{entryEntity.repeatEntryId,jdbcType=VARCHAR},
+                repeat_entry_id = #{entryEntity.repeatEntryId,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.english != null and entryEntity.english != ''">
                 english =#{entryEntity.english,jdbcType=VARCHAR},
@@ -266,23 +241,22 @@
         where id = #{entryEntity.id,jdbcType=VARCHAR}
     </update>
 
-    <delete id="deleteEntries" parameterType="arraylist">
-        DELETE FROM ${tableName} WHERE id in(
+    <update id="deleteEntries" parameterType="arraylist">
+
+        update  t_entry_common entry_state = 0 where WHERE id in(
         <foreach collection="idList" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}
         </foreach>
         );
-</delete>
+    </update>
 
     <select id="selectListByEntries" parameterType="String" resultMap="BaseResultMap">
 
-        <foreach collection="tableNames" item="tableName" index="index" >
-            <if test="index != 0">
-                union all
-            </if>
 
-            select  <include refid="Base_Column_List"/>,#{tableName}  as tableName
-            from     ${tableName}
+
+
+            select  <include refid="Base_Column_List"/>
+            from    t_entry_common
             where 1=1
             <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
                 and
@@ -328,7 +302,11 @@
                 and part_of_speech like CONCAT('%','${entryEntity.partOfSpeech}','%' )
             </if>
             <if test="entryEntity.classifyId != null and entryEntity.classifyId != ''">
-                and classify_id = #{entryEntity.classifyId,jdbcType=VARCHAR}
+                and classify_id in (
+                <foreach collection="classifyIds" item="classify" index="index" separator=",">
+                    #{classify.key,jdbcType=VARCHAR}
+            </foreach>
+                )
             </if>
             <if test="entryEntity.repeatEntryId != null and entryEntity.repeatEntryId != ''">
                 and repeatEntryId = #{entryEntity.repeatEntryId,jdbcType=VARCHAR}
@@ -376,7 +354,7 @@
                 and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
             </if>
 
-        </foreach>
+
         order by update_time desc
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
@@ -385,109 +363,113 @@
     </select>
 
 
-    <select id="selectListByEntriesTotal" parameterType="String" resultMap="BaseResultMap">
+    <select id="selectListByEntriesTotal"  resultType="int">
 
-        <foreach collection="tableNames" item="tableName" index="index" >
-            <if test="index != 0">
-                union all
-            </if>
 
-            select   <include refid="Base_Column_List"/>,#{tableName}  as tableName
-            from     ${tableName}
-            where 1=1
-            <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
-                and
-                abbr  like CONCAT('%','${entryEntity.abbr}','%' )
-            </if>
-            <if test="entryEntity.entry != null  and entryEntity.entry != ''">
-                and   entry   like CONCAT('%','${entryEntity.entry}','%' )
-            </if>
-            <if test="entryEntity.entryLength != null and entryEntity.entryLength != 0 ">
-                and entry_length = #{entryEntity.entryLength,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.chineseInterpretation != null and entryEntity.chineseInterpretation != ''">
-                and   chinese_interpretation = #{entryEntity.chineseInterpretation,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.englishInterpretation != null and entryEntity.englishInterpretation != ''">
-                and englishinterpretation = #{entryEntity.englishInterpretation,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
-                and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
-            </if>
-            <if test="entryState != null  and entryState != ''">
-                and  entry_state in  (${entryState})
-            </if>
-            <if test="entryEntity.creator != null and entryEntity.creator != ''">
-                and  creator like CONCAT('%','${entryEntity.creator}','%' )
-            </if>
-            <if test="entryEntity.createTime != null  and entryEntity.createTime != ''">
-                and  create_time &gt;=    #{entryEntity.createTime,jdbcType=DATETIMEOFFSET}
-            </if>
-            <if test="entryEntity.createEndRTime != null   and entryEntity.createEndRTime != ''">
-                and create_time &lt;=    #{entryEntity.createEndRTime,jdbcType=DATETIMEOFFSET}
-            </if>
-            <if test="entryEntity.version != null and entryEntity.version != ''">
-                and version = #{entryEntity.version,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.isLatestVersion != null  and entryEntity.isLatestVersion != 0">
-                and is_latest_version = #{entryEntity.isLatestVersion,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.entryLabel != null and entryEntity.entryLabel != ''">
-                and entry_label = #{entryEntity.entryLabel,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.partOfSpeech != null and entryEntity.partOfSpeech != ''">
-                and part_of_speech like CONCAT('%','${entryEntity.partOfSpeech}','%' )
-            </if>
-            <if test="entryEntity.classifyId != null and entryEntity.classifyId != ''">
-                and classify_id = #{entryEntity.classifyId,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.repeatEntryId != null and entryEntity.repeatEntryId != ''">
-                and repeatEntryId = #{entryEntity.repeatEntryId,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.english != null and entryEntity.english != ''">
-                and english =#{entryEntity.english,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.englishLength != null and entryEntity.englishLength != 0">
-                and english_length = #{entryEntity.englishLength,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.englishTranslateState != null and entryEntity.englishTranslateState != ''">
-                and english_translate_state = #{entryEntity.englishTranslateState,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.englishDisable != null and entryEntity.englishDisable != ''">
-                and  english_disable = #{entryEntity.englishDisable,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.englishDisableLength != null   and entryEntity.englishDisableLength != 0">
-                and english_disable_length = #{entryEntity.englishDisableLength,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.russian != null and entryEntity.russian != ''">
-                and russian = #{entryEntity.russian,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.russianLength != null  and entryEntity.russianLength != 0">
-                and russian_length = #{entryEntity.russianLength,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.russianTranslateState != null and entryEntity.russianTranslateState != ''">
-                and russian_translate_state = #{entryEntity.russianTranslateState,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.spanish != null and entryEntity.spanish != ''">
-                and  spanish = #{entryEntity.spanish,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.spanishLength != null and entryEntity.spanishLength != 0">
-                and spanish_length = #{entryEntity.spanishLength,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.spanishTranslateState != null and entryEntity.spanishTranslateState != ''">
-                and  spanish_translate_state = #{entryEntity.spanishTranslateState,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.french != null and entryEntity.french != ''">
-                and french = #{entryEntity.french,jdbcType=VARCHAR}
-            </if>
-            <if test="entryEntity.frenchLength != null  and entryEntity.frenchLength != 0">
-                and french_length = #{entryEntity.frenchLength,jdbcType=INTEGER}
-            </if>
-            <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
-                and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
-            </if>
 
-        </foreach>
+        select  count(1)
+        from    t_entry_common
+        where 1=1
+        <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
+            and
+            abbr  like CONCAT('%','${entryEntity.abbr}','%' )
+        </if>
+        <if test="entryEntity.entry != null  and entryEntity.entry != ''">
+            and   entry   like CONCAT('%','${entryEntity.entry}','%' )
+        </if>
+        <if test="entryEntity.entryLength != null and entryEntity.entryLength != 0 ">
+            and entry_length = #{entryEntity.entryLength,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.chineseInterpretation != null and entryEntity.chineseInterpretation != ''">
+            and   chinese_interpretation = #{entryEntity.chineseInterpretation,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.englishInterpretation != null and entryEntity.englishInterpretation != ''">
+            and englishinterpretation = #{entryEntity.englishInterpretation,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
+            and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
+        </if>
+        <if test="entryState != null  and entryState != ''">
+            and  entry_state in (${entryState})
+        </if>
+        <if test="entryEntity.creator != null and entryEntity.creator != ''">
+            and  creator like CONCAT('%','${entryEntity.creator}','%' )
+        </if>
+        <if test="entryEntity.createTime != null  and entryEntity.createTime != ''">
+            and  create_time &gt;=    #{entryEntity.createTime,jdbcType=DATETIMEOFFSET}
+        </if>
+        <if test="entryEntity.createEndRTime != null   and entryEntity.createEndRTime != ''">
+            and create_time &lt;=    #{entryEntity.createEndRTime,jdbcType=DATETIMEOFFSET}
+        </if>
+        <if test="entryEntity.version != null and entryEntity.version != ''">
+            and version = #{entryEntity.version,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.isLatestVersion != null  and entryEntity.isLatestVersion != 0">
+            and is_latest_version = #{entryEntity.isLatestVersion,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.entryLabel != null and entryEntity.entryLabel != ''">
+            and entry_label = #{entryEntity.entryLabel,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.partOfSpeech != null and entryEntity.partOfSpeech != ''">
+            and part_of_speech like CONCAT('%','${entryEntity.partOfSpeech}','%' )
+        </if>
+        <if test="entryEntity.classifyId != null and entryEntity.classifyId != ''">
+            and classify_id in (
+            <foreach collection="classifyIds" item="classify" index="index" separator=",">
+                #{classify.key,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+        <if test="entryEntity.repeatEntryId != null and entryEntity.repeatEntryId != ''">
+            and repeatEntryId = #{entryEntity.repeatEntryId,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.english != null and entryEntity.english != ''">
+            and english =#{entryEntity.english,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.englishLength != null and entryEntity.englishLength != 0">
+            and english_length = #{entryEntity.englishLength,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.englishTranslateState != null and entryEntity.englishTranslateState != ''">
+            and english_translate_state = #{entryEntity.englishTranslateState,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.englishDisable != null and entryEntity.englishDisable != ''">
+            and  english_disable = #{entryEntity.englishDisable,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.englishDisableLength != null   and entryEntity.englishDisableLength != 0">
+            and english_disable_length = #{entryEntity.englishDisableLength,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.russian != null and entryEntity.russian != ''">
+            and russian = #{entryEntity.russian,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.russianLength != null  and entryEntity.russianLength != 0">
+            and russian_length = #{entryEntity.russianLength,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.russianTranslateState != null and entryEntity.russianTranslateState != ''">
+            and russian_translate_state = #{entryEntity.russianTranslateState,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.spanish != null and entryEntity.spanish != ''">
+            and  spanish = #{entryEntity.spanish,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.spanishLength != null and entryEntity.spanishLength != 0">
+            and spanish_length = #{entryEntity.spanishLength,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.spanishTranslateState != null and entryEntity.spanishTranslateState != ''">
+            and  spanish_translate_state = #{entryEntity.spanishTranslateState,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.french != null and entryEntity.french != ''">
+            and french = #{entryEntity.french,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.frenchLength != null  and entryEntity.frenchLength != 0">
+            and french_length = #{entryEntity.frenchLength,jdbcType=INTEGER}
+        </if>
+        <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
+            and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
+        </if>
+
+
+        order by update_time desc
+
+
 
     </select>
 
@@ -594,109 +576,13 @@
 
     </select>
 
-    <select id="selectListByEntryTotal" parameterType="com.shr.translationtoolservice.entity.EntryEntity" resultType="int">
-        select  count(1)
-        from     ${entryEntity.tableName}
-        where 1=1
-        <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
-            and
-            abbr  like CONCAT('%','${entryEntity.abbr}','%' )
-        </if>
-        <if test="entryEntity.entry != null  and entryEntity.entry != ''">
-            and   entry   like CONCAT('%','${entryEntity.entry}','%' )
-        </if>
-        <if test="entryEntity.entryLength != null and entryEntity.entryLength != 0 ">
-            and entry_length = #{entryEntity.entryLength,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.chineseInterpretation != null and entryEntity.chineseInterpretation != ''">
-            and   chinese_interpretation = #{entryEntity.chineseInterpretation,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.englishInterpretation != null and entryEntity.englishInterpretation != ''">
-            and englishinterpretation = #{entryEntity.englishInterpretation,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
-            and entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR}
-        </if>
-        <if test="entryState != null  and entryState != ''">
-            and  entry_state in  (${entryState})
-        </if>
-        <if test="entryEntity.creator != null and entryEntity.creator != ''">
-            and  creator like CONCAT('%','${entryEntity.creator}','%' )
-        </if>
-        <if test="entryEntity.createTime != null  and entryEntity.createTime != ''">
-            and  create_time &gt;=    #{entryEntity.createTime,jdbcType=DATETIMEOFFSET}
-        </if>
-        <if test="entryEntity.createEndRTime != null   and entryEntity.createEndRTime != ''">
-            and create_time &lt;=    #{entryEntity.createEndRTime,jdbcType=DATETIMEOFFSET}
-        </if>
-        <if test="entryEntity.version != null and entryEntity.version != ''">
-            and version = #{entryEntity.version,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.isLatestVersion != null  and entryEntity.isLatestVersion != 0">
-            and is_latest_version = #{entryEntity.isLatestVersion,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.entryLabel != null and entryEntity.entryLabel != ''">
-            and entry_label = #{entryEntity.entryLabel,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.partOfSpeech != null and entryEntity.partOfSpeech != ''">
-            and part_of_speech like CONCAT('%','${entryEntity.partOfSpeech}','%' )
-        </if>
-        <if test="entryEntity.classifyId != null and entryEntity.classifyId != ''">
-            and classify_id = #{entryEntity.classifyId,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.repeatEntryId != null and entryEntity.repeatEntryId != ''">
-            and repeatEntryId = #{entryEntity.repeatEntryId,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.english != null and entryEntity.english != ''">
-            and english =#{entryEntity.english,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.englishLength != null and entryEntity.englishLength != 0">
-            and english_length = #{entryEntity.englishLength,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.englishTranslateState != null and entryEntity.englishTranslateState != ''">
-            and english_translate_state = #{entryEntity.englishTranslateState,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.englishDisable != null and entryEntity.englishDisable != ''">
-            and  english_disable = #{entryEntity.englishDisable,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.englishDisableLength != null   and entryEntity.englishDisableLength != 0">
-            and english_disable_length = #{entryEntity.englishDisableLength,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.russian != null and entryEntity.russian != ''">
-            and russian = #{entryEntity.russian,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.russianLength != null  and entryEntity.russianLength != 0">
-            and russian_length = #{entryEntity.russianLength,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.russianTranslateState != null and entryEntity.russianTranslateState != ''">
-            and russian_translate_state = #{entryEntity.russianTranslateState,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.spanish != null and entryEntity.spanish != ''">
-            and  spanish = #{entryEntity.spanish,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.spanishLength != null and entryEntity.spanishLength != 0">
-            and spanish_length = #{entryEntity.spanishLength,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.spanishTranslateState != null and entryEntity.spanishTranslateState != ''">
-            and  spanish_translate_state = #{entryEntity.spanishTranslateState,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.french != null and entryEntity.french != ''">
-            and french = #{entryEntity.french,jdbcType=VARCHAR}
-        </if>
-        <if test="entryEntity.frenchLength != null  and entryEntity.frenchLength != 0">
-            and french_length = #{entryEntity.frenchLength,jdbcType=INTEGER}
-        </if>
-        <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
-            and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
-        </if>
 
-    </select>
 
 
     <insert id="insert" parameterType="com.shr.translationtoolservice.entity.EntryEntity">
 
         <!--@mbg.generated-->
-        insert into ${entryEntity.tableName}
+        insert into t_entry_common
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="entryEntity.id != null">
                 id,

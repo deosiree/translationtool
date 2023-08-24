@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.shr.translationtoolservice.entity.EntryClassify;
 import com.shr.translationtoolservice.entity.EntryEntity;
 import com.shr.translationtoolservice.entity.EntryProjectEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -30,20 +31,21 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
 
     int updateById(@Param("entryEntity") EntryEntity entryEntity);
 
-    int deleteEntries(@Param("idList") List<String> idList,@Param("tableName") String tableName);
+    int deleteEntries(@Param("idList") List<String> idList);
 
     List<EntryEntity> selectByName(@Param("entryEntity") EntryEntity entryEntity);
 
-    List<EntryEntity> selectRepeEntry(String repeatEntryId);
+    List<EntryEntity> selectNoMerge(String entry);
 
+    List<EntryEntity> selectMerge(String entry);
 
     List<EntryEntity> selectListByEntry(EntryEntity entryEntity, Integer limit, int offset,String entryState);
 
-    List<EntryEntity> selectListByEntries(@Param("entryEntity") EntryEntity entryEntity,@Param("tableNames") List<String> tableNames, Integer limit, int offset,String entryState);
+    List<EntryEntity> selectListByEntries(@Param("entryEntity") EntryEntity entryEntity, @Param("classifyIds") List<EntryClassify> classfyList, Integer limit, int offset, String entryState);
 
-    List<EntryEntity>  selectListByEntriesTotal(@Param("entryEntity") EntryEntity entryEntity,@Param("tableNames") List<String> tableNames,String entryState);
+    int selectListByEntriesTotal(@Param("entryEntity") EntryEntity entryEntity,String entryState,@Param("classifyIds") List<EntryClassify> classfyList);
 
-    int selectListByEntryTotal(@Param("entryEntity") EntryEntity entryEntity,String entryState);
+
 }
 
 
