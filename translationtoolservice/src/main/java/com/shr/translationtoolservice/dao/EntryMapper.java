@@ -19,7 +19,7 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     @Override
     List<EntryEntity> selectList(@Param("ew") Wrapper<EntryEntity> queryWrapper);
 
-    EntryEntity selectById(String id,String tableName);
+    EntryEntity selectById(String id);
 
     int insert(@Param("entryEntity") EntryEntity entryEntity);
 
@@ -27,7 +27,7 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
 
     int auditById(String tableName,String id,@Param("state") int state);
 
-    List<EntryEntity> selectByAbbr(@Param("entryEntity") EntryEntity entryEntity);
+    List<EntryEntity> selectByAbbr(@Param("abbr") String abbr,@Param("version") String version);
 
     int updateById(@Param("entryEntity") EntryEntity entryEntity);
 

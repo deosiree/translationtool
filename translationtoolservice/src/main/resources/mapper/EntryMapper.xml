@@ -69,7 +69,7 @@
  </sql>
 
     <update id="auditByIds" parameterType="java.util.List">
-        update #{tableName,jdbcType=VARCHAR} set entry_state = #{state,jdbcType=VARCHAR} where id in (
+        update t_entry_common set entry_state = #{state,jdbcType=VARCHAR} where id in (
         <foreach collection="idList" item="idList" index="index" separator=",">
             #{idList,jdbcType=VARCHAR}
         </foreach>
@@ -77,20 +77,20 @@
     </update>
 
     <update id="auditById" parameterType="String">
-        update  ${tableName} set entry_state = #{state,jdbcType=INTEGER} where id = #{id,jdbcType=VARCHAR}
+        update  t_entry_common set entry_state = #{state,jdbcType=INTEGER} where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="selectById" parameterType="String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from ${tableName} where id = #{id,jdbcType=VARCHAR}
+        from t_entry_common where id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByName" parameterType="com.shr.translationtoolservice.entity.EntryEntity"
             resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from ${entryEntity.tableName} where entry = #{entryEntity.entry,jdbcType=VARCHAR} and version =
+        from t_entry_common where entry = #{entryEntity.entry,jdbcType=VARCHAR} and version =
         #{entryEntity.version,jdbcType=VARCHAR}
     </select>
 
@@ -98,8 +98,8 @@
             resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from ${entryEntity.tableName} where abbr = #{entryEntity.abbr,jdbcType=VARCHAR} and version =
-        #{entryEntity.version,jdbcType=VARCHAR}
+        from t_entry_common where abbr = #{abbr,jdbcType=VARCHAR} and version =
+        #{version,jdbcType=VARCHAR}
     </select>
 
 

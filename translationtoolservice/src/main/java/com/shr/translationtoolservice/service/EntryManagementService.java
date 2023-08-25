@@ -22,7 +22,7 @@ public interface EntryManagementService {
 
     HttpResponse<EntryEntity> insertEntry(EntryEntity entryEntity, HttpServletRequest request);
 
-    String updateEntry(EntryEntity entryEntity,HttpServletRequest request);
+    ResultObject updateEntry(EntryEntity entryEntity,HttpServletRequest request);
 
     String deleteEntry(List<String> idList );
 
@@ -46,11 +46,13 @@ public interface EntryManagementService {
 
     String deleteEntryClassfy(List<String> idList);
 
-    List<EntryLabel> queryLabel();
+    ResponseListModel<EntryLabel>  queryLabel(EntryLabel entryLabel,int pageIndex,int pageSize);
 
     String deleteLabel(List<String> idList);
 
     String addLabel(EntryLabel entryLabel);
 
     String updateLabel(EntryLabel entryLabel);
+
+    List<EntryProperty> queryEntryProperty(EntryProperty entryProperty);
 }

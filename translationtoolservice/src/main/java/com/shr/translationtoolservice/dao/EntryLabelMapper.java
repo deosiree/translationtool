@@ -3,6 +3,7 @@ package com.shr.translationtoolservice.dao;
 import com.shr.translationtoolservice.entity.EntryLabel;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -13,6 +14,11 @@ import java.util.List;
 public interface EntryLabelMapper extends BaseMapper<EntryLabel> {
 
     int deleteLabel(List<String> idList);
+
+    List<EntryLabel> getLabels(@Param("entryLabel") EntryLabel entryLabel, int limit, int offset);
+
+    int getLabelsTotal(@Param("entryLabel") EntryLabel entryLabel, int limit, int offset);
+
 }
 
 

@@ -103,11 +103,15 @@ public class EntryController extends BaseController {
     @ApiOperation("编辑词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
+    public HttpResponse<EntryEntity> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
     /*    if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }*/
-        return checkResult(entryManagementService.updateEntry(entryEntity,request));
+         ResultObject resultObject = entryManagementService.updateEntry(entryEntity, request);
+        EntryEntity entryEntity1 = (EntryEntity)resultObject.getData();
+
+
+        return checkResult(entryEntity1,resultObject.getMsg());
     }
 
     @PostMapping("/entryMerge")
@@ -282,13 +286,11 @@ public class EntryController extends BaseController {
     @PassToken
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> queryLabel() {
+    public HttpResponse<ResponseListModel> queryLabel( @RequestBody EntryLabel entryLabel ,@RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
 
-        List<EntryLabel> entryLabels = entryManagementService.queryLabel();
-        responseListModel.setList(entryLabels);
-        responseListModel.setTotalNum(entryLabels.size());
-        return checkResult(responseListModel);
+        return checkResult( entryManagementService.queryLabel(entryLabel,pageIndex,pageSize));
     }
 
     @PostMapping("/deleteLabel")
@@ -310,6 +312,7 @@ public class EntryController extends BaseController {
 
         return checkResult(entryManagementService.addLabel(entryLabel));
     }
+
     @PostMapping("/updateLabel")
     @ApiOperation("标签更新")
     @PassToken
@@ -319,4 +322,22 @@ public class EntryController extends BaseController {
 
         return checkResult(entryManagementService.updateLabel(entryLabel));
     }
+
+    @PostMapping("/getEntryProperty")
+    @ApiOperation("词性查询")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getEntryProperty(@RequestBody EntryProperty entryProperty) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryProperty> entryProperties = entryManagementService.queryEntryProperty(entryProperty);
+        responseListModel.setList(entryProperties);
+        responseListModel.setTotalNum(entryProperties.size());
+        return checkResult(responseListModel);
+    }
+
+
+
+
+
 }

@@ -63,13 +63,12 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     private ThesaurusMapper thesaurusMapper;
     @Autowired
     private HTTPUtils httpUtils;
+    @Autowired
+    private EntryPropertyMapper entryPropertyMapper;
 
     @Autowired
-    CommonUtils commonUtils;
-    @Autowired
-    EntryProjectEntityService entryProjectEntityService;
+    private CommonUtils commonUtils;
 
-    private ConstantInterface constantInterface = ConstantInterface.getInstance();
 
     @Override
     public ResponseListModel searchEntry(EntryEntity entryEntity, String entryState, Integer pageIndex, Integer pageSize) {
@@ -320,9 +319,18 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<EntryLabel> queryLabel() {
-        List<EntryLabel> entryLabels = entryLabelMapper.selectList(new QueryWrapper<>());
-        return entryLabels;
+    public ResponseListModel<EntryLabel> queryLabel(EntryLabel entryLabel ,int pageIndex, int pageSize) {
+        ResponseListModel<EntryLabel> result = new ResponseListModel<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper<>();
+
+            List<EntryLabel> entryLabels = entryLabelMapper.getLabels(entryLabel,pageSize, offset);
+            result.setList(entryLabels);
+            int total = entryLabelMapper.getLabelsTotal(entryLabel,pageSize, offset);
+            result.setTotalNum(total);
+        }
+        return result;
     }
 
     @Override
@@ -337,7 +345,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String addLabel(EntryLabel entryLabel) {
-        entryLabel.setId(commonUtils.getUUID());
+        String uuid = commonUtils.getUUID();
+        entryLabel.setId(uuid);
         List<EntryLabel> entryLabels = entryLabelMapper.selectList(new QueryWrapper<>());
         for (EntryLabel entryLabel1 : entryLabels) {
             if (entryLabel1.getLabelName().equals(entryLabel.getLabelName())) {
@@ -348,16 +357,31 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
         }
-        return ConstantInterface.OK_STR;
+        return uuid;
     }
 
     @Override
     public String updateLabel(EntryLabel entryLabel) {
-         int update = entryLabelMapper.updateById(entryLabel);
+        int update = entryLabelMapper.updateById(entryLabel);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
         return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public List<EntryProperty> queryEntryProperty(EntryProperty entryProperty) {
+        QueryWrapper<EntryProperty> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(entryProperty.getPropertyName())) {
+            queryWrapper.eq("property_name", entryProperty.getPropertyName());
+        } else if (StringUtils.isNotBlank(entryProperty.getId())) {
+            queryWrapper.eq("id", entryProperty.getId());
+        }
+
+
+        List<EntryProperty> entryProperties = entryPropertyMapper.selectList(new QueryWrapper<>());
+
+        return entryProperties;
     }
 
 
@@ -365,7 +389,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     public HttpResponse<EntryEntity> insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
         HttpResponse<EntryEntity> response = new HttpResponse<>();
         entryEntity.setTableName(ConstantInterface.COMMON_TABLE_Name);
-        List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity);
+        List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity.getAbbr(), entryEntity.getVersion());
         List<EntryEntity> entryEntities1 = entryMapper.selectByName(entryEntity);
         //校验ABBR 重复
         if (!CollectionUtils.isEmpty(entryEntities)) {
@@ -491,19 +515,33 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 //            entryEntity.setRepeatEntryId(index.getRepeatEntryId());
 //        }
 
-        entryEntity.setEntryState(2);
+        //entryEntity.setEntryState(2);
 
 
     }
 
 
     @Override
-    public String updateEntry(EntryEntity entryEntity, HttpServletRequest request) {
-        entryEntity.setTableName(ConstantInterface.COMMON_TABLE_Name);
-        EntryEntity beforEntry = entryMapper.selectById(entryEntity.getId(), entryEntity.getTableName());
-        if (StringUtils.isNotBlank(entryEntity.getAbbr())) {
-            List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity);
+    public ResultObject updateEntry(EntryEntity entryEntity, HttpServletRequest request) {
 
+        entryEntity.setTableName(ConstantInterface.COMMON_TABLE_Name);
+        EntryEntity beforEntry = entryMapper.selectById(entryEntity.getId());
+
+        //abbr 重复判断
+        if (StringUtils.isNotBlank(entryEntity.getAbbr())) {
+            String version = "";
+            if (StringUtils.isNotBlank(entryEntity.getVersion())) {
+                version = entryEntity.getVersion();
+            } else {
+                version = beforEntry.getVersion();
+            }
+            List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity.getAbbr(), version);
+            entryEntities.removeIf(entryEntity1 -> entryEntity1.getId().equals(entryEntity.getId()));
+            if (!CollectionUtils.isEmpty(entryEntities)) {
+
+
+                return new ResultObject(ErrorCodeList.ABBR_HAS_EXIST);
+            }
         }
         constructEntry(entryEntity);
 
@@ -530,8 +568,11 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         entryEntity.setUpdate(userName);
         entryEntity.setUpdateTime(new Date(System.currentTimeMillis()));
         int update = entryMapper.updateById(entryEntity);
+        EntryEntity resultEntryEntity = entryMapper.selectById(entryEntity.getId());
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
-            return ErrorCodeList.UPDATE_ERROR;
+
+            return new ResultObject(ErrorCodeList.UPDATE_ERROR);
+
         }
         if (Objects.isNull(entryEntity.getEntryState())) {
             entryEntity.setEntryState(beforEntry.getEntryState());
@@ -541,11 +582,11 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         List<ComparisonResult> results = new ArrayList<>();
         OperateContentEntity operateContentEntity = new OperateContentEntity();
         try {
-            EntryEntity afterEntry = entryMapper.selectById(entryEntity.getId(), entryEntity.getTableName());
+            EntryEntity afterEntry = entryMapper.selectById(entryEntity.getId());
             results = CompareUtils.compareFields(beforEntry, afterEntry, EntryEntity.class);
             if (results.size() == 0) {
                 log.error(" t_entry_operate no change ! ");
-                return ErrorCodeList.INSERT_ERROR;
+                return new ResultObject(ErrorCodeList.INSERT_ERROR);
             }
             operateContentEntity.setResults(results);
             operateContentEntity.setEntryID(entryEntity.getId());
@@ -589,15 +630,13 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             int insert = constructOperate(entryOperate, entryEntity.getTableName(), entryEntity.getId(), request);
             if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
                 log.error(" t_entry_operate update insert error ! ");
-                return ErrorCodeList.INSERT_ERROR;
+                return new ResultObject(ErrorCodeList.INSERT_ERROR);
             }
         } catch (Exception e) {
             log.error(" ComparisonResult 类型对比异常 ！ ");
             log.error(e.getMessage());
         }
-        return ConstantInterface.OK_STR;
-
-
+        return new ResultObject(resultEntryEntity, ConstantInterface.OK_STR);
     }
 
 
@@ -745,7 +784,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 EntryOperate entryOperate = new EntryOperate();
 
                 //更新操作记录表
-                EntryEntity entryEntity1 = entryMapper.selectById(entryID, tableName);
+                EntryEntity entryEntity1 = entryMapper.selectById(entryID);
 
                 List<ComparisonResult> results = new ArrayList<>();
                 OperateContentEntity operateContentEntity = new OperateContentEntity();
@@ -799,7 +838,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     private EntryEntity auditByID(String tableName, String entryID, int state) {
 
-        EntryEntity entryEntity = entryMapper.selectById(entryID, tableName);
+        EntryEntity entryEntity = entryMapper.selectById(entryID);
 
         int update = entryMapper.auditById(tableName, entryID, state);
 
