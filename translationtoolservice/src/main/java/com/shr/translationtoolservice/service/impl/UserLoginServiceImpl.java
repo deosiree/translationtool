@@ -20,6 +20,7 @@ import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 @Service
@@ -138,6 +139,9 @@ public class UserLoginServiceImpl implements UserLoginService {
         if (returnList.isEmpty()) {
             returnList = menuList;
         }
+        //排序
+        Collections.sort(returnList, Comparator.comparingInt(Menu::getRank));
+
         return returnList;
     }
 
