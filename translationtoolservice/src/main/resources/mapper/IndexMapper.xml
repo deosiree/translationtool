@@ -25,4 +25,8 @@
         where entry = #{entry,jdbcType=VARCHAR}
     </select>
 
+    <delete id="deleteByRepeatId" parameterType="String">
+        DELETE FROM t_index WHERE repeat_entry_id=  #{repeatEntryId,jdbcType=VARCHAR}
+    </delete>
+
 </mapper>

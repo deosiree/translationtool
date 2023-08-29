@@ -782,4 +782,11 @@
         </trim>
 
     </insert>
+    <update id="mergerSplit" parameterType="ArrayList">
+        update t_entry_common set repeat_entry_id = null where id in (
+        <foreach collection="idList" item="idList" index="index" separator=",">
+            #{idList,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </update>
 </mapper>

@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.service.impl;
 
+import cn.hutool.poi.excel.ExcelUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
@@ -15,7 +16,9 @@ import org.assertj.core.util.Lists;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -384,6 +387,34 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return entryProperties;
     }
 
+    @Override
+    public String mergerSplit(List<String> idList) {
+
+        String id = idList.get(0);
+
+        EntryEntity entryEntity = entryMapper.selectById(id);
+
+        String repeatEntryId = entryEntity.getRepeatEntryId();
+
+
+        int update = entryMapper.mergerSplit(idList);
+
+        if (update < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+
+        int delete = indexMapper.deleteByRepeatId(repeatEntryId);
+        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public void importExcle(MultipartFile multipartFile) {
+    }
+
 
     @Override
     public HttpResponse<EntryEntity> insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
@@ -422,25 +453,6 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             Date date = new Date(System.currentTimeMillis());
             entryEntity.setCreateTime(date);
         }
-
-
-     /*   String lable = entryEntity.getEntryLabel();
-        if (StringUtils.isNotBlank(lable)) {
-            //插入标签
-            QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper();
-            queryWrapper.eq("label_name", lable);
-            EntryLabel entryLabel = entryLabelMapper.selectOne(queryWrapper);
-            if (!Objects.isNull(entryLabel)) {
-                response.setMessage("the table  lable  reuse !");
-                response.setCode(HttpResponse.Type.ERROR.getVal());
-                response.setType(HttpResponse.Type.ERROR);
-                return response;
-            }
-            EntryLabel entryLabel1 = new EntryLabel();
-            entryLabel1.setId(commonUtils.getUUID());
-            entryLabel1.setLabelName(lable);
-            entryLabelMapper.insert(entryLabel1);
-        }*/
 
 
         int insert = entryMapper.insert(entryEntity);
@@ -545,23 +557,6 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         }
         constructEntry(entryEntity);
 
-       /* //label  判断重复
-        String lable = entryEntity.getEntryLabel();
-
-        if (StringUtils.isNotBlank(lable)) {
-            //插入标签
-            QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper();
-            queryWrapper.eq("label_name", lable);
-            EntryLabel entryLabel = entryLabelMapper.selectOne(queryWrapper);
-            if (!Objects.isNull(entryLabel)) {
-                return "the table  lable  reuse !";
-            }
-            EntryLabel entryLabel1 = new EntryLabel();
-            entryLabel1.setId(commonUtils.getUUID());
-            entryLabel1.setLabelName(lable);
-            entryLabelMapper.insert(entryLabel1);
-        }
-*/
 
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);

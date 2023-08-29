@@ -13,6 +13,7 @@ public interface IndexMapper extends BaseMapper<Index> {
     Index getIndexByEntry(@Param("entry") String entry);
 
 
+    int deleteByRepeatId(@Param("repeatEntryId") String repeatEntryId);
 }
 
 

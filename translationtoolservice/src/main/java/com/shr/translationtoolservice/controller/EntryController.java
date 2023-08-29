@@ -295,7 +295,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/deleteLabel")
     @ApiOperation("标签删除")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<String> deleteLabel(@RequestBody List<String> idList) {
@@ -305,7 +304,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/addLabel")
     @ApiOperation("标签新增")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<String> addLabel(@RequestBody EntryLabel entryLabel) {
@@ -315,13 +313,24 @@ public class EntryController extends BaseController {
 
     @PostMapping("/updateLabel")
     @ApiOperation("标签更新")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<String> updateLabel(@RequestBody EntryLabel entryLabel) {
 
         return checkResult(entryManagementService.updateLabel(entryLabel));
     }
+
+    @PostMapping("/mergerSplit")
+    @ApiOperation("合并拆分")
+    @CrossOrigin
+    @PassToken
+    @Transactional
+    public HttpResponse<String> mergerSplit(@RequestBody List<String> idList) {
+
+        return checkResult( entryManagementService.mergerSplit(idList));
+
+    }
+
 
     @PostMapping("/getEntryProperty")
     @ApiOperation("词性查询")
@@ -336,7 +345,17 @@ public class EntryController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/importExcle")
+    @ApiOperation("导入excle")
+    @PassToken
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> importExcle(@RequestBody MultipartFile multipartFile) {
+        ResponseListModel responseListModel = new ResponseListModel();
+         entryManagementService.importExcle(multipartFile);
 
+        return checkResult(responseListModel);
+    }
 
 
 

@@ -5,6 +5,7 @@ import com.shr.translationtoolservice.entity.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -55,4 +56,8 @@ public interface EntryManagementService {
     String updateLabel(EntryLabel entryLabel);
 
     List<EntryProperty> queryEntryProperty(EntryProperty entryProperty);
+
+    String mergerSplit(List<String> idList);
+
+    void importExcle(MultipartFile multipartFile);
 }

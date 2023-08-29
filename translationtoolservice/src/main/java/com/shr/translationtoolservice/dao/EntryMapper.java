@@ -46,6 +46,7 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     int selectListByEntriesTotal(@Param("entryEntity") EntryEntity entryEntity,String entryState,@Param("classifyIds") List<EntryClassify> classfyList);
 
 
+    int mergerSplit(List<String> idList);
 }
 
 
