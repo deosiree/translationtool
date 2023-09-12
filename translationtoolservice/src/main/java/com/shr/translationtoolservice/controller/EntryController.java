@@ -5,12 +5,14 @@ import com.shr.translationtoolservice.common.PassToken;
 import com.shr.translationtoolservice.dao.EntryCommonEntityMapper;
 import com.shr.translationtoolservice.dao.EntryProductEntityMapper;
 import com.shr.translationtoolservice.dao.EntryProjectEntityMapper;
+import com.shr.translationtoolservice.dao.VersionTableMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.EntryCommonEntityService;
 import com.shr.translationtoolservice.service.EntryManagementService;
 
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
+import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.RedisUtil;
 
@@ -30,7 +32,9 @@ import redis.clients.jedis.JedisPool;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,20 +44,22 @@ import java.util.Objects;
 @Slf4j
 public class EntryController extends BaseController {
     @Autowired
-    EntryManagementService entryManagementService;
+    private EntryManagementService entryManagementService;
 
     @Autowired
-    EntryProductEntityMapper entryProductEntityMapper;
+    private EntryProductEntityMapper entryProductEntityMapper;
     @Autowired
-    EntryProjectEntityMapper entryProjectEntityMapper;
+    private EntryProjectEntityMapper entryProjectEntityMapper;
     @Autowired
-    EntryCommonEntityMapper entryCommonEntityMapper;
+    private EntryCommonEntityMapper entryCommonEntityMapper;
     @Autowired
-    EntryProjectEntityService entryProjectEntityService;
+    private EntryProjectEntityService entryProjectEntityService;
     @Autowired
-    EntryCommonEntityService entryCommonEntityService;
+    private EntryCommonEntityService entryCommonEntityService;
     @Autowired
-    EntryProductEntityService entryProductEntityService;
+    private EntryProductEntityService entryProductEntityService;
+    @Autowired
+    private VersionTableMapper versionTableMapper;
 
     //查询词条信息
     @PostMapping("/searchEntry")
@@ -128,10 +134,10 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @PassToken
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryMerge(String entry) {
+    public HttpResponse<ResponseListModel> getEntryMerge(String chinese) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryEntity> entryEntities = new ArrayList<>();
-        entryEntities = entryManagementService.selectNoMergeEntry(entry);
+        entryEntities = entryManagementService.selectNoMergeEntry(chinese);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
         return checkResult(responseListModel);
@@ -142,10 +148,10 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @PassToken
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryNoMerge(String entry) {
+    public HttpResponse<ResponseListModel> getEntryNoMerge(String chinese) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryEntity> entryEntities = new ArrayList<>();
-        entryEntities = entryManagementService.selectMergeEntry(entry);
+        entryEntities = entryManagementService.selectMergeEntry(chinese);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
         return checkResult(responseListModel);
@@ -352,11 +358,45 @@ public class EntryController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> importExcle(@RequestBody MultipartFile multipartFile) {
         ResponseListModel responseListModel = new ResponseListModel();
-         entryManagementService.importExcle(multipartFile);
+        List<EntryEntity> entryEntities = entryManagementService.importExcle(multipartFile);
+        responseListModel.setList(entryEntities);
+        responseListModel.setTotalNum(entryEntities.size());
 
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/bachAddEntry")
+    @ApiOperation("批量插入词条")
+    @CrossOrigin
+    public HttpResponse<String> bachAddEntry(@RequestBody List<EntryCommonEntity> entryEntities) {
 
+        return checkResult( entryManagementService.bachAddEntry(entryEntities));
+    }
+
+
+    @PostMapping("/createVersionTable")
+    @ApiOperation("生成版本库")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> createVersionTable(@RequestBody List<EntryEntity> entryEntities,
+                                                   String version) {
+
+        return checkResult( entryManagementService.createVersionTable(entryEntities,version));
+    }
+
+    @PostMapping("/getVersionTable")
+    @ApiOperation("查看版本库")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> getVersionTable(String version,
+                                                           @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                           @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<VersionTable> versionInfoByVersion = versionTableMapper.getVersionInfoByVersion(version);
+        String tableName = versionInfoByVersion.get(0).getVersionTableName();
+        responseListModel.setList( entryManagementService.getVersionTable(tableName,version,pageIndex,pageSize));
+        responseListModel.setTotalNum(versionTableMapper.getVersionTableTotal(tableName,version));
+        return checkResult(responseListModel);
+    }
 
 }

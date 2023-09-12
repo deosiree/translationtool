@@ -7,8 +7,8 @@
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryCommonEntity">
             <id property="id" column="id" jdbcType="VARCHAR"/>
             <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
-            <result property="entry" column="entry" jdbcType="VARCHAR"/>
-            <result property="entryLength" column="entry_length" jdbcType="DOUBLE"/>
+            <result property="chinese" column="entry" jdbcType="VARCHAR"/>
+            <result property="chineseLength" column="entry_length" jdbcType="INTEGER"/>
             <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
             <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
             <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
@@ -24,24 +24,24 @@
             <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
             <result property="repeatEntryId" column="repeat_entry_id" jdbcType="VARCHAR"/>
             <result property="english" column="english" jdbcType="VARCHAR"/>
-            <result property="englishLength" column="english_length" jdbcType="DOUBLE"/>
+            <result property="englishLength" column="english_length" jdbcType="INTEGER"/>
             <result property="englishTranslateState" column="english_translate_state" jdbcType="VARCHAR"/>
             <result property="englishDisable" column="english_disable" jdbcType="VARCHAR"/>
-            <result property="englishDisableLength" column="english_disable_length" jdbcType="DOUBLE"/>
+            <result property="englishDisableLength" column="english_disable_length" jdbcType="INTEGER"/>
             <result property="russian" column="russian" jdbcType="VARCHAR"/>
-            <result property="russianLength" column="russian_length" jdbcType="DOUBLE"/>
+            <result property="russianLength" column="russian_length" jdbcType="INTEGER"/>
             <result property="russianTranslateState" column="russian_translate_state" jdbcType="VARCHAR"/>
             <result property="spanish" column="spanish" jdbcType="VARCHAR"/>
-            <result property="spanishLength" column="spanish_length" jdbcType="DOUBLE"/>
+            <result property="spanishLength" column="spanish_length" jdbcType="INTEGER"/>
             <result property="spanishTranslateState" column="spanish_translate_state" jdbcType="VARCHAR"/>
             <result property="french" column="french" jdbcType="VARCHAR"/>
-            <result property="frenchLength" column="french_length" jdbcType="DOUBLE"/>
+            <result property="frenchLength" column="french_length" jdbcType="INTEGER"/>
             <result property="frenchTranslateState" column="french_translate_state" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,abbr,entry,
-        entry_length,chinese_interpretation,english_interpretation,
+        id,abbr,chinese,
+       chinese_length,chinese_interpretation,english_interpretation,
         entry_source,entry_state,creator,
         create_time,update,update_time,
         version,is_latest_version,entry_label,

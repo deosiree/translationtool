@@ -59,5 +59,12 @@ public interface EntryManagementService {
 
     String mergerSplit(List<String> idList);
 
-    void importExcle(MultipartFile multipartFile);
+    List<EntryEntity>  importExcle(MultipartFile multipartFile);
+
+    String createVersionTable(List<EntryEntity> entryEntities, String version);
+
+
+    List<VersionTable>  getVersionTable(String tableName ,String version, Integer pageIndex, Integer pageSize);
+
+    String bachAddEntry(List<EntryCommonEntity> entryEntities);
 }

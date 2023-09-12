@@ -12,12 +12,12 @@ import java.util.Date;
 
 /**
  * @ClassName EntryEntity
- * @Description TODO
  * @USER: Cola
  * @Date 2023/7/3 0003 14:40
  **/
 @Data
 public class EntryEntity {
+
 
 
     private String tableName;
@@ -41,13 +41,13 @@ public class EntryEntity {
      * 词条
      */
     @AnjiDescription("词条")
-    private String entry;
+    private String chinese;
 
     /**
      * 词条字符数
      */
     @AnjiDescription("词条字符数")
-    private int entryLength;
+    private Integer chineseLength;
 
     /**
      * 中文释义
@@ -128,10 +128,17 @@ public class EntryEntity {
     private String partOfSpeech;
 
     /**
+     * 词条所属分类ID
+     */
+    @AnjiDescription("词条所属分类ID")
+    private String classifyId;
+
+    /**
      * 词条所属分类
      */
     @AnjiDescription("词条所属分类")
-    private String classifyId;
+    private String classify;
+
 
     /**
      * 重复词条id
@@ -222,6 +229,12 @@ public class EntryEntity {
      */
     @AnjiDescription("法文翻译状态")
     private String frenchTranslateState;
+
+    /**
+     * 备注
+     */
+    @AnjiDescription("备注")
+    private String remark;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

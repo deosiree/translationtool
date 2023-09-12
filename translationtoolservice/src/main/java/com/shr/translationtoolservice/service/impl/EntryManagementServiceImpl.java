@@ -14,6 +14,7 @@ import com.shr.translationtoolservice.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.platform.commons.util.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,9 +69,14 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     private HTTPUtils httpUtils;
     @Autowired
     private EntryPropertyMapper entryPropertyMapper;
+    @Autowired
+    private VersionTableMapper versionTableMapper;
 
     @Autowired
     private CommonUtils commonUtils;
+
+    @Autowired
+    private ExcelUtils excelUtils;
 
 
     @Override
@@ -92,7 +98,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             List<String> ids = new ArrayList<>();
             ids.add(entryEntity.getClassifyId());
             List<EntryClassify> classfyList = getAllChildClassfy(ids);
-            classfyList.add(entryClassifyMapper.selectById(entryEntity.getClassifyId()));
+            classfyList.add(entryClassifyMapper.selectClassfyById(entryEntity.getClassifyId()));
             responseListModel = getAllEntry(entryEntity, pageIndex, pageSize, entryState, classfyList);
 
         } else {
@@ -126,11 +132,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
         ResponseListModel<EntryEntity> result = new ResponseListModel<>();
         int total = 0;
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'Z'");
 
         List<EntryEntity> entry = new ArrayList();
 
-        List<String> tableNames1 = new ArrayList<>();
 
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
@@ -193,19 +197,19 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<EntryEntity> selectNoMergeEntry(String entry) {
+    public List<EntryEntity> selectNoMergeEntry(String chinese) {
         List<EntryEntity> entryEntities = new ArrayList<>();
         //合并和未合并sql 增加过滤
-        entryEntities = entryMapper.selectNoMerge(entry).stream().distinct().collect(Collectors.toList());
+        entryEntities = entryMapper.selectNoMerge(chinese).stream().distinct().collect(Collectors.toList());
 
         return entryEntities;
     }
 
     @Override
-    public List<EntryEntity> selectMergeEntry(String entry) {
+    public List<EntryEntity> selectMergeEntry(String chinese) {
         List<EntryEntity> entryEntities = new ArrayList<>();
         //合并和未合并sql 增加过滤
-        entryEntities = entryMapper.selectMerge(entry).stream().distinct().collect(Collectors.toList());
+        entryEntities = entryMapper.selectMerge(chinese).stream().distinct().collect(Collectors.toList());
 
         return entryEntities;
     }
@@ -220,7 +224,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
             for (EntryEntity entryEntity : entryEntities) {
                 i += 1;
-                Index index1 = indexMapper.getIndexByEntry(entryEntity.getEntry());
+                Index index1 = indexMapper.getIndexByEntry(entryEntity.getChinese());
                 //如果存在 返回异常
                 if (!Objects.isNull(index1)) {
                     return ErrorCodeList.OBJECT_HAS_EXIST;
@@ -234,7 +238,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                     return ErrorCodeList.UPDATE_ERROR;
                 }
                 //写入index
-                index.setEntry(entryEntity.getEntry());
+                index.setEntry(entryEntity.getChinese());
              /*   switch (i) {
                     case 1:
                         index.setTable1(entryEntity.getTableName());
@@ -295,7 +299,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     @Override
     public String addEntryClassfy(EntryClassify entryClassify) {
         entryClassify.setKey(commonUtils.getUUID());
-        int insert = entryClassifyMapper.insert(entryClassify);
+        int insert = entryClassifyMapper.insertClassfy(entryClassify);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" t_entry_operate update insert error ! ");
             return ErrorCodeList.INSERT_ERROR;
@@ -305,7 +309,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String updateEntryClassfy(EntryClassify entryClassify) {
-        int update = entryClassifyMapper.updateById(entryClassify);
+        int update = entryClassifyMapper.updateClassfyById(entryClassify);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
@@ -322,15 +326,15 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public ResponseListModel<EntryLabel> queryLabel(EntryLabel entryLabel ,int pageIndex, int pageSize) {
+    public ResponseListModel<EntryLabel> queryLabel(EntryLabel entryLabel, int pageIndex, int pageSize) {
         ResponseListModel<EntryLabel> result = new ResponseListModel<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
             QueryWrapper<EntryLabel> queryWrapper = new QueryWrapper<>();
 
-            List<EntryLabel> entryLabels = entryLabelMapper.getLabels(entryLabel,pageSize, offset);
+            List<EntryLabel> entryLabels = entryLabelMapper.getLabels(entryLabel, pageSize, offset);
             result.setList(entryLabels);
-            int total = entryLabelMapper.getLabelsTotal(entryLabel,pageSize, offset);
+            int total = entryLabelMapper.getLabelsTotal(entryLabel, pageSize, offset);
             result.setTotalNum(total);
         }
         return result;
@@ -392,7 +396,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
         String id = idList.get(0);
 
-        EntryEntity entryEntity = entryMapper.selectById(id);
+        EntryEntity entryEntity = entryMapper.selectEntryById(id);
 
         String repeatEntryId = entryEntity.getRepeatEntryId();
 
@@ -412,7 +416,81 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public void importExcle(MultipartFile multipartFile) {
+    public List<EntryEntity> importExcle(MultipartFile multipartFile) {
+        String name = multipartFile.getOriginalFilename();
+
+        //读取excle转换的实体
+        List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
+        try {
+
+            importExcleEntries = ExcelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<EntryEntity> entryEntitys = new ArrayList<>();
+
+        for (ImportExcleEntry importExcleEntry : importExcleEntries) {
+            EntryEntity entryEntity = new EntryEntity();
+            BeanUtils.copyProperties(importExcleEntry, entryEntity);
+            entryEntitys.add(entryEntity);
+        }
+
+
+        return entryEntitys;
+    }
+
+    @Override
+    public String createVersionTable(List<EntryEntity> entryEntities, String version) {
+        //1.先查关系表是否有对应的表名 如果没有在关系表中写入当前月的表名关系
+        List<VersionTable> versionTables = versionTableMapper.getVersionInfoByVersion(version);
+        // 如果不存在则关系表中插入关系为对应当前月的版本表
+        if (CollectionUtils.isEmpty(versionTables)) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
+            Date date = new Date();
+            String da = format.format(date);
+            String tableName = " t_version_" + da;
+            VersionTable versionTable = new VersionTable();
+            versionTable.setId(commonUtils.getUUID());
+            versionTable.setVersion(version);
+            versionTable.setVersionTableName(tableName);
+            versionTableMapper.addVersionTable(versionTable);
+            //将待打版本的词条插入
+            //判断是否存在表
+            int exist = versionTableMapper.existTable(tableName);
+            if (exist == 0) {
+                //创建表
+                versionTableMapper.createVersionTable(tableName);
+            }
+            //批量插入
+            entryEntities.forEach(entryEntity -> {
+                versionTableMapper.insertVersionTable(tableName, entryEntity, version);
+            });
+            //存在插入对应表内
+        } else {
+            entryEntities.forEach(entryEntity -> {
+                versionTableMapper.insertVersionTable(versionTables.get(0).getVersionTableName(), entryEntity, version);
+            });
+
+        }
+        return ConstantInterface.OK_STR;
+
+    }
+
+    @Override
+    public List<VersionTable> getVersionTable(String tableName,String version, Integer pageIndex, Integer pageSize) {
+        List<VersionTable> versionTables = new ArrayList<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            versionTables = versionTableMapper.getVersionTable(tableName,version, pageSize, offset);
+        }
+
+        return versionTables;
+    }
+
+    @Override
+    public String bachAddEntry(List<EntryCommonEntity> entryEntities) {
+        entryEntities.forEach(entryEntity -> entryCommonEntityMapper.insert(entryEntity));
+        return ConstantInterface.OK_STR;
     }
 
 
@@ -455,7 +533,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         }
 
 
-        int insert = entryMapper.insert(entryEntity);
+        int insert = entryMapper.insertEntry(entryEntity);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             response.setMessage(ErrorCodeList.INSERT_ERROR);
             response.setCode(HttpResponse.Type.ERROR.getVal());
@@ -483,8 +561,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     private void constructEntry(EntryEntity entryEntity) {
-        if (StringUtils.isNotBlank(entryEntity.getEntry())) {
-            entryEntity.setEntryLength(entryEntity.getEntry().length());
+        if (StringUtils.isNotBlank(entryEntity.getChinese())) {
+            entryEntity.setChineseLength(entryEntity.getChinese().length());
         }
         if (StringUtils.isNotBlank(entryEntity.getEnglish())) {
             entryEntity.setEnglishLength(entryEntity.getEnglish().length());
@@ -537,7 +615,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     public ResultObject updateEntry(EntryEntity entryEntity, HttpServletRequest request) {
 
         entryEntity.setTableName(ConstantInterface.COMMON_TABLE_Name);
-        EntryEntity beforEntry = entryMapper.selectById(entryEntity.getId());
+        EntryEntity beforEntry = entryMapper.selectEntryById(entryEntity.getId());
 
         //abbr 重复判断
         if (StringUtils.isNotBlank(entryEntity.getAbbr())) {
@@ -562,8 +640,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         String userName = JWTTokenUtils.getUserName(token);
         entryEntity.setUpdate(userName);
         entryEntity.setUpdateTime(new Date(System.currentTimeMillis()));
-        int update = entryMapper.updateById(entryEntity);
-        EntryEntity resultEntryEntity = entryMapper.selectById(entryEntity.getId());
+        int update = entryMapper.updateEntryById(entryEntity);
+        EntryEntity resultEntryEntity = entryMapper.selectEntryById(entryEntity.getId());
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
 
             return new ResultObject(ErrorCodeList.UPDATE_ERROR);
@@ -577,7 +655,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         List<ComparisonResult> results = new ArrayList<>();
         OperateContentEntity operateContentEntity = new OperateContentEntity();
         try {
-            EntryEntity afterEntry = entryMapper.selectById(entryEntity.getId());
+            EntryEntity afterEntry = entryMapper.selectEntryById(entryEntity.getId());
             results = CompareUtils.compareFields(beforEntry, afterEntry, EntryEntity.class);
             if (results.size() == 0) {
                 log.error(" t_entry_operate no change ! ");
@@ -590,7 +668,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             for (ComparisonResult comparisonResult : operateContentEntity.getResults()) {
                 String name = comparisonResult.getKey();
                 //不写入操作内容的字段
-                if ("update".equals(name) || "updateTime".equals(name) || "entryLength".equals(name)
+                if ("update".equals(name) || "updateTime".equals(name) || "chineseLength".equals(name)
                         || "englishLength".equals(name) || "englishTranslateState".equals(name) || "englishDisable".equals(name) || "englishDisableLength".equals(name)
                         || "russianLength".equals(name) || "russianhTranslateState".equals(name) || "russianDisable".equals(name) || "russianDisableLength".equals(name)
                         || "spanishLength".equals(name) || "spanishhTranslateState".equals(name) || "spanishDisable".equals(name) || "spanishDisableLength".equals(name)
@@ -606,14 +684,14 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 if (StringUtils.isBlank(r1)) {
 
                     if ("classifyId".equals(comparisonResult.getKey())) {
-                        str = entryName.get(comparisonResult.getKey()) + "新增值为 ( " + entryClassifyMapper.selectById(r2).getTitle() + " )  ";
+                        str = entryName.get(comparisonResult.getKey()) + "新增值为 ( " + entryClassifyMapper.selectClassfyById(r2).getTitle() + " )  ";
                     } else {
                         str = entryName.get(name) + " 新增值为： " + r2;
                     }
                 } else {
 
                     if ("classifyId".equals(comparisonResult.getKey())) {
-                        str = entryName.get(comparisonResult.getKey()) + " 值由 ( " + entryClassifyMapper.selectById(r1).getTitle() + " ) 改为 ( " + entryClassifyMapper.selectById(r2).getTitle() + " )  ";
+                        str = entryName.get(comparisonResult.getKey()) + " 值由 ( " + entryClassifyMapper.selectClassfyById(r1).getTitle() + " ) 改为 ( " + entryClassifyMapper.selectById(r2).getTitle() + " )  ";
                     } else {
                         str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  ";
                     }
@@ -637,7 +715,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     private static HashMap<String, String> constructEntryName() {
         HashMap<String, String> entryName = new HashMap<>();
-        entryName.put("entry", "词条");
+        entryName.put("chinese", "词条");
         entryName.put("abbr", "abbr");
         entryName.put("chineseInterpretation", "中文释义");
         entryName.put("englishInterpretation", "英文释义");
@@ -779,7 +857,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 EntryOperate entryOperate = new EntryOperate();
 
                 //更新操作记录表
-                EntryEntity entryEntity1 = entryMapper.selectById(entryID);
+                EntryEntity entryEntity1 = entryMapper.selectEntryById(entryID);
 
                 List<ComparisonResult> results = new ArrayList<>();
                 OperateContentEntity operateContentEntity = new OperateContentEntity();
@@ -833,7 +911,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     private EntryEntity auditByID(String tableName, String entryID, int state) {
 
-        EntryEntity entryEntity = entryMapper.selectById(entryID);
+        EntryEntity entryEntity = entryMapper.selectEntryById(entryID);
 
         int update = entryMapper.auditById(tableName, entryID, state);
 

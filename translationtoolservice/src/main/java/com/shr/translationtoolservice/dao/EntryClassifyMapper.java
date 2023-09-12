@@ -15,15 +15,15 @@ public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
 
     List<EntryClassify>  getEntryClassfyByIds();
 
-    List<EntryClassify>  getEntryClassfyByParentId(List<String> ids);
+    List<EntryClassify>  getEntryClassfyByParentId(@Param("ids") List<String> ids);
 
-    EntryClassify selectById(String id);
+    EntryClassify selectClassfyById(String id);
 
-    int insert(@Param("entryClassify") EntryClassify entryClassify);
+    int insertClassfy(@Param("entryClassify") EntryClassify entryClassify);
 
     int deleteByIds(List<String> entryClassifies);
 
-    int updateById(@Param("entryClassify") EntryClassify entryClassify);
+    int updateClassfyById(@Param("entryClassify") EntryClassify entryClassify);
 }
 
 

@@ -13,11 +13,11 @@ import java.util.List;
 @Mapper
 public interface EntryLabelMapper extends BaseMapper<EntryLabel> {
 
-    int deleteLabel(List<String> idList);
+    int deleteLabel(@Param("idList") List<String> idList);
 
-    List<EntryLabel> getLabels(@Param("entryLabel") EntryLabel entryLabel, int limit, int offset);
+    List<EntryLabel> getLabels(@Param("entryLabel") EntryLabel entryLabel,@Param("limit") int limit,@Param("offset") int offset);
 
-    int getLabelsTotal(@Param("entryLabel") EntryLabel entryLabel, int limit, int offset);
+    int getLabelsTotal(@Param("entryLabel") EntryLabel entryLabel,@Param("limit")  int limit,@Param("offset") int offset);
 
 }
 

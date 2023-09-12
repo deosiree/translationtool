@@ -1,4 +1,10 @@
 spring:
+  servlet:
+    multipart:
+      #      取消上传文件大小限制
+      max-file-size: -1
+      max-request-size: -1
+
   redis:
     database: 0
     host: 10.16.196.50
@@ -24,6 +30,9 @@ spring:
 server:
   port: 18001
 
+
+#logging:
+#  config: ./config/logback-spring.xml
 
 
 baidu:

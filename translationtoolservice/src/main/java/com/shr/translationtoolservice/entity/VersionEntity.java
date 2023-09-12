@@ -9,12 +9,12 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 公共词条表
- * @TableName t_entry_common
+ * 202309版本库
+ * @TableName t_version_20230911
  */
-@TableName(value ="t_entry_common")
+@TableName(value ="t_version_20230911")
 @Data
-public class EntryCommonEntity implements Serializable {
+public class VersionEntity implements Serializable {
     /**
      * 主键
      */
@@ -69,7 +69,6 @@ public class EntryCommonEntity implements Serializable {
     /**
      * 修改人
      */
-    @TableField("'update'")
     private String update;
 
     /**
@@ -115,7 +114,7 @@ public class EntryCommonEntity implements Serializable {
     /**
      * 英文字符数
      */
-    private Double englishLength;
+    private Integer englishLength;
 
     /**
      * 英文翻译状态
@@ -176,6 +175,16 @@ public class EntryCommonEntity implements Serializable {
      * 法文翻译状态
      */
     private String frenchTranslateState;
+
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 对应版本库
+     */
+    private String versionTable;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

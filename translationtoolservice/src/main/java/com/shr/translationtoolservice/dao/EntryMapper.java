@@ -19,31 +19,32 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
     @Override
     List<EntryEntity> selectList(@Param("ew") Wrapper<EntryEntity> queryWrapper);
 
-    EntryEntity selectById(String id);
+    EntryEntity selectEntryById(String id);
 
-    int insert(@Param("entryEntity") EntryEntity entryEntity);
+    int insertEntry(@Param("entryEntity") EntryEntity entryEntity);
 
     int auditByIds(@Param("idList") List<String> idList,@Param("state") String state);
 
-    int auditById(String tableName,String id,@Param("state") int state);
+    int auditById(@Param("tableName") String tableName,@Param("id") String id,@Param("state") int state);
 
     List<EntryEntity> selectByAbbr(@Param("abbr") String abbr,@Param("version") String version);
 
-    int updateById(@Param("entryEntity") EntryEntity entryEntity);
+    int updateEntryById(@Param("entryEntity") EntryEntity entryEntity);
 
     int deleteEntries(@Param("idList") List<String> idList);
 
     List<EntryEntity> selectByName(@Param("entryEntity") EntryEntity entryEntity);
 
-    List<EntryEntity> selectNoMerge(String entry);
+    List<EntryEntity> selectNoMerge(String chinese);
 
-    List<EntryEntity> selectMerge(String entry);
+    List<EntryEntity> selectMerge(String chinese);
 
-    List<EntryEntity> selectListByEntry(EntryEntity entryEntity, Integer limit, int offset,String entryState);
+    List<EntryEntity> selectListByEntry(@Param("entryEntity")  EntryEntity entryEntity,@Param("limit") Integer limit, @Param("offset") int offset, @Param("entryState")String entryState);
 
-    List<EntryEntity> selectListByEntries(@Param("entryEntity") EntryEntity entryEntity, @Param("classifyIds") List<EntryClassify> classfyList, Integer limit, int offset, String entryState);
+    List<EntryEntity> selectListByEntries(@Param("entryEntity") EntryEntity entryEntity,
+                                          @Param("classifyIds") List<EntryClassify> classfyList,  @Param("limit") Integer limit,  @Param("offset") int offset,@Param("entryState")  String entryState);
 
-    int selectListByEntriesTotal(@Param("entryEntity") EntryEntity entryEntity,String entryState,@Param("classifyIds") List<EntryClassify> classfyList);
+    int selectListByEntriesTotal(@Param("entryEntity") EntryEntity entryEntity,@Param("entryState")  String entryState,@Param("classifyIds") List<EntryClassify> classfyList);
 
 
     int mergerSplit(List<String> idList);
