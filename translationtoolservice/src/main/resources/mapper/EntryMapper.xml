@@ -356,6 +356,9 @@
         <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
             and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
         </if>
+        <if test="entryEntity.remark != null and entryEntity.remark != ''">
+            remark = #{entryEntity.remark,jdbcType=VARCHAR},
+        </if>
 
 
         order by update_time desc
@@ -468,7 +471,9 @@
         <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
             and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
         </if>
-
+        <if test="entryEntity.remark != null and entryEntity.remark != ''">
+            remark = #{entryEntity.remark,jdbcType=VARCHAR},
+        </if>
 
         order by update_time desc
 
@@ -798,7 +803,36 @@
         );
     </update>
 
+<select id="getEntryToVersion" resultMap="BaseResultMap">
+    select  <include refid="Base_Column_List"/>
+    ,IF(
+    1=1
+    <if test="creator != null and version != ''">
+        and creator =  #{creator,jdbcType=VARCHAR}
+    </if>
+    AND entry_state = 2,1,0
+    )as sortC from t_entry_common where 1=1
+    <if test="classfies != null and classfies.size != 0">
+        and  classify_id in
+        (
+        <foreach collection="classfies" item="classfy" index="index" separator=",">
+            #{classfy.key,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </if>
 
+    <if test="versionEntities != null and versionEntities.size != 0">
+        and  id not  in
+        (
+        <foreach collection="versionEntities" item="versionEntity" index="index" separator=",">
+            #{versionEntity.id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </if>
+    ORDER BY sortC DESC
+
+
+</select>
 
 
 

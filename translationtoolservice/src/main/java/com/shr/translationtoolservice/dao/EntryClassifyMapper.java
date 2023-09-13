@@ -13,7 +13,11 @@ import java.util.List;
 @Mapper
 public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
 
-    List<EntryClassify>  getEntryClassfyByIds();
+    List<EntryClassify>  getEntryClassfyIds();
+
+    List<EntryClassify>  getEntryClassfyByIds( @Param("classfies") List<String> classfies);
+
+    List<EntryClassify>  getEntryClassfyByNames( @Param("classfies") List<String> classfies);
 
     List<EntryClassify>  getEntryClassfyByParentId(@Param("ids") List<String> ids);
 

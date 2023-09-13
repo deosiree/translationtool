@@ -61,10 +61,13 @@ public interface EntryManagementService {
 
     List<EntryEntity>  importExcle(MultipartFile multipartFile);
 
-    String createVersionTable(List<EntryEntity> entryEntities, String version);
+    String createVersionTable(List<EntryEntity> entryEntities, String version,String remark);
 
 
     List<VersionTable>  getVersionTable(String tableName ,String version, Integer pageIndex, Integer pageSize);
 
     String bachAddEntry(List<EntryCommonEntity> entryEntities);
+
+    List<EntryEntity>   getEntryToVersion(String version, List<String> classfy, String tag, String creator);
+
 }

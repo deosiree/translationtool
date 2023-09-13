@@ -379,10 +379,38 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> createVersionTable(@RequestBody List<EntryEntity> entryEntities,
-                                                   String version) {
+                                                   String version,String remark) {
 
-        return checkResult( entryManagementService.createVersionTable(entryEntities,version));
+        return checkResult( entryManagementService.createVersionTable(entryEntities,version,remark));
     }
+
+    @PostMapping("/getVersionTable")
+    @ApiOperation("查看版本关系库信息")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getVersionTable() {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<VersionTable> versionInfoByVersion = versionTableMapper.getVersionInfoByVersion("");
+        responseListModel.setList(versionInfoByVersion);
+        return checkResult(responseListModel );
+    }
+
+
+
+    @PostMapping("/getEntryToVersion")
+    @ApiOperation("查看词条（模糊）")
+    @CrossOrigin
+    @PassToken
+    @Transactional
+    public HttpResponse<ResponseListModel> getEntryToVersion(String version,
+                                                   @RequestBody List<String> classfy,String tag,String creator) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryEntity> entryToVersion = entryManagementService.getEntryToVersion(version, classfy, tag, creator);
+        responseListModel.setList(entryToVersion);
+        responseListModel.setTotalNum(entryToVersion.size());
+        return checkResult(responseListModel);
+    }
+
 
     @PostMapping("/getVersionTable")
     @ApiOperation("查看版本库")
@@ -393,6 +421,10 @@ public class EntryController extends BaseController {
                                                            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<VersionTable> versionInfoByVersion = versionTableMapper.getVersionInfoByVersion(version);
+        if (CollectionUtils.isEmpty(versionInfoByVersion)){
+            log.info( " ==== 不存在version 为 " + version + " 的版本库 ！ ==== ");
+            return checkResult(null," 不存在version 为 " + version + " 的版本库 ！");
+        }
         String tableName = versionInfoByVersion.get(0).getVersionTableName();
         responseListModel.setList( entryManagementService.getVersionTable(tableName,version,pageIndex,pageSize));
         responseListModel.setTotalNum(versionTableMapper.getVersionTableTotal(tableName,version));

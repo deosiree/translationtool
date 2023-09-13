@@ -401,6 +401,13 @@
         </if>
     </select>
 
+    <select id="getAllVersionTable" parameterType="String"  resultMap="BaseResultMap1">
+        select  <include refid="Base_Column_List1"/> from
+        ${tableName}
+        where version_table =   #{version,jdbcType=VARCHAR}
+
+    </select>
+
     <select id="getVersionTableTotal" parameterType="String"  resultType="integer">
         select count(1) from
         ${tableName}

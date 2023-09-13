@@ -265,7 +265,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     //TODO
     public List<EntryClassify> getEntryClassfy() {
         List<EntryClassify> entryClassifies = new ArrayList<>();
-        entryClassifies = entryClassifyMapper.getEntryClassfyByIds();
+        entryClassifies = entryClassifyMapper.getEntryClassfyIds();
 // 返回的树形数据
         List<EntryClassify> tree = new ArrayList<EntryClassify>();
         // 第一次遍历
@@ -440,7 +440,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String createVersionTable(List<EntryEntity> entryEntities, String version) {
+    public String createVersionTable(List<EntryEntity> entryEntities, String version, String remark) {
         //1.先查关系表是否有对应的表名 如果没有在关系表中写入当前月的表名关系
         List<VersionTable> versionTables = versionTableMapper.getVersionInfoByVersion(version);
         // 如果不存在则关系表中插入关系为对应当前月的版本表
@@ -453,6 +453,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             versionTable.setId(commonUtils.getUUID());
             versionTable.setVersion(version);
             versionTable.setVersionTableName(tableName);
+            versionTable.setRemark(remark);
             versionTableMapper.addVersionTable(versionTable);
             //将待打版本的词条插入
             //判断是否存在表
@@ -477,11 +478,11 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<VersionTable> getVersionTable(String tableName,String version, Integer pageIndex, Integer pageSize) {
+    public List<VersionTable> getVersionTable(String tableName, String version, Integer pageIndex, Integer pageSize) {
         List<VersionTable> versionTables = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            versionTables = versionTableMapper.getVersionTable(tableName,version, pageSize, offset);
+            versionTables = versionTableMapper.getVersionTable(tableName, version, pageSize, offset);
         }
 
         return versionTables;
@@ -492,6 +493,26 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         entryEntities.forEach(entryEntity -> entryCommonEntityMapper.insert(entryEntity));
         return ConstantInterface.OK_STR;
     }
+
+    @Override
+    public List<EntryEntity> getEntryToVersion(String version, List<String> classfies, String tag, String creator) {
+        List<EntryEntity> entryEntities = new ArrayList<>();
+        List<EntryClassify> entryClassifies = new ArrayList<>();
+        List<VersionTable> versionTables = new ArrayList<>();
+        List<VersionEntity> versionEntities = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(classfies)) {
+            entryClassifies = entryClassifyMapper.getEntryClassfyByNames(classfies);
+        }
+        //增量
+        if (StringUtils.isNotBlank(version)) {
+            versionTables = versionTableMapper.getVersionInfoByVersion(version);
+            versionEntities = versionTableMapper.getAllVersionTable(versionTables.get(0).getVersionTableName(), versionTables.get(0).getVersion());
+        }
+        entryEntities = entryMapper.getEntryToVersion(version, entryClassifies, tag, creator, versionEntities);
+
+        return entryEntities;
+    }
+
 
 
     @Override

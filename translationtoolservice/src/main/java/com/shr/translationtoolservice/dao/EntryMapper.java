@@ -2,9 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.shr.translationtoolservice.entity.EntryClassify;
-import com.shr.translationtoolservice.entity.EntryEntity;
-import com.shr.translationtoolservice.entity.EntryProjectEntity;
+import com.shr.translationtoolservice.entity.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -48,6 +46,9 @@ public interface EntryMapper extends BaseMapper<EntryEntity> {
 
 
     int mergerSplit(List<String> idList);
+
+    List<EntryEntity> getEntryToVersion(@Param("version") String version, @Param("classfies") List<EntryClassify> classfy,@Param("tag") String tag,
+                                        @Param("creator")String creator,@Param("versionEntities")   List<VersionEntity> versionEntities);
 }
 
 

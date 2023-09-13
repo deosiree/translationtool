@@ -17,12 +17,34 @@
         `index`,max_byte
     </sql>
 
-    <select id="getEntryClassfyByIds" resultMap="BaseResultMap">
+    <select id="getEntryClassfyIds" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from t_entry_classify
 
     </select>
+    <select id="getEntryClassfyByIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify where id in (
+        <foreach collection="classfies" item="classfy" index="index" separator=",">
+        #{classfy,jdbcType=VARCHAR}
+    </foreach>
+    )
+
+    </select>
+
+    <select id="getEntryClassfyByNames" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify where name in (
+        <foreach collection="classfies" item="classfy" index="index" separator=",">
+            #{classfy,jdbcType=VARCHAR}
+        </foreach>
+        )
+
+    </select>
+
 
 
     <select id="getEntryClassfyByParentId" parameterType="arraylist" resultMap="BaseResultMap">

@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.shr.translationtoolservice.entity.EntryEntity;
+import com.shr.translationtoolservice.entity.VersionEntity;
 import com.shr.translationtoolservice.entity.VersionTable;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -31,6 +32,8 @@ public interface VersionTableMapper extends BaseMapper<VersionTable> {
     int getVersionTableTotal(@Param("tableName") String tableName,@Param("version") String version);
 
     List<VersionTable> getVersionInfoByVersion(String version);
+
+    List<VersionEntity> getAllVersionTable(@Param("tableName")  String versionTableName, @Param("version") String version);
 }
 
 
