@@ -217,6 +217,45 @@ public class ConfigManageController extends BaseController {
         return checkResult(result);
     }
 
+    @PostMapping("/getPropertyByName")
+    @ApiOperation("词性条件查询")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<ResponseListModel<EntryProperty>> getPropertyByName( String propertyName,
+                                                                             @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel<EntryProperty> result = new ResponseListModel<>();
+        result.setList(configManageService.getPropertyByName(propertyName,pageIndex,pageSize));
+        result.setTotalNum(configManageService.getPropertyByNameTotal(propertyName));
+        return checkResult(result);
+    }
+
+    @PostMapping("/updateProperty")
+    @ApiOperation("词性修改")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> updateProperty( EntryProperty entryProperty) {
+
+        return checkResult(configManageService.updateProperty(entryProperty));
+    }
+
+    @PostMapping("/addProperty")
+    @ApiOperation("词性新增")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> addProperty( EntryProperty entryProperty) {
+
+        return checkResult(configManageService.addProperty(entryProperty));
+    }
+
+    @PostMapping("/deleteProperty")
+    @ApiOperation("词性删除")
+    @PassToken
+    @CrossOrigin
+    public HttpResponse<String> deleteProperty( String id) {
+
+        return checkResult(configManageService.deleteProperty(id));
+    }
 
 }
 

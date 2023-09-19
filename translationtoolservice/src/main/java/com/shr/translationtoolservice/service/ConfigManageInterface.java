@@ -48,4 +48,13 @@ public interface ConfigManageInterface {
 
     int getMenuTotal();
 
+    List<EntryProperty> getPropertyByName(String propertyName, Integer pageIndex, Integer pageSize);
+
+    int getPropertyByNameTotal(String propertyName);
+
+    String updateProperty(EntryProperty entryProperty);
+
+    String addProperty(EntryProperty entryProperty);
+
+    String deleteProperty(String id);
 }

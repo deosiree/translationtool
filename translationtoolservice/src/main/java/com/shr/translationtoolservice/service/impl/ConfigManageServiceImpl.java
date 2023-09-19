@@ -32,25 +32,27 @@ import java.util.stream.Collectors;
 public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
     @Autowired
-    RoleMapper roleMapper;
+    private RoleMapper roleMapper;
     @Autowired
-    EntryVersionMapper entryVersionMapper;
+    private EntryVersionMapper entryVersionMapper;
     @Autowired
-    AuthorityMapper authorityMapper;
+    private AuthorityMapper authorityMapper;
     @Autowired
-    RoleMenuEntryMapper roleMenuEntryMapper;
+    private RoleMenuEntryMapper roleMenuEntryMapper;
     @Autowired
-    EntryOperateMapper entryOperateMapper;
+    private EntryOperateMapper entryOperateMapper;
 
     @Autowired
-    MenuMapper menuMapper;
+    private MenuMapper menuMapper;
 
     @Autowired
-    CommonUtils commonUtils;
+    private CommonUtils commonUtils;
     @Autowired
-    RoleAuthorityEntryMapper roleAuthorityEntryMapper;
+    private EntryPropertyMapper propertyMapper;
+    @Autowired
+    private RoleAuthorityEntryMapper roleAuthorityEntryMapper;
     private final static Logger logger = Logger.getLogger("ConfigManageServiceImpl");
 
     @Override
@@ -187,6 +189,51 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     @Override
     public int getMenuTotal() {
         return menuMapper.selectMenyTotal();
+    }
+
+    @Override
+    public List<EntryProperty> getPropertyByName(String propertyName, Integer pageIndex, Integer pageSize) {
+        List<EntryProperty> entryProperties = new ArrayList<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            entryProperties = propertyMapper.getPropertyByName(propertyName,pageSize, offset);
+        }
+
+        return entryProperties;
+    }
+
+    @Override
+    public int getPropertyByNameTotal(String propertyName) {
+        return    propertyMapper.getPropertyByNameTotal(propertyName);
+    }
+
+    @Override
+    public String updateProperty(EntryProperty entryProperty) {
+        int update = propertyMapper.updateProperty(entryProperty);
+        if (update != ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String addProperty(EntryProperty entryProperty) {
+        entryProperty.setId(commonUtils.getUUID());
+        int insert = propertyMapper.insertProperty(entryProperty);
+        if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+            log.error(" t_entry_property update insert error ! ");
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String deleteProperty(String id) {
+        int delete = propertyMapper.deleteProperty(id);
+        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        return ConstantInterface.OK_STR;
     }
 
 
@@ -397,12 +444,16 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         roleMenuEntry.setRoleId(roleAuthorityEntity.getRoleId());
 
         int delete1 = roleMenuEntryMapper.deleteByRoleId(roleAuthorityRes.getRoleID());
-
+        if (delete1 < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
         for (String menuId : roleAuthorityRes.getMenuIDList()) {
             roleMenuEntry.setId(commonUtils.getUUID());
             roleMenuEntry.setMenuId(menuId);
             int insert = roleMenuEntryMapper.insertMenuIDByRoleID(roleMenuEntry);
-
+            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+                return ErrorCodeList.INSERT_ERROR;
+            }
         }
 
         return ConstantInterface.OK_STR;
