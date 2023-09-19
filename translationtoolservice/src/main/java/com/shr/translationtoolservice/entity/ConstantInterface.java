@@ -36,6 +36,7 @@ public class ConstantInterface {
     public static final String TASK_ENABLE = "0";
     public static final String IS_DEFAULT = "1";
     public static final String OK_STR = "OK";
+    public static final String REPETITION_STR = "版本库存在重复的词条";
     public static final String FAIL_STR = "Fail";
     public static final String DEVICE_POS = "device_pos\":\"";
     public static final String ONE_HUNDRED = "100";
@@ -62,6 +63,7 @@ public class ConstantInterface {
     public static final String BAIDU_TRANSLATE_APPID = "20230705001734655";
     public static final String BAIDU_TRANSLATE_KEY = "Msyn6CIJy97uY1MXLW0c";
 
+    public static final String CHINESE = "ch";
     public static final String FRENCH = "fra";
     public static final String ENGLISH = "en";
     public static final String RUSSIAN = "ru";

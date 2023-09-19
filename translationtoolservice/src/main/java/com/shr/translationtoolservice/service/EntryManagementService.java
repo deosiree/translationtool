@@ -27,7 +27,7 @@ public interface EntryManagementService {
 
     String deleteEntry(List<String> idList );
 
-    TranslateEntities translate(String name);
+    TranslateEntities translate(String name,String type);
 
     List<EntryOperate> queryOperate(EntryOperate entryId);
 
@@ -68,6 +68,6 @@ public interface EntryManagementService {
 
     String bachAddEntry(List<EntryCommonEntity> entryEntities);
 
-    List<EntryEntity>   getEntryToVersion(String version, List<String> classfy, String tag, String creator);
+    EntryResponse   getEntryToVersion(String version, List<String> classfy, String tag, String creator);
 
 }

@@ -84,14 +84,14 @@
     <select id="selectEntryById" parameterType="String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_entry_common where id = #{id,jdbcType=VARCHAR}
+        from t_entry_common where id = #{id,jdbcType=VARCHAR} and entry_state > 0
     </select>
 
     <select id="selectByName" parameterType="com.shr.translationtoolservice.entity.EntryEntity"
             resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_entry_common where chinese = #{entryEntity.chinese,jdbcType=VARCHAR} and version =
+        from t_entry_common where entry_state > 0 and chinese = #{entryEntity.chinese,jdbcType=VARCHAR} and version =
         #{entryEntity.version,jdbcType=VARCHAR}
     </select>
 
@@ -99,7 +99,7 @@
             resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_entry_common where abbr = #{abbr,jdbcType=VARCHAR} and version =
+        from t_entry_common where entry_state > 0 and  abbr = #{abbr,jdbcType=VARCHAR} and version =
         #{version,jdbcType=VARCHAR}
     </select>
 
@@ -115,11 +115,11 @@
         where chinese in(
         select chinese from t_entry_common
         where chinese in (
-        select chinese from t_entry_common t1 where t1.repeat_entry_id is null or  t1.repeat_entry_id = ''
+        select chinese from t_entry_common t1 where t1.entry_state > 0 and t1.repeat_entry_id is null or  t1.repeat_entry_id = ''
         <if test="chinese != null and chinese != ''">
             and t1.chinese like CONCAT( '%','${chinese}','%' )
         </if>
-        )
+        ) and entry_state > 0
         group by chinese
         having count(chinese) >=2 )
         order by chinese
@@ -130,7 +130,7 @@
         select
         <include refid="t1_Column_List"/>
 
-        from t_entry_common t1  where
+        from t_entry_common t1  where entry_state > 0 and
         t1.repeat_entry_id is not null and  t1.repeat_entry_id != ''
         <if test="chinese != null and chinese != ''">
             and t1.chinese like CONCAT( '%','${chinese}','%' )

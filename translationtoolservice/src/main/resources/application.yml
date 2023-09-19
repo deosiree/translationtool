@@ -32,7 +32,7 @@ server:
 
 
 #logging:
-#  config: ./config/logback-spring.xml
+ # config: ./logback-spring.xml
 
 
 baidu:

@@ -22,7 +22,7 @@ public class EntryEntity {
 
     private String tableName;
 
-
+    private String key;
     private Date createEndRTime;
 
     /**

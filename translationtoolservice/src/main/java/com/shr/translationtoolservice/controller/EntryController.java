@@ -12,11 +12,8 @@ import com.shr.translationtoolservice.service.EntryManagementService;
 
 import com.shr.translationtoolservice.service.EntryProductEntityService;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
-import com.shr.translationtoolservice.util.CommonUtils;
-import com.shr.translationtoolservice.util.JWTTokenUtils;
-import com.shr.translationtoolservice.util.RedisUtil;
+import com.shr.translationtoolservice.util.*;
 
-import com.shr.translationtoolservice.util.Translate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -282,8 +279,11 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @PassToken
     @Transactional
-    public HttpResponse<TranslateEntities> translate(String name) {
-        TranslateEntities translateEntity = entryManagementService.translate(name);
+    public HttpResponse<TranslateEntities> translate(String name,String type) {
+        if (StringUtils.isBlank(type)){
+            checkResult(null," 入参 type 不能为空 ！");
+        }
+        TranslateEntities translateEntity = entryManagementService.translate(name,type);
         return checkResult(translateEntity);
     }
 
@@ -368,6 +368,8 @@ public class EntryController extends BaseController {
     @PostMapping("/bachAddEntry")
     @ApiOperation("批量插入词条")
     @CrossOrigin
+    @PassToken
+    @Transactional
     public HttpResponse<String> bachAddEntry(@RequestBody List<EntryCommonEntity> entryEntities) {
 
         return checkResult( entryManagementService.bachAddEntry(entryEntities));
@@ -377,18 +379,25 @@ public class EntryController extends BaseController {
     @PostMapping("/createVersionTable")
     @ApiOperation("生成版本库")
     @CrossOrigin
+    @PassToken
     @Transactional
     public HttpResponse<String> createVersionTable(@RequestBody List<EntryEntity> entryEntities,
                                                    String version,String remark) {
-
-        return checkResult( entryManagementService.createVersionTable(entryEntities,version,remark));
+        String versionTable ="";
+        try {
+              versionTable = entryManagementService.createVersionTable(entryEntities, version, remark);
+        }catch (ExceptionUtils e){
+           return checkResult(null,e.getMessage());
+        }
+        return checkResult(versionTable );
     }
 
-    @PostMapping("/getVersionTable")
+    @PostMapping("/getVersionTableInfo")
     @ApiOperation("查看版本关系库信息")
     @CrossOrigin
+    @PassToken
     @Transactional
-    public HttpResponse<ResponseListModel> getVersionTable() {
+    public HttpResponse<ResponseListModel> getVersionTableInfo() {
         ResponseListModel responseListModel = new ResponseListModel();
         List<VersionTable> versionInfoByVersion = versionTableMapper.getVersionInfoByVersion("");
         responseListModel.setList(versionInfoByVersion);
@@ -402,13 +411,12 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @PassToken
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryToVersion(String version,
+    public HttpResponse<EntryResponse> getEntryToVersion(String version,
                                                    @RequestBody List<String> classfy,String tag,String creator) {
-        ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryEntity> entryToVersion = entryManagementService.getEntryToVersion(version, classfy, tag, creator);
-        responseListModel.setList(entryToVersion);
-        responseListModel.setTotalNum(entryToVersion.size());
-        return checkResult(responseListModel);
+
+        EntryResponse entryResponse = entryManagementService.getEntryToVersion(version, classfy, tag, creator);
+
+        return checkResult(entryResponse);
     }
 
 

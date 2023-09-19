@@ -432,6 +432,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         for (ImportExcleEntry importExcleEntry : importExcleEntries) {
             EntryEntity entryEntity = new EntryEntity();
             BeanUtils.copyProperties(importExcleEntry, entryEntity);
+            if (entryEntity.getEntryState() == null) {
+                entryEntity.setEntryState(2);
+            }
+
             entryEntitys.add(entryEntity);
         }
 
@@ -463,14 +467,28 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 versionTableMapper.createVersionTable(tableName);
             }
             //批量插入
-            entryEntities.forEach(entryEntity -> {
-                versionTableMapper.insertVersionTable(tableName, entryEntity, version);
-            });
+
+            for (EntryEntity entryEntity1 : entryEntities) {
+                entryEntity1.setKey(commonUtils.getUUID());
+                versionTableMapper.insertVersionTable(tableName, entryEntity1, version);
+            }
+
+
             //存在插入对应表内
         } else {
-            entryEntities.forEach(entryEntity -> {
-                versionTableMapper.insertVersionTable(versionTables.get(0).getVersionTableName(), entryEntity, version);
-            });
+
+            //版本校验
+            List<VersionEntity> allVersionTable = versionTableMapper.getReVersionTableByName(entryEntities, versionTables.get(0).getVersionTableName(), version);
+            if (!CollectionUtils.isEmpty(allVersionTable)) {
+                throw new ExceptionUtils(ConstantInterface.REPETITION_STR);
+                //return ConstantInterface.REPETITION_STR;
+            }
+
+
+            for (EntryEntity entryEntity1 : entryEntities) {
+                entryEntity1.setKey(commonUtils.getUUID());
+                versionTableMapper.insertVersionTable(versionTables.get(0).getVersionTableName(), entryEntity1, version);
+            }
 
         }
         return ConstantInterface.OK_STR;
@@ -490,16 +508,55 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String bachAddEntry(List<EntryCommonEntity> entryEntities) {
-        entryEntities.forEach(entryEntity -> entryCommonEntityMapper.insert(entryEntity));
-        return ConstantInterface.OK_STR;
+        QueryWrapper<EntryCommonEntity> entryCommonEntityQueryWrapper = new QueryWrapper<>();
+
+        List<EntryCommonEntity> entryCommonEntities = entryCommonEntityMapper.getRepAbbrAndVersionEntry(entryEntities);
+        List<EntryCommonEntity> entryCommonEntitiesResult = new ArrayList<>();
+        List<EntryCommonEntity> entryCommonEntitiesRes = new ArrayList<>();
+
+        for (EntryCommonEntity entryEntity : entryEntities) {
+            //重复词条校验,没有重复则放入到list 里
+            boolean re = false;
+            for (EntryCommonEntity entryCommonEntity : entryCommonEntities) {
+                if (entryEntity.getAbbr().equals(entryCommonEntity.getAbbr()) &&
+                        entryEntity.getVersion().equals(entryCommonEntity.getVersion()) &&
+                        entryCommonEntity.getEntryState() > 0) {
+                    entryCommonEntitiesRes.add(entryEntity);
+                    re = true;
+                    break;
+                }
+            }
+            //没有重复写入
+            if (!re) {
+                if (StringUtils.isBlank(entryEntity.getId())) {
+                    entryEntity.setId(commonUtils.getUUID());
+                }
+                entryCommonEntitiesResult.add(entryEntity);
+
+            }
+        }
+        int insert = 0;
+        if (CollectionUtils.isEmpty(entryCommonEntitiesResult)) {
+            String msg = " 批量待插入词条总数为 ：" + entryEntities.size() + ", 其中重复词条数 ：" + entryCommonEntitiesRes.size() + " , 成功插入词条数： " + insert;
+            return msg;
+        }
+        //写入
+        for (EntryCommonEntity entryCommonEntity : entryCommonEntitiesResult) {
+            insert += entryCommonEntityMapper.insert(entryCommonEntity);
+        }
+
+        String msg = " 批量待插入词条总数为 ：" + entryEntities.size() + ", 其中重复词条数 ：" + entryCommonEntitiesRes.size() + " , 成功插入词条数： " + insert;
+        return msg;
     }
 
     @Override
-    public List<EntryEntity> getEntryToVersion(String version, List<String> classfies, String tag, String creator) {
-        List<EntryEntity> entryEntities = new ArrayList<>();
+    public EntryResponse getEntryToVersion(String version, List<String> classfies, String tag, String creator) {
+        EntryResponse entryResponse = new EntryResponse();
+        List<EntryCommonEntity> entryEntities = new ArrayList<>();
         List<EntryClassify> entryClassifies = new ArrayList<>();
         List<VersionTable> versionTables = new ArrayList<>();
         List<VersionEntity> versionEntities = new ArrayList<>();
+
         if (!CollectionUtils.isEmpty(classfies)) {
             entryClassifies = entryClassifyMapper.getEntryClassfyByNames(classfies);
         }
@@ -507,12 +564,37 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         if (StringUtils.isNotBlank(version)) {
             versionTables = versionTableMapper.getVersionInfoByVersion(version);
             versionEntities = versionTableMapper.getAllVersionTable(versionTables.get(0).getVersionTableName(), versionTables.get(0).getVersion());
+            List<String> idList = new ArrayList<>();
+            if (CollectionUtils.isEmpty(versionEntities)) {
+                entryResponse.setVersionEntries(new ArrayList<>());
+            } else {
+                for (VersionEntity versionEntity : versionEntities) {
+                    idList.add(versionEntity.getId());
+                }
+                //版本库词条
+                entryEntities = entryCommonEntityMapper.selectBatchIds(idList);
+                entryResponse.setVersionEntries(versionEntities);
+            }
+            List<EntryCommonEntity> entryToVersion = entryCommonEntityMapper.getEntryToVersion(version, classfies, tag, creator, versionEntities);
+
+            if (CollectionUtils.isEmpty(entryToVersion)) {
+                entryResponse.setFuzzyEntries(new ArrayList<>());
+            } else {
+                //条件查询词条
+                entryResponse.setFuzzyEntries(entryToVersion);
+            }
+        } else {
+            entryEntities = entryCommonEntityMapper.getEntryToVersion(version, classfies, tag, creator, versionEntities);
+            entryResponse.setVersionEntries(new ArrayList<>());
+            if (CollectionUtils.isEmpty(entryEntities)) {
+                entryResponse.setFuzzyEntries(new ArrayList<>());
+            } else {
+                //条件查询词条
+                entryResponse.setFuzzyEntries(entryEntities);
+            }
         }
-        entryEntities = entryMapper.getEntryToVersion(version, entryClassifies, tag, creator, versionEntities);
-
-        return entryEntities;
+        return entryResponse;
     }
-
 
 
     @Override
@@ -775,20 +857,98 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public TranslateEntities translate(String name) {
+    public TranslateEntities translate(String name, String type) {
 
 
         TranslateEntities translateEntities = new TranslateEntities();
-        TranslateEntity baiduEntities = baiduTranslate(name);
         List<TranslateEntity> translateEntityList = new ArrayList<>();
+        TranslateEntity baiduEntities = baiduTranslate(name, type);
         translateEntityList.add(baiduEntities);
+
+
+        //有道翻译
+        TranslateEntity youdao_Entities = youdaoTranslate(name, type);
+        translateEntityList.add(youdao_Entities);
+
+
         translateEntities.setTranslateEntities(translateEntityList);
-        //entryMapper.updateById(entryEntity);
-
-
-        // ArrayList<TranslateEntity>  moudleEntities =  moudleTranslate(name);
-
         return translateEntities;
+    }
+
+    private TranslateEntity youdaoTranslate(String name, String type) {
+        // YoudaoTrans.readJsonFromUrl(name,ConstantInterface.ENGLISH);]
+        TranslateEntity entryEntity = new TranslateEntity();
+
+        entryEntity.setSource("有道翻译");
+        entryEntity.setEntry(name);
+        ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
+        LanguageEntity zh_languageEntity = new LanguageEntity();
+        LanguageEntity fr_languageEntity = new LanguageEntity();
+        LanguageEntity ru_languageEntity = new LanguageEntity();
+        LanguageEntity spa_languageEntity = new LanguageEntity();
+        LanguageEntity en_languageEntity = new LanguageEntity();
+        try {
+            switch (type) {
+                case ConstantInterface.ENGLISH:
+                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(zh_languageEntity);
+                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_languageEntity);
+                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_languageEntity);
+                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_languageEntity);
+                    break;
+                case ConstantInterface.FRENCH:
+                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(zh_languageEntity);
+                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_languageEntity);
+                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_languageEntity);
+                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_languageEntity);
+                    break;
+                case ConstantInterface.CHINESE:
+                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_languageEntity);
+                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_languageEntity);
+                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_languageEntity);
+                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_languageEntity);
+                    break;
+                case ConstantInterface.RUSSIAN:
+                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_languageEntity);
+                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(zh_languageEntity);
+                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_languageEntity);
+                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_languageEntity);
+                    break;
+                case ConstantInterface.SPANISH:
+                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_languageEntity);
+                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(zh_languageEntity);
+                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_languageEntity);
+                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_languageEntity);
+                    break;
+            }
+
+        } catch (Exception e) {
+            log.error(" **** 有道翻译异常 ****");
+        }
+
+        entryEntity.setLanguageEntities(languageEntities);
+
+        return entryEntity;
+
     }
 
     private ArrayList<TranslateEntity> moudleTranslate(String entry) {
@@ -805,7 +965,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     //百度翻译
-    private TranslateEntity baiduTranslate(String entry) {
+    private TranslateEntity baiduTranslate(String entry, String type) {
         TranslateEntity entryEntity = new TranslateEntity();
         entryEntity.setSource("百度翻译");
         entryEntity.setEntry(entry);
@@ -815,24 +975,85 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         String spanish = "";
         String french = "";
         String english = "";
+        LanguageEntity en_LanguageEntity = new LanguageEntity();
+        LanguageEntity ru_LanguageEntity = new LanguageEntity();
+        LanguageEntity spa_LanguageEntity = new LanguageEntity();
+        LanguageEntity fr_LanguageEntity = new LanguageEntity();
+        LanguageEntity ch_LanguageEntity = new LanguageEntity();
         try {
+            //除了type 翻译其他语言
+            switch (type) {
+                case ConstantInterface.ENGLISH:
+                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(ch_LanguageEntity);
+                    Thread.sleep(1000);
 
-            LanguageEntity EN_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_LanguageEntity);
+                    Thread.sleep(1000);
+                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_LanguageEntity);
+                    Thread.sleep(1000);
+                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_LanguageEntity);
+                    break;
+                case ConstantInterface.RUSSIAN:
 
-            languageEntities.add(EN_LanguageEntity);
+                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_LanguageEntity);
+                    Thread.sleep(1000);
+                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(ch_LanguageEntity);
+                    Thread.sleep(1000);
+                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_LanguageEntity);
+                    Thread.sleep(1000);
+                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_LanguageEntity);
 
-            Thread.sleep(1000);
+                    break;
+                case ConstantInterface.SPANISH:
+                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_LanguageEntity);
+                    Thread.sleep(1000);
+                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(ch_LanguageEntity);
+                    Thread.sleep(1000);
+                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_LanguageEntity);
+                    Thread.sleep(1000);
+                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_LanguageEntity);
+                    break;
+                case ConstantInterface.FRENCH:
+                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
+                    languageEntities.add(ch_LanguageEntity);
+                    Thread.sleep(1000);
+                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_LanguageEntity);
+                    Thread.sleep(1000);
+                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_LanguageEntity);
+                    Thread.sleep(1000);
+                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_LanguageEntity);
+                    break;
+                case ConstantInterface.CHINESE:
+                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
+                    languageEntities.add(fr_LanguageEntity);
+                    Thread.sleep(1000);
+                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
+                    languageEntities.add(ru_LanguageEntity);
+                    Thread.sleep(1000);
+                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
+                    languageEntities.add(spa_LanguageEntity);
+                    Thread.sleep(1000);
+                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
+                    languageEntities.add(en_LanguageEntity);
+                    break;
+            }
 
-            LanguageEntity RU_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-            languageEntities.add(RU_LanguageEntity);
-            Thread.sleep(1000);
-            LanguageEntity SPA_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-            languageEntities.add(SPA_LanguageEntity);
-            Thread.sleep(1000);
-            LanguageEntity FRE_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-            languageEntities.add(FRE_LanguageEntity);
             entryEntity.setLanguageEntities(languageEntities);
-
 
         } catch (InterruptedException e) {
             e.printStackTrace();
