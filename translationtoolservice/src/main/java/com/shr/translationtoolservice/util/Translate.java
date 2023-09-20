@@ -53,7 +53,7 @@ public class Translate {
         ConstantInterface.getInstance();
          Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
 
-        languageEntity.setLanguage(languageMap.get(to).toLowerCase());
+            languageEntity.setLanguage(languageMap.get(to).toLowerCase());
         languageEntity.setState(true);
         Map<String, String> params = new HashMap();
 

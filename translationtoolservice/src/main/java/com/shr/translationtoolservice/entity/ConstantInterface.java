@@ -92,6 +92,7 @@ public class ConstantInterface {
      * 初始化语言类
      */
     private void init(){
+        LANGUAGE_MAP.put("ch","Chinese");
         LANGUAGE_MAP.put("spa","Spanish");
         LANGUAGE_MAP.put("auto","Automatic");
         LANGUAGE_MAP.put("af","Afrikaans");

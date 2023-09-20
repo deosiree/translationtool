@@ -105,8 +105,12 @@ public class YoudaoTrans {
     }
 
     public static LanguageEntity youdaoTranslate(String entry, String from, String to) {
+        String ch = "";
+        String to1 = "";
         if ("ch".equals(to)) {
-            to = "zh-CHS";
+            to1 = "zh-CHS";
+        }else if ("spa".equals(to)){
+            to1="es";
         }
 
         LanguageEntity languageEntity = new LanguageEntity();
@@ -115,7 +119,7 @@ public class YoudaoTrans {
         //String q = "苹果";
         String salt = String.valueOf(System.currentTimeMillis());
         params.put("from", from);
-        params.put("to", to);
+        params.put("to", to1);
         params.put("signType", "v3");
         String curtime = String.valueOf(System.currentTimeMillis() / 1000);
         params.put("curtime", curtime);
