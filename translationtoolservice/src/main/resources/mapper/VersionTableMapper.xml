@@ -452,4 +452,38 @@
         </if>
 
     </select>
+    <select id="getVersionTableByCondition" resultMap="BaseResultMap" parameterType="String">
+        select <include refid="Base_Column_List"/> from t_version_table
+        <where>
+            <if test="version !=null and version != ''">
+                version like CONCAT('%','${version}','%' )
+            </if>
+        </where>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+    <select id="getTotalByCondition" resultType="java.lang.Integer" parameterType="String">
+        select count(1) from t_version_table
+        <where>
+            <if test="version !=null and version != ''">
+                version like CONCAT('%','${version}','%' )
+            </if>
+        </where>
+    </select>
+    <select id="getVersionTableByIds" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from t_version_table
+        <where>
+            <if test="ids != null and ids.size() != 0">
+                id in (
+                <foreach collection="ids" item="id" index="index" separator=",">
+                    #{id,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+        </where>
+    </select>
+    <delete id="deleteEntryByVersion" parameterType="String">
+        delete from ${tableName} where version_table = #{version}
+    </delete>
 </mapper>

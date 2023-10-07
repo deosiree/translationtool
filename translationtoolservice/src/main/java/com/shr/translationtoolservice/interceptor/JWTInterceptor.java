@@ -1,16 +1,12 @@
 package com.shr.translationtoolservice.interceptor;
 
-import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shr.translationtoolservice.common.Constant;
-import com.shr.translationtoolservice.common.PassToken;
+import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.common.Result;
 import com.shr.translationtoolservice.common.ResultCode;
-import com.shr.translationtoolservice.dao.UserMapper;
-import com.shr.translationtoolservice.entity.User;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,7 +14,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -36,13 +31,10 @@ public class JWTInterceptor implements HandlerInterceptor {
         }
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
-        //检查是否有通过PassToken注解
-        if (method.isAnnotationPresent(PassToken.class)) {
-            //如果有则跳过认证检查
-            PassToken passToken = method.getAnnotation(PassToken.class);
-            if (passToken.required()) {
-                return true;
-            }
+        //检查是否有Token注解
+        if (!method.isAnnotationPresent(Token.class)) {
+            //如果没有 直接跳过
+            return true;
         }
         //否则验证token
         if (null != token) {

@@ -1,17 +1,14 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.common.PassToken;
+import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.EntryCommonEntityMapper;
 import com.shr.translationtoolservice.dao.EntryProductEntityMapper;
 import com.shr.translationtoolservice.dao.EntryProjectEntityMapper;
 import com.shr.translationtoolservice.dao.VersionTableMapper;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.service.EntryCommonEntityService;
-import com.shr.translationtoolservice.service.EntryManagementService;
+import com.shr.translationtoolservice.service.*;
 
-import com.shr.translationtoolservice.service.EntryProductEntityService;
-import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.util.*;
 
 import io.swagger.annotations.Api;
@@ -23,17 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/entry")
@@ -58,10 +48,13 @@ public class EntryController extends BaseController {
     @Autowired
     private VersionTableMapper versionTableMapper;
 
+    @Autowired
+    private VersionTableService versionTableService;
+
     //查询词条信息
     @PostMapping("/searchEntry")
     @ApiOperation("词条查询")
-    @PassToken
+    @Token
     @CrossOrigin
     public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryEntity entryEntity,
                                                        String entryState,
@@ -74,11 +67,10 @@ public class EntryController extends BaseController {
         return checkResult(  entryManagementService.searchEntry(entryEntity, entryState,pageIndex, pageSize));
     }
 
-    //新增词条
+    //查询词库
     @PostMapping("/getThesaurus")
     @ApiOperation("查询词库")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<ResponseListModel> getThesaurus() {
         ResponseListModel result = new ResponseListModel<>();
@@ -93,6 +85,7 @@ public class EntryController extends BaseController {
     @ApiOperation("新增词条")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<EntryEntity> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
       /*  if (StringUtils.isBlank(entryEntity.getTableName())) {
 
@@ -101,11 +94,12 @@ public class EntryController extends BaseController {
         return entryManagementService.insertEntry(entryEntity,request);
     }
 
-    //新增词条
+    //编辑词条
     @PostMapping("/updateEntry")
     @ApiOperation("编辑词条")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<EntryEntity> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
     /*    if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -121,6 +115,7 @@ public class EntryController extends BaseController {
     @ApiOperation("词条合并")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> entryMerge(@RequestBody List<EntryEntity> entryEntities,HttpServletRequest request) {
 
         return checkResult( entryManagementService.entryMerge(entryEntities));
@@ -129,7 +124,6 @@ public class EntryController extends BaseController {
     @PostMapping("/getEntryNoMerge")
     @ApiOperation("未合并词条查询")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<ResponseListModel> getEntryMerge(String chinese) {
         ResponseListModel responseListModel = new ResponseListModel();
@@ -143,7 +137,6 @@ public class EntryController extends BaseController {
     @PostMapping("/getEntryMerge")
     @ApiOperation("已合并词条查询")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<ResponseListModel> getEntryNoMerge(String chinese) {
         ResponseListModel responseListModel = new ResponseListModel();
@@ -158,6 +151,7 @@ public class EntryController extends BaseController {
     @ApiOperation("导入")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> importEntry(MultipartFile file) {
         ResponseListModel responseListModel = new ResponseListModel();
 
@@ -168,6 +162,7 @@ public class EntryController extends BaseController {
     @ApiOperation("导出")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> outEntry(List<String>  entryIds) {
         ResponseListModel responseListModel = new ResponseListModel();
 
@@ -178,7 +173,6 @@ public class EntryController extends BaseController {
     @PostMapping("/getEntryClassfy")
     @ApiOperation("词条分类查询")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<ResponseListModel> getEntryClassfy( ) {
         ResponseListModel responseListModel = new ResponseListModel();
@@ -195,6 +189,7 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类修改")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> updateEntryClassfy(EntryClassify entryClassify) {
 
 
@@ -206,6 +201,7 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类删除")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> deleteEntryClassfy(@RequestBody List<String>  idList) {
 
         return checkResult(entryManagementService.deleteEntryClassfy(idList));
@@ -217,6 +213,7 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类新增")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> addEntryClassfy(EntryClassify  entryClassify) {
 
 
@@ -225,10 +222,11 @@ public class EntryController extends BaseController {
     }
 
 
-    //新增词条
+    //删除词条
     @PostMapping("/deleteEntry")
     @ApiOperation("删除词条")
     @CrossOrigin
+    @Token
     public HttpResponse<String> deleteEntry(@RequestBody List<String> idList) {
         if (CollectionUtils.isEmpty(idList)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -243,6 +241,7 @@ public class EntryController extends BaseController {
     @ApiOperation("批量审核")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> bathAudit(@RequestBody List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request,String note) {
 
 
@@ -257,7 +256,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/getOperateByEntryId")
     @ApiOperation("操作记录查询")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> queryOperate(@RequestBody EntryOperate  entryOperate) {
@@ -277,7 +275,6 @@ public class EntryController extends BaseController {
     @PostMapping("/translate")
     @ApiOperation("翻译词条")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<TranslateEntities> translate(String name,String type) {
         if (StringUtils.isBlank(type)){
@@ -289,7 +286,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/queryLabel")
     @ApiOperation("标签查询")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> queryLabel( @RequestBody EntryLabel entryLabel ,@RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
@@ -303,6 +299,7 @@ public class EntryController extends BaseController {
     @ApiOperation("标签删除")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> deleteLabel(@RequestBody List<String> idList) {
 
         return checkResult(entryManagementService.deleteLabel(idList));
@@ -312,6 +309,7 @@ public class EntryController extends BaseController {
     @ApiOperation("标签新增")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> addLabel(@RequestBody EntryLabel entryLabel) {
 
         return checkResult(entryManagementService.addLabel(entryLabel));
@@ -321,6 +319,7 @@ public class EntryController extends BaseController {
     @ApiOperation("标签更新")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> updateLabel(@RequestBody EntryLabel entryLabel) {
 
         return checkResult(entryManagementService.updateLabel(entryLabel));
@@ -329,7 +328,6 @@ public class EntryController extends BaseController {
     @PostMapping("/mergerSplit")
     @ApiOperation("合并拆分")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<String> mergerSplit(@RequestBody List<String> idList) {
 
@@ -340,7 +338,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/getEntryProperty")
     @ApiOperation("词性查询")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> getEntryProperty(@RequestBody EntryProperty entryProperty) {
@@ -353,7 +350,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/importExcle")
     @ApiOperation("导入excle")
-    @PassToken
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> importExcle(@RequestBody MultipartFile multipartFile) {
@@ -368,7 +364,6 @@ public class EntryController extends BaseController {
     @PostMapping("/bachAddEntry")
     @ApiOperation("批量插入词条")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<String> bachAddEntry(@RequestBody List<EntryCommonEntity> entryEntities) {
 
@@ -379,7 +374,6 @@ public class EntryController extends BaseController {
     @PostMapping("/createVersionTable")
     @ApiOperation("生成版本库")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<String> createVersionTable(@RequestBody List<EntryEntity> entryEntities,
                                                    String version,String remark) {
@@ -395,7 +389,6 @@ public class EntryController extends BaseController {
     @PostMapping("/getVersionTableInfo")
     @ApiOperation("查看版本关系库信息")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<ResponseListModel> getVersionTableInfo() {
         ResponseListModel responseListModel = new ResponseListModel();
@@ -404,12 +397,28 @@ public class EntryController extends BaseController {
         return checkResult(responseListModel );
     }
 
+    @PostMapping("/getVersionTableByCondition")
+    @ApiOperation("查看版本库信息(条件查询)")
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> getVersionTableByCondition(String version,
+                                                                      @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                      @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
+        return checkResult(versionTableService.getVersionTableByCondition(version,pageIndex,pageSize) );
+    }
 
+    @PostMapping("/batchDeleteVersionTable")
+    @ApiOperation("批量删除版本库")
+    @CrossOrigin
+    public HttpResponse<String> batchDeleteVersionTable(@RequestBody List<String> ids){
+        if (ids.size() == 0){
+            return checkResult(ErrorCodeList.INPUT_IS_NULL);
+        }
+        return checkResult(versionTableService.batchDeleteVersionTable(ids));
+    }
 
     @PostMapping("/getEntryToVersion")
     @ApiOperation("查看词条（模糊）")
     @CrossOrigin
-    @PassToken
     @Transactional
     public HttpResponse<EntryResponse> getEntryToVersion(String version,
                                                    @RequestBody List<String> classfy,String tag,String creator) {
@@ -422,7 +431,6 @@ public class EntryController extends BaseController {
 
     @PostMapping("/getVersionTable")
     @ApiOperation("查看版本库")
-    @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel> getVersionTable(String version,
                                                            @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,

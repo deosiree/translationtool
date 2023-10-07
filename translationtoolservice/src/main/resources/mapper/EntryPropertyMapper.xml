@@ -46,7 +46,21 @@
           insert into t_entry_property (id,property_name) values (  #{entryProperty.id,jdbcType=VARCHAR},#{entryProperty.propertyName,jdbcType=VARCHAR})
     </insert>
 
-    <delete id="deleteProperty" parameterType="String">
-    DELETE FROM t_entry_property WHERE id =  #{id,jdbcType=VARCHAR}
+    <delete id="deleteProperty" parameterType="arraylist">
+    DELETE FROM t_entry_property WHERE id in (
+        <foreach collection="ids" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
     </delete>
+    <select id="selectProperty" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_property
+        <where>
+            <if test="propertyName != null and propertyName != ''">
+                property_name = #{propertyName,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
 </mapper>

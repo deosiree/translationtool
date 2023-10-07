@@ -17,11 +17,13 @@ public interface EntryPropertyMapper extends BaseMapper<EntryProperty> {
 
     int getPropertyByNameTotal(@Param("propertyName")  String propertyName);
 
-    int deleteProperty(@Param("id") String id);
+    int deleteProperty(@Param("ids") List<String> id);
 
     int updateProperty(@Param("entryProperty")  EntryProperty entryProperty);
 
     int insertProperty(@Param("entryProperty")  EntryProperty entryProperty);
+
+    List<EntryProperty> selectProperty(@Param("propertyName") String propertyName);
 }
 
 

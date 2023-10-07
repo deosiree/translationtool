@@ -151,6 +151,8 @@ public class UserLoginServiceImpl implements UserLoginService {
     private void recursionFn(List<Menu> list, Menu t) {
         // 得到子节点列表
         List<Menu> childList = getChildList(list, t);
+        // 子节点排序
+        Collections.sort(childList, Comparator.comparingInt(Menu::getRank));
         t.setChildren(childList);
         for (Menu tChild : childList) {
             // 判断是否有子节点

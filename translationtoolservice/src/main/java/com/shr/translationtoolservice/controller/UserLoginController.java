@@ -1,12 +1,10 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.Constant;
-import com.shr.translationtoolservice.common.PassToken;
+import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.common.Result;
 import com.shr.translationtoolservice.common.ResultCode;
 import com.shr.translationtoolservice.service.UserLoginService;
-import com.shr.translationtoolservice.util.JWTTokenUtils;
-import com.shr.translationtoolservice.util.LDAPUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @RestController
 @RequestMapping("/userLogin")
@@ -27,7 +24,6 @@ public class UserLoginController {
 
     @PostMapping("/login")
     @ApiOperation("用户登录")
-    @PassToken
     @CrossOrigin
     public Result login(@RequestParam("account") String account, @RequestParam("password") String password){
         if (account.isEmpty() || password.isEmpty()){

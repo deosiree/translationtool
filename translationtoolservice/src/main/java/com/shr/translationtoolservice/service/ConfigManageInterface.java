@@ -56,5 +56,5 @@ public interface ConfigManageInterface {
 
     String addProperty(EntryProperty entryProperty);
 
-    String deleteProperty(String id);
+    String deleteProperty(List<String> ids);
 }

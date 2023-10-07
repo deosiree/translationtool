@@ -1,7 +1,7 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.common.PassToken;
+import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.ConfigManageInterface;
 import com.shr.translationtoolservice.service.impl.ConfigManageServiceImpl;
@@ -37,7 +37,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/queryUser")
     @ApiOperation("查询用户信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel<ConfigResUser>> queryUserInfo(@RequestBody ConfigResUser user,
                                                                         @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
@@ -53,6 +52,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/addUser")
     @ApiOperation("新增用户")
     @CrossOrigin
+    @Token
     public HttpResponse<String> addUser(@RequestBody ConfigResUser user) {
         if (Objects.isNull(user) || StringUtils.isBlank(user.getUserName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -65,6 +65,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/updateUserInfo")
     @ApiOperation("编辑用户信息")
     @CrossOrigin
+    @Token
     public HttpResponse<String> updateUserInfo(@RequestBody ConfigResUser user) {
         if (Objects.isNull(user)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -75,6 +76,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/deleteUser")
     @ApiOperation("删除用户信息")
     @CrossOrigin
+    @Token
     public HttpResponse<String> deleteUserInfoByList(@RequestBody List<String> idList) {
         if (CollectionUtils.isEmpty(idList)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -85,7 +87,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/queryRoleInfo")
     @ApiOperation("查询角色信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel> queryRoleInfo(String roleName,
                                                          @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
@@ -104,6 +105,7 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("删除角色信息")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> deleteRoleInfo(@RequestBody List<String> roleIDs, HttpServletRequest request) {
 
         if (CollectionUtils.isEmpty(roleIDs)) {
@@ -115,6 +117,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/updateRoleInfo")
     @ApiOperation("编辑角色信息")
     @CrossOrigin
+    @Token
     public HttpResponse<String> updateRoleInfo(Role role) {
         if (Objects.isNull(role)) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -125,6 +128,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/addRoleInfo")
     @ApiOperation("新增角色信息")
     @CrossOrigin
+    @Token
     public HttpResponse<String> addRoleInfo(Role role) {
         if (Objects.isNull(role) || StringUtils.isBlank(role.getRoleName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -135,6 +139,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/bindRoleInfo")
     @ApiOperation("绑定角色信息")
     @CrossOrigin
+    @Token
     public HttpResponse<String> bindRoleInfo(ConfigResUser configResUser) {
         if (Objects.isNull(configResUser) || StringUtils.isNotBlank(configResUser.getId())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -146,6 +151,7 @@ public class ConfigManageController extends BaseController {
     @ApiOperation("绑定权限信息")
     @CrossOrigin
     @Transactional
+    @Token
     public HttpResponse<String> bindPermission(@RequestBody RoleAuthorityRes roleAuthorityRes) {
 
         if (Objects.isNull(roleAuthorityRes) || StringUtils.isBlank(roleAuthorityRes.getRoleID()) ){
@@ -156,7 +162,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/queryVersionInfo")
     @ApiOperation("查询版本信息")
-    @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel> queryVersionInfo(String versionName,
                                                             @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
@@ -174,6 +179,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/updateVersionInfo")
     @ApiOperation("编辑版本信息")
     @CrossOrigin
+    @Token
     //TODO
     public HttpResponse<String> updateVersionInfo(EntryVersion entryVersion) {
         if (Objects.isNull(entryVersion) || StringUtils.isBlank(entryVersion.getId())){
@@ -185,6 +191,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/deleteVersionInfo")
     @ApiOperation("删除版本信息")
     @CrossOrigin
+    @Token
     //TODO
     public HttpResponse<String> deleteVersionInfo(@RequestBody List<String> idList) {
         if (CollectionUtils.isEmpty(idList)){
@@ -196,6 +203,7 @@ public class ConfigManageController extends BaseController {
     @PostMapping("/addVersionInfo")
     @ApiOperation("新增版本信息")
     @CrossOrigin
+    @Token
     public HttpResponse<String> addVersionInfo(EntryVersion entryVersion) {
         if (Objects.isNull(entryVersion) || StringUtils.isBlank(entryVersion.getName())){
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
@@ -205,7 +213,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/getMenuInfoByRole")
     @ApiOperation("菜单角色配置查询")
-    @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel<Menu>> getMenuInfoByRole( String roleID) {
         ResponseListModel<Menu> result = new ResponseListModel<>();
@@ -219,7 +226,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/getPropertyByName")
     @ApiOperation("词性条件查询")
-    @PassToken
     @CrossOrigin
     public HttpResponse<ResponseListModel<EntryProperty>> getPropertyByName( String propertyName,
                                                                              @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
@@ -232,7 +238,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/updateProperty")
     @ApiOperation("词性修改")
-    @PassToken
     @CrossOrigin
     public HttpResponse<String> updateProperty( EntryProperty entryProperty) {
 
@@ -241,7 +246,6 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/addProperty")
     @ApiOperation("词性新增")
-    @PassToken
     @CrossOrigin
     public HttpResponse<String> addProperty( EntryProperty entryProperty) {
 
@@ -250,11 +254,10 @@ public class ConfigManageController extends BaseController {
 
     @PostMapping("/deleteProperty")
     @ApiOperation("词性删除")
-    @PassToken
     @CrossOrigin
-    public HttpResponse<String> deleteProperty( String id) {
+    public HttpResponse<String> deleteProperty(@RequestBody List<String> ids) {
 
-        return checkResult(configManageService.deleteProperty(id));
+        return checkResult(configManageService.deleteProperty(ids));
     }
 
 }

@@ -218,18 +218,24 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String addProperty(EntryProperty entryProperty) {
-        entryProperty.setId(commonUtils.getUUID());
+        // 判断该词性是否已存在
+        List<EntryProperty> list = propertyMapper.selectProperty(entryProperty.getPropertyName());
+        if (!list.isEmpty()){
+            return ErrorCodeList.OBJECT_HAS_EXIST;
+        }
+        String uuid = commonUtils.getUUID();
+        entryProperty.setId(uuid);
         int insert = propertyMapper.insertProperty(entryProperty);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" t_entry_property update insert error ! ");
             return ErrorCodeList.INSERT_ERROR;
         }
-        return ConstantInterface.OK_STR;
+        return uuid;
     }
 
     @Override
-    public String deleteProperty(String id) {
-        int delete = propertyMapper.deleteProperty(id);
+    public String deleteProperty(List<String> ids) {
+        int delete = propertyMapper.deleteProperty(ids);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }

@@ -762,7 +762,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             results = CompareUtils.compareFields(beforEntry, afterEntry, EntryEntity.class);
             if (results.size() == 0) {
                 log.error(" t_entry_operate no change ! ");
-                return new ResultObject(ErrorCodeList.INSERT_ERROR);
+//                return new ResultObject(ErrorCodeList.INSERT_ERROR);
+                return new ResultObject(resultEntryEntity, ConstantInterface.OK_STR);
             }
             operateContentEntity.setResults(results);
             operateContentEntity.setEntryID(entryEntity.getId());
