@@ -63,7 +63,7 @@ public class ConstantInterface {
     public static final String BAIDU_TRANSLATE_APPID = "20230705001734655";
     public static final String BAIDU_TRANSLATE_KEY = "Msyn6CIJy97uY1MXLW0c";
 
-    public static final String CHINESE = "ch";
+    public static final String CHINESE = "zh";
     public static final String FRENCH = "fra";
     public static final String ENGLISH = "en";
     public static final String RUSSIAN = "ru";
@@ -92,7 +92,7 @@ public class ConstantInterface {
      * 初始化语言类
      */
     private void init(){
-        LANGUAGE_MAP.put("ch","Chinese");
+        LANGUAGE_MAP.put("zh","Chinese");
         LANGUAGE_MAP.put("spa","Spanish");
         LANGUAGE_MAP.put("auto","Automatic");
         LANGUAGE_MAP.put("af","Afrikaans");

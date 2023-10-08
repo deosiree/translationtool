@@ -107,10 +107,14 @@ public class YoudaoTrans {
     public static LanguageEntity youdaoTranslate(String entry, String from, String to) {
         String ch = "";
         String to1 = "";
-        if ("ch".equals(to)) {
+        if ("zh".equals(to)) {
             to1 = "zh-CHS";
         }else if ("spa".equals(to)){
             to1="es";
+        }else if ("fra".equals(to)){
+            to1 = "fr";
+        }else if ("ru".equals(to)){
+            to1 = to;
         }
 
         LanguageEntity languageEntity = new LanguageEntity();
