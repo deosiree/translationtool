@@ -112,6 +112,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         }
         Map<String, String> user = new HashMap<>();
         user.put(Constant.USER_NAME, userInfo.getUserName());
+        user.put(Constant.USER_DEPARTMENT, userInfo.getDepartment());
         // 生成token
         String token = JWTTokenUtils.createToken(user, authorityList);
         // 封装数据返回
