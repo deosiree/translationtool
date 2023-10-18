@@ -51,6 +51,12 @@ public class ConstantInterface {
     public static final String TRANSLATED = "已翻译";
     public static final String TRANSLATING = "正在翻译";
 
+    public static final String OPERATION_TYPE_INSERT = "新增";
+    public static final String OPERATION_TYPE_UPDATE = "更新";
+    public static final String OPERATION_TYPE_DELETE = "删除";
+    public static final String OPERATION_TYPE_UPGRATE = "升级";
+    public static final String OPERATION_TYPE_AUDIT = "审核";
+
     public static final String PROJECT_TABLE = "project";
     public static final String PRODUCT_TABLE = "product";
     public static final String COMMON_TABLE = "common";
@@ -87,6 +93,39 @@ public class ConstantInterface {
         }
         return _instance;
     }
+
+    public static HashMap<String, String> constructEntryName() {
+        HashMap<String, String> entryName = new HashMap<>();
+        entryName.put("chinese", "词条");
+        entryName.put("abbr", "abbr");
+        entryName.put("chineseInterpretation", "中文释义");
+        entryName.put("englishInterpretation", "英文释义");
+        entryName.put("chineseTranslateState", "中文翻译状态");
+        entryName.put("englishTranslateState", "英文翻译状态");
+        entryName.put("entrySource", "词条来源");
+        entryName.put("entryState", "词条状态");
+        entryName.put("creator", "创建人");
+        entryName.put("createTime", "创建时间");
+        entryName.put("update", "修改人");
+        entryName.put("updateTime", "修改时间");
+        entryName.put("version", "版本");
+        entryName.put("isLatestVersion", "是否最新版本");
+        entryName.put("entryLabel", "词条标签");
+        entryName.put("partOfSpeech", "词性备注");
+        entryName.put("classifyId", "词条所属分类");
+        entryName.put("repeatEntryId", "重复词条id");
+        entryName.put("english", "英文翻译");
+        entryName.put("russian", "俄文翻译");
+        entryName.put("russianTranslateState", "俄文翻译状态");
+        entryName.put("spanish", "西文翻译");
+        entryName.put("spanishTranslateState", "西文翻译状态");
+        entryName.put("french", "法文翻译");
+        entryName.put("frenchTranslateState", "法文翻译状态");
+        entryName.put("environmentRemark", "环境备注");
+        return entryName;
+    }
+
+
 
     /**
      * 初始化语言类

@@ -236,6 +236,13 @@ public class EntryEntity {
     @AnjiDescription("备注")
     private String remark;
 
+    @AnjiDescription("词条种类")
+    private String typeId;
+
+
+    @AnjiDescription("词条种类")
+    private String environmentRemark;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

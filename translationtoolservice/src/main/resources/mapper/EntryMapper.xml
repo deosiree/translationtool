@@ -38,6 +38,8 @@
         <result property="frenchLength" column="french_length" jdbcType="INTEGER"/>
         <result property="frenchTranslateState" column="french_translate_state" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="typeId" column="type_id" jdbcType="VARCHAR"/>
+        <result property="environmentRemark" column="environment_remark" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -51,7 +53,7 @@
         english_disable,english_disable_length,russian,
         russian_length,russian_translate_state,spanish,
         spanish_length,spanish_translate_state,french,
-        french_length,french_translate_state,remark
+        french_length,french_translate_state,remark,type_id,environment_remark
     </sql>
 
     <sql id="t1_Column_List">
@@ -66,7 +68,7 @@
     t1.english_disable,t1.english_disable_length,t1.russian,
     t1.russian_length,t1.russian_translate_state,t1.spanish,
     t1.spanish_length,t1.spanish_translate_state,t1.french,
-    t1.french_length,t1.french_translate_state,t1.remark
+    t1.french_length,t1.french_translate_state,t1.remark,t1.type_id,t1.environment_remark
  </sql>
 
     <update id="auditByIds" parameterType="java.util.List">
@@ -77,8 +79,8 @@
         );
     </update>
 
-    <update id="auditById" parameterType="String">
-        update  t_entry_common set entry_state = #{state,jdbcType=INTEGER} where id = #{id,jdbcType=VARCHAR}
+    <update id="auditById" >
+        update  t_entry_common set entry_state = ${state} where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="selectEntryById" parameterType="String" resultMap="BaseResultMap">
@@ -240,6 +242,12 @@
             <if test="entryEntity.remark != null and entryEntity.remark != ''">
                 remark = #{entryEntity.remark,jdbcType=VARCHAR},
             </if>
+            <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
+                type_id = #{entryEntity.typeId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+                environment_remark = #{entryEntity.environmentRemark,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{entryEntity.id,jdbcType=VARCHAR}
     </update>
@@ -260,7 +268,7 @@
 
         select  <include refid="Base_Column_List"/>
         from    t_entry_common
-        where 1=1
+        where 1=1 and  is_latest_version = 1
         <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
             and
             abbr  like CONCAT('%','${entryEntity.abbr}','%' )
@@ -357,8 +365,16 @@
             and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
         </if>
         <if test="entryEntity.remark != null and entryEntity.remark != ''">
-            remark = #{entryEntity.remark,jdbcType=VARCHAR},
+            remark = #{entryEntity.remark,jdbcType=VARCHAR}
         </if>
+
+        <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
+            type_id = #{entryEntity.typeId,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+            environment_remark = #{entryEntity.environmentRemark,jdbcType=VARCHAR}
+        </if>
+
 
 
         order by update_time desc
@@ -472,9 +488,14 @@
             and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
         </if>
         <if test="entryEntity.remark != null and entryEntity.remark != ''">
-            remark = #{entryEntity.remark,jdbcType=VARCHAR},
+            remark = #{entryEntity.remark,jdbcType=VARCHAR}
         </if>
-
+        <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
+            type_id = #{entryEntity.typeId,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+            environment_remark = #{entryEntity.environmentRemark,jdbcType=VARCHAR}
+        </if>
         order by update_time desc
 
 
@@ -482,8 +503,8 @@
     </select>
 
     <select id="selectListByEntry" parameterType="com.shr.translationtoolservice.entity.EntryEntity" resultMap="BaseResultMap">
-        select  <include refid="Base_Column_List"/>,#{entryEntity.tableName}  as tableName
-        from     ${entryEntity.tableName}
+        select  <include refid="Base_Column_List"/>
+        from     t_entry_common
         where 1=1
         <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
             and
@@ -575,6 +596,12 @@
         </if>
         <if test="entryEntity.frenchTranslateState != null and entryEntity.frenchTranslateState != ''">
             and french_translate_state = #{entryEntity.frenchTranslateState,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
+            type_id = #{entryEntity.typeId,jdbcType=VARCHAR}
+        </if>
+        <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+            environment_remark = #{entryEntity.environmentRemark,jdbcType=VARCHAR}
         </if>
         order by update_time desc
         <if test="limit >= 0 and offset >= 0">
@@ -691,6 +718,12 @@
             <if test="entryEntity.remark != null">
                 remark,
             </if>
+            <if test="entryEntity.typeId != null">
+                type_id,
+            </if>
+            <if test="entryEntity.environmentRemark != null">
+                environment_remark,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryEntity.id != null">
@@ -791,6 +824,12 @@
             </if>
             <if test="entryEntity.remark != null">
                 #{entryEntity.remark,jdbcType=VARCHAR},
+            </if>
+            <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
+                #{entryEntity.typeId,jdbcType=VARCHAR}
+            </if>
+            <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+                 #{entryEntity.environmentRemark,jdbcType=VARCHAR}
             </if>
         </trim>
 

@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName TermManagementServiceImpl
- * @Description TODO
  * @USER: Cola
  * @Date 2023/6/19 0019 16:58
  **/
@@ -73,6 +72,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     private VersionTableMapper versionTableMapper;
 
     @Autowired
+    private TLanguageMapper tLanguageMapper;
+    @Autowired
     private CommonUtils commonUtils;
 
     @Autowired
@@ -80,7 +81,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
 
     @Override
-    public ResponseListModel searchEntry(EntryEntity entryEntity, String entryState, Integer pageIndex, Integer pageSize) {
+    public ResponseListModel searchEntry(EntryCommonEntity entryEntity, String entryState, Integer pageIndex, Integer pageSize) {
         //校验前端日期格式
 
         if (Objects.nonNull(entryEntity.getCreateTime()) && entryEntity.getCreateTime().toString().length() < 10) {
@@ -91,7 +92,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             String time = entryEntity.getCreateEndRTime().toString() + ConstantInterface.TIME_ZERO;
             entryEntity.setCreateEndRTime(new Date(time));
         }
-        ResponseListModel<EntryEntity> responseListModel = new ResponseListModel<>();
+        ResponseListModel<EntryCommonEntity> responseListModel = new ResponseListModel<>();
 
         //如果包含标签，则需要查出该标签及其子集下所有的词条的内容
         if (StringUtils.isNotBlank(entryEntity.getClassifyId())) {
@@ -128,21 +129,21 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     //先查project表，不够再查 product ，最后再查comm
 
-    public ResponseListModel<EntryEntity> getAllEntry(EntryEntity entryEntity, Integer pageIndex, Integer pageSize, String entryState, List<EntryClassify> classfyList) {
+    public ResponseListModel<EntryCommonEntity> getAllEntry(EntryCommonEntity entryEntity, Integer pageIndex, Integer pageSize, String entryState, List<EntryClassify> classfyList) {
 
-        ResponseListModel<EntryEntity> result = new ResponseListModel<>();
+        ResponseListModel<EntryCommonEntity> result = new ResponseListModel<>();
         int total = 0;
 
-        List<EntryEntity> entry = new ArrayList();
+        List<EntryCommonEntity> entry = new ArrayList();
 
 
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
 
             entryEntity.setTableName(entryEntity.getTableName());
-            List<EntryEntity> entryEntity1 = entryMapper.selectListByEntries(entryEntity, classfyList, pageSize, offset, entryState);
+            List<EntryCommonEntity> entryEntity1 = entryCommonEntityMapper.selectListByEntries(entryEntity, classfyList, pageSize, offset, entryState);
 
-            total = entryMapper.selectListByEntriesTotal(entryEntity, entryState, classfyList);
+            total = entryCommonEntityMapper.selectListByEntriesTotal(entryEntity, entryState, classfyList);
             entry.addAll(entryEntity1);
 
 
@@ -197,19 +198,19 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<EntryEntity> selectNoMergeEntry(String chinese) {
-        List<EntryEntity> entryEntities = new ArrayList<>();
+    public List<EntryCommonEntity> selectNoMergeEntry(String chinese) {
+        List<EntryCommonEntity> entryEntities = new ArrayList<>();
         //合并和未合并sql 增加过滤
-        entryEntities = entryMapper.selectNoMerge(chinese).stream().distinct().collect(Collectors.toList());
+        entryEntities = entryCommonEntityMapper.selectNoMerge(chinese).stream().distinct().collect(Collectors.toList());
 
         return entryEntities;
     }
 
     @Override
-    public List<EntryEntity> selectMergeEntry(String chinese) {
-        List<EntryEntity> entryEntities = new ArrayList<>();
+    public List<EntryCommonEntity> selectMergeEntry(String chinese) {
+        List<EntryCommonEntity> entryEntities = new ArrayList<>();
         //合并和未合并sql 增加过滤
-        entryEntities = entryMapper.selectMerge(chinese).stream().distinct().collect(Collectors.toList());
+        entryEntities = entryCommonEntityMapper.selectMerge(chinese).stream().distinct().collect(Collectors.toList());
 
         return entryEntities;
     }
@@ -396,7 +397,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
         String id = idList.get(0);
 
-        EntryEntity entryEntity = entryMapper.selectEntryById(id);
+        EntryCommonEntity entryEntity = entryCommonEntityMapper.selectEntryById(id);
 
         String repeatEntryId = entryEntity.getRepeatEntryId();
 
@@ -416,7 +417,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<EntryEntity> importExcle(MultipartFile multipartFile) {
+    public List<EntryCommonEntity> importExcle(MultipartFile multipartFile) {
         String name = multipartFile.getOriginalFilename();
 
         //读取excle转换的实体
@@ -427,10 +428,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        List<EntryEntity> entryEntitys = new ArrayList<>();
+        List<EntryCommonEntity> entryEntitys = new ArrayList<>();
 
         for (ImportExcleEntry importExcleEntry : importExcleEntries) {
-            EntryEntity entryEntity = new EntryEntity();
+            EntryCommonEntity entryEntity = new EntryCommonEntity();
             BeanUtils.copyProperties(importExcleEntry, entryEntity);
             if (entryEntity.getEntryState() == null) {
                 entryEntity.setEntryState(2);
@@ -444,7 +445,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String createVersionTable(List<EntryEntity> entryEntities, String version, String remark) {
+    public String createVersionTable(List<EntryCommonEntity> entryEntities, String version, String remark) {
         //1.先查关系表是否有对应的表名 如果没有在关系表中写入当前月的表名关系
         List<VersionTable> versionTables = versionTableMapper.getVersionInfoByVersion(version);
         // 如果不存在则关系表中插入关系为对应当前月的版本表
@@ -468,7 +469,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             }
             //批量插入
 
-            for (EntryEntity entryEntity1 : entryEntities) {
+            for (EntryCommonEntity entryEntity1 : entryEntities) {
                 entryEntity1.setKey(commonUtils.getUUID());
                 versionTableMapper.insertVersionTable(tableName, entryEntity1, version);
             }
@@ -485,7 +486,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             }
 
 
-            for (EntryEntity entryEntity1 : entryEntities) {
+            for (EntryCommonEntity entryEntity1 : entryEntities) {
                 entryEntity1.setKey(commonUtils.getUUID());
                 versionTableMapper.insertVersionTable(versionTables.get(0).getVersionTableName(), entryEntity1, version);
             }
@@ -575,7 +576,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 entryEntities = entryCommonEntityMapper.selectBatchIds(idList);
                 entryResponse.setVersionEntries(versionEntities);
             }
-            List<EntryCommonEntity> entryToVersion = entryCommonEntityMapper.getEntryToVersion(version, classfies, tag, creator, versionEntities);
+            List<EntryCommonEntity> entryToVersion = entryCommonEntityMapper.getEntryToVersion(classfies, tag, creator, versionEntities);
 
             if (CollectionUtils.isEmpty(entryToVersion)) {
                 entryResponse.setFuzzyEntries(new ArrayList<>());
@@ -584,7 +585,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 entryResponse.setFuzzyEntries(entryToVersion);
             }
         } else {
-            entryEntities = entryCommonEntityMapper.getEntryToVersion(version, classfies, tag, creator, versionEntities);
+            entryEntities = entryCommonEntityMapper.getEntryToVersion(classfies, tag, creator, versionEntities);
             entryResponse.setVersionEntries(new ArrayList<>());
             if (CollectionUtils.isEmpty(entryEntities)) {
                 entryResponse.setFuzzyEntries(new ArrayList<>());
@@ -596,13 +597,66 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return entryResponse;
     }
 
+    @Override
+    public List<EntryCommonEntity> getTranslatedEntry(Integer pageIndex, Integer pageSize) {
+        List<EntryCommonEntity> entryCommonEntities = new ArrayList<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            entryCommonEntities = entryCommonEntityMapper.getTranslatedEntry(pageSize, offset);
+
+        }
+
+        return entryCommonEntities;
+    }
 
     @Override
-    public HttpResponse<EntryEntity> insertEntry(EntryEntity entryEntity, HttpServletRequest request) {
-        HttpResponse<EntryEntity> response = new HttpResponse<>();
-        entryEntity.setTableName(ConstantInterface.COMMON_TABLE_Name);
-        List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity.getAbbr(), entryEntity.getVersion());
-        List<EntryEntity> entryEntities1 = entryMapper.selectByName(entryEntity);
+    public HttpResponse<EntryCommonEntity> upgradeEntry(EntryCommonEntity entryEntity, HttpServletRequest request, String insertType) {
+        //旧词条新版本字段置为0
+        String oldID = entryEntity.getId();
+        EntryCommonEntity entryCommonEntity = new EntryCommonEntity();
+        entryCommonEntity.setId(oldID);
+        entryCommonEntity.setIsLatestVersion(0);
+        entryCommonEntityMapper.updateEntryById(entryCommonEntity);
+
+        //新词条构建
+        entryEntity.setId(commonUtils.getUUID());
+        String version = entryEntity.getVersion();
+        //版本+1
+        double i = Double.parseDouble(version.replace("V", "")) + 1;
+        String newVersion = "V" + Double.toString(i);
+        entryEntity.setVersion(newVersion);
+        //设置为待审核状态
+        entryEntity.setEntryState(2);
+
+        //增加创建者
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        entryEntity.setCreator(userName);
+        Date date = new Date(System.currentTimeMillis());
+        entryEntity.setCreateTime(date);
+        entryEntity.setUpdate(userName);
+        entryEntity.setUpdateTime(date);
+
+        return insertEntry(entryEntity, request, insertType);
+    }
+
+    @Override
+    public List<String> getKindEntryVersion(String typeID) {
+
+        List<String> versionIDs = entryCommonEntityMapper.getKindEntryVersion(typeID);
+
+        return versionIDs;
+    }
+
+
+    @Override
+    public HttpResponse<EntryCommonEntity> insertEntry(EntryCommonEntity entryEntity, HttpServletRequest request, String insertType) {
+        HttpResponse<EntryCommonEntity> response = new HttpResponse<>();
+        List<EntryCommonEntity> entryEntities = entryCommonEntityMapper.selectByAbbr(entryEntity.getAbbr(), entryEntity.getVersion());
+        List<EntryCommonEntity> entryEntities1 = entryCommonEntityMapper.selectByName(entryEntity);
+        if (insertType.equals(ConstantInterface.OPERATION_TYPE_INSERT)) {
+            entryEntity.setTypeId(commonUtils.getUUID());
+        }
         //校验ABBR 重复
         if (!CollectionUtils.isEmpty(entryEntities)) {
             response.setMessage(ErrorCodeList.ABBR_HAS_EXIST);
@@ -620,10 +674,13 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         entryEntity.setId(uuid);
         //构建字符长度
         constructEntry(entryEntity);
+
+        //设置词条状态为新建
         if (Objects.isNull(entryEntity.getEntryState())) {
             entryEntity.setEntryState(1);
         }
 
+        entryEntity.setIsLatestVersion(1);
         //创建人
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
@@ -636,7 +693,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         }
 
 
-        int insert = entryMapper.insertEntry(entryEntity);
+        int insert = entryCommonEntityMapper.insertEntry(entryEntity);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             response.setMessage(ErrorCodeList.INSERT_ERROR);
             response.setCode(HttpResponse.Type.ERROR.getVal());
@@ -644,9 +701,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             return response;
         }
         EntryOperate entryOperate = new EntryOperate();
-
-        entryOperate.setOperateContent("新增词条");
-        int insert1 = constructOperate(entryOperate, entryEntity.getTableName(), entryEntity.getId(), request);
+        //添加操作类型
+        entryOperate.setType(insertType);
+        entryOperate.setOperateContent(insertType);
+        int insert1 = constructOperate(entryOperate, entryEntity.getId(), request);
 
 
         if (insert1 != ConstantInterface.DB_SUCCESS_RESULT) {
@@ -663,9 +721,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return response;
     }
 
-    private void constructEntry(EntryEntity entryEntity) {
+    private void constructEntry(EntryCommonEntity entryEntity) {
         if (StringUtils.isNotBlank(entryEntity.getChinese())) {
             entryEntity.setChineseLength(entryEntity.getChinese().length());
+            entryEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getEnglish())) {
             entryEntity.setEnglishLength(entryEntity.getEnglish().length());
@@ -673,6 +732,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         } else {
             entryEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
         }
+
         if (StringUtils.isNotBlank(entryEntity.getEnglishDisable())) {
             entryEntity.setEnglishDisableLength(entryEntity.getEnglishDisable().length());
         }
@@ -694,7 +754,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         } else {
             entryEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
         }
-        //是否最新版本
+       /* //是否最新版本
         if (StringUtils.isNotBlank(entryEntity.getVersion())) {
             EntryVersion newVersion = entryVersionMapper.getNewVersion();
             if (entryEntity.getVersion().equals(newVersion.getName())) {
@@ -702,7 +762,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             } else {
                 entryEntity.setIsLatestVersion(0);
             }
-        }
+        }*/
 //        Index index = indexMapper.getIndexByEntry(entryEntity.getEntry());
 //        if (!Objects.isNull(index)) {
 //            entryEntity.setRepeatEntryId(index.getRepeatEntryId());
@@ -715,10 +775,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
 
     @Override
-    public ResultObject updateEntry(EntryEntity entryEntity, HttpServletRequest request) {
+    public ResultObject updateEntry(EntryCommonEntity entryEntity, HttpServletRequest request, String notes) {
 
-        entryEntity.setTableName(ConstantInterface.COMMON_TABLE_Name);
-        EntryEntity beforEntry = entryMapper.selectEntryById(entryEntity.getId());
+        EntryCommonEntity beforEntry = entryCommonEntityMapper.selectEntryById(entryEntity.getId());
 
         //abbr 重复判断
         if (StringUtils.isNotBlank(entryEntity.getAbbr())) {
@@ -728,7 +787,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             } else {
                 version = beforEntry.getVersion();
             }
-            List<EntryEntity> entryEntities = entryMapper.selectByAbbr(entryEntity.getAbbr(), version);
+
+            //判断是否存在重复同版本Abbr
+            List<EntryCommonEntity> entryEntities = entryCommonEntityMapper.selectByAbbr(entryEntity.getAbbr(), version);
             entryEntities.removeIf(entryEntity1 -> entryEntity1.getId().equals(entryEntity.getId()));
             if (!CollectionUtils.isEmpty(entryEntities)) {
 
@@ -743,8 +804,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         String userName = JWTTokenUtils.getUserName(token);
         entryEntity.setUpdate(userName);
         entryEntity.setUpdateTime(new Date(System.currentTimeMillis()));
-        int update = entryMapper.updateEntryById(entryEntity);
-        EntryEntity resultEntryEntity = entryMapper.selectEntryById(entryEntity.getId());
+        int update = entryCommonEntityMapper.updateEntryById(entryEntity);
+        EntryCommonEntity resultEntryEntity = entryCommonEntityMapper.selectEntryById(entryEntity.getId());
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
 
             return new ResultObject(ErrorCodeList.UPDATE_ERROR);
@@ -755,11 +816,14 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         }
         //更新操作记录表
         EntryOperate entryOperate = new EntryOperate();
+        entryOperate.setType(ConstantInterface.OPERATION_TYPE_UPDATE);
+        entryOperate.setNotes(notes);
         List<ComparisonResult> results = new ArrayList<>();
         OperateContentEntity operateContentEntity = new OperateContentEntity();
+        EntryCommonEntity afterEntry = entryCommonEntityMapper.selectEntryById(entryEntity.getId());
         try {
-            EntryEntity afterEntry = entryMapper.selectEntryById(entryEntity.getId());
-            results = CompareUtils.compareFields(beforEntry, afterEntry, EntryEntity.class);
+
+            results = CompareUtils.compareFields(beforEntry, afterEntry, EntryCommonEntity.class);
             if (results.size() == 0) {
                 log.error(" t_entry_operate no change ! ");
 //                return new ResultObject(ErrorCodeList.INSERT_ERROR);
@@ -781,7 +845,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 ) {
                     continue;
                 }
-                HashMap<String, String> entryName = constructEntryName();
+                HashMap<String, String> entryName = ConstantInterface.constructEntryName();
                 String str = "";
                 String r1 = comparisonResult.getPrevious();
                 String r2 = comparisonResult.getLater();
@@ -804,7 +868,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 res += str + " ; ";
             }
             entryOperate.setOperateContent(res);
-            int insert = constructOperate(entryOperate, entryEntity.getTableName(), entryEntity.getId(), request);
+
+            int insert = constructOperate(entryOperate, entryEntity.getId(), request);
             if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
                 log.error(" t_entry_operate update insert error ! ");
                 return new ResultObject(ErrorCodeList.INSERT_ERROR);
@@ -817,31 +882,6 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
 
-    private static HashMap<String, String> constructEntryName() {
-        HashMap<String, String> entryName = new HashMap<>();
-        entryName.put("chinese", "词条");
-        entryName.put("abbr", "abbr");
-        entryName.put("chineseInterpretation", "中文释义");
-        entryName.put("englishInterpretation", "英文释义");
-        entryName.put("entrySource", "词条来源");
-        entryName.put("entryState", "词条状态");
-        entryName.put("creator", "创建人");
-        entryName.put("createTime", "创建时间");
-        entryName.put("update", "修改人");
-        entryName.put("updateTime", "修改时间");
-        entryName.put("version", "版本");
-        entryName.put("isLatestVersion", "是否最新版本");
-        entryName.put("entryLabel", "词条标签");
-        entryName.put("partOfSpeech", "词性备注");
-        entryName.put("classifyId", "词条所属分类");
-        entryName.put("repeatEntryId", "重复词条id");
-        entryName.put("english", "英文翻译");
-        entryName.put("russian", "俄文翻译");
-        entryName.put("spanish", "西文翻译");
-        entryName.put("french", "法文翻译");
-
-        return entryName;
-    }
 
 
     @Override
@@ -863,12 +903,13 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
         TranslateEntities translateEntities = new TranslateEntities();
         List<TranslateEntity> translateEntityList = new ArrayList<>();
-        TranslateEntity baiduEntities = baiduTranslate(name, type);
+        List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
+        TranslateEntity baiduEntities = baiduTranslate(name, type, tLanguages);
         translateEntityList.add(baiduEntities);
 
 
         //有道翻译
-        TranslateEntity youdao_Entities = youdaoTranslate(name, type);
+        TranslateEntity youdao_Entities = youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
 
@@ -876,75 +917,24 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return translateEntities;
     }
 
-    private TranslateEntity youdaoTranslate(String name, String type) {
+    private TranslateEntity youdaoTranslate(String name, String type, List<TLanguage> tLanguages) {
         // YoudaoTrans.readJsonFromUrl(name,ConstantInterface.ENGLISH);]
         TranslateEntity entryEntity = new TranslateEntity();
+        //QueryWrapper queryWrapper = new QueryWrapper();
+        //List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
 
         entryEntity.setSource("有道翻译");
         entryEntity.setEntry(name);
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
-        LanguageEntity zh_languageEntity = new LanguageEntity();
-        LanguageEntity fr_languageEntity = new LanguageEntity();
-        LanguageEntity ru_languageEntity = new LanguageEntity();
-        LanguageEntity spa_languageEntity = new LanguageEntity();
-        LanguageEntity en_languageEntity = new LanguageEntity();
-        try {
-            switch (type) {
-                case ConstantInterface.ENGLISH:
-                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(zh_languageEntity);
-                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_languageEntity);
-                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_languageEntity);
-                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_languageEntity);
-                    break;
-                case ConstantInterface.FRENCH:
-                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(zh_languageEntity);
-                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_languageEntity);
-                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_languageEntity);
-                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_languageEntity);
-                    break;
-                case ConstantInterface.CHINESE:
-                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_languageEntity);
-                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_languageEntity);
-                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_languageEntity);
-                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_languageEntity);
-                    break;
-                case ConstantInterface.RUSSIAN:
-                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_languageEntity);
-                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(zh_languageEntity);
-                    spa_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_languageEntity);
-                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_languageEntity);
-                    break;
-                case ConstantInterface.SPANISH:
-                    fr_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_languageEntity);
-                    zh_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(zh_languageEntity);
-                    ru_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_languageEntity);
-                    en_languageEntity = YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_languageEntity);
-                    break;
-            }
 
-        } catch (Exception e) {
-            log.error(" **** 有道翻译异常 ****");
+
+        for (TLanguage tLanguage : tLanguages) {
+            if (tLanguage.getCode().equals(type)) {
+                continue;
+            }
+            languageEntities.add(YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, tLanguage));
         }
+
 
         entryEntity.setLanguageEntities(languageEntities);
 
@@ -966,99 +956,27 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     //百度翻译
-    private TranslateEntity baiduTranslate(String entry, String type) {
+    private TranslateEntity baiduTranslate(String entry, String type, List<TLanguage> tLanguages) {
         TranslateEntity entryEntity = new TranslateEntity();
         entryEntity.setSource("百度翻译");
         entryEntity.setEntry(entry);
         //ArrayList<TranslateEntity> list = new ArrayList<>();
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
-        String russia = "";
-        String spanish = "";
-        String french = "";
-        String english = "";
-        LanguageEntity en_LanguageEntity = new LanguageEntity();
-        LanguageEntity ru_LanguageEntity = new LanguageEntity();
-        LanguageEntity spa_LanguageEntity = new LanguageEntity();
-        LanguageEntity fr_LanguageEntity = new LanguageEntity();
-        LanguageEntity ch_LanguageEntity = new LanguageEntity();
+
         try {
-            //除了type 翻译其他语言
-            switch (type) {
-                case ConstantInterface.ENGLISH:
-                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(ch_LanguageEntity);
-                    Thread.sleep(1000);
-
-                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_LanguageEntity);
-                    Thread.sleep(1000);
-                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_LanguageEntity);
-                    Thread.sleep(1000);
-                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_LanguageEntity);
-                    break;
-                case ConstantInterface.RUSSIAN:
-
-                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_LanguageEntity);
-                    Thread.sleep(1000);
-                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(ch_LanguageEntity);
-                    Thread.sleep(1000);
-                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_LanguageEntity);
-                    Thread.sleep(1000);
-                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_LanguageEntity);
-
-                    break;
-                case ConstantInterface.SPANISH:
-                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_LanguageEntity);
-                    Thread.sleep(1000);
-                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(ch_LanguageEntity);
-                    Thread.sleep(1000);
-                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_LanguageEntity);
-                    Thread.sleep(1000);
-                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_LanguageEntity);
-                    break;
-                case ConstantInterface.FRENCH:
-                    ch_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.CHINESE);
-                    languageEntities.add(ch_LanguageEntity);
-                    Thread.sleep(1000);
-                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_LanguageEntity);
-                    Thread.sleep(1000);
-                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_LanguageEntity);
-                    Thread.sleep(1000);
-                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_LanguageEntity);
-                    break;
-                case ConstantInterface.CHINESE:
-                    fr_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.FRENCH);
-                    languageEntities.add(fr_LanguageEntity);
-                    Thread.sleep(1000);
-                    ru_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.RUSSIAN);
-                    languageEntities.add(ru_LanguageEntity);
-                    Thread.sleep(1000);
-                    spa_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.SPANISH);
-                    languageEntities.add(spa_LanguageEntity);
-                    Thread.sleep(1000);
-                    en_LanguageEntity = translate.getTranslateResult(entry, ConstantInterface.AUTO, ConstantInterface.ENGLISH);
-                    languageEntities.add(en_LanguageEntity);
-                    break;
+            for (TLanguage tLanguage : tLanguages) {
+                if (tLanguage.getCode().equals(type)) {
+                    continue;
+                }
+                languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
+                Thread.sleep(1000);
             }
-
             entryEntity.setLanguageEntities(languageEntities);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         return entryEntity;
     }
 
@@ -1081,53 +999,32 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
 
     @Override
-    //TODO
     public String bathAudit(List<EntryGroupEntity> entryGroupEntities, int state, HttpServletRequest request, String note) {
 
 
         for (EntryGroupEntity entryGroupEntity : entryGroupEntities) {
 
             List<String> entryIDs = entryGroupEntity.getIds();
-            String tableName = entryGroupEntity.getTableName();
             for (String entryID : entryIDs) {
 
 
                 //批量审核
-                EntryEntity entryEntity = auditByID(tableName, entryID, state);
+                EntryCommonEntity entryEntity = auditByID(entryID, state);
                 if (Objects.isNull(entryEntity)) {
                     return ErrorCodeList.UPDATE_ERROR;
                 }
                 EntryOperate entryOperate = new EntryOperate();
 
-                //更新操作记录表
-                EntryEntity entryEntity1 = entryMapper.selectEntryById(entryID);
-
-                List<ComparisonResult> results = new ArrayList<>();
-                OperateContentEntity operateContentEntity = new OperateContentEntity();
-                try {
-                    results = CompareUtils.compareFields(entryEntity, entryEntity1, EntryEntity.class);
-                    if (results.size() == 0) {
-                        log.error(" t_entry_operate compare result is null ! ");
-                        return ErrorCodeList.INSERT_ERROR;
-                    }
-                    operateContentEntity.setResults(results);
-                    operateContentEntity.setEntryID(entryID);
-                    String res = " ";
-                    for (ComparisonResult comparisonResult : operateContentEntity.getResults()) {
-                        res += comparisonResult.getStr() + " ; ";
-                    }
-                    entryOperate.setOperateContent(res);
-                    entryOperate.setNotes(note);
-                    int insert = constructOperate(entryOperate, entryGroupEntity.getTableName(), entryID, request);
-                    if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
-                        log.error(" t_entry_operate update insert error ! ");
-                        return ErrorCodeList.INSERT_ERROR;
-                    }
-                } catch (Exception e) {
-                    log.error(" ComparisonResult 类型对比异常 ！ ");
-                    log.error(e.getMessage());
+                if (entryEntity.getEntryState() == 3) {
+                    entryOperate.setOperateContent("审核通过");
                 }
+                entryOperate.setNotes(note);
 
+                int insert = constructOperate(entryOperate, entryID, request);
+                if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+                    log.error(" t_entry_operate update insert error ! ");
+                    return ErrorCodeList.INSERT_ERROR;
+                }
 
             }
 
@@ -1137,7 +1034,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return ConstantInterface.OK_STR;
     }
 
-    private int constructOperate(EntryOperate entryOperate, String tableName, String entryId, HttpServletRequest request) {
+    private int constructOperate(EntryOperate entryOperate, String entryId, HttpServletRequest request) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         Date date = new Date();
@@ -1145,18 +1042,18 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         entryOperate.setOperator(userName);
         entryOperate.setId(commonUtils.getUUID());
         entryOperate.setEntryId(entryId);
-        entryOperate.setType(tableName);
 
         int insert = entryOperateMapper.insert(entryOperate);
         return insert;
     }
 
 
-    private EntryEntity auditByID(String tableName, String entryID, int state) {
+    private EntryCommonEntity auditByID(String entryID, int state) {
 
-        EntryEntity entryEntity = entryMapper.selectEntryById(entryID);
+        EntryCommonEntity entryEntity = entryCommonEntityMapper.selectEntryById(entryID);
 
-        int update = entryMapper.auditById(tableName, entryID, state);
+
+        int update = entryCommonEntityMapper.auditById(entryID, state);
 
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return entryEntity;
@@ -1166,4 +1063,6 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
 
     }
+
+
 }

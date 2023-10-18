@@ -8,15 +8,13 @@ import com.shr.translationtoolservice.dao.AuthorityMapper;
 import com.shr.translationtoolservice.dao.MenuMapper;
 import com.shr.translationtoolservice.dao.RoleMapper;
 import com.shr.translationtoolservice.dao.UserMapper;
-import com.shr.translationtoolservice.entity.Authority;
-import com.shr.translationtoolservice.entity.Menu;
-import com.shr.translationtoolservice.entity.Role;
-import com.shr.translationtoolservice.entity.User;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.UserLoginService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LDAPUtils;
 import org.junit.platform.commons.util.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,6 +79,18 @@ public class UserLoginServiceImpl implements UserLoginService {
             userDao.insert(user);
             userInfo = user;
         }
+        //更新部门信息
+        String department = "";
+        List<JSONObject> userKey = ldapUtils.getUserKey(account);
+        String memberOf = userKey.get(0).getString(Constant.MEMBEROF);
+        department = memberOf.substring(memberOf.indexOf(Constant.EQUALE_SIGN) + 1, memberOf.indexOf(Constant.COMMA));
+
+
+      /*  ConfigResUser configResUser = new ConfigResUser();
+        BeanUtils.copyProperties(userInfo,configResUser);
+        configResUser.setDepartment(department);
+        userDao.updateUserInfo(configResUser);
+*/
         // 获取当前角色对应的菜单权限
         List<Menu> menus = menuMapper.selectByRoleId(userInfo.getRoleId());
 

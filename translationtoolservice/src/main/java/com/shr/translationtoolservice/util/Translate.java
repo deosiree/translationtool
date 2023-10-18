@@ -7,6 +7,7 @@ import cn.hutool.log.Log;
 import com.alibaba.fastjson.JSONObject;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.LanguageEntity;
+import com.shr.translationtoolservice.entity.TLanguage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,7 +48,9 @@ public class Translate {
 
     // 发送查询
     //query  要查询的词    from 默认auto   to => 语种
-    public LanguageEntity getTranslateResult(String query, String from, String to) {
+    public LanguageEntity getTranslateResult(String query, String from,  TLanguage tLanguages) {
+
+        String to = tLanguages.getBdCode();
         log.info(" **** to : " + to + " **** ");
         LanguageEntity languageEntity = new LanguageEntity();
 

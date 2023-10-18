@@ -1,11 +1,9 @@
 package com.shr.translationtoolservice.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
-import com.shr.translationtoolservice.dao.EntryCommonEntityMapper;
-import com.shr.translationtoolservice.dao.EntryProductEntityMapper;
-import com.shr.translationtoolservice.dao.EntryProjectEntityMapper;
-import com.shr.translationtoolservice.dao.VersionTableMapper;
+import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.*;
 
@@ -34,17 +32,8 @@ public class EntryController extends BaseController {
     private EntryManagementService entryManagementService;
 
     @Autowired
-    private EntryProductEntityMapper entryProductEntityMapper;
-    @Autowired
-    private EntryProjectEntityMapper entryProjectEntityMapper;
-    @Autowired
-    private EntryCommonEntityMapper entryCommonEntityMapper;
-    @Autowired
-    private EntryProjectEntityService entryProjectEntityService;
-    @Autowired
-    private EntryCommonEntityService entryCommonEntityService;
-    @Autowired
-    private EntryProductEntityService entryProductEntityService;
+    private TLanguageMapper tLanguageMapper;
+
     @Autowired
     private VersionTableMapper versionTableMapper;
 
@@ -56,7 +45,7 @@ public class EntryController extends BaseController {
     @ApiOperation("词条查询")
     @Token
     @CrossOrigin
-    public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryEntity entryEntity,
+    public HttpResponse<ResponseListModel> searchEntry(@RequestBody EntryCommonEntity entryEntity,
                                                        String entryState,
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
@@ -86,12 +75,13 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<EntryEntity> insertEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
+    public HttpResponse<EntryCommonEntity> insertEntry(@RequestBody EntryCommonEntity entryEntity,HttpServletRequest request) {
       /*  if (StringUtils.isBlank(entryEntity.getTableName())) {
 
             return checkResult(null,ErrorCodeList.TBALE_IS_NULL);
         }*/
-        return entryManagementService.insertEntry(entryEntity,request);
+        String insertType = ConstantInterface.OPERATION_TYPE_INSERT;
+        return entryManagementService.insertEntry(entryEntity,request,insertType);
     }
 
     //编辑词条
@@ -100,12 +90,12 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<EntryEntity> updateEntry(@RequestBody EntryEntity entryEntity,HttpServletRequest request) {
+    public HttpResponse<EntryCommonEntity> updateEntry(@RequestBody EntryCommonEntity entryEntity,HttpServletRequest request,String notes) {
     /*    if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }*/
-         ResultObject resultObject = entryManagementService.updateEntry(entryEntity, request);
-        EntryEntity entryEntity1 = (EntryEntity)resultObject.getData();
+         ResultObject resultObject = entryManagementService.updateEntry(entryEntity, request,notes);
+        EntryCommonEntity entryEntity1 = (EntryCommonEntity)resultObject.getData();
 
 
         return checkResult(entryEntity1,resultObject.getMsg());
@@ -116,7 +106,7 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<String> entryMerge(@RequestBody List<EntryEntity> entryEntities,HttpServletRequest request) {
+    public HttpResponse<String> entryMerge(@RequestBody List<EntryEntity> entryEntities) {
 
         return checkResult( entryManagementService.entryMerge(entryEntities));
     }
@@ -127,7 +117,7 @@ public class EntryController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getEntryMerge(String chinese) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryEntity> entryEntities = new ArrayList<>();
+        List<EntryCommonEntity> entryEntities = new ArrayList<>();
         entryEntities = entryManagementService.selectNoMergeEntry(chinese);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
@@ -140,7 +130,7 @@ public class EntryController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getEntryNoMerge(String chinese) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryEntity> entryEntities = new ArrayList<>();
+        List<EntryCommonEntity> entryEntities = new ArrayList<>();
         entryEntities = entryManagementService.selectMergeEntry(chinese);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
@@ -174,9 +164,11 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类查询")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryClassfy( ) {
+    public HttpResponse<ResponseListModel> getEntryClassfy( HttpServletRequest request) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
         entryClassifies = entryManagementService.getEntryClassfy();
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
@@ -354,7 +346,7 @@ public class EntryController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> importExcle(@RequestBody MultipartFile multipartFile) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryEntity> entryEntities = entryManagementService.importExcle(multipartFile);
+        List<EntryCommonEntity> entryEntities = entryManagementService.importExcle(multipartFile);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
 
@@ -375,7 +367,7 @@ public class EntryController extends BaseController {
     @ApiOperation("生成版本库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> createVersionTable(@RequestBody List<EntryEntity> entryEntities,
+    public HttpResponse<String> createVersionTable(@RequestBody List<EntryCommonEntity> entryEntities,
                                                    String version,String remark) {
         String versionTable ="";
         try {
@@ -446,5 +438,59 @@ public class EntryController extends BaseController {
         responseListModel.setTotalNum(versionTableMapper.getVersionTableTotal(tableName,version));
         return checkResult(responseListModel);
     }
+
+
+    @PostMapping("/getLanguage")
+    @ApiOperation("查看语言代码")
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> getLanguage() {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
+
+        responseListModel.setList( tLanguages);
+        responseListModel.setTotalNum(tLanguages.size());
+        return checkResult(responseListModel);
+    }
+
+
+    @PostMapping("/getTranslatedEntry")
+    @ApiOperation("查看已翻译词条")
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> getTranslatedEntry(@RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryCommonEntity> entryCommonEntities = entryManagementService.getTranslatedEntry(pageIndex,pageSize);
+
+        responseListModel.setList( entryCommonEntities);
+        responseListModel.setTotalNum(entryCommonEntities.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/upgradeEntry")
+    @ApiOperation("词条升级")
+    @CrossOrigin
+    @Transactional
+    @Token
+    public HttpResponse<HttpResponse<EntryCommonEntity> > upgradeEntry( @RequestBody EntryCommonEntity entryEntity,HttpServletRequest request) {
+        //实体ID 是旧词条id
+
+        String insertType = ConstantInterface.OPERATION_TYPE_UPGRATE;
+        return checkResult( entryManagementService.upgradeEntry(entryEntity,request,insertType));
+    }
+
+    @PostMapping("/getKindEntryVersion")
+    @ApiOperation("查询同种词条版本")
+    @CrossOrigin
+    public HttpResponse<ResponseListModel>  getKindEntryVersion( String typeID) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<String> entryCommonEntities = entryManagementService.getKindEntryVersion(typeID);
+
+        responseListModel.setList( entryCommonEntities);
+        responseListModel.setTotalNum(entryCommonEntities.size());
+        return checkResult(responseListModel);
+
+    }
+
+
 
 }

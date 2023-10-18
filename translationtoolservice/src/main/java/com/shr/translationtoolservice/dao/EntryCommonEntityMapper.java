@@ -16,12 +16,14 @@ import java.util.List;
  */
 @Mapper
 public interface EntryCommonEntityMapper extends BaseMapper<EntryCommonEntity> {
+
+
     @Override
     List<EntryCommonEntity> selectList(@Param("ew") Wrapper<EntryCommonEntity> queryWrapper);
 
     int auditByIds(@Param("idList") List<String> idList,@Param("state") String state);
 
-    int auditById(String id,@Param("state") String state);
+    int auditById(String id,@Param("state") int state);
 
     List<EntryCommonEntity> getRepAbbrAndVersionEntry(@Param("entryEntities") List<EntryCommonEntity> entryEntities);
 
@@ -31,7 +33,7 @@ public interface EntryCommonEntityMapper extends BaseMapper<EntryCommonEntity> {
 
 
 
-    EntryEntity selectEntryById(String id);
+    EntryCommonEntity selectEntryById(String id);
 
     int insertEntry(@Param("entryEntity") EntryCommonEntity entryEntity);
 
@@ -59,8 +61,12 @@ public interface EntryCommonEntityMapper extends BaseMapper<EntryCommonEntity> {
 
     int mergerSplit(List<String> idList);
 
-    List<EntryCommonEntity> getEntryToVersion(@Param("version") String version, @Param("classfies") List<String> classfies,@Param("tag") String tag,
+    List<EntryCommonEntity> getEntryToVersion(@Param("classfies") List<String> classfies,@Param("tag") String tag,
                                         @Param("creator")String creator,@Param("versionEntities")   List<VersionEntity> versionEntities);
+
+    List<EntryCommonEntity> getTranslatedEntry(@Param("limit") Integer limit, @Param("offset") int offset);
+
+    List<String> getKindEntryVersion(@Param("typeID") String typeID);
 }
 
 

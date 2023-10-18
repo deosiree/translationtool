@@ -19,6 +19,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 @TableName(value ="t_entry_common")
 @Data
 public class EntryCommonEntity implements Serializable {
+
+
+    private String tableName;
+
+    private String key;
+    private Date createEndRTime;
+
     /**
      * 主键
      */
@@ -40,6 +47,10 @@ public class EntryCommonEntity implements Serializable {
      */
     private Integer chineseLength;
 
+    /**
+     * 词条字符数
+     */
+    private String chineseTranslateState;
     /**
      * 中文释义
      */
@@ -124,7 +135,7 @@ public class EntryCommonEntity implements Serializable {
     /**
      * 英文字符数
      */
-    private Double englishLength;
+    private int englishLength;
 
     /**
      * 英文翻译状态
@@ -187,6 +198,14 @@ public class EntryCommonEntity implements Serializable {
     private String frenchTranslateState;
 
     private String remark;
+
+    @AnjiDescription("词条种类")
+    private String typeId;
+
+
+    @AnjiDescription("环境/功能 备注")
+    private String environmentRemark;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

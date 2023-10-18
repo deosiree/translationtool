@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.shr.translationtoolservice.entity.EntryCommonEntity;
 import com.shr.translationtoolservice.entity.EntryEntity;
 import com.shr.translationtoolservice.entity.VersionEntity;
 import com.shr.translationtoolservice.entity.VersionTable;
@@ -22,7 +23,7 @@ public interface VersionTableMapper extends BaseMapper<VersionTable> {
 
     int createVersionTable(String tableName);
 
-    int insertVersionTable(@Param("tableName") String tableName, @Param("versionEntity") EntryEntity entryEntity,
+    int insertVersionTable(@Param("tableName") String tableName, @Param("versionEntity") EntryCommonEntity entryEntity,
                            @Param("versionTable") String version);
 
     int existTable(@Param("tableName") String tableName);
@@ -36,7 +37,7 @@ public interface VersionTableMapper extends BaseMapper<VersionTable> {
     List<VersionEntity> getAllVersionTable(@Param("tableName")  String versionTableName, @Param("version") String version);
 
     //通过版本和名字查询版本库重复的词条
-    List<VersionEntity> getReVersionTableByName(@Param("entryEntities")  List<EntryEntity> entryEntities, @Param("tableName") String versionTableName,@Param("version")  String version);
+    List<VersionEntity> getReVersionTableByName(@Param("entryEntities")  List<EntryCommonEntity> entryEntities, @Param("tableName") String versionTableName,@Param("version")  String version);
 
     List<VersionTable> getVersionTableByCondition(@Param("version") String version, @Param("offset") Integer pageIndex, @Param("limit") Integer pageSize);
 

@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.LanguageEntity;
+import com.shr.translationtoolservice.entity.TLanguage;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -104,26 +105,17 @@ public class YoudaoTrans {
         }*/
     }
 
-    public static LanguageEntity youdaoTranslate(String entry, String from, String to) {
+    public static LanguageEntity youdaoTranslate(String entry, String from, TLanguage tLanguage) {
         String ch = "";
-        String to1 = "";
-        if ("zh".equals(to)) {
-            to1 = "zh-CHS";
-        }else if ("spa".equals(to)){
-            to1="es";
-        }else if ("fra".equals(to)){
-            to1 = "fr";
-        }else if ("ru".equals(to)){
-            to1 = to;
-        }
 
+        String to = tLanguage.getYdCode();
         LanguageEntity languageEntity = new LanguageEntity();
         String value = "";
         Map<String, String> params = new HashMap<String, String>();
         //String q = "苹果";
         String salt = String.valueOf(System.currentTimeMillis());
         params.put("from", from);
-        params.put("to", to1);
+        params.put("to", to);
         params.put("signType", "v3");
         String curtime = String.valueOf(System.currentTimeMillis() / 1000);
         params.put("curtime", curtime);
@@ -148,8 +140,8 @@ public class YoudaoTrans {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
-        languageEntity.setLanguage(languageMap.get(to).toLowerCase());
+       // Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
+        languageEntity.setLanguage(tLanguage.getCode());
         return languageEntity;
     }
 

@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 public interface EntryManagementService {
     //查询词条信息
-    ResponseListModel searchEntry(@RequestBody EntryEntity entryEntity,
+    ResponseListModel searchEntry(@RequestBody EntryCommonEntity entryEntity,
                                   String entryState,
                                   @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                   @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize);
@@ -21,9 +21,9 @@ public interface EntryManagementService {
     String bathAudit(List<EntryGroupEntity> entryGroupEntities,int state, HttpServletRequest request,String note);
 
 
-    HttpResponse<EntryEntity> insertEntry(EntryEntity entryEntity, HttpServletRequest request);
+    HttpResponse<EntryCommonEntity> insertEntry(EntryCommonEntity entryEntity, HttpServletRequest request,String insertType);
 
-    ResultObject updateEntry(EntryEntity entryEntity,HttpServletRequest request);
+    ResultObject updateEntry(EntryCommonEntity entryEntity,HttpServletRequest request,String notes);
 
     String deleteEntry(List<String> idList );
 
@@ -31,9 +31,9 @@ public interface EntryManagementService {
 
     List<EntryOperate> queryOperate(EntryOperate entryId);
 
-    List<EntryEntity> selectNoMergeEntry(String entry);
+    List<EntryCommonEntity> selectNoMergeEntry(String entry);
 
-    List<EntryEntity> selectMergeEntry(String entry);
+    List<EntryCommonEntity> selectMergeEntry(String entry);
 
     String entryMerge(List<EntryEntity> entryEntity);
 
@@ -59,9 +59,9 @@ public interface EntryManagementService {
 
     String mergerSplit(List<String> idList);
 
-    List<EntryEntity>  importExcle(MultipartFile multipartFile);
+    List<EntryCommonEntity>  importExcle(MultipartFile multipartFile);
 
-    String createVersionTable(List<EntryEntity> entryEntities, String version,String remark);
+    String createVersionTable(List<EntryCommonEntity> entryEntities, String version,String remark);
 
 
     List<VersionTable>  getVersionTable(String tableName ,String version, Integer pageIndex, Integer pageSize);
@@ -70,4 +70,9 @@ public interface EntryManagementService {
 
     EntryResponse   getEntryToVersion(String version, List<String> classfy, String tag, String creator);
 
+    List<EntryCommonEntity> getTranslatedEntry( Integer pageIndex, Integer pageSize);
+
+    HttpResponse<EntryCommonEntity>  upgradeEntry(EntryCommonEntity entryEntity,HttpServletRequest request,String insertType);
+
+    List<String> getKindEntryVersion(String typeID);
 }
