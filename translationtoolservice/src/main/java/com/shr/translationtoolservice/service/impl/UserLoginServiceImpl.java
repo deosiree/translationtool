@@ -75,16 +75,18 @@ public class UserLoginServiceImpl implements UserLoginService {
             user.setDepartment(department);
             if (null != role) {
                 user.setRoleId(role.getId());
+                user.setRoleName(role.getRoleName());
             }
             userDao.insert(user);
             userInfo = user;
         }
         //更新部门信息
-        String department = "";
+        /*String department = "";
         List<JSONObject> userKey = ldapUtils.getUserKey(account);
-        String memberOf = userKey.get(0).getString(Constant.MEMBEROF);
-        department = memberOf.substring(memberOf.indexOf(Constant.EQUALE_SIGN) + 1, memberOf.indexOf(Constant.COMMA));
-
+        if (!userKey.isEmpty()){
+            String memberOf = userKey.get(0).getString(Constant.MEMBEROF);
+            department = memberOf.substring(memberOf.indexOf(Constant.EQUALE_SIGN) + 1, memberOf.indexOf(Constant.COMMA));
+        }*/
 
       /*  ConfigResUser configResUser = new ConfigResUser();
         BeanUtils.copyProperties(userInfo,configResUser);
