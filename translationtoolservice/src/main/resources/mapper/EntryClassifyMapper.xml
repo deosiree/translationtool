@@ -10,11 +10,14 @@
         <result property="title" column="name" jdbcType="VARCHAR"/>
         <result property="index" column="index" jdbcType="INTEGER"/>
         <result property="maxByte" column="max_byte" jdbcType="INTEGER"/>
+        <result property="department" column="department" jdbcType="VARCHAR"/>
+        <result property="creator" column="creator" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id ,parent_id,`name`,
-        `index`,max_byte
+        `index`,max_byte,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
     </sql>
 
     <select id="getEntryClassfyIds" resultMap="BaseResultMap">
@@ -23,6 +26,18 @@
         from t_entry_classify
 
     </select>
+
+    <select id="getEntryClassfyIdsByDepartment" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify
+        where
+        <if test="department != null  and department != ''">
+            department = #{department,jdbcType=VARCHAR},
+        </if>
+
+    </select>
+
     <select id="getEntryClassfyByIds" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -89,6 +104,15 @@
             <if test="entryClassify.maxByte != null">
                 `max_byte`,
             </if>
+            <if test="entryClassify.department != null">
+                `department`,
+            </if>
+            <if test="entryClassify.creator != null">
+                `creator`,
+            </if>
+            <if test="entryClassify.create_time != null">
+                `create_time`,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryClassify.key != null">
@@ -105,6 +129,15 @@
             </if>
             <if test="entryClassify.maxByte != null">
                 #{entryClassify.maxByte,jdbcType=VARCHAR},
+            </if>
+            <if test="entryClassify.department != null">
+                #{entryClassify.department,jdbcType=VARCHAR},
+            </if>
+            <if test="entryClassify.creator != null">
+                #{entryClassify.creator,jdbcType=VARCHAR},
+            </if>
+            <if test="entryClassify.createTime != null">
+                #{entryClassify.createTime,jdbcType=TIMESTAMP},
             </if>
         </trim>
     </insert>

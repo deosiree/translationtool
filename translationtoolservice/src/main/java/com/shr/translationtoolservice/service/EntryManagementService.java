@@ -41,7 +41,7 @@ public interface EntryManagementService {
 
     List<Thesaurus> getThesaurus();
 
-    String addEntryClassfy(EntryClassify entryClassify);
+    String addEntryClassfy(EntryClassify entryClassify,HttpServletRequest request);
 
     String updateEntryClassfy(EntryClassify entryClassify);
 
@@ -61,10 +61,10 @@ public interface EntryManagementService {
 
     List<EntryCommonEntity>  importExcle(MultipartFile multipartFile);
 
-    String createVersionTable(List<EntryCommonEntity> entryEntities, String version,String remark);
+    String createVersionTable(List<EntryCommonEntity> entryEntities, String version,String remark, String department,HttpServletRequest request);
 
 
-    List<VersionTable>  getVersionTable(String tableName ,String version, Integer pageIndex, Integer pageSize);
+    List<VersionTable>  getVersionTable(String tableName ,String version, Integer pageIndex, Integer pageSize,String department);
 
     String bachAddEntry(List<EntryCommonEntity> entryEntities);
 

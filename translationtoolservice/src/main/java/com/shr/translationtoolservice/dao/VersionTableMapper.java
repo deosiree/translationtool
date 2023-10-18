@@ -28,7 +28,8 @@ public interface VersionTableMapper extends BaseMapper<VersionTable> {
 
     int existTable(@Param("tableName") String tableName);
 
-    List<VersionTable> getVersionTable(@Param("tableName") String tableName,@Param("version") String version,@Param("limit") Integer pageSize,@Param("offset") int offset);
+    List<VersionTable> getVersionTable(@Param("tableName") String tableName,@Param("version") String version,
+                                       @Param("limit") Integer pageSize,@Param("offset") int offset,@Param("department")String department);
 
     int getVersionTableTotal(@Param("tableName") String tableName,@Param("version") String version);
 

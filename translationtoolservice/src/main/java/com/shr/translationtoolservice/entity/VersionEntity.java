@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.shr.translationtoolservice.common.AnjiDescription;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -190,6 +191,19 @@ public class VersionEntity implements Serializable {
      * 对应版本库
      */
     private String versionTable;
+
+
+    /**
+     * 词条字符数
+     */
+    private String chineseTranslateState;
+
+    @AnjiDescription("词条种类")
+    private String typeId;
+
+
+    @AnjiDescription("环境/功能 备注")
+    private String environmentRemark;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

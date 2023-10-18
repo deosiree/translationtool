@@ -263,10 +263,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    //TODO
     public List<EntryClassify> getEntryClassfy(String department) {
+        //查询对应部门下的分类
         List<EntryClassify> entryClassifies = new ArrayList<>();
-        entryClassifies = entryClassifyMapper.getEntryClassfyIds();
+        entryClassifies = entryClassifyMapper.getEntryClassfyIdsByDepartment(department);
 // 返回的树形数据
         List<EntryClassify> tree = new ArrayList<EntryClassify>();
         // 第一次遍历
@@ -298,8 +298,15 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String addEntryClassfy(EntryClassify entryClassify) {
+    public String addEntryClassfy(EntryClassify entryClassify, HttpServletRequest request) {
         entryClassify.setKey(commonUtils.getUUID());
+        String token = request.getHeader("token");
+        String department = JWTTokenUtils.getDepartment(token);
+        String userName = JWTTokenUtils.getUserName(token);
+        entryClassify.setCreator(userName);
+        entryClassify.setDepartment(department);
+        Date date = new Date(System.currentTimeMillis());
+        entryClassify.setCreateTime(date);
         int insert = entryClassifyMapper.insertClassfy(entryClassify);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" t_entry_operate update insert error ! ");
@@ -445,7 +452,13 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public String createVersionTable(List<EntryCommonEntity> entryEntities, String version, String remark) {
+    public String createVersionTable(List<EntryCommonEntity> entryEntities, String version, String remark, String department, HttpServletRequest request) {
+        String token = request.getHeader("token");
+        if (StringUtils.isBlank(department)) {
+            department = JWTTokenUtils.getDepartment(token);
+        }
+        String userName = JWTTokenUtils.getUserName(token);
+
         //1.先查关系表是否有对应的表名 如果没有在关系表中写入当前月的表名关系
         List<VersionTable> versionTables = versionTableMapper.getVersionInfoByVersion(version);
         // 如果不存在则关系表中插入关系为对应当前月的版本表
@@ -459,6 +472,10 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             versionTable.setVersion(version);
             versionTable.setVersionTableName(tableName);
             versionTable.setRemark(remark);
+            versionTable.setDepartment(department);
+            versionTable.setCreator(userName);
+            versionTable.setCreateTime(new Date(System.currentTimeMillis()));
+
             versionTableMapper.addVersionTable(versionTable);
             //将待打版本的词条插入
             //判断是否存在表
@@ -497,11 +514,11 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<VersionTable> getVersionTable(String tableName, String version, Integer pageIndex, Integer pageSize) {
+    public List<VersionTable> getVersionTable(String tableName, String version, Integer pageIndex, Integer pageSize,String department) {
         List<VersionTable> versionTables = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            versionTables = versionTableMapper.getVersionTable(tableName, version, pageSize, offset);
+            versionTables = versionTableMapper.getVersionTable(tableName, version, pageSize, offset,department);
         }
 
         return versionTables;
@@ -880,8 +897,6 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         }
         return new ResultObject(resultEntryEntity, ConstantInterface.OK_STR);
     }
-
-
 
 
     @Override

@@ -164,11 +164,11 @@ public class EntryController extends BaseController {
     @ApiOperation("词条分类查询")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryClassfy( HttpServletRequest request) {
+    public HttpResponse<ResponseListModel> getEntryClassfy( String department , HttpServletRequest request) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
-        String token = request.getHeader("token");
-        String department = JWTTokenUtils.getDepartment(token);
+
+        //department 空 为管理员，可查看所有分类
         entryClassifies = entryManagementService.getEntryClassfy(department);
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
@@ -206,10 +206,10 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<String> addEntryClassfy(EntryClassify  entryClassify) {
+    public HttpResponse<String> addEntryClassfy(EntryClassify  entryClassify,HttpServletRequest request) {
 
 
-        return checkResult(entryManagementService.addEntryClassfy(entryClassify));
+        return checkResult(entryManagementService.addEntryClassfy(entryClassify,request));
 
     }
 
@@ -368,10 +368,12 @@ public class EntryController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> createVersionTable(@RequestBody List<EntryCommonEntity> entryEntities,
+                                                   String department,HttpServletRequest request,
                                                    String version,String remark) {
         String versionTable ="";
+
         try {
-              versionTable = entryManagementService.createVersionTable(entryEntities, version, remark);
+              versionTable = entryManagementService.createVersionTable(entryEntities, version, remark,department,request);
         }catch (ExceptionUtils e){
            return checkResult(null,e.getMessage());
         }
@@ -424,7 +426,7 @@ public class EntryController extends BaseController {
     @PostMapping("/getVersionTable")
     @ApiOperation("查看版本库")
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getVersionTable(String version,
+    public HttpResponse<ResponseListModel> getVersionTable(String version, String department,
                                                            @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
@@ -434,7 +436,7 @@ public class EntryController extends BaseController {
             return checkResult(null," 不存在version 为 " + version + " 的版本库 ！");
         }
         String tableName = versionInfoByVersion.get(0).getVersionTableName();
-        responseListModel.setList( entryManagementService.getVersionTable(tableName,version,pageIndex,pageSize));
+        responseListModel.setList( entryManagementService.getVersionTable(tableName,version,pageIndex,pageSize,department));
         responseListModel.setTotalNum(versionTableMapper.getVersionTableTotal(tableName,version));
         return checkResult(responseListModel);
     }

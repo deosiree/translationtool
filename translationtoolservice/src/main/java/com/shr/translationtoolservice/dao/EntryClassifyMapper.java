@@ -28,6 +28,8 @@ public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
     int deleteByIds(List<String> entryClassifies);
 
     int updateClassfyById(@Param("entryClassify") EntryClassify entryClassify);
+
+    List<EntryClassify> getEntryClassfyIdsByDepartment(String department);
 }
 
 

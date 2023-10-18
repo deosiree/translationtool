@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -50,6 +51,27 @@ public class EntryClassify implements Serializable {
      */
     @TableField("`maxbyte`")
     private Integer maxByte;
+
+
+    /**
+     * 部门
+     */
+    @TableField("`department`")
+    private String department;
+
+    /**
+     * 创建人
+     */
+    @TableField("`creator`")
+    private String creator;
+
+    /**
+     * 部门
+     */
+    @TableField("`create_time`")
+    private Date createTime;
+
+
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
