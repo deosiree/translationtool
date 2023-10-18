@@ -37,7 +37,7 @@ public interface EntryManagementService {
 
     String entryMerge(List<EntryEntity> entryEntity);
 
-    List<EntryClassify> getEntryClassfy();
+    List<EntryClassify> getEntryClassfy(String department);
 
     List<Thesaurus> getThesaurus();
 

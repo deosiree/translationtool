@@ -168,8 +168,8 @@ public class EntryController extends BaseController {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
         String token = request.getHeader("token");
-        String userName = JWTTokenUtils.getUserName(token);
-        entryClassifies = entryManagementService.getEntryClassfy();
+        String department = JWTTokenUtils.getDepartment(token);
+        entryClassifies = entryManagementService.getEntryClassfy(department);
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
         return checkResult(responseListModel);

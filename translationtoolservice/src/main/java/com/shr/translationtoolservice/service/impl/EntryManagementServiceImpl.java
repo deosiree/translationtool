@@ -264,7 +264,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     //TODO
-    public List<EntryClassify> getEntryClassfy() {
+    public List<EntryClassify> getEntryClassfy(String department) {
         List<EntryClassify> entryClassifies = new ArrayList<>();
         entryClassifies = entryClassifyMapper.getEntryClassfyIds();
 // 返回的树形数据
