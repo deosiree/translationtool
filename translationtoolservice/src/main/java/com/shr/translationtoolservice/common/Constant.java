@@ -17,6 +17,7 @@ public class Constant {
     public static final char SLASH_SEPARATOR1 = '/';
 
     public static final String USER_NAME = "userName";
+    public static final String DEPARTMENT = "department";
     public static final String AUTHORITY = "authority";
     public static final String TOKEN = "token";
 }

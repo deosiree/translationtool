@@ -14,7 +14,7 @@ import java.util.*;
 @Slf4j
 public class JWTTokenUtils {
     private static String SECRET = "token!Q@W#E$R";
-    //token到期时间10小时
+    //token到期时间24小时
     private static final long EXPIRE_TIME= 24*60*60*1000;//1天
 
     /**
@@ -80,6 +80,16 @@ public class JWTTokenUtils {
     public static String getUserName(String token) {
         String userName = getToken(token).getClaim(Constant.USER_NAME).asString();
         return userName;
+    }
+
+    /**
+     * 获取用户所属部门
+     * @param token
+     * @return
+     */
+    public static String getDepartment(String token) {
+        String department = getToken(token).getClaim(Constant.DEPARTMENT).asString();
+        return department;
     }
 
     /**
