@@ -189,6 +189,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             queryWrapper.ge("operate_time", entryOperate.getStartOperateTime());
         }
         queryWrapper.select("id", "operator", "DATE_FORMAT(operate_time, '%Y-%m-%d %H:%i:%s') as operate_time", "operate_content", "entry_id", "notes", "type");
+        queryWrapper.orderByDesc("operate_time");
         return entryOperateMapper.selectList(queryWrapper);
     }
 
@@ -590,7 +591,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                     idList.add(versionEntity.getId());
                 }
                 //版本库词条
-                entryEntities = entryCommonEntityMapper.selectBatchIds(idList);
+                // TODO 不知有何作用 报错 故先注释
+//                entryEntities = entryCommonEntityMapper.selectBatchIds(idList);
                 entryResponse.setVersionEntries(versionEntities);
             }
             List<EntryCommonEntity> entryToVersion = entryCommonEntityMapper.getEntryToVersion(classfies, tag, creator, versionEntities);
@@ -738,37 +740,48 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return response;
     }
 
+    /**
+     * 设置词条翻译状态和长度
+     * @param entryEntity
+     */
     private void constructEntry(EntryCommonEntity entryEntity) {
         if (StringUtils.isNotBlank(entryEntity.getChinese())) {
             entryEntity.setChineseLength(entryEntity.getChinese().length());
             entryEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+        }else {
+            entryEntity.setChineseLength(ConstantInterface.ZERO);
+            entryEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getEnglish())) {
             entryEntity.setEnglishLength(entryEntity.getEnglish().length());
             entryEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
         } else {
+            entryEntity.setEnglishLength(ConstantInterface.ZERO);
             entryEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
         }
 
-        if (StringUtils.isNotBlank(entryEntity.getEnglishDisable())) {
+        /*if (StringUtils.isNotBlank(entryEntity.getEnglishDisable())) {
             entryEntity.setEnglishDisableLength(entryEntity.getEnglishDisable().length());
-        }
+        }*/
         if (StringUtils.isNotBlank(entryEntity.getRussian())) {
             entryEntity.setRussianLength(entryEntity.getRussian().length());
             entryEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
         } else {
+            entryEntity.setRussianLength(ConstantInterface.ZERO);
             entryEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getSpanish())) {
             entryEntity.setSpanishLength(entryEntity.getSpanish().length());
             entryEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
         } else {
+            entryEntity.setSpanishLength(ConstantInterface.ZERO);
             entryEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
         }
         if (StringUtils.isNotBlank(entryEntity.getFrench())) {
             entryEntity.setFrenchLength(entryEntity.getFrench().length());
             entryEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
         } else {
+            entryEntity.setFrenchLength(ConstantInterface.ZERO);
             entryEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
         }
        /* //是否最新版本
@@ -1030,11 +1043,12 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 }
                 EntryOperate entryOperate = new EntryOperate();
 
-                if (entryEntity.getEntryState() == 3) {
-                    entryOperate.setOperateContent("审核通过");
-                }
+//                if (entryEntity.getEntryState() == 3) {
+//                    entryOperate.setOperateContent("审核通过");
+//                }
                 entryOperate.setNotes(note);
-
+                entryOperate.setType(ConstantInterface.OPERATION_TYPE_AUDIT);
+                entryOperate.setOperateContent("词条审核");
                 int insert = constructOperate(entryOperate, entryID, request);
                 if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
                     log.error(" t_entry_operate update insert error ! ");

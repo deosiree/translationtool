@@ -8,8 +8,6 @@ import com.shr.translationtoolservice.entity.VersionTable;
 import com.shr.translationtoolservice.service.VersionTableService;
 import com.shr.translationtoolservice.dao.VersionTableMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,15 +28,15 @@ public class VersionTableServiceImpl extends ServiceImpl<VersionTableMapper, Ver
     private VersionTableMapper versionTableMapper;
 
     @Override
-    public ResponseListModel<VersionTable> getVersionTableByCondition(String version, Integer pageIndex, Integer pageSize) {
+    public ResponseListModel<VersionTable> getVersionTableByCondition(VersionTable versionTable, Integer pageIndex, Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
         if (commonUtils.checkPage(pageIndex,pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
             // 分页查询数据
-            List<VersionTable> versionInfoByVersion = versionTableMapper.getVersionTableByCondition(version,offset,pageSize);
+            List<VersionTable> versionInfoByVersion = versionTableMapper.getVersionTableByCondition(versionTable,offset,pageSize);
             responseListModel.setList(versionInfoByVersion);
             // 查询符合条件的数据总数
-            Integer total = versionTableMapper.getTotalByCondition(version);
+            Integer total = versionTableMapper.getTotalByCondition(versionTable);
             responseListModel.setTotalNum(total);
         }
         return responseListModel;

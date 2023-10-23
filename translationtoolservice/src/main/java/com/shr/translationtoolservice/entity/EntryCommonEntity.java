@@ -203,7 +203,7 @@ public class EntryCommonEntity implements Serializable {
     private String typeId;
 
 
-    @AnjiDescription("环境/功能 备注")
+//    @AnjiDescription("环境/功能 备注")
     private String environmentRemark;
 
     @TableField(exist = false)

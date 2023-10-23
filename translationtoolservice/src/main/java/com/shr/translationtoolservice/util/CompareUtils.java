@@ -51,7 +51,8 @@ public class CompareUtils {
                 for (PropertyDescriptor pd : pds) {
                     String name = pd.getName();
                     //String label = descsMap.get(name);
-                    if (ignoreList != null && !ignoreList.contains(name)) {
+                    // TODO !ignoreList.contains(name)
+                    if (ignoreList != null && ignoreList.contains(name)) {
                         continue;
                     }
                     Method readMethod = pd.getReadMethod();

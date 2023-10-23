@@ -31,6 +31,7 @@ public class ConstantInterface {
     public static final char SLASH_SEPARATOR1 = '/';
     public static final int PRIORITY_MIN = 1;
     public static final int PRIORITY_MAX = 5;
+    public static final int ZERO = 0;
     public static final int DB_SUCCESS_RESULT = 1;
     public static final String XLS_SUFFIX = ".xls";
     public static final String TASK_ENABLE = "0";
@@ -52,7 +53,7 @@ public class ConstantInterface {
     public static final String TRANSLATING = "正在翻译";
 
     public static final String OPERATION_TYPE_INSERT = "新增";
-    public static final String OPERATION_TYPE_UPDATE = "更新";
+    public static final String OPERATION_TYPE_UPDATE = "编辑";
     public static final String OPERATION_TYPE_DELETE = "删除";
     public static final String OPERATION_TYPE_UPGRATE = "升级";
     public static final String OPERATION_TYPE_AUDIT = "审核";

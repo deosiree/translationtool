@@ -40,9 +40,9 @@ public interface VersionTableMapper extends BaseMapper<VersionTable> {
     //通过版本和名字查询版本库重复的词条
     List<VersionEntity> getReVersionTableByName(@Param("entryEntities")  List<EntryCommonEntity> entryEntities, @Param("tableName") String versionTableName,@Param("version")  String version);
 
-    List<VersionTable> getVersionTableByCondition(@Param("version") String version, @Param("offset") Integer pageIndex, @Param("limit") Integer pageSize);
+    List<VersionTable> getVersionTableByCondition(@Param("versionTable") VersionTable versionTable, @Param("offset") Integer pageIndex, @Param("limit") Integer pageSize);
 
-    Integer getTotalByCondition(@Param("version") String version);
+    Integer getTotalByCondition(@Param("versionTable") VersionTable versionTable);
 
     List<VersionTable> getVersionTableByIds(@Param("ids") List<String> ids);
 

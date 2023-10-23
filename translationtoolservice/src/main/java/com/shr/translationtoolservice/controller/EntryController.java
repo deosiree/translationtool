@@ -394,10 +394,10 @@ public class EntryController extends BaseController {
     @PostMapping("/getVersionTableByCondition")
     @ApiOperation("查看版本库信息(条件查询)")
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getVersionTableByCondition(String version,
+    public HttpResponse<ResponseListModel> getVersionTableByCondition(@RequestBody VersionTable versionTable,
                                                                       @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize){
-        return checkResult(versionTableService.getVersionTableByCondition(version,pageIndex,pageSize) );
+        return checkResult(versionTableService.getVersionTableByCondition(versionTable,pageIndex,pageSize) );
     }
 
     @PostMapping("/batchDeleteVersionTable")

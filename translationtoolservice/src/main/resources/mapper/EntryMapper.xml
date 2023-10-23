@@ -826,7 +826,7 @@
                 #{entryEntity.remark,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
-                #{entryEntity.typeId,jdbcType=VARCHAR}
+                #{entryEntity.typeId,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
                  #{entryEntity.environmentRemark,jdbcType=VARCHAR}

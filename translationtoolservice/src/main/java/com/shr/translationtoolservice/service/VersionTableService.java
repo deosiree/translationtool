@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface VersionTableService extends IService<VersionTable> {
 
-    ResponseListModel<VersionTable> getVersionTableByCondition(String version, Integer pageIndex, Integer pageSize);
+    ResponseListModel<VersionTable> getVersionTableByCondition(VersionTable versionTable, Integer pageIndex, Integer pageSize);
 
     String batchDeleteVersionTable(List<String> ids);
 }

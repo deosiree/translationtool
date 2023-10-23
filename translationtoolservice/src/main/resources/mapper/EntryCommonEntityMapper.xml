@@ -174,25 +174,25 @@
             <if test="entryEntity.abbr != null  and entryEntity.abbr != ''">
                 abbr = #{entryEntity.abbr,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.chinese != null  and entryEntity.chinese != ''">
+            <if test="entryEntity.chinese != null ">
                 chinese = #{entryEntity.chinese,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.chineseLength != null and entryEntity.chineseLength != 0 ">
+            <if test="entryEntity.chineseLength != null">
                 chinese_length = #{entryEntity.chineseLength,jdbcType=INTEGER},
             </if>
-            <if test="entryEntity.chineseInterpretation != null and entryEntity.chineseInterpretation != ''">
+            <if test="entryEntity.chineseInterpretation != null">
                 chinese_interpretation = #{entryEntity.chineseInterpretation,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.chineseInterpretation != null and entryEntity.chineseInterpretation != ''">
-                chineseTranslateState = #{entryEntity.chineseTranslateState,jdbcType=VARCHAR},
+            <if test="entryEntity.chineseTranslateState != null and entryEntity.chineseTranslateState != ''">
+                chinese_translate_state = #{entryEntity.chineseTranslateState,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.englishInterpretation != null and entryEntity.englishInterpretation != ''">
+            <if test="entryEntity.englishInterpretation != null">
                 english_interpretation = #{entryEntity.englishInterpretation,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.entrySource != null and entryEntity.entrySource != ''">
+            <if test="entryEntity.entrySource != null">
                 entry_source = #{entryEntity.entrySource,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.entryState != null  and entryEntity.entryState != 0">
+            <if test="entryEntity.entryState != null ">
                 entry_state = #{entryEntity.entryState,jdbcType=INTEGER},
             </if>
             <if test="entryEntity.creator != null and entryEntity.creator != ''">
@@ -213,10 +213,10 @@
             <if test="entryEntity.isLatestVersion != null  ">
                 is_latest_version = #{entryEntity.isLatestVersion,jdbcType=INTEGER},
             </if>
-            <if test="entryEntity.entryLabel != null and entryEntity.entryLabel != ''">
+            <if test="entryEntity.entryLabel != null">
                 entry_label = #{entryEntity.entryLabel,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.partOfSpeech != null and entryEntity.partOfSpeech != ''">
+            <if test="entryEntity.partOfSpeech != null ">
                 part_of_speech = #{entryEntity.partOfSpeech,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.classifyId != null and entryEntity.classifyId != ''">
@@ -225,49 +225,49 @@
             <if test="entryEntity.repeatEntryId != null and entryEntity.repeatEntryId != ''">
                 repeat_entry_id = #{entryEntity.repeatEntryId,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.english != null and entryEntity.english != ''">
+            <if test="entryEntity.english != null ">
                 english =#{entryEntity.english,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.englishLength != null and entryEntity.englishLength != 0">
+            <if test="entryEntity.englishLength != null ">
                 english_length = #{entryEntity.englishLength,jdbcType=INTEGER},
             </if>
             <if test="entryEntity.englishTranslateState != null and entryEntity.englishTranslateState != ''">
                 english_translate_state = #{entryEntity.englishTranslateState,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.englishDisable != null and entryEntity.englishDisable != ''">
+            <if test="entryEntity.englishDisable != null ">
                 english_disable = #{entryEntity.englishDisable,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.englishDisableLength != null   and entryEntity.englishDisableLength != 0">
+            <if test="entryEntity.englishDisableLength != null ">
                 english_disable_length = #{entryEntity.englishDisableLength,jdbcType=INTEGER},
             </if>
-            <if test="entryEntity.russian != null and entryEntity.russian != ''">
+            <if test="entryEntity.russian != null">
                 russian = #{entryEntity.russian,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.russianLength != null  and entryEntity.russianLength != 0">
+            <if test="entryEntity.russianLength != null">
                 russian_length = #{entryEntity.russianLength,jdbcType=INTEGER},
             </if>
             <if test="entryEntity.russianTranslateState != null and entryEntity.russianTranslateState != ''">
                 russian_translate_state = #{entryEntity.russianTranslateState,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.spanish != null and entryEntity.spanish != ''">
+            <if test="entryEntity.spanish != null">
                 spanish = #{entryEntity.spanish,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.spanishLength != null and entryEntity.spanishLength != 0">
+            <if test="entryEntity.spanishLength != null">
                 spanish_length = #{entryEntity.spanishLength,jdbcType=INTEGER},
             </if>
             <if test="entryEntity.spanishTranslateState != null and entryEntity.spanishTranslateState != ''">
                 spanish_translate_state = #{entryEntity.spanishTranslateState,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.french != null and entryEntity.french != ''">
+            <if test="entryEntity.french != null">
                 french = #{entryEntity.french,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.frenchLength != null  and entryEntity.frenchLength != 0">
+            <if test="entryEntity.frenchLength != null">
                 french_length = #{entryEntity.frenchLength,jdbcType=INTEGER},
             </if>
             <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
                 type_id = #{entryEntity.typeId,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+            <if test="entryEntity.environmentRemark != null">
                 environment_remark = #{entryEntity.environmentRemark,jdbcType=VARCHAR},
             </if>
         </set>
@@ -668,10 +668,10 @@
             <if test="entryEntity.createTime != null">
                 create_time,
             </if>
-            <if test="entryEntity.update == null">
+            <if test="entryEntity.update != null">
                 `update`,
             </if>
-            <if test="entryEntity.updateTime == null">
+            <if test="entryEntity.updateTime != null">
                 update_time,
             </if>
             <if test="entryEntity.version != null">
@@ -760,11 +760,11 @@
             <if test="entryEntity.chineseInterpretation != null">
                 #{entryEntity.chineseInterpretation,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.chineseInterpretation != null">
-                #{entryEntity.chineseInterpretation,jdbcType=VARCHAR},
-            </if>
             <if test="entryEntity.chineseTranslateState != null">
                 #{entryEntity.chineseTranslateState,jdbcType=VARCHAR},
+            </if>
+            <if test="entryEntity.englishInterpretation != null">
+                #{entryEntity.englishInterpretation,jdbcType=VARCHAR},
             </if>
             <if test="entryEntity.entrySource != null">
                 #{entryEntity.entrySource,jdbcType=VARCHAR},
@@ -778,10 +778,10 @@
             <if test="entryEntity.createTime != null">
                 #{entryEntity.createTime,jdbcType=DATETIMEOFFSET},
             </if>
-            <if test="entryEntity.update == null">
+            <if test="entryEntity.update != null">
                 #{entryEntity.creator,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.updateTime == null">
+            <if test="entryEntity.updateTime != null">
                 #{entryEntity.createTime,jdbcType=DATETIMEOFFSET},
             </if>
             <if test="entryEntity.version != null">
@@ -847,10 +847,10 @@
             <if test="entryEntity.remark != null">
                 #{entryEntity.remark,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.typeId != null and entryEntity.typeId != ''">
+            <if test="entryEntity.typeId != null">
                 #{entryEntity.typeId,jdbcType=VARCHAR},
             </if>
-            <if test="entryEntity.environmentRemark != null and entryEntity.environmentRemark != ''">
+            <if test="entryEntity.environmentRemark != null">
                 #{entryEntity.environmentRemark,jdbcType=VARCHAR}
             </if>
         </trim>
@@ -902,12 +902,13 @@
         select
         <include refid="Base_Column_List"/>
         from t_entry_common
-        where russian_translate_state = '已翻译'
+        where (russian_translate_state = '已翻译'
         or french_translate_state = '已翻译'
         or english_translate_state = '已翻译'
         or chinese_translate_state = '已翻译'
-        or chinese_translate_state = '已翻译'
-
+        or chinese_translate_state = '已翻译')
+        and entry_state > 0
+        order by update_time desc
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>

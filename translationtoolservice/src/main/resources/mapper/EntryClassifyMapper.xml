@@ -31,11 +31,11 @@
         select
         <include refid="Base_Column_List"/>
         from t_entry_classify
-        where
-        <if test="department != null  and department != ''">
-            department = #{department,jdbcType=VARCHAR},
-        </if>
-
+        <where>
+            <if test="department != null  and department != ''">
+                department = #{department,jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
     <select id="getEntryClassfyByIds" resultMap="BaseResultMap">
@@ -110,7 +110,7 @@
             <if test="entryClassify.creator != null">
                 `creator`,
             </if>
-            <if test="entryClassify.create_time != null">
+            <if test="entryClassify.createTime != null">
                 `create_time`,
             </if>
         </trim>

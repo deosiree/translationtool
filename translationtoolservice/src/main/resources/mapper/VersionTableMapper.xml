@@ -9,14 +9,14 @@
         <result property="versionTableName" column="version_table_name" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="version" column="version" jdbcType="VARCHAR"/>
-        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="department" column="department" jdbcType="VARCHAR"/>
         <result property="creator" column="creator" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,version_table_name,remark,
-        version,department,creator,create_time
+        version,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
     </sql>
 
 
@@ -129,16 +129,16 @@
                 #{versionTable.remark,jdbcType=VARCHAR},
             </if>
             <if test="versionTable.version != null">
-                #{versionTable.version,jdbcType=VARCHAR}
+                #{versionTable.version,jdbcType=VARCHAR},
             </if>
             <if test="versionTable.department != null">
-                #{versionTable.department,jdbcType=VARCHAR}
+                #{versionTable.department,jdbcType=VARCHAR},
             </if>
             <if test="versionTable.creator != null">
-                #{versionTable.creator,jdbcType=VARCHAR}
+                #{versionTable.creator,jdbcType=VARCHAR},
             </if>
             <if test="versionTable.createTime != null">
-                #{versionTable.createTime,jdbcType=VARCHAR}
+                #{versionTable.createTime,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -486,24 +486,36 @@
         </if>
 
     </select>
-    <select id="getVersionTableByCondition" resultMap="BaseResultMap" parameterType="String">
+    <select id="getVersionTableByCondition" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from t_version_table
         <where>
-            <if test="version !=null and version != ''">
-                version like CONCAT('%','${version}','%' )
+            <if test="versionTable.version !=null and versionTable.version != ''">
+                and version like CONCAT('%','${versionTable.version}','%' )
+            </if>
+            <if test="versionTable.department !=null and versionTable.department != ''">
+                and department = #{versionTable.department,jdbcType=VARCHAR}
+            </if>
+            <if test="versionTable.creator !=null and versionTable.creator != ''">
+                and department = #{versionTable.creator,jdbcType=VARCHAR}
             </if>
         </where>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
     </select>
-    <select id="getTotalByCondition" resultType="java.lang.Integer" parameterType="String">
+    <select id="getTotalByCondition" resultType="java.lang.Integer">
         select count(1) from t_version_table
         <where>
-            <if test="version !=null and version != ''">
-                version like CONCAT('%','${version}','%' )
+            <if test="versionTable.version !=null and versionTable.version != ''">
+                and version like CONCAT('%','${versionTable.version}','%' )
+            </if>
+            <if test="versionTable.department !=null and versionTable.department != ''">
+                and department = #{versionTable.department,jdbcType=VARCHAR}
+            </if>
+            <if test="versionTable.creator !=null and versionTable.creator != ''">
+                and department = #{versionTable.creator,jdbcType=VARCHAR}
             </if>
         </where>
     </select>
