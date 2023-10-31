@@ -23,7 +23,7 @@ public interface EntryCommonEntityMapper extends BaseMapper<EntryCommonEntity> {
 
     int auditByIds(@Param("idList") List<String> idList,@Param("state") String state);
 
-    int auditById(String id,@Param("state") int state);
+    int auditById(@Param("id") String id,@Param("state") int state);
 
     List<EntryCommonEntity> getRepAbbrAndVersionEntry(@Param("entryEntities") List<EntryCommonEntity> entryEntities);
 

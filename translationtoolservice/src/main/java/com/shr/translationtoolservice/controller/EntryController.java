@@ -446,6 +446,8 @@ public class EntryController extends BaseController {
     @ApiOperation("查看语言代码")
     @CrossOrigin
     public HttpResponse<ResponseListModel> getLanguage() {
+
+
         ResponseListModel responseListModel = new ResponseListModel();
         List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
 
