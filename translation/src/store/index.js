@@ -7,7 +7,8 @@ export default createStore({
     menu:[],
     authority:[],
     user:null,
-    dynamicRoutes: []
+    dynamicRoutes: [],
+    tabActive:null   // 配置页面子菜单激活的tab
   },
   getters: {
   },
@@ -27,6 +28,12 @@ export default createStore({
       state.authority = []
       state.user = null
       state.dynamicRoutes = []
+    },
+    setTabActive(state, value){
+      state.tabActive = value
+    },
+    removeTabActive(state){
+      state.tabActive = null
     },
     DYNAMIC_ROUTES (state, routes) {
       state.dynamicRoutes = routes

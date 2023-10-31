@@ -9,7 +9,7 @@ const service = axios.create({
 	//这里拿线上接口测试
 	baseURL: env.dev.baseUrl,
     headers:{ //请求头
-        'Content-Type': 'application/json;charset=UTF-8',
+        // 'Content-Type': 'application/json;charset=UTF-8',
     },
     settimeout:50000,//超时时间
 });
@@ -48,10 +48,13 @@ response => {
         router.push({ path: '/' })
       }else{
         // console.log("-----------------------")
-        message.error(response.data.message || '请求失败!')
+        message.error(response.data.message || '操作失败!')
         return Promise.reject(response)
       }
       return Promise.resolve(response.data)
+    }else{
+      message.error('请求失败!')
+      return Promise.reject(response)
     }
 },
 error => {

@@ -1,9 +1,9 @@
 import request from "../request";
 
 // 查询用户
-export function queryUser(data) {
+export function queryUser(data,pageIndex,pageSize) {
     return request({
-        url: "/configManage/queryUser",
+        url: "/configManage/queryUser?pageIndex="+pageIndex+"&pageSize="+pageSize,
         method: "POST", 
         data //参数为键值对用params  对象用data
     });

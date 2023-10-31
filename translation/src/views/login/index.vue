@@ -1,20 +1,25 @@
 <template>
-  <div class="loginBg">
+  <div class="loginBg" :style="bgImg">
     <div class="loginBox">
       <div class="title"><span>{{title}}</span></div>
       <div class="loginForm">
         <div class="welcome">欢迎登录</div>
         <a-form
           :model="loginForm"
+          ref="loginFrom"
         >
           <a-form-item 
-          :rules="[{ required: true, message: 'Please input your username!' }]"
+          name="account"
+          :rules="[{ required: true, message: '请输入用户名!' }]"
           >
             <a-input v-model:value="loginForm.account" placeholder="请输入用户名">
               <template #prefix><UserOutlined style="color: rgba(0, 0, 0, 0.25)" /></template>
             </a-input>
           </a-form-item>
-          <a-form-item>
+          <a-form-item
+          name="password"
+          :rules="[{ required: true, message: '请输入密码!' }]"
+          >
             <a-input-password v-model:value="loginForm.password" placeholder="请输入密码">
               <template #prefix><LockOutlined style="color: rgba(0, 0, 0, 0.25)" /></template>
             </a-input-password>
@@ -54,23 +59,32 @@ export default {
       loading: false,
       passwordType: "password",
       redirect: undefined,
+      bgImg: {
+        backgroundImage: "url(" + require("../../assets/loginImg.png") + ")",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "100% 100%",
+      }
     };
   },
   methods: {
     
     handleLogin() {
-        login(this.loginForm).then((res) => {
-            message.info('登录成功！')
-            this.$store.commit("setData", res.data)
-            if(res.data.menu.length === 0){
-              this.$router.push('/notPermission');
-            }else{
-              this.$router.push('/translate');
-            }
-        }).catch((err) => {
-            console.log(err);
-        });
-        
+      this.$refs.loginFrom.validate().then(() => {
+          login(this.loginForm).then((res) => {
+              // message.info('登录成功！')
+              this.$store.commit("setData", res.data)
+              if(res.data.menu.length === 0){
+                this.$router.push('/notPermission');
+              }else{
+                this.$router.push('/translate');
+              }
+          }).catch((err) => {
+              console.log(err);
+          });
+      }).catch(err => {
+          console.log('error', err);
+      });
+      
     }
     
   },
@@ -80,9 +94,9 @@ export default {
 .loginBg{
   width: 100%;
   height: calc(100% - 30px);
-  background-image: url('@/assets/loginImg.png');
+  /* background-image: url('../../assets/loginImg.png');
   background-repeat: no-repeat;
-  background-size : 100% 100%;
+  background-size : 100% 100%; */
   position: relative;
 }
 .loginBox{

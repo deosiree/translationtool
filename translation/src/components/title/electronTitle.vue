@@ -7,7 +7,7 @@
       <div class="user">
         <a-dropdown>
           <a class="ant-dropdown-link" @click.prevent>
-            <span v-if="user != null">{{user.userName}}</span>
+            <span v-if="user != null">{{userInfo}}</span>
             <!-- <DownOutlined /> -->
             <div class="userLogo"></div>
           </a>
@@ -41,17 +41,27 @@ export default {
         userName:"",
         department:""
       },
+      userInfo:"",
       flag: true
     };
   },
   watch: {
     "$store.state.user" (newVal, oldVal) {
       this.user = newVal
+      if(this.user != null){
+        this.userInfo = this.user.department +" , " + this.user.userName
+      }
     }
   },
   mounted() {
     this.$nextTick(() => {
       // 页面加载完成后执行的代码
+      this.user = this.$store.state.user
+      if(this.user != null){
+        this.userInfo = this.user.department +" , " + this.user.userName
+        console.log(this.user)
+      }
+      
     })
   },
   methods: {

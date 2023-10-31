@@ -1,19 +1,29 @@
 <template>
     <div class="layout">
         <a-row type="flex">
-            <a-col flex="60px">
+            <a-col :flex="menuWidth">
                 <div class="menu">
                     <template v-for='(item,index) in menu' :key="index">
-                        <div :class="isActive === index ? 'menuItem active' : 'menuItem'" @click="clickMenu(item.url,index)">
-                            <img :src="isActive === index ? menuIcon[item.activeIcon] : menuIcon[item.icon]"/>
-                            <span>{{item.menuName}}</span>
-                        </div>
+                        <a-tooltip placement="right" :visible="showToolTip">
+                            <template #title>
+                                <span>{{item.menuName}}</span>
+                            </template>
+                            <div :class="isActive === item.url ? 'menuItem active' : 'menuItem'" @click="clickMenu(item.url,index)">
+                                <img :src="isActive === item.url ? menuIcon[item.activeIcon] : menuIcon[item.icon]"/>
+                                <span v-show="showName">{{item.menuName}}</span>
+                            </div>
+                        </a-tooltip>
+                        
                     </template>
+                    <div class="closeMenu" @click="changeMenuWidth">
+                        <LeftOutlined  v-if="showName"/>
+                        <RightOutlined v-else/>
+                    </div>
                 </div>
             </a-col>
             <a-col flex="auto">
                 <div class="content">
-                    <div style="width:100%;height:100%;background-color:white;padding:10px;">
+                    <div class="contentView">
                         <router-view />
                     </div>
                 </div>
@@ -28,38 +38,60 @@ import Entry from '../../assets/title/entry.png'
 import EntryActive from '../../assets/title/entry_active.png'
 import Config from '../../assets/title/config.png'
 import ConfigActive from '../../assets/title/config_active.png'
+import {
+  LeftOutlined,
+  RightOutlined
+} from '@ant-design/icons-vue';
 export default ({
   name: 'layout',
   components: {
-    
+    LeftOutlined,
+    RightOutlined
   },
   data() {
     return {
         menuIcon:{'Work':Work,'WorkActive':WorkActive,'Entry':Entry,'EntryActive':EntryActive,'Config':Config,'ConfigActive':ConfigActive},
         menu: [],
-        isActive: 0
+        isActive: "",
+        menuWidth: '70px',
+        showName: true,
+        showToolTip: false
     };
   },
   mounted() {
     this.$nextTick(() => {
       // 页面加载完成后执行的代码
       this.menu = this.$store.state.menu
-      if(this.menu.length > 0){
-        this.$router.push(this.menu[0].url)
-      }
+      this.isActive = this.$route.path === '/translate' ? this.menu[0].url : this.$route.path
+      this.$router.push(this.isActive)
+    //   console.log(this.$route.path)
+    //   if(this.menu.length > 0){
+    //     this.$router.push(this.menu[0].url)
+    //   }
     })
   },
   methods: {
     clickMenu(url,index) {
       this.$router.push(url)
-      this.isActive = index;
+      this.isActive = url;
+      this.$store.commit("removeTabActive")
     },
-    
+    changeMenuWidth(){
+        if(this.showName){
+            this.menuWidth = '35px'
+            this.showName = false
+            this.showToolTip = undefined
+        }else{
+            this.menuWidth = '70px'
+            this.showName = true
+            this.showToolTip = false
+        }
+    },
   },
 })
 </script>
 
-<style>
+<style lang="less" scoped>
 .layout{
     width: 100%;
     height: calc(100% - 30px);
@@ -70,16 +102,33 @@ export default ({
 }
 .menu{
     width: 100%;
-    height: 100%;
+    height: calc(100% - 20px);
     background-color: rgb(243,243,243);
     padding: 10px 0px;
     text-align: center;
+}
+.closeMenu{
+    width: 100%;
+    height: 20px;
+    // border: 1px solid #a8afac;
+    background-color: #e6e8e7;
+    position: absolute;
+    bottom: 0;
+    color: #a8afac;
 }
 .content{
     width: 100%;
     height: 100%;
     background-color: rgb(243,243,243);
-    padding: 10px;
+    padding: 10px 10px 10px 0;
+    position: relative;
+
+    .contentView{
+        position: absolute;
+        width:calc(100% - 10px);
+        height:calc(100% - 20px);
+        background-color:white;
+    }
 }
 .menu .menuItem{
     width: 100%;
@@ -108,6 +157,7 @@ export default ({
 }
 .menuItem:hover span{
     color: rgb(87,159,249);
+    cursor:default
 }
 .active{
     background-color: white;

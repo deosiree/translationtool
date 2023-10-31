@@ -14,5 +14,13 @@ module.exports = defineConfig({
     electronBuilder:{
       nodeIntegration:true
     }
-  }
+  },
+  configureWebpack: {
+    resolve: {
+      fallback: { 
+        path: require.resolve("path-browserify"),
+        fs: false
+     },
+    },
+  },
 })
