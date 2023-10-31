@@ -119,4 +119,19 @@
     from t_menu
     where id in (select menu_id from t_role_menu where role_id = #{roleId,jdbcType=VARCHAR})
   </select>
+  <select id="selectAllInfo" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_menu
+
+  </select>
+
+
+  <select id="selectMenyTotal" resultType="int">
+    select
+    count(1)
+    from t_menu
+
+  </select>
+
 </mapper>

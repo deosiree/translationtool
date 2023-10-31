@@ -83,6 +83,16 @@ public class JWTTokenUtils {
     }
 
     /**
+     * 获取部门
+     * @param token
+     * @return
+     */
+    public static String getDepartment(String token) {
+        String department = getToken(token).getClaim(Constant.USER_DEPARTMENT).asString();
+        return department;
+    }
+
+    /**
      * 获取用户操作权限列表
      * @param token
      * @return

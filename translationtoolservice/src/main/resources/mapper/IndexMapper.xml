@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.IndexMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.Index">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="entry" column="entry" jdbcType="VARCHAR"/>
+            <result property="repeatEntryId" column="repeat_entry_id" jdbcType="VARCHAR"/>
+            <result property="table1" column="table1" jdbcType="VARCHAR"/>
+            <result property="table2" column="table2" jdbcType="VARCHAR"/>
+            <result property="table3" column="table3" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,entry,repeat_entry_id,
+        table1,table2,table3
+    </sql>
+
+    <select id="getIndexByEntry" parameterType="String" resultType="com.shr.translationtoolservice.entity.Index">
+        select
+        <include refid="Base_Column_List"/>
+        from t_index
+        where entry = #{entry,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByRepeatId" parameterType="String">
+        DELETE FROM t_index WHERE repeat_entry_id=  #{repeatEntryId,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

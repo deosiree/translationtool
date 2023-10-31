@@ -20,4 +20,6 @@ public interface AuthorityMapper {
     int updateByPrimaryKey(Authority record);
 
     List<Authority> selectByRoleId(String roleId);
+
+    List<Authority> selectByMenuId(String menuId);
 }

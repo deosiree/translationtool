@@ -1,27 +1,61 @@
 spring:
+  servlet:
+    multipart:
+      #      取消上传文件大小限制
+      max-file-size: -1
+      max-request-size: -1
+
+  redis:
+    database: 0
+    host: 10.16.196.50
+    #    host: 10.4.252.102
+    password: 210093
+    port: 6379
+    timeout: 0
+    deviceChannel: device
+
   application:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     #url: jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     #
-    url: jdbc:mysql://10.16.196.232:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    url: jdbc:mysql://10.16.196.50:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
 
     username: root
-    password: root
+    password: 123456
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
 server:
   port: 18001
 
-logging.level.com.shr.centralized.inspect.restful.dao.DevicePointDao : debug
+
+#logging:
+ # config: ./logback-spring.xml
+
+
+baidu:
+  translate:
+    appid: 20230705001734655
+    securityKey: Msyn6CIJy97uY1MXLW0c
+
+logging.level.com.shr.translationtoolservice.dao: debug
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
   type-aliases-package: com.shr.translationtoolservice.entity
   configuration:
     cache-enable: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #call-setters-on-nulls: true
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.shr.translationtoolservice.entity
+  configuration:
+    cache-enable: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #call-setters-on-nulls: true
 #是否开启swagger
 swagger:
   enabled: true

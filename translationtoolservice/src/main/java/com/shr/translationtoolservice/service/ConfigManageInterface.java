@@ -26,7 +26,7 @@ public interface ConfigManageInterface {
 
     String bindRoleInfo(ConfigResUser configResUser);
 
-    String bindPermission(RoleAuthority roleAuthority);
+    String bindPermission(RoleAuthorityRes roleAuthorityres);
 
     List<ConfigResUser>  queryUserInfo(ConfigResUser user, Integer pageIndex, Integer pageIndex1);
 
@@ -43,4 +43,18 @@ public interface ConfigManageInterface {
     String deleteVersionInfo(List<String> idList);
 
     String addVersionInfo(EntryVersion entryVersion);
+
+    List<Menu> getMenuInfoByRole(String roleID);
+
+    int getMenuTotal();
+
+    List<EntryProperty> getPropertyByName(String propertyName, Integer pageIndex, Integer pageSize);
+
+    int getPropertyByNameTotal(String propertyName);
+
+    String updateProperty(EntryProperty entryProperty);
+
+    String addProperty(EntryProperty entryProperty);
+
+    String deleteProperty(List<String> ids);
 }

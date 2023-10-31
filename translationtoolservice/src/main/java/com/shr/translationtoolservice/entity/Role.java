@@ -2,6 +2,8 @@ package com.shr.translationtoolservice.entity;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class Role {
     /**
@@ -23,4 +25,6 @@ public class Role {
     * 是否默认角色 1是 0否
     */
     private Integer isDefault;
+
+
 }

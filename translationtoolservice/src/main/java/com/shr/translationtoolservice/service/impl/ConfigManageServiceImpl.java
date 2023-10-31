@@ -1,24 +1,24 @@
 package com.shr.translationtoolservice.service.impl;
 
 
-import com.shr.translationtoolservice.dao.EntryVersionMapper;
-import com.shr.translationtoolservice.dao.RoleAuthorityMapper;
-import com.shr.translationtoolservice.dao.RoleMapper;
-import com.shr.translationtoolservice.dao.UserMapper;
+import com.jayway.jsonpath.internal.function.numeric.Max;
+import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.ConfigManageInterface;
 import com.shr.translationtoolservice.util.CommonUtils;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName ConfigManageService
@@ -28,20 +28,31 @@ import java.util.logging.Logger;
  **/
 @Service
 @Slf4j
+@Transactional
 public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
     @Autowired
-    RoleMapper roleMapper;
+    private RoleMapper roleMapper;
     @Autowired
-    EntryVersionMapper entryVersionMapper;
+    private EntryVersionMapper entryVersionMapper;
+    @Autowired
+    private AuthorityMapper authorityMapper;
+    @Autowired
+    private RoleMenuEntryMapper roleMenuEntryMapper;
+    @Autowired
+    private EntryOperateMapper entryOperateMapper;
 
+    @Autowired
+    private MenuMapper menuMapper;
 
     @Autowired
-    CommonUtils commonUtils;
+    private CommonUtils commonUtils;
     @Autowired
-    RoleAuthorityMapper roleAuthorityMapper;
+    private EntryPropertyMapper propertyMapper;
+    @Autowired
+    private RoleAuthorityEntryMapper roleAuthorityEntryMapper;
     private final static Logger logger = Logger.getLogger("ConfigManageServiceImpl");
 
     @Override
@@ -78,7 +89,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
                 entryVersions = entryVersionMapper.queryVersionInfo(pageSize, offset);
             }
         } else {
-            entryVersions.add(entryVersionMapper.queryVersionInfoByName(versionName));
+            entryVersions.addAll(entryVersionMapper.queryVersionInfoByName(versionName));
         }
 
         return entryVersions;
@@ -93,8 +104,16 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     @Override
     public String updateVersionInfo(EntryVersion entryVersion) {
         //重名校验
-        if (findVersionSameName(entryVersion.getName())) {
+        if (findVersionSameName(entryVersion.getName(), entryVersion.getId())) {
             return ErrorCodeList.NAME_EXIST;
+        }
+        //isDefault 判断
+        if (Objects.nonNull(entryVersion.getIsDefault()) && 1 == entryVersion.getIsDefault()) {
+            for (EntryVersion entryVersion1 : checkOnlyDefault(entryVersion)) {
+                if (!entryVersion.getId().equals(entryVersion1.getId())){
+                    entryVersionMapper.updateDefault0();
+                }
+            }
         }
         int update = entryVersionMapper.updateVersionInfo(entryVersion);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
@@ -103,25 +122,126 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         return ConstantInterface.OK_STR;
     }
 
+    //查看default 是否大于1
+    private List<EntryVersion> checkOnlyDefault(EntryVersion entryVersion) {
+        boolean a;
+        int isDeault = entryVersion.getIsDefault();
+        List<EntryVersion> entryVersions = entryVersionMapper.getVersionByDefault(isDeault);
+        return entryVersions;
+
+    }
+
     @Override
     public String deleteVersionInfo(List<String> idList) {
-        int delete =  entryVersionMapper.deleteVersionInfo(idList);
+        int delete = entryVersionMapper.deleteVersionInfo(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
-        return  ConstantInterface.OK_STR;
+        return ConstantInterface.OK_STR;
     }
 
     @Override
     public String addVersionInfo(EntryVersion entryVersion) {
         String uuid = commonUtils.getUUID();
         entryVersion.setId(uuid);
+        //重名校验
+        if (findVersionSameName(entryVersion.getName(), entryVersion.getId())) {
+            return ErrorCodeList.NAME_EXIST;
+        }
+
+
+        //isDefault 判断
+        if (Objects.nonNull(entryVersion.getIsDefault()) && 1 == entryVersion.getIsDefault()) {
+             List<EntryVersion> entryVersions = checkOnlyDefault(entryVersion);
+            if (entryVersions.size()>0) {
+                 entryVersionMapper.updateDefault0();
+            }
+        }
         int insert = entryVersionMapper.addVersionInfo(entryVersion);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
         }
         return uuid;
     }
+
+    @Override
+    public List<Menu> getMenuInfoByRole(String roleID) {
+        List<Menu> menus = menuMapper.selectAllInfo();
+        for (Menu menu : menus) {
+
+            List<Authority> authorities = authorityMapper.selectByMenuId(menu.getId());
+            //查询role_menu roleID
+            List<String> menuIds = roleMenuEntryMapper.getMenuIDByRoleID(roleID);
+            menu.setClecked(menuIds.contains(menu.getId()));
+            List<String> authIds = roleAuthorityEntryMapper.selectAuthID(roleID);
+            for (Authority authority : authorities) {
+                authority.setClecked(authIds.contains(authority.getId()));
+            }
+            List<Authority> authorities1 = authorities.stream().sorted(Comparator.comparing(Authority::getRank)).collect(Collectors.toList());
+
+            menu.setAuthorities(authorities1);
+
+        }
+        List<Menu> menus1 = menus.stream().sorted(Comparator.comparing(Menu::getRank)).collect(Collectors.toList());
+        return menus1;
+    }
+
+    @Override
+    public int getMenuTotal() {
+        return menuMapper.selectMenyTotal();
+    }
+
+    @Override
+    public List<EntryProperty> getPropertyByName(String propertyName, Integer pageIndex, Integer pageSize) {
+        List<EntryProperty> entryProperties = new ArrayList<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            entryProperties = propertyMapper.getPropertyByName(propertyName,pageSize, offset);
+        }
+
+        return entryProperties;
+    }
+
+    @Override
+    public int getPropertyByNameTotal(String propertyName) {
+        return    propertyMapper.getPropertyByNameTotal(propertyName);
+    }
+
+    @Override
+    public String updateProperty(EntryProperty entryProperty) {
+        int update = propertyMapper.updateProperty(entryProperty);
+        if (update != ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String addProperty(EntryProperty entryProperty) {
+        // 判断该词性是否已存在
+        List<EntryProperty> list = propertyMapper.selectProperty(entryProperty.getPropertyName());
+        if (!list.isEmpty()){
+            return ErrorCodeList.OBJECT_HAS_EXIST;
+        }
+        String uuid = commonUtils.getUUID();
+        entryProperty.setId(uuid);
+        int insert = propertyMapper.insertProperty(entryProperty);
+        if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+            log.error(" t_entry_property update insert error ! ");
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return uuid;
+    }
+
+    @Override
+    public String deleteProperty(List<String> ids) {
+        int delete = propertyMapper.deleteProperty(ids);
+        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
 
     @Override
     public String deleteUserInfoByList(List<String> idList) {
@@ -134,15 +254,13 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String updateUserInfo(ConfigResUser user) {
-        if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())){
+        if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())) {
             Role role = roleMapper.getRoleByName(user.getRoleName());
             //未找到角色信息
-            if (Objects.isNull(role)){
+            if (Objects.isNull(role)) {
                 return ErrorCodeList.UPDATE_ERROR;
             }
             user.setRoleId(role.getId());
-        }else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())){
-            return ErrorCodeList.INPUT_IS_NULL;
         }
 
         int update = userMapper.updateUserInfo(user);
@@ -163,7 +281,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
                 roleEntities = roleMapper.getRole(pageSize, offset);
             }
         } else {
-            roleEntities.add(roleMapper.getRoleByName(roleName));
+            roleEntities.addAll(roleMapper.matchRoleByName(roleName));
         }
 
         return roleEntities;
@@ -172,6 +290,8 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String deleteRoleInfo(List<String> idList) {
+        roleMenuEntryMapper.deleteByRoleIds(idList);
+        roleAuthorityEntryMapper.deleteByRoleIds(idList);
         int delete = roleMapper.deleteByList(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
@@ -181,14 +301,10 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String updateRoleInfo(Role role) {
-        if (Objects.nonNull(role.getIsDefault()) && 1 == role.getIsDefault()){
-            int update = roleMapper.updateDefault0();
-            if (update != ConstantInterface.DB_SUCCESS_RESULT){
-                logger.info(" **** is_default 1 => 0 error ! **** ");
-                return ErrorCodeList.UPDATE_ERROR;
-            }
+        if (Objects.nonNull(role.getIsDefault()) && 1 == role.getIsDefault()) {
+            roleMapper.updateDefault0();
         }
-        int update = roleMapper.updateByPrimaryKeySelective(role);
+        int update = roleMapper.updateEntry(role);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
@@ -201,8 +317,11 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         if (findRoleSameName(role.getRoleName())) {
             return ErrorCodeList.NAME_EXIST;
         }
-        if (Objects.isNull(role.getIsDefault())){
+        if (Objects.isNull(role.getIsDefault())) {
             role.setIsDefault(0);
+            //其他角色default改成0
+        } else if (ConstantInterface.IS_DEFAULT.equals(role.getIsDefault())) {
+            roleMapper.updateDefault0();
         }
         role.setId(commonUtils.getUUID());
         int insert = roleMapper.insertSelective(role);
@@ -228,7 +347,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             if (Objects.isNull(role) || StringUtils.isBlank(role.getId())) {
                 logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
                 String roleID = getDefaultRoleID();
-                if (StringUtils.isBlank(roleID)){
+                if (StringUtils.isBlank(roleID)) {
                     logger.warning(" **** 未找到用户角色ID ！ **** ");
                     return ErrorCodeList.INSERT_ERROR;
                 }
@@ -237,18 +356,25 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             }
             newUser.setRoleId(role.getId());
         } else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())) {
+
+            //设置默认用户角色
             String roleID = getDefaultRoleID();
-            if (StringUtils.isBlank(roleID)){
+            if (StringUtils.isBlank(roleID)) {
                 logger.warning(" **** 未找到用户角色ID ！ **** ");
                 return ErrorCodeList.INSERT_ERROR;
             }
             newUser.setRoleId(roleID);
+            //
+        } else if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isBlank(user.getRoleName())) {
+            String roleID = roleMapper.getDefault1();
+
+            user.setRoleId(roleID);
         }
 
         newUser.setUserName(user.getUserName());
         newUser.setDepartment(user.getDepartment());
         newUser.setJobNumber(user.getJobNumber());
-
+        newUser.setRoleId(user.getRoleId());
         int insert = userMapper.insertSelective(newUser);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
@@ -257,11 +383,11 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     }
 
     //查找用户角色ID
-    public String getDefaultRoleID(){
+    public String getDefaultRoleID() {
         logger.warning(" **** roleID 匹配异常，已默认设置角色为用户 ！ **** ");
         Role userRole = roleMapper.getRoleByName("用户");
-        if (Objects.isNull(userRole)){
-            logger.warning( " **** 未找到用户角色 ！ **** ");
+        if (Objects.isNull(userRole)) {
+            logger.warning(" **** 未找到用户角色 ！ **** ");
             return "error";
         }
         return userRole.getId();
@@ -278,7 +404,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             if (Objects.nonNull(role)) {
                 configResUser.setRoleId(role.getId());
             } else {
-                logger.info(" role return waring !");
+                return ErrorCodeList.UPDATE_ERROR;
             }
 
         } else if (StringUtils.isBlank(configResUser.getRoleId()) && StringUtils.isBlank(configResUser.getRoleName())) {
@@ -293,23 +419,49 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     }
 
     @Override
-    public String bindPermission(RoleAuthority roleAuthority) {
+    @Transactional
+    public String bindPermission(RoleAuthorityRes roleAuthorityRes) {
+        //先查 如果存在先删除再insert，不存在直接insert
 
-
-        if (StringUtils.isBlank(roleAuthority.getRoleID())) {
+        if (StringUtils.isBlank(roleAuthorityRes.getRoleID())) {
             return ErrorCodeList.INPUT_IS_NULL;
         }
-        int delete = roleAuthorityMapper.deleteAuthorityByID(roleAuthority.getRoleID());
-        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
-            return ErrorCodeList.UPDATE_ERROR;
+
+        //绑定角色
+        RoleAuthorityEntity roleAuthorityEntity = new RoleAuthorityEntity();
+
+        roleAuthorityEntity.setRoleId(roleAuthorityRes.getRoleID());
+
+        roleAuthorityEntryMapper.deleteAuthorityByID(roleAuthorityRes.getRoleID());
+
+        for (String authId : roleAuthorityRes.getAuthorityIDList()) {
+            roleAuthorityEntity.setId(commonUtils.getUUID());
+            roleAuthorityEntity.setAuthorityId(authId);
+
+            int insert = roleAuthorityEntryMapper.insertPermission(roleAuthorityEntity);
+
+
         }
 
-        for (String authId : roleAuthority.getAuthorityIDList()) {
-            int bind = roleAuthorityMapper.bindPermission(authId, roleAuthority.getRoleID());
-            if (bind != ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.UPDATE_ERROR;
+        //绑定菜单
+        // List<String> menuIDByRoleID = roleMenuEntryMapper.getMenuIDByRoleID(roleAuthorityRes.getRoleID());
+        RoleMenuEntry roleMenuEntry = new RoleMenuEntry();
+
+        roleMenuEntry.setRoleId(roleAuthorityEntity.getRoleId());
+
+        int delete1 = roleMenuEntryMapper.deleteByRoleId(roleAuthorityRes.getRoleID());
+        if (delete1 < ConstantInterface.DB_SUCCESS_RESULT) {
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        for (String menuId : roleAuthorityRes.getMenuIDList()) {
+            roleMenuEntry.setId(commonUtils.getUUID());
+            roleMenuEntry.setMenuId(menuId);
+            int insert = roleMenuEntryMapper.insertMenuIDByRoleID(roleMenuEntry);
+            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+                return ErrorCodeList.INSERT_ERROR;
             }
         }
+
         return ConstantInterface.OK_STR;
     }
 
@@ -333,10 +485,14 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     }
 
     //校验版本重名 重名 true
-    private boolean findVersionSameName(String versionName) {
-        EntryVersion entryVersion = entryVersionMapper.queryVersionInfoByName(versionName);
-        if (Objects.nonNull(entryVersion)) {
-            return true;
+    private boolean findVersionSameName(String versionName, String id) {
+        List<EntryVersion> entryVersions = entryVersionMapper.queryVersionInfoByName(versionName);
+        if (Objects.nonNull(entryVersions) &&  entryVersions.size()>0) {
+            for (EntryVersion entryVersion : entryVersions) {
+                if (!id.equals(entryVersion.getId()) && versionName.equals(entryVersion.getName())) {
+                    return true;
+                }
+            }
         }
         return false;
     }

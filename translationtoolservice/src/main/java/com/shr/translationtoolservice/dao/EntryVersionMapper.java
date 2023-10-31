@@ -14,14 +14,19 @@ public interface EntryVersionMapper {
     List<EntryVersion> queryVersionInfo(@Param("limit") int limit,
                                         @Param("offset") int offset);
 
-    EntryVersion queryVersionInfoByName(String versionName);
+    List<EntryVersion> queryVersionInfoByName(String versionName);
 
     int getVersionTotalNum(String versionName);
 
-    Integer updateVersionInfo(EntryVersion entryVersion);
+    Integer updateVersionInfo(@Param("entryVersion") EntryVersion entryVersion);
 
     Integer deleteVersionInfo(List<String> idList);
 
-    Integer addVersionInfo(EntryVersion entryVersion);
+    Integer addVersionInfo(@Param("entryVersion") EntryVersion entryVersion);
 
+    List<EntryVersion> getVersionByDefault(int isDeault);
+
+    int updateDefault0();
+
+    EntryVersion getNewVersion();
 }

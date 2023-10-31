@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.EntryLabelMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryLabel">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="labelName" column="label_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,label_name
+    </sql>
+
+    <select id="getLabels" parameterType="String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+         from t_entry_label
+         where 1=1
+        <if test="entryLabel.id != null and entryLabel.id != ''">
+            and  id = #{entryLabel.id,jdbcType=VARCHAR}
+        </if>
+        <if test="entryLabel.labelName != null and entryLabel.labelName != ''">
+            and  label_name = #{entryLabel.labelName,jdbcType=VARCHAR}
+        </if>
+         <if test="limit >= 0 and offset >= 0">
+        LIMIT #{limit} OFFSET #{offset}
+    </if>
+    </select>
+
+    <select id="getLabelsTotal" parameterType="String" resultType="int">
+        select
+        count(1)
+        from t_entry_label
+        where 1=1
+        <if test="entryLabel.id != null and entryLabel.id != ''">
+            and  id = #{entryLabel.id,jdbcType=VARCHAR}
+        </if>
+        <if test="entryLabel.labelName != null and entryLabel.labelName != ''">
+            and  label_name = #{entryLabel.labelName,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+
+    <delete id="deleteLabel" parameterType="arraylist">
+
+
+    </delete>
+</mapper>

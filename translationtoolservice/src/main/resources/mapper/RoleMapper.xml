@@ -22,13 +22,35 @@
     from t_role
     where id = #{id,jdbcType=VARCHAR}
   </select>
+
+
+
+  <select id="getDefault1" resultType="java.lang.String">
+    <!--@mbg.generated-->
+    select
+    id
+    from t_role
+    where is_default = "1"
+  </select>
+
   <update id="updateDefault0" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
 
     update t_role set is_default = 0 where is_default = 1
 
   </update>
 
+  <select id="matchRoleByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select
+    <include refid="Base_Column_List"/>
+    from t_role
 
+    <if test="roleName != null and roleName != ''">
+      where
+      role_name like CONCAT('%','${roleName}','%' )
+    </if>
+
+  </select>
 
   <select id="getRoleByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
@@ -38,7 +60,7 @@
 
     <if test="roleName != null and roleName != ''">
       where
-      role_name like CONCAT('%','${roleName}','%' )
+      role_name =#{roleName}
     </if>
 
   </select>
@@ -120,22 +142,24 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.shr.translationtoolservice.entity.Role">
+
+  <update id="updateEntry" parameterType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
     update t_role
     <set>
-      <if test="roleName != null">
-        role_name = #{roleName,jdbcType=VARCHAR},
+      <if test="role.roleName != null  and role.roleName != '' ">
+        role_name = #{role.roleName,jdbcType=VARCHAR},
       </if>
-      <if test="describe != null">
-        `describe` = #{describe,jdbcType=VARCHAR},
+      <if test="role.describe != null and role.describe != '' ">
+        `describe` = #{role.describe,jdbcType=VARCHAR},
       </if>
-      <if test="isDefault != null">
-        is_default = #{isDefault,jdbcType=INTEGER},
+      <if test="role.isDefault != null   ">
+        is_default = #{role.isDefault,jdbcType=INTEGER},
       </if>
     </set>
-    where id = #{id,jdbcType=VARCHAR}
+    where id = #{role.id,jdbcType=VARCHAR}
   </update>
+
   <update id="updateByPrimaryKey" parameterType="com.shr.translationtoolservice.entity.Role">
     <!--@mbg.generated-->
     update t_role

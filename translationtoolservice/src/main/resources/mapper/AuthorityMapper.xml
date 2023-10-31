@@ -9,10 +9,11 @@
     <result column="authority_code" jdbcType="VARCHAR" property="authorityCode" />
     <result column="uri" jdbcType="VARCHAR" property="uri" />
     <result column="menu_id" jdbcType="VARCHAR" property="menuId" />
+    <result column="rank" jdbcType="INTEGER" property="rank" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, authority_name, authority_code, uri, menu_id
+    id, authority_name, authority_code, uri, menu_id,`rank`
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
@@ -105,4 +106,11 @@
     from t_authority
     where id in (select authority_id from t_role_authority where role_id = #{roleId,jdbcType=VARCHAR})
   </select>
+  <select id="selectByMenuId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_authority
+    where menu_id =  #{menuId,jdbcType=VARCHAR}
+  </select>
+
 </mapper>

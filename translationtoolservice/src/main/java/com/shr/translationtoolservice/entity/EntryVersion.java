@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 /**
@@ -12,11 +13,12 @@ import lombok.Data;
 public class EntryVersion {
     private String id;
 
+    @TableField("name")
     private String name;
 
-    private String isDefault;
+    private int isDefault;
 
-    private String isSelect;
+    private int isSelect;
 
     private String notes;
 }

@@ -9,6 +9,7 @@
     <result column="job_number" jdbcType="VARCHAR" property="jobNumber" />
     <result column="department" jdbcType="VARCHAR" property="department" />
     <result column="role_id" jdbcType="VARCHAR" property="roleId" />
+    <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
   </resultMap>
   <resultMap id="BaseConfigResUserMap" type="com.shr.translationtoolservice.entity.ConfigResUser">
     <!--@mbg.generated-->
@@ -22,14 +23,14 @@
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, user_name, job_number, department, role_id
+    u.id, user_name, job_number, department, role_id, role_name
   </sql>
   <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
     <include refid="Base_Column_List" />
-    from t_user
-    where user_name = #{userName,jdbcType=VARCHAR}
+    from t_user u,t_role r
+    where u.user_name = #{userName,jdbcType=VARCHAR} and r.id = u.role_id
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     <!--@mbg.generated-->
@@ -142,7 +143,7 @@
 
   <select id="querUser" resultMap="BaseConfigResUserMap">
     select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
-    from t_user t1  join t_role t2 on 1=1
+    from t_user t1  , t_role t2 where   t1.role_id = t2.id
     <if test="user.userName != null and user.userName != ''">
       and
       user_name like CONCAT('%','${user.userName}','%' )
@@ -161,8 +162,6 @@
       role_id= #{user.roleId,jdbcType=VARCHAR}
 
     </if>
-    and
-    t1.role_id=t2.id
 
     <if test="limit >= 0 and offset >= 0">
       LIMIT #{limit} OFFSET #{offset}
@@ -197,8 +196,9 @@
       </if>
       <if test="user.roleName != null and user.roleName != ''">
 
-        role_id=  #{user.roleId,jdbcType=VARCHAR}),
+        role_id=  #{user.roleId,jdbcType=VARCHAR},
       </if>
+
     </set>
     where id = #{user.id,jdbcType=VARCHAR}
   </update>

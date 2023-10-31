@@ -47,4 +47,6 @@ public class Menu {
     private List<Menu> children;
 
     private List<Authority> authorities;
+
+    private boolean clecked;
 }
