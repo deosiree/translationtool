@@ -35,6 +35,8 @@ public class ErrorCodeList {
 
     private final static List<String> ErrorCodeList = new ArrayList<>();
 
+
+
     static {
 
         ErrorCodeList.add(PARAM_IS_ILL);
@@ -58,6 +60,15 @@ public class ErrorCodeList {
     private ErrorCodeList()
     {
 
+    }
+
+
+    public static  String insertResult(int insert){
+        if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+            return INSERT_ERROR;
+        }else {
+            return ConstantInterface.OK_STR;
+        }
     }
 
     public static List<String> getErrorCodeList()

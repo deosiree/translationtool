@@ -30,7 +30,7 @@ import java.util.Map;
 @Component
 @Slf4j
 @PropertySource("classpath:application.yml")
-public class Translate {
+public class TranslateUtils {
 
 
     // 对接的api为百度翻译

@@ -1,0 +1,27 @@
+package com.shr.translationtoolservice.dao;
+
+import com.shr.translationtoolservice.entity.TaskInfoEntity;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
+import java.util.List;
+
+/**
+ * @Entity com.shr.translationtoolservice.entity.TaskInfoEntity
+ */
+@Mapper
+public interface TaskInfoMapper extends BaseMapper<TaskInfoEntity> {
+
+    List<TaskInfoEntity> getTaskInfo(@Param("taskInfoEntity") TaskInfoEntity taskInfoEntity, @Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
+
+
+    int insertList(List<TaskInfoEntity> taskInfoEntities);
+
+    int taskSubmission(@Param("taskIDs") List<String> taskIDs,@Param("nextState") int nextState,@Param("date")  Date date);
+}
+
+
+
+

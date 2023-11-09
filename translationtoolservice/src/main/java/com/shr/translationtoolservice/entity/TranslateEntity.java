@@ -1,17 +1,61 @@
 package com.shr.translationtoolservice.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * @ClassName TranslateEntity
- * @USER: Cola
- * @Date 2023/7/6 0006 10:06
- **/
+ * 
+ * @TableName t_translate
+ */
+@TableName(value ="t_translate")
 @Data
-public class TranslateEntity {
-   private List<LanguageEntity> languageEntities;
+public class TranslateEntity implements Serializable {
+    /**
+     * 主键
+     */
+    @TableField(value = "id")
+    private String id;
+
+    /**
+     * 词条
+     */
+    @TableField(value = "entry")
     private String entry;
-    private String source;
+
+    /**
+     * 翻译
+     */
+    @TableField(value = "translate")
+    private String translate;
+
+    /**
+     * 唯一属性
+     */
+    @TableField(value = "unique")
+    private String unique;
+
+    /**
+     * 备注
+     */
+    @TableField(value = "remark")
+    private String remark;
+
+    /**
+     * 翻译类型
+     */
+    @TableField(value = "type")
+    private String type;
+
+    /**
+     * 可见范围
+     */
+    @TableField(value = "visual_range")
+    private String visual_range;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

@@ -11,5 +11,5 @@ import java.util.List;
  **/
 @Data
 public class TranslateEntities {
-    private List<TranslateEntity> translateEntities;
+    private List<Translate> translateEntities;
 }

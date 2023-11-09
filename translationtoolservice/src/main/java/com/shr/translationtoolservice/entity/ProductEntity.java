@@ -10,19 +10,19 @@ import lombok.Data;
 
 /**
  * 
- * @TableName t_version
+ * @TableName t_product
  */
-@TableName(value ="t_version")
+@TableName(value ="t_product")
 @Data
-public class VersionEntity implements Serializable {
+public class ProductEntity implements Serializable {
     /**
      * 主键
      */
-    @TableId(value = "id")
+    @TableField(value = "id")
     private String id;
 
     /**
-     * 版本名字
+     * 产品名字
      */
     @TableField(value = "name")
     private String name;
@@ -38,12 +38,6 @@ public class VersionEntity implements Serializable {
      */
     @TableField(value = "create_time")
     private Date createTime;
-
-    /**
-     * 产品id
-     */
-    @TableField(value = "product_id")
-    private String productId;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

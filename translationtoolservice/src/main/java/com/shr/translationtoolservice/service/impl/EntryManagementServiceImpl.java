@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EntryManagementServiceImpl implements EntryManagementService {
     @Autowired
-    private Translate translate;
+    private TranslateUtils translate;
     @Autowired
     private EntryProductEntityMapper entryProductEntityMapper;
     @Autowired
@@ -928,16 +928,15 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     @Override
     public TranslateEntities translate(String name, String type) {
 
-
         TranslateEntities translateEntities = new TranslateEntities();
-        List<TranslateEntity> translateEntityList = new ArrayList<>();
+        List<Translate> translateEntityList = new ArrayList<>();
         List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
-        TranslateEntity baiduEntities = baiduTranslate(name, type, tLanguages);
+        Translate baiduEntities = baiduTranslate(name, type, tLanguages);
         translateEntityList.add(baiduEntities);
 
 
         //有道翻译
-        TranslateEntity youdao_Entities = youdaoTranslate(name, type, tLanguages);
+        Translate youdao_Entities = youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
 
@@ -945,9 +944,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         return translateEntities;
     }
 
-    private TranslateEntity youdaoTranslate(String name, String type, List<TLanguage> tLanguages) {
+    private Translate youdaoTranslate(String name, String type, List<TLanguage> tLanguages) {
         // YoudaoTrans.readJsonFromUrl(name,ConstantInterface.ENGLISH);]
-        TranslateEntity entryEntity = new TranslateEntity();
+        Translate entryEntity = new Translate();
         //QueryWrapper queryWrapper = new QueryWrapper();
         //List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
 
@@ -984,8 +983,8 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     //百度翻译
-    private TranslateEntity baiduTranslate(String entry, String type, List<TLanguage> tLanguages) {
-        TranslateEntity entryEntity = new TranslateEntity();
+    private Translate baiduTranslate(String entry, String type, List<TLanguage> tLanguages) {
+        Translate entryEntity = new Translate();
         entryEntity.setSource("百度翻译");
         entryEntity.setEntry(entry);
         //ArrayList<TranslateEntity> list = new ArrayList<>();

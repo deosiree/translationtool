@@ -1,5 +1,7 @@
 package com.shr.translationtoolservice.common;
 
+import com.shr.translationtoolservice.entity.ConstantInterface;
+import com.shr.translationtoolservice.entity.ErrorCodeList;
 import lombok.Getter;
 
 @Getter
@@ -23,5 +25,7 @@ public enum ResultCode {
         this.code = code;
         this.message = message;
     }
+
+
 
 }

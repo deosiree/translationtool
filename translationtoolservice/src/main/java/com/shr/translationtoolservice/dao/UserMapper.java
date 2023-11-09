@@ -1,7 +1,9 @@
 package com.shr.translationtoolservice.dao;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.shr.translationtoolservice.entity.ConfigResUser;
 import com.shr.translationtoolservice.entity.RoleEntity;
+import com.shr.translationtoolservice.entity.TLanguage;
 import com.shr.translationtoolservice.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -9,7 +11,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
-public interface UserMapper {
+public interface UserMapper  extends BaseMapper<User> {
     int deleteByPrimaryKey(String id);
 
     int insert(User record);
