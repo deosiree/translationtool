@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 /**
  * @ClassName ConfigResUser
  * @Description
@@ -11,7 +13,7 @@ import lombok.Setter;
  * @Date 2023/6/20 0020 16:44
  **/
 @Data
-public class ConfigResUser {
+public class ConfigResUser implements Serializable {
     private String id;
 
     private String userName;
@@ -23,5 +25,7 @@ public class ConfigResUser {
     private String roleId;
 
     private String roleName;
+
+    private String roleType;
 
 }

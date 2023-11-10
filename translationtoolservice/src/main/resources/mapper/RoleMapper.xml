@@ -85,9 +85,16 @@
     <if test="roleName != null and roleName != ''">
       where
       role_name= #{roleName,jdbcType=VARCHAR}
-    </if>
+    </if>]
+  </select>
+
+  <select id="getRoleTotal"  resultType="int">
+    <!--@mbg.generated-->
+    select count(1)
+    from t_role
 
   </select>
+
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     <!--@mbg.generated-->
     delete from t_role

@@ -38,4 +38,5 @@ public interface UserMapper  extends BaseMapper<User> {
     int getUserTotalNum(@Param("user") ConfigResUser user);
 
 
+    List<User> getRoleUserByDepartment(String department);
 }

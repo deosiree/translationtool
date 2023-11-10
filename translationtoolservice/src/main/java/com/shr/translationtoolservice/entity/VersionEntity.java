@@ -45,6 +45,18 @@ public class VersionEntity implements Serializable {
     @TableField(value = "product_id")
     private String productId;
 
+    /**
+     * 删除状态
+     */
+    @TableField(value = "is_delete")
+    private String isDelete;
+
+    /**
+     *
+     */
+    @TableField(value = "details")
+    private String details;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

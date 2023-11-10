@@ -55,6 +55,21 @@ public class ConstantInterface {
     public static final String SPANISH = "spa";
     public static final String AUTO = "auto";
 
+    public static final String ENTRY_AUDITOR = "词条审核员";
+    public static final String TRANSLATE_AUDITOR = "翻译审核员";
+    public static final String TRANSLATOR = "翻译员";
+    public static final String DEVELOPER = "开发员";
+    public static final String ADMIN = "管理员";
+    public static HashMap<String, String> constructUserAndRole() {
+        HashMap<String, String> user_role = new HashMap<>();
+        user_role.put("词条审核员", "ENTRY_AUDITOR");
+        user_role.put("翻译审核员", "TRANSLATE_AUDITOR");
+        user_role.put("翻译员", "TRANSLATOR");
+        user_role.put("开发员", "DEVELOPER");
+        user_role.put("管理员", "ADMIN");
+        return user_role;
+    }
+
     public static  Map<String,String> LANGUAGE_MAP=new HashMap();
 
 

@@ -37,4 +37,6 @@ public interface RoleMapper {
     int updateDefault0();
 
     String getDefault1();
+
+    int getRoleTotal();
 }

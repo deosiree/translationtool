@@ -31,10 +31,11 @@ import java.util.stream.Collectors;
 @Transactional
 public class ConfigManageServiceImpl implements ConfigManageInterface {
 
-    @Autowired
-    private UserMapper userMapper;
+
     @Autowired
     private RoleMapper roleMapper;
+    @Autowired
+    private UserMapper userMapper;
     @Autowired
     private EntryVersionMapper entryVersionMapper;
     @Autowired

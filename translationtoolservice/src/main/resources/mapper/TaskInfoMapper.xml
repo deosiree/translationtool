@@ -24,6 +24,10 @@
         <result property="translateStartTime" column="translate_start_time" jdbcType="TIMESTAMP"/>
         <result property="deliveryTime" column="delivery_time" jdbcType="TIMESTAMP"/>
         <result property="translateType" column="translate_type" jdbcType="VARCHAR"/>
+        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+        <result property="versionName" column="version_name" jdbcType="VARCHAR"/>
+        <result property="productName" column="product_name" jdbcType="VARCHAR"/>
+        <result property="productId" column="product_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -31,44 +35,75 @@
         DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s'),
         DATE_FORMAT(end_time, '%Y-%m-%d %H:%i:%s'),department,
         developer,entry_auditor,translator,
-        translation_auditor, description,state,
+        translation_auditor, 'description',state,
         version_id,
         DATE_FORMAT(import_time, '%Y-%m-%d %H:%i:%s'),
         DATE_FORMAT(entry_autior_start_time, '%Y-%m-%d %H:%i:%s'),
         DATE_FORMAT(translation_auditor_start_time, '%Y-%m-%d %H:%i:%s'),
         DATE_FORMAT(translate_start_time, '%Y-%m-%d %H:%i:%s'),
-        DATE_FORMAT(delivery_time, '%Y-%m-%d %H:%i:%s'),translate_type
+        DATE_FORMAT(delivery_time, '%Y-%m-%d %H:%i:%s'),translate_type,is_delete
+    </sql>
+
+    <sql id="t1_Column_List">
+        t1.id as id ,t1.creator as creator,t1.`name` as `name`,
+        DATE_FORMAT(t1.create_time, '%Y-%m-%d %H:%i:%s') as create_time,
+        DATE_FORMAT(t1.end_time, '%Y-%m-%d %H:%i:%s') as end_time,t1.department as department,
+        t1.developer as developer,t1.entry_auditor as entry_auditor ,t1.translator as translator,
+        t1.translation_auditor as translation_auditor, t1.description as 'description',t1.state as state,
+         t2.id as version_id  ,
+        DATE_FORMAT(t1.import_time, '%Y-%m-%d %H:%i:%s') as import_time,
+        DATE_FORMAT(t1.entry_autior_start_time, '%Y-%m-%d %H:%i:%s') as entry_autior_start_time,
+        DATE_FORMAT(t1.translation_auditor_start_time, '%Y-%m-%d %H:%i:%s') as translation_auditor_start_time,
+        DATE_FORMAT(t1.translate_start_time, '%Y-%m-%d %H:%i:%s') as translate_start_time,
+        DATE_FORMAT(t1.delivery_time, '%Y-%m-%d %H:%i:%s') as delivery_time ,t1.translate_type as translate_type,t1.is_delete as is_delete,
+        t2.id as version_id,t2.name as version_name,
+        t3.id as product_id,t3.name as product_name
     </sql>
 
     <select id="getTaskInfo" resultMap="BaseResultMap">
         select
-        <include refid="Base_Column_List"/>
-        from t_task_info
-        where 1=1
+        <include refid="t1_Column_List"/>
+        from t_task_info t1,t_version t2,t_product t3
+        where t1.is_delete = 0 and t1.version_id = t2.id and t2.product_id = t3.id
+        <if test="taskInfoEntity.productId != null  and taskInfoEntity.productId != ''">
+            and t3.id = #{taskInfoEntity.productId ,jdbcType=VARCHAR}
+        </if>
+
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
-            and `name` = #{taskInfoEntity.name ,jdbcType=VARCHAR}
+            and t1.`name` = #{taskInfoEntity.name ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.createTime != null  and taskInfoEntity.createTime != ''">
+            and t1.create_time &gt;= #{taskInfoEntity.createTime ,jdbcType=DATETIMEOFFSET}
+        </if>
+        <if test="taskInfoEntity.endTime != null  and taskInfoEntity.endTime != ''">
+            and t1.end_time &lt;= #{taskInfoEntity.endTime ,jdbcType=DATETIMEOFFSET}
+        </if>
+        <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
+            and t1.creator = #{taskInfoEntity.creator ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.department != null  and taskInfoEntity.department != ''">
-            and department = #{taskInfoEntity.department ,jdbcType=VARCHAR}
+            and t1.department = #{taskInfoEntity.department ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.developer != null  and taskInfoEntity.developer != ''">
-            and developer = #{taskInfoEntity.developer ,jdbcType=VARCHAR}
+            and t1.developer = #{taskInfoEntity.developer ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.entryAuditor != null  and taskInfoEntity.entryAuditor != ''">
-            and entry_auditor = #{taskInfoEntity.entryAuditor ,jdbcType=VARCHAR}
+            and t1.entry_auditor = #{taskInfoEntity.entryAuditor ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.translator != null  and taskInfoEntity.translator != ''">
-            and translator = #{taskInfoEntity.translator ,jdbcType=VARCHAR}
+            and t1.translator = #{taskInfoEntity.translator ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.translationAuditor != null  and taskInfoEntity.translationAuditor != ''">
-            and translation_auditor = #{taskInfoEntity.translationAuditor ,jdbcType=VARCHAR}
+            and t1.translation_auditor = #{taskInfoEntity.translationAuditor ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.description != null  and taskInfoEntity.description != ''">
-            and description = #{taskInfoEntity.description ,jdbcType=VARCHAR}
+            and t1.description = #{taskInfoEntity.description ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
-            and state = #{taskInfoEntity.state ,jdbcType=VARCHAR}
+            and t1.state = #{taskInfoEntity.state ,jdbcType=INTEGER}
         </if>
+
+
 
         order by create_time desc
         <if test="limit >= 0 and offset >= 0">
@@ -77,8 +112,53 @@
 
     </select>
 
+
+
+    <select id="getTaskInfoTotal" resultType="integer">
+        select
+        count(1)
+        from t_task_info t1,t_version t2,t_product t3
+        where t1.is_delete = 0 and t1.version_id = t2.id and t2.product_id = t3.id
+        <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
+            and t1.`name` = #{taskInfoEntity.name ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.department != null  and taskInfoEntity.department != ''">
+            and t1.department = #{taskInfoEntity.department ,jdbcType=VARCHAR}
+        </if>
+
+        <if test="taskInfoEntity.developer != null  and taskInfoEntity.developer != ''">
+            and t1.developer = #{taskInfoEntity.developer ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.entryAuditor != null  and taskInfoEntity.entryAuditor != ''">
+            and t1.entry_auditor = #{taskInfoEntity.entryAuditor ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.translator != null  and taskInfoEntity.translator != ''">
+            and t1.translator = #{taskInfoEntity.translator ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.translationAuditor != null  and taskInfoEntity.translationAuditor != ''">
+            and t1.translation_auditor = #{taskInfoEntity.translationAuditor ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.description != null  and taskInfoEntity.description != ''">
+            and t1.description = #{taskInfoEntity.description ,jdbcType=VARCHAR}
+        </if>
+        <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
+            and t1.state = #{taskInfoEntity.state ,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+
+
     <update id="taskSubmission">
         update t_task_info set
+    </update>
+
+
+    <update id="deleteByIds">
+           update t_task_info set is_delete = 1 where id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
     </update>
 
 </mapper>

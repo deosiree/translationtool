@@ -49,6 +49,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 
     @Override
     public Result login(String account, String password) {
+
         // 通过ldap鉴权
         Boolean flag = ldapUtils.LDAP_AUTH_AD(account, password);
         if (!flag) {

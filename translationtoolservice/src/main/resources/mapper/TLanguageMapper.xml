@@ -5,10 +5,10 @@
 <mapper namespace="com.shr.translationtoolservice.dao.TLanguageMapper">
 
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.TLanguage">
-            <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="code" column="code" jdbcType="VARCHAR"/>
-            <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="bdCode" column="bd_code" jdbcType="VARCHAR"/>
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="bdCode" column="bd_code" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -16,6 +16,18 @@
         bd_code
     </sql>
 
+    <select id="getLanguages" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_language
+        where is_delete =0
+        <if test="language.name != null  and language.name != ''">
+            and `name` = #{language.name ,jdbcType=VARCHAR}
+        </if>
+        <if test="language.code != null  and language.code != ''">
+            and code = #{language.code ,jdbcType=VARCHAR}
+        </if>
 
+    </select>
 
 </mapper>

@@ -20,6 +20,7 @@
     <result column="department" jdbcType="VARCHAR" property="department"/>
     <result column="role_id" jdbcType="VARCHAR" property="roleId"/>
     <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+    <result column="role_type" jdbcType="VARCHAR" property="roleType"/>
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
@@ -203,5 +204,13 @@
     where id = #{user.id,jdbcType=VARCHAR}
   </update>
 
+
+  <select id="getRoleUserByDepartment" resultMap="BaseResultMap">
+    select
+   t2.role_name as role_name ,
+    t1.id as id ,t1.user_name as user_name,t1.job_number as job_number,t1.department as `departmanet`,t2.id as role_id ,t2.type as role_type
+    from t_user t1 ,t_role t2,t_user_role t3
+    where t1.department = #{department,jdbcType=VARCHAR} and t2.id = t3.role_id and t1.id = t3.user_id
+  </select>
 
 </mapper>

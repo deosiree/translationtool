@@ -5,6 +5,8 @@ import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.EntryCommonEntity;
 import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
+import com.shr.translationtoolservice.entity.VersionEntity;
+import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.TaskInfoService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import io.swagger.annotations.Api;
@@ -39,7 +41,6 @@ public class TaskManageController extends BaseController {
     //查询任务信息
     @PostMapping("/searchTaskInfo")
     @ApiOperation("任务查询")
-    @Token
     @CrossOrigin
     public HttpResponse<ResponseListModel> getTaskInfo(@RequestBody TaskInfoEntity taskInfoEntity,HttpServletRequest request,
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
@@ -51,21 +52,20 @@ public class TaskManageController extends BaseController {
             taskInfoEntities = taskInfoService.getTaskInfo(taskInfoEntity,offset,pageSize,request);
         }
         result.setList(taskInfoEntities);
-        result.setTotalNum(taskInfoService.getTotalNum());
+        result.setTotalNum(taskInfoService.getTotalNum(taskInfoEntity));
         return checkResult(result);
 
     }
 
     @PostMapping("/addTaskInfos")
     @ApiOperation("任务新增")
-    @Token
     @CrossOrigin
     @Transactional
     //返回id
-    public HttpResponse<String> addTaskInfos(@RequestBody List<TaskInfoEntity> taskInfoEntities, HttpServletRequest request) {
+    public HttpResponse<String> addTaskInfos(@RequestBody List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
 
 
-        String result = taskInfoService.addTaskInfoList(taskInfoEntities,request);
+        String result = taskInfoService.addTaskInfoList(taskInfoVoList,request);
 
 
         return checkResult(result);
@@ -75,13 +75,12 @@ public class TaskManageController extends BaseController {
 
     @PostMapping("/updateTaskInfo")
     @ApiOperation("任务更新")
-    @Token
     @CrossOrigin
     //返回id
-    public HttpResponse<String> updateTaskInfo(@RequestBody TaskInfoEntity taskInfoEntity) {
+    public HttpResponse<String> updateTaskInfo(@RequestBody TaskInfoVo taskInfoVo) {
 
 
-        String result = taskInfoService.updateTaskInfo(taskInfoEntity);
+        String result = taskInfoService.updateTaskInfo(taskInfoVo);
 
 
         return checkResult(result);
@@ -90,7 +89,6 @@ public class TaskManageController extends BaseController {
 
     @PostMapping("/deleteTaskInfo")
     @ApiOperation("任务删除")
-    @Token
     @CrossOrigin
     //返回id
     public HttpResponse<String> deleteTaskInfo(@RequestBody List<String> taskIds) {
@@ -107,17 +105,19 @@ public class TaskManageController extends BaseController {
 
     @PostMapping("/taskSubmission")
     @ApiOperation("任务递交")
-    @Token
     @CrossOrigin
     @Transactional
     //返回id
-    public HttpResponse<String> taskSubmission(@RequestBody List<String> taskIDs, int oldState,int nextState) {
+    public HttpResponse<String> taskSubmission(@RequestBody List<String> taskIDs) {
 
-
+        int oldState = 0;
+        int nextState= 1;
         String result = taskInfoService.taskSubmission(taskIDs,oldState,nextState);
 
 
         return checkResult(result);
 
     }
+
+
 }

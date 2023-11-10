@@ -39,6 +39,19 @@ public class ProductEntity implements Serializable {
     @TableField(value = "create_time")
     private Date createTime;
 
+    /**
+     * 部门
+     */
+    @TableField(value = "department")
+    private String department;
+
+    /**
+     * 删除状态
+     */
+    @TableField(value = "is_delete")
+    private int isDelete;
+
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

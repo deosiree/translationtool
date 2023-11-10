@@ -3,6 +3,9 @@ package com.shr.translationtoolservice.dao;
 import com.shr.translationtoolservice.entity.TLanguage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @Entity com.shr.translationtoolservice.entity.TLanguage
@@ -10,6 +13,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface TLanguageMapper extends BaseMapper<TLanguage> {
 
+    List<TLanguage> getLanguages(@Param("language") TLanguage language);
 }
 
 

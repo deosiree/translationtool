@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.VersionMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.VersionEntity">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="creator" column="creator" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="productId" column="product_id" jdbcType="VARCHAR"/>
+        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+        <result property="details" column="details" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,`name`,creator,
+        create_time,product_id,is_delete,details
+    </sql>
+
+    <select id="selectByName">
+        select
+        <include refid="Base_Column_List"/>
+        from t_version
+        where `name` = #{version ,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByNameAndProduct">
+        select
+        <include refid="Base_Column_List"/>
+        from t_version
+        where `name` = #{version ,jdbcType=VARCHAR} and product_id = #{productId ,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="getVersion" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_version
+        where is_delete =0
+        <if test="versionEntity.name != null  and versionEntity.name != ''">
+            and `name` = #{versionEntity.name ,jdbcType=VARCHAR}
+        </if>
+        <if test="versionEntity.creator != null  and versionEntity.creator != ''">
+            and creator = #{versionEntity.creator ,jdbcType=VARCHAR}
+        </if>
+        <if test="versionEntity.productId != null  and versionEntity.productId != ''">
+            and product_id = #{versionEntity.productId ,jdbcType=VARCHAR}
+        </if>
+        <if test="versionEntity.details != null  and versionEntity.details != ''">
+            and
+            details  like CONCAT('%','${versionEntity.details}','%' )
+        </if>
+    </select>
+
+
+    <select id="getVersionTotal" resultType="integer">
+        select
+        count(1)
+        from t_version
+        where is_delete =0
+        <if test="versionEntity.name != null  and versionEntity.name != ''">
+            and `name` = #{versionEntity.name ,jdbcType=VARCHAR}
+        </if>
+        <if test="versionEntity.creator != null  and versionEntity.creator != ''">
+            and creator = #{versionEntity.creator ,jdbcType=VARCHAR}
+        </if>
+        <if test="versionEntity.productId != null  and versionEntity.productId != ''">
+            and product_id = #{versionEntity.productId ,jdbcType=VARCHAR}
+        </if>
+        <if test="versionEntity.details != null  and versionEntity.details != ''">
+            and
+            details  like CONCAT('%','${versionEntity.details}','%' )
+        </if>
+    </select>
+
+    <update id="deleteByIds">
+        update t_version set is_delete = 1 where id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </update>
+
+</mapper>
