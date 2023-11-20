@@ -64,6 +64,8 @@ ldap:
   ldapURL: ldap://10.16.2.171:389
   accountSuffix: "@sp5000.com"
   base: "DC=sp5000,DC=com"
+  user: "Administrator"
+  password: "Admin@1234"
 
 
 

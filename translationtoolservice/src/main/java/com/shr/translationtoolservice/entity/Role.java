@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.util.List;
@@ -26,5 +27,13 @@ public class Role {
     */
     private Integer isDefault;
 
+    /**
+     * 类型
+     */
+    private String type;
 
+    @TableField(exist = false)
+    private List<String> menuName;
+
+    private List<String> menuId;
 }

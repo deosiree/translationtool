@@ -255,15 +255,21 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String updateUserInfo(ConfigResUser user) {
-        if (StringUtils.isBlank(user.getRoleId()) && StringUtils.isNotBlank(user.getRoleName())) {
-            Role role = roleMapper.getRoleByName(user.getRoleName());
-            //未找到角色信息
-            if (Objects.isNull(role)) {
-                return ErrorCodeList.UPDATE_ERROR;
+        if (CollectionUtils.isEmpty(user.getRoleId()) && CollectionUtils.isEmpty(user.getRoleName())) {
+            List<String> roleIDList = new ArrayList<>();
+            for (String roleName : user.getRoleName()){
+                Role role = roleMapper.getRoleByName(roleName);
+                //未找到角色信息
+                if (Objects.isNull(role)) {
+                    return ErrorCodeList.UPDATE_ERROR;
+                }
+                roleIDList.add(role.getId());
+
             }
-            user.setRoleId(role.getId());
+            user.setRoleId(roleIDList);
         }
 
+        //sql 需修改
         int update = userMapper.updateUserInfo(user);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
@@ -335,7 +341,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
     @Override
     //1===
     public String addUser(ConfigResUser user) {
-        User newUser = new User();
+       /* User newUser = new User();
         if (findUserSameName(user.getUserName())) {
             return ErrorCodeList.NAME_EXIST;
         }
@@ -379,8 +385,8 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
         int insert = userMapper.insertSelective(newUser);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
-        }
-        return id;
+        }*/
+        return null;
     }
 
     //查找用户角色ID
@@ -396,7 +402,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
     @Override
     public String bindRoleInfo(ConfigResUser configResUser) {
-        //如果只有角色名字 无ID 则 查出ID 插入对象内
+ /*       //如果只有角色名字 无ID 则 查出ID 插入对象内
         if (StringUtils.isBlank(configResUser.getRoleId()) && StringUtils.isNotBlank(configResUser.getRoleName())) {
 
             Role role = roleMapper.getRoleByName(configResUser.getRoleName());
@@ -415,7 +421,7 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
-        }
+        }*/
         return ConstantInterface.OK_STR;
     }
 
@@ -441,7 +447,6 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
 
             int insert = roleAuthorityEntryMapper.insertPermission(roleAuthorityEntity);
 
-
         }
 
         //绑定菜单
@@ -455,7 +460,6 @@ public class ConfigManageServiceImpl implements ConfigManageInterface {
             return ErrorCodeList.UPDATE_ERROR;
         }
         for (String menuId : roleAuthorityRes.getMenuIDList()) {
-            roleMenuEntry.setId(commonUtils.getUUID());
             roleMenuEntry.setMenuId(menuId);
             int insert = roleMenuEntryMapper.insertMenuIDByRoleID(roleMenuEntry);
             if (insert != ConstantInterface.DB_SUCCESS_RESULT) {

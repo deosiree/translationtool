@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @ClassName ConfigResUser
@@ -22,9 +23,9 @@ public class ConfigResUser implements Serializable {
 
     private String department;
 
-    private String roleId;
+    private List<String>  roleId;
 
-    private String roleName;
+    private List<String> roleName;
 
     private String roleType;
 

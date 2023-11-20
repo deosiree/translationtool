@@ -1,9 +1,10 @@
 package com.shr.translationtoolservice.util;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.shr.translationtoolservice.common.Constant;
+import com.shr.translationtoolservice.entity.LDAPUser;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,16 +12,9 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
-import javax.naming.ldap.Control;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
-import javax.naming.ldap.SortControl;
+import javax.naming.ldap.*;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 /**
  * ldap 登录鉴权
@@ -38,7 +32,13 @@ public class LDAPUtils {
     @Value("${ldap.base}")
     private String base;
 
-    private NamingEnumeration<SearchResult> results  = null;
+    @Value("${ldap.user}")
+    private String userName;
+
+    @Value("${ldap.password}")
+    private String password;
+
+    private NamingEnumeration<SearchResult> results = null;
 
     private List<String> departmentList = null;
 
@@ -60,6 +60,7 @@ public class LDAPUtils {
 //        LdapContext ctx = null;
         try {
             ctx = new InitialLdapContext(env, null);
+            ctx.close();
             return true;
         } catch (Exception e) {
             log.info("认证失败！");
@@ -74,67 +75,75 @@ public class LDAPUtils {
         }
     }
 
-    public List getUserKey(String name) {
+    public List getUserKey(String name, String password) {
 
         log.info("需要查询的ad信息：{}", name);
         List<JSONObject> resultList = new ArrayList<>();
-        if (ctx != null) {
-            String company = "";
-            try {
-                // 域节点
-                String searchBase = base;
-                // LDAP搜索过滤器类
-                //cn=*name*模糊查询
-                //cn=name 精确查询
-                // String searchFilter = "(objectClass="+type+")";
-                String searchFilter = "(sAMAccountName=" + name + ")";  //查询域帐号
+        Hashtable env = new Hashtable();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.PROVIDER_URL, ldapURL);
+        env.put(Context.SECURITY_AUTHENTICATION, "simple");
+        env.put(Context.SECURITY_PRINCIPAL, name + accountSuffix);
+        env.put(Context.SECURITY_CREDENTIALS, password);
 
-                // 创建搜索控制器
-                SearchControls searchCtls = new SearchControls();
-                String returnedAtts[] = {Constant.MEMBEROF};
-                searchCtls.setReturningAttributes(returnedAtts); //设置指定返回的字段，不设置则返回全部
-                // 设置搜索范围 深度
-                searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-                // 根据设置的域节点、过滤器类和搜索控制器搜索LDAP得到结果
-                NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
-                // 初始化搜索结果数为0
-                int totalResults = 0;
-                int rows = 0;
-                while (answer.hasMoreElements()) {// 遍历结果集
-                    SearchResult sr = (SearchResult) answer.next();// 得到符合搜索条件的DN
-                    ++rows;
-                    String dn = sr.getName();
-                    log.info(dn);
-                    Attributes Attrs = sr.getAttributes();// 得到符合条件的属性集
-                    if (Attrs != null) {
-                        try {
-                            for (NamingEnumeration ne = Attrs.getAll(); ne.hasMore(); ) {
-                                Attribute Attr = (Attribute) ne.next();// 得到下一个属性
-                                // 读取属性值
-                                for (NamingEnumeration e = Attr.getAll(); e.hasMore(); totalResults++) {
-                                    company = e.next().toString();
-                                    JSONObject tempJson = new JSONObject();
-                                    tempJson.put(Attr.getID(), company.toString());
-                                    resultList.add(tempJson);
-                                }
-                            }
-                        } catch (NamingException e) {
-                            log.info("Throw Exception : " + e.getMessage());
-                        }
-                    }
-                }
-                log.info("登录人：{}", name);
-            } catch (NamingException e) {
-                log.info("Throw Exception : " + e.getMessage());
-            } finally {
-                if (ctx != null) {
+
+        String company = "";
+        try {
+            ctx = new InitialLdapContext(env, null);
+            // 域节点
+            String searchBase = base;
+            // LDAP搜索过滤器类
+            //cn=*name*模糊查询
+            //cn=name 精确查询
+            // String searchFilter = "(objectClass="+type+")";
+            String searchFilter = "(sAMAccountName=" + name + ")";  //查询域帐号
+
+            // 创建搜索控制器
+            SearchControls searchCtls = new SearchControls();
+            String returnedAtts[] = {Constant.MEMBEROF};
+            searchCtls.setReturningAttributes(returnedAtts); //设置指定返回的字段，不设置则返回全部
+            // 设置搜索范围 深度
+            searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+            // 根据设置的域节点、过滤器类和搜索控制器搜索LDAP得到结果
+            NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
+            // 初始化搜索结果数为0
+            int totalResults = 0;
+            int rows = 0;
+            while (answer.hasMoreElements()) {// 遍历结果集
+                SearchResult sr = (SearchResult) answer.next();// 得到符合搜索条件的DN
+                ++rows;
+                String dn = sr.getName();
+                log.info(dn);
+                Attributes Attrs = sr.getAttributes();// 得到符合条件的属性集
+                if (Attrs != null) {
                     try {
-                        ctx.close();
+                        for (NamingEnumeration ne = Attrs.getAll(); ne.hasMore(); ) {
+                            Attribute Attr = (Attribute) ne.next();// 得到下一个属性
+                            // 读取属性值
+                            for (NamingEnumeration e = Attr.getAll(); e.hasMore(); totalResults++) {
+                                company = e.next().toString();
+                                JSONObject tempJson = new JSONObject();
+                                tempJson.put(Attr.getID(), company.toString());
+                                resultList.add(tempJson);
+                            }
+                        }
                     } catch (NamingException e) {
+                        log.info("Throw Exception : " + e.getMessage());
                     }
                 }
             }
+            log.info("登录人：{}", name);
+        } catch (NamingException e) {
+            log.info("Throw Exception : " + e.getMessage());
+        } finally {
+            if (ctx != null) {
+                try {
+                    ctx.close();
+                } catch (NamingException e) {
+                }
+            }
         }
+
 
         return resultList;
     }
@@ -222,16 +231,24 @@ public class LDAPUtils {
         return jsonObjectList;
     }
 
-    public List<String>  getDepartments() {
+    public List<String> getDepartments() {
         List<String> departmentList = new ArrayList<>();
         try {
 
+            Hashtable env = new Hashtable();
+            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+            env.put(Context.PROVIDER_URL, ldapURL);
+            env.put(Context.SECURITY_AUTHENTICATION, "simple");
+            env.put(Context.SECURITY_PRINCIPAL, userName + accountSuffix);
+            env.put(Context.SECURITY_CREDENTIALS, password);
 
+//        LdapContext ctx = null;
+            ctx = new InitialLdapContext(env, null);
             // 搜索所有的OU
             SearchControls searchControls = new SearchControls();
             searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 
-            NamingEnumeration<SearchResult>  results = ctx.search("OU=研发中心," + base , "(objectClass=organizationalUnit)", searchControls);
+            NamingEnumeration<SearchResult> results = ctx.search("OU=研发中心," + base, "(objectClass=organizationalUnit)", searchControls);
 
 
             // 遍历OU结构树
@@ -243,11 +260,17 @@ public class LDAPUtils {
             }
 
 
-
         } catch (NamingException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                ctx.close();
+            } catch (NamingException e) {
+
+            }
+
         }
-            return departmentList;
+        return departmentList;
     }
 
     /**
@@ -363,5 +386,138 @@ public class LDAPUtils {
             }
         }
     }
+
+
+    //获取ldap 所有用户信息
+    //返回 key -> department ， value -> ldapuser
+    public Map<String, List<LDAPUser>> getAllUser() {
+        Hashtable env = new Hashtable();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.PROVIDER_URL, ldapURL);
+        env.put(Context.SECURITY_AUTHENTICATION, "simple");
+        env.put(Context.SECURITY_PRINCIPAL, userName + accountSuffix);
+        env.put(Context.SECURITY_CREDENTIALS, password);
+        env.put("com.sun.jndi.ldap.connect.pool", "true");
+        env.put("java.naming.referral", "follow");
+        env.put(Context.REFERRAL, "ignore");
+
+        //反参
+        List<LDAPUser> ldapUsers = new ArrayList<>();
+        //key -> department , value -> map<department,ldapUser>
+
+        Map<String, List<LDAPUser>> ldapUserMap = new HashMap<>();
+        try {
+            // 创建LDAP连接
+            LdapContext ctx = new InitialLdapContext(env, null);
+            int pageSize = 1000;//程序单次查询最大条数
+            ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, Control.CRITICAL)});
+
+            byte[] cookie = null;//用于判断是否还有剩余数据（进行分页）
+
+            // 搜索所有的OU
+            SearchControls searchControls = new SearchControls();
+            searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+            searchControls.setReturningAttributes(new String[]{"displayName", "sAMAccountName", "cn", "ou", "distinguishedName", "mail", "employeeID", "userAccountControl"});
+            do {
+                NamingEnumeration<SearchResult> results = ctx.search("DC=sp5000,DC=com", "(&(objectClass=top)(objectClass=user)(objectClass=person)(objectClass=organizationalPerson))", searchControls);
+
+
+                // 遍历OU结构树
+                int index = 0;
+
+                while (results != null && results.hasMoreElements()) {
+
+                    LDAPUser ldapUser = new LDAPUser();
+                    SearchResult result = results.nextElement();
+
+                    Attributes attrs = result.getAttributes();
+                    // String ou = attrs.get("ou").get().toString();
+                    String name = attrs.get("cn").get().toString();
+                    ldapUser.setName(name);
+                    Attribute email = attrs.get("mail");
+                    String emailStr = "";
+                    if (!Objects.isNull(email)) {
+                        emailStr = attrs.get("mail").get().toString();
+                        ldapUser.setEmail(emailStr);
+                    }
+                    String distinguishedname = attrs.get("distinguishedname").get().toString();
+                    if (!distinguishedname.contains("OU=")) {
+                        continue;
+                    }
+                    distinguishedname = distinguishedname.replace(",", "");
+
+                    String[] split = distinguishedname.split("OU=");
+                    String department = "";
+                    String center = "";
+                    String group = "";
+                    //CN=郑运召OU= 监控系统部OU= 研发中心DC=sp5000DC=com
+                    if (split.length == 3) {
+
+                        department = split[1];
+
+
+                        center = split[2].split("DC=")[0];
+                        ldapUser.setDepartment(department);
+                        ldapUser.setCenter(center);
+
+                        //CN=郑运召OU= 前置通讯组OU= 监控系统部OU= 研发中心DC=sp5000DC=com
+                    } else if (split.length > 3) {
+                        department = split[2];
+                        center = split[3].split("DC=")[0];
+                        group = split[1];
+                        ldapUser.setDepartment(department);
+                        ldapUser.setCenter(center);
+                        ldapUser.setGroup(group);
+                    } else {
+                        continue;
+                    }
+
+                    // ldapUsers.add(ldapUser);
+
+                    //map 插入元素
+                    if (Objects.isNull(ldapUserMap.get(department))) {
+                        List<LDAPUser> ldapUserList = new ArrayList<>();
+                        ldapUserList.add(ldapUser);
+
+                        ldapUserMap.put(department, ldapUserList);
+                    } else {
+                        ldapUserMap.get(department).add(ldapUser);
+                    }
+
+
+            /*    index += 1;
+                if (StringUtils.isBlank(group)){
+                    System.out.println(index + ", 中心 ： " + center + ", 部门： " + department + ", 姓名:" + cn);
+                }else {
+                    System.out.println(index + ", 中心 ： " + center + ", 部门： " + department + ", 组： " + group + ", 姓名:" + cn);
+                }*/
+
+                }
+                //读取cookie，判断是否有未读取完
+                Control[] controls = ctx.getResponseControls();
+                if (controls != null) {
+                    for (int i = 0; i < controls.length; i++) {
+                        if (controls[i] instanceof PagedResultsResponseControl) {
+                            PagedResultsResponseControl prrc = (PagedResultsResponseControl) controls[i];
+                            cookie = prrc.getCookie();
+                        }
+                    }
+                }
+
+                // 将cookie提供给LdapContext，让它在接下来的查询中进行换页
+                ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, cookie, Control.CRITICAL)});
+
+            } while (cookie != null);
+
+
+            // 关闭LDAP连接
+            ctx.close();
+        } catch (NamingException | IOException e) {
+            e.printStackTrace();
+        }
+        return ldapUserMap;
+    }
+
 
 }

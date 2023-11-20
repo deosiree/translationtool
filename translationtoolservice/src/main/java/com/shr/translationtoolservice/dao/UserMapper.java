@@ -5,6 +5,7 @@ import com.shr.translationtoolservice.entity.ConfigResUser;
 import com.shr.translationtoolservice.entity.RoleEntity;
 import com.shr.translationtoolservice.entity.TLanguage;
 import com.shr.translationtoolservice.entity.User;
+import com.shr.translationtoolservice.entity.vo.UserDetailsVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -39,4 +40,18 @@ public interface UserMapper  extends BaseMapper<User> {
 
 
     List<User> getRoleUserByDepartment(String department);
+
+    User getPermissionByNameAndDepartment( @Param("name") String name, @Param("department") String department);
+
+    List<User> getUserInfo(@Param("user") User user,@Param("offset") Integer offset,@Param("limit") Integer pageSize);
+
+    int getUserInfoTotal(@Param("user") User user);
+
+    int deleteRoleAndUser(@Param("users") List<User> userList);
+
+    int deleteUser(@Param("users") List<User> userList);
+
+    int insertUser(@Param("users")  List<User> userList);
+
+    int insertRoleAndUser(@Param("users") List<User> userList);
 }

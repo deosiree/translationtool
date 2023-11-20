@@ -16,7 +16,7 @@
         <result property="translator" column="translator" jdbcType="VARCHAR"/>
         <result property="translationAuditor" column="translation_auditor" jdbcType="VARCHAR"/>
         <result property="description" column=" description" jdbcType="VARCHAR"/>
-        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="VARCHAR"/>
         <result property="versionId" column="version_id" jdbcType="VARCHAR"/>
         <result property="importTime" column="import_time" jdbcType="TIMESTAMP"/>
         <result property="entryAutiorStartTime" column="entry_autior_start_time" jdbcType="TIMESTAMP"/>
@@ -100,7 +100,7 @@
             and t1.description = #{taskInfoEntity.description ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
-            and t1.state = #{taskInfoEntity.state ,jdbcType=INTEGER}
+            and t1.state in( ${taskInfoEntity.state } )
         </if>
 
 
@@ -142,7 +142,7 @@
             and t1.description = #{taskInfoEntity.description ,jdbcType=VARCHAR}
         </if>
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
-            and t1.state = #{taskInfoEntity.state ,jdbcType=VARCHAR}
+            and t1.state in( ${taskInfoEntity.state } )
         </if>
 
     </select>

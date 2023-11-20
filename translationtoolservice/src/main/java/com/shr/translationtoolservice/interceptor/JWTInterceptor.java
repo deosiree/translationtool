@@ -29,14 +29,23 @@ public class JWTInterceptor implements HandlerInterceptor {
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
+         /*
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
-        //检查是否有Token注解
+      //检查是否有Token注解
         if (!method.isAnnotationPresent(Token.class)) {
             //如果没有 直接跳过
             return true;
+        }*/
+        if (null != token) {
+            Boolean verify = JWTTokenUtils.verify(token);
+            if (verify) {
+                return true;
+            }
+
         }
-        //否则验证token
+
+      /*  //否则验证token
         if (null != token) {
             Boolean verify = JWTTokenUtils.verify(token);
             if (verify) {
@@ -44,13 +53,13 @@ public class JWTInterceptor implements HandlerInterceptor {
                 String requestURI = request.getRequestURI();
                 //判断当前用户是否有该接口的访问权限 TODO ： 查权限表URL
 
-              /*  //user 表里是否被删除
+              *//*  //user 表里是否被删除
                 String userInfo = request.getHeader("user");
                 User user = (User)JSONObject.parse(userInfo);
                 //User user1 = userMapper.selectByName(user.getUserName());
                 if (Objects.isNull( userMapper.selectByName(user.getUserName()))){
                     return false;
-                }*/
+                }*//*
 
                 if (JWTTokenUtils.getAuthority(token).contains(requestURI)) {
                     return true;
@@ -61,7 +70,7 @@ public class JWTInterceptor implements HandlerInterceptor {
                 response.getWriter().println(json);
                 return false;
             }
-        }
+        }*/
         //响应到前台
         String json = new ObjectMapper().writeValueAsString(Result.fail(ResultCode.LOGIN_EXPIRED.getCode(), ResultCode.LOGIN_EXPIRED.getMessage()));
         response.setContentType("application/json;charset=UTF-8");

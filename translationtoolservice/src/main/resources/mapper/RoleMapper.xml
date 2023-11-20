@@ -1,184 +1,246 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.shr.translationtoolservice.dao.RoleMapper">
-  <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.Role">
-    <!--@mbg.generated-->
-    <!--@Table t_role-->
-    <id column="id" jdbcType="VARCHAR" property="id" />
-    <result column="role_name" jdbcType="VARCHAR" property="roleName" />
-    <result column="describe" jdbcType="VARCHAR" property="describe" />
-    <result column="is_default" jdbcType="INTEGER" property="isDefault" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    <!--@mbg.generated-->
-    id, role_name, `describe`, is_default
-  </sql>
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        <!--@Table t_role-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+        <result column="describe" jdbcType="VARCHAR" property="describe"/>
+        <result column="is_default" jdbcType="INTEGER" property="isDefault"/>
+    </resultMap>
 
 
-  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    <!--@mbg.generated-->
-    select 
-    <include refid="Base_Column_List" />
-    from t_role
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
+    <resultMap id="MenuResultMap" type="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        <!--@Table t_role-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+        <result column="describe" jdbcType="VARCHAR" property="describe"/>
+        <result column="is_default" jdbcType="INTEGER" property="isDefault"/>
+        <collection property="menuName" javaType="java.util.ArrayList" ofType="String">
+            <result property="menuName" column="menu_name" />
+        </collection>
+        <collection property="menuId" ofType="String">
+            <result property="menuId" column="menu_id"/>
+        </collection>
+
+    </resultMap>
 
 
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, role_name, `describe`, is_default
+    </sql>
 
-  <select id="getDefault1" resultType="java.lang.String">
-    <!--@mbg.generated-->
-    select
-    id
-    from t_role
-    where is_default = "1"
-  </select>
 
-  <update id="updateDefault0" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from t_role
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="getDefault1" resultType="java.lang.String">
+        <!--@mbg.generated-->
+        select
+        id
+        from t_role
+        where is_default = "1"
+    </select>
+
+    <update id="updateDefault0" parameterType="com.shr.translationtoolservice.entity.EntryVersion">
 
     update t_role set is_default = 0 where is_default = 1
 
   </update>
 
-  <select id="matchRoleByName" parameterType="java.lang.String" resultMap="BaseResultMap">
-    <!--@mbg.generated-->
-    select
-    <include refid="Base_Column_List"/>
-    from t_role
+    <select id="matchRoleByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from t_role
 
-    <if test="roleName != null and roleName != ''">
-      where
-      role_name like CONCAT('%','${roleName}','%' )
-    </if>
+        <if test="roleName != null and roleName != ''">
+            where
+            role_name like CONCAT('%','${roleName}','%' )
+        </if>
 
+    </select>
+
+    <select id="getRoleByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from t_role
+
+        <if test="roleName != null and roleName != ''">
+            where
+            role_name =#{roleName}
+        </if>
+
+    </select>
+
+
+    <select id="getRole" parameterType="java.lang.String" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from t_role
+
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="getRoleTotaNum" parameterType="java.lang.String" resultType="int">
+        <!--@mbg.generated-->
+        select count(1)
+        from t_role
+
+        <if test="roleName != null and roleName != ''">
+            where
+            role_name= #{roleName,jdbcType=VARCHAR}
+        </if>]
+    </select>
+
+    <select id="getRoleTotal" resultType="int">
+        <!--@mbg.generated-->
+        select count(1)
+        from t_role
+
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        <!--@mbg.generated-->
+        delete from t_role
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteByList" parameterType="java.util.List">
+        <!--@mbg.generated-->
+        delete from t_role
+        where id in(
+        <foreach collection="list" item="idList" index="index" separator=",">
+            #{idList,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
+
+    <insert id="insert" parameterType="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        insert into t_role (id, role_name, `describe`,
+        is_default)
+        values (#{id,jdbcType=VARCHAR}, #{roleName,jdbcType=VARCHAR}, #{describe,jdbcType=VARCHAR},
+        #{isDefault,jdbcType=INTEGER})
+    </insert>
+    <insert id="insertSelective" parameterType="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        insert into t_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="roleName != null">
+                role_name,
+            </if>
+            <if test="describe != null">
+                `describe`,
+            </if>
+            <if test="isDefault != null">
+                is_default,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="roleName != null">
+                #{roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="describe != null">
+                #{describe,jdbcType=VARCHAR},
+            </if>
+            <if test="isDefault != null">
+                #{isDefault,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateEntry" parameterType="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        update t_role
+        <set>
+            <if test="role.roleName != null  and role.roleName != '' ">
+                role_name = #{role.roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="role.describe != null and role.describe != '' ">
+                `describe` = #{role.describe,jdbcType=VARCHAR},
+            </if>
+            <if test="role.isDefault != null   ">
+                is_default = #{role.isDefault,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{role.id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.shr.translationtoolservice.entity.Role">
+        <!--@mbg.generated-->
+        update t_role
+        set role_name = #{roleName,jdbcType=VARCHAR},
+        `describe` = #{describe,jdbcType=VARCHAR},
+        is_default = #{isDefault,jdbcType=INTEGER}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <select id="getRoleByDefault" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_role
+        where is_default = 1
+    </select>
+
+    <select id="selectRoleName" resultMap="BaseResultMap">
+    select t1.role_name as role_name ,t1.id as id   from t_role t1 , t_user_role t2 where t2.user_id = #{id,jdbcType=VARCHAR} and t1.id = t2.role_id
   </select>
 
-  <select id="getRoleByName" parameterType="java.lang.String" resultType="com.shr.translationtoolservice.entity.Role">
-    <!--@mbg.generated-->
-    select
-    <include refid="Base_Column_List"/>
-    from t_role
+    <delete id="deleteRoleAndMenu">
+    delete t_role ,t_role_menu from t_role join t_role_menu on t_role.id = t_role_menu.role_id where t_role_menu.role_id =  #{roleId ,jdbcType=VARCHAR}
+    </delete>
 
-    <if test="roleName != null and roleName != ''">
-      where
-      role_name =#{roleName}
-    </if>
+    <insert id="insertRoleAndMenu">
+        insert into t_role_menu
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            menu_id,role_id
+        </trim>
+        values
+        <foreach collection="menuIdList" item="menuId" index="index" separator=",">
+            (
+            #{menuId ,jdbcType=VARCHAR},
+            #{roleId,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
 
-  </select>
+
+    <select id="getRoleByEntity" resultMap="MenuResultMap">
+        select  a1.role_id as id , a1.role_name as role_name,a1.describe as `describe` , a2.menu_name as menu_name,a1.menu_id as menu_id
+        from (
+        select t1.id as role_id , t1.role_name as role_name ,t2.menu_id as menu_id,t1.describe as `describe`
+        from t_role t1  left join t_role_menu t2 on t1.id = t2.role_id
+        ) a1 left join t_menu a2
+        on a1.menu_id = a2.id where 1=1
+        <if test="role.roleName != null and role.roleName != ''  ">
+           and a1.role_name = #{role.roleName,jdbcType=VARCHAR}
+        </if>
+        <if test="role.type != null and role.type != ''  ">
+           and a1.type = #{role.type,jdbcType=VARCHAR}
+        </if>
+        order by t1.role_name desc
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
 
 
-  <select id="getRole" parameterType="java.lang.String" resultMap="BaseResultMap">
-    <!--@mbg.generated-->
-    select
-    <include refid="Base_Column_List"/>
-    from t_role
-
-    <if test="limit >= 0 and offset >= 0">
-      LIMIT #{limit} OFFSET #{offset}
-    </if>
-  </select>
-
-  <select id="getRoleTotaNum" parameterType="java.lang.String" resultType="int">
-    <!--@mbg.generated-->
-    select count(1)
-    from t_role
-
-    <if test="roleName != null and roleName != ''">
-      where
-      role_name= #{roleName,jdbcType=VARCHAR}
-    </if>]
-  </select>
-
-  <select id="getRoleTotal"  resultType="int">
-    <!--@mbg.generated-->
-    select count(1)
-    from t_role
-
-  </select>
-
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-    <!--@mbg.generated-->
-    delete from t_role
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <delete id="deleteByList" parameterType="java.util.List">
-    <!--@mbg.generated-->
-    delete from t_role
-    where id in(
-    <foreach collection="list" item="idList" index="index" separator=",">
-      #{idList,jdbcType=VARCHAR}
-    </foreach>
-    );
-  </delete>
-
-  <insert id="insert" parameterType="com.shr.translationtoolservice.entity.Role">
-    <!--@mbg.generated-->
-    insert into t_role (id, role_name, `describe`, 
-      is_default)
-    values (#{id,jdbcType=VARCHAR}, #{roleName,jdbcType=VARCHAR}, #{describe,jdbcType=VARCHAR}, 
-      #{isDefault,jdbcType=INTEGER})
-  </insert>
-  <insert id="insertSelective" parameterType="com.shr.translationtoolservice.entity.Role">
-    <!--@mbg.generated-->
-    insert into t_role
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        id,
-      </if>
-      <if test="roleName != null">
-        role_name,
-      </if>
-      <if test="describe != null">
-        `describe`,
-      </if>
-      <if test="isDefault != null">
-        is_default,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="roleName != null">
-        #{roleName,jdbcType=VARCHAR},
-      </if>
-      <if test="describe != null">
-        #{describe,jdbcType=VARCHAR},
-      </if>
-      <if test="isDefault != null">
-        #{isDefault,jdbcType=INTEGER},
-      </if>
-    </trim>
-  </insert>
-
-  <update id="updateEntry" parameterType="com.shr.translationtoolservice.entity.Role">
-    <!--@mbg.generated-->
-    update t_role
-    <set>
-      <if test="role.roleName != null  and role.roleName != '' ">
-        role_name = #{role.roleName,jdbcType=VARCHAR},
-      </if>
-      <if test="role.describe != null and role.describe != '' ">
-        `describe` = #{role.describe,jdbcType=VARCHAR},
-      </if>
-      <if test="role.isDefault != null   ">
-        is_default = #{role.isDefault,jdbcType=INTEGER},
-      </if>
-    </set>
-    where id = #{role.id,jdbcType=VARCHAR}
-  </update>
-
-  <update id="updateByPrimaryKey" parameterType="com.shr.translationtoolservice.entity.Role">
-    <!--@mbg.generated-->
-    update t_role
-    set role_name = #{roleName,jdbcType=VARCHAR},
-      `describe` = #{describe,jdbcType=VARCHAR},
-      is_default = #{isDefault,jdbcType=INTEGER}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <select id="getRoleByDefault" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
-    from t_role
-    where is_default = 1
-  </select>
+    </select>
 </mapper>

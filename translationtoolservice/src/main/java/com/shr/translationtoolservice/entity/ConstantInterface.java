@@ -14,12 +14,12 @@ public class ConstantInterface {
     public static final int ZERO = 0;
     public static final int DB_SUCCESS_RESULT = 1;
 
-    public static  final  int DELIVERY_STATE=0;
-    public static  final  int IMPORT_STATE=1;
-    public static  final  int ENTRY_AUDIT_STATE=2;
-    public static  final  int TRANSLATE_STATE=3;
-    public static  final  int TRANSLATE_AUDIT_STATE=4;
-    public static  final  int EXPORT_STATE=5;
+    public static  final  String DELIVERY_STATE="0";
+    public static  final  String IMPORT_STATE="1";
+    public static  final  String ENTRY_AUDIT_STATE="2";
+    public static  final  String TRANSLATE_STATE="3";
+    public static  final  String TRANSLATE_AUDIT_STATE="4";
+    public static  final  String EXPORT_STATE="5";
 
 
     public static final String IS_DEFAULT = "1";
@@ -39,6 +39,9 @@ public class ConstantInterface {
     public static final String PROJECT_TABLE = "project";
     public static final String PRODUCT_TABLE = "product";
     public static final String COMMON_TABLE = "common";
+
+    public static final String USER = "user";
+    public static final String DEPARTMENT = "department";
 
     public static final String TIME_ZERO = " 00:00:00";
     public static final String PROJECT_TABLE_Name = "t_entry_project";

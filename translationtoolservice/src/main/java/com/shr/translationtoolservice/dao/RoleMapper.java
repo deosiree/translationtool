@@ -39,4 +39,12 @@ public interface RoleMapper {
     String getDefault1();
 
     int getRoleTotal();
+
+    List<Role> selectRoleName(@Param("id") String id);
+
+    int deleteRoleAndMenu(@Param("roleId") String roleId);
+
+    int insertRoleAndMenu(@Param("roleId") String roleId, @Param("menuIdList") List<String> menuIdList);
+
+    List<Role> getRoleByEntity(@Param("role")  Role role, @Param("offset") int offset,@Param("limit") int pageSize);
 }

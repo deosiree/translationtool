@@ -6,7 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * 
@@ -47,12 +50,16 @@ public class TaskInfoEntity implements Serializable {
      * 创建时间
      */
     @TableField(value = "create_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date createTime;
 
     /**
      * 结束时间
      */
     @TableField(value = "end_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date endTime;
 
     /**
@@ -95,7 +102,7 @@ public class TaskInfoEntity implements Serializable {
      * 任务状态
      */
     @TableField(value = "state")
-    private int state;
+    private String state;
 
     /**
      * 版本ID
@@ -107,30 +114,40 @@ public class TaskInfoEntity implements Serializable {
      * 开发员操作时间
      */
     @TableField(value = "import_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date importTime;
 
     /**
      * 词条审核操作时间
      */
     @TableField(value = "entry_autior_start_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date entryAutiorStartTime;
 
     /**
      * 翻译审核操作时间
      */
     @TableField(value = "translation_auditor_start_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date translationAuditorStartTime;
 
     /**
      * 翻译员操作时间
      */
     @TableField(value = "translate_start_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date translateStartTime;
 
     /**
      * 任务下达时间
      */
     @TableField(value = "delivery_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern =  "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date deliveryTime;
 
     /**

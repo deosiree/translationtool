@@ -80,7 +80,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
                 taskInfoEntity.setCreateTime(date);
             }
             //状态更新导入状态
-            taskInfoEntity.setState(0);
+            taskInfoEntity.setState("0");
 
             taskInfoEntity.setIsDelete(0);
             int insert = taskInfoMapper.insert(taskInfoEntity);
@@ -119,24 +119,24 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-    public String taskSubmission(List<String> taskIDs, int oldState, int nextState) {
+    public String taskSubmission(List<String> taskIDs, String oldState, String nextState) {
 
         for (String taskId : taskIDs){
             TaskInfoEntity taskInfoEntity = new TaskInfoEntity();
             taskInfoEntity.setId(taskId);
             taskInfoEntity.setState(nextState);
             //根据状态更新操作时间
-            if (ConstantInterface.DELIVERY_STATE == oldState){
+            if (ConstantInterface.DELIVERY_STATE.equals(oldState)){
                 taskInfoEntity.setDeliveryTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.IMPORT_STATE == oldState){
+            }else  if (ConstantInterface.IMPORT_STATE.equals(oldState)){
                 taskInfoEntity.setImportTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.ENTRY_AUDIT_STATE == oldState){
+            }else  if (ConstantInterface.ENTRY_AUDIT_STATE.equals(oldState)){
                 taskInfoEntity.setEntryAutiorStartTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.TRANSLATE_STATE == oldState){
+            }else  if (ConstantInterface.TRANSLATE_STATE.equals(oldState)){
                 taskInfoEntity.setTranslateStartTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.TRANSLATE_AUDIT_STATE == oldState){
+            }else  if (ConstantInterface.TRANSLATE_AUDIT_STATE.equals(oldState)){
                 taskInfoEntity.setTranslationAuditorStartTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.EXPORT_STATE == oldState){
+            }else  if (ConstantInterface.EXPORT_STATE.equals(oldState)){
                 taskInfoEntity.setEndTime(new Date(System.currentTimeMillis()));
             }
             int update = taskInfoMapper.updateById(taskInfoEntity);

@@ -110,8 +110,8 @@ public class TaskManageController extends BaseController {
     //返回id
     public HttpResponse<String> taskSubmission(@RequestBody List<String> taskIDs) {
 
-        int oldState = 0;
-        int nextState= 1;
+        String oldState = "0";
+        String nextState= "1";
         String result = taskInfoService.taskSubmission(taskIDs,oldState,nextState);
 
 

@@ -13,13 +13,16 @@ import com.shr.translationtoolservice.service.UserLoginService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LDAPUtils;
+import com.shr.translationtoolservice.util.TreeUtils;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class UserLoginServiceImpl implements UserLoginService {
@@ -42,6 +45,9 @@ public class UserLoginServiceImpl implements UserLoginService {
     @Autowired
     private RoleMapper roleMapper;
 
+    @Autowired
+    private TreeUtils treeUtils;
+
     @Override
     public User getUserInfo(String jobNumber) {
         return userDao.selectByName(jobNumber);
@@ -57,27 +63,31 @@ public class UserLoginServiceImpl implements UserLoginService {
         }
         // 判断用户表中是否已存在该用户  不存在则新增
         User userInfo = userDao.selectByName(account);
+
+
         if (null == userInfo) {
             // 第一次登录   获取用户所属部门
-            List<JSONObject> userKey = ldapUtils.getUserKey(account);
+            List<JSONObject> userKey = ldapUtils.getUserKey(account,password);
             String department = "";
             if (!userKey.isEmpty()) {
-                for (Object o : userKey) {
-                }
                 String memberOf = userKey.get(0).getString(Constant.MEMBEROF);
                 department = memberOf.substring(memberOf.indexOf(Constant.EQUALE_SIGN) + 1, memberOf.indexOf(Constant.COMMA));
             }
             // 获取默认角色
-            Role role = roleMapper.getRoleByDefault();
+         //   Role role = roleMapper.getRoleByDefault();
             // 封装数据  插入数据库
             User user = new User();
             user.setId(commonUtils.getUUID());
             user.setUserName(account);
             user.setDepartment(department);
-            if (null != role) {
-                user.setRoleId(role.getId());
-                user.setRoleName(role.getRoleName());
-            }
+         /*   if (null != role) {
+                List<String> roleIdList = new ArrayList<>();
+                roleIdList.add(role.getId());
+                user.setRoleId(roleIdList);
+                List<String> roleList = new ArrayList<>();
+                roleList.add(role.getRoleName());
+                user.setRoleName(roleList);
+            }*/
             userDao.insert(user);
             userInfo = user;
         }
@@ -95,10 +105,20 @@ public class UserLoginServiceImpl implements UserLoginService {
         userDao.updateUserInfo(configResUser);
 */
         // 获取当前角色对应的菜单权限
-        List<Menu> menus = menuMapper.selectByRoleId(userInfo.getRoleId());
+        List<Role> roles = roleMapper.selectRoleName(userInfo.getId());
+        List<Menu> menus = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(roles)){
+            List<String> roleIds = new ArrayList<>();
+            for (Role role : roles){
+                roleIds.add(role.getId());
+            }
+            // userInfo.setRoleName();
+             menus = menuMapper.selectByRoleId(roleIds);
+        }
+
 
         // 获取当前角色对应的权限
-        List<Authority> authorities = authorityMapper.selectByRoleId(userInfo.getRoleId());
+    /*    List<Authority> authorities = authorityMapper.selectByRoleId(userInfo.getRoleId());
         for (Menu menu : menus) {
             List<Authority> list = new ArrayList<>();
             for (Authority authority : authorities) {
@@ -112,82 +132,22 @@ public class UserLoginServiceImpl implements UserLoginService {
         List<String> authorityList = new ArrayList<>();
         for (Authority authority : authorities) {
             authorityList.add(authority.getUri());
-        }
+        }*/
         Map<String, String> user = new HashMap<>();
         user.put(Constant.USER_NAME, userInfo.getUserName());
         user.put(Constant.USER_DEPARTMENT, userInfo.getDepartment());
         // 生成token
-        String token = JWTTokenUtils.createToken(user, authorityList);
+        String token = JWTTokenUtils.createToken(user);
         // 封装数据返回
         Map<String, Object> rMap = new HashMap<>();
         rMap.put("user", userInfo);
         rMap.put("token", token);
-        rMap.put("menu", listTree(menus));
-        rMap.put("authority", menus);
+        rMap.put("menu", treeUtils.listTree(menus));
+       // rMap.put("authority", menus);
 
         return Result.ok(rMap);
     }
 
-    /**
-     * list转tree
-     *
-     * @param menuList
-     * @return
-     */
-    public List<Menu> listTree(List<Menu> menuList) {
-        //新集合
-        List<Menu> returnList = new ArrayList<>();
 
-        List<String> tempList = new ArrayList<>();
-        for (Menu menu : menuList) {
-            tempList.add(menu.getId());
-        }
-        for (Menu menu : menuList) {
-            // 如果是顶级节点, 遍历该父节点的所有子节点
-            if (!tempList.contains(menu.getParentId())) {
-                recursionFn(menuList, menu);
-                returnList.add(menu);
-            }
-        }
-        //没有查询到节点则以当前节点
-        if (returnList.isEmpty()) {
-            returnList = menuList;
-        }
-        //排序
-        Collections.sort(returnList, Comparator.comparingInt(Menu::getRank));
 
-        return returnList;
-    }
-
-    /**
-     * 递归列表
-     */
-    private void recursionFn(List<Menu> list, Menu t) {
-        // 得到子节点列表
-        List<Menu> childList = getChildList(list, t);
-        // 子节点排序
-        Collections.sort(childList, Comparator.comparingInt(Menu::getRank));
-        t.setChildren(childList);
-        for (Menu tChild : childList) {
-            // 判断是否有子节点
-            if (StringUtils.isNotBlank(tChild.getParentId()) && tChild.getParentId().equals(t.getId())) {
-                for (Menu n : childList) {
-                    recursionFn(list, n);
-                }
-            }
-        }
-    }
-
-    /**
-     * 得到子节点列表
-     */
-    private List<Menu> getChildList(List<Menu> list, Menu t) {
-        List<Menu> tList = new ArrayList<>();
-        for (Menu n : list) {
-            if (StringUtils.isNotBlank(n.getParentId()) && n.getParentId().equals(t.getId())) {
-                tList.add(n);
-            }
-        }
-        return tList;
-    }
 }

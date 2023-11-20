@@ -23,7 +23,7 @@
     select 
     <include refid="Base_Column_List" />
     from t_menu
-    where id = #{id,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR} where is_delete =0
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     <!--@mbg.generated-->
@@ -33,14 +33,15 @@
   <insert id="insert" parameterType="com.shr.translationtoolservice.entity.Menu">
     <!--@mbg.generated-->
     insert into t_menu (id, parent_id, menu_name, 
-      url, `rank`, icon)
+      url, `rank`, icon,is_delete)
     values (#{id,jdbcType=VARCHAR}, #{parentId,jdbcType=VARCHAR}, #{menuName,jdbcType=VARCHAR}, 
-      #{url,jdbcType=VARCHAR}, #{rank,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR})
+      #{url,jdbcType=VARCHAR}, #{rank,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR},0)
   </insert>
   <insert id="insertSelective" parameterType="com.shr.translationtoolservice.entity.Menu">
     <!--@mbg.generated-->
     insert into t_menu
     <trim prefix="(" suffix=")" suffixOverrides=",">
+    is_delete,
       <if test="id != null">
         id,
       </if>
@@ -79,6 +80,7 @@
       <if test="icon != null">
         #{icon,jdbcType=VARCHAR},
       </if>
+      ,0
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.shr.translationtoolservice.entity.Menu">
@@ -117,12 +119,18 @@
     select
     <include refid="Base_Column_List" />
     from t_menu
-    where id in (select menu_id from t_role_menu where role_id = #{roleId,jdbcType=VARCHAR})
+    where id in (
+    select distinct menu_id from t_role_menu where role_id in(
+    <foreach collection="roleIds" item="roleId" index="index" separator=",">
+      #{roleId,jdbcType=VARCHAR}
+    </foreach>
+    )  ) and is_delete =0
+
   </select>
   <select id="selectAllInfo" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
-    from t_menu
+    from t_menu where is_delete = 0
 
   </select>
 
@@ -130,7 +138,7 @@
   <select id="selectMenyTotal" resultType="int">
     select
     count(1)
-    from t_menu
+    from t_menu  where is_delete = 0
 
   </select>
 

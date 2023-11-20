@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.Menu;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public interface MenuMapper {
 
     int updateByPrimaryKey(Menu record);
 
-    List<Menu> selectByRoleId(String roleId);
+    List<Menu> selectByRoleId(@Param("roleIds") List<String> roleId);
 
     List<Menu> selectAllInfo();
 
