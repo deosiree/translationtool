@@ -18,12 +18,16 @@
         <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
         <result column="describe" jdbcType="VARCHAR" property="describe"/>
         <result column="is_default" jdbcType="INTEGER" property="isDefault"/>
-        <collection property="menuName" javaType="java.util.ArrayList" ofType="String">
-            <result property="menuName" column="menu_name" />
+
+
+        <collection ofType="String" property="menuName">
+            <result column="menu_name"/>
         </collection>
-        <collection property="menuId" ofType="String">
-            <result property="menuId" column="menu_id"/>
+
+        <collection ofType="String" property="menuId">
+            <result column="menu_id"/>
         </collection>
+
 
     </resultMap>
 
@@ -240,7 +244,5 @@
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
-
-
     </select>
 </mapper>
