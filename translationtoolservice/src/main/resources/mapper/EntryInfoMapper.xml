@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.EntryInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryInfoEntity">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
+            <result property="entry" column="entry" jdbcType="VARCHAR"/>
+            <result property="entryLength" column="entry_length" jdbcType="INTEGER"/>
+            <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
+            <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
+            <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
+            <result property="entryState" column="entry_state" jdbcType="VARCHAR"/>
+            <result property="update" column="update" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
+            <result property="entryLabel" column="entry_label" jdbcType="VARCHAR"/>
+            <result property="partOfSpeech" column="part_of_speech" jdbcType="VARCHAR"/>
+            <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+            <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
+            <result property="enTransId" column="en_trans_id" jdbcType="VARCHAR"/>
+            <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
+            <result property="fraTransId" column="fra_trans_id" jdbcType="VARCHAR"/>
+            <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
+            <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
+            <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,abbr,entry,
+        entry_length,chinese_interpretation,english_interpretation,
+        entry_source,entry_state,`update`,
+        update_time,version_id,entry_label,
+        part_of_speech,classify_id,remark,
+        task_id,en_trans_id,ru_trans_id,
+        fra_trans_id,spa_trans_id,is_public,
+        is_delete
+    </sql>
+
+    <select id="getEntryByVersion" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/>
+        from t_entry_info where
+
+        version_id = #{versionID,jdbcType=VARCHAR} and is_delete = 0
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+
+    <select id="getEntryByVersionTotal" resultMap="BaseResultMap">
+        select   count(1)
+        from t_entry_info where
+
+        version_id = #{versionID,jdbcType=VARCHAR} and is_delete = 0
+
+    </select>
+
+    <select id="getEntryByAbbr"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from  ${tableName} where abbr = #{abbr,jdbcType=VARCHAR} and version_id =
+        #{versionID,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insertEntry">
+        insert into  ${tableName}
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entryInfoEntity.id != null and entryInfoEntity.id  != ''">
+                id,
+            </if>
+            <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr  != ''">
+                abbr,
+            </if>
+            <if test="entryInfoEntity.entry != null and entryInfoEntity.entry  != ''">
+                entry,
+            </if>
+            <if test="entryInfoEntity.entryLength != null ">
+                entry_length,
+            </if>
+            <if test="entryInfoEntity.chineseInterpretation != null and entryInfoEntity.chineseInterpretation  != ''">
+                chinese_interpretation,
+            </if>
+            <if test="entryInfoEntity.englishInterpretation != null and entryInfoEntity.englishInterpretation  != ''">
+                english_interpretation,
+            </if>
+            <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource  != ''">
+                entry_source,
+            </if>
+            <if test="entryInfoEntity.entryState != null and entryInfoEntity.entryState  != ''">
+                entry_state,
+            </if>
+            <if test="entryInfoEntity.update != null and entryInfoEntity.update  != ''">
+                `update`,
+            </if>
+            <if test="entryInfoEntity.updateTime != null ">
+                update_time,
+            </if>
+            <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID  != ''">
+                version_id,
+            </if>
+            <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel  != ''">
+                entry_label,
+            </if>
+            <if test="entryInfoEntity.partOfSpeech != null and entryInfoEntity.partOfSpeech  != ''">
+                part_of_speech,
+            </if>
+            <if test="entryInfoEntity.classifyId != null and entryInfoEntity.classifyId  != ''">
+                classify_id,
+            </if>
+            <if test="entryInfoEntity.remark != null and entryInfoEntity.remark  != ''">
+                remark,
+            </if>
+            <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId  != ''">
+                task_id,
+            </if>
+            <if test="entryInfoEntity.enTransId != null and entryInfoEntity.enTransId   != ''">
+                en_trans_id,
+            </if>
+            <if test="entryInfoEntity.ruTransId != null and entryInfoEntity.ruTransId  != ''">
+                ru_trans_id,
+            </if>
+            <if test="entryInfoEntity.fraTransId != null and entryInfoEntity.fraTransId   != ''">
+                fra_trans_id,
+            </if>
+            <if test="entryInfoEntity.spaTransId != null and entryInfoEntity.spaTransId   != ''">
+                spa_trans_id,
+            </if>
+            <if test="entryInfoEntity.isPublic != null ">
+                is_public,
+            </if>
+            <if test="entryInfoEntity.isDelete != null ">
+                is_delete,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
+                #{entryInfoEntity.id,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr   != ''">
+                #{entryInfoEntity.abbr,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
+                #{entryInfoEntity.entry,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entryLength != null ">
+                #{entryInfoEntity.entryLength,jdbcType=INTEGER},
+            </if>
+            <if test="entryInfoEntity.chineseInterpretation != null and entryInfoEntity.chineseInterpretation   != ''">
+                #{entryInfoEntity.chineseInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.englishInterpretation != null and entryInfoEntity.englishInterpretation   != ''">
+                #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
+                #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entryState != null and entryInfoEntity.entryState   != ''">
+                #{entryInfoEntity.entryState,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.update != null and entryInfoEntity.update   != ''">
+                #{entryInfoEntity.update,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.updateTime != null ">
+                #{entryInfoEntity.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
+                #{entryInfoEntity.versionID,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel   != ''">
+                #{entryInfoEntity.entryLabel,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.partOfSpeech != null and entryInfoEntity.partOfSpeech   != ''">
+                #{entryInfoEntity.partOfSpeech,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.classifyId != null and entryInfoEntity.classifyId   != ''">
+                #{entryInfoEntity.classifyId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.remark != null and entryInfoEntity.remark   != ''">
+                #{entryInfoEntity.remark,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
+                #{entryInfoEntity.taskId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.enTransId != null and entryInfoEntity.enTransId   != ''">
+                #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.ruTransId != null and entryInfoEntity.ruTransId   != ''">
+                #{entryInfoEntity.ruTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.fraTransId != null and entryInfoEntity.fraTransId   != ''">
+                #{entryInfoEntity.fraTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spaTransId != null and entryInfoEntity.spaTransId   != ''">
+                #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.isPublic != null ">
+                #{entryInfoEntity.isPublic,jdbcType=INTEGER},
+            </if>
+            <if test="entryInfoEntity.isDelete != null ">
+                #{entryInfoEntity.isDelete,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+</mapper>
