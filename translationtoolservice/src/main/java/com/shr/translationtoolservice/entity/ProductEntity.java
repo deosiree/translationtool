@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -15,6 +17,9 @@ import lombok.Data;
 @TableName(value ="t_product")
 @Data
 public class ProductEntity implements Serializable {
+
+
+
     /**
      * 主键
      */
@@ -49,8 +54,19 @@ public class ProductEntity implements Serializable {
      * 删除状态
      */
     @TableField(value = "is_delete")
-    private int isDelete;
+    private Integer isDelete;
 
+    /**
+     * 父id
+     */
+    @TableField(value = "parent_id")
+    private String parentId;
+
+    /**
+     * 备注
+     */
+    @TableField(value = "remark")
+    private String remark;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

@@ -454,7 +454,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String createVersionTable(List<EntryCommonEntity> entryEntities, String version, String remark, String department, HttpServletRequest request) {
-        String token = request.getHeader("token");
+    /*    String token = request.getHeader("token");
         if (StringUtils.isBlank(department)) {
             department = JWTTokenUtils.getDepartment(token);
         }
@@ -509,7 +509,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
                 versionTableMapper.insertVersionTable(versionTables.get(0).getVersionTableName(), entryEntity1, version);
             }
 
-        }
+        }*/
         return ConstantInterface.OK_STR;
 
     }

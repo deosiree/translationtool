@@ -4,14 +4,9 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.shr.translationtoolservice.dao.VersionTableMapper">
 
-    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.VersionTable">
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.VersionTableEntity">
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="versionTableName" column="version_table_name" jdbcType="VARCHAR"/>
-        <result property="remark" column="remark" jdbcType="VARCHAR"/>
-        <result property="version" column="version" jdbcType="VARCHAR"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-        <result property="department" column="department" jdbcType="VARCHAR"/>
-        <result property="creator" column="creator" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -20,59 +15,40 @@
     </sql>
 
 
-    <resultMap id="BaseResultMap1" type="com.shr.translationtoolservice.entity.VersionEntity">
+    <resultMap id="BaseResultMap1" type="com.shr.translationtoolservice.entity.EntryInfoEntity">
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
-        <result property="chinese" column="chinese" jdbcType="VARCHAR"/>
-        <result property="chineseLength" column="chinese_length" jdbcType="INTEGER"/>
+        <result property="entry" column="entry" jdbcType="VARCHAR"/>
+        <result property="entryLength" column="entry_length" jdbcType="INTEGER"/>
         <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
         <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
         <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
-        <result property="entryState" column="entry_state" jdbcType="INTEGER"/>
-        <result property="creator" column="creator" jdbcType="VARCHAR"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="entryState" column="entry_state" jdbcType="VARCHAR"/>
         <result property="update" column="update" jdbcType="VARCHAR"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-        <result property="version" column="version" jdbcType="VARCHAR"/>
-        <result property="isLatestVersion" column="is_latest_version" jdbcType="INTEGER"/>
+        <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
         <result property="entryLabel" column="entry_label" jdbcType="VARCHAR"/>
         <result property="partOfSpeech" column="part_of_speech" jdbcType="VARCHAR"/>
         <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
-        <result property="repeatEntryId" column="repeat_entry_id" jdbcType="VARCHAR"/>
-        <result property="english" column="english" jdbcType="VARCHAR"/>
-        <result property="englishLength" column="english_length" jdbcType="INTEGER"/>
-        <result property="englishTranslateState" column="english_translate_state" jdbcType="VARCHAR"/>
-        <result property="englishDisable" column="english_disable" jdbcType="VARCHAR"/>
-        <result property="englishDisableLength" column="english_disable_length" jdbcType="INTEGER"/>
-        <result property="russian" column="russian" jdbcType="VARCHAR"/>
-        <result property="russianLength" column="russian_length" jdbcType="INTEGER"/>
-        <result property="russianTranslateState" column="russian_translate_state" jdbcType="VARCHAR"/>
-        <result property="spanish" column="spanish" jdbcType="VARCHAR"/>
-        <result property="spanishLength" column="spanish_length" jdbcType="INTEGER"/>
-        <result property="spanishTranslateState" column="spanish_translate_state" jdbcType="VARCHAR"/>
-        <result property="french" column="french" jdbcType="VARCHAR"/>
-        <result property="frenchLength" column="french_length" jdbcType="INTEGER"/>
-        <result property="frenchTranslateState" column="french_translate_state" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
-        <result property="typeId" column="type_id" jdbcType="VARCHAR"/>
-        <result property="environmentRemark" column="environment_remark" jdbcType="VARCHAR"/>
-        <result property="chineseTranslateState" column="chinese_translate_state" jdbcType="VARCHAR"/>
-        <result property="versionTable" column="version_table" jdbcType="VARCHAR"/>
+        <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
+        <result property="enTransId" column="en_trans_id" jdbcType="VARCHAR"/>
+        <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
+        <result property="fraRtansId" column="fra_rtans_id" jdbcType="VARCHAR"/>
+        <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
+        <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
+        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List1">
-        id,abbr,chinese,
-        chinese_length,chinese_interpretation,english_interpretation,chinese_translate_state,
-        entry_source,entry_state,creator,
-        DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time ,`update`,  DATE_FORMAT(update_time, '%Y-%m-%d %H:%i:%s') as update_time,
-        version,is_latest_version,entry_label,
-        part_of_speech,classify_id,repeat_entry_id,
-        english,english_length,english_translate_state,
-        english_disable,english_disable_length,russian,
-        russian_length,russian_translate_state,spanish,
-        spanish_length,spanish_translate_state,french,
-        french_length,french_translate_state,remark,type_id,environment_remark,
-        version_table
+        id,abbr,entry,
+        entry_length,chinese_interpretation,english_interpretation,
+        entry_source,entry_state,`update`,
+        update_time,version,entry_label,
+        part_of_speech,classify_id,remark,
+        task_id,en_trans_id,ru_trans_id,
+        fra_rtans_id,spa_trans_id,is_public,
+        is_delete
     </sql>
 
 
@@ -93,7 +69,7 @@
     </select>
 
 
-    <insert id="addVersionTable" parameterType="com.shr.translationtoolservice.entity.VersionTable">
+    <insert id="addVersionTable" parameterType="com.shr.translationtoolservice.entity.VersionTableEntity">
         insert into t_version_table
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="versionTable.id != null">
@@ -102,21 +78,10 @@
             <if test="versionTable.versionTableName != null">
                 version_table_name,
             </if>
-            <if test="versionTable.remark != null">
-                remark,
+            <if test="versionTable.versionId != null">
+                version_id,
             </if>
-            <if test="versionTable.version != null">
-                version,
-            </if>
-            <if test="versionTable.department != null">
-                department,
-            </if>
-            <if test="versionTable.creator != null">
-                creator,
-            </if>
-            <if test="versionTable.createTime != null">
-                create_time,
-            </if>
+
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="versionTable.id != null">
@@ -125,301 +90,41 @@
             <if test="versionTable.versionTableName != null">
                 #{versionTable.versionTableName,jdbcType=VARCHAR},
             </if>
-            <if test="versionTable.remark != null">
-                #{versionTable.remark,jdbcType=VARCHAR},
+            <if test="versionTable.versionId != null">
+                #{versionTable.versionId,jdbcType=VARCHAR},
             </if>
-            <if test="versionTable.version != null">
-                #{versionTable.version,jdbcType=VARCHAR},
-            </if>
-            <if test="versionTable.department != null">
-                #{versionTable.department,jdbcType=VARCHAR},
-            </if>
-            <if test="versionTable.creator != null">
-                #{versionTable.creator,jdbcType=VARCHAR},
-            </if>
-            <if test="versionTable.createTime != null">
-                #{versionTable.createTime,jdbcType=VARCHAR},
-            </if>
+
         </trim>
     </insert>
 
 
     <update id="createVersionTable" parameterType="String">
-
-
         CREATE TABLE IF NOT EXISTS   ${tableName}  (
-`key` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL  DEFAULT '' COMMENT '自增主键',
-  `id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL  COMMENT '原表id',
-
+`id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '主键',
   `abbr` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT 'abbr',
-  `chinese` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条',
-  `chinese_length` int NULL DEFAULT NULL COMMENT '词条字符数',
+  `entry` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条',
+  `entry_length` int NULL DEFAULT NULL,
   `chinese_interpretation` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '中文释义',
   `english_interpretation` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '英文释义',
   `entry_source` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条来源',
-  `entry_state` int NULL DEFAULT NULL COMMENT '词条状态',
-  `creator` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '创建人',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '修改人',
+  `entry_state` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条状态',
+  `update` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '修改人',
   `update_time` datetime NULL DEFAULT NULL COMMENT '修改时间',
-  `version` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '版本',
-  `is_latest_version` int NULL DEFAULT NULL COMMENT '是否最新版本   1 是  0 否',
+  `version_id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '版本id',
   `entry_label` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条标签',
   `part_of_speech` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词性备注',
   `classify_id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条所属分类',
-  `repeat_entry_id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '重复词条id',
-  `english` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '英文翻译',
-  `english_length` int NULL DEFAULT NULL COMMENT '英文字符数',
-  `english_translate_state` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '英文翻译状态',
-  `english_disable` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '英文禁用术语',
-  `english_disable_length` int NULL DEFAULT NULL COMMENT '英文禁用数据字符数',
-  `russian` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '俄文翻译',
-  `russian_length` int NULL DEFAULT NULL COMMENT '俄文翻译字符数',
-  `russian_translate_state` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '俄文翻译状态',
-  `spanish` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '西文翻译',
-  `spanish_length` int NULL DEFAULT NULL COMMENT '西文翻译字符数',
-  `spanish_translate_state` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '西文翻译状态',
-  `french` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '法文翻译',
-  `french_length` int NULL DEFAULT NULL COMMENT '法文字符数',
-  `french_translate_state` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '法文翻译状态',
-  `remark` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
-`chinese_translate_state` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '中文翻译状态',
-  `type_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '词条种类',
-  `environment_remark` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '环境/功能 备注',
-  `version_table` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '对应版本库',
-  PRIMARY KEY (`key`) USING BTREE
+  `remark` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `task_id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '任务id',
+  `en_trans_id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '英文翻译id',
+  `ru_trans_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '俄文翻译id',
+  `fra_trans_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '法文翻译id',
+  `spa_trans_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '西文翻译id',
+  `is_public` int NULL DEFAULT NULL COMMENT '公共库（0否 1是）',
+  `is_delete` int NULL DEFAULT NULL COMMENT '删除状态（0否 1是）',
+  PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '词条版本表' ROW_FORMAT = DYNAMIC;
-
-
-
-
-
-
     </update>
-
-    <insert id="insertVersionTable" parameterType="com.shr.translationtoolservice.entity.EntryEntity">
-
-
-        insert into ${tableName}
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="versionEntity.key != null">
-                `key`,
-            </if>
-            <if test="versionEntity.id != null">
-                id,
-            </if>
-            <if test="versionEntity.abbr != null">
-                abbr,
-            </if>
-            <if test="versionEntity.chinese != null">
-                chinese,
-            </if>
-            <if test="versionEntity.chineseLength != null">
-                chinese_length,
-            </if>
-            <if test="versionEntity.chineseInterpretation != null">
-                chinese_interpretation,
-            </if>
-            <if test="versionEntity.englishInterpretation != null">
-                english_interpretation,
-            </if>
-            <if test="versionEntity.entrySource != null">
-                entry_source,
-            </if>
-            <if test="versionEntity.entryState != null">
-                entry_state,
-            </if>
-            <if test="versionEntity.creator != null">
-                creator,
-            </if>
-            <if test="versionEntity.createTime != null">
-                create_time,
-            </if>
-            <if test="versionEntity.update == null">
-                `update`,
-            </if>
-            <if test="versionEntity.updateTime == null">
-                update_time,
-            </if>
-            <if test="versionEntity.version != null">
-                version,
-            </if>
-            <if test="versionEntity.isLatestVersion != null">
-                is_latest_version,
-            </if>
-            <if test="versionEntity.entryLabel != null">
-                entry_label,
-            </if>
-            <if test="versionEntity.partOfSpeech != null">
-                part_of_speech,
-            </if>
-            <if test="versionEntity.classifyId != null">
-                classify_id,
-            </if>
-            <if test="versionEntity.repeatEntryId != null">
-                repeat_entry_id,
-            </if>
-            <if test="versionEntity.english != null">
-                english,
-            </if>
-            <if test="versionEntity.englishLength != null">
-                english_length,
-            </if>
-            <if test="versionEntity.englishTranslateState != null">
-                english_translate_state,
-            </if>
-            <if test="versionEntity.englishDisable != null">
-                english_disable,
-            </if>
-            <if test="versionEntity.englishDisableLength != null">
-                english_disable_length,
-            </if>
-            <if test="versionEntity.russian != null">
-                russian,
-            </if>
-            <if test="versionEntity.russianLength != null">
-                russian_length,
-            </if>
-            <if test="versionEntity.russianTranslateState != null">
-                russian_translate_state,
-            </if>
-            <if test="versionEntity.spanish != null">
-                spanish,
-            </if>
-            <if test="versionEntity.spanishLength != null">
-                spanish_length,
-            </if>
-            <if test="versionEntity.spanishTranslateState != null">
-                spanish_translate_state,
-            </if>
-            <if test="versionEntity.french != null">
-                french,
-            </if>
-            <if test="versionEntity.frenchLength != null">
-                french_length,
-            </if>
-            <if test="versionEntity.frenchTranslateState != null">
-                french_translate_state,
-            </if>
-            <if test="versionEntity.remark != null">
-                remark,
-            </if>
-            <if test="versionTable != null">
-                version_table,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-
-            <if test="versionEntity.key != null">
-                #{versionEntity.key,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.id != null">
-                #{versionEntity.id,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.abbr != null">
-                #{versionEntity.abbr,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.chinese != null">
-                #{versionEntity.chinese,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.chineseLength != null">
-                #{versionEntity.chineseLength,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.chineseInterpretation != null">
-                #{versionEntity.chineseInterpretation,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.englishInterpretation != null">
-                #{versionEntity.englishInterpretation,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.entrySource != null">
-                #{versionEntity.entrySource,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.entryState != null">
-                #{versionEntity.entryState,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.creator != null">
-                #{versionEntity.creator,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.createTime != null">
-                #{versionEntity.createTime,jdbcType=DATETIMEOFFSET},
-            </if>
-            <if test="versionEntity.update == null">
-                #{versionEntity.creator,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.updateTime == null">
-                #{versionEntity.createTime,jdbcType=DATETIMEOFFSET},
-            </if>
-            <if test="versionEntity.version != null">
-                #{versionEntity.version,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.isLatestVersion != null">
-                #{versionEntity.isLatestVersion,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.entryLabel != null">
-                #{versionEntity.entryLabel,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.partOfSpeech != null">
-                #{versionEntity.partOfSpeech,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.classifyId != null">
-                #{versionEntity.classifyId,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.repeatEntryId != null">
-                #{versionEntity.repeatEntryId,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.english != null">
-                #{versionEntity.english,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.englishLength != null">
-                #{versionEntity.englishLength,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.englishTranslateState != null">
-                #{versionEntity.englishTranslateState,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.englishDisable != null">
-                #{versionEntity.englishDisable,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.englishDisableLength != null">
-                #{versionEntity.englishDisableLength,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.russian != null">
-                #{versionEntity.russian,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.russianLength != null">
-                #{versionEntity.russianLength,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.russianTranslateState != null">
-                #{versionEntity.russianTranslateState,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.spanish != null">
-                #{versionEntity.spanish,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.spanishLength != null">
-                #{versionEntity.spanishLength,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.spanishTranslateState != null">
-                #{versionEntity.spanishTranslateState,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.french != null">
-                #{versionEntity.french,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.frenchLength != null">
-                #{versionEntity.frenchLength,jdbcType=INTEGER},
-            </if>
-            <if test="versionEntity.frenchTranslateState != null">
-                #{versionEntity.frenchTranslateState,jdbcType=VARCHAR},
-            </if>
-            <if test="versionEntity.remark != null">
-                #{versionEntity.remark,jdbcType=VARCHAR},
-            </if>
-            <if test="versionTable != null">
-                #{versionTable,jdbcType=VARCHAR},
-            </if>
-
-        </trim>
-
-
-    </insert>
 
 
     <select id="getVersionTable" parameterType="String" resultMap="BaseResultMap1">

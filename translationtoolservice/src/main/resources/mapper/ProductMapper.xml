@@ -5,65 +5,23 @@
 <mapper namespace="com.shr.translationtoolservice.dao.ProductMapper">
 
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.ProductEntity">
-        <result property="id" column="id" jdbcType="VARCHAR"/>
-        <result property="name" column="name" jdbcType="VARCHAR"/>
-        <result property="creator" column="creator" jdbcType="VARCHAR"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+            <result property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="creator" column="creator" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="department" column="department" jdbcType="VARCHAR"/>
+            <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+            <result property="parentId" column="parent_id" jdbcType="VARCHAR"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,name,creator,
-        create_time,is_delete
+        id,`name`,creator,
+        create_time,department,is_delete,
+        parent_id,remark
     </sql>
-    <select id="selectByName">
-        select
-        <include refid="Base_Column_List"/>
-        from t_product
-        where `name` = #{name ,jdbcType=VARCHAR}
-    </select>
 
-
-    <select id="getProductList" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from t_product
-        where is_delete = 0
-        <if test="productEntity.id != null  and productEntity.id != ''">
-            and id = #{productEntity.id ,jdbcType=VARCHAR}
-        </if>
-        <if test="productEntity.id != null  and productEntity.id != ''">
-            and id = #{productEntity.id ,jdbcType=VARCHAR}
-        </if>
-        <if test="productEntity.name != null  and productEntity.name != ''">
-            and `name` = #{productEntity.name ,jdbcType=VARCHAR}
-        </if>
-        <if test="productEntity.department != null  and productEntity.department != ''">
-            and department = #{productEntity.department ,jdbcType=VARCHAR}
-        </if>
-    </select>
-
-    <select id="getProductListTotal" resultType="integer">
-        select
-        count(1)
-        from t_product
-        where is_delete = 0
-        <if test="productEntity.id != null  and productEntity.id != ''">
-            and id = #{productEntity.id ,jdbcType=VARCHAR}
-        </if>
-        <if test="productEntity.id != null  and productEntity.id != ''">
-            and id = #{productEntity.id ,jdbcType=VARCHAR}
-        </if>
-        <if test="productEntity.name != null  and productEntity.name != ''">
-            and `name` = #{productEntity.name ,jdbcType=VARCHAR}
-        </if>
-        <if test="productEntity.department != null  and productEntity.department != ''">
-            and department = #{productEntity.department ,jdbcType=VARCHAR}
-        </if>
-    </select>
-
-
-    <update id="deleteByIds">
+    <update id="deleteList">
         update t_product set is_delete = 1 where id in(
         <foreach collection="idList" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}

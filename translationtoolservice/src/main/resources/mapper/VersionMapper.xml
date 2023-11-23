@@ -10,6 +10,7 @@
         <result property="creator" column="creator" jdbcType="VARCHAR"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="productId" column="product_id" jdbcType="VARCHAR"/>
+        <result property="productName" column="product_name" jdbcType="VARCHAR"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
         <result property="details" column="details" jdbcType="VARCHAR"/>
     </resultMap>
@@ -82,5 +83,15 @@
         </foreach>
         );
     </update>
+
+
+    <select id="getVersionByProductName" resultMap="BaseResultMap">
+        select t1.`name` as `name` , t1.details as details,t2.name as product_name ,t1.id as id,t2.id as product_id
+        from t_version t1 , t_product t2
+        where t2.id = t1.product_id
+        and t2.name =  #{productName,jdbcType=VARCHAR}
+         and t2.department =  #{department,jdbcType=VARCHAR}
+         and t1.is_delete = 0 and t2.is_delete = 0
+    </select>
 
 </mapper>

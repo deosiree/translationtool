@@ -35,7 +35,7 @@ public class TranslateEntity implements Serializable {
     /**
      * 唯一属性
      */
-    @TableField(value = "unique")
+    @TableField(value = "`unique`")
     private String unique;
 
     /**
@@ -54,7 +54,19 @@ public class TranslateEntity implements Serializable {
      * 可见范围
      */
     @TableField(value = "visual_range")
-    private String visual_range;
+    private String visualRange;
+
+    /**
+     * 公共库（0否，1是）
+     */
+    @TableField(value = "public_state")
+    private Integer publicState;
+
+    /**
+     * 删除状态（0否1是）
+     */
+    @TableField(value = "delete_state")
+    private Integer deleteState;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

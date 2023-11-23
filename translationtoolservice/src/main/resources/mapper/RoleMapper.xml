@@ -19,14 +19,14 @@
         <result column="describe" jdbcType="VARCHAR" property="describe"/>
         <result column="is_default" jdbcType="INTEGER" property="isDefault"/>
 
-
+        <collection ofType="String" property="menuId" >
+            <result column="menu_id" />
+        </collection>
         <collection ofType="String" property="menuName">
             <result column="menu_name"/>
         </collection>
 
-        <collection ofType="String" property="menuId">
-            <result column="menu_id"/>
-        </collection>
+
 
 
     </resultMap>

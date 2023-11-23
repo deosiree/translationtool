@@ -15,6 +15,12 @@ import lombok.Data;
 @TableName(value ="t_version")
 @Data
 public class VersionEntity implements Serializable {
+
+
+
+    @TableField(exist = false)
+    private String productName;
+
     /**
      * 主键
      */
@@ -49,7 +55,7 @@ public class VersionEntity implements Serializable {
      * 删除状态
      */
     @TableField(value = "is_delete")
-    private String isDelete;
+    private Integer isDelete;
 
     /**
      *
@@ -57,6 +63,13 @@ public class VersionEntity implements Serializable {
     @TableField(value = "details")
     private String details;
 
+    /**
+     *
+     */
+    @TableField(value = "table_name")
+    private String tableName;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
 }

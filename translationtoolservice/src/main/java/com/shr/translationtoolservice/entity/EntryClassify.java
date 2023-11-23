@@ -30,6 +30,13 @@ public class EntryClassify implements Serializable {
     private String key;
 
     /**
+     *
+     */
+
+    @TableField("`type`")
+    private String type;
+
+    /**
      * 父id
      */
     private String parentId;

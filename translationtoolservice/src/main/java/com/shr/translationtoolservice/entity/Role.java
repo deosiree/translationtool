@@ -32,8 +32,9 @@ public class Role {
      */
     private String type;
 
-    @TableField(exist = false)
-    private List<String> menuName;
+
 
     private List<String> menuId;
+    @TableField(exist = false)
+    private List<String> menuName;
 }

@@ -36,6 +36,8 @@ public class ConstantInterface {
     public static final String OPERATION_TYPE_UPGRATE = "升级";
     public static final String OPERATION_TYPE_AUDIT = "审核";
 
+    public static final String CREATE_STATE = "创建";
+
     public static final String PROJECT_TABLE = "project";
     public static final String PRODUCT_TABLE = "product";
     public static final String COMMON_TABLE = "common";

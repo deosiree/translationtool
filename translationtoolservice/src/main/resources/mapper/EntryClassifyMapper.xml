@@ -12,11 +12,12 @@
         <result property="maxByte" column="max_byte" jdbcType="INTEGER"/>
         <result property="department" column="department" jdbcType="VARCHAR"/>
         <result property="creator" column="creator" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id ,parent_id,`name`,
+        id ,parent_id,`name`,`type`,
         `index`,max_byte,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
     </sql>
 
@@ -113,6 +114,9 @@
             <if test="entryClassify.createTime != null">
                 `create_time`,
             </if>
+            <if test="entryClassify.type != null">
+                `type`,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryClassify.key != null">
@@ -139,6 +143,9 @@
             <if test="entryClassify.createTime != null">
                 #{entryClassify.createTime,jdbcType=TIMESTAMP},
             </if>
+            <if test="entryClassify.type != null">
+                #{entryClassify.type,jdbcType=TIMESTAMP},
+            </if>
         </trim>
     </insert>
 
@@ -164,7 +171,7 @@
             <if test="entryClassify.title != null  and entryClassify.title != ''">
                 `name` = #{entryClassify.title ,jdbcType=VARCHAR},
             </if>
-            <if test="entryClassify.maxByte != null  and entryClassify.title != ''">
+            <if test="entryClassify.maxByte != null  and entryClassify.maxByte != ''">
                 `max_byte` = #{entryClassify.maxByte ,jdbcType=VARCHAR},
             </if>
 

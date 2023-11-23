@@ -13,6 +13,8 @@ import java.util.List;
 @Mapper
 public interface ProductMapper extends BaseMapper<ProductEntity> {
 
+    int deleteList(@Param("idList") List<String> idList);
+
     List<ProductEntity> selectByName(@Param("name") String name);
 
     List<ProductEntity> getProductList(@Param("productEntity") ProductEntity productEntity);

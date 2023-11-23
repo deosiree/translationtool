@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.shr.translationtoolservice.dao.TranslateMapper">
+<mapper namespace="com.shr.translationtoolservice.mapper.TranslateMapper">
 
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.TranslateEntity">
             <result property="id" column="id" jdbcType="VARCHAR"/>
@@ -11,12 +11,14 @@
             <result property="unique" column="unique" jdbcType="VARCHAR"/>
             <result property="remark" column="remark" jdbcType="VARCHAR"/>
             <result property="type" column="type" jdbcType="VARCHAR"/>
-            <result property="visual_range" column="visual_range" jdbcType="VARCHAR"/>
+            <result property="visualRange" column="visual_range" jdbcType="VARCHAR"/>
+            <result property="publicState" column="public_state" jdbcType="INTEGER"/>
+            <result property="deleteState" column="delete_state" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,entry,translate,
         unique,remark,type,
-        visual_range
+        visual_range,public_state,delete_state
     </sql>
 </mapper>

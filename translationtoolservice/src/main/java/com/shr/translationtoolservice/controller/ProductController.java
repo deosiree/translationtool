@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
+import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.ProductEntity;
 import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.VersionEntity;
@@ -31,6 +32,21 @@ public class ProductController extends BaseController{
 
     @Autowired
     private ProductService productService;
+
+    @PostMapping("/getProductVersion")
+    @ApiOperation("获取产品版本")
+    @CrossOrigin
+    @Token
+    public HttpResponse<ResponseListModel< VersionEntity>> getProductVersion(String  productName, String department) {
+        ResponseListModel< VersionEntity> responseListModel = new ResponseListModel< VersionEntity>();
+        List<VersionEntity> versionEntities = productService.getProductVersion(productName,department);
+        responseListModel.setList(versionEntities);
+        responseListModel.setTotalNum(versionEntities.size());
+        return checkResult(responseListModel);
+
+    }
+
+
 
     @PostMapping("/getProduct")
     @ApiOperation("产品查询")

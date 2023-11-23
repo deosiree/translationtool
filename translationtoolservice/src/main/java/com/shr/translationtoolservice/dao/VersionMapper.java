@@ -21,6 +21,10 @@ public interface VersionMapper extends BaseMapper<VersionEntity> {
     int getVersionTotal(@Param("versionEntity") VersionEntity versionEntity);
 
     int deleteByIds(@Param("idList") List<String> idList);
+
+    List<VersionEntity> getVersionByProductName(@Param("productName") String productName, @Param("department") String department);
+
+
 }
 
 
