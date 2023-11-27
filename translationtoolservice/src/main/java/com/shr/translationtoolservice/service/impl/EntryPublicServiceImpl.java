@@ -17,6 +17,8 @@ public class EntryPublicServiceImpl extends ServiceImpl<EntryPublicMapper, Entry
 
     @Override
     public List<EntryPublicEntity> getPublicEntryByDepartment(EntryPublicEntity entryPublicEntity, int offset, Integer pageSize) {
+
+
         return null;
     }
 

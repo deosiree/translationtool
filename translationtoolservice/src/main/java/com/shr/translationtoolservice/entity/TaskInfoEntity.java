@@ -26,8 +26,10 @@ public class TaskInfoEntity implements Serializable {
     private String productName;
     @TableField(exist = false)
     private String productId;
-
-
+    @TableField(exist = false)
+    private int entryNum;
+    @TableField(exist = false)
+    private String tableName;
     /**
      * 主键
      */

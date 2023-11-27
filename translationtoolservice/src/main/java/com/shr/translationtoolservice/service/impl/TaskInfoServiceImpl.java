@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shr.translationtoolservice.dao.EntryInfoMapper;
 import com.shr.translationtoolservice.dao.ProductMapper;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
@@ -39,12 +40,22 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Autowired
     private ProductMapper productMapper;
 
+    @Autowired
+    private EntryInfoMapper entryInfoMapper;
+
     @Override
     //获取任务信息
     //入参 taskInfoEntity 任务实体 ， offset 页码，pageSize 页内行数
     public List<TaskInfoEntity> getTaskInfo( TaskInfoEntity taskInfoEntity, Integer offset, Integer pageSize,HttpServletRequest request) {
 
         List<TaskInfoEntity> taskInfoEntities = taskInfoMapper.getTaskInfo(taskInfoEntity,offset,pageSize);
+        if (StringUtils.isNotBlank(taskInfoEntity.getTableName())){
+            for (TaskInfoEntity taskInfoEntity1 : taskInfoEntities){
+                List<EntryInfoEntity> entryInfoEntities =  entryInfoMapper.getEntryByTaskID(taskInfoEntity1.getId(),taskInfoEntity.getTableName());
+                taskInfoEntity1.setEntryNum(entryInfoEntities.size());
+            }
+        }
+
         return taskInfoEntities;
     }
 
@@ -146,6 +157,13 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
 
         }
         return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize) {
+
+        List<TaskInfoEntity>  taskInfoEntities = taskInfoMapper.getTaskInfoByVersion(taskInfoEntity,offset,pageSize);
+        return null;
     }
 }
 

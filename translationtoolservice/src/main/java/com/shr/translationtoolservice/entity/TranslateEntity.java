@@ -68,6 +68,19 @@ public class TranslateEntity implements Serializable {
     @TableField(value = "delete_state")
     private Integer deleteState;
 
+    /**
+     * 翻译状态（创建，待翻译，已翻译，已审核）
+     */
+    @TableField(value = "translate_state")
+    private String translateState;
+
+
+    /**
+     * 版本id
+     */
+    @TableField(value = "version_id")
+    private String versionID;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

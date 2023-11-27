@@ -5,28 +5,28 @@
 <mapper namespace="com.shr.translationtoolservice.dao.EntryInfoMapper">
 
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.EntryInfoEntity">
-            <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
-            <result property="entry" column="entry" jdbcType="VARCHAR"/>
-            <result property="entryLength" column="entry_length" jdbcType="INTEGER"/>
-            <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
-            <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
-            <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
-            <result property="entryState" column="entry_state" jdbcType="VARCHAR"/>
-            <result property="update" column="update" jdbcType="VARCHAR"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-            <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
-            <result property="entryLabel" column="entry_label" jdbcType="VARCHAR"/>
-            <result property="partOfSpeech" column="part_of_speech" jdbcType="VARCHAR"/>
-            <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
-            <result property="remark" column="remark" jdbcType="VARCHAR"/>
-            <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
-            <result property="enTransId" column="en_trans_id" jdbcType="VARCHAR"/>
-            <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
-            <result property="fraTransId" column="fra_trans_id" jdbcType="VARCHAR"/>
-            <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
-            <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
-            <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="abbr" column="abbr" jdbcType="VARCHAR"/>
+        <result property="entry" column="entry" jdbcType="VARCHAR"/>
+        <result property="entryLength" column="entry_length" jdbcType="INTEGER"/>
+        <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
+        <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
+        <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
+        <result property="entryState" column="entry_state" jdbcType="VARCHAR"/>
+        <result property="update" column="update" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
+        <result property="entryLabel" column="entry_label" jdbcType="VARCHAR"/>
+        <result property="partOfSpeech" column="part_of_speech" jdbcType="VARCHAR"/>
+        <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
+        <result property="enTransId" column="en_trans_id" jdbcType="VARCHAR"/>
+        <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
+        <result property="fraTransId" column="fra_trans_id" jdbcType="VARCHAR"/>
+        <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
+        <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
+        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -41,10 +41,11 @@
     </sql>
 
     <select id="getEntryByVersion" resultMap="BaseResultMap">
-        select   <include refid="Base_Column_List"/>
-        from t_entry_info where
+        select
+        <include refid="Base_Column_List"/>
+        from ${entryInfoEntity.tableName} where
 
-        version_id = #{versionID,jdbcType=VARCHAR} and is_delete = 0
+        version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR} and is_delete = 0
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -53,7 +54,7 @@
 
     <select id="getEntryByVersionTotal" resultMap="BaseResultMap">
         select   count(1)
-        from t_entry_info where
+        from  ${entryInfoEntity.tableName} where
 
         version_id = #{versionID,jdbcType=VARCHAR} and is_delete = 0
 
@@ -63,12 +64,12 @@
             resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from  ${tableName} where abbr = #{abbr,jdbcType=VARCHAR} and version_id =
+        from ${tableName} where abbr = #{abbr,jdbcType=VARCHAR} and version_id =
         #{versionID,jdbcType=VARCHAR}
     </select>
 
     <insert id="insertEntry">
-        insert into  ${tableName}
+        insert into ${tableName}
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="entryInfoEntity.id != null and entryInfoEntity.id  != ''">
                 id,
@@ -207,4 +208,76 @@
         </trim>
     </insert>
 
+    <update id="updateEntryInfo">
+        update ${entryInfoEntity.tableName}
+        <set>
+
+            <if test="entryInfoEntity.abbr != null  and entryInfoEntity.abbr != ''">
+                abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entry != null  and entryInfoEntity.entry != ''">
+                entry = #{entryInfoEntity.entry,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.chineseInterpretation != null  and entryInfoEntity.chineseInterpretation != ''">
+                chinese_interpretation = #{entryInfoEntity.chineseInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.englishInterpretation != null  and entryInfoEntity.englishInterpretation != ''">
+                english_interpretation = #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entrySource != null  and entryInfoEntity.entrySource != ''">
+                entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.entryState != null  and entryInfoEntity.entryState != ''">
+                entry_state = #{entryInfoEntity.entryState,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.update != null  and entryInfoEntity.update != ''">
+                `update` = #{entryInfoEntity.update,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.updateTime != null  ">
+                update_time = #{entryInfoEntity.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="entryInfoEntity.entryLabel != null  and entryInfoEntity.entryLabel != ''">
+                entry_label = #{entryInfoEntity.entryLabel,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.partOfSpeech != null  and entryInfoEntity.partOfSpeech != ''">
+                part_of_speech = #{entryInfoEntity.partOfSpeech,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.remark != null  and entryInfoEntity.remark != ''">
+                remark = #{entryInfoEntity.remark,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spaTransId != null  and entryInfoEntity.spaTransId != ''">
+                spa_trans_id = #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.fraTransId != null  and entryInfoEntity.fraTransId != ''">
+                fra_trans_id = #{entryInfoEntity.fraTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.ruTransId != null  and entryInfoEntity.ruTransId != ''">
+                ru_trans_id = #{entryInfoEntity.ruTransId,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.enTransId != null  and entryInfoEntity.enTransId != ''">
+                en_trans_id = #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
+    </update>
+    <select id="selectEntryById" resultMap="BaseResultMap">
+        select    <include refid="Base_Column_List"/>
+        from ${entryInfoEntity.tableName}
+        where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
+    </select>
+
+    <update id="deleteByIdList">
+        update ${tableName} set is_delete = 1 where id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </update>
+
+    <select id="getEntryByTaskID" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ${tableName}
+        where task_id =  #{id,jdbcType=VARCHAR}
+    </select>
 </mapper>

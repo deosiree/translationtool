@@ -8,6 +8,7 @@ import com.shr.translationtoolservice.dao.EntryVersionMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.EntryVO;
 import com.shr.translationtoolservice.entity.vo.ProductTreeVO;
+import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import com.shr.translationtoolservice.service.EntryClassifyService;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryPublicService;
@@ -16,8 +17,10 @@ import com.shr.translationtoolservice.util.CommonUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,21 +52,58 @@ public class EntryInfoController extends BaseController {
     private EntryInfoService entryInfoService;
 
     //查询词条信息
-    @PostMapping("/getPublicEntryByDepartment")
+    @PostMapping("/getPublicEntry")
     @ApiOperation("查询公共库")
     @Token
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getPublicEntryByDepartment(@RequestBody EntryPublicEntity entryPublicEntity,
+    public HttpResponse<ResponseListModel<TranslateEntity>> getPublicEntry(@RequestBody TranslateEntity translateEntity,
                                                                       @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        ResponseListModel result = new ResponseListModel<>();
-        List<EntryPublicEntity> entryPublicEntities = new ArrayList<>();
+        ResponseListModel<TranslateEntity> result = new ResponseListModel<>();
+        List<TranslateEntity> entryPublicEntities = new ArrayList<>();
 
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            entryPublicEntities = entryPublicService.getPublicEntryByDepartment(entryPublicEntity, offset, pageSize);
+            entryPublicEntities = entryInfoService.getPublicEntry(translateEntity, offset, pageSize);
         }
         result.setList(entryPublicEntities);
+        result.setTotalNum(entryInfoService.getPublicEntryTotal(translateEntity));
+        return checkResult(result);
+    }
+
+
+    @PostMapping("/updatePublicEntry")
+    @ApiOperation("修改公共库")
+    @Token
+    @CrossOrigin
+    public HttpResponse<String> updatePublicEntry(@RequestBody TranslateEntity translateEntity) {
+
+
+        String  result = entryInfoService.updatePublicEntry(translateEntity);
+
+        return checkResult(result);
+    }
+
+    @PostMapping("/addPublicEntry")
+    @ApiOperation("新增公共库")
+    @Token
+    @CrossOrigin
+    public HttpResponse<String> addPublicEntry(@RequestBody List<TranslateEntity> translateEntity) {
+
+
+        String  result = entryInfoService.addPublicEntry(translateEntity);
+
+        return checkResult(result);
+    }
+
+    @PostMapping("/deletePublicEntry")
+    @ApiOperation("删除公共库")
+    @Token
+    @CrossOrigin
+    public HttpResponse<String> deletePublicEntry(@RequestBody List<String> idlist) {
+
+
+        String  result = entryInfoService.deletePublicEntry(idlist);
 
         return checkResult(result);
     }
@@ -124,17 +164,17 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("获取版本词条")
     @CrossOrigin
     @Token
-    public HttpResponse<ResponseListModel<EntryVO>> getEntryByVersion(String versionID,
+    public HttpResponse<ResponseListModel<EntryVO>> getEntryByVersion(@RequestBody EntryInfoEntity entryInfoEntity,
                                                                       @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryVO> responseListModel = new ResponseListModel<EntryVO>();
         List<EntryVO> entryVOS = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            entryVOS = entryInfoService.getEntryByVersion(versionID, offset, pageSize);
+            entryVOS = entryInfoService.getEntryByVersion(entryInfoEntity, offset, pageSize);
         }
         responseListModel.setList(entryVOS);
-        responseListModel.setTotalNum(entryInfoService.getEntryByVersionTotal(versionID));
+        responseListModel.setTotalNum(entryInfoService.getEntryByVersionTotal(entryInfoEntity));
         return checkResult(responseListModel);
 
     }
@@ -162,20 +202,46 @@ public class EntryInfoController extends BaseController {
         return checkResult(entryInfoService.addEntryInfo(entryInfoEntity, request, tableName));
     }
 
-/*    //编辑词条
-    @PostMapping("/updateEntry")
+    //编辑词条
+    @PostMapping("/updateEntryInfo")
     @ApiOperation("编辑词条")
+    @CrossOrigin
+    @Transactional(propagation = Propagation.NESTED)
+    @Token
+    public HttpResponse<String> updateEntryInfo(@RequestBody EntryInfoEntity entryInfoEntity,HttpServletRequest request,String notes) {
+            if (StringUtils.isBlank(entryInfoEntity.getTableName())) {
+            return checkResult(ErrorCodeList.TBALE_IS_NULL);
+        }
+        String result = entryInfoService.updateEntryInfo(entryInfoEntity, request,notes);
+
+        return checkResult(result);
+    }
+
+    //编辑词条
+    @PostMapping("/deleteEntryInfo")
+    @ApiOperation("删除词条")
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<EntryCommonEntity> updateEntry(@RequestBody EntryInfoEntity entryInfoEntity,HttpServletRequest request,String notes) {
-    *//*    if (StringUtils.isBlank(entryEntity.getTableName())) {
-            return checkResult(ErrorCodeList.INPUT_IS_NULL);
-        }*//*
-        ResultObject resultObject = entryManagementService.updateEntry(entryEntity, request,notes);
-        EntryCommonEntity entryEntity1 = (EntryCommonEntity)resultObject.getData();
+    public HttpResponse<String> deleteEntryInfo(@RequestBody List<String> idList,String tableName) {
+
+        String result = entryInfoService.deleteEntryInfo(idList,tableName);
+
+        return checkResult(result);
+    }
 
 
-        return checkResult(entryEntity1,resultObject.getMsg());
-    }*/
+
+    //编辑词条
+    @PostMapping("/upgrade")
+    @ApiOperation("升级（废弃）")
+    @CrossOrigin
+    @Transactional
+    @Token
+    public HttpResponse<String> upgrade(@RequestBody UpgradeVO upgradeVO,HttpServletRequest request) {
+
+        String result = entryInfoService.upgrade(upgradeVO,request);
+
+        return checkResult(result);
+    }
 }

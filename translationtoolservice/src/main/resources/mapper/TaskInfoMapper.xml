@@ -149,7 +149,7 @@
 
 
     <update id="taskSubmission">
-        update t_task_info set
+
     </update>
 
 
@@ -160,5 +160,6 @@
         </foreach>
         );
     </update>
+
 
 </mapper>

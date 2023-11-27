@@ -94,7 +94,7 @@ public class EntryController extends BaseController {
     /*    if (StringUtils.isBlank(entryEntity.getTableName())) {
             return checkResult(ErrorCodeList.INPUT_IS_NULL);
         }*/
-         ResultObject resultObject = entryManagementService.updateEntry(entryEntity, request,notes);
+        ResultObject resultObject = entryManagementService.updateEntry(entryEntity, request,notes);
         EntryCommonEntity entryEntity1 = (EntryCommonEntity)resultObject.getData();
 
 

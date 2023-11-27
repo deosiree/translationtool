@@ -19,6 +19,7 @@ public class ErrorCodeList {
     public static final String PARAM_IS_ILL = "入参非法。";
     public static final String SUCCESS = "success";
     public static final String INSERT_ERROR = "新增失败。";
+    public static final String INSERT_TASK_ERROR = "新增任务失败。";
     public static final String UPDATE_ERROR = "更新失败。";
     public static final String UPDATE_RES_DEFAULT = "Default大于1条。";
     public static final String UPDATE_NOT_EXIST= "找不到对应数据";
@@ -32,7 +33,7 @@ public class ErrorCodeList {
     public static final String OBJECT_HAS_EXIST = "对象已存在。";
     public static final String EXPORT_ERROR = "导出失败";
     public static final String ABBR_HAS_EXIST = "ABBR已存在。";
-
+    public static final String OPERATE_ERROR = "操作记录更新失败";
     private final static List<String> ErrorCodeList = new ArrayList<>();
 
 

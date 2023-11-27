@@ -13,11 +13,12 @@
         <result property="productName" column="product_name" jdbcType="VARCHAR"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
         <result property="details" column="details" jdbcType="VARCHAR"/>
+        <result property="tableName" column="table_name" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,`name`,creator,
-        create_time,product_id,is_delete,details
+        create_time,product_id,is_delete,details,`table_name`
     </sql>
 
     <select id="selectByName">
@@ -86,7 +87,7 @@
 
 
     <select id="getVersionByProductName" resultMap="BaseResultMap">
-        select t1.`name` as `name` , t1.details as details,t2.name as product_name ,t1.id as id,t2.id as product_id
+        select t1.`name` as `name` , t1.details as details,t2.name as product_name ,t1.id as id,t2.id as product_id,t1.table_name as `table_name`
         from t_version t1 , t_product t2
         where t2.id = t1.product_id
         and t2.name =  #{productName,jdbcType=VARCHAR}

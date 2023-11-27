@@ -23,4 +23,6 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
     String deleteTaskInfo(List<String> taskIds);
 
     String taskSubmission(List<String> taskIDs, String oldState, String nextState);
+
+    List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize);
 }

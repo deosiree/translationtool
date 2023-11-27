@@ -16,7 +16,8 @@ import lombok.Data;
 @Data
 public class EntryInfoEntity implements Serializable {
 
-
+    @TableField(exist = false)
+    private String tableName;
 
     /**
      * 主键
@@ -69,7 +70,7 @@ public class EntryInfoEntity implements Serializable {
     /**
      * 修改人
      */
-    @TableField(value = "update")
+    @TableField(value = "`update`")
     private String update;
 
     /**

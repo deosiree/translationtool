@@ -13,15 +13,23 @@ import java.util.List;
 @Mapper
 public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
-    List<EntryInfoEntity> getEntryByVersion(@Param("versionID") String versionID,
+    List<EntryInfoEntity> getEntryByVersion(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity,
                                             @Param("offset") Integer offset,
                                             @Param("limit") Integer limit);
 
-    int getEntryByVersionTotal(String versionID);
+    int getEntryByVersionTotal(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
 
-    List<EntryInfoEntity> getEntryByAbbr(@Param("abbr") String abbr,@Param("versionID") String versionID,@Param("tableName")   String tableName);
+    List<EntryInfoEntity> getEntryByAbbr(@Param("abbr") String abbr, @Param("versionID") String versionID, @Param("tableName") String tableName);
 
-    int insertEntry(@Param("entryInfoEntity")  EntryInfoEntity entryInfoEntity,@Param("tableName")   String tableName);
+    int insertEntry(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity, @Param("tableName") String tableName);
+
+    int updateEntryInfo(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+
+    EntryInfoEntity selectEntryById(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+
+    int deleteByIdList(@Param("idList") List<String> idList, @Param("tableName") String tableName);
+
+    List<EntryInfoEntity> getEntryByTaskID( @Param("id")String id,@Param("tableName") String tableName);
 }
 
 

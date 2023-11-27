@@ -24,6 +24,8 @@ public interface TaskInfoMapper extends BaseMapper<TaskInfoEntity> {
     int deleteByIds(@Param("idList")  List<String> taskIds);
 
     int getTaskInfoTotal(@Param("taskInfoEntity") TaskInfoEntity taskInfoEntity);
+
+    List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize);
 }
 
 

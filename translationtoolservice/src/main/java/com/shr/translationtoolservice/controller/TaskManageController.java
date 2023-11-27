@@ -2,10 +2,7 @@ package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
-import com.shr.translationtoolservice.entity.EntryCommonEntity;
-import com.shr.translationtoolservice.entity.ResponseListModel;
-import com.shr.translationtoolservice.entity.TaskInfoEntity;
-import com.shr.translationtoolservice.entity.VersionEntity;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.TaskInfoService;
 import com.shr.translationtoolservice.util.CommonUtils;
@@ -118,6 +115,9 @@ public class TaskManageController extends BaseController {
         return checkResult(result);
 
     }
+
+
+
 
 
 }

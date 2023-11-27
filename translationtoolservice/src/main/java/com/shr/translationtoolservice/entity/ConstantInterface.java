@@ -24,6 +24,7 @@ public class ConstantInterface {
 
     public static final String IS_DEFAULT = "1";
     public static final String OK_STR = "OK";
+    public static final String NOCHANGE = "词条未有变化";
     public static final String REPETITION_STR = "版本库存在重复的词条";
 
     public static final String UNTRANSLATED = "未翻译";
@@ -65,6 +66,15 @@ public class ConstantInterface {
     public static final String TRANSLATOR = "翻译员";
     public static final String DEVELOPER = "开发员";
     public static final String ADMIN = "管理员";
+
+
+    public static final String EN_TRANS = "英文翻译";
+    public static final String RU_TRANS = "俄文翻译";
+    public static final String SPA_TRANS = "西文翻译";
+    public static final String FRA_TRANS = "法文翻译";
+
+
+
     public static HashMap<String, String> constructUserAndRole() {
         HashMap<String, String> user_role = new HashMap<>();
         user_role.put("词条审核员", "ENTRY_AUDITOR");
@@ -113,14 +123,15 @@ public class ConstantInterface {
         entryName.put("partOfSpeech", "词性备注");
         entryName.put("classifyId", "词条所属分类");
         entryName.put("repeatEntryId", "重复词条id");
-        entryName.put("english", "英文翻译");
-        entryName.put("russian", "俄文翻译");
+        entryName.put("enTransId", EN_TRANS);
+        entryName.put("ruTransId", RU_TRANS);
         entryName.put("russianTranslateState", "俄文翻译状态");
-        entryName.put("spanish", "西文翻译");
+        entryName.put("spaTransId", SPA_TRANS);
         entryName.put("spanishTranslateState", "西文翻译状态");
-        entryName.put("french", "法文翻译");
+        entryName.put("fraTransId", FRA_TRANS);
         entryName.put("frenchTranslateState", "法文翻译状态");
         entryName.put("environmentRemark", "环境备注");
+        entryName.put("remark", "备注");
         return entryName;
     }
 
