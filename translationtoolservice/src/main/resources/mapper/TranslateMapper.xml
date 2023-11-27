@@ -59,6 +59,9 @@
         <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
             and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
         </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and `type` = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
     </select>
 
     <select id="getPublicEntryTotal" resultType="int">

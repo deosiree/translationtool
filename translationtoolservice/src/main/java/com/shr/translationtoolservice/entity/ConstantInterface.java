@@ -54,11 +54,11 @@ public class ConstantInterface {
     public static final String BAIDU_TRANSLATE_APPID = "20230705001734655";
     public static final String BAIDU_TRANSLATE_KEY = "Msyn6CIJy97uY1MXLW0c";
 
-    public static final String CHINESE = "zh";
-    public static final String FRENCH = "fra";
-    public static final String ENGLISH = "en";
-    public static final String RUSSIAN = "ru";
-    public static final String SPANISH = "spa";
+    public static final String CHINESE = "中文";
+    public static final String FRENCH = "法文";
+    public static final String ENGLISH = "英文";
+    public static final String RUSSIAN = "俄文";
+    public static final String SPANISH = "西文";
     public static final String AUTO = "auto";
 
     public static final String ENTRY_AUDITOR = "词条审核员";
