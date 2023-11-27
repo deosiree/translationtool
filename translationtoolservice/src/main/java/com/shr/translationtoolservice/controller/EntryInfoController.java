@@ -217,6 +217,20 @@ public class EntryInfoController extends BaseController {
         return checkResult(result);
     }
 
+
+    //编辑词条
+    @PostMapping("/updateEntryInfoList")
+    @ApiOperation("批量更新词条")
+    @CrossOrigin
+    @Transactional(propagation = Propagation.NESTED)
+    @Token
+    public HttpResponse<String> updateEntryInfoList(@RequestBody List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request,String notes) {
+
+        String result = entryInfoService.updateEntryInfoList(entryInfoEntities, request,notes);
+
+        return checkResult(result);
+    }
+
     //编辑词条
     @PostMapping("/deleteEntryInfo")
     @ApiOperation("删除词条")

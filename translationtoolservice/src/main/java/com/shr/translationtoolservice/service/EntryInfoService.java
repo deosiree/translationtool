@@ -39,4 +39,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     String deletePublicEntry(List<String> idlist);
 
     String upgrade(UpgradeVO upgradeVO, HttpServletRequest request);
+
+    String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
 }

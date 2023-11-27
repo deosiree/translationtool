@@ -21,5 +21,9 @@ public class UserDetailsVo {
     private Boolean admin ;
     private String type;
     private String department;
+
+    private Boolean readState;
+    private Boolean writeState;
+
     private List<UserDetailsVo> children;
 }

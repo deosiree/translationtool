@@ -389,6 +389,20 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return null;
     }
 
+    @Override
+    public String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
+        String result ="";
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities){
+            if (StringUtils.isBlank(entryInfoEntity.getTableName())) {
+                return ErrorCodeList.TBALE_IS_NULL;
+            }
+            result =  updateEntryInfo(entryInfoEntity,request,notes);
+
+        }
+
+        return result;
+    }
+
     private int constructOperate(EntryOperate entryOperate, String entryId, HttpServletRequest request) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);

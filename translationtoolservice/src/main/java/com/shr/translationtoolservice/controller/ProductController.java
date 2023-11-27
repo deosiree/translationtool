@@ -4,7 +4,9 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.ProductEntity;
 import com.shr.translationtoolservice.entity.ResponseListModel;
+import com.shr.translationtoolservice.entity.UserProductEntity;
 import com.shr.translationtoolservice.entity.VersionEntity;
+import com.shr.translationtoolservice.entity.vo.UserDetailsVo;
 import com.shr.translationtoolservice.service.ProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -99,6 +101,34 @@ public class ProductController extends BaseController{
 
         String result = productService.updateProduct(productEntity);
 
+        return checkResult(result);
+
+    }
+
+    @PostMapping("/bindtPermissonByUserProduct")
+    @ApiOperation("产品用户绑定")
+    @CrossOrigin
+    @Transactional
+    //返回id 入参用户
+    public HttpResponse<String> bindUserProduct(@RequestBody List<UserDetailsVo> userDetailsVos,String productID) {
+
+        String result = productService.bindUserProduct(userDetailsVos,productID);
+
+        return checkResult(result);
+
+    }
+
+
+    @PostMapping("/getPermissonByUserProduct")
+    @ApiOperation("用户产品权限查询")
+    @CrossOrigin
+    @Transactional
+    //返回id
+    public HttpResponse< ResponseListModel<UserDetailsVo>> getPermissonByUserProduct( String userName) {
+        ResponseListModel<UserDetailsVo> result = new ResponseListModel<>();
+        List<UserDetailsVo> userDetailsVos = productService.getPermissonByUserProduct(userName);
+        result.setList(userDetailsVos);
+        result.setTotalNum(userDetailsVos.size());
         return checkResult(result);
 
     }

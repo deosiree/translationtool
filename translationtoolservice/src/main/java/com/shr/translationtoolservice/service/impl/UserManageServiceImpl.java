@@ -110,7 +110,7 @@ public class UserManageServiceImpl implements UserManageService {
             }
         }
 
-
+        //全量构建
         Set<String> ldapUserSet = allUser.keySet();
         Iterator<String> iterator = ldapUserSet.iterator();
         while (iterator.hasNext()) {
