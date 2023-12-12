@@ -9,10 +9,7 @@ import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.EntryVO;
 import com.shr.translationtoolservice.entity.vo.ProductTreeVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
-import com.shr.translationtoolservice.service.EntryClassifyService;
-import com.shr.translationtoolservice.service.EntryInfoService;
-import com.shr.translationtoolservice.service.EntryPublicService;
-import com.shr.translationtoolservice.service.ProductService;
+import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,6 +47,9 @@ public class EntryInfoController extends BaseController {
     private EntryClassifyService entryClassifyService;
     @Autowired
     private EntryInfoService entryInfoService;
+
+    @Autowired
+    private TranslateService translateService;
 
     //查询词条信息
     @PostMapping("/getPublicEntry")
@@ -112,12 +112,12 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("查询分类树")
     @Token
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getClassTree(String department) {
+    public HttpResponse<ResponseListModel> getClassTree(String department,HttpServletRequest request) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
 
         //department 空 为管理员，可查看所有分类
-        entryClassifies = entryClassifyService.getEntryClassfy(department);
+        entryClassifies = entryClassifyService.getEntryClassfy(department,request);
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
         return checkResult(responseListModel);
@@ -258,4 +258,18 @@ public class EntryInfoController extends BaseController {
 
         return checkResult(result);
     }
+
+    //编辑翻译
+    @PostMapping("/updateTranslation")
+    @ApiOperation("编辑翻译")
+    @CrossOrigin
+    @Transactional
+    @Token
+    public HttpResponse<String> updateTranslation(@RequestBody List<TranslateEntity> translateEntityList) {
+
+        String result = translateService.updateTranslation(translateEntityList);
+
+        return checkResult(result);
+    }
+
 }

@@ -97,4 +97,10 @@
     and public_state = 1 and delete_state = 0 and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
     and `translate` = #{translateEntity.translate,jdbcType=VARCHAR} and entry = #{translateEntity.entry,jdbcType=VARCHAR}
 </select>
+
+    <update id="updateTranslation">
+        <foreach collection="translateEntityList" item="item" index="index" separator=";">
+            update t_translate set translate = #{item.translate} where id = #{item.id}
+        </foreach>
+    </update>
 </mapper>

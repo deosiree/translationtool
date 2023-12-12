@@ -31,5 +31,7 @@ public interface ProductService extends IService<ProductEntity> {
 
     String bindUserProduct(List<UserDetailsVo> userDetailsVos,String productID);
 
-    List<UserDetailsVo> getPermissonByUserProduct(String userName);
+    List<UserDetailsVo> getPermissonByUserProduct(String userName,String productId);
+
+    UserProductEntity getUserProduct(String productId,HttpServletRequest request);
 }

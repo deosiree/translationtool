@@ -102,7 +102,12 @@
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
             and t1.state in( ${taskInfoEntity.state } )
         </if>
-
+        <if test="taskInfoEntity.versionId != null  and taskInfoEntity.versionId != ''">
+            and t1.version_id  = #{taskInfoEntity.versionId }
+        </if>
+        <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
+            and t1.translate_type  = #{taskInfoEntity.translateType }
+        </if>
 
         order by create_time desc
         <if test="limit >= 0 and offset >= 0">
@@ -110,6 +115,7 @@
         </if>
 
     </select>
+
 
 
     <select id="getTaskInfoTotal" resultType="integer">
@@ -142,6 +148,9 @@
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
             and t1.state in( ${taskInfoEntity.state } )
         </if>
+        <if test="taskInfoEntity.versionId != null  and taskInfoEntity.versionId != ''">
+            and t1.version_id = #{taskInfoEntity.versionId }
+        </if>
 
     </select>
 
@@ -152,7 +161,7 @@
 
 
     <update id="deleteByIds">
-        update t_task_info set is_delete = 1 where id in(
+           update t_task_info set is_delete = 1 where id in(
         <foreach collection="idList" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}
         </foreach>

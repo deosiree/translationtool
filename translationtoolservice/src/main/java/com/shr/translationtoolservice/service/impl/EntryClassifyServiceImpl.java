@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shr.translationtoolservice.dao.UserProductMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryClassify;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
@@ -28,13 +29,35 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
     private EntryClassifyMapper entryClassifyMapper;
 
     @Autowired
+    private UserProductMapper userProductMapper;
+
+    @Autowired
     private CommonUtils commonUtils;
 
     @Override
-    public List<EntryClassify> getEntryClassfy(String department) {
+    public List<EntryClassify> getEntryClassfy(String department,HttpServletRequest request) {
         //查询对应部门下的分类
         List<EntryClassify> entryClassifies = new ArrayList<>();
         entryClassifies = entryClassifyMapper.getEntryClassfyIdsByDepartment(department);
+        if (StringUtils.isNotBlank(department)){
+            // 非管理员
+            // 查询该用户可见的产品
+            String token = request.getHeader("token");
+            String userName = JWTTokenUtils.getUserName(token);
+            String userDep = JWTTokenUtils.getDepartment(token);
+            List<String> readProductIds = userProductMapper.getUserReadProductId(userName,userDep);
+            List<EntryClassify> newList = new ArrayList<>();
+            for (EntryClassify entryClassify : entryClassifies) {
+                if (ConstantInterface.PRODUCT_TABLE.equals(entryClassify.getType()) ){
+                    if (readProductIds.contains(entryClassify.getKey())){
+                        newList.add(entryClassify);
+                    }
+                }else {
+                    newList.add(entryClassify);
+                }
+            }
+            entryClassifies = newList;
+        }
 // 返回的树形数据
         List<EntryClassify> tree = new ArrayList<EntryClassify>();
         // 第一次遍历
