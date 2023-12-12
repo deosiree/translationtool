@@ -25,7 +25,13 @@ public class JWTInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
         //获取请求头中的令牌
+
         String token = request.getHeader(Constant.TOKEN);
+
+        if (null == token){
+            return true;
+        }
+
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }

@@ -280,4 +280,10 @@
         from ${tableName}
         where task_id =  #{id,jdbcType=VARCHAR}
     </select>
+
+    <select id="getEnrtyByTaskID" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+         from t_version_202311 where task_id = '' and is_delete=0
+    </select>
 </mapper>

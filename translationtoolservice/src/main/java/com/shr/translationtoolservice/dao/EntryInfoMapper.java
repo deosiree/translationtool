@@ -30,6 +30,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     int deleteByIdList(@Param("idList") List<String> idList, @Param("tableName") String tableName);
 
     List<EntryInfoEntity> getEntryByTaskID( @Param("id")String id,@Param("tableName") String tableName);
+
+    List<EntryInfoEntity> getEnrtyByTaskID(String taskID);
 }
 
 

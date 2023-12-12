@@ -25,4 +25,14 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
     String taskSubmission(List<String> taskIDs, String oldState, String nextState);
 
     List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize);
+
+    List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request);
+
+    int getToDoTaskInfoTotal(HttpServletRequest request);
+
+    List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request);
+
+    int getFinishTaskInfoTotal(HttpServletRequest request);
+
+    String taskEntryExport( String taskID);
 }

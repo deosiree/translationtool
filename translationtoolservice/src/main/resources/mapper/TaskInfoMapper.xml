@@ -104,14 +104,12 @@
         </if>
 
 
-
         order by create_time desc
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
 
     </select>
-
 
 
     <select id="getTaskInfoTotal" resultType="integer">
@@ -154,12 +152,57 @@
 
 
     <update id="deleteByIds">
-           update t_task_info set is_delete = 1 where id in(
+        update t_task_info set is_delete = 1 where id in(
         <foreach collection="idList" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}
         </foreach>
         );
     </update>
 
+    <select id="getTaskInfoByUserName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="t1_Column_List"/>
+        FROM `t_task_info` where is_delete != 1
+        entry_auditor = #{userName,jdbcType=VARCHAR} and (state = 2 or state = 5)
+        or developer =#{userName,jdbcType=VARCHAR} and (state =1 or state = 5)
+        or translator = #{userName,jdbcType=VARCHAR} and (state = 3 or state = 5)
+        or translation_auditor = #{userName,jdbcType=VARCHAR} and (state = 4 or state = 5)
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
 
+
+    <select id="getToDoTaskInfoTotal" resultType="int">
+        SELECT count (1) FROM `t_task_info` where is_delete != 1
+        entry_auditor = #{userName,jdbcType=VARCHAR} and (state = 2 or state = 5)
+        or developer =#{userName,jdbcType=VARCHAR} and (state =1 or state = 5)
+        or translator = #{userName,jdbcType=VARCHAR} and (state = 3 or state = 5)
+        or translation_auditor = #{userName,jdbcType=VARCHAR} and (state = 4 or state = 5)
+
+    </select>
+
+    <select id="getFinishTaskInfo" resultMap="BaseResultMap">
+        SELECT
+        <include refid="t1_Column_List"/>
+        FROM `t_task_info` where is_delete != 1
+        entry_auditor = '赵鸿鹏' and state > 2
+        or developer = '赵鸿鹏' and state > 1
+        or translator = '赵鸿鹏' and state > 3
+        or translation_auditor = '赵鸿鹏' and state > 4
+
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="getFinishTaskInfoTotal" resultMap="BaseResultMap">
+        SELECT
+        count (1)
+        FROM `t_task_info` where is_delete != 1
+        entry_auditor = '赵鸿鹏' and state > 2
+        or developer = '赵鸿鹏' and state > 1
+        or translator = '赵鸿鹏' and state > 3
+        or translation_auditor = '赵鸿鹏' and state > 4
+    </select>
 </mapper>

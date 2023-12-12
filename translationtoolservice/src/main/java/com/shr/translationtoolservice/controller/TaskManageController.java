@@ -39,14 +39,14 @@ public class TaskManageController extends BaseController {
     @PostMapping("/searchTaskInfo")
     @ApiOperation("任务查询")
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getTaskInfo(@RequestBody TaskInfoEntity taskInfoEntity,HttpServletRequest request,
+    public HttpResponse<ResponseListModel> getTaskInfo(@RequestBody TaskInfoEntity taskInfoEntity, HttpServletRequest request,
                                                        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
-        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>() ;
+        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            taskInfoEntities = taskInfoService.getTaskInfo(taskInfoEntity,offset,pageSize,request);
+            taskInfoEntities = taskInfoService.getTaskInfo(taskInfoEntity, offset, pageSize, request);
         }
         result.setList(taskInfoEntities);
         result.setTotalNum(taskInfoService.getTotalNum(taskInfoEntity));
@@ -62,7 +62,7 @@ public class TaskManageController extends BaseController {
     public HttpResponse<String> addTaskInfos(@RequestBody List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
 
 
-        String result = taskInfoService.addTaskInfoList(taskInfoVoList,request);
+        String result = taskInfoService.addTaskInfoList(taskInfoVoList, request);
 
 
         return checkResult(result);
@@ -99,7 +99,6 @@ public class TaskManageController extends BaseController {
     }
 
 
-
     @PostMapping("/taskSubmission")
     @ApiOperation("任务递交")
     @CrossOrigin
@@ -108,16 +107,60 @@ public class TaskManageController extends BaseController {
     public HttpResponse<String> taskSubmission(@RequestBody List<String> taskIDs) {
 
         String oldState = "0";
-        String nextState= "1";
-        String result = taskInfoService.taskSubmission(taskIDs,oldState,nextState);
+        String nextState = "1";
+        String result = taskInfoService.taskSubmission(taskIDs, oldState, nextState);
 
 
         return checkResult(result);
 
     }
 
+    //任务待办查询
+    @PostMapping("/getToDoTaskInfo")
+    @ApiOperation("任务待办查询")
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> getToDoTaskInfo(HttpServletRequest request,
+                                                           @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                           @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
+        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            taskInfoEntities = taskInfoService.getToDoTaskInfo(offset, pageSize, request);
+        }
+        result.setList(taskInfoEntities);
+        result.setTotalNum(taskInfoService.getToDoTaskInfoTotal(request));
+        return checkResult(result);
 
+    }
 
+    //查询任务信息
+    @PostMapping("/getFinishTaskInfo")
+    @ApiOperation("任务已办查询")
+    @CrossOrigin
+    public HttpResponse<ResponseListModel> getFinishTaskInfo(HttpServletRequest request,
+                                                             @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
+        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            int offset = (pageIndex - 1) * pageSize;
+            taskInfoEntities = taskInfoService.getFinishTaskInfo(offset, pageSize, request);
+        }
+        result.setList(taskInfoEntities);
+        result.setTotalNum(taskInfoService.getFinishTaskInfoTotal(request));
+        return checkResult(result);
 
+    }
+
+    //查询任务信息
+    @PostMapping("/taskEntryExport")
+    @ApiOperation("任务词条导出")
+    @CrossOrigin
+    public HttpResponse<String> taskEntryExport(@RequestParam String taskID) {
+
+        String url = taskInfoService.taskEntryExport(taskID);
+        return checkResult(url);
+    }
 
 }
