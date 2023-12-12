@@ -209,7 +209,8 @@
   </select>
 
     <delete id="deleteRoleAndMenu">
-    delete t_role ,t_role_menu from t_role join t_role_menu on t_role.id = t_role_menu.role_id where t_role_menu.role_id =  #{roleId ,jdbcType=VARCHAR}
+    <!--delete t_role ,t_role_menu from t_role join t_role_menu on t_role.id = t_role_menu.role_id where t_role_menu.role_id =  #{roleId ,jdbcType=VARCHAR}-->
+    delete from t_role_menu where role_id =  #{roleId ,jdbcType=VARCHAR}
     </delete>
 
     <insert id="insertRoleAndMenu">

@@ -11,6 +11,7 @@ import com.shr.translationtoolservice.service.ProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -60,8 +61,8 @@ public class ProductController extends BaseController{
 
         List<ProductEntity> productEntities = productService.getProduct(productEntity);
         result.setList(productEntities);
-        int total = productService.getProductTotal(productEntity);
-        result.setTotalNum(total);
+//        int total = productService.getProductTotal(productEntity);
+        result.setTotalNum(0);
         return checkResult(result);
 
     }
@@ -124,15 +125,28 @@ public class ProductController extends BaseController{
     @CrossOrigin
     @Transactional
     //返回id
-    public HttpResponse< ResponseListModel<UserDetailsVo>> getPermissonByUserProduct( String userName) {
+    public HttpResponse< ResponseListModel<UserDetailsVo>> getPermissonByUserProduct( String userName,String productId) {
         ResponseListModel<UserDetailsVo> result = new ResponseListModel<>();
-        List<UserDetailsVo> userDetailsVos = productService.getPermissonByUserProduct(userName);
+        List<UserDetailsVo> userDetailsVos = productService.getPermissonByUserProduct(userName,productId);
         result.setList(userDetailsVos);
         result.setTotalNum(userDetailsVos.size());
         return checkResult(result);
 
     }
 
+    @PostMapping("/getUserProduct")
+    @ApiOperation("查询产品用户权限")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<UserProductEntity> getUserProduct(String productId, HttpServletRequest request) {
 
+        if (StringUtils.isBlank(productId)){
+            return null;
+        }
+        UserProductEntity result = productService.getUserProduct(productId,request);
+
+        return checkResult(result);
+
+    }
 
 }

@@ -28,4 +28,16 @@
         </foreach>
         );
     </update>
+
+    <select id="getProductList" resultMap="BaseResultMap" parameterType="com.shr.translationtoolservice.entity.ProductEntity">
+        select <include refid="Base_Column_List"></include> from  t_product
+        <where>
+            <if test="productEntity.department != null and productEntity.department != ''">
+                and department = #{productEntity.department}
+            </if>
+            <if test="productEntity.name != null and productEntity.name != ''">
+                and name = #{productEntity.name}
+            </if>
+        </where>
+    </select>
 </mapper>

@@ -52,11 +52,11 @@
     </select>
 
 
-    <select id="getEntryByVersionTotal" resultMap="BaseResultMap">
+    <select id="getEntryByVersionTotal" resultType="int">
         select   count(1)
         from  ${entryInfoEntity.tableName} where
 
-        version_id = #{versionID,jdbcType=VARCHAR} and is_delete = 0
+        version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR} and is_delete = 0
 
     </select>
 

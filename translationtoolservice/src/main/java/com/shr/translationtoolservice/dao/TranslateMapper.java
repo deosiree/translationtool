@@ -25,6 +25,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
 
     List<TranslateEntity> getPublicEntry(@Param("translateEntity") TranslateEntity translateEntity,
                                          @Param("offset") int offset,@Param("limit")  Integer pageSize);
+
+    int updateTranslation(@Param("translateEntityList") List<TranslateEntity> translateEntityList);
 }
 
 

@@ -102,8 +102,12 @@
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
             and t1.state in( ${taskInfoEntity.state } )
         </if>
-
-
+        <if test="taskInfoEntity.versionId != null  and taskInfoEntity.versionId != ''">
+            and t1.version_id  = #{taskInfoEntity.versionId }
+        </if>
+        <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
+            and t1.translate_type  = #{taskInfoEntity.translateType }
+        </if>
 
         order by create_time desc
         <if test="limit >= 0 and offset >= 0">
@@ -143,6 +147,9 @@
         </if>
         <if test="taskInfoEntity.state != null  and taskInfoEntity.state != ''">
             and t1.state in( ${taskInfoEntity.state } )
+        </if>
+        <if test="taskInfoEntity.versionId != null  and taskInfoEntity.versionId != ''">
+            and t1.version_id = #{taskInfoEntity.versionId }
         </if>
 
     </select>
