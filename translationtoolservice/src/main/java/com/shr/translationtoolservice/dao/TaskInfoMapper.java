@@ -29,11 +29,11 @@ public interface TaskInfoMapper extends BaseMapper<TaskInfoEntity> {
 
     List<TaskInfoEntity> getTaskInfoByUserName(@Param("userName") String userName, @Param("offset") Integer offset, @Param("limit") Integer pageSize);
 
-    int getToDoTaskInfoTotal(String userName);
+    int getToDoTaskInfoTotal(@Param("userName") String userName);
 
-    List<TaskInfoEntity> getFinishTaskInfo(String userName);
+    List<TaskInfoEntity> getFinishTaskInfo(@Param("userName") String userName, @Param("offset") Integer offset, @Param("limit") Integer pageSize);
 
-    int getFinishTaskInfoTotal(String userName);
+    int getFinishTaskInfoTotal(@Param("userName") String userName);
 }
 
 

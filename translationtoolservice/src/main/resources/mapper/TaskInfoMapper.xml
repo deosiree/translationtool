@@ -171,11 +171,14 @@
     <select id="getTaskInfoByUserName" resultMap="BaseResultMap">
         SELECT
         <include refid="t1_Column_List"/>
-        FROM `t_task_info` where is_delete != 1
-        entry_auditor = #{userName,jdbcType=VARCHAR} and (state = 2 or state = 5)
-        or developer =#{userName,jdbcType=VARCHAR} and (state =1 or state = 5)
-        or translator = #{userName,jdbcType=VARCHAR} and (state = 3 or state = 5)
-        or translation_auditor = #{userName,jdbcType=VARCHAR} and (state = 4 or state = 5)
+        FROM `t_task_info` t1 ,t_version t2,t_product t3
+        where t1.version_id = t2.id and t2.product_id = t3.id
+        and t1.is_delete != 1      and
+        (
+        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} and ( t1.state = 2 or  t1.state = 5) )
+        or  (t1.developer =  #{userName,jdbcType=VARCHAR} and ( t1.state =1 or  t1.state = 5)   )
+         or  (t1.translator =  #{userName,jdbcType=VARCHAR}  and ( t1.state = 3 or  t1.state = 5)  )
+         or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR}  and ( t1.state = 4 or  t1.state = 5))  )
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -183,35 +186,42 @@
 
 
     <select id="getToDoTaskInfoTotal" resultType="int">
-        SELECT count (1) FROM `t_task_info` where is_delete != 1
-        entry_auditor = #{userName,jdbcType=VARCHAR} and (state = 2 or state = 5)
-        or developer =#{userName,jdbcType=VARCHAR} and (state =1 or state = 5)
-        or translator = #{userName,jdbcType=VARCHAR} and (state = 3 or state = 5)
-        or translation_auditor = #{userName,jdbcType=VARCHAR} and (state = 4 or state = 5)
+        SELECT count(1)   FROM `t_task_info` t1 ,t_version t2,t_product t3
+        where t1.version_id = t2.id and t2.product_id = t3.id
+        and t1.is_delete != 1      and
+        (
+        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} and ( t1.state = 2 or  t1.state = 5) )
+        or  (t1.developer =  #{userName,jdbcType=VARCHAR} and ( t1.state =1 or  t1.state = 5)   )
+         or  (t1.translator =  #{userName,jdbcType=VARCHAR} and ( t1.state = 3 or  t1.state = 5)  )
+         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  and ( t1.state = 4 or  t1.state = 5))  )
 
     </select>
 
     <select id="getFinishTaskInfo" resultMap="BaseResultMap">
         SELECT
         <include refid="t1_Column_List"/>
-        FROM `t_task_info` where is_delete != 1
-        entry_auditor = '赵鸿鹏' and state > 2
-        or developer = '赵鸿鹏' and state > 1
-        or translator = '赵鸿鹏' and state > 3
-        or translation_auditor = '赵鸿鹏' and state > 4
+        FROM `t_task_info` t1 ,t_version t2,t_product t3
+        where t1.version_id = t2.id and t2.product_id = t3.id
+        and t1.is_delete != 1           and
+        ((entry_auditor =  #{userName,jdbcType=VARCHAR} and state > 2)
+        or (developer =  #{userName,jdbcType=VARCHAR} and state > 1)
+        or (translator = #{userName,jdbcType=VARCHAR} and state > 3)
+        or (translation_auditor = #{userName,jdbcType=VARCHAR} and state > 4))
 
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
     </select>
 
-    <select id="getFinishTaskInfoTotal" resultMap="BaseResultMap">
+    <select id="getFinishTaskInfoTotal" resultType="int">
         SELECT
-        count (1)
-        FROM `t_task_info` where is_delete != 1
-        entry_auditor = '赵鸿鹏' and state > 2
-        or developer = '赵鸿鹏' and state > 1
-        or translator = '赵鸿鹏' and state > 3
-        or translation_auditor = '赵鸿鹏' and state > 4
+        count(1)
+          FROM `t_task_info` t1 ,t_version t2,t_product t3
+        where t1.version_id = t2.id and t2.product_id = t3.id
+        and t1.is_delete != 1           and
+        ((entry_auditor = #{userName,jdbcType=VARCHAR} and state > 2)
+        or (developer =  #{userName,jdbcType=VARCHAR} and state > 1)
+        or (translator = #{userName,jdbcType=VARCHAR} and state > 3)
+        or (translation_auditor =  #{userName,jdbcType=VARCHAR} and state > 4))
     </select>
 </mapper>

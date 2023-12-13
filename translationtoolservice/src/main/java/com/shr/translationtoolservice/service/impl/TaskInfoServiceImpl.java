@@ -189,7 +189,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     public List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName);
+        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName,offset,pageSize);
 
         return taskInfo;
     }
@@ -206,6 +206,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Override
     public String taskEntryExport( String taskID) {
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEnrtyByTaskID(taskID);
+
         return null;
     }
 }
