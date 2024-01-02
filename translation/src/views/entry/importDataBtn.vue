@@ -124,6 +124,9 @@ export default {
         },
         ok(){
             // 插入数据
+            this.dataSource.forEach(item => {
+                item.state = 1
+            })
             bachAddEntry(this.dataSource).then((res) => {
                 message.success(res.data)
                 this.visible = false

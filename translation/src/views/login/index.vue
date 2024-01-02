@@ -93,7 +93,7 @@ export default {
 <style scoped>
 .loginBg{
   width: 100%;
-  height: calc(100% - 30px);
+  height: calc(100% - 40px);
   /* background-image: url('../../assets/loginImg.png');
   background-repeat: no-repeat;
   background-size : 100% 100%; */

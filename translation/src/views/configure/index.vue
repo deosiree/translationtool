@@ -1,15 +1,16 @@
 <template>
-    <div style="100%;height:100%;padding:10px">
+    <div style="100%;height:100%;padding:8px 24px 24px 24px">
       <a-tabs v-model:activeKey="activeKey" ref="tab" @change="changeTab">
           <a-tab-pane 
           v-for='(item) in menu' 
           :key="item.name" 
           :tab="item.menuName">
-            <User v-if="activeKey === 'user'"/>
-            <Role v-if="activeKey === 'role'"/>
-            <Version v-if="activeKey === 'version'"/>
-            <Label v-if="activeKey === 'label'"/>
-            <Property v-if="activeKey === 'property'"/>
+            <User v-if="item.name === 'user'"/>
+            <Role v-if="item.name === 'role'"/>
+            <Version v-if="item.name === 'version'"/>
+            <Label v-if="item.name === 'label'"/>
+            <Property v-if="item.name === 'property'"/>
+            <Task v-if="item.name === 'task'"/>
           </a-tab-pane>
       </a-tabs>
     </div>
@@ -20,6 +21,7 @@ import Role from '../role/index.vue';
 import Version from '../version/index.vue';
 import Label from '../label/index.vue';
 import Property from '../property/index.vue';
+import Task from '../task/index.vue'
 export default({
   name: 'layout',
   components: {
@@ -27,7 +29,8 @@ export default({
     Role,
     Version,
     Label,
-    Property
+    Property,
+    Task
   },
   data() {
     return {

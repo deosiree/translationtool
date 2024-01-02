@@ -8,9 +8,12 @@ export default {
     name: '',
     components: {
       electronTitle
+    },
+    data(){
+      return{
+      }
     }
-
-  }
+}
 </script>
 
 <style>
@@ -22,6 +25,7 @@ export default {
   /* color: #2c3e50; */
   color: #F3F3F3;
   height: 100%;
+  overflow: hidden;
 }
 
 </style>
