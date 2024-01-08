@@ -5,17 +5,18 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.log.Log;
 import com.alibaba.fastjson.JSONObject;
-import com.shr.translationtoolservice.entity.ConstantInterface;
-import com.shr.translationtoolservice.entity.LanguageEntity;
-import com.shr.translationtoolservice.entity.TLanguage;
+import com.shr.translationtoolservice.dao.TLanguageMapper;
+import com.shr.translationtoolservice.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,18 +38,32 @@ public class TranslateUtils {
     private static final String TRANS_API_HOST = "http://api.fanyi.baidu.com/api/trans/vip/translate";
 
     @Value("${baidu.translate.appid}")
-    private String appid = ConstantInterface.BAIDU_TRANSLATE_APPID;
+    private  String appid = ConstantInterface.BAIDU_TRANSLATE_APPID;
 
     @Value("${baidu.translate.securityKey}")
-    private String securityKey = ConstantInterface.BAIDU_TRANSLATE_KEY;
+    private  String securityKey = ConstantInterface.BAIDU_TRANSLATE_KEY;
     @Autowired
-    HTTPUtils httpUtils;
+    private  HTTPUtils httpUtils;
 
-    private static ConstantInterface constantInterface = ConstantInterface.getInstance();
+    public   TranslateUtils instance;
+
+    @Autowired
+    private  TLanguageMapper languageMapper;
+
+
+    public  TranslateUtils getInstance(){
+
+        if (instance == null) {
+            instance = new TranslateUtils();
+        }
+        return instance;
+    }
+
+    private  ConstantInterface constantInterface = ConstantInterface.getInstance();
 
     // 发送查询
     //query  要查询的词    from 默认auto   to => 语种
-    public LanguageEntity getTranslateResult(String query, String from,  TLanguage tLanguages) {
+    public  LanguageEntity getTranslateResult(String query, String from,  TLanguage tLanguages) {
 
         String to = tLanguages.getBdCode();
         log.info(" **** to : " + to + " **** ");
@@ -101,4 +116,80 @@ public class TranslateUtils {
     }
 
 
+
+
+
+    //百度翻译  type 是当前语言
+    public  Translate baiduTranslate(String entry, String type, List<TLanguage> tLanguages) {
+        Translate entryEntity = new Translate();
+        entryEntity.setSource("百度翻译");
+        entryEntity.setEntry(entry);
+        //ArrayList<TranslateEntity> list = new ArrayList<>();
+        ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
+
+        try {
+            for (TLanguage tLanguage : tLanguages) {
+             /*   if (tLanguage.getName().equals(type)) {
+                    continue;
+                }*/
+
+                //默认主语言都是中文
+                languageEntities.add(getTranslateResult(entry, "zh", tLanguage));
+                Thread.sleep(1000);
+            }
+            entryEntity.setLanguageEntities(languageEntities);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return entryEntity;
+    }
+    public  String getTransStr( String type) {
+         List<TLanguage> languageList = languageMapper.selectLaguageByName(type);
+         if (!CollectionUtils.isEmpty(languageList)){
+             return  languageList.get(0).getCode();
+         }
+         return "";
+    }
+
+    public  Translate youdaoTranslate(String name, String type, List<TLanguage> tLanguages) {
+        // YoudaoTrans.readJsonFromUrl(name,ConstantInterface.ENGLISH);]
+        Translate entryEntity = new Translate();
+        //QueryWrapper queryWrapper = new QueryWrapper();
+        //List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
+
+        entryEntity.setSource("有道翻译");
+        entryEntity.setEntry(name);
+        ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
+
+
+        for (TLanguage tLanguage : tLanguages) {
+          /*  if (tLanguage.getName().equals(type)) {
+                continue;
+            }*/
+            languageEntities.add(YoudaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+        }
+
+
+        entryEntity.setLanguageEntities(languageEntities);
+
+        return entryEntity;
+
+    }
+
+    public Translate localTranslate(String name, String type, List<TranslateEntity> translates) {
+        Translate entryEntity = new Translate();
+        entryEntity.setSource("本地翻译");
+        entryEntity.setEntry(name);
+        ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
+        for (TranslateEntity translate : translates){
+            LanguageEntity languageEntity = new LanguageEntity();
+            languageEntity.setLanguage(translate.getType());
+            languageEntity.setValue(translate.getTranslate());
+            languageEntities.add(languageEntity);
+        }
+        entryEntity.setLanguageEntities(languageEntities);
+        return entryEntity;
+    }
 }

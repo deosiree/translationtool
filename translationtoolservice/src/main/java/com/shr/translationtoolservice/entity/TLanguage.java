@@ -40,6 +40,11 @@ public class TLanguage implements Serializable {
      */
     private String ydCode;
 
+    /**
+     * 删除状态
+     */
+    private int isDelete;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

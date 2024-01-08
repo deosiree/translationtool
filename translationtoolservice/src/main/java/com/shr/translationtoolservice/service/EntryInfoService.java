@@ -1,12 +1,12 @@
 package com.shr.translationtoolservice.service;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.shr.translationtoolservice.entity.EntryPublicEntity;
-import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
 import com.shr.translationtoolservice.entity.vo.EntryVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -41,4 +41,12 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     String upgrade(UpgradeVO upgradeVO, HttpServletRequest request);
 
     String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
+
+    List<EntryCommonEntity>  importExcle(MultipartFile multipartFile);
+
+    String addEntryByTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request, String tableName);
+
+    TranslateEntities translate(String name, String type,String visualRange);
+
+    String updateEntryTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request);
 }

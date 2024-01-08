@@ -28,9 +28,9 @@ public class JWTInterceptor implements HandlerInterceptor {
 
         String token = request.getHeader(Constant.TOKEN);
 
-        if (null == token){
+     /*   if (null == token){
             return true;
-        }
+        }*/
 
         if (!(handler instanceof HandlerMethod)) {
             return true;

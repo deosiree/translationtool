@@ -9,6 +9,7 @@
         <result property="code" column="code" jdbcType="VARCHAR"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="bdCode" column="bd_code" jdbcType="VARCHAR"/>
+        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -26,6 +27,17 @@
         </if>
         <if test="language.code != null  and language.code != ''">
             and code = #{language.code ,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+
+    <select id="selectLaguageByName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_language
+        where is_delete =0
+        <if test="language != null  and language != ''">
+            and `name` = #{language,jdbcType=VARCHAR}
         </if>
 
     </select>

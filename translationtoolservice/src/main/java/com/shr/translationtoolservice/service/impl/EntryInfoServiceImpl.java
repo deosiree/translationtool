@@ -1,25 +1,28 @@
 package com.shr.translationtoolservice.service.impl;
 
 import cn.afterturn.easypoi.cache.manager.IFileLoader;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.common.Constant;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
 import com.shr.translationtoolservice.entity.vo.EntryVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
-import com.shr.translationtoolservice.util.CommonUtils;
-import com.shr.translationtoolservice.util.CompareUtils;
-import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.*;
 import org.junit.platform.commons.util.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.events.Event;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -35,6 +38,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private CommonUtils commonUtils;
 
     @Autowired
+    private EntryTempMapper entryTempMapper;
+
+    @Autowired
     private TranslateMapper translateMapper;
 
     @Autowired
@@ -45,6 +51,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private TaskInfoMapper taskInfoMapper;
+
+    @Autowired
+    private TLanguageMapper languageMapper;
+
+    @Autowired
+    private TranslateUtils translateUtils;
 
     @Override
     public List<EntryVO> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer offset, Integer pagesize) {
@@ -85,9 +97,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             //一次新增只有一种翻译，取第一个元素
             TranslateEntity translateEntities = entryVO.getTranslateEntity().get(0);
             //存在翻译
-            if (!Objects.isNull(translateEntities)){
+            if (!Objects.isNull(translateEntities)) {
                 //查询是否有存在已有的翻译 需传入版本
-                if(StringUtils.isBlank(translateEntities.getVersionID())){
+                if (StringUtils.isBlank(translateEntities.getVersionID())) {
                     response.setMessage("TranslateEntity version is null ！ ");
                     response.setCode(HttpResponse.Type.ERROR.getVal());
                     response.setType(HttpResponse.Type.ERROR);
@@ -273,14 +285,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     String r2TransStr = translateMapper.selectById(r2).getTranslate();
                     str = entryName.get(name) + " 值由 ( " + r1TransStr + " ) 改为 ( " + r2TransStr + " )  ";
 
-                }else {
+                } else {
                     str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  ";
                 }
             }
 
             res += str + " ; ";
         }
-        if (StringUtils.isBlank(res)){
+        if (StringUtils.isBlank(res)) {
             log.error(" t_entry_operate no change ! ");
 //                return new ResultObject(ErrorCodeList.INSERT_ERROR);
             return null;
@@ -327,8 +339,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         int insert = 0;
         for (TranslateEntity translateEntity : translateEntities) {
             //判断同版本下是否存在此翻译
-            TranslateEntity  translateEntity1 = translateMapper.selectPublicByEntry(translateEntity);
-            if (Objects.nonNull(translateEntity1)){
+            TranslateEntity translateEntity1 = translateMapper.selectPublicByEntry(translateEntity);
+            if (Objects.nonNull(translateEntity1)) {
                 continue;
             }
             if (StringUtils.isBlank(translateEntity.getId())) {
@@ -357,8 +369,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     //TODO  废弃
     public String upgrade(UpgradeVO upgradeVO, HttpServletRequest request) {
         //创建任务 流程到翻译审核员
-         TaskInfoEntity taskInfoEntity = upgradeVO.getTaskInfoEntities();
-         List<EntryVO> entryVOList = upgradeVO.getEntryVOList();
+        TaskInfoEntity taskInfoEntity = upgradeVO.getTaskInfoEntities();
+        List<EntryVO> entryVOList = upgradeVO.getEntryVOList();
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
@@ -378,7 +390,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         // 更新词条信息
 
-        for (EntryVO entryVO : entryVOList){
+        for (EntryVO entryVO : entryVOList) {
             String tableName = entryVO.getTableName();
             EntryInfoEntity entryInfoEntity = entryVO.getEntryInfoEntity();
             TranslateEntity translateEntity = entryVO.getTranslateEntity().get(0);
@@ -391,12 +403,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Override
     public String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
-        String result ="";
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities){
+        String result = "";
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             if (StringUtils.isBlank(entryInfoEntity.getTableName())) {
                 return ErrorCodeList.TBALE_IS_NULL;
             }
-            result =  updateEntryInfo(entryInfoEntity,request,notes);
+            result = updateEntryInfo(entryInfoEntity, request, notes);
 
         }
 
@@ -470,6 +482,141 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         }
         return false;
+    }
+
+    @Override
+    public List<EntryCommonEntity> importExcle(MultipartFile multipartFile) {
+        String name = multipartFile.getOriginalFilename();
+
+        //读取excle转换的实体
+        List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
+        try {
+
+            importExcleEntries = ExcelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<EntryCommonEntity> entryEntitys = new ArrayList<>();
+
+        for (ImportExcleEntry importExcleEntry : importExcleEntries) {
+            EntryCommonEntity entryEntity = new EntryCommonEntity();
+            BeanUtils.copyProperties(importExcleEntry, entryEntity);
+            if (entryEntity.getEntryState() == null) {
+                entryEntity.setEntryState(2);
+            }
+
+            entryEntitys.add(entryEntity);
+        }
+
+
+        return entryEntitys;
+    }
+
+    @Override
+    public String addEntryByTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request, String tableName) {
+        String token = request.getHeader("token");
+       //String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+
+        List<String> entryIdList = entryTempEntities.stream().map(EntryTempEntity::getId).collect(Collectors.toList());
+        for (EntryTempEntity entryTempEntity : entryTempEntities) {
+            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+            entryInfoEntity.setId(entryTempEntity.getId());
+            entryInfoEntity.setEntry(entryTempEntity.getEntry());
+            entryInfoEntity.setTableName(tableName);
+            entryInfoEntity.setIsDelete(0);
+            entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
+            entryInfoEntity.setEntrySource(entryTempEntity.getSource());
+            entryInfoEntity.setTaskId(entryInfoEntity.getTaskId());
+            entryInfoEntity.setIsPublic(0);
+            entryInfoEntity.setVersionID(entryTempEntity.getVersionID());
+            entryInfoEntity.setEntryState(ConstantInterface.AUDIT);
+            //如果存在翻译则复用 没有则创建
+            List<TranslateEntity> translates = translateMapper.selectRepByEntryTemp(entryTempEntity);
+            if (0 == translates.size()) {
+                TranslateEntity translate = new TranslateEntity();
+                String transId = commonUtils.getUUID();
+
+                translate.setId(transId);
+                translate.setVersionID(entryInfoEntity.getVersionID());
+                translate.setPublicState(0);
+                translate.setDeleteState(0);
+                translate.setType(entryTempEntity.getTranslateType());
+                translate.setEntry(entryTempEntity.getEntry());
+                translate.setTranslate(entryTempEntity.getTranslate());
+                translate.setTranslateState(ConstantInterface.AUDIT);
+                translate.setVisualRange(department);
+                //写入翻译id
+                addTransID(translate, entryInfoEntity);
+                int insert = translateMapper.insert(translate);
+            } else if (1 == translates.size()) {
+                addTransID(translates.get(0), entryInfoEntity);
+            } else {
+                return ErrorCodeList.TRANSLATE_HAS_EXIST;
+            }
+            entryInfoMapper.insertEntry(entryInfoEntity,tableName);
+        }
+        int delete = entryTempMapper.deleteBatchIds(entryIdList);
+        return ConstantInterface.OK_STR;
+    }
+
+
+    @Override
+    public TranslateEntities translate(String name, String type,String visualRange) {
+
+        TranslateEntities translateEntities = new TranslateEntities();
+        List<Translate> translateEntityList = new ArrayList<>();
+        QueryWrapper<TLanguage> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name",type);
+        List<TLanguage> tLanguages = languageMapper.selectList(queryWrapper);
+        Translate baiduEntities = translateUtils.baiduTranslate(name, type, tLanguages);
+        translateEntityList.add(baiduEntities);
+
+
+        //有道翻译
+        Translate youdao_Entities =     translateUtils.youdaoTranslate(name, type, tLanguages);
+        translateEntityList.add(youdao_Entities);
+
+        //本地翻译 ：部门
+        List<TranslateEntity> departTranslates = translateMapper.getSuggestTrans(name,type,visualRange);
+        Translate localTranslate =  translateUtils.localTranslate(name,type,departTranslates);
+        localTranslate.setSource("本地翻译-部门");
+        translateEntityList.add(localTranslate);
+
+        //本地翻译 publicState：公司
+        List<TranslateEntity> companyTranslates = translateMapper.getSuggestTrans(name,type,"公司");
+        Translate comLocalTranslate =  translateUtils.localTranslate(name,type,companyTranslates);
+        comLocalTranslate.setSource("本地翻译-公司");
+        translateEntityList.add(comLocalTranslate);
+        translateEntities.setTranslateEntities(translateEntityList);
+        return translateEntities;
+    }
+
+    @Override
+    public String updateEntryTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request) {
+        String taskID = entryTempEntities.get(0).getTaskId();
+         List<EntryTempEntity> entryTempByTaskID = entryTempMapper.getEntryTempByTaskID(taskID, 0, 10000);
+         //新导入词条
+        for (EntryTempEntity entryTempEntity  : entryTempEntities){
+             String entry = entryTempEntity.getEntry();
+             //旧词条
+             for (EntryTempEntity entryTempEntity1 : entryTempByTaskID){
+                 if (entryTempEntity1.getEntry().equals(entry)){
+                    entryTempEntity = entryTempEntity1;
+
+                 }
+             }
+
+        }
+        int delete = entryTempMapper.deleteByTaskID(taskID);
+        for (EntryTempEntity entryTempEntity : entryTempEntities){
+            int insert = entryTempMapper.insert(entryTempEntity);
+        }
+
+
+
+
+        return ConstantInterface.OK_STR;
     }
 
 

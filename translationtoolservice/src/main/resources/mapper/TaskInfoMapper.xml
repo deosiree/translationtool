@@ -103,10 +103,10 @@
             and t1.state in( ${taskInfoEntity.state } )
         </if>
         <if test="taskInfoEntity.versionId != null  and taskInfoEntity.versionId != ''">
-            and t1.version_id  = #{taskInfoEntity.versionId }
+            and t1.version_id = #{taskInfoEntity.versionId }
         </if>
         <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
-            and t1.translate_type  = #{taskInfoEntity.translateType }
+            and t1.translate_type = #{taskInfoEntity.translateType }
         </if>
 
         order by create_time desc
@@ -115,7 +115,6 @@
         </if>
 
     </select>
-
 
 
     <select id="getTaskInfoTotal" resultType="integer">
@@ -161,7 +160,7 @@
 
 
     <update id="deleteByIds">
-           update t_task_info set is_delete = 1 where id in(
+        update t_task_info set is_delete = 1 where id in(
         <foreach collection="idList" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}
         </foreach>
@@ -173,28 +172,67 @@
         <include refid="t1_Column_List"/>
         FROM `t_task_info` t1 ,t_version t2,t_product t3
         where t1.version_id = t2.id and t2.product_id = t3.id
-        and t1.is_delete != 1      and
+        and t1.is_delete != 1 and
         (
-        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} and ( t1.state = 2 or  t1.state = 5) )
-        or  (t1.developer =  #{userName,jdbcType=VARCHAR} and ( t1.state =1 or  t1.state = 5)   )
-         or  (t1.translator =  #{userName,jdbcType=VARCHAR}  and ( t1.state = 3 or  t1.state = 5)  )
-         or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR}  and ( t1.state = 4 or  t1.state = 5))  )
+        (t1.entry_auditor = #{userName,jdbcType=VARCHAR} and ( t1.state = 2 ) )
+        or (t1.developer = #{userName,jdbcType=VARCHAR} and ( t1.state =1 or t1.state = 5) )
+        or (t1.translator = #{userName,jdbcType=VARCHAR} and ( t1.state = 3 ) )
+        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} and ( t1.state = 4 )) )
+
+        <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
+            and t1.name = #{taskInfoEntity.name }
+        </if>
+        <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
+            and t3.name = #{taskInfoEntity.productName }
+        </if>
+        <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
+            and t1.translate_type = #{taskInfoEntity.translateType }
+        </if>
+        <if test="taskInfoEntity.department != null  and taskInfoEntity.department != ''">
+            and t1.department = #{taskInfoEntity.department }
+        </if>
+        <if test="taskInfoEntity.entryAuditor != null  and taskInfoEntity.entryAuditor != ''">
+            and t1.entry_auditor = #{taskInfoEntity.entryAuditor }
+        </if>
+        <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
+            and t1.creator = #{taskInfoEntity.creator }
+        </if>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
     </select>
 
+    <select id="getVersionIDByTaskID" resultType="String">
+    select version_id from t_task_info where id =  #{taskID,jdbcType=VARCHAR}
+</select>
 
     <select id="getToDoTaskInfoTotal" resultType="int">
         SELECT count(1)   FROM `t_task_info` t1 ,t_version t2,t_product t3
         where t1.version_id = t2.id and t2.product_id = t3.id
         and t1.is_delete != 1      and
         (
-        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} and ( t1.state = 2 or  t1.state = 5) )
+        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} and ( t1.state = 2 ) )
         or  (t1.developer =  #{userName,jdbcType=VARCHAR} and ( t1.state =1 or  t1.state = 5)   )
-         or  (t1.translator =  #{userName,jdbcType=VARCHAR} and ( t1.state = 3 or  t1.state = 5)  )
-         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  and ( t1.state = 4 or  t1.state = 5))  )
-
+         or  (t1.translator =  #{userName,jdbcType=VARCHAR} and ( t1.state = 3 )  )
+         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  and ( t1.state = 4 ))  )
+        <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
+            and t1.name = #{taskInfoEntity.name }
+        </if>
+        <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
+            and t3.name = #{taskInfoEntity.productName }
+        </if>
+        <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
+            and t1.translate_type = #{taskInfoEntity.translateType }
+        </if>
+        <if test="taskInfoEntity.department != null  and taskInfoEntity.department != ''">
+            and t1.department = #{taskInfoEntity.department }
+        </if>
+        <if test="taskInfoEntity.entryAuditor != null  and taskInfoEntity.entryAuditor != ''">
+            and t1.entry_auditor = #{taskInfoEntity.entryAuditor }
+        </if>
+        <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
+            and t1.creator = #{taskInfoEntity.creator }
+        </if>
     </select>
 
     <select id="getFinishTaskInfo" resultMap="BaseResultMap">
@@ -202,12 +240,29 @@
         <include refid="t1_Column_List"/>
         FROM `t_task_info` t1 ,t_version t2,t_product t3
         where t1.version_id = t2.id and t2.product_id = t3.id
-        and t1.is_delete != 1           and
-        ((entry_auditor =  #{userName,jdbcType=VARCHAR} and state > 2)
-        or (developer =  #{userName,jdbcType=VARCHAR} and state > 1)
+        and t1.is_delete != 1 and
+        ((entry_auditor = #{userName,jdbcType=VARCHAR} and state > 2)
+        or (developer = #{userName,jdbcType=VARCHAR} and state > 1)
         or (translator = #{userName,jdbcType=VARCHAR} and state > 3)
         or (translation_auditor = #{userName,jdbcType=VARCHAR} and state > 4))
-
+        <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
+            and t1.name = #{taskInfoEntity.name }
+        </if>
+        <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
+            and t3.name = #{taskInfoEntity.productName }
+        </if>
+        <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
+            and t1.translate_type = #{taskInfoEntity.translateType }
+        </if>
+        <if test="taskInfoEntity.department != null  and taskInfoEntity.department != ''">
+            and t1.department = #{taskInfoEntity.department }
+        </if>
+        <if test="taskInfoEntity.entryAuditor != null  and taskInfoEntity.entryAuditor != ''">
+            and t1.entry_auditor = #{taskInfoEntity.entryAuditor }
+        </if>
+        <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
+            and t1.creator = #{taskInfoEntity.creator }
+        </if>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -223,5 +278,23 @@
         or (developer =  #{userName,jdbcType=VARCHAR} and state > 1)
         or (translator = #{userName,jdbcType=VARCHAR} and state > 3)
         or (translation_auditor =  #{userName,jdbcType=VARCHAR} and state > 4))
+        <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
+            and t1.name = #{taskInfoEntity.name }
+        </if>
+        <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
+            and t3.name = #{taskInfoEntity.productName }
+        </if>
+        <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
+            and t1.translate_type = #{taskInfoEntity.translateType }
+        </if>
+        <if test="taskInfoEntity.department != null  and taskInfoEntity.department != ''">
+            and t1.department = #{taskInfoEntity.department }
+        </if>
+        <if test="taskInfoEntity.entryAuditor != null  and taskInfoEntity.entryAuditor != ''">
+            and t1.entry_auditor = #{taskInfoEntity.entryAuditor }
+        </if>
+        <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
+            and t1.creator = #{taskInfoEntity.creator }
+        </if>
     </select>
 </mapper>

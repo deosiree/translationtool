@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 public class LanguageEntity {
-    //语言类别你
+    //语言类别
     String language;
     //翻译结果
     String value;

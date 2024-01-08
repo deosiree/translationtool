@@ -26,13 +26,13 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
 
     List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize);
 
-    List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request);
+    List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
-    int getToDoTaskInfoTotal(HttpServletRequest request);
+    int getToDoTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
-    List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request);
+    List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
-    int getFinishTaskInfoTotal(HttpServletRequest request);
+    int getFinishTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
     String taskEntryExport( String taskID);
 }

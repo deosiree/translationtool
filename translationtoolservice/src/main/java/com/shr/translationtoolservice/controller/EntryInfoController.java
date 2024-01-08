@@ -6,6 +6,7 @@ import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.EntryMapper;
 import com.shr.translationtoolservice.dao.EntryVersionMapper;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
 import com.shr.translationtoolservice.entity.vo.EntryVO;
 import com.shr.translationtoolservice.entity.vo.ProductTreeVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
@@ -202,6 +203,29 @@ public class EntryInfoController extends BaseController {
         return checkResult(entryInfoService.addEntryInfo(entryInfoEntity, request, tableName));
     }
 
+    @PostMapping("/addEntryByTemp")
+    @ApiOperation("新增词条(临时表写入)")
+    @CrossOrigin
+    @Token
+    @Transactional
+    public HttpResponse<String> addEntryByTemp(@RequestBody List<EntryTempEntity> entryTempEntities,
+                                             String tableName,
+                                             HttpServletRequest request) {
+        //tableName = "t_version_202311";
+        return checkResult(entryInfoService.addEntryByTemp(entryTempEntities, request, tableName));
+    }
+
+    @PostMapping("/updateEntryTemp")
+    @ApiOperation("临时表更新")
+    @CrossOrigin
+    @Token
+    @Transactional
+    public HttpResponse<String> updateEntryTemp(@RequestBody List<EntryTempEntity> entryTempEntities,
+                                               HttpServletRequest request) {
+        //tableName = "t_version_202311";
+        return checkResult(entryInfoService.updateEntryTemp(entryTempEntities, request));
+    }
+
     //编辑词条
     @PostMapping("/updateEntryInfo")
     @ApiOperation("编辑词条")
@@ -271,5 +295,21 @@ public class EntryInfoController extends BaseController {
 
         return checkResult(result);
     }
+
+
+
+    @PostMapping("/translate")
+    @ApiOperation("翻译词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<TranslateEntities> translate(@RequestParam String name,@RequestParam String type,@RequestParam String department) {
+        if (StringUtils.isBlank(type)){
+            checkResult(null," 入参 type 不能为空 ！");
+        }
+
+        TranslateEntities translateEntity = entryInfoService.translate(name,type,department);
+        return checkResult(translateEntity);
+    }
+
 
 }

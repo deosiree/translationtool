@@ -936,7 +936,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
 
         //有道翻译
-        Translate youdao_Entities = youdaoTranslate(name, type, tLanguages);
+        Translate youdao_Entities =     youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
 
@@ -956,7 +956,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
 
         for (TLanguage tLanguage : tLanguages) {
-            if (tLanguage.getCode().equals(type)) {
+            if (tLanguage.getName().equals(type)) {
                 continue;
             }
             languageEntities.add(YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, tLanguage));
@@ -992,7 +992,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
         try {
             for (TLanguage tLanguage : tLanguages) {
-                if (tLanguage.getCode().equals(type)) {
+                if (tLanguage.getName().equals(type)) {
                     continue;
                 }
                 languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));

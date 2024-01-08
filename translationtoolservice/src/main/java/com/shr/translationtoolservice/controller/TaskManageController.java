@@ -119,17 +119,17 @@ public class TaskManageController extends BaseController {
     @PostMapping("/getToDoTaskInfo")
     @ApiOperation("任务待办查询")
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getToDoTaskInfo(HttpServletRequest request,
+    public HttpResponse<ResponseListModel> getToDoTaskInfo(HttpServletRequest request ,@RequestBody TaskInfoEntity taskInfoEntity,
                                                            @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
         List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            taskInfoEntities = taskInfoService.getToDoTaskInfo(offset, pageSize, request);
+            taskInfoEntities = taskInfoService.getToDoTaskInfo(offset, pageSize, request,taskInfoEntity);
         }
         result.setList(taskInfoEntities);
-        result.setTotalNum(taskInfoService.getToDoTaskInfoTotal(request));
+        result.setTotalNum(taskInfoService.getToDoTaskInfoTotal(request,taskInfoEntity));
         return checkResult(result);
 
     }
@@ -138,17 +138,17 @@ public class TaskManageController extends BaseController {
     @PostMapping("/getFinishTaskInfo")
     @ApiOperation("任务已办查询")
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getFinishTaskInfo(HttpServletRequest request,
+    public HttpResponse<ResponseListModel> getFinishTaskInfo(HttpServletRequest request,@RequestBody TaskInfoEntity taskInfoEntity,
                                                              @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                              @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
         List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            taskInfoEntities = taskInfoService.getFinishTaskInfo(offset, pageSize, request);
+            taskInfoEntities = taskInfoService.getFinishTaskInfo(offset, pageSize, request,taskInfoEntity);
         }
         result.setList(taskInfoEntities);
-        result.setTotalNum(taskInfoService.getFinishTaskInfoTotal(request));
+        result.setTotalNum(taskInfoService.getFinishTaskInfoTotal(request,taskInfoEntity));
         return checkResult(result);
 
     }
@@ -162,5 +162,6 @@ public class TaskManageController extends BaseController {
         String url = taskInfoService.taskEntryExport(taskID);
         return checkResult(url);
     }
+
 
 }

@@ -31,6 +31,7 @@ public class ErrorCodeList {
     public static final String READJSONFAIL = "读取JSON文件失败";
     public static final String FILENOTEXIST = "文件不存在";
     public static final String OBJECT_HAS_EXIST = "对象已存在。";
+    public static final String TRANSLATE_HAS_EXIST = "翻译存在多条重复。";
     public static final String EXPORT_ERROR = "导出失败";
     public static final String ABBR_HAS_EXIST = "ABBR已存在。";
     public static final String OPERATE_ERROR = "操作记录更新失败";

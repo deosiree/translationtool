@@ -1,6 +1,8 @@
 package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.EntryPublicEntity;
+import com.shr.translationtoolservice.entity.EntryTempEntity;
+import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
@@ -27,6 +29,10 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
                                          @Param("offset") int offset,@Param("limit")  Integer pageSize);
 
     int updateTranslation(@Param("translateEntityList") List<TranslateEntity> translateEntityList);
+
+    List<TranslateEntity> selectRepByEntryTemp(@Param("entryTempEntity") EntryTempEntity entryTempEntity);
+
+    List<TranslateEntity> getSuggestTrans(@Param("name") String name,@Param("translateType")  String type,@Param("visualRange")  String visualRange);
 }
 
 

@@ -162,43 +162,43 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Override
     public List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize) {
 
-        List<TaskInfoEntity>  taskInfoEntities = taskInfoMapper.getTaskInfoByVersion(taskInfoEntity,offset,pageSize);
+        //List<TaskInfoEntity>  taskInfoEntities = taskInfoMapper.getTaskInfoByVersion(taskInfoEntity,offset,pageSize);
         return null;
     }
 
     @Override
-    public List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request) {
+    public List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
 
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getTaskInfoByUserName(userName,offset,pageSize);
+        List<TaskInfoEntity> taskInfo = taskInfoMapper.getTaskInfoByUserName(userName,offset,pageSize,taskInfoEntity);
 
         return taskInfo;
     }
 
     @Override
-    public int getToDoTaskInfoTotal(HttpServletRequest request) {
+    public int getToDoTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        int taskInfoSum = taskInfoMapper.getToDoTaskInfoTotal(userName);
+        int taskInfoSum = taskInfoMapper.getToDoTaskInfoTotal(userName,taskInfoEntity);
 
         return taskInfoSum;
     }
 
     @Override
-    public List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request) {
+    public List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName,offset,pageSize);
+        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName,offset,pageSize,taskInfoEntity);
 
         return taskInfo;
     }
 
     @Override
-    public int getFinishTaskInfoTotal(HttpServletRequest request) {
+    public int getFinishTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        int taskInfoSum = taskInfoMapper.getFinishTaskInfoTotal(userName);
+        int taskInfoSum = taskInfoMapper.getFinishTaskInfoTotal(userName,taskInfoEntity);
 
         return taskInfoSum;
     }

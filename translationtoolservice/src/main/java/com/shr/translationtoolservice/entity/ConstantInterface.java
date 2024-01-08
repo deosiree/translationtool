@@ -1,5 +1,10 @@
 package com.shr.translationtoolservice.entity;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +15,27 @@ import java.util.Map;
  */
 public class ConstantInterface {
 
+    //i18server url
+    public static  final  String LANGUAGE = "language";
+    public static  final  String GET_FILE_LIST = "getFileListByLang";
+    public static  final  String GET_WORDS = "getWords";
+    public static  final  String DICTIONARY = "dictionary";
+    public static  final  String SAVE_WORDS = "saveWords";
+    public static  final  String GET_ALL_NODE = "tdb/getAllNode";
+    public static  final  String GET_APP_BYNODE = "tdb/getAppByNode";
+    public static  final  String GET_DB_BYAPP = "tdb/getdbByApp";
+    public static  final  String GET_TB_APP = "tdb/getTableByApp";
+    public static  final  String GET_FIELD_TABLE = "tdb/getFieldByTable";
+    public static  final  String GET_FIELD_DATA = "tdb/getFieldData";
+    public static  final  String GET_ALIAS = "tdb/getAlias";
+
+    public static  final  String SPRIT = "/";
+    public static  final  String UNDERLINE = "_";
+
+    public static  final  String DB = "DB";
+    public static  final  String TS = "TS";
+    public static  final  String FIELD = "field";
+    public static  final  String ALIAS = "alias";
 
     public static final int ZERO = 0;
     public static final int DB_SUCCESS_RESULT = 1;
@@ -30,6 +56,7 @@ public class ConstantInterface {
     public static final String UNTRANSLATED = "未翻译";
     public static final String TRANSLATED = "已翻译";
     public static final String TRANSLATING = "正在翻译";
+    public static final String AUDIT = "已审核";
 
     public static final String OPERATION_TYPE_INSERT = "新增";
     public static final String OPERATION_TYPE_UPDATE = "编辑";
