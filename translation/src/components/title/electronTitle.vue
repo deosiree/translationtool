@@ -4,7 +4,7 @@
         <div class="logo"></div>
         <span style="font-weight:bold">{{electrontitle}}</span>
       </div>
-      <div class="user">
+      <div :class="electron ? 'user' : 'webUser'">
         <a-dropdown>
           <a class="ant-dropdown-link" @click.prevent>
             <span v-if="user != null">{{userInfo}}</span>
@@ -20,7 +20,7 @@
           </template>
         </a-dropdown>
       </div>
-      <div class="operate">
+      <div class="operate" v-if="electron">
         <div class="btn minbtn" @click="clickBtn('min')"></div>
         <div class="btn maxbtn" @click="clickBtn('max')" v-if="flag"></div>
         <div class="btn minimizebtn" @click="clickBtn('max')" v-else></div>
@@ -29,13 +29,15 @@
     </div>
 </template>
 <script>
-const {ipcRenderer: ipc} = require('electron');
+//   const {ipcRenderer: ipc} = require('electron');
+const config = require('../../../public/config')
 export default {
   name: 'ElectronTitle',
   components: {
   },
   data() {
     return {
+      electron: config.app.electron,
       electrontitle: '词条翻译工具',
       user:{
         userName:"",
@@ -59,13 +61,14 @@ export default {
       this.user = this.$store.state.user
       if(this.user != null){
         this.userInfo = this.user.department +" , " + this.user.userName
-        console.log(this.user)
+        // console.log(this.user)
       }
       
     })
   },
   methods: {
     clickBtn: function (type) {
+      const {ipcRenderer: ipc} = require('electron');
       ipc.send(type);
       if(type === 'max'){
         this.flag = !this.flag
@@ -82,7 +85,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less" scoped>
 .btn{
   width: 20px;
   height: 20px;
@@ -121,28 +124,33 @@ export default {
 #title {
   position: relative;
   width: 100%;
-  height: 30px;
+  height: 40px;
   background-color: rgb(87,159,249);
   -webkit-app-region: drag;
 }
-.electrontitle .logo{
-  width:32px;
-  height: 32px;
-  background-image: url("../../assets/title/logo.png");
-  background-size: 100%;
-  background-repeat: no-repeat;
-}
-.electrontitle span{
-  line-height: 30px;
-  color: white;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  left: 35px;
+.electrontitle{
+  padding: 4px 0px;
+
+  .logo{
+    width:32px;
+    height: 32px;
+    background-image: url("../../assets/title/logo.png");
+    background-size: 100%;
+    background-repeat: no-repeat;
+  }
+
+  span{
+    line-height: 40px;
+    color: white;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+    left: 35px;
+    font-size: 14px;
+  }
 }
 #title .user{
-  /* width: 100px; */
   height: 30px;
   position: absolute;
   top: 0;
@@ -151,11 +159,12 @@ export default {
   right: 100px;
   -webkit-app-region: no-drag;
 }
-.user .ant-dropdown-trigger{
+
+.ant-dropdown-trigger{
   line-height: 30px;
   color: white;
 }
-.user .userLogo{
+.userLogo{
   width:20px;
   height:20px; 
   background-image: url("../../assets/title/user.png");
@@ -163,5 +172,14 @@ export default {
   background-repeat: no-repeat;
   float: right;
   margin: 5px 0px 0px 5px;
+}
+#title .webUser{
+  height: 30px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  right: 10px;
+  -webkit-app-region: no-drag;
 }
 </style>

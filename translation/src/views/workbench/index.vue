@@ -1,285 +1,278 @@
 <template>
-    <div ref="box" style="width:100%;height:100%;padding:10px;">
-        <SearchForm ref="searchForm" @change="setTableHeight">
-            <template v-slot:form>
-                <a-form
-                    :model="search"
-                    name="horizontal_login"
-                    layout="inline"
-                    autocomplete="off"
-                    :label-col="labelCol"
-                >
-                    <a-form-item
-                    label="中文术语"
-                    name="chinese"
-                    >
-                        <a-input v-model:value="search.chinese" placeholder="请输入中文术语" size="small"></a-input>
-                    </a-form-item>
-                    <a-form-item
-                    label="Abbr"
-                    name="abbr"
-                    >
-                        <a-input v-model:value="search.abbr" placeholder="请输入Abbr" size="small"></a-input>
-                    </a-form-item>
-                    <a-form-item
-                    label="词性"
-                    name="partOfSpeech"
-                    >
-                        <a-select
-                            v-model:value="search.partOfSpeech"
-                            placeholder="请选择词性备注"
-                            :options='partSpeechs'
-                            size="small"
-                            style="width: 200px"
+    <div ref="box" class="box">
+        <a-row type="flex">
+            <a-col flex="296px" class="cardBox">
+                <a-card hoverable :class="activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'">
+                    <div class="title">待办事项</div>
+                    <div class="logo"><img src="../../assets/workIcon/handle.png"/></div>
+                    <div class="data">
+                        <span>{{toDoNum}}</span><span>条</span>
+                        <a-button type="primary" ghost size="small" @click="clickCard(1)">查看</a-button>
+                    </div>
+                </a-card>
+                <a-card hoverable :class="activeCard === 2 ? 'processedCard activeProcessedCard' : 'processedCard'">
+                    <div class="title">已办事项</div>
+                    <div class="logo"><img src="../../assets/workIcon/processed.png"/></div>
+                    <div class="data">
+                        <span>{{finishNum}}</span><span>条</span>
+                        <a-button type="primary" ghost size="small" @click="clickCard(2)">查看</a-button>
+                    </div>
+                </a-card>
+                <!-- <a-card hoverable :class="activeCard === 3 ? 'exportCard activeExportCard' : 'exportCard'">
+                    <div class="title">可导出词条</div>
+                    <div class="logo"><img src="../../assets/workIcon/export.png"/></div>
+                    <div class="data">
+                        <span>20</span><span>条</span>
+                        <a-button type="primary" ghost size="small" @click="clickCard(3)">查看</a-button>
+                    </div>
+                </a-card> -->
+            </a-col>
+            <a-col flex="auto">
+                <div class="dataBox">
+                    <SearchBox ref="search">
+                        <template v-slot:form>
+                            <a-form
+                                :model="search"
+                                name="horizontal_login"
+                                layout="inline"
+                                autocomplete="off"
+                                :label-col="labelCol"
                             >
-                        </a-select>
-                    </a-form-item>
-                
-                    <a-form-item
-                    label="版本"
-                    name="version"
-                    >
-                        <a-select
-                        v-model:value="search.version"
-                        style="width: 200px"
-                        placeholder="请选择版本"
-                        size="small"
-                        >
-                            <template v-for="(item,index) in versions" :key="index">
-                                <a-select-option :value="item.name">{{item.name}}</a-select-option>
-                            </template>
-                        </a-select>
-                    </a-form-item>
-                    <a-form-item
-                    label="词条标签"
-                    name="label"
-                    >
-                        <a-select
-                        v-model:value="searchLabel"
-                        mode="multiple"
-                        :max-tag-count="maxTagCount"
-                        style="width: 200px"
-                        placeholder="请选择标签"
-                        size="small"
-                        >
-                            <template v-for="(item,index) in labels" :key="index">
-                                <a-select-option :value="item.value">{{item.label}}</a-select-option>
-                            </template>
-                        </a-select>
-                    </a-form-item>
-                    <a-form-item
-                    label="创建人"
-                    name="creator"
-                    >
-                        <a-input v-model:value="search.creator" placeholder="请输入创建人" size="small"></a-input>
-                    </a-form-item>
-                    <a-form-item
-                    label="创建日期"
-                    name="createTime"
-                    >
-                        <a-range-picker v-model:value="createTime" 
-                        size="small" 
-                        :locale="locale"
-                        @change="changePicker"
-                        />
-                    </a-form-item>
-                </a-form>
-            </template>
-            <template v-slot:operate>
-                <div style="margin-top:5px;text-align: right;">
-                    <a-button type="primary" size="middle" style="margin-left:10px" @click="searchBtn">查询</a-button>
-                    <a-button type="primary" size="middle" style="margin-left:10px;background-color:#36BF7D;border:#36BF7D" @click="reset">重置</a-button>
-                </div>
-            </template>
-        </SearchForm>
-        <a-tabs v-model:activeKey="entryState" @change="changeTab" ref="tab">
-            <a-tab-pane key="2" tab="词条未审核"></a-tab-pane>
-            <a-tab-pane key="1" tab="翻译未审核"></a-tab-pane>
-        </a-tabs>
-        <div class="operateBtn">
-            <a-button type="primary" size="small" style="margin-left:10px" 
-            @click="bathAudit"
-            v-if="authority.includes('bathAudit')"
-            >
-                <template #icon><SnippetsOutlined /></template>
-                批量审核
-            </a-button>
-            
-            <a-popover
-                trigger="click"
-                placement="leftBottom"
-                :overlayStyle="overlayStyle"
-            >
-                <template #content>
-                    <a-checkbox-group
-                        v-model:value="checkedColumn"
-                        @change="changeColumn"
-                    >
-                        <a-row
-                            v-for="item in checkboxList"
-                            :key="item.value"
-                        >
-                            <a-col :span="24">
-                                <a-checkbox :value="item.value">
-                                    {{ item.label }}
-                                </a-checkbox>
-                            </a-col>
-                        </a-row>
-                    </a-checkbox-group>
-                </template>
-                <a-button type="primary" size="small" style="margin-left:10px">
-                    <template #icon><SettingOutlined /></template>
-                    显示列设置
-                </a-button>
-            </a-popover>
-        </div>
-        <div class="table">
-            <a-table 
-            class="ant-table-striped"
-            :columns="columns" 
-            :data-source="dataSource" 
-            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
-            :row-key="record => record.id"
-            :scroll="tableHeight"
-            :pagination='false'
-            :loading="loading"
-            :rowClassName="getRowClassName"
-            ref="workTable"
-            @resizeColumn="handleResizeColumn"
-            :customRow="customRow"
-            bordered>
-                <template #bodyCell="{ column,text, record }">
-                    <template v-if="column.dataIndex === 'entryState'">
-                        <template v-if="record.entryState === -1">
-                            <a-badge color="red" /><span style="color:red">已删除</span>
+                                <a-form-item
+                                label="任务名称"
+                                name="name"
+                                >
+                                    <a-input v-model:value="search.name" placeholder="请输入任务名称" ></a-input>
+                                </a-form-item>
+                                <a-form-item
+                                label="产品名称"
+                                name="productName"
+                                >
+                                    <a-input v-model:value="search.productName" placeholder="请输入产品名称"></a-input>
+                                </a-form-item>
+                                <a-form-item
+                                label="翻译语种"
+                                name="translateType"
+                                >
+                                    <a-input v-model:value="search.translateType" placeholder="请输入翻译语种" ></a-input>
+                                </a-form-item>
+                                <a-form-item
+                                label="执行部门"
+                                name="department"
+                                >
+                                    <a-input v-model:value="search.department" placeholder="请输入执行部门" ></a-input>
+                                </a-form-item>
+                                <a-form-item
+                                label="创建人"
+                                name="creator"
+                                >
+                                    <a-input v-model:value="search.creator" placeholder="请输入创建人" ></a-input>
+                                </a-form-item>
+                                <!-- <a-form-item
+                                label="词条审核员"
+                                name="auditor"
+                                >
+                                    <a-input v-model:value="search.auditor" placeholder="请输入词条审核员" </a-input>
+                                </a-form-item> -->
+                            </a-form>
                         </template>
-                        <template v-if="record.entryState === 0">
-                            <a-badge color="#dae3e6" /><span style="color:#dae3e6">已废弃</span>
+                        <template v-slot:operate>
+                            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                            <a-button type="primary" size="middle" @click="getTask">查询</a-button>
                         </template>
-                        <template v-if="record.entryState === 1">
-                            <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                        </template>
-                        <template v-if="record.entryState === 2">
-                            <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-                        </template>
-                        <template v-if="record.entryState === 3">
-                            <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                        </template>
-                    </template>
-                    <template v-if="showIcon(column,record)">
-                        <div class="editable-cell">
-                            <div class="editable-cell-text-wrapper">
-                                {{ text }}
-                                <CheckCircleOutlined class="editable-cell-icon" style="right:20px;color:#369FFF" @click="edit(record.key)" />
-                                <CloseCircleOutlined class="editable-cell-icon" style="color:#ff4d4f"/>
+                    </SearchBox>
+                    <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
+                        <!-- <template v-slot:operate>
+                            <div ref="button" v-if="true" style="margin-bottom:8px">
+                                <a-button type="primary" size="small"><template #icon><SendOutlined /></template>递交</a-button>
                             </div>
-                        </div>
-                    </template>
-                    <template v-if="column.dataIndex === 'operation'">
-                        <a-button type="primary" ghost size="small" @click="audit(record)">审核</a-button>
-                    </template>
-                </template>
-            </a-table>
-        </div>
-        <Pagination ref="pagination" :total="pagination.total" @pageChange="pageChange" style="padding:0 20px 10px 0px"/>
-        <AuditModal ref="auditModal" :visible="modalVisible" :modalTitle="modalTitle" @handleClose="modelColse" @handleOK="modelOK"/>
+                        </template> -->
+                        <template v-slot:data>
+                            <div style="width:100%;position: absolute;">
+                                <a-table 
+                                bordered
+                                class="ant-table-striped"
+                                :columns="columns" 
+                                :data-source="dataSource" 
+                                
+                                :row-key="record => record.id"
+                                :scroll="tableHeight"
+                                :pagination='false'
+                                :loading="loading"
+                                :rowClassName="getRowClassName"
+                                ref="workTable"
+                                @resizeColumn="handleResizeColumn"
+                                :customRow="customRow"
+                                >
+                                    <template #bodyCell="{ column, record }">
+                                        <template v-if="column.dataIndex === 'state'">
+                                            <template v-if="record.state === '0'">
+                                                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                                            </template>
+                                            <template v-else-if="record.state === '1'">
+                                                <a-badge color="#FBB31F" /><span style="color:#FBB31F">词条待导入</span>
+                                            </template>
+                                            <template v-else-if="record.state === '2'">
+                                                <a-badge color="#FBB31F" /><span style="color:#FBB31F">词条待审核</span>
+                                            </template>
+                                            <template v-else-if="record.state === '3'">
+                                                <a-badge color="#FBB31F" /><span style="color:#FBB31F">词条待翻译</span>
+                                            </template>
+                                            <template v-else-if="record.state === '4'">
+                                                <a-badge color="#FBB31F" /><span style="color:#FBB31F">翻译待审核</span>
+                                            </template>
+                                            <template v-else-if="record.state === '5'">
+                                                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待导出</span>
+                                            </template>
+                                            <template v-else>
+                                                <a-badge color="#C5C5C5" /><span style="color:#C5C5C5">已完成</span>
+                                            </template>
+                                        </template>
+                                        <template v-else-if="column.dataIndex === 'operation'">
+                                            <div class="editable-row-operations">
+                                                <span>
+                                                    <a-button type="primary" ghost size="small" :disabled="record.state > 4 ? false : true" @click.stop="exportEntry(record.id)">导出</a-button>
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </template>
+                                </a-table>
+                            </div>
+                        </template>
+                    </DataBox>
+                    <OperationArea 
+                    ref="operationArea" 
+                    :title="operationAreaTitle" 
+                    :height="operationAreaHeight"
+                    v-if="showOperationArea"
+                    @close="closeOperationArea"
+                    >
+                        <template v-slot:content>
+                            <TimeLine 
+                            :currentTask="currentTask"
+                            :showButton="timeLineBtn"
+                            @importEntry="importEntry"
+                            @examineEntry="examineEntry"
+                            @translateEntry="translateEntry"
+                            @examineTranslate="examineTranslate"
+                            @refresh="init"
+                            >
+
+                            </TimeLine>
+                        </template>
+                    </OperationArea>
+                </div>
+            </a-col>
+        </a-row>
+        
     </div>
+    <ImportModal 
+    ref="import"
+    :visible="importVisible" 
+    :currentTask="currentTask"
+    @handleClose="importClose"/>
+    <ExamineModal 
+    ref="examine"
+    :visible="examineVisible" 
+    :currentTask="currentTask"
+    :modalTitle="examineTitle"
+    @handleClose="examineClose"/>
+    />
+    <TranslateModal 
+    ref="translate"
+    :visible="translateVisible" 
+    :currentTask="currentTask"
+    @handleClose="translateClose"/>
+    />
+    <ExamineTranslateModal 
+    ref="examineTranslate"
+    :visible="examineTranslateVisible" 
+    :currentTask="currentTask"
+    @handleClose="examineTranslateClose"/>
+    />
 </template>
 <script>
 import { message,Modal } from 'ant-design-vue';
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
+import SearchBox from '@/components/search/searchBox.vue'
 import SearchForm from '@/components/search/searchForm.vue'
-import Pagination from "@/components/page/pagination.vue"
-import AuditModal from '@/views/workbench/auditModal';
+import DataBox from '@/components/dataBox/index.vue'
+import OperationArea from '@/components/operationArea/index.vue'
+import TimeLine from '@/components/timeLine/index.vue'
+import ImportModal from '@/views/workbench/importModal.vue'
+import ExamineModal from '@/views/workbench/examineModal.vue'
+import TranslateModal from '@/views/workbench/translateModal.vue'
+import ExamineTranslateModal from '@/views/workbench/examineTranslateModal.vue'
 import tableParam from "@/views/entry/tableParam.js";
 import {
-  SnippetsOutlined,
-  SettingOutlined,
-  DownloadOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined
+  SendOutlined
 } from '@ant-design/icons-vue';
 import { 
-    searchEntry,
-    bathAudit,
-    getThesaurus,
-    getEntryProperty,
-    getTranslatedEntry
-} from "@/http/api/entry";
-import { 
-    queryLabel
-} from "@/http/api/label";
-import { 
-    queryVersionInfo
-} from "@/http/api/version";
+    getToDoTaskInfo,
+    getFinishTaskInfo
+} from "@/http/api/task";
 export default {
     components:{
+        SearchBox,
         SearchForm,
-        Pagination,
-        AuditModal,
-        SnippetsOutlined,
-        SettingOutlined,
-        DownloadOutlined,
-        CheckCircleOutlined,
-        CloseCircleOutlined
+        DataBox,
+        OperationArea,
+        TimeLine,
+        ImportModal,
+        ExamineModal,
+        TranslateModal,
+        ExamineTranslateModal,
+        SendOutlined
     },
     data(){
         return{
-            loading:false,
             name:"workbench",
             // 汉化包
       		locale: locale,
-            labelCol: { style: { width: '60px' } },
-            maxTagCount: 1,
-            entryState:"2",
-            labels:[],
-            searchLabel:undefined,
+            toDoNum: 0,
+            finishNum: 0,
+            labelCol: { style: { width: '84px' } },
             search:{
-                chinese: '',
-                creator: '',
-                abbr: '',
-                version: null,
-                partOfSpeech: null,
-                createTime:'',
-                createEndRTime:'',
-                label:""
+                name: '',
+                productName: '',
+                translateType: '',
+                department: '',
+                auditor: '',
+                creator: ''
             },
-            versions: [],
-            createTime:[],
             tableHeight: { x:'100%',y: 0 },
+            loading:false,
             columns: [
-                {title: "序号",dataIndex: 'index',align:'center',width:70,customRender: (text, record, index, column) => {
+                {title: "序号",dataIndex: 'index',align:'center',width:40,customRender: (text, record, index, column) => {
                     return text.index + 1
                 },fixed: 'left',index:0},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,fixed: 'left',resizable: true,index:1},
-                {title: '状态',dataIndex: 'entryState',align:'center',width:150,resizable: true,index:2},
-                {title: '功能/环境',dataIndex: 'environmentRemark',align:'center',width:200,ellipsis: true,resizable: true,index: 3},
-                {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,ellipsis: true,resizable: true,index: 4},
-                {title: '词性备注',dataIndex: 'partOfSpeech',align:'center',width:200,resizable: true,index:5},
-                {title: '中文术语',dataIndex: 'chinese',align:'center',width:200,ellipsis: true,resizable: true,index:6},
-                {title: '英文术语',dataIndex: 'english',align:'center',width:200,ellipsis: true,resizable: true,index:9},
-                // {title: '操作',dataIndex: 'operation',align:'center',width:100,fixed: 'right',}
+                {title: '任务名称',dataIndex: 'name',align:'center',width:100,fixed: 'left',resizable: true,index:1},
+                {title: '任务状态',dataIndex: 'state',align:'center',width:80,fixed: 'left',resizable: true,index:1},
+                {title: '产品名称',dataIndex: 'productName',align:'center',width:100,resizable: true,index:2},
+                {title: '版本名称',dataIndex: 'versionName',align:'center',width:100,resizable: true,index:2},
+                // {title: '执行部门',dataIndex: 'department',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
+                {title: '翻译语种',dataIndex: 'translateType',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
+                {title: '任务描述',dataIndex: 'description',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
+                {title: '创建人',dataIndex: 'creator',align:'center',width:50,ellipsis: true},
+                {title: '下发时间',dataIndex: 'deliveryTime',align:'center',width:100,ellipsis: true},
+                // {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right',},
             ],
             dataSource:[],
-            checkboxList: tableParam.checkboxList,
-            visibleColumns: false,
-            checkedColumn: tableParam.checkedColumn,
             selectedRowKeys:[],
-            selectedRows:[],
-            pagination:{
-                current: 1,
-                pageSize: 20,
-                total: 0
-            },
-            overlayStyle: tableParam.overlayStyle,
-            modalVisible: false,
-            modalTitle:"",
-            authority:[],
-            clickRecord:{},
-            partSpeechs:[],
-            translateState:['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState','chineseTranslateState'],
-            translate:["chinese","english","french","russian","spanish"],
-            selectedRowIndex:null
+            selectedRowIndex:null,
+            currentTask:{},
+            timeLineBtn:true,
+            activeCard: 1,
+            dataHeight:490,
+            tableTitle:"待办事项列表",
+            operationAreaTitle:"流程操作区",
+            operationAreaHeight:190,
+            showOperationArea: false,
+            importVisible: false,
+            examineVisible: false,
+            examineTitle: '',
+            translateVisible: false,
+            examineTranslateVisible: false
         }
     },
     mounted () {
@@ -301,11 +294,11 @@ export default {
             let className = null
             if(index % 2 === 1){
                 className = 'table-striped'
-                if(this.selectedRowIndex === index){
+                if(this.selectedRowIndex === record.id){
                     className = className + " highlighted-row"
                 }
             }else{
-                if(this.selectedRowIndex === index){
+                if(this.selectedRowIndex === record.id){
                     className = "highlighted-row"
                 }
             }
@@ -315,309 +308,167 @@ export default {
             return {
                 onClick: (event) => {
                     // console.log("点击")
-                    // this.selectedRowIndex = index
+                    this.selectedRowIndex = record.id
+                    this.showOperationArea = true
+                    this.setTableHeight()
+                    this.currentTask = record
                 }
             }
         },
-        // 校验是否展示 审核图标
-        showIcon(column,record){
-            if(this.entryState === '2'){
-                // 词条未审核列表不展示图标
-                return false
+        clickCard(index){
+            this.activeCard = index
+            if(index === 1){
+                this.tableTitle = '待办事项列表'
+                this.timeLineBtn = true
+                // this.columns.some((item,i) => {
+                //     if(item.dataIndex === 'operation'){
+                //         this.columns.splice(i,1)
+                //         return true
+                //     }
+                // })
+            }else if(index === 2){
+                this.tableTitle = '已办事项列表'
+                this.timeLineBtn = false
+                // if(this.columns.findIndex(item => item.dataIndex === 'operation') === -1){
+                //     let operate = {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right'}
+                //     this.columns.push(operate)
+                // }
             }
-            let state = column.dataIndex+"TranslateState"
-            if(this.translate.includes(column.dataIndex) && record[column.dataIndex] != null && record[state] === "已翻译"){
-                return true
-            }
-            return false
+            this.getTask()
         },
         init(){
             this.setTableHeight()
-            this.pagination.current = this.$refs.pagination.current
-            this.pagination.pageSize = this.$refs.pagination.pageSizeOptions[0]
-            this.getVersion()
-            this.getAuthority()
-            this.getDataSource()
-            this.getEntryLabel()
-            this.getPartOfSpeech()
+            this.getTask()
+            this.getTaskTotal()
         },
         setTableHeight(){
             this.$nextTick(() => {
+                // 设置列表父元素高度
                 let box = this.$refs.box.offsetHeight
-                let searchHeight = this.$refs.searchForm.$el.offsetHeight
-                let paginationHeight = this.$refs.pagination.$el.offsetHeight
-                let tabHeight = this.$refs.tab.$el.offsetHeight
-                this.tableHeight.y = box - searchHeight - paginationHeight - tabHeight - 90
-            })
-        },
-        //获取用户权限
-        getAuthority(){
-            let authoritys = this.$store.state.authority;
-            authoritys.filter(item => {
-                if(item.name === this.name){
-                    item.authorities.filter(temp =>{
-                        this.authority.push(temp.authorityCode)
-                    })
+                let searchHeight = this.$refs.search.$el.offsetHeight
+                try {
+                    let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight
+                    this.dataHeight = box - searchHeight - operationAreaHeight - 32
+                } catch (error) {
+                    this.dataHeight = box - searchHeight - 32
                 }
+
+                // 设置表格高度
+                let buttonHeight = 0
+                try {
+                    buttonHeight = this.$refs.button.offsetHeight + 8
+                } catch (error) {
+                    
+                }
+                this.tableHeight.y = this.dataHeight - buttonHeight - 120
+
+                // console.log(this.tableHeight.y)
             })
-            // 表格展示操作栏
-            if(this.authority.includes('bathAudit')){
-                let operation = {title: '操作',dataIndex: 'operation',align:'center',width:100,fixed: 'right',index:100}
-                this.columns.push(operation)
-            }
         },
-        // 查询版本
-        getVersion(){
+        // 获取待办事项和已办事项数量
+        getTaskTotal(){
             let params = {
                 pageIndex: -1,
                 pageSize: -1
             }
-            queryVersionInfo(params).then((res) => {
-                this.versions = res.data.list
+            // 待办事项
+            getToDoTaskInfo(params,{}).then((res) => {
+                this.toDoNum = res.data.totalNum
             })
-        },
-        // 查询词条标签
-        getEntryLabel(){
-            queryLabel({},-1,-1).then((res) => {
-                this.labels = []
-                res.data.list.forEach(item =>{
-                    let label = {
-                        value: item.labelName,
-                        label: item.labelName
-                    }
-                    this.labels.push(label)
-                })
+            // 已办事项
+            getFinishTaskInfo(params,{}).then((res) => {
+                this.finishNum = res.data.totalNum
             })
-        },
-        // 查询词性
-        getPartOfSpeech(){
-            let data = {}
-            getEntryProperty(data).then((res) => {
-                this.partSpeechs = []
-                res.data.list.forEach(item => {
-                    let part = {
-                        value: item.propertyName,
-                        label: item.propertyName,
-                    }
-                    this.partSpeechs.push(part)
-                })
-            })
-        },
-        // 查询按钮点击事件
-        searchBtn(){
-            if(this.entryState === '2'){
-                this.getDataSource();
-            }else{
-                this.getTranslatedEntry()
-            }
-        },
-        // 查询数据
-        getDataSource(){
-            this.loading = true
-            if(this.searchLabel != undefined){
-                let label = ""
-                this.searchLabel.forEach(item => {
-                    label += item + ","
-                })
-                label = label.substring(0, label.lastIndexOf(','))
-                this.search.label = label
-            }
-            let params = {
-                entryState:this.entryState,
-                pageIndex:this.pagination.current,
-                pageSize:this.pagination.pageSize
-            }
-            searchEntry(this.search,params).then((res) => {
-                this.dataSource = res.data.list
-                this.pagination.total = res.data.totalNum
-                this.loading = false
-            })
-        },
-        // 日期范围选择器改变时触发
-        changePicker(value, dateString){
-            if(dateString.length > 1){
-                this.search.createTime = dateString[0]
-                this.search.createEndRTime = dateString[1]
-            }
-        },
-        // 待审核  已审核 切换时触发
-        changeTab(activeKey){
-            if(activeKey === "2"){
-                // 查询词条未审核的列表
-                this.getDataSource();
-            }else{
-                // 查询翻译未审核的数据列表
-                this.getTranslatedEntry()
-            }
-            
-
-            // //判断是否展示操作栏  
-            // let index = this.columns.findIndex(
-            //     (item) => item.dataIndex === "operation"
-            // );
-            // // 已审核表格去除操作栏
-            // if(activeKey === "0,3" && index !== -1){
-            //     this.columns.splice(index,1)
-            // }
-            // // 待审核表格展示操作栏
-            // if(activeKey === "2" && index === -1 && this.authority.includes("bathAudit")){
-            //     let operation = {title: '操作',dataIndex: 'operation',align:'center',width:100,fixed: 'right'}
-            //     this.columns.push(operation)
-            // }
 
         },
-        // 查询翻译未审核的数据列表
-        getTranslatedEntry(){
+        // 获取任务
+        getTask(){
             let params = {
-                pageIndex: this.pagination.current,
-                pageSize: this.pagination.pageSize
+                pageIndex: -1,
+                pageSize: -1
             }
-            getTranslatedEntry(params).then((res) => {
-                this.dataSource = res.data.list
-            })
-        },
-        //审核
-        audit(record){
-            this.clickRecord = record
-            this.modalTitle = "审核"
-            this.modalVisible = true
-            this.$refs.auditModal.reset()
-        },
-        // 批量审核
-        bathAudit(){
-            if(this.selectedRows.length > 0){
-                this.modalTitle = "批量审核"
-                this.modalVisible = true
-            }else{
-                message.warning("请选择需要审核的词条！")
-            }
-            this.$refs.auditModal.reset()
-        },
-        modelColse(data){
-            if(data === 'false'){
-                this.modalVisible = false
-            }else{
-                this.modalVisible = true
-            }
-        },
-        modelOK(audit){
-            if(this.modalTitle.includes('批量')){
-                let params = []
-                this.selectedRows.forEach(item =>{
-                    let flag = params.filter(i => i.tableName === item.tableName)
-                    if(flag.length > 0){
-                        flag[0].ids.push(item.id)
-                    }else{
-                        let temp = {
-                            tableName: item.tableName,
-                            ids: [item.id]
-                        }
-                        params.push(temp)
-                    }
+            if(this.activeCard === 1){
+                // 待办事项
+                getToDoTaskInfo(params,this.search).then((res) => {
+                    this.dataSource = res.data.list
+                    // if(this.dataSource.length > 0){
+                    //     this.selectedRowIndex = this.dataSource[0].id
+                    //     this.currentTask = this.dataSource[0]
+                    // }
+                    this.selectedRowIndex = null
+                    this.showOperationArea = false
+                    this.setTableHeight()
                 })
-                this.entryAudit(params,audit)
-            }else{
-                let data = [
-                    {
-                        ids: [this.clickRecord.id],
-                        tableName:this.clickRecord.tableName
-                    }
-                ]
-                this.entryAudit(data,audit)
+            }else if(this.activeCard === 2){
+                // 已办事项
+                getFinishTaskInfo(params,this.search).then((res) => {
+                    this.dataSource = res.data.list
+                })
             }
-        },
-        entryAudit(data,state){
-            let params = {
-                state:state.entryState,
-                note:state.notes
-            }
-            bathAudit(data,params).then((res) => {
-                this.modalVisible = false
-                message.success("审核成功！")
-                if(this.entryState === '2'){
-                    this.getDataSource()
-                }else{
-                    this.getTranslatedEntry()
-                }
-                
-                this.selectedRows = []
-                this.selectedRowKeys = []
-            })
-        },
-    
-        changeColumn(checkedValue) {
-            this.checkedColumn = checkedValue;
-            this.checkboxList.forEach((value) => {
-                let checkedIndex = this.checkedColumn.findIndex(
-                    (item) => item === value.value
-                );
-                let nowColumnIndex = this.columns.findIndex(
-                    (item) => item.dataIndex === value.value
-                );
-                if (
-                    (nowColumnIndex !== -1 && checkedIndex !== -1) ||
-                    (nowColumnIndex === -1 && checkedIndex === -1)
-                ) {
-                    return;
-                }
-                if (nowColumnIndex === -1 && checkedIndex !== -1) {
-                    let newCol = {
-                        title: value.label,
-                        dataIndex: value.value,
-                        align: "center",
-                        width: 200,
-                        ellipsis: true,
-                        resizable: true,
-                        index: value.index
-                    };
-                    this.columns.splice(-1, 0, newCol);
-                }
-                if (nowColumnIndex !== -1 && checkedIndex === -1) {
-                    this.columns.splice(nowColumnIndex, 1);
-                }
-            });
-            this.columns.sort(function(a, b){
-                return a.index - b.index
-            })
-        },
-        onSelectChange(selectedRowKeys,selectedRows){
-            this.selectedRowKeys = selectedRowKeys
-            this.selectedRows = selectedRows
-        },
-        //分页
-        pageChange(current,pageSize){
-            this.pagination.current = current
-            this.pagination.pageSize = pageSize
-
-            if(this.entryState === '2'){
-                this.getDataSource();
-            }else{
-                this.getTranslatedEntry()
-            }
-            
-        },
-        
-        // 重置
-        reset(){
-            this.searchLabel = undefined
-            this.search = {
-                label: '',
-                chinese: '',
-                creator: '',
-                abbr: '',
-                version: undefined,
-                partOfSpeech: '',
-                createStartDate:'',
-                createEndDate:'',
-            }
-            this.pagination.current = 1
-            this.$refs.pagination.current = 1
-            this.entryState="2"
-            this.getDataSource()
         },
         handleResizeColumn: (w, col) => {
             col.width = w;
         },
+        closeOperationArea(){
+            this.showOperationArea = false
+            this.setTableHeight()
+            this.selectedRowIndex = null
+        },
+        onSelectChange(selectedRowKeys,selectedRows){
+            this.selectedRowKeys = selectedRowKeys
+            // this.selectedRows = selectedRows
+        },
+        importEntry(){
+            
+            this.importVisible = true
+            this.$refs.import.initTaskEntry()
+        },
+        importClose(){
+            this.importVisible = false
+        },
+        // 词条审核
+        examineEntry(){
+            this.examineVisible = true
+            this.examineTitle = '词条审核'
+            this.$refs.examine.getTaskEntry()
+        },
+        examineClose(){
+            this.examineVisible = false
+        },
+        // 词条翻译
+        translateEntry(){
+            this.translateVisible = true
+            this.$refs.translate.getTranslateEntry()
+        },
+        translateClose(){
+            this.translateVisible = false
+        },
+        // 翻译审核
+        examineTranslate(){
+            this.examineTranslateVisible = true
+            this.$refs.examineTranslate.getTaskEntry()
+        },
+        examineTranslateClose(){
+            this.examineTranslateVisible = false
+        },
+
+        // 词条导出
+        exportEntry(id){
+            message.info(id)
+        },
+
+        // 重置
+        reset(){
+            this.search = {
+                name: '',
+                productName: '',
+                translateType: '',
+                department: '',
+                auditor: '',
+                creator: ''
+            }
+            this.getTask()
+        }
     }
 }
 </script>
@@ -625,99 +476,132 @@ export default {
 @import url("@/assets/style/common.less");
 </style>
 <style scoped lang="less">
-:deep(.ant-tabs){
-    padding: 0 10px;
+.box{
+    width:100%;
+    height:100%;
+    padding:16px;
 }
-:deep(.ant-tabs-nav) {
-    margin: 0 0 5px 0;
+.ant-row{
+    height: 100%;
 }
-:deep(.ant-tabs-tab-btn){
-  font-size: 12px;
-}
-.search{
-    :deep(.ant-input){
-        width: 200px;
-    }
-    :deep(label){
-        font-size: 12px;
-    }
-}
-.operateBtn{
-    width: 100%;
-    margin-bottom: 5px;
-    text-align: right;
+.cardBox{
+    display: flex;
+    padding: 0px 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+    overflow: auto;
+    height: 100%;
 
-    .ant-btn{
-        display: inline-block;
+    .title{
+        /* 三级文字/加粗 */
+        font-family: Microsoft YaHei;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 700;
+        line-height: 24px; /* 150% */
+    }
+    .logo{
+        width: 100%;
+        height: 66px;
+        margin-top: 16px;
+
+        display: flex;
+        padding: 1px;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 8px;
+        align-self: stretch;
+    }
+    .data{
+        width: 100%;
+        height: 44px;
+        margin-top: 16px;
+        text-align: center;
+        position: relative;
+
+        span{
+            color: #000;
+            /* 一级文字/加粗 */
+            font-family: Microsoft YaHei;
+            font-style: normal;
+        }
+
+        .ant-btn{
+            position: absolute;
+            right: 0;
+            background-color: white;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    }
+    .data span:first-child{
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 44px;
+    }
+    .data span:last-child{
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 22px;
     }
 }
-.table{
-    width: 100%;
-    position: relative;
-}
-.ant-btn-sm{
-    font-size: 12px;
-}
-.ant-btn > .anticon + span, .ant-btn > span + .anticon {
-    margin-left: 5px;
-}
-</style>
-<style lang="less">
-.editable-cell {
-  position: relative;
-  .editable-cell-input-wrapper,
-  .editable-cell-text-wrapper {
-    padding-right: 24px;
-  }
-
-  .editable-cell-text-wrapper {
-    padding: 5px 24px 5px 5px;
-  }
-
-  .editable-cell-icon,
-  .editable-cell-icon-check {
+.dataBox{
+    padding-left: 16px;
     position: absolute;
-    right: 0;
-    width: 20px;
-    cursor: pointer;
-  }
+    height: 100%;
+    width: 100%;
+}
+.ant-card{
+    width: 100%;
+    height: 200px;
+    border-radius: 8px;
+    padding: 16px;
+}
+:deep(.ant-card-body){
+    padding: 0px;
+}
+.handleCard{
+    background: #F1F3FF;
 
-  .editable-cell-icon {
-    margin-top: 4px;
-    display: none;
-  }
+    .title{
+        color: #647AFF;
+    }
+}
+.activeHandleCard{
+    box-shadow: 1px 6px 12px 0px rgba(100, 122, 255, 0.20),-1px 0px 8px 0px rgba(100, 122, 255, 0.20);
+}
+.handleCard:hover{
+    box-shadow: 1px 6px 12px 0px rgba(100, 122, 255, 0.20),-1px 0px 8px 0px rgba(100, 122, 255, 0.20);
+}
+.processedCard{
+    background: #F0FFFC;
 
-  .editable-cell-icon-check {
-    line-height: 28px;
-  }
+    .title{
+        color: #36BF7D;
+    }
+}
+.activeProcessedCard{
+    box-shadow: 1px 6px 12px 0px rgba(54, 191, 125, 0.20), -1px 0px 8px 0px rgba(54, 191, 125, 0.20);
+}
+.processedCard:hover{
+    box-shadow: 1px 6px 12px 0px rgba(54, 191, 125, 0.20), -1px 0px 8px 0px rgba(54, 191, 125, 0.20);
+}
+.exportCard{
+    background: #FFFBF0;
 
-  .editable-cell-icon:hover,
-  .editable-cell-icon-check:hover {
-    color: #108ee9;
-  }
-
-  .editable-add-btn {
-    margin-bottom: 8px;
-  }
+    .title{
+        color: #F1BD2E;
+    }
 }
-.editable-cell:hover .editable-cell-icon {
-  display: inline-block;
+.activeExportCard{
+    box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.20), -1px 0px 8px 0px rgba(241, 189, 46, 0.20);
+}
+.exportCard:hover{
+    box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.20), -1px 0px 8px 0px rgba(241, 189, 46, 0.20);
 }
 
-.highlighted-row>td {
-  border-top: 1px solid #369FFF !important;
-  border-bottom: 1px solid #369FFF !important;
-}
- 
-.highlighted-row>td:first-child {
-  border-left: 1px solid #369FFF !important;
-}
-.highlighted-row>td:first-child::before {
-    content: url('/src/assets/icon/caret-right-small.png');
-    position: absolute;
-    left: 0%;
-}
-.highlighted-row>td:last-child {
-  border-right: 1px solid #369FFF !important;
-}
+
+
+
 </style>

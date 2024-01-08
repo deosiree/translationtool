@@ -33,3 +33,33 @@
 .ant-modal-content{
     border-radius: 8px;
 }
+
+.highlighted-row>td {
+    border-top: 1px solid #369FFF !important;
+    border-bottom: 1px solid #369FFF !important;
+  }
+   
+  .highlighted-row>td:first-child {
+    border-left: 1px solid #369FFF !important;
+  }
+  .highlighted-row>td:first-child::before {
+      content: url('/src/assets/icon/caret-right-small.png');
+      position: absolute;
+      left: 0%;
+  }
+  .highlighted-row>td:last-child {
+    border-right: 1px solid #369FFF !important;
+  }
+
+  .resetBtn{
+    background:#36BF7D;
+    border-color:#36BF7D
+  }
+  .resetBtn:hover{
+    background:#36BF7D;
+    border-color:#36BF7D
+  }
+  .resetBtn:focus{
+    background:#36BF7D;
+    border-color:#36BF7D
+  }

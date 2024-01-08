@@ -94,23 +94,25 @@ export default ({
 <style lang="less" scoped>
 .layout{
     width: 100%;
-    height: calc(100% - 30px);
-    padding: 10px 10px 10px 0;
+    height: calc(100% - 40px);
+    // padding: 10px 10px 10px 0;
 }
 .ant-row{
     height: 100%;
 }
 .menu{
     width: 100%;
-    height: calc(100% - 20px);
+    // height: calc(100% - 20px);
+    height: 100%;
     background-color: rgb(243,243,243);
-    padding: 10px 0px;
+    // padding: 10px 0px;
     text-align: center;
+    position: relative;
+    overflow:hidden;
 }
 .closeMenu{
     width: 100%;
     height: 20px;
-    // border: 1px solid #a8afac;
     background-color: #e6e8e7;
     position: absolute;
     bottom: 0;
@@ -120,13 +122,16 @@ export default ({
     width: 100%;
     height: 100%;
     background-color: rgb(243,243,243);
-    padding: 10px 10px 10px 0;
+    // padding: 10px 10px 10px 0;
     position: relative;
+    // overflow: hidden;
 
     .contentView{
         position: absolute;
-        width:calc(100% - 10px);
-        height:calc(100% - 20px);
+        // width:calc(100% - 10px);
+        // height:calc(100% - 20px);
+        width: 100%;
+        height: 100%;
         background-color:white;
     }
 }

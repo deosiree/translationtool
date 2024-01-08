@@ -7,6 +7,7 @@
     :width="modalWidth"
     :footer="!footer ? null : undefined"
     :afterClose="afterClose"
+    :maskClosable='false'
     ok-text="确定"
     cancel-text="取消"
     @ok="ok"
@@ -14,7 +15,7 @@
     >
         <div class="modalHeader">
             <div class="title">
-                <img src="../../assets/icon/modelIcon.png" style="width:24px;height:24px"/>
+                <img src="../../assets/icon/modal.png" style="width:18px;height:18px"/>
                 <span>{{modalTitle}}</span>
             </div>
             <img src="../../assets/icon/closeModel.png" class='close' @click="cancel"/>
@@ -104,7 +105,7 @@ export default {
     height:35px;
     padding:4px 12px;
     background-color: #369FFF;
-    line-height: 40px;
+    line-height: 35px;
     border-radius: 8px 8px 0 0;
 }
 .modalHeader .title{
@@ -112,9 +113,12 @@ export default {
     top: 50%;
     transform: translateY(-50%);
     color: var(--grey-white-100, #FFF);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
+    line-height: 35px;
     /* width: 100%; */
+    display: flex;
+    align-items: center;
 }
 .title span{
     margin-left: 5px;
@@ -132,7 +136,7 @@ export default {
     width: 100%;
     height: calc(100% - 30px);
     padding: 12px 16px;
-    max-height: 530px;
+    max-height: 630px;
     overflow-y: auto;
 }
 </style>

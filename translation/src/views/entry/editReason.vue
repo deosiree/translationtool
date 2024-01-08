@@ -23,11 +23,16 @@
 </template>
 <script>
 import Modal from '@/components/modal/index.vue';
+import { 
+    updateEntryInfo,
+    updateTranslation
+} from "@/http/api/entryManage";
+import { message } from 'ant-design-vue';
 export default {
     components:{
         Modal
     },
-    emits:['editClose','editOK'],
+    emits:['editClose','editOk'],
     props: {
         visible:{
             type: Boolean,
@@ -36,30 +41,82 @@ export default {
         modalTitle:{
             type:String,
             default:"编辑原因"
+        },
+        entry:{
+            type: Array,
+            default: []
         }
     },
-    watch: {
-        
-    },
+    
     data() {
         return{
             edit:{
                 reason:""
-            }
+            },
+            editEntry:[]
         }
     },
     
     created() {
     },
     mounted () {
+        this.editEntry = this.entry
         this.$nextTick(() => {
         })
+    },
+    watch: {
+        entry(newval,oldval){
+            this.editEntry = newval
+        }
     },
     methods: {
        
         handleOK(){
             this.$refs.formRef.validate().then(() => {
-                this.$emit("editOK",this.edit.reason)
+                // console.log(this.editEntry)
+                let params = {
+                    notes:this.edit.reason
+                }
+                this.editEntry.forEach(entry => {
+                    updateEntryInfo(entry,params).then((res) => {
+                        
+                        this.$emit("editOk",entry.id)
+                    })
+                    if(this.$store.state.admin){
+                        let tran = []
+                        let english = {
+                            id: entry.englishId,
+                            translate: entry.english
+                        }
+                        let russian = {
+                            id: entry.russianId,
+                            translate: entry.russian
+                        }
+                        let spanish = {
+                            id: entry.spanishId,
+                            translate: entry.spanish
+                        }
+                        let french = {
+                            id: entry.frenchId,
+                            translate: entry.french
+                        }
+                        tran.push(english)
+                        tran.push(russian)
+                        tran.push(spanish)
+                        tran.push(french)
+                        let data = []
+                        tran.forEach(item => {
+                            if(item.id != undefined && item.id != '' && item.id != null){
+                                data.push(item)
+                            }
+                        })
+                        updateTranslation(data).then((res) => {
+                            
+                        })
+            
+                    }
+                })
+                message.success("编辑成功！")
             }).catch(err => {
                 // console.log('error', err);
             });

@@ -7,6 +7,7 @@ export default createStore({
     menu:[],
     authority:[],
     user:null,
+    admin:false,
     dynamicRoutes: [],
     tabActive:null   // 配置页面子菜单激活的tab
   },
@@ -18,16 +19,20 @@ export default createStore({
       // console.log("value:",value)
       state.token = value.token // 设置token
       state.menu = value.menu
-      state.authority = value.authority
+      // state.authority = value.authority
       state.user = value.user
+      if(value.user.roleName.indexOf('管理员') != -1){
+        state.admin = true
+      }
     },
     // 删除token
     removeData(state) {
       state.token = null // 删除vuex的token
       state.menu = []
-      state.authority = []
+      // state.authority = []
       state.user = null
       state.dynamicRoutes = []
+      state.admin = false
     },
     setTabActive(state, value){
       state.tabActive = value
