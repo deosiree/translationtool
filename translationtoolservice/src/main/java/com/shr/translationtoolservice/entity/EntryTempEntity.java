@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -14,11 +16,26 @@ import lombok.Data;
 @TableName(value ="t_entry_temp")
 @Data
 public class EntryTempEntity implements Serializable {
+
+    //重复词条
+    @TableField(exist = false)
+    private List<EntryTempEntity> children;
+
+    //聚合id
+    @TableField(value = "parent_id")
+    private String parentID;
+
     /**
      * 唯一id
      */
     @TableId(value = "id")
     private String id;
+
+    /**
+     * 翻译ID
+     */
+    @TableField(value = "translate_id")
+    private String translateID;
 
     /**
      * 词条

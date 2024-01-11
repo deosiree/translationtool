@@ -9,6 +9,7 @@ import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -49,4 +50,8 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     TranslateEntities translate(String name, String type,String visualRange);
 
     String updateEntryTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request);
+
+    void addTransID(TranslateEntity translateEntities, EntryInfoEntity entryInfoEntity);
+
+    void versionExport(String versionID, HttpServletResponse response,String translateType);
 }

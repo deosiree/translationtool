@@ -11,8 +11,9 @@ import lombok.Data;
 @Data
 public class LanguageEntity {
     //语言类别
-    String language;
+    private String language;
     //翻译结果
-    String value;
-    boolean state;
+    private String value;
+    private boolean state;
+    private String id;
 }

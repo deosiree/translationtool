@@ -15,10 +15,11 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     String updateEntryTemp(List<EntryTempEntity> tempEntities);
 
-    List<EntryTempEntity> getEntryTempByTaskID(String taskID, int offset, Integer pageSize);
+    List<EntryTempEntity> getEntryTempByTaskID(String taskID);
 
     String deleteEntryTempByID(List<String> entryID);
 
     int getEntryTempByTaskIDTotal(String taskID);
 
+    List<EntryTempEntity> preTranslate(String taskID);
 }

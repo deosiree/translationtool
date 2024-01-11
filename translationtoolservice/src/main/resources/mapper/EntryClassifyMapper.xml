@@ -27,7 +27,13 @@
         from t_entry_classify
 
     </select>
+    <select id="getEntryClassfyById" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify
+        where id =  #{classifyId,jdbcType=VARCHAR}
 
+    </select>
     <select id="getEntryClassfyIdsByDepartment" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

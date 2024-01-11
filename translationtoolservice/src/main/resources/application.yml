@@ -18,7 +18,7 @@ spring:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #url: jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    #url: jdbc:mysql://localhost:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     #
     url: jdbc:mysql://10.16.196.50:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
 
@@ -66,6 +66,9 @@ ldap:
   base: "DC=sp5000,DC=com"
   user: "Administrator"
   password: "Admin@1234"
+
+I18server:
+  url: http://10.16.193.26:8099/
 
 
 

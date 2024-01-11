@@ -8,16 +8,24 @@ package com.shr.translationtoolservice.util;
  **/
 
 import cn.afterturn.easypoi.cache.manager.IFileLoader;
-import com.shr.translationtoolservice.entity.ImportExcleEntry;
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
+import com.shr.translationtoolservice.dao.EntryClassifyMapper;
+import com.shr.translationtoolservice.dao.TranslateMapper;
+import com.shr.translationtoolservice.dao.VersionMapper;
+import com.shr.translationtoolservice.entity.*;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -37,9 +45,14 @@ import java.util.Objects;
 @Slf4j
 @Component
 public class ExcelUtils {
-    private static final String FULL_DATA_FORMAT = "yyyy/MM/dd  HH:mm:ss";
-    private static final String SHORT_DATA_FORMAT = "yyyy/MM/dd";
-
+    private final String FULL_DATA_FORMAT = "yyyy/MM/dd  HH:mm:ss";
+    private final String SHORT_DATA_FORMAT = "yyyy/MM/dd";
+    @Autowired
+    private TranslateMapper translateMapper;
+    @Autowired
+    private VersionMapper versionMapper;
+    @Autowired
+    private EntryClassifyMapper entryClassifyMapper;
 
     /**
      * Excel表头对应Entity属性 解析封装javabean
@@ -52,7 +65,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public static <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
+    public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
         List<T> excelForBeans = readExcel(classzz, workbook, excelHeads);  //解析Excel
@@ -69,7 +82,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public static <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName) throws Exception {
+    public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName) throws Exception {
         return readExcelToEntity(classzz, in, fileName, null);
     }
 
@@ -79,7 +92,7 @@ public class ExcelUtils {
      * @param fileName
      * @throws Exception
      */
-    public static void checkFile(String fileName) throws Exception {
+    public void checkFile(String fileName) throws Exception {
         if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
             throw new Exception("不是Excel文件！");
         }
@@ -93,7 +106,7 @@ public class ExcelUtils {
      * @return
      * @throws IOException
      */
-    private static Workbook getWorkBoot(InputStream in, String fileName) throws IOException {
+    private Workbook getWorkBoot(InputStream in, String fileName) throws IOException {
         if (fileName.endsWith(".xlsx")) {
             return new XSSFWorkbook(in);
         } else {
@@ -111,7 +124,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    private static <T> List<T> readExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
+    private <T> List<T> readExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
         List<T> beans = new ArrayList<T>();
         int sheetNum = workbook.getNumberOfSheets();
         for (int sheetIndex = 0; sheetIndex < sheetNum; sheetIndex++) {
@@ -193,7 +206,7 @@ public class ExcelUtils {
 
                     headCell.setCellType(Cell.CELL_TYPE_STRING);
                     String headName = headCell.getStringCellValue().trim();
-                    if ( headName.equals("展开（缩写采用单驼峰,首字母大写）")){
+                    if (headName.equals("展开（缩写采用单驼峰,首字母大写）")) {
                         int a = 0;
                     }
                     //列头如果是空读取第二行，如果还是空跳过
@@ -325,7 +338,7 @@ public class ExcelUtils {
      * @param field
      * @return
      */
-    private static boolean isDateFied(Field field) {
+    private boolean isDateFied(Field field) {
         return (Date.class == field.getType());
     }
 
@@ -355,7 +368,7 @@ public class ExcelUtils {
      * @param excelHead
      * @throws Exception
      */
-    private static void volidateValueRequired(ExcelHead excelHead, String sheetName, int rowIndex) throws Exception {
+    private void volidateValueRequired(ExcelHead excelHead, String sheetName, int rowIndex) throws Exception {
         if (excelHead != null && excelHead.isRequired()) {
             throw new Exception("《" + sheetName + "》第" + (rowIndex + 1) + "行:\"" + excelHead.getExcelName() + "\"不能为空！");
         }
@@ -368,7 +381,7 @@ public class ExcelUtils {
      * @param value
      * @return
      */
-    private static Object convertType(Class classzz, String value) {
+    private Object convertType(Class classzz, String value) {
         if (Integer.class == classzz || int.class == classzz) {
             return Integer.valueOf(value);
         }
@@ -409,7 +422,8 @@ public class ExcelUtils {
     /**
      * 获取properties的set和get方法
      */
-    static class MethodUtils {
+    @Data
+    public static class MethodUtils {
         private static final String SET_PREFIX = "set";
         private static final String GET_PREFIX = "get";
 
@@ -427,5 +441,53 @@ public class ExcelUtils {
         public static String getMethodName(String propertyName) {
             return GET_PREFIX + capitalize(propertyName);
         }
+    }
+
+
+    public Workbook outPutExcel(List<EntryInfoEntity> entryInfoEntities, String transType, String excelName) throws IOException {
+
+        List<OutputExcel> dataList = new ArrayList<>();
+        int i = 0;
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            i += 1;
+            OutputExcel outputExcel = new OutputExcel();
+            outputExcel.setEntry(entryInfoEntity.getEntry());
+
+            //查找翻译
+
+            switch (transType) {
+                case ConstantInterface.ENGLISH:
+                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getEnTransId()).getTranslate());
+                    break;
+                case ConstantInterface.RUSSIAN:
+                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getRuTransId()).getTranslate());
+                    break;
+                case ConstantInterface.FRENCH:
+                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getFraTransId()).getTranslate());
+                    break;
+                case ConstantInterface.SPANISH:
+                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getSpaTransId()).getTranslate());
+                    break;
+            }
+
+            outputExcel.setNum(i);
+
+            outputExcel.setVersion(versionMapper.selectById(entryInfoEntity.getVersionID()).getName());
+
+             EntryClassify entryClassify =  entryClassifyMapper.getEntryClassfyById(entryInfoEntity.getClassifyId());
+            outputExcel.setClassify(entryClassify.getKey());
+            dataList.add(outputExcel);
+        }
+        //生成excel文档
+        FileOutputStream fos =  new FileOutputStream(excelName);
+
+        Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("词条翻译工具导出", "词条数据"),
+                OutputExcel.class, dataList);
+
+
+        workbook.write(fos);
+        return workbook;
+
+
     }
 }

@@ -126,4 +126,13 @@
         and visual_range = #{visualRange,jdbcType=VARCHAR}
         and translate_state ='已审核'
     </select>
+
+    <select id="getVersionSuggestTrans" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/>
+        from t_translate
+        where delete_state = 0
+        and entry = #{entry,jdbcType=VARCHAR}
+        and `type` = #{translateType,jdbcType=VARCHAR}
+        and translate_state ='已审核'
+    </select>
 </mapper>

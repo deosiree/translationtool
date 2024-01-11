@@ -14,4 +14,5 @@ public class Translate {
     private List<LanguageEntity> languageEntities;
     private String entry;
     private String source;
+
 }

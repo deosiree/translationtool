@@ -74,6 +74,7 @@ public class TranslateUtils {
 
             languageEntity.setLanguage(languageMap.get(to).toLowerCase());
         languageEntity.setState(true);
+
         Map<String, String> params = new HashMap();
 
         String result = "";
@@ -187,6 +188,7 @@ public class TranslateUtils {
             LanguageEntity languageEntity = new LanguageEntity();
             languageEntity.setLanguage(translate.getType());
             languageEntity.setValue(translate.getTranslate());
+            languageEntity.setId(translate.getId());
             languageEntities.add(languageEntity);
         }
         entryEntity.setLanguageEntities(languageEntities);

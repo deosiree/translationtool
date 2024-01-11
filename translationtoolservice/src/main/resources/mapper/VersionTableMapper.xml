@@ -34,7 +34,7 @@
         <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
         <result property="enTransId" column="en_trans_id" jdbcType="VARCHAR"/>
         <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
-        <result property="fraRtansId" column="fra_rtans_id" jdbcType="VARCHAR"/>
+        <result property="fraTransId" column="fra_rtans_id" jdbcType="VARCHAR"/>
         <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
         <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>

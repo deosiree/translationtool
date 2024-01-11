@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper
 public interface EntryTempMapper extends BaseMapper<EntryTempEntity> {
 
-    List<EntryTempEntity> getEntryTempByTaskID(@Param("taskID") String taskID,@Param("offset") int offset,@Param("limit") Integer pageSize);
+    List<EntryTempEntity> getEntryTempByTaskID(@Param("taskID") String taskID);
 
     int getEntryTempByTaskIDTotal(@Param("taskID") String taskID);
 

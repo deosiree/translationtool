@@ -17,13 +17,15 @@
         <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
         <result property="source" column="source" jdbcType="VARCHAR"/>
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
+        <result property="translateID" column="translate_id" jdbcType="VARCHAR"/>
+        <result property="parentID" column="parent_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,entry,translate,
         translate_type,tag,audit_state,
         audit_entry_feedback,audit_trans_feedback,abbr,task_id,
-        source,version_id
+        source,version_id,translate_id,parent_id
     </sql>
 
     <select id="getEntryTempByTaskID" resultMap="BaseResultMap">
@@ -31,9 +33,6 @@
         <include refid="Base_Column_List"/>
         from t_entry_temp where task_id = #{taskID,jdbcType=VARCHAR}
 
-        <if test="limit >= 0 and offset >= 0">
-            LIMIT #{limit} OFFSET #{offset}
-        </if>
     </select>
 
     <select id="getEntryTempByTaskIDTotal" resultType="int">

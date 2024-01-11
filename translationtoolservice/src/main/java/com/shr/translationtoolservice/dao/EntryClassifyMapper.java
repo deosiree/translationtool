@@ -30,6 +30,8 @@ public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
     int updateClassfyById(@Param("entryClassify") EntryClassify entryClassify);
 
     List<EntryClassify> getEntryClassfyIdsByDepartment(String department);
+
+    EntryClassify getEntryClassfyById(String classifyId);
 }
 
 

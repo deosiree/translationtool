@@ -25,8 +25,8 @@ public class EntryClassify implements Serializable {
     /**
      * 
      */
-    @TableId
-    //@TableField("id")
+
+    @TableField("id")
     private String key;
 
     /**

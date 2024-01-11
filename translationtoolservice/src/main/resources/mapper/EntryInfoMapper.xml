@@ -286,4 +286,10 @@
         <include refid="Base_Column_List"/>
          from t_version_202311 where task_id = '' and is_delete=0
     </select>
+
+    <select id="getEntryByVersionID" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/>
+        from  ${tableName}
+        where version_id =  #{versionID,jdbcType=VARCHAR}
+    </select>
 </mapper>

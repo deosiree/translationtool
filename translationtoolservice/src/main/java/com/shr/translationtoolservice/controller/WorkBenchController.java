@@ -80,16 +80,13 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("查询临时词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryTempByTaskID(@RequestParam String taskID,
-                                                     @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                                     @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+    public HttpResponse<ResponseListModel> getEntryTempByTaskID(@RequestParam String taskID) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryTempEntity> entryTempEntities = new ArrayList<>();
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            int offset = (pageIndex - 1) * pageSize;
-             entryTempEntities = entryTempService.getEntryTempByTaskID(taskID,offset,pageSize);
 
-        }
+             entryTempEntities = entryTempService.getEntryTempByTaskID(taskID);
+
+
 
         responseListModel.setList(entryTempEntities);
         responseListModel.setTotalNum(entryTempService.getEntryTempByTaskIDTotal(taskID));
@@ -109,5 +106,17 @@ public class WorkBenchController extends BaseController {
         return checkResult(result);
     }
 
+    @PostMapping("/preTranslate")
+    @ApiOperation("预翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> preTranslate(@RequestParam String taskID) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryTempEntity> entryTempEntities = entryTempService.preTranslate(taskID);
+        responseListModel.setList(entryTempEntities);
+        responseListModel.setTotalNum(entryTempEntities.size());
+        return checkResult(responseListModel);
+    }
 
 }

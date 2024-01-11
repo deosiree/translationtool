@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.entity;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @date ：Created in 2023/6/19 16:02
  * @description：字符串常量
  */
+@Component
 public class ConstantInterface {
 
     //i18server url

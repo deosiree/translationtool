@@ -12,6 +12,7 @@ import com.shr.translationtoolservice.entity.vo.EntryVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.util.*;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,12 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.events.Event;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,6 +63,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private TranslateUtils translateUtils;
+    @Autowired
+    private ExcelUtils excelUtils;
+
+    @Autowired
+    private VersionMapper versionMapper;
 
     @Override
     public List<EntryVO> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer offset, Integer pagesize) {
@@ -428,7 +439,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return insert;
     }
 
-    private void addTransID(TranslateEntity translateEntities, EntryInfoEntity entryInfoEntity) {
+    @Override
+    public void addTransID(TranslateEntity translateEntities, EntryInfoEntity entryInfoEntity) {
         switch (translateEntities.getType()) {
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isBlank(translateEntities.getId())) {
@@ -470,6 +482,59 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
+    @Override
+    public void versionExport(String versionID, HttpServletResponse response, String translateType) {
+
+        VersionEntity versionEntity = versionMapper.selectById(versionID);
+        String tableName = versionEntity.getTableName();
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByVersionID(tableName, versionID);
+        Date date = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
+        String da = format.format(date);
+        String excelName = translateType + ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + da;
+
+        String fileName = excelName + ".xls";
+
+        try {
+            fileName = new String(fileName.getBytes(), "ISO8859-1");
+            response.setContentType("application/octet-stream;charset=ISO8859-1");
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Cache-Control", "no-cache");
+            response.addHeader("code", "200");
+            response.addDateHeader("code", 200);
+            response.setDateHeader("code", 201);
+        } catch (Exception e) {
+            log.error("代码生成出错", e);
+            try {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.sendError(500, "代码生成出错，无法下载");
+            } catch (IOException ex) {
+                log.error("响应报错信息出错", e);
+            }
+        }
+        ServletOutputStream outputStream = null;
+        Workbook workbook = null;
+        try {
+
+            workbook = excelUtils.outPutExcel(entryInfoEntities, translateType, excelName);
+            outputStream = response.getOutputStream();
+            workbook.write(outputStream);
+            outputStream.flush();
+            outputStream.close();
+
+
+        } catch (Exception e) {
+            log.error(" ===== excel write error : " + e.getMessage() + " ===== ");
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                log.error("最终关闭流失败!", e);
+            }
+        }
+    }
+
     //检查abbr 是否重复 重复返回true
     private boolean checkAbbrRepe(EntryInfoEntity entryInfoEntity, String tableName) {
         List<EntryInfoEntity> abbrEntryInfo = new ArrayList<>();
@@ -492,7 +557,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
         try {
 
-            importExcleEntries = ExcelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            importExcleEntries = excelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -515,7 +580,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     public String addEntryByTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request, String tableName) {
         String token = request.getHeader("token");
-       //String userName = JWTTokenUtils.getUserName(token);
+        //String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
 
         List<String> entryIdList = entryTempEntities.stream().map(EntryTempEntity::getId).collect(Collectors.toList());
@@ -554,7 +619,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             } else {
                 return ErrorCodeList.TRANSLATE_HAS_EXIST;
             }
-            entryInfoMapper.insertEntry(entryInfoEntity,tableName);
+            entryInfoMapper.insertEntry(entryInfoEntity, tableName);
         }
         int delete = entryTempMapper.deleteBatchIds(entryIdList);
         return ConstantInterface.OK_STR;
@@ -562,30 +627,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public TranslateEntities translate(String name, String type,String visualRange) {
+    public TranslateEntities translate(String name, String type, String visualRange) {
 
         TranslateEntities translateEntities = new TranslateEntities();
         List<Translate> translateEntityList = new ArrayList<>();
         QueryWrapper<TLanguage> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("name",type);
+        queryWrapper.eq("name", type);
         List<TLanguage> tLanguages = languageMapper.selectList(queryWrapper);
         Translate baiduEntities = translateUtils.baiduTranslate(name, type, tLanguages);
         translateEntityList.add(baiduEntities);
 
 
         //有道翻译
-        Translate youdao_Entities =     translateUtils.youdaoTranslate(name, type, tLanguages);
+        Translate youdao_Entities = translateUtils.youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
         //本地翻译 ：部门
-        List<TranslateEntity> departTranslates = translateMapper.getSuggestTrans(name,type,visualRange);
-        Translate localTranslate =  translateUtils.localTranslate(name,type,departTranslates);
+        List<TranslateEntity> departTranslates = translateMapper.getSuggestTrans(name, type, visualRange);
+        Translate localTranslate = translateUtils.localTranslate(name, type, departTranslates);
         localTranslate.setSource("本地翻译-部门");
         translateEntityList.add(localTranslate);
 
         //本地翻译 publicState：公司
-        List<TranslateEntity> companyTranslates = translateMapper.getSuggestTrans(name,type,"公司");
-        Translate comLocalTranslate =  translateUtils.localTranslate(name,type,companyTranslates);
+        List<TranslateEntity> companyTranslates = translateMapper.getSuggestTrans(name, type, "公司");
+        Translate comLocalTranslate = translateUtils.localTranslate(name, type, companyTranslates);
         comLocalTranslate.setSource("本地翻译-公司");
         translateEntityList.add(comLocalTranslate);
         translateEntities.setTranslateEntities(translateEntityList);
@@ -595,25 +660,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     public String updateEntryTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request) {
         String taskID = entryTempEntities.get(0).getTaskId();
-         List<EntryTempEntity> entryTempByTaskID = entryTempMapper.getEntryTempByTaskID(taskID, 0, 10000);
-         //新导入词条
-        for (EntryTempEntity entryTempEntity  : entryTempEntities){
-             String entry = entryTempEntity.getEntry();
-             //旧词条
-             for (EntryTempEntity entryTempEntity1 : entryTempByTaskID){
-                 if (entryTempEntity1.getEntry().equals(entry)){
+        List<EntryTempEntity> entryTempByTaskID = entryTempMapper.getEntryTempByTaskID(taskID);
+        //新导入词条
+        for (EntryTempEntity entryTempEntity : entryTempEntities) {
+            String entry = entryTempEntity.getEntry();
+            //旧词条
+            for (EntryTempEntity entryTempEntity1 : entryTempByTaskID) {
+                if (entryTempEntity1.getEntry().equals(entry)) {
                     entryTempEntity = entryTempEntity1;
 
-                 }
-             }
+                }
+            }
 
         }
         int delete = entryTempMapper.deleteByTaskID(taskID);
-        for (EntryTempEntity entryTempEntity : entryTempEntities){
+        for (EntryTempEntity entryTempEntity : entryTempEntities) {
             int insert = entryTempMapper.insert(entryTempEntity);
         }
-
-
 
 
         return ConstantInterface.OK_STR;

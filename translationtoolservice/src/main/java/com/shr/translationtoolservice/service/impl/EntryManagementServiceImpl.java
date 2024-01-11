@@ -432,7 +432,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
         try {
 
-            importExcleEntries = ExcelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            importExcleEntries = excelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         } catch (Exception e) {
             e.printStackTrace();
         }

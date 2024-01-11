@@ -12,6 +12,7 @@ import com.shr.translationtoolservice.entity.vo.ProductTreeVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
+import com.shr.translationtoolservice.util.ExcelUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +54,7 @@ public class EntryInfoController extends BaseController {
 
     @Autowired
     private TranslateService translateService;
+
 
     //查询词条信息
     @PostMapping("/getPublicEntry")
@@ -311,5 +315,17 @@ public class EntryInfoController extends BaseController {
         return checkResult(translateEntity);
     }
 
+    @PostMapping("/versionExport")
+    @ApiOperation("版本导出")
+    @CrossOrigin
+    @Transactional
+    public void versionExport(@RequestParam String versionID,
+                                              @RequestParam String translateType,
+                                                         HttpServletResponse response) {
 
+
+        entryInfoService.versionExport(versionID,response,translateType);
+
+
+    }
 }
