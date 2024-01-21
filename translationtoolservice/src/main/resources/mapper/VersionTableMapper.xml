@@ -7,11 +7,12 @@
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.VersionTableEntity">
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="versionTableName" column="version_table_name" jdbcType="VARCHAR"/>
+        <result property="versionId" column="version_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,version_table_name,remark,
-        version,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
+        id,version_table_name,
+        version_id
     </sql>
 
 
@@ -38,6 +39,7 @@
         <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
         <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+        <result property="importType" column="import_type" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List1">
@@ -48,7 +50,7 @@
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,
         fra_rtans_id,spa_trans_id,is_public,
-        is_delete
+        is_delete,import_type
     </sql>
 
 
@@ -122,6 +124,7 @@
   `spa_trans_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '西文翻译id',
   `is_public` int NULL DEFAULT NULL COMMENT '公共库（0否 1是）',
   `is_delete` int NULL DEFAULT NULL COMMENT '删除状态（0否 1是）',
+    `import_type` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '导入类型',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '词条版本表' ROW_FORMAT = DYNAMIC;
     </update>
@@ -163,12 +166,20 @@
         <include refid="Base_Column_List"/>
         from t_version_table
         <if test="version !=null and version != ''">
-            where version = #{version,jdbcType=VARCHAR}
+            where version_id = #{versionID,jdbcType=VARCHAR}
         </if>
 
     </select>
 
+    <select id="getVersionInfoByVersionID" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_version_table
+        <if test="version !=null and version != ''">
+            where version_id = #{versionID,jdbcType=VARCHAR}
+        </if>
 
+    </select>
     <select id="getReVersionTableByName" resultMap="BaseResultMap1">
         select
         <include refid="Base_Column_List1"/>

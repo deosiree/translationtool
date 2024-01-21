@@ -30,7 +30,10 @@ public interface VersionTableMapper extends BaseMapper<VersionTableEntity> {
 
     int getVersionTableTotal(@Param("tableName") String tableName,@Param("version") String version);
 
-    List<VersionTable> getVersionInfoByVersion(String version);
+    List<VersionTable> getVersionInfoByVersion(String versionID);
+
+    List<VersionTableEntity> getVersionInfoByVersionID(String versionID);
+
 
     List<VersionEntity> getAllVersionTable(@Param("tableName")  String versionTableName, @Param("version") String version);
 

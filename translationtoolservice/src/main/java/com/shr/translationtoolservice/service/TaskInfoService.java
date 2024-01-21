@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -34,5 +36,9 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
 
     int getFinishTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
-    String taskEntryExport( String taskID);
+    void taskEntryExport( String taskID,HttpServletResponse response,String importType);
+
+    String taskCreateNewLanguageTask(TaskInfoEntity taskInfoEntity,String taskID);
+
+    Map<String, String> getImportType(String taskID);
 }

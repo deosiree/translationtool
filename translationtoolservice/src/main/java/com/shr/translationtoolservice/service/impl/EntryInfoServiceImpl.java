@@ -9,6 +9,7 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
 import com.shr.translationtoolservice.entity.vo.EntryVO;
+import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.util.*;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,11 +71,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Autowired
     private VersionMapper versionMapper;
 
+    @Autowired
+    private ProductMapper productMapper;
+
     @Override
-    public List<EntryVO> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer offset, Integer pagesize) {
+    public List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer offset, Integer pagesize) {
         List<EntryInfoEntity> entryByVersion = entryInfoMapper.getEntryByVersion(entryInfoEntity1, offset, pagesize);
 
-        List<EntryVO> entryVOS = new ArrayList<>();
+      /*  List<EntryVO> entryVOS = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryByVersion) {
             EntryVO entryVO = new EntryVO();
             List<TranslateEntity> translateEntityList = new ArrayList<>();
@@ -84,8 +89,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryVO.setTranslateEntity(translateEntityList);
             entryVO.setEntryInfoEntity(entryInfoEntity);
             entryVOS.add(entryVO);
-        }
-        return entryVOS;
+        }*/
+        return entryByVersion;
     }
 
     private void getTransEntity(String transId, List<TranslateEntity> translateEntityList) {
@@ -487,23 +492,33 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         VersionEntity versionEntity = versionMapper.selectById(versionID);
         String tableName = versionEntity.getTableName();
+        String productID = versionEntity.getProductId();
+
+         ProductEntity productEntity = productMapper.selectById(productID);
+
+
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByVersionID(tableName, versionID);
+
+
         Date date = new Date();
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMM");
         String da = format.format(date);
-        String excelName = translateType + ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + da;
+        List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
+        String excelName = languageList.get(0).getCode() +
+                ConstantInterface.UNDERLINE  + productEntity.getName() +
+                ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + da;
 
         String fileName = excelName + ".xls";
 
         try {
-            fileName = new String(fileName.getBytes(), "ISO8859-1");
-            response.setContentType("application/octet-stream;charset=ISO8859-1");
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+            log.warn( " **** fileName : " + fileName + " ***** ");
+            response.setContentType("application/octet-stream;charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
             response.addHeader("Pargam", "no-cache");
             response.addHeader("Cache-Control", "no-cache");
-            response.addHeader("code", "200");
-            response.addDateHeader("code", 200);
-            response.setDateHeader("code", 201);
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+           response.setStatus(200);
         } catch (Exception e) {
             log.error("代码生成出错", e);
             try {
@@ -520,18 +535,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             workbook = excelUtils.outPutExcel(entryInfoEntities, translateType, excelName);
             outputStream = response.getOutputStream();
             workbook.write(outputStream);
-            outputStream.flush();
-            outputStream.close();
+                outputStream.flush();
 
 
         } catch (Exception e) {
             log.error(" ===== excel write error : " + e.getMessage() + " ===== ");
         } finally {
-            try {
+       /*     try {
                 outputStream.close();
             } catch (IOException e) {
                 log.error("最终关闭流失败!", e);
-            }
+            }*/
         }
     }
 
@@ -550,27 +564,34 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryCommonEntity> importExcle(MultipartFile multipartFile) {
+    public List<EntryTempEntity> importExcle(MultipartFile multipartFile,String taskID) {
         String name = multipartFile.getOriginalFilename();
 
         //读取excle转换的实体
-        List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
+        List<ImportExcleVO> importExcleEntries = new ArrayList<>();
         try {
 
-            importExcleEntries = excelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            importExcleEntries = excelUtils.readExcelToEntity(ImportExcleVO.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        List<EntryCommonEntity> entryEntitys = new ArrayList<>();
+        List<EntryTempEntity> entryEntitys = new ArrayList<>();
 
-        for (ImportExcleEntry importExcleEntry : importExcleEntries) {
-            EntryCommonEntity entryEntity = new EntryCommonEntity();
-            BeanUtils.copyProperties(importExcleEntry, entryEntity);
-            if (entryEntity.getEntryState() == null) {
-                entryEntity.setEntryState(2);
+        for (ImportExcleVO importExcleEntry : importExcleEntries) {
+           EntryTempEntity entryTempEntity = new EntryTempEntity();
+            BeanUtils.copyProperties(importExcleEntry, entryTempEntity);
+            entryTempEntity.setAuditState(1);
+            entryTempEntity.setTaskId(taskID);
+            entryTempEntity.setId(commonUtils.getUUID());
+            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+            if (Objects.nonNull(taskInfoEntity)){
+                entryTempEntity.setVersionID(taskInfoEntity.getVersionId());
             }
-
-            entryEntitys.add(entryEntity);
+            entryTempEntity.setImportype(ConstantInterface.EXCEL);
+            if (StringUtils.isBlank(entryTempEntity.getSource())){
+                entryTempEntity.setSource(name);
+            }
+            entryEntitys.add(entryTempEntity);
         }
 
 

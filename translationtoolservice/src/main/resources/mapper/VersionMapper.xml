@@ -95,4 +95,11 @@
          and t1.is_delete = 0 and t2.is_delete = 0
     </select>
 
+    <select id="getVersionByID" resultType="com.shr.translationtoolservice.entity.VersionEntity">
+        select
+        t1.id as id ,  t2.name as productName,t1.name as name,t1.table_name as tableName
+         from t_version t1 , t_product t2
+         where t1.id =  #{versionID,jdbcType=VARCHAR} and t1.product_id = t2.id
+    </select>
+
 </mapper>

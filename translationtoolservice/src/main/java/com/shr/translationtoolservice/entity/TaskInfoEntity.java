@@ -43,6 +43,13 @@ public class TaskInfoEntity implements Serializable {
     private String creator;
 
     /**
+     * 是否升级词条（0否，1是）
+     */
+    @TableField(value = "upgrade")
+    private int upgrade;
+
+
+    /**
      * 任务名字
      */
     @TableField(value = "name")

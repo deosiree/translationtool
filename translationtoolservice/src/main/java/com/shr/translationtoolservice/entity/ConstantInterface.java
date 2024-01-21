@@ -36,6 +36,7 @@ public class ConstantInterface {
 
     public static  final  String DB = "DB";
     public static  final  String TS = "TS";
+    public static  final  String EXCEL = "excel";
     public static  final  String FIELD = "field";
     public static  final  String ALIAS = "alias";
 

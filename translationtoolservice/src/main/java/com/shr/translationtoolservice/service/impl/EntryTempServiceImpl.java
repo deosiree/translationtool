@@ -133,9 +133,15 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     @Override
     public List<EntryTempEntity> preTranslate(String taskID) {
         List<EntryTempEntity> entryTempByTaskID = entryTempMapper.getEntryTempByTaskID(taskID);
+        List<EntryTempEntity> entryTempEntities = new ArrayList<>();
         for (EntryTempEntity entryTempEntity : entryTempByTaskID){
+            //子不翻译
+            if (StringUtils.isNotBlank(entryTempEntity.getParentID())){
+                continue;
+            }
             String entry = entryTempEntity.getEntry();
             if (StringUtils.isNotBlank(entryTempEntity.getTranslate())){
+                entryTempEntities.add(entryTempEntity);
                 continue;
             }
             List<TranslateEntity> versionSuggestTrans = translateMapper.getVersionSuggestTrans(entry, entryTempEntity.getTranslateType());
@@ -145,8 +151,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             }
 
             entryTempEntity.setTranslate(translate);
+            entryTempEntities.add(entryTempEntity);
         }
-        return entryTempByTaskID;
+        return entryTempEntities;
     }
 
 

@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
+import com.shr.translationtoolservice.dao.EntryTempMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.TaskInfoService;
@@ -14,9 +15,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName TaskManageController
@@ -34,6 +38,9 @@ public class TaskManageController extends BaseController {
     private TaskInfoService taskInfoService;
     @Autowired
     private CommonUtils commonUtils;
+
+    @Autowired
+    private EntryTempMapper entryTempMapper;
 
     //查询任务信息
     @PostMapping("/searchTaskInfo")
@@ -157,11 +164,35 @@ public class TaskManageController extends BaseController {
     @PostMapping("/taskEntryExport")
     @ApiOperation("任务词条导出")
     @CrossOrigin
-    public HttpResponse<String> taskEntryExport(@RequestParam String taskID) {
+    public void taskEntryExport(@RequestParam String taskID, HttpServletResponse response,@RequestParam String importType) {
 
-        String url = taskInfoService.taskEntryExport(taskID);
-        return checkResult(url);
+
+       taskInfoService.taskEntryExport(taskID,response,importType);
+
+    }
+
+    //以任务生成任务
+    @PostMapping("/taskCreateNewLanguageTask")
+    @ApiOperation("任务生成任务")
+    @CrossOrigin
+    public HttpResponse<String> taskCreateNewLanguageTask(@RequestBody TaskInfoEntity taskInfoEntity,
+                                                          @RequestParam String taskID) {
+
+
+        String  id =  taskInfoService.taskCreateNewLanguageTask(taskInfoEntity,taskID);
+        return checkResult(id);
     }
 
 
+    //以任务生成任务
+    @PostMapping("/getImportType")
+    @ApiOperation("获取导入类型")
+    @CrossOrigin
+    public HttpResponse<Map<String, String>> getImportType( @RequestParam String taskID) {
+
+        ResponseListModel<String> result = new ResponseListModel<>();
+        Map<String, String> typeMap =  taskInfoService.getImportType(taskID);
+
+        return checkResult(typeMap);
+    }
 }

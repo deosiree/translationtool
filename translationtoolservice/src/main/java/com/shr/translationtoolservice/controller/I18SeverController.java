@@ -293,9 +293,7 @@ public class I18SeverController extends BaseController {
     @ApiOperation("回写")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> setInfo(@RequestParam String outputType,
-                                        @RequestParam String taskID,
-                                        HttpServletResponse response) {
+    public HttpResponse<String> setInfo( @RequestParam String taskID ) {
 
 
         List<EntryTempEntity> tempEntities = entryTempMapper.getEntryTempByTaskID(taskID);
@@ -340,14 +338,18 @@ public class I18SeverController extends BaseController {
 
         //写入翻译表，写入版本表 删除临时表
         int insert = 0;
-        insert += buildTranslateEntity(tempEntities, entryInfoEntities);
 
-        if ("excel".equals(outputType)) {
-            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+        TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+
+
+        insert += buildTranslateEntity(tempEntities, entryInfoEntities,taskInfoEntity);
+
+      /*  if ("excel".equals(outputType)) {
+
             Date date = new Date();
             SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
             String da = format.format(date);
-            String excelName = taskInfoEntity.getTranslateType() + ConstantInterface.UNDERLINE + taskID + ConstantInterface.UNDERLINE + da;
+                String excelName = taskInfoEntity.getTranslateType() + ConstantInterface.UNDERLINE + taskID + ConstantInterface.UNDERLINE + da;
             log.info(" **** excelName is : " + excelName + " **** ");
             try {
                 Workbook workbook = excelUtil.outPutExcel(entryInfoEntities, tempEntities.get(0).getTranslateType(), excelName);
@@ -360,9 +362,9 @@ public class I18SeverController extends BaseController {
             }
 
         }
+*/
 
-
-        int delete = deleteTempEntry(tempEntities);
+            int delete = deleteTempEntry(tempEntities);
         if (insert == delete) {
             return checkResult(ConstantInterface.OK_STR);
         }
@@ -375,29 +377,58 @@ public class I18SeverController extends BaseController {
         return delete;
     }
 
-
-    public int buildTranslateEntity(List<EntryTempEntity> entryTempEntities, List<EntryInfoEntity> entryInfoEntities) {
+    //1.遍历 entryTempEntities
+    //2.如果词条有翻译id 则代表是公共词条 ，没有则创建翻译，插入翻译表
+    //3.检查词条实体是否存在儿子，如果存在则让父子翻译id相同
+    //4.插入词条
+    public int buildTranslateEntity(List<EntryTempEntity> entryTempEntities, List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity) {
         int insert = 0;
-
         for (EntryTempEntity entryTempEntity : entryTempEntities) {
-            if (!CollectionUtils.isEmpty(entryTempEntity.getChildren())) {
-                insert = buildTranslateEntity(entryTempEntity.getChildren(), entryInfoEntities);
-            }
-            TranslateEntity translateEntity = new TranslateEntity();
-            translateEntity.setId(commonUtils.getUUID());
-            translateEntity.setTranslate(entryTempEntity.getTranslate());
-            translateEntity.setTranslateState(ConstantInterface.AUDIT);
-            translateEntity.setEntry(entryTempEntity.getEntry());
-            translateEntity.setType(entryTempEntity.getTranslateType());
-            translateEntity.setVisualRange("部门");
-            translateEntity.setDeleteState(0);
-            translateEntity.setVersionID(entryTempEntity.getVersionID());
-            insert = translateMapper.insert(translateEntity);
-
-            //写版本表
+            String transID = commonUtils.getUUID();
             EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-            entryInfoService.addTransID(translateEntity, entryInfoEntity);
             entryInfoEntity.setId(entryTempEntity.getId());
+            TranslateEntity translateEntity = new TranslateEntity();
+            //翻译id是空 则不是公共词条库的词条，需新增翻译
+            if (StringUtils.isBlank(entryTempEntity.getTranslateID())){
+                translateEntity.setId(transID);
+                translateEntity.setTranslate(entryTempEntity.getTranslate());
+                translateEntity.setTranslateState(ConstantInterface.AUDIT);
+                translateEntity.setEntry(entryTempEntity.getEntry());
+                translateEntity.setType(entryTempEntity.getTranslateType());
+                translateEntity.setVisualRange("部门");
+                translateEntity.setDeleteState(0);
+                translateEntity.setVersionID(entryTempEntity.getVersionID());
+                insert = translateMapper.insert(translateEntity);
+                entryInfoService.addTransID(translateEntity, entryInfoEntity);
+            }else {
+                translateEntity.setId(entryTempEntity.getTranslateID());
+                translateEntity.setType(entryTempEntity.getTranslateType());
+            }
+
+            //如果孩子不为空，则新建词条插入
+            if (!CollectionUtils.isEmpty(entryTempEntity.getChildren())){
+                for (EntryTempEntity childTempEntry : entryTempEntities){
+                    EntryInfoEntity entryInfoEntity1 = new EntryInfoEntity();
+                    childTempEntry.setId(childTempEntry.getId());
+                    entryInfoService.addTransID(translateEntity, entryInfoEntity1);
+                    insertTempToVersionEntry(childTempEntry,entryInfoEntity1,taskInfoEntity);
+                    entryInfoEntities.add(entryInfoEntity1);
+                }
+            }
+            insert += insertTempToVersionEntry(entryTempEntity,entryInfoEntity,taskInfoEntity);
+            entryInfoEntities.add(entryInfoEntity);
+
+        }
+
+        return insert;
+    }
+
+    private int insertTempToVersionEntry(EntryTempEntity entryTempEntity, EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity) {
+        int insert = 0;
+        if (1 == taskInfoEntity.getUpgrade()){
+             insert = entryInfoMapper.updateEntryInfo(entryInfoEntity);
+        }else if  (0 == taskInfoEntity.getUpgrade()){
+            //写版本表
             entryInfoEntity.setEntry(entryTempEntity.getEntry());
             entryInfoEntity.setVersionID(entryTempEntity.getVersionID());
             entryInfoEntity.setIsPublic(0);
@@ -405,12 +436,17 @@ public class I18SeverController extends BaseController {
             entryInfoEntity.setEntrySource(entryTempEntity.getSource());
             entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
             entryInfoEntity.setIsDelete(0);
-            entryInfoMapper.insert(entryInfoEntity);
-            entryInfoEntities.add(entryInfoEntity);
-        }
+            entryInfoEntity.setImportType(entryTempEntity.getImportype());
+            String versionID = entryTempEntity.getVersionID();
+            VersionEntity versionEntity = versionMapper.selectById(versionID);
+            String tableName = versionEntity.getTableName();
+            insert += entryInfoMapper.insertEntry(entryInfoEntity,tableName);
+            //entryInfoMapper.insert(entryInfoEntity);
 
+        }
         return insert;
     }
+
 
     @GetMapping("/getDictionaryInfo")
     @ApiOperation("获取字典详情")

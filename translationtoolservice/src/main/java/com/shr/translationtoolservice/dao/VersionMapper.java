@@ -25,6 +25,7 @@ public interface VersionMapper extends BaseMapper<VersionEntity> {
     List<VersionEntity> getVersionByProductName(@Param("productName") String productName, @Param("department") String department);
 
 
+    VersionEntity getVersionByID(String versionID);
 }
 
 

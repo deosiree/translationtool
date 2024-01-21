@@ -137,28 +137,8 @@ public class EntryController extends BaseController {
         return checkResult(responseListModel);
     }
 
-    @PostMapping("/importEntry")
-    @ApiOperation("导入")
-    @CrossOrigin
-    @Transactional
-    @Token
-    public HttpResponse<String> importEntry(MultipartFile file) {
-        ResponseListModel responseListModel = new ResponseListModel();
 
-        return checkResult(null);
-    }
 
-    @PostMapping("/outEntry")
-    @ApiOperation("导出")
-    @CrossOrigin
-    @Transactional
-    @Token
-    public HttpResponse<String> outEntry(List<String>  entryIds) {
-        ResponseListModel responseListModel = new ResponseListModel();
-
-        return checkResult(null);
-
-    }
 
     @PostMapping("/getEntryClassfy")
     @ApiOperation("词条分类查询")

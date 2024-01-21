@@ -169,19 +169,18 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("获取版本词条")
     @CrossOrigin
     @Token
-    public HttpResponse<ResponseListModel<EntryVO>> getEntryByVersion(@RequestBody EntryInfoEntity entryInfoEntity,
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByVersion(@RequestBody EntryInfoEntity entryInfoEntity,
                                                                       @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        ResponseListModel<EntryVO> responseListModel = new ResponseListModel<EntryVO>();
-        List<EntryVO> entryVOS = new ArrayList<>();
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
-            entryVOS = entryInfoService.getEntryByVersion(entryInfoEntity, offset, pageSize);
+            entryInfoEntities = entryInfoService.getEntryByVersion(entryInfoEntity, offset, pageSize);
         }
-        responseListModel.setList(entryVOS);
-        responseListModel.setTotalNum(entryInfoService.getEntryByVersionTotal(entryInfoEntity));
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
-
     }
 
     @PostMapping("/addEntryByVersion")

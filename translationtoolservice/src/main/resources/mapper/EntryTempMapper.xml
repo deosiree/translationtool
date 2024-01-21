@@ -19,13 +19,14 @@
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
         <result property="translateID" column="translate_id" jdbcType="VARCHAR"/>
         <result property="parentID" column="parent_id" jdbcType="VARCHAR"/>
+        <result property="importype" column="import_type" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,entry,translate,
         translate_type,tag,audit_state,
         audit_entry_feedback,audit_trans_feedback,abbr,task_id,
-        source,version_id,translate_id,parent_id
+        source,version_id,translate_id,parent_id,import_type
     </sql>
 
     <select id="getEntryTempByTaskID" resultMap="BaseResultMap">

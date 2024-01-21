@@ -22,11 +22,29 @@
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
         <result property="enTransId" column="en_trans_id" jdbcType="VARCHAR"/>
+        <result property="englishTranslateState" column="englishTranslateState" jdbcType="VARCHAR"/>
+        <result property="englishPublicState" column="englishPublicState" jdbcType="VARCHAR"/>
+        <result property="english" column="english" jdbcType="VARCHAR"/>
+
         <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
+        <result property="russian" column="russian" jdbcType="VARCHAR"/>
+        <result property="russianTranslateState" column="russianTranslateState" jdbcType="VARCHAR"/>
+        <result property="russianPublicState" column="russianPublicState" jdbcType="VARCHAR"/>
+
         <result property="fraTransId" column="fra_trans_id" jdbcType="VARCHAR"/>
+        <result property="french" column="french" jdbcType="VARCHAR"/>
+        <result property="frenchTranslateState" column="frenchTranslateState" jdbcType="VARCHAR"/>
+        <result property="frenchPublicState" column="frenchPublicState" jdbcType="VARCHAR"/>
+
         <result property="spaTransId" column="spa_trans_id" jdbcType="VARCHAR"/>
+        <result property="spanish" column="spanish" jdbcType="VARCHAR"/>
+        <result property="spanishTranslateState" column="spanishTranslateState" jdbcType="VARCHAR"/>
+        <result property="spanishPublicState" column="spanishPublicState" jdbcType="VARCHAR"/>
+
+
         <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
+        <result property="importType" column="import_type" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -37,18 +55,34 @@
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,
         fra_trans_id,spa_trans_id,is_public,
-        is_delete
+        is_delete,import_type
     </sql>
 
     <select id="getEntryByVersion" resultMap="BaseResultMap">
-        select
+        select t1.*,
+        t2.translate as english,t2.translate_state as englishTranslateState,t2.public_state as englishPublicState,
+        t3.translate as russian,t3.translate_state as russianTranslateState,t3.public_state as russianPublicState,
+        t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        from ${entryInfoEntity.tableName} t1 left JOIN t_translate t2 ON t1.en_trans_id = t2.id
+        left JOIN t_translate t3 ON t1.ru_trans_id = t3.id
+        left JOIN t_translate t4 ON t1.fra_trans_id = t4.id
+        left JOIN t_translate t5 ON t1.spa_trans_id = t5.id
+        where t1.version_id =  #{entryInfoEntity.versionID,jdbcType=VARCHAR} and t1.is_delete = 0
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+
+
+
+<!--        select
         <include refid="Base_Column_List"/>
         from ${entryInfoEntity.tableName} where
 
         version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR} and is_delete = 0
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
-        </if>
+        </if>-->
     </select>
 
 
@@ -137,6 +171,9 @@
             <if test="entryInfoEntity.isDelete != null ">
                 is_delete,
             </if>
+            <if test="entryInfoEntity.importType != null  and entryInfoEntity.importType   != ''">
+                import_type,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
@@ -204,6 +241,9 @@
             </if>
             <if test="entryInfoEntity.isDelete != null ">
                 #{entryInfoEntity.isDelete,jdbcType=INTEGER},
+            </if>
+            <if test="entryInfoEntity.importType != null and entryInfoEntity.importType   != ''">
+                #{entryInfoEntity.importType,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -278,14 +318,10 @@
         select
         <include refid="Base_Column_List"/>
         from ${tableName}
-        where task_id =  #{id,jdbcType=VARCHAR}
+        where task_id =  #{id,jdbcType=VARCHAR} and is_delete=0
     </select>
 
-    <select id="getEnrtyByTaskID" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-         from t_version_202311 where task_id = '' and is_delete=0
-    </select>
+
 
     <select id="getEntryByVersionID" resultMap="BaseResultMap">
         select   <include refid="Base_Column_List"/>

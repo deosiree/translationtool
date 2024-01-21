@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
+import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.EntryCommonEntity;
 import com.shr.translationtoolservice.entity.EntryTempEntity;
 import com.shr.translationtoolservice.entity.ResponseListModel;
@@ -43,9 +44,11 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("导入excle")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> importExcle(@RequestBody MultipartFile multipartFile) {
+    public HttpResponse<ResponseListModel> importExcle(@RequestParam("file") MultipartFile multipartFile,
+                                                       @RequestParam("taskID") String taskID
+                                                       ) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryCommonEntity> entryEntities = entryInfoService.importExcle(multipartFile);
+        List<EntryTempEntity> entryEntities = entryInfoService.importExcle(multipartFile,taskID);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
 
@@ -118,5 +121,8 @@ public class WorkBenchController extends BaseController {
         responseListModel.setTotalNum(entryTempEntities.size());
         return checkResult(responseListModel);
     }
+
+
+
 
 }

@@ -15,7 +15,7 @@ public class OutputExcel {
     private int num;
     @Excel(name = "词条")
     private String entry;
-    @Excel(name = "英文翻译")
+    @Excel(name = "翻译")
     private String translate;
 
     @Excel(name = "版本")

@@ -17,7 +17,7 @@ import java.util.List;
  */
 public interface EntryInfoService extends IService<EntryInfoEntity> {
 
-    List<EntryVO> getEntryByVersion(EntryInfoEntity entryInfoEntity,Integer offset,Integer pageSize);
+    List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity,Integer offset,Integer pageSize);
 
     int getEntryByVersionTotal(EntryInfoEntity entryInfoEntity);
 
@@ -43,7 +43,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
 
-    List<EntryCommonEntity>  importExcle(MultipartFile multipartFile);
+    List<EntryTempEntity>  importExcle(MultipartFile multipartFile,String taskID);
 
     String addEntryByTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request, String tableName);
 

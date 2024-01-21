@@ -1,34 +1,38 @@
 package com.shr.translationtoolservice.service.impl;
 
+import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shr.translationtoolservice.dao.EntryInfoMapper;
-import com.shr.translationtoolservice.dao.ProductMapper;
-import com.shr.translationtoolservice.dao.VersionMapper;
+import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.TaskInfoService;
-import com.shr.translationtoolservice.dao.TaskInfoMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
+import com.shr.translationtoolservice.util.ExcelUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  *
  */
 @Service
+@Slf4j
 public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEntity>
-    implements TaskInfoService{
+        implements TaskInfoService {
 
 
     @Autowired
@@ -43,16 +47,24 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Autowired
     private EntryInfoMapper entryInfoMapper;
 
+    @Autowired
+    private EntryTempMapper entryTempMapper;
+
+    @Autowired
+    private ExcelUtils excelUtil;
+    @Autowired
+    private VersionTableMapper versionTableMapper ;
 
     @Override
     //获取任务信息
     //入参 taskInfoEntity 任务实体 ， offset 页码，pageSize 页内行数
-    public List<TaskInfoEntity> getTaskInfo( TaskInfoEntity taskInfoEntity, Integer offset, Integer pageSize,HttpServletRequest request) {
+    public List<TaskInfoEntity> getTaskInfo(TaskInfoEntity taskInfoEntity, Integer offset, Integer pageSize, HttpServletRequest request) {
 
-        List<TaskInfoEntity> taskInfoEntities = taskInfoMapper.getTaskInfo(taskInfoEntity,offset,pageSize);
-        if (StringUtils.isNotBlank(taskInfoEntity.getTableName())){
-            for (TaskInfoEntity taskInfoEntity1 : taskInfoEntities){
-                List<EntryInfoEntity> entryInfoEntities =  entryInfoMapper.getEntryByTaskID(taskInfoEntity1.getId(),taskInfoEntity.getTableName());
+        List<TaskInfoEntity> taskInfoEntities = taskInfoMapper.getTaskInfo(taskInfoEntity, offset, pageSize);
+        VersionEntity versionEntity = versionMapper.selectById(taskInfoEntity.getVersionId());
+        if (Objects.nonNull(versionEntity)) {
+            for (TaskInfoEntity taskInfoEntity1 : taskInfoEntities) {
+                List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskInfoEntity1.getId(), versionEntity.getTableName());
                 taskInfoEntity1.setEntryNum(entryInfoEntities.size());
             }
         }
@@ -61,7 +73,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-    public int getTotalNum( TaskInfoEntity taskInfoEntity) {
+    public int getTotalNum(TaskInfoEntity taskInfoEntity) {
         int total = taskInfoMapper.getTaskInfoTotal(taskInfoEntity);
         return total;
     }
@@ -71,23 +83,28 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
 
         String token = request.getHeader("token");
 
-        for (TaskInfoVo taskInfoVo : taskInfoVoList){
+        for (TaskInfoVo taskInfoVo : taskInfoVoList) {
             TaskInfoEntity taskInfoEntity = new TaskInfoEntity();
-            BeanUtils.copyProperties(taskInfoVo,taskInfoEntity);
+            BeanUtils.copyProperties(taskInfoVo, taskInfoEntity);
             String id = commonUtils.getUUID();
             taskInfoEntity.setId(id);
             //创建人
             String userName = JWTTokenUtils.getUserName(token);
-            if (StringUtils.isBlank(taskInfoEntity.getCreator())){
+            if (StringUtils.isBlank(taskInfoEntity.getCreator())) {
                 taskInfoEntity.setCreator(userName);
             }
             //创建部门
-            String department =JWTTokenUtils.getDepartment(token);
-            if (StringUtils.isBlank(taskInfoEntity.getDepartment())){
+            String department = JWTTokenUtils.getDepartment(token);
+            if (StringUtils.isBlank(taskInfoEntity.getDepartment())) {
                 taskInfoEntity.setDepartment(department);
             }
+
+            if (Objects.isNull(taskInfoEntity.getUpgrade())) {
+                taskInfoEntity.setUpgrade(0);
+            }
+
             //创建时间
-            if (Objects.isNull(taskInfoEntity.getCreateTime())){
+            if (Objects.isNull(taskInfoEntity.getCreateTime())) {
                 Date date = new Date(System.currentTimeMillis());
                 taskInfoEntity.setCreateTime(date);
             }
@@ -106,13 +123,11 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
 
-
-
     @Override
     public String updateTaskInfo(TaskInfoVo taskInfoVo) {
 
         TaskInfoEntity taskInfoEntity = new TaskInfoEntity();
-        BeanUtils.copyProperties(taskInfoVo,taskInfoEntity);
+        BeanUtils.copyProperties(taskInfoVo, taskInfoEntity);
         int update = taskInfoMapper.updateById(taskInfoEntity);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
@@ -133,22 +148,22 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Override
     public String taskSubmission(List<String> taskIDs, String oldState, String nextState) {
 
-        for (String taskId : taskIDs){
+        for (String taskId : taskIDs) {
             TaskInfoEntity taskInfoEntity = new TaskInfoEntity();
             taskInfoEntity.setId(taskId);
             taskInfoEntity.setState(nextState);
             //根据状态更新操作时间
-            if (ConstantInterface.DELIVERY_STATE.equals(oldState)){
+            if (ConstantInterface.DELIVERY_STATE.equals(oldState)) {
                 taskInfoEntity.setDeliveryTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.IMPORT_STATE.equals(oldState)){
+            } else if (ConstantInterface.IMPORT_STATE.equals(oldState)) {
                 taskInfoEntity.setImportTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.ENTRY_AUDIT_STATE.equals(oldState)){
+            } else if (ConstantInterface.ENTRY_AUDIT_STATE.equals(oldState)) {
                 taskInfoEntity.setEntryAutiorStartTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.TRANSLATE_STATE.equals(oldState)){
+            } else if (ConstantInterface.TRANSLATE_STATE.equals(oldState)) {
                 taskInfoEntity.setTranslateStartTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.TRANSLATE_AUDIT_STATE.equals(oldState)){
+            } else if (ConstantInterface.TRANSLATE_AUDIT_STATE.equals(oldState)) {
                 taskInfoEntity.setTranslationAuditorStartTime(new Date(System.currentTimeMillis()));
-            }else  if (ConstantInterface.EXPORT_STATE.equals(oldState)){
+            } else if (ConstantInterface.EXPORT_STATE.equals(oldState)) {
                 taskInfoEntity.setEndTime(new Date(System.currentTimeMillis()));
             }
             int update = taskInfoMapper.updateById(taskInfoEntity);
@@ -167,47 +182,185 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-    public List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
+    public List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
 
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getTaskInfoByUserName(userName,offset,pageSize,taskInfoEntity);
+        List<TaskInfoEntity> taskInfo = taskInfoMapper.getTaskInfoByUserName(userName, offset, pageSize, taskInfoEntity);
 
         return taskInfo;
     }
 
     @Override
-    public int getToDoTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
+    public int getToDoTaskInfoTotal(HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        int taskInfoSum = taskInfoMapper.getToDoTaskInfoTotal(userName,taskInfoEntity);
+        int taskInfoSum = taskInfoMapper.getToDoTaskInfoTotal(userName, taskInfoEntity);
 
         return taskInfoSum;
     }
 
     @Override
-    public List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
+    public List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName,offset,pageSize,taskInfoEntity);
+        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName, offset, pageSize, taskInfoEntity);
 
         return taskInfo;
     }
 
     @Override
-    public int getFinishTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity) {
+    public int getFinishTaskInfoTotal(HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        int taskInfoSum = taskInfoMapper.getFinishTaskInfoTotal(userName,taskInfoEntity);
+        int taskInfoSum = taskInfoMapper.getFinishTaskInfoTotal(userName, taskInfoEntity);
 
         return taskInfoSum;
     }
 
-    @Override
-    public String taskEntryExport( String taskID) {
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEnrtyByTaskID(taskID);
 
-        return null;
+    @Override
+    public void taskEntryExport(String taskID, HttpServletResponse response,String importType) {
+
+
+
+
+        TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+         VersionEntity versionEntity = versionMapper.getVersionByID(taskInfoEntity.getVersionId());
+
+
+        String tableName = versionEntity.getTableName();
+
+
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
+        List<EntryInfoEntity> entryInfoEntities1 = new ArrayList<>();
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities){
+            if (importType.equals(entryInfoEntity.getImportType())){
+                entryInfoEntities1.add(entryInfoEntity);
+            }
+
+        }
+
+            Date date = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
+        String da = format.format(date);
+        String excelName = taskInfoEntity.getTranslateType() + ConstantInterface.UNDERLINE +
+                versionEntity.getProductName() + ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + taskInfoEntity.getName() + da;
+        log.info(" **** excelName is : " + excelName + " **** ");
+
+        String fileName = excelName + ".xls";
+
+        try {
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+            log.warn( " **** fileName : " + fileName + " ***** ");
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Cache-Control", "no-cache");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            response.setStatus(200);
+
+
+        } catch (Exception e) {
+            log.error("代码生成出错", e);
+            try {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.sendError(500, "代码生成出错，无法下载");
+            } catch (IOException ex) {
+                log.error("响应报错信息出错", e);
+            }
+        }
+        try {
+            Workbook workbook = excelUtil.outPutExcel(entryInfoEntities1, taskInfoEntity.getTranslateType(), fileName);
+            ServletOutputStream outputStream = response.getOutputStream();
+            workbook.write(outputStream);
+            outputStream.close();
+            workbook.close();
+        } catch (Exception e) {
+            log.error(" ==== excel write error : {} ! ===", e.getMessage());
+        }
+
+
+    }
+
+    @Override
+    public String taskCreateNewLanguageTask(TaskInfoEntity taskInfoEntity, String taskID) {
+
+        taskInfoEntity.setId(commonUtils.getUUID());
+        int insert = taskInfoMapper.insert(taskInfoEntity);
+
+        TaskInfoEntity taskInfoEntity1 = taskInfoMapper.selectById(taskID);
+        List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(taskInfoEntity1.getVersionId());
+        String tableName = versionInfoByVersion.get(0).getVersionTableName();
+
+
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
+
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            EntryTempEntity entryTempEntity = new EntryTempEntity();
+            entryTempEntity.setId(entryInfoEntity.getId());
+            entryTempEntity.setImportype(entryInfoEntity.getImportType());
+            entryTempEntity.setSource(entryInfoEntity.getEntrySource());
+            entryTempEntity.setTaskId(entryInfoEntity.getTaskId());
+            entryTempEntity.setTranslateType(taskInfoEntity.getTranslateType());
+            entryTempEntity.setAuditState(0);
+            entryTempEntity.setVersionID(taskInfoEntity.getVersionId());
+            entryTempEntity.setEntry(entryInfoEntity.getEntry());
+            entryTempEntity.setAbbr(entryInfoEntity.getAbbr());
+
+        }
+
+        return taskInfoEntity.getId();
+    }
+
+    @Override
+    public Map<String, String> getImportType(String taskID) {
+        List<EntryTempEntity> entryTempEntities = entryTempMapper.getEntryTempByTaskID(taskID);
+        //key:type , value :source
+        Map<String, String> typeMap = new HashMap<>();
+        for (EntryTempEntity entryTempEntity : entryTempEntities) {
+            typeMap.put(entryTempEntity.getImportype(), entryTempEntity.getSource());
+        }
+
+        return typeMap;
+    }
+
+    public List<EntryTempEntity> buildRepeTempEntry(List<EntryTempEntity> entryTempEntities) {
+        List<EntryTempEntity> newTempEntry = new ArrayList<>();
+        //entry_translate,entryTempEntity
+        Map<String, EntryTempEntity> entryTempEntityMap = new HashMap<>();
+        for (EntryTempEntity entryTempEntity : entryTempEntities) {
+            String entry = entryTempEntity.getEntry();
+            String translate = "";
+            //有翻译字段 直接放到map里
+
+            translate = entryTempEntity.getTranslate();
+            EntryTempEntity mapValueEntry = entryTempEntityMap.get(entry + ConstantInterface.UNDERLINE + translate);
+            //判断map 是否有这个key
+            if (Objects.nonNull(mapValueEntry)) {
+                entryTempEntity.setParentID(mapValueEntry.getId());
+
+                if (CollectionUtils.isEmpty(mapValueEntry.getChildren())) {
+                    List<EntryTempEntity> entryTempEntities1 = new ArrayList<>();
+                    entryTempEntities1.add(entryTempEntity);
+                    mapValueEntry.setChildren(entryTempEntities1);
+                } else {
+                    mapValueEntry.getChildren().add(entryTempEntity);
+                }
+
+            } else {
+                entryTempEntity.setParentID("");
+                entryTempEntityMap.put(entry + ConstantInterface.UNDERLINE + translate, entryTempEntity);
+            }
+        }
+
+
+        Collection<EntryTempEntity> values = entryTempEntityMap.values();
+        Iterator<EntryTempEntity> iterator = values.iterator();
+        while (iterator.hasNext()) {
+            newTempEntry.add(iterator.next());
+        }
+        return newTempEntry;
     }
 }
 

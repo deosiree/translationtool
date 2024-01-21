@@ -14,6 +14,7 @@ import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -68,7 +69,7 @@ public class ExcelUtils {
     public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
-        List<T> excelForBeans = readExcel(classzz, workbook, excelHeads);  //解析Excel
+        List<T> excelForBeans = readNewExcel(classzz, workbook, excelHeads);  //解析Excel
         return excelForBeans;
     }
 
@@ -332,6 +333,227 @@ public class ExcelUtils {
         return beans;
     }
 
+
+
+
+    /**
+     * 解析Excel
+     *
+     * @param classzz    类
+     * @param workbook   工作簿对象
+     * @param excelHeads excel与entity对应关系实体
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
+    private <T> List<T> readNewExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
+        List<T> beans = new ArrayList<T>();
+        int sheetNum = workbook.getNumberOfSheets();
+        for (int sheetIndex = 0; sheetIndex < sheetNum; sheetIndex++) {
+            //判断分类
+            boolean isWrite = false;
+            Sheet sheet = workbook.getSheetAt(sheetIndex);
+
+            String sheetName = sheet.getSheetName();
+            log.info(" **** 当前sheet为 " + sheetName + " **** ");
+            int firstRowNum = sheet.getFirstRowNum()+1;
+            int lastRowNum = sheet.getLastRowNum();
+            //首行子段名
+            Row head = sheet.getRow(firstRowNum);
+            if (head == null)
+                continue;
+            short firstCellNum = head.getFirstCellNum();
+            short lastCellNum = head.getLastCellNum();
+
+
+
+          /*  for (int i =0 ; i <lastCellNum;i++){
+                if (org.junit.platform.commons.util.StringUtils.isBlank(head.getCell(i).getStringCellValue())){
+                    head.sheet.getRow(firstRowNum+1).getCell(i)
+                }
+            }*/
+
+
+            Field[] fields = classzz.getDeclaredFields();
+            String classfy = "";
+            for (int rowIndex = firstRowNum + 1; rowIndex <= lastRowNum; rowIndex++) {
+
+                log.info(" **** 正在读Excel 第 " + rowIndex + "行 **** ");
+                isWrite = true;
+                Row dataRow = sheet.getRow(rowIndex);
+                if (dataRow == null)
+                    continue;
+                T instance = classzz.newInstance();
+                if (CollectionUtils.isEmpty(excelHeads)) {  //非头部映射方式，默认不校验是否为空，提高效率
+                    firstCellNum = dataRow.getFirstCellNum();
+                    lastCellNum = dataRow.getLastCellNum();
+                    if (0 != firstCellNum) {
+                        break;
+                    }
+                }
+                for (int cellIndex = firstCellNum; cellIndex < lastCellNum; cellIndex++) {
+                    Cell headCell = head.getCell(cellIndex);
+                    /*//第一行
+                    if (org.junit.platform.commons.util.StringUtils.isBlank(headCell.getStringCellValue())){
+                        headCell =  sheet.getRow(firstRowNum+1).getCell(cellIndex);
+                    }*/
+                    if (headCell == null)
+                        continue;
+                    Cell cell = dataRow.getCell(cellIndex);
+                    //空行校验(Abbr校验)
+                  /*  if (Objects.isNull(cell) || org.junit.platform.commons.util.StringUtils.isBlank(cell.getStringCellValue())) {
+                        isWrite = false;
+                        break;
+                    }*/
+                    //获取颜色
+                    if (null == cell) {
+                        continue;
+                    }
+
+                    //判断颜色
+                  /*  CellStyle cellStyle = cell.getCellStyle();
+                    XSSFColor xssfColor = (XSSFColor) cellStyle.getFillForegroundColorColor();
+                    byte[] bytes;
+                    if (xssfColor != null) {
+                        bytes = xssfColor.getRGB();
+                        String color = String.format("#%02X%02X%02X", bytes[0], bytes[1], bytes[2]);
+                        //识别绿色 写入分类
+                        if ("#C5E0B4".equals(color)) {
+                            classfy = cell.getStringCellValue();
+                            isWrite = false;
+                            break;
+                        }
+                    }*/
+
+
+                    headCell.setCellType(Cell.CELL_TYPE_STRING);
+                    String headName = headCell.getStringCellValue().trim();
+                    if (headName.equals("展开（缩写采用单驼峰,首字母大写）")) {
+                        int a = 0;
+                    }
+                /*    //列头如果是空读取第二行，如果还是空跳过
+                    if (StringUtils.isEmpty(headName) ||
+                            headName.equals("英文术语") ||
+                            headName.equals("西文术语") ||
+                            headName.equals("俄文术语") ||
+                            headName.equals("中文术语") ||
+                            headName.equals("ABB类全驼峰") ||
+                            headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
+                            headName.equals("单多驼峰搭配下划线（继保类似）") ||
+                            headName.equals("展开（缩写可采用单/多驼峰）")) {
+                        Row head1 = sheet.getRow(firstRowNum + 1);
+                        Cell headCell1 = head1.getCell(cellIndex);
+                        headCell1.setCellType(Cell.CELL_TYPE_STRING);
+                        if (StringUtils.isEmpty(headName)) {
+                            Cell headCell2 = head.getCell(cellIndex - 1);
+                            headCell2.setCellType(Cell.CELL_TYPE_STRING);
+
+                            headName = headCell2.getStringCellValue().trim() + headCell1.getStringCellValue().trim();
+                        } else {
+                            headName = headName.trim() + headCell1.getStringCellValue().trim();
+                        }
+
+
+                    }*/
+                    log.info(" **** 当前列头为 " + headName + " **** ");
+                    ExcelHead eHead = null;
+                    if (!CollectionUtils.isEmpty(excelHeads)) {
+                        for (ExcelHead excelHead : excelHeads) {
+                            if (headName.equals(excelHead.getExcelName())) {
+                                eHead = excelHead;
+                                headName = eHead.getEntityName();
+                                break;
+                            }
+                        }
+                    }
+                    boolean isClassfy = true;
+                    //遍历哦实体属性
+                    for (Field field : fields) {
+
+                 /*       if (isClassfy) {
+
+                            Method classfyMethod = classzz.getMethod("setClassfy", field.getType());
+                            classfyMethod.invoke(instance, convertType(field.getType(), classfy.trim()));
+                            isClassfy = false;
+                        }
+*/
+
+                        if (headName.equalsIgnoreCase(ImportExcleVO.aliasMap.get(field.getName()))) {
+                            String methodName = MethodUtils.setMethodName(field.getName());
+                            System.out.println(methodName);
+                            Method method = classzz.getMethod(methodName, field.getType());
+                            if (isDateFied(field)) {
+                            /*    Date date = null;
+                                if (cell != null) {
+                                    date = cell.getDateCellValue();
+                                    log.info(" **** 当前读取的值为 " + date + " **** ");
+                                }
+                                if (date == null) {
+                                    volidateValueRequired(eHead, sheetName, rowIndex);
+                                    break;
+                                }
+
+
+                                method.invoke(instance, cell.getDateCellValue());*/
+                            } else if (isTimeStamp(field)) {
+                                Date date = null;
+                                if (cell != null) {
+                                    date = cell.getDateCellValue();
+                                }
+                                if (date == null) {
+                                    volidateValueRequired(eHead, sheetName, rowIndex);
+                                    break;
+                                }
+                                log.info(" **** 当前读取的值为 " + new Timestamp(cell.getDateCellValue().getTime()) + " **** ");
+                                method.invoke(instance, new Timestamp(cell.getDateCellValue().getTime()));
+                            } else if (isEnum(field)) {
+                                String value = null;
+                                if (cell != null) {
+                                    value = cell.getStringCellValue();
+                                }
+                                if (StringUtils.isEmpty(value)) {
+                                    volidateValueRequired(eHead, sheetName, rowIndex);
+                                    break;
+                                }
+                                log.info(" **** 当前读取的值为 " + Enum.valueOf((Class) field.getType(), value) + " **** ");
+                                method.invoke(instance, Enum.valueOf((Class) field.getType(), value));
+
+                            } else {
+                                String value = null;
+                                if (cell != null) {
+                                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                                    value = cell.getStringCellValue();
+                                }
+                                if (StringUtils.isEmpty(value)) {
+                                    volidateValueRequired(eHead, sheetName, rowIndex);
+                                    break;
+                                }
+                           /*     if (headName.contains("日期")){
+                                    int intDay = Integer.parseInt( convertType(field.getType(), value.trim()));
+                                    Date dd = DateUtils.addDays(calendar.getTime(),intDay);
+                                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+                                    String format = simpleDateFormat.format(dd);
+                                }*/
+                                log.info(" **** 当前读取的值为 " + convertType(field.getType(), value.trim()) + " **** ");
+                                method.invoke(instance, convertType(field.getType(), value.trim()));
+                            }
+                            log.info(" ======= headName is : " + headName + " ======== ");
+                            break;
+                        }
+                    }
+
+
+                }
+                //是否要写
+                if (isWrite) {
+                    beans.add(instance);
+                }
+
+            }
+        }
+        return beans;
+    }
+
     /**
      * 是否日期字段
      *
@@ -454,28 +676,43 @@ public class ExcelUtils {
             outputExcel.setEntry(entryInfoEntity.getEntry());
 
             //查找翻译
-
+            TranslateEntity translateEntity = null;
             switch (transType) {
                 case ConstantInterface.ENGLISH:
-                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getEnTransId()).getTranslate());
+                     translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
+                    if (Objects.nonNull(translateEntity)){
+                        outputExcel.setTranslate(translateEntity.getTranslate());
+                    }
                     break;
                 case ConstantInterface.RUSSIAN:
-                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getRuTransId()).getTranslate());
+                     translateEntity = translateMapper.selectById(entryInfoEntity.getRuTransId());
+                    if (Objects.nonNull(translateEntity)){
+                        outputExcel.setTranslate(translateEntity.getTranslate());
+                    }
+
                     break;
                 case ConstantInterface.FRENCH:
-                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getFraTransId()).getTranslate());
+                    translateEntity = translateMapper.selectById(entryInfoEntity.getFraTransId());
+                    if (Objects.nonNull(translateEntity)){
+                        outputExcel.setTranslate(translateEntity.getTranslate());
+                    }
                     break;
                 case ConstantInterface.SPANISH:
-                    outputExcel.setTranslate(translateMapper.selectById(entryInfoEntity.getSpaTransId()).getTranslate());
+                    translateEntity = translateMapper.selectById(entryInfoEntity.getSpaTransId());
+                    if (Objects.nonNull(translateEntity)){
+                        outputExcel.setTranslate(translateEntity.getTranslate());
+                    }
                     break;
             }
 
             outputExcel.setNum(i);
 
-            outputExcel.setVersion(versionMapper.selectById(entryInfoEntity.getVersionID()).getName());
+                outputExcel.setVersion(versionMapper.selectById(entryInfoEntity.getVersionID()).getName());
 
              EntryClassify entryClassify =  entryClassifyMapper.getEntryClassfyById(entryInfoEntity.getClassifyId());
-            outputExcel.setClassify(entryClassify.getKey());
+             if (Objects.nonNull(entryClassify)){
+                 outputExcel.setClassify(entryClassify.getKey());
+             }
             dataList.add(outputExcel);
         }
         //生成excel文档

@@ -120,25 +120,45 @@ public class EntryInfoEntity implements Serializable {
      */
     @TableField(value = "en_trans_id")
     private String enTransId;
-
+    @TableField(exist = false)
+    private String english;
+    @TableField(exist = false)
+    private String englishTranslateState;
+    @TableField(exist = false)
+    private String englishPublicState;
     /**
      * 俄文翻译id
      */
     @TableField(value = "ru_trans_id")
     private String ruTransId;
-
+    @TableField(exist = false)
+    private String russian;
+    @TableField(exist = false)
+    private String russianTranslateState;
+    @TableField(exist = false)
+    private String russianPublicState;
     /**
      * 法文翻译id
      */
     @TableField(value = "fra_trans_id")
     private String fraTransId;
-
+    @TableField(exist = false)
+    private String french;
+    @TableField(exist = false)
+    private String frenchTranslateState;
+    @TableField(exist = false)
+    private String frenchPublicState;
     /**
      * 西文翻译id
      */
     @TableField(value = "spa_trans_id")
     private String spaTransId;
-
+    @TableField(exist = false)
+    private String spanish;
+    @TableField(exist = false)
+    private String spanishTranslateState;
+    @TableField(exist = false)
+    private String spanishPublicState;
     /**
      * 公共库（0否 1是）
      */
@@ -150,6 +170,12 @@ public class EntryInfoEntity implements Serializable {
      */
     @TableField(value = "is_delete")
     private Integer isDelete;
+
+    /**
+     * 导入类型
+     */
+    @TableField(value = "import_type")
+    private String importType;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

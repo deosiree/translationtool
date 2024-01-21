@@ -31,7 +31,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<EntryInfoEntity> getEntryByTaskID( @Param("id")String id,@Param("tableName") String tableName);
 
-    List<EntryInfoEntity> getEnrtyByTaskID(String taskID);
+
 
     List<EntryInfoEntity> getEntryByVersionID(@Param("tableName") String tableName,@Param("versionID") String versionID);
 }
