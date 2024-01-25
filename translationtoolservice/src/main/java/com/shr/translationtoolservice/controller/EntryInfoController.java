@@ -117,12 +117,12 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("查询分类树")
     @Token
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getClassTree(String department,HttpServletRequest request) {
+    public HttpResponse<ResponseListModel> getClassTree(String department,String className,HttpServletRequest request) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
 
         //department 空 为管理员，可查看所有分类
-        entryClassifies = entryClassifyService.getEntryClassfy(department,request);
+        entryClassifies = entryClassifyService.getEntryClassfy(department,className,request);
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
         return checkResult(responseListModel);

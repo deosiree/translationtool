@@ -35,10 +35,29 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
     private CommonUtils commonUtils;
 
     @Override
-    public List<EntryClassify> getEntryClassfy(String department,HttpServletRequest request) {
+    public List<EntryClassify> getEntryClassfy(String department,String className,HttpServletRequest request) {
         //查询对应部门下的分类
         List<EntryClassify> entryClassifies = new ArrayList<>();
-        entryClassifies = entryClassifyMapper.getEntryClassfyIdsByDepartment(department);
+        if (StringUtils.isNotBlank(className)){
+            // 通过名称条件查询
+            // 查询所有的父类
+            List<EntryClassify> parentClassify = entryClassifyMapper.getParentClassify(department,className);
+            // 查询所有的子类
+            List<EntryClassify> childClassify = entryClassifyMapper.getChildClassify(department,className);
+            for (EntryClassify classify : parentClassify) {
+                if(!entryClassifies.contains(classify)){
+                    entryClassifies.add(classify);
+                }
+            }
+            for (EntryClassify classify : childClassify) {
+                if(!entryClassifies.contains(classify)){
+                    entryClassifies.add(classify);
+                }
+            }
+        }else{
+            entryClassifies = entryClassifyMapper.getEntryClassfyIdsByDepartment(department);
+        }
+
         if (StringUtils.isNotBlank(department)){
             // 非管理员
             // 查询该用户可见的产品
@@ -57,6 +76,18 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
                 }
             }
             entryClassifies = newList;
+        }
+        // 通过名称查询时  如果查询结果中无产品  则返回空list
+        if (StringUtils.isBlank(className)){
+            Boolean flag = false;
+            for (EntryClassify entryClassify : entryClassifies) {
+                if(ConstantInterface.PRODUCT_TABLE.equals(entryClassify.getType()) ){
+                    flag = true;
+                }
+            }
+            if (!flag){
+                return new ArrayList<>();
+            }
         }
 // 返回的树形数据
         List<EntryClassify> tree = new ArrayList<EntryClassify>();

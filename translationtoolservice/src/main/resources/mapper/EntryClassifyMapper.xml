@@ -184,4 +184,36 @@
         </set>
         where id = #{entryClassify.key ,jdbcType=VARCHAR}
     </update>
+    <select id="getParentClassify" resultMap="BaseResultMap">
+        WITH RECURSIVE parent AS (
+            SELECT * FROM t_entry_classify
+            <where>
+                <if test="department != null  and department != ''">
+                    and department = #{department,jdbcType=VARCHAR}
+                </if>
+                <if test="className != null  and className != ''">
+                    and name = #{className,jdbcType=VARCHAR}
+                </if>
+            </where>
+            UNION
+            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.id = parent.parent_id
+        )
+        SELECT * FROM parent;
+    </select>
+    <select id="getChildClassify" resultMap="BaseResultMap">
+        WITH RECURSIVE child AS (
+            SELECT * FROM t_entry_classify
+            <where>
+                <if test="department != null  and department != ''">
+                    and department = #{department,jdbcType=VARCHAR}
+                </if>
+                <if test="className != null  and className != ''">
+                    and name = #{className,jdbcType=VARCHAR}
+                </if>
+            </where>
+            UNION
+            SELECT tt.* FROM t_entry_classify tt JOIN child ON tt.parent_id = child.id
+        )
+        SELECT * FROM child
+    </select>
 </mapper>

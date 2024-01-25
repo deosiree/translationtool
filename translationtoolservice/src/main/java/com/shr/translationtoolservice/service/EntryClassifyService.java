@@ -12,7 +12,7 @@ import java.util.List;
 public interface EntryClassifyService extends IService<EntryClassify> {
 
 
-    List<EntryClassify> getEntryClassfy(String department,HttpServletRequest request);
+    List<EntryClassify> getEntryClassfy(String department,String className,HttpServletRequest request);
 
     String updateEntryClassfy(EntryClassify entryClassify);
 
