@@ -535,8 +535,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             workbook = excelUtils.outPutExcel(entryInfoEntities, translateType, excelName);
             outputStream = response.getOutputStream();
             workbook.write(outputStream);
-                outputStream.flush();
 
+            workbook.close();
+            outputStream.close();
 
         } catch (Exception e) {
             log.error(" ===== excel write error : " + e.getMessage() + " ===== ");

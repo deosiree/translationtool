@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +124,16 @@ public class WorkBenchController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/getTemplateFile")
+    @ApiOperation("模板下载")
+    @CrossOrigin
+    @Transactional
+    public void getTemplateFile(HttpServletResponse response) {
 
+
+       entryTempService.getTemplateFile(response);
+
+    }
 
 
 }

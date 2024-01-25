@@ -85,4 +85,21 @@ public class VersionController  extends BaseController {
 
     }
 
+
+    @GetMapping("/getVersionByName")
+    @ApiOperation("版本名查询")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<  ResponseListModel<VersionEntity>> getVersionByName( String versionName,
+                                                                             @RequestParam String productID) {
+        ResponseListModel<VersionEntity> result = new ResponseListModel<>();
+
+        List<VersionEntity> versionEntities = versionService.getVersionByName(versionName,productID);
+        result.setList(versionEntities);
+        int total = versionEntities.size();
+        result.setTotalNum(total);
+        return checkResult(result);
+
+    }
+
 }

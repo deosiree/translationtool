@@ -4,14 +4,24 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.dao.EntryInfoMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.dao.EntryTempMapper;
+import com.shr.translationtoolservice.util.ExcelUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.xml.ws.Action;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -29,6 +39,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     @Autowired
     private TranslateMapper translateMapper;
+
+    @Value("${ConfigFile.url}")
+    private String configFileUrl;
+
+    @Autowired
+    private ExcelUtils excelUtils;
 
     @Override
     public String insertEntry(List<EntryTempEntity> tempEntities) {
@@ -154,6 +170,38 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             entryTempEntities.add(entryTempEntity);
         }
         return entryTempEntities;
+    }
+
+    @Override
+    public void getTemplateFile(HttpServletResponse response) {
+        try {
+            String fileName = "模板文件.xls";
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+            log.warn( " **** fileName : " + fileName + " ***** ");
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Cache-Control", "no-cache");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            response.setStatus(200);
+
+            FileInputStream fileInputStream = new FileInputStream(configFileUrl);
+            ServletOutputStream outputStream = response.getOutputStream();
+            HSSFWorkbook workbook = new HSSFWorkbook(fileInputStream);
+            workbook.write(outputStream);
+            workbook.close();
+            outputStream.close();
+
+        } catch (Exception e) {
+            log.error("代码生成出错", e);
+            try {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.sendError(500, "代码生成出错，无法下载");
+            } catch (IOException ex) {
+                log.error("响应报错信息出错", e);
+            }
+        }
+
     }
 
 

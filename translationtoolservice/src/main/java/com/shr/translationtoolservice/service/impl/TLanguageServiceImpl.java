@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.TLanguage;
 import com.shr.translationtoolservice.service.TLanguageService;
 import com.shr.translationtoolservice.dao.TLanguageMapper;
@@ -24,6 +25,13 @@ public class TLanguageServiceImpl extends ServiceImpl<TLanguageMapper, TLanguage
         List<TLanguage> languageList = tLanguageMapper.getLanguages(language);
 
         return languageList;
+    }
+
+    @Override
+    public String addLanguage(TLanguage language) {
+        int insert = tLanguageMapper.insert(language);
+
+        return ConstantInterface.OK_STR;
     }
 }
 

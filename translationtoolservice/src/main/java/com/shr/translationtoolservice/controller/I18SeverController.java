@@ -315,8 +315,10 @@ public class I18SeverController extends BaseController {
                 tsEntryTemps.add(requestMap);
             } else if ("DI".equals(entryTempEntity.getImportype())) {
                 diEntryTemps.add(entryTempEntity);
+                return checkResult(ConstantInterface.OK_STR);
             } else if ("DB".equals(entryTempEntity.getImportype())) {
                 dbEntryTemps.add(entryTempEntity);
+                return checkResult(ConstantInterface.OK_STR);
             }
         }
         //写入i18
@@ -388,6 +390,7 @@ public class I18SeverController extends BaseController {
             EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
             entryInfoEntity.setId(entryTempEntity.getId());
             TranslateEntity translateEntity = new TranslateEntity();
+
             //翻译id是空 则不是公共词条库的词条，需新增翻译
             if (StringUtils.isBlank(entryTempEntity.getTranslateID())){
                 translateEntity.setId(transID);
@@ -398,7 +401,11 @@ public class I18SeverController extends BaseController {
                 translateEntity.setVisualRange("部门");
                 translateEntity.setDeleteState(0);
                 translateEntity.setVersionID(entryTempEntity.getVersionID());
-                insert = translateMapper.insert(translateEntity);
+
+                if (StringUtils.isNotBlank(entryTempEntity.getTranslate())){
+                    insert = translateMapper.insert(translateEntity);
+                }
+
                 entryInfoService.addTransID(translateEntity, entryInfoEntity);
             }else {
                 translateEntity.setId(entryTempEntity.getTranslateID());
@@ -437,6 +444,7 @@ public class I18SeverController extends BaseController {
             entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
             entryInfoEntity.setIsDelete(0);
             entryInfoEntity.setImportType(entryTempEntity.getImportype());
+            entryInfoEntity.setEntryState(ConstantInterface.AUDIT);
             String versionID = entryTempEntity.getVersionID();
             VersionEntity versionEntity = versionMapper.selectById(versionID);
             String tableName = versionEntity.getTableName();

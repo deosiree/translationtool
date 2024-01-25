@@ -11,4 +11,6 @@ import java.util.List;
 public interface TranslateService extends IService<TranslateEntity> {
 
     String updateTranslation(List<TranslateEntity> translateEntityList);
+
+    String addTranslate(TranslateEntity translateEntity);
 }

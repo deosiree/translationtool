@@ -69,6 +69,7 @@ ldap:
 
 I18server:
   url: http://10.16.193.26:8099/
-
+ConfigFile:
+  url: "src/main//resources/config/import.xls"
 
 

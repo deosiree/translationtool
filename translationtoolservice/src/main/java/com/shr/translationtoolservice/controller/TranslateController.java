@@ -3,7 +3,9 @@ package com.shr.translationtoolservice.controller;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.TLanguage;
+import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.service.TLanguageService;
+import com.shr.translationtoolservice.service.TranslateService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,8 @@ public class TranslateController extends BaseController{
 
     @Autowired
     private TLanguageService tLanguageService;
+    @Autowired
+    private TranslateService translateService;
 
 
     @PostMapping("/getLanguage")
@@ -40,6 +44,19 @@ public class TranslateController extends BaseController{
         result.setList(languageList);
         result.setTotalNum(languageList.size());
         return checkResult(result);
+
+    }
+
+    @PostMapping("/addTranslate")
+    @ApiOperation("新增翻译")
+    @CrossOrigin
+    @Transactional
+    //返回id
+    public HttpResponse<String> addTranslate(@RequestBody TranslateEntity translateEntity) {
+
+        String a = translateService.addTranslate(translateEntity);
+
+        return checkResult(a);
 
     }
 }

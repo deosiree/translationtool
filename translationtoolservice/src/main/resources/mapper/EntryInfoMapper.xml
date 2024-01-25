@@ -285,16 +285,16 @@
             <if test="entryInfoEntity.remark != null  and entryInfoEntity.remark != ''">
                 remark = #{entryInfoEntity.remark,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.spaTransId != null  and entryInfoEntity.spaTransId != ''">
+            <if test="entryInfoEntity.spaTransId != null ">
                 spa_trans_id = #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.fraTransId != null  and entryInfoEntity.fraTransId != ''">
+            <if test="entryInfoEntity.fraTransId != null  ">
                 fra_trans_id = #{entryInfoEntity.fraTransId,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.ruTransId != null  and entryInfoEntity.ruTransId != ''">
+            <if test="entryInfoEntity.ruTransId != null ">
                 ru_trans_id = #{entryInfoEntity.ruTransId,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.enTransId != null  and entryInfoEntity.enTransId != ''">
+            <if test="entryInfoEntity.enTransId != null  ">
                 en_trans_id = #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
             </if>
         </set>

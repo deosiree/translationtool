@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.dao.VersionTableMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
@@ -10,6 +11,7 @@ import com.shr.translationtoolservice.service.VersionService;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -96,6 +98,19 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
             return ErrorCodeList.UPDATE_ERROR;
         }
         return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public List<VersionEntity> getVersionByName(String versionName, String productID) {
+        QueryWrapper<VersionEntity> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(versionName)){
+            queryWrapper.eq("name",versionName);
+        }
+        queryWrapper.eq("product_id",productID);
+
+        queryWrapper.eq("is_delete",0);
+         List<VersionEntity> versionEntities = versionMapper.selectList(queryWrapper);
+        return versionEntities;
     }
 }
 

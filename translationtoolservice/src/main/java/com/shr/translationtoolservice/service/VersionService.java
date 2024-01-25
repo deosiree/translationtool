@@ -21,4 +21,6 @@ public interface VersionService extends IService<VersionEntity> {
     String updateVersion(VersionEntity versionEntity);
 
     String deleteVersion(List<String> idList);
+
+    List<VersionEntity> getVersionByName(String versionName, String productID);
 }

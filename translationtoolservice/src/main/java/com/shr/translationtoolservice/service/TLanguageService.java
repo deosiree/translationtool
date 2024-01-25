@@ -11,4 +11,6 @@ import java.util.List;
 public interface TLanguageService extends IService<TLanguage> {
 
     List<TLanguage> getLanguages(TLanguage language);
+
+    String addLanguage(TLanguage language);
 }
