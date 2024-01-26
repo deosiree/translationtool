@@ -7,6 +7,7 @@ import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.service.TranslateService;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
  *
  */
 @Service
+@Slf4j
 public class TranslateServiceImpl extends ServiceImpl<TranslateMapper, TranslateEntity>
     implements TranslateService{
 

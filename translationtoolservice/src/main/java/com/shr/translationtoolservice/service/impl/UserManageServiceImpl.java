@@ -12,6 +12,7 @@ import com.shr.translationtoolservice.service.UserManageService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.LDAPUtils;
 import com.shr.translationtoolservice.util.TreeUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.record.DVALRecord;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * @Date 2023/11/10 0010 8:52
  **/
 @Service
+@Slf4j
 public class UserManageServiceImpl implements UserManageService {
 
     @Autowired

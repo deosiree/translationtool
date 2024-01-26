@@ -11,6 +11,7 @@ import com.shr.translationtoolservice.service.VersionService;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import java.util.List;
  *
  */
 @Service
+@Slf4j
 public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity>
     implements VersionService{
 

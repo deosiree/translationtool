@@ -8,6 +8,7 @@ import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.dao.EntryTempMapper;
 import com.shr.translationtoolservice.util.ExcelUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -28,6 +29,7 @@ import java.util.*;
  *
  */
 @Service
+@Slf4j
 public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTempEntity>
         implements EntryTempService {
 

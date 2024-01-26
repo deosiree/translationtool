@@ -68,8 +68,10 @@ ldap:
   password: "Admin@1234"
 
 I18server:
-  url: http://10.16.193.26:8099/
+  #url: http://10.16.193.26:18099/
+  url: http://10.16.193.84:18099/
 ConfigFile:
-  url: "src/main//resources/config/import.xls"
+  #url: "src/main//resources/config/import.xls"
+  url: "./config/import.xls"
 
 

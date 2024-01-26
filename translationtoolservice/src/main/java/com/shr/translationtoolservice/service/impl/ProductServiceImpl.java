@@ -15,6 +15,7 @@ import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LDAPUtils;
 import com.shr.translationtoolservice.util.TreeUtils;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import java.util.*;
  *
  */
 @Service
+@Slf4j
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity>
         implements ProductService {
 

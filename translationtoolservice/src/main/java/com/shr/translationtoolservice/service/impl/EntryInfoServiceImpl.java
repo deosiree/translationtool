@@ -13,6 +13,7 @@ import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import com.shr.translationtoolservice.entity.vo.UpgradeVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
  *
  */
 @Service
+@Slf4j
 public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfoEntity>
         implements EntryInfoService {
 

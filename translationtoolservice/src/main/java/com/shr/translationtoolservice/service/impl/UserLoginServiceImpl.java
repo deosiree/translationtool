@@ -14,6 +14,7 @@ import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LDAPUtils;
 import com.shr.translationtoolservice.util.TreeUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 @Service
+@Slf4j
 public class UserLoginServiceImpl implements UserLoginService {
 
     @Autowired

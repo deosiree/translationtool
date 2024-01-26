@@ -8,6 +8,7 @@ import com.shr.translationtoolservice.entity.EntryReqEntity;
 import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.dao.EntryProjectEntityMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.Objects;
  *
  */
 @Service
+@Slf4j
 public class EntryProjectEntityServiceImpl extends ServiceImpl<EntryProjectEntityMapper, EntryProjectEntity>
         implements EntryProjectEntityService {
     @Autowired
