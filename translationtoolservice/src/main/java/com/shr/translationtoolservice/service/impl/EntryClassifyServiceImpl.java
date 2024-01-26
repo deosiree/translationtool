@@ -77,18 +77,7 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
             }
             entryClassifies = newList;
         }
-        // 通过名称查询时  如果查询结果中无产品  则返回空list
-        if (StringUtils.isBlank(className)){
-            Boolean flag = false;
-            for (EntryClassify entryClassify : entryClassifies) {
-                if(ConstantInterface.PRODUCT_TABLE.equals(entryClassify.getType()) ){
-                    flag = true;
-                }
-            }
-            if (!flag){
-                return new ArrayList<>();
-            }
-        }
+
 // 返回的树形数据
         List<EntryClassify> tree = new ArrayList<EntryClassify>();
         // 第一次遍历
