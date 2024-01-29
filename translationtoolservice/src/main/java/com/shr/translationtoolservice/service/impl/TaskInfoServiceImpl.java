@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
+import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.TaskInfoService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
@@ -55,6 +56,9 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Autowired
     private VersionTableMapper versionTableMapper ;
 
+    @Autowired
+    private EntryTempService entryTempService;
+
     @Override
     //获取任务信息
     //入参 taskInfoEntity 任务实体 ， offset 页码，pageSize 页内行数
@@ -64,8 +68,16 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         VersionEntity versionEntity = versionMapper.selectById(taskInfoEntity.getVersionId());
         if (Objects.nonNull(versionEntity)) {
             for (TaskInfoEntity taskInfoEntity1 : taskInfoEntities) {
-                List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskInfoEntity1.getId(), versionEntity.getTableName());
-                taskInfoEntity1.setEntryNum(entryInfoEntities.size());
+                if (ConstantInterface.END_STATE.equals(taskInfoEntity1.getState())){
+                    // 当前任务已完成时 从t_version_xxxxxx表中查询词条数量
+                    List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskInfoEntity1.getId(), versionEntity.getTableName());
+                    taskInfoEntity1.setEntryNum(entryInfoEntities.size());
+                }else {
+                    // 当前任务未完成时 从t_entry_temp表中查询词条数量
+                    List<EntryTempEntity> entryTempByTaskID = entryTempService.getEntryTempByTaskID(taskInfoEntity1.getId());
+                    taskInfoEntity1.setEntryNum(entryTempByTaskID.size());
+                }
+
             }
         }
 
@@ -235,17 +247,24 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
         List<EntryInfoEntity> entryInfoEntities1 = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities){
-            if (importType.equals(entryInfoEntity.getImportType())){
+            if ("".equals(importType)){
+                // 当传入的importType为空时  导出全部词条
                 entryInfoEntities1.add(entryInfoEntity);
+            }else {
+                // 否则 根据传入的importType筛选词条
+                if (importType.equals(entryInfoEntity.getImportType())){
+                    entryInfoEntities1.add(entryInfoEntity);
+                }
             }
+
 
         }
 
             Date date = new Date();
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
         String da = format.format(date);
         String excelName = taskInfoEntity.getTranslateType() + ConstantInterface.UNDERLINE +
-                versionEntity.getProductName() + ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + taskInfoEntity.getName() + da;
+                versionEntity.getProductName() + ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + taskInfoEntity.getName()+ ConstantInterface.UNDERLINE + da;
         log.info(" **** excelName is : " + excelName + " **** ");
 
         String fileName = excelName + ".xls";
@@ -285,29 +304,47 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
 
     @Override
     public String taskCreateNewLanguageTask(TaskInfoEntity taskInfoEntity, String taskID) {
-
-        taskInfoEntity.setId(commonUtils.getUUID());
+        String newId = commonUtils.getUUID();
+        taskInfoEntity.setId(newId);
+        // 新增复制的任务
         int insert = taskInfoMapper.insert(taskInfoEntity);
+        // 获取被复制的任务
+        TaskInfoEntity CopiedTaks = taskInfoMapper.selectById(taskID);
 
-        TaskInfoEntity taskInfoEntity1 = taskInfoMapper.selectById(taskID);
-        List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(taskInfoEntity1.getVersionId());
-        String tableName = versionInfoByVersion.get(0).getVersionTableName();
+        List<EntryTempEntity> list = new ArrayList<>();
+        if (ConstantInterface.END_STATE.contains(CopiedTaks.getState())){
+            // 被复制的任务已完成  则从版本表中获取原任务已导入的词条
 
+            List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(CopiedTaks.getVersionId());
+            String tableName = versionInfoByVersion.get(0).getVersionTableName();
+            List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
 
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
-
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            EntryTempEntity entryTempEntity = new EntryTempEntity();
-            entryTempEntity.setId(entryInfoEntity.getId());
-            entryTempEntity.setImportype(entryInfoEntity.getImportType());
-            entryTempEntity.setSource(entryInfoEntity.getEntrySource());
-            entryTempEntity.setTaskId(entryInfoEntity.getTaskId());
-            entryTempEntity.setTranslateType(taskInfoEntity.getTranslateType());
-            entryTempEntity.setAuditState(0);
-            entryTempEntity.setVersionID(taskInfoEntity.getVersionId());
-            entryTempEntity.setEntry(entryInfoEntity.getEntry());
-            entryTempEntity.setAbbr(entryInfoEntity.getAbbr());
-
+            for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+                EntryTempEntity entryTempEntity = new EntryTempEntity();
+                entryTempEntity.setId(commonUtils.getUUID());
+                entryTempEntity.setImportype(entryInfoEntity.getImportType());
+                entryTempEntity.setSource(entryInfoEntity.getEntrySource());
+                entryTempEntity.setTaskId(newId);
+                entryTempEntity.setTranslateType(taskInfoEntity.getTranslateType());
+                entryTempEntity.setAuditState(0);
+                entryTempEntity.setVersionID(taskInfoEntity.getVersionId());
+                entryTempEntity.setEntry(entryInfoEntity.getEntry());
+                entryTempEntity.setAbbr(entryInfoEntity.getAbbr());
+                list.add(entryTempEntity);
+            }
+        }else {
+            // 被复制的任务未完成  则从临时表 t_entry_temp 中获取原任务已导入的词条
+            list = entryTempService.getEntryTempByTaskID(CopiedTaks.getId());
+            for (EntryTempEntity entryTempEntity : list) {
+                entryTempEntity.setId(commonUtils.getUUID());
+                entryTempEntity.setTranslateType(taskInfoEntity.getTranslateType());
+                entryTempEntity.setTaskId(newId);
+                String translate = CopiedTaks.getTranslateType().equals(taskInfoEntity.getTranslateType()) ? entryTempEntity.getTranslate() : null;
+                entryTempEntity.setTranslate(translate);
+            }
+        }
+        if (!list.isEmpty()){
+            entryTempService.insertEntry(list);
         }
 
         return taskInfoEntity.getId();

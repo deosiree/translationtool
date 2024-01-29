@@ -49,6 +49,7 @@ public class ConstantInterface {
     public static  final  String TRANSLATE_STATE="3";
     public static  final  String TRANSLATE_AUDIT_STATE="4";
     public static  final  String EXPORT_STATE="5";
+    public static  final  String END_STATE="6";
 
 
     public static final String IS_DEFAULT = "1";
