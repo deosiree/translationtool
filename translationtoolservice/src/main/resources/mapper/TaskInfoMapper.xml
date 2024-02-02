@@ -197,6 +197,7 @@
         <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
             and t1.creator = #{taskInfoEntity.creator }
         </if>
+        order by t1.delivery_time DESC
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -263,6 +264,7 @@
         <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
             and t1.creator = #{taskInfoEntity.creator }
         </if>
+        order by t1.delivery_time DESC
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>

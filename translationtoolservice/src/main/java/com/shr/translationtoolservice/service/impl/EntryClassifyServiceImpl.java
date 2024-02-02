@@ -5,6 +5,7 @@ import com.shr.translationtoolservice.dao.UserProductMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryClassify;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
+import com.shr.translationtoolservice.entity.Menu;
 import com.shr.translationtoolservice.service.EntryClassifyService;
 import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
@@ -15,9 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -97,9 +96,11 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
                     children.add(node);
                 }
             }
+//            Collections.sort(children, Comparator.comparingInt(EntryClassify::getIndex));
             // 给父节点设置子节点
             classify.setChildren(children);
         }
+        Collections.sort(tree, Comparator.comparingInt(EntryClassify::getIndex));
         return tree;
     }
     @Override

@@ -503,10 +503,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
         Date date = new Date();
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMM");
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
         String da = format.format(date);
-        List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
-        String excelName = languageList.get(0).getCode() +
+//        List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
+        String excelName = translateType +
                 ConstantInterface.UNDERLINE  + productEntity.getName() +
                 ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + da;
 

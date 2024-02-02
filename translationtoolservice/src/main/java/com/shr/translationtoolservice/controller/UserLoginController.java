@@ -34,13 +34,4 @@ public class UserLoginController {
         return result;
     }
 
-    @PostMapping("/testToken")
-    @ApiOperation("测试token")
-    @CrossOrigin
-    public Result testToken(HttpServletRequest request){
-        String token = request.getHeader(Constant.TOKEN);
-//        return Result.ok(JWTTokenUtils.getUserName(token));
-        return Result.fail(ResultCode.LOGIN_EXPIRED.getCode(),ResultCode.LOGIN_EXPIRED.getMessage());
-    }
-
 }

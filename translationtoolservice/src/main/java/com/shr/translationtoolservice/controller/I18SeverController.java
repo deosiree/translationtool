@@ -403,7 +403,7 @@ public class I18SeverController extends BaseController {
                 translateEntity.setVersionID(entryTempEntity.getVersionID());
 
                 if (StringUtils.isNotBlank(entryTempEntity.getTranslate())){
-                    insert = translateMapper.insert(translateEntity);
+                    translateMapper.insert(translateEntity);
                 }
 
                 entryInfoService.addTransID(translateEntity, entryInfoEntity);

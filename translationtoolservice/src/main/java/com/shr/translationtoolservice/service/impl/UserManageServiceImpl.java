@@ -201,7 +201,7 @@ public class UserManageServiceImpl implements UserManageService {
         return userMapper.getUserInfoTotal(user);
     }
 
-    @Override
+    /*@Override
     public String addUserPermission(List<UserDetailsVo>  users) {
         List<User> userList = new ArrayList<>();
         for (UserDetailsVo userDetailsVo : users){
@@ -249,7 +249,88 @@ public class UserManageServiceImpl implements UserManageService {
         int insert1 = userMapper.insertRoleAndUser(userList);
 
         return ConstantInterface.OK_STR;
+    }*/
+
+    @Override
+    public String addUserPermission(List<UserDetailsVo>  users) {
+        // 获取所有角色
+        List<Role> roleList = roleMapper.getRole(-1, -1);
+        Map<String,Role> roleMap = new HashMap<>();
+        for (Role role : roleList) {
+            roleMap.put(role.getRoleName(),role);
+        }
+        List<User> userList = new ArrayList<>();
+        for (UserDetailsVo userDetailsVo : users) {
+            // 判断当前用户是否已存在
+            User querUser = new User();
+            querUser.setDepartment(userDetailsVo.getDepartment());
+            querUser.setUserName(userDetailsVo.getName());
+            List<User> userInfo = userMapper.getUser(querUser);
+
+            User user = new User();
+            if (userInfo.isEmpty()){
+                // 当前用户不存在时则新增用户
+                user.setId(commonUtils.getUUID());
+                user.setUserName(userDetailsVo.getName());
+                user.setDepartment(userDetailsVo.getDepartment());
+                userMapper.insert(user);
+            }else {
+                // 当前用户已存在
+                user = userInfo.get(0);
+            }
+
+            List<String> roleNameList = new ArrayList<>();
+            List<String> roleIdList = new ArrayList<>();
+
+            if (userDetailsVo.getAdmin()){
+                // 管理员
+                roleIdList.add(roleMap.get(ConstantInterface.ADMIN).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.ADMIN).getRoleName());
+            }
+            if (userDetailsVo.getDeveloper()){
+                // 开发员
+                roleIdList.add(roleMap.get(ConstantInterface.DEVELOPER).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.DEVELOPER).getRoleName());
+            }
+            if (userDetailsVo.getTranslator()){
+                // 翻译员
+                roleIdList.add(roleMap.get(ConstantInterface.TRANSLATOR).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.TRANSLATOR).getRoleName());
+            }
+            if (userDetailsVo.getEntryReviewer()){
+                // 词条审核员
+                roleIdList.add(roleMap.get(ConstantInterface.ENTRY_AUDITOR).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.ENTRY_AUDITOR).getRoleName());
+            }
+            if (userDetailsVo.getTranslateReviewer()){
+                // 翻译审核员
+                roleIdList.add(roleMap.get(ConstantInterface.TRANSLATE_AUDITOR).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.TRANSLATE_AUDITOR).getRoleName());
+            }
+            user.setRoleName(roleNameList);
+            user.setRoleId(roleIdList);
+            userList.add(user);
+        }
+        // 1、将t_user_role 表中的用户关联的角色删除
+        int delete = userMapper.deleteUserRole(userList);
+
+        // 2、新增用户关联的新角色 t_user_role
+        List<UserRole> userRoleList = new ArrayList<>();
+        for (User user : userList) {
+            for (String s : user.getRoleId()) {
+                UserRole userRole = new UserRole();
+                userRole.setUserId(user.getId());
+                userRole.setRoleId(s);
+                userRoleList.add(userRole);
+            }
+        }
+        if (!userRoleList.isEmpty()){
+            // 新增用户角色关联信息
+            int insert = userMapper.insertUserRole(userRoleList);
+        }
+        return ConstantInterface.OK_STR;
     }
+
 
     @Override
     public String changeRoleAndMenu(String roleId, List<String> menuIdList) {

@@ -303,6 +303,75 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
+    public void exportEntryByTaskId(String taskId, HttpServletResponse response) {
+        // 获取任务
+        TaskInfoEntity task = taskInfoMapper.selectById(taskId);
+        // 获取该任务的产品版本
+        VersionEntity versionEntity = versionMapper.getVersionByID(task.getVersionId());
+
+        List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
+        List<EntryTempEntity> entryTempEntityList = new ArrayList<>();
+        // 判断任务是否已经结束
+        if (ConstantInterface.END_STATE.equals(task.getState())){
+            // 任务已结束  从 t_version_xxxxxx 表中查询词条数据
+            String tableName = versionEntity.getTableName();
+            entryInfoEntityList = entryInfoMapper.getEntryByTaskID(taskId,tableName);
+        }else {
+            // 任务未结束 从 t_entry_temp 表中查询词条数据
+            entryTempEntityList = entryTempService.getEntryTempByTaskID(taskId);
+        }
+
+        // 获取当前日期
+        Date date = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+        String currentDate = format.format(date);
+
+        // 生成导出文件名称
+        String excelName = task.getTranslateType() + ConstantInterface.UNDERLINE + versionEntity.getProductName() + ConstantInterface.UNDERLINE +
+                            versionEntity.getName() + ConstantInterface.UNDERLINE + task.getName()+ ConstantInterface.UNDERLINE + currentDate;
+        log.info(" **** excelName is : " + excelName + " **** ");
+        String fileName = excelName + ".xls";
+
+        try {
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+            log.warn( " **** fileName : " + fileName + " ***** ");
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Cache-Control", "no-cache");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            response.setStatus(200);
+
+        } catch (Exception e) {
+            log.error(" exportEntryByTaskId 代码生成出错", e);
+            try {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.sendError(500, "代码生成出错，无法下载");
+            } catch (IOException ex) {
+                log.error("响应报错信息出错", e);
+            }
+        }
+
+        try {
+            // 生成excel文件
+            Workbook workbook = null;
+            if (ConstantInterface.END_STATE.equals(task.getState())){
+                workbook = excelUtil.outPutExcel(entryInfoEntityList, task.getTranslateType(), fileName);
+            }else {
+                workbook = excelUtil.exportTempEntryUtil(entryTempEntityList,fileName,versionEntity.getName());
+            }
+            ServletOutputStream outputStream = response.getOutputStream();
+            workbook.write(outputStream);
+            outputStream.close();
+            workbook.close();
+        } catch (Exception e) {
+            log.error(" ==== exportEntryByTaskId excel write error : {} ! ===", e.getMessage());
+        }
+
+
+    }
+
+    @Override
     public String taskCreateNewLanguageTask(TaskInfoEntity taskInfoEntity, String taskID) {
         String newId = commonUtils.getUUID();
         taskInfoEntity.setId(newId);
@@ -361,6 +430,8 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
 
         return typeMap;
     }
+
+
 
     public List<EntryTempEntity> buildRepeTempEntry(List<EntryTempEntity> entryTempEntities) {
         List<EntryTempEntity> newTempEntry = new ArrayList<>();

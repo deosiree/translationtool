@@ -41,4 +41,6 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
     String taskCreateNewLanguageTask(TaskInfoEntity taskInfoEntity,String taskID);
 
     Map<String, String> getImportType(String taskID);
+
+    void exportEntryByTaskId(String taskId, HttpServletResponse response);
 }

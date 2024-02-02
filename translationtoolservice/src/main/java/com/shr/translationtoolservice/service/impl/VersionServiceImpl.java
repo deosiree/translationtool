@@ -111,6 +111,7 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
         queryWrapper.eq("product_id",productID);
 
         queryWrapper.eq("is_delete",0);
+        queryWrapper.orderByAsc("create_time");
          List<VersionEntity> versionEntities = versionMapper.selectList(queryWrapper);
         return versionEntities;
     }

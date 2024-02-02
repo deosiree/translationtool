@@ -16,6 +16,14 @@
         </collection>
         <!--<collection property="roleId" select="selectRoleColumn" column="role_id" />-->
     </resultMap>
+    <resultMap id="BaseResultMap2" type="com.shr.translationtoolservice.entity.User">
+        <!--@mbg.generated-->
+        <!--@Table t_user-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="job_number" jdbcType="VARCHAR" property="jobNumber"/>
+        <result column="department" jdbcType="VARCHAR" property="department"/>
+    </resultMap>
 
     <resultMap id="BaseConfigResUserMap" type="com.shr.translationtoolservice.entity.ConfigResUser">
         <!--@mbg.generated-->
@@ -367,6 +375,38 @@
         <if test="department != null and department !='' ">
             and t1.department = #{department,jdbcType=VARCHAR}
         </if>
+    </select>
+    <delete id="deleteUserRole">
+        delete from t_user_role where user_id in
+            <foreach collection="userList" item="user" separator="," open="(" close=")">
+                #{user.id,jdbcType=VARCHAR}
+            </foreach>
+    </delete>
+    <insert id="insertUserRole">
+        insert into t_user_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            user_id,role_id
+        </trim>
+        values
+        <foreach collection="list" item="userRole" index="index" separator=",">
+            (
+            #{userRole.userId ,jdbcType=VARCHAR},
+            #{userRole.roleId,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="getUser" resultMap="BaseResultMap2">
+        select
+        <include refid="Base_Column_List"></include>
+        from t_user u
+        <where>
+            <if test="user.department != null and user.department != ''">
+              and department = #{user.department,jdbcType=VARCHAR}
+            </if>
+            <if test="user.userName != null and user.userName != ''">
+              and user_name = #{user.userName,jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
 </mapper>

@@ -1,10 +1,7 @@
 package com.shr.translationtoolservice.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.shr.translationtoolservice.entity.ConfigResUser;
-import com.shr.translationtoolservice.entity.RoleEntity;
-import com.shr.translationtoolservice.entity.TLanguage;
-import com.shr.translationtoolservice.entity.User;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.UserDetailsVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -54,4 +51,10 @@ public interface UserMapper  extends BaseMapper<User> {
     int insertUser(@Param("users")  List<User> userList);
 
     int insertRoleAndUser(@Param("users") List<User> userList);
+
+    int deleteUserRole(@Param("userList") List<User> userList);
+
+    int insertUserRole(@Param("list") List<UserRole> userRoleList);
+
+    List<User> getUser(@Param("user") User querUser);
 }

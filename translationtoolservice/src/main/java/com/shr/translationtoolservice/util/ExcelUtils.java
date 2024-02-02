@@ -679,13 +679,13 @@ public class ExcelUtils {
             TranslateEntity translateEntity = null;
             switch (transType) {
                 case ConstantInterface.ENGLISH:
-                     translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
+                    translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
                     if (Objects.nonNull(translateEntity)){
                         outputExcel.setTranslate(translateEntity.getTranslate());
                     }
                     break;
                 case ConstantInterface.RUSSIAN:
-                     translateEntity = translateMapper.selectById(entryInfoEntity.getRuTransId());
+                    translateEntity = translateMapper.selectById(entryInfoEntity.getRuTransId());
                     if (Objects.nonNull(translateEntity)){
                         outputExcel.setTranslate(translateEntity.getTranslate());
                     }
@@ -707,22 +707,49 @@ public class ExcelUtils {
 
             outputExcel.setNum(i);
 
-                outputExcel.setVersion(versionMapper.selectById(entryInfoEntity.getVersionID()).getName());
+            outputExcel.setVersion(versionMapper.selectById(entryInfoEntity.getVersionID()).getName());
 
-             EntryClassify entryClassify =  entryClassifyMapper.getEntryClassfyById(entryInfoEntity.getClassifyId());
-             if (Objects.nonNull(entryClassify)){
-                 outputExcel.setClassify(entryClassify.getKey());
-             }
+            EntryClassify entryClassify =  entryClassifyMapper.getEntryClassfyById(entryInfoEntity.getClassifyId());
+            if (Objects.nonNull(entryClassify)){
+                outputExcel.setClassify(entryClassify.getKey());
+            }
             dataList.add(outputExcel);
         }
         //生成excel文档
-        FileOutputStream fos =  new FileOutputStream(excelName);
+//        FileOutputStream fos =  new FileOutputStream(excelName);
 
         Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("词条翻译工具导出", "词条数据"),
                 OutputExcel.class, dataList);
 
 
-       // workbook.write(fos);
+        // workbook.write(fos);
+        return workbook;
+
+
+    }
+
+    // 临时表 t_entry_temp 词条导出
+    public Workbook exportTempEntryUtil(List<EntryTempEntity> EntryTempList, String fileName, String versionName) throws IOException {
+
+        List<OutputExcel> dataList = new ArrayList<>();
+        int i = 0;
+        for (EntryTempEntity entryTemp : EntryTempList) {
+            i += 1;
+            OutputExcel outputExcel = new OutputExcel();
+            outputExcel.setEntry(entryTemp.getEntry());
+            outputExcel.setTranslate(entryTemp.getTranslate());
+            outputExcel.setNum(i);
+            outputExcel.setVersion(versionName);
+            dataList.add(outputExcel);
+        }
+        //生成excel文档
+//        FileOutputStream fos =  new FileOutputStream(fileName);
+
+        Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("词条翻译工具导出", "词条数据"),
+                OutputExcel.class, dataList);
+
+
+        // workbook.write(fos);
         return workbook;
 
 

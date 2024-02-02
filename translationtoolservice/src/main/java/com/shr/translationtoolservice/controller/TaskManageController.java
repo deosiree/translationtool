@@ -171,6 +171,14 @@ public class TaskManageController extends BaseController {
 
     }
 
+    // 根据任务id  导出任务所有词条
+    @PostMapping("/exportEntryByTaskId")
+    @ApiOperation("根据任务id导出词条")
+    @CrossOrigin
+    public void exportEntryByTaskId(@RequestParam String taskId, HttpServletResponse response){
+        taskInfoService.exportEntryByTaskId(taskId,response);
+    }
+
     //以任务生成任务
     @PostMapping("/taskCreateNewLanguageTask")
     @ApiOperation("任务生成任务")
