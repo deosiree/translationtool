@@ -38,7 +38,7 @@ public class WorkBenchController extends BaseController {
     @Autowired
     private EntryInfoService entryInfoService;
     @Autowired
-    private EntryTempService entryTempService ;
+    private EntryTempService entryTempService;
     @Autowired
     private CommonUtils commonUtils;
 
@@ -48,9 +48,9 @@ public class WorkBenchController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> importExcle(@RequestParam("file") MultipartFile multipartFile,
                                                        @RequestParam("taskID") String taskID
-                                                       ) {
+    ) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryTempEntity> entryEntities = entryInfoService.importExcle(multipartFile,taskID);
+        List<EntryTempEntity> entryEntities = entryInfoService.importExcle(multipartFile, taskID);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
 
@@ -88,9 +88,8 @@ public class WorkBenchController extends BaseController {
     public HttpResponse<ResponseListModel> getEntryTempByTaskID(@RequestParam String taskID) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryTempEntity> entryTempEntities = new ArrayList<>();
-
-             entryTempEntities = entryTempService.getEntryTempByTaskID(taskID);
-
+        int I = 1 / 0;
+        entryTempEntities = entryTempService.getEntryTempByTaskID(taskID);
 
 
         responseListModel.setList(entryTempEntities);
@@ -131,7 +130,7 @@ public class WorkBenchController extends BaseController {
     public void getTemplateFile(HttpServletResponse response) {
 
 
-       entryTempService.getTemplateFile(response);
+        entryTempService.getTemplateFile(response);
 
     }
 
