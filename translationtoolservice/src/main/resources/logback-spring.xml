@@ -11,6 +11,15 @@
                 </pattern>
             </layout>
         </appender>
+        <!-- 把日志在控制台输出 -->
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>${pattern}</pattern>
+
+                <!-- 设置字符集 -->
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
 
         <!--输出INFO日志-->
         <appender name="INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
