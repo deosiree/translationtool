@@ -21,7 +21,7 @@ export default createStore({
       state.menu = value.menu
       // state.authority = value.authority
       state.user = value.user
-      if(value.user.roleName.indexOf('管理员') != -1){
+      if(value.user.roleName != null && value.user.roleName.indexOf('管理员') != -1){
         state.admin = true
       }
     },

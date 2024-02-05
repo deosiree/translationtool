@@ -72,11 +72,39 @@ export function getTableByApp(params) {
 }
 
 // 获取表中字段信息
-export function getFieldByTable(params,data) {
+export function getFieldByTable(params) {
     return request({
         url: "/I18Sever/getFieldByTable",
+        method: "GET",
+        params
+    });
+}
+
+// 获取字段内容
+export function getFieldData(params,data){
+    return request({
+        url: "/I18Sever/getFieldData",
         method: "POST",
         params,
         data
     });
 }
+
+// 获取元数据/别名
+export function getAlias(params){
+    return request({
+        url: "/I18Sever/getAlias",
+        method: "GET",
+        params
+    });
+}
+
+// 回写
+export function setInfo(params){
+    return request({
+        url: "/I18Sever/setInfo",
+        method: "POST",
+        params
+    });
+}
+

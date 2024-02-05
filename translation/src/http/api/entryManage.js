@@ -112,3 +112,13 @@ export function translate(params) {
         params
     });
 }
+
+// 版本导出
+export function versionExport(params) {
+    return request({
+        url: "/entryInfo/versionExport",
+        method: "POST", 
+        responseType: 'blob',
+        params
+    });
+}

@@ -37,6 +37,7 @@
             :loading="loading"
             :rowClassName="getRowClassName"
             :customRow="doubleClick"
+            childrenColumnName="child"
             ref="workTable"
             @resizeColumn="handleResizeColumn"
             >
@@ -121,7 +122,8 @@ export default {
                     return text.index + 1
                 },fixed: 'left'},
                 {title: '词条',dataIndex: 'entry',align:'center',width:100,fixed: 'left',resizable: true},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:100,resizable: true,index:2},
+                // {title: 'Abbr',dataIndex: 'abbr',align:'center',width:100,resizable: true,index:2},
+                {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:100,ellipsis: true,resizable: true},
                 {title: '操作',dataIndex: 'operation',align:'center',width:100,ellipsis: true,},
                 {title: '说明',dataIndex: 'auditTransFeedback',align:'center',width:100,ellipsis: true,resizable: true},

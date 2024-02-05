@@ -68,7 +68,7 @@
                         style="width: 186px"
                         placeholder="请选择翻译语种"
                         :options='translateTypes'
-                        :fieldNames="{label:'name',value:'code'}"
+                        :fieldNames="{label:'name',value:'name'}"
                         size="small"
                         >
                         </a-select>
@@ -113,191 +113,214 @@
             </template>
             <template v-slot:data>
                 <div style="width:100%;position: absolute;">
-                    <a-table 
-                    bordered
-                    class="ant-table-striped"
-                    :columns="columns" 
-                    :data-source="dataSource" 
-                    :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
-                    :row-key="record => record.id"
-                    :scroll="tableHeight"
-                    :pagination='false'
-                    :loading="loading"
-                    :rowClassName="getRowClassName"
-                    ref="taskTable"
-                    @resizeColumn="handleResizeColumn"
-                    :customRow="customRow"
-                    >
-                        <template #bodyCell="{ column, text, record }">
-                            <template v-if="['name', 'description'].includes(column.dataIndex)">
-                                <template v-if="editableData[record.id]">
-                                    <a-input
-                                        @click="clickInput"
+                    <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
+                    
+                        <a-table 
+                        bordered
+                        class="ant-table-striped"
+                        :columns="columns" 
+                        :data-source="dataSource" 
+                        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+                        :row-key="record => record.id"
+                        :scroll="tableHeight"
+                        :pagination='false'
+                        :loading="loading"
+                        :rowClassName="getRowClassName"
+                        ref="taskTable"
+                        @resizeColumn="handleResizeColumn"
+                        :customRow="customRow"
+                        >
+                            <template #bodyCell="{ column, text,index, record }">
+                                <template v-if="['name'].includes(column.dataIndex)">
+                                    <template v-if="editableData[record.id]">
+                                        <a-form-item label=" " :name="[index, column.dataIndex]" :rules="rules[column.dataIndex]">
+                                            <a-input
+                                                @click="clickInput"
+                                                v-model:value="editableData[record.id][column.dataIndex]"
+                                                style="margin: -5px 0"
+                                            />
+                                        </a-form-item>
+                                        
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <!-- <template v-if="'department' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-select
                                         v-model:value="editableData[record.id][column.dataIndex]"
-                                        style="margin: -5px 0"
-                                    />
+                                        style="width: 100%"
+                                        placeholder="请选择"
+                                        :options='departments'
+                                        @click="clickInput"
+                                        @change="changeDepartment(record)"
+                                        >
+                                        </a-select>
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template> -->
+                                <template v-if="'productName' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
+                                            <a-select
+                                            v-model:value="editableData[record.id]['productId']"
+                                            style="width: 85%"
+                                            placeholder="请选择"
+                                            :options='options[record.id]["products"]'
+                                            :fieldNames='{label:"name",value:"id"}'
+                                            @click="clickInput"
+                                            @change="changeProduct(record)"
+                                            >
+                                            </a-select>
+                                            <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)"/>
+                                        </a-form-item>
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
                                 </template>
-                                <template v-else>
-                                    {{ text }}
+                                <template v-if="'versionName' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
+                                            <a-select
+                                            v-model:value="editableData[record.id]['versionId']"
+                                            style="width: 85%"
+                                            placeholder="请选择"
+                                            :options='options[record.id]["versions"]'
+                                            @click="clickInput"
+                                            >
+                                            </a-select>
+                                            <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)"/>
+                                        </a-form-item>
+                                        
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-if="'developer' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-select
+                                        v-model:value="editableData[record.id][column.dataIndex]"
+                                        style="width: 100%"
+                                        placeholder="请选择"
+                                        :options='options[record.id]["developers"]'
+                                        @click="clickInput"
+                                        >
+                                        </a-select>
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-if="'entryAuditor' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-select
+                                        v-model:value="editableData[record.id][column.dataIndex]"
+                                        style="width: 100%"
+                                        placeholder="请选择"
+                                        :options='options[record.id]["entryAuditors"]'
+                                        @click="clickInput"
+                                        >
+                                        </a-select>
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-if="'translator' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-select
+                                        v-model:value="editableData[record.id][column.dataIndex]"
+                                        style="width: 100%"
+                                        placeholder="请选择"
+                                        :options='options[record.id]["translators"]'
+                                        @click="clickInput"
+                                        >
+                                        </a-select>
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-if="'translationAuditor' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-select
+                                        v-model:value="editableData[record.id][column.dataIndex]"
+                                        style="width: 100%"
+                                        placeholder="请选择"
+                                        :options='options[record.id]["translatorAuditors"]'
+                                        @click="clickInput"
+                                        >
+                                        </a-select>
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-if="'translateType' === column.dataIndex">
+                                    <template v-if="editableData[record.id]">
+                                        <a-form-item label=" " :name="[index, 'translateType']" :rules="rules[column.dataIndex]">
+                                            <a-select
+                                            v-model:value="editableData[record.id][column.dataIndex]"
+                                            style="width: 100%"
+                                            placeholder="请选择"
+                                            :options='translateTypes'
+                                            :fieldNames="{label:'name',value:'name'}"
+                                            @click="clickInput"
+                                            >
+                                            </a-select>
+                                        </a-form-item>
+                                        
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-if="column.dataIndex === 'state'">
+                                    <template v-if="record.state === '0'">
+                                        <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                                    </template>
+                                    <template v-if="record.state > '0' && record.state < '6'">
+                                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
+                                    </template>
+                                    <template v-if="record.state === '6'">
+                                        <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
+                                    </template>
+                                </template>
+                                <template v-if="['description'].includes(column.dataIndex)">
+                                    <template v-if="editableData[record.id]">
+                                        <a-input
+                                            @click="clickInput"
+                                            v-model:value="editableData[record.id][column.dataIndex]"
+                                            style="margin: -5px 0"
+                                        />
+                                    </template>
+                                    <template v-else>
+                                        {{ text }}
+                                    </template>
+                                </template>
+                                <template v-else-if="column.dataIndex === 'operation'">
+                                    <div class="editable-row-operations">
+                                        <span v-if="editableData[record.id]">
+                                            <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
+                                            <!-- <a-popconfirm title="是否取消?" ok-text='是' cancel-text='否' @confirm="cancel">
+                                                <a-button type="primary" ghost size="small" danger>取消</a-button>
+                                            </a-popconfirm> -->
+                                            <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                                        </span>
+                                        <span v-else>
+                                            <!-- <a-button type="primary" ghost size="small" @click.stop="edit(record)">编辑</a-button> -->
+                                            <a-button type="primary" ghost size="small" @click.stop="viewProcess(record)">查看</a-button>
+                                        </span>
+                                    </div>
                                 </template>
                             </template>
-                            <!-- <template v-if="'department' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="width: 100%"
-                                    placeholder="请选择"
-                                    :options='departments'
-                                    @click="clickInput"
-                                    @change="changeDepartment(record)"
-                                    >
-                                    </a-select>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template> -->
-                            <template v-if="'productName' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id]['productId']"
-                                    style="width: 85%"
-                                    placeholder="请选择"
-                                    :options='options[record.id]["products"]'
-                                    :fieldNames='{label:"name",value:"id"}'
-                                    @click="clickInput"
-                                    @change="changeProduct(record)"
-                                    >
-                                    </a-select>
-                                    <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)"/>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="'versionName' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id]['versionId']"
-                                    style="width: 85%"
-                                    placeholder="请选择"
-                                    :options='options[record.id]["versions"]'
-                                    @click="clickInput"
-                                    >
-                                    </a-select>
-                                    <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)"/>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="'developer' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="width: 100%"
-                                    placeholder="请选择"
-                                    :options='options[record.id]["developers"]'
-                                    :fieldNames="{label:'userName',value:'userName'}"
-                                    @click="clickInput"
-                                    >
-                                    </a-select>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="'entryAuditor' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="width: 100%"
-                                    placeholder="请选择"
-                                    :options='options[record.id]["entryAuditors"]'
-                                    :fieldNames="{label:'userName',value:'userName'}"
-                                    @click="clickInput"
-                                    >
-                                    </a-select>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="'translator' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="width: 100%"
-                                    placeholder="请选择"
-                                    :options='options[record.id]["translators"]'
-                                    :fieldNames="{label:'userName',value:'userName'}"
-                                    @click="clickInput"
-                                    >
-                                    </a-select>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="'translationAuditor' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="width: 100%"
-                                    placeholder="请选择"
-                                    :options='options[record.id]["translatorAuditors"]'
-                                    :fieldNames="{label:'userName',value:'userName'}"
-                                    @click="clickInput"
-                                    >
-                                    </a-select>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="'translateType' === column.dataIndex">
-                                <template v-if="editableData[record.id]">
-                                    <a-select
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="width: 100%"
-                                    placeholder="请选择"
-                                    :options='translateTypes'
-                                    :fieldNames="{label:'name',value:'name'}"
-                                    @click="clickInput"
-                                    >
-                                    </a-select>
-                                </template>
-                                <template v-else>
-                                    {{ text }}
-                                </template>
-                            </template>
-                            <template v-if="column.dataIndex === 'state'">
-                                <template v-if="record.state === '0'">
-                                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                                </template>
-                                <template v-if="record.state > '0' && record.state < '6'">
-                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
-                                </template>
-                                <template v-if="record.state === '6'">
-                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                                </template>
-                            </template>
-                            <template v-else-if="column.dataIndex === 'operation'">
-                                <div class="editable-row-operations">
-                                    <span v-if="editableData[record.id]">
-                                        <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                                        <!-- <a-popconfirm title="是否取消?" ok-text='是' cancel-text='否' @confirm="cancel">
-                                            <a-button type="primary" ghost size="small" danger>取消</a-button>
-                                        </a-popconfirm> -->
-                                        <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
-                                    </span>
-                                    <span v-else>
-                                        <a-button type="primary" ghost size="small" @click.stop="edit(record)">编辑</a-button>
-                                    </span>
-                                </div>
-                            </template>
-                        </template>
-                    </a-table>
+                        </a-table>
+                    </a-form>
                 </div>
             </template>
         </DataBox>
@@ -350,7 +373,8 @@ import {
     addTaskInfos,
     deleteTaskInfo,
     updateTaskInfo,
-    taskSubmission
+    taskSubmission,
+    taskCreateNewLanguageTask
 } from "@/http/api/task";
 import { 
     getProduct
@@ -410,16 +434,17 @@ export default {
                 },fixed: 'left'},
                 {title: '任务名称',dataIndex: 'name',align:'center',width:150,fixed: 'left',resizable: true},
                 {title: '执行部门',dataIndex: 'department',align:'center',width:150,resizable: true},
-                {title: '产品名称',dataIndex: 'productName',align:'center',width:180,resizable: true},
+                {title: '产品名称',dataIndex: 'productName',align:'center',width:230,resizable: true},
                 {title: '版本名称',dataIndex: 'versionName',align:'center',width:180,resizable: true},
-                {title: '开发员',dataIndex: 'developer',align:'center',width:150,resizable: true},
-                {title: '词条审核员',dataIndex: 'entryAuditor',align:'center',width:150,resizable: true},
-                {title: '翻译员',dataIndex: 'translator',align:'center',width:150,resizable: true},
-                {title: '翻译审核员',dataIndex: 'translationAuditor',align:'center',width:150,resizable: true},
-                {title: '翻译语种',dataIndex: 'translateType',align:'center',width:150,resizable: true},
-                {title: '任务描述',dataIndex: 'description',align:'center',width:150,ellipsis: true,resizable: true},
+                {title: '翻译语种',dataIndex: 'translateType',align:'center',width:150},
+                {title: '开发员',dataIndex: 'developer',align:'center',width:150},
+                {title: '词条审核员',dataIndex: 'entryAuditor',align:'center',width:150},
+                {title: '翻译员',dataIndex: 'translator',align:'center',width:150},
+                {title: '翻译审核员',dataIndex: 'translationAuditor',align:'center',width:150},
+                {title: '任务描述',dataIndex: 'description',align:'center',width:230,ellipsis: true,resizable: true},
+                {title: '下发时间',dataIndex: 'deliveryTime',align:'center',width:200},
                 {title: '任务状态',dataIndex: 'state',align:'center',width:100,fixed: 'right'},
-                {title: '操作',dataIndex: 'operation',align:'center',width:150,fixed: 'right',index:100}
+                {title: '操作',dataIndex: 'operation',align:'center',width:150,fixed: 'right'}
             ],
             dataSource:[],
             editableData:{},
@@ -443,7 +468,14 @@ export default {
             translateTypes:[],
             addProductVisible: false,
             addProductTask:"",
-            addVersionVisible: false
+            addVersionVisible: false,
+            copyTaskEntry:{},
+            rules: {
+                name: [{ required: true, message: '请输入' }],
+                productName: [{ required: true, message: '请选择' }],
+                versionName: [{ required: true, message: '请选择' }],
+                translateType: [{ required: true, message: '请选择' }]
+            },
         }
     },
     mounted () {
@@ -524,6 +556,8 @@ export default {
             searchTaskInfo(this.search,params).then((res) => {
                 this.dataSource = res.data.list
                 this.loading = false
+            }).catch((err) => {
+                this.loading = false
             })
         },
         clickInput(event){
@@ -553,19 +587,18 @@ export default {
         // 添加表格行点击事件
         customRow(record, index){
             return {
-                onClick: (event) => {
-                    let _this = this
-                    clearTimeout(this.timer)
-                    this.timer = setTimeout(function () {
-                        _this.selectedRowIndex = record.id
-                        _this.currentTask = record
-                        // _this.$refs.timeLine.init()
-                        _this.showOperationArea = true
-                        _this.setTableHeight()
-                    }, 300);
-                },
+                // onClick: (event) => {
+                //     let _this = this
+                //     clearTimeout(this.timer)
+                //     this.timer = setTimeout(function () {
+                //         _this.selectedRowIndex = record.id
+                //         _this.currentTask = record
+                //         _this.showOperationArea = true
+                //         _this.setTableHeight()
+                //     }, 300);
+                // },
                 onDblclick: (event) => {
-                    clearTimeout(this.timer)
+                    // clearTimeout(this.timer)
                     // this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                     this.edit(record)
                 }
@@ -601,8 +634,16 @@ export default {
         },
         // 保存
         save(id){
+            // 校验必填字段
+            this.$refs.tableFormRef.validate().then(() => {
+                // 保存词条
+                this.saveEntry(id)
+            })
+            
+        },
+        saveEntry(id){
             // console.log(this.editableData[id])
-            if(id.startsWith('new') || id.startsWith('copy')){
+            if(id.startsWith('new')){
                 // 新增
                 let data = [this.editableData[id]]
                 addTaskInfos(data).then((res) => {
@@ -610,6 +651,42 @@ export default {
                     this.searchTaskInfo()
                     delete this.editableData[id];
                 })
+            }else if(id.startsWith('copy')){
+                if(this.copyTaskEntry[id] === 1){// 使用原任务已导入的任务
+                    this.loading = true
+                    let first = id.indexOf('_')
+                    let end = id.lastIndexOf('_')
+                    let copyTaskId = id.substring(first+1,end)
+                    let params = {
+                        taskID: copyTaskId
+                    }
+                    this.editableData[id].upgrade = 1
+                    this.editableData[id].state = '0'
+                    let currentDate = this.getCurrentDate()
+                    this.editableData[id].createTime = currentDate
+                    this.editableData[id].endTime = null
+                    this.editableData[id].entryAutiorStartTime = null
+                    this.editableData[id].translationAuditorStartTime = null
+                    this.editableData[id].translateStartTime = null
+                    this.editableData[id].deliveryTime = null
+                    taskCreateNewLanguageTask(params,this.editableData[id]).then((res) => {
+                        message.success('已保存！')
+                        delete this.copyTaskEntry[id]
+                        delete this.editableData[id]
+                        this.searchTaskInfo()
+                    }).catch((err) => {
+                        message.error('复制失败！')
+                        this.loading = false
+                    })
+                }else{
+                    // 新增
+                    let data = [this.editableData[id]]
+                    addTaskInfos(data).then((res) => {
+                        message.success("新增成功！")
+                        this.searchTaskInfo()
+                        delete this.editableData[id];
+                    })
+                }
             }else{
                 // 编辑
                 updateTaskInfo(this.editableData[id]).then((res) => {
@@ -619,20 +696,36 @@ export default {
                 })
             }
         },
+        
         // 批量保存
         batchSave(){
+            // 校验必填字段
+            this.$refs.tableFormRef.validate().then(() => {
+                // 保存
+                this.batchSaveEntry()
+            })
+            
+        },
+        batchSaveEntry(){
             let add = []
             let edit = []
+            let copy = []
             for(let key in this.editableData){
                 // console.log(this.editableData[key])
                 let id = this.editableData[key].id
-                if(id.startsWith('new') || id.startsWith('copy')){
+                if(id.startsWith('new') ){
                     add.push(this.editableData[key])
+                }else if(id.startsWith('copy')){
+                    if(this.copyTaskEntry[id] === 1){
+                        copy.push(this.editableData[key])
+                    }else{
+                        add.push(this.editableData[key])
+                    }
                 }else{
                     edit.push(this.editableData[key])
                 }
             }
-            if(add.length === 0 && edit.length === 0){
+            if(add.length === 0 && edit.length === 0 && copy.length === 0){
                 return
             }
             Modal.confirm({
@@ -645,15 +738,41 @@ export default {
                         // 新增接口
                         addTaskInfos(add).then((res) => {
                             // this.searchTaskInfo()
+                            delete this.editableData[item.id]
                         })
                     }
                     if(edit.length > 0){
                         // 修改接口
                         edit.forEach(item => {
                             updateTaskInfo(item).then((res) => {
-                                
+                                delete this.editableData[item.id]
                             })
                         })
+                    }
+                    if(copy.length > 0){
+                        this.loading = true
+                        copy.forEach(item => {
+                            let first = item.id.indexOf('_')
+                            let end = item.id.lastIndexOf('_')
+                            let copyTaskId = item.id.substring(first+1,end)
+                            let params = {
+                                taskID: copyTaskId
+                            }
+                            item.upgrade = 1
+                            item.state = '0'
+                            let currentDate = this.getCurrentDate()
+                            item.createTime = currentDate
+                            item.endTime = null
+                            item.entryAutiorStartTime = null
+                            item.translationAuditorStartTime = null
+                            item.translateStartTime = null
+                            item.deliveryTime = null
+                            taskCreateNewLanguageTask(params,item).then((res) => {
+                                delete this.copyTaskEntry[id]
+                                delete this.editableData[id]
+                            })
+                        })
+                        this.loading = false
                     }
                     this.searchTaskInfo()
                     message.success("保存成功！")
@@ -664,6 +783,7 @@ export default {
         // 取消
         cancel(id){
             delete this.editableData[id];
+            delete this.copyTaskEntry[id]
             if(id.startsWith("new") || id.startsWith("copy")){
                 //从dataSource中删除
                 this.dataSource.some((item,i) => {
@@ -769,16 +889,52 @@ export default {
             getRoleUserByDepartment(params).then((res) => {
                 let data = res.data
                 if(data.DEVELOPER){
-                    this.options[record.id].developers = data.DEVELOPER
+                    let developer = []
+                    data.DEVELOPER.forEach(item => {
+                        let op = {
+                            label: item.userName,
+                            value: item.userName
+                        }
+                        developer.push(op)
+                    })
+                    // developer.push({label:"无",value:""})
+                    this.options[record.id].developers = developer
                 }
                 if(data.ENTRY_AUDITOR){
-                    this.options[record.id].entryAuditors = data.ENTRY_AUDITOR
+                    let auditor = []
+                    data.ENTRY_AUDITOR.forEach(item => {
+                        let op = {
+                            label: item.userName,
+                            value: item.userName
+                        }
+                        auditor.push(op)
+                    })
+                    auditor.push({label:"无",value:""})
+                    this.options[record.id].entryAuditors = auditor
                 }
                 if(data.TRANSLATOR){
-                    this.options[record.id].translators = data.TRANSLATOR
+                    let translateor = []
+                    data.TRANSLATOR.forEach(item => {
+                        let op = {
+                            label: item.userName,
+                            value: item.userName
+                        }
+                        translateor.push(op)
+                    })
+                    translateor.push({label:"无",value:""})
+                    this.options[record.id].translators = translateor
                 }
                 if(data.TRANSLATE_AUDITOR){
-                    this.options[record.id].translatorAuditors = data.TRANSLATE_AUDITOR
+                    let translateAuditor = []
+                    data.TRANSLATE_AUDITOR.forEach(item => {
+                        let op = {
+                            label: item.userName,
+                            value: item.userName
+                        }
+                        translateAuditor.push(op)
+                    })
+                    translateAuditor.push({label:"无",value:""})
+                    this.options[record.id].translatorAuditors =translateAuditor
                 }
             })
             // console.log(this.options)
@@ -802,6 +958,7 @@ export default {
         },
         // 复制
         copy(){
+            
             this.copyVisible = false
             if(this.copyNumber < 1){
                 this.copyNumber = 1
@@ -812,11 +969,14 @@ export default {
                 return
             }
             let task = this.selectedRows[0]
-            // TODO 查询当前任务执行部门下的产品
+            let copyIds = []
+            // 查询当前任务执行部门下的产品
             for(let i = 1; i <= this.copyNumber; i++){
                 let copyTask = cloneDeep(task)
-                let id = "copy_" + copyTask.id + "_" + i
+                let id = "copy_" + copyTask.id + "_" + (this.dataSource.length + 1)
                 copyTask.id = id
+                copyTask.state = '0'
+                copyTask.name = copyTask.name+'(复制)'
                 this.dataSource.push(copyTask)
                 this.options[id] = {
                     products:[],
@@ -825,8 +985,33 @@ export default {
                 }
                 this.editableData[id] = copyTask
                 this.getOptions(this.editableData[id])
+                copyIds.push(id)
             }
+
+            let _this = this
+            Modal.confirm({
+                title: '是否使用原任务已导入的词条?',
+                icon: createVNode(ExclamationCircleOutlined),
+                content: '',
+                okText: '是',
+                cancelText: '否',
+                onOk() {
+                    // console.log('OK');
+                    copyIds.forEach(item => {
+                        _this.copyTaskEntry[item] = 1
+                    })
+                },
+                onCancel() {
+                    // console.log('Cancel');
+                    copyIds.forEach(item => {
+                        _this.copyTaskEntry[item] = 0
+                    })
+                },
+            });
+            
             this.copyNumber = 1
+            this.selectedRowKeys = []
+            this.selectedRows = []
             // 滚动到最底部
             this.$nextTick(()=>{
                 let container = this.$refs.taskTable.$el.querySelector('.ant-table-body')
@@ -886,6 +1071,23 @@ export default {
                 translationAuditor:''
             }
             this.searchTaskInfo()
+        },
+        // 获取当前时间
+        getCurrentDate(){
+            // 创建一个新的Date对象
+            var currentTime = new Date();
+            
+            // 格式化为指定的日期字符串
+            var formattedTime = `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')} ${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}:${currentTime.getSeconds().toString().padStart(2, '0')}`;
+            
+            return formattedTime
+        },
+        // 查看任务流程
+        viewProcess(record){
+            this.selectedRowIndex = record.id
+            this.currentTask = record
+            this.showOperationArea = true
+            this.setTableHeight()
         }
     }
 }
@@ -937,5 +1139,10 @@ export default {
 }
 .editable-cell:hover .editable-cell-icon {
   display: inline-block;
+}
+.ant-table-cell{
+    .ant-form-item{
+        margin-bottom: 0px;
+    }
 }
 </style>

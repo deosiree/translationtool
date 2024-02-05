@@ -125,7 +125,7 @@
                                                 <a-badge color="#FBB31F" /><span style="color:#FBB31F">待导出</span>
                                             </template>
                                             <template v-else>
-                                                <a-badge color="#C5C5C5" /><span style="color:#C5C5C5">已完成</span>
+                                                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
                                             </template>
                                         </template>
                                         <template v-else-if="column.dataIndex === 'operation'">
@@ -155,7 +155,8 @@
                             @examineEntry="examineEntry"
                             @translateEntry="translateEntry"
                             @examineTranslate="examineTranslate"
-                            @refresh="init"
+                            @refresh="getTask"
+                            @exportEntry="exportEntry"
                             >
 
                             </TimeLine>
@@ -190,6 +191,12 @@
     :currentTask="currentTask"
     @handleClose="examineTranslateClose"/>
     />
+    <ExportModal 
+    ref="exportModal"
+    :visible="exportVisible" 
+    :currentTask="currentTask"
+    @handleClose="exportClose"/>
+    />
 </template>
 <script>
 import { message,Modal } from 'ant-design-vue';
@@ -203,6 +210,7 @@ import ImportModal from '@/views/workbench/importModal.vue'
 import ExamineModal from '@/views/workbench/examineModal.vue'
 import TranslateModal from '@/views/workbench/translateModal.vue'
 import ExamineTranslateModal from '@/views/workbench/examineTranslateModal.vue'
+import ExportModal from '@/views/workbench/exportModal.vue'
 import tableParam from "@/views/entry/tableParam.js";
 import {
   SendOutlined
@@ -222,6 +230,7 @@ export default {
         ExamineModal,
         TranslateModal,
         ExamineTranslateModal,
+        ExportModal,
         SendOutlined
     },
     data(){
@@ -272,7 +281,8 @@ export default {
             examineVisible: false,
             examineTitle: '',
             translateVisible: false,
-            examineTranslateVisible: false
+            examineTranslateVisible: false,
+            exportVisible: false
         }
     },
     mounted () {
@@ -395,9 +405,9 @@ export default {
                     //     this.selectedRowIndex = this.dataSource[0].id
                     //     this.currentTask = this.dataSource[0]
                     // }
-                    this.selectedRowIndex = null
-                    this.showOperationArea = false
-                    this.setTableHeight()
+                    // this.selectedRowIndex = null
+                    // this.showOperationArea = false
+                    // this.setTableHeight()
                 })
             }else if(this.activeCard === 2){
                 // 已办事项
@@ -454,9 +464,14 @@ export default {
 
         // 词条导出
         exportEntry(id){
-            message.info(id)
+            // message.info(id)
+            this.exportVisible = true
+            this.$refs.exportModal.getImportType()
         },
-
+        exportClose(){
+            this.exportVisible = false
+            this.getTask()
+        },
         // 重置
         reset(){
             this.search = {

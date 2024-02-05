@@ -15,8 +15,8 @@ async function createWindow() {
   win = new BrowserWindow({
     // width: 800,
     // height: 600,
-    width: 1440,
-    height: 768,
+    width: 1600,
+    height: 864,
     frame: false,//去除原有的标题栏
     webPreferences: {
       

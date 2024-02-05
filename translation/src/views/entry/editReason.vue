@@ -27,7 +27,12 @@ import {
     updateEntryInfo,
     updateTranslation
 } from "@/http/api/entryManage";
+import {
+    addTranslate
+} from "@/http/api/translate"
 import { message } from 'ant-design-vue';
+import { v4 as uuidv4 } from 'uuid';
+import { cloneDeep } from 'lodash-es';
 export default {
     components:{
         Modal
@@ -53,7 +58,13 @@ export default {
             edit:{
                 reason:""
             },
-            editEntry:[]
+            editEntry:[],
+            languageMap:{
+                english: {idName:'enTransId',chinese:'英文'},
+                french: {idName:'fraTransId',chinese:'法文'},
+                spanish: {idName:'spaTransId',chinese:'西文'},
+                russian: {idName:'ruTransId',chinese:'俄文'},
+            }
         }
     },
     
@@ -78,43 +89,75 @@ export default {
                     notes:this.edit.reason
                 }
                 this.editEntry.forEach(entry => {
-                    updateEntryInfo(entry,params).then((res) => {
-                        
-                        this.$emit("editOk",entry.id)
-                    })
                     if(this.$store.state.admin){
                         let tran = []
                         let english = {
-                            id: entry.englishId,
-                            translate: entry.english
+                            id: entry.enTransId,
+                            translate: entry.english,
+                            language: 'english'
                         }
                         let russian = {
-                            id: entry.russianId,
-                            translate: entry.russian
+                            id: entry.ruTransId,
+                            translate: entry.russian,
+                            language: 'russian'
                         }
                         let spanish = {
-                            id: entry.spanishId,
-                            translate: entry.spanish
+                            id: entry.spaTransId,
+                            translate: entry.spanish,
+                            language: 'spanish'
                         }
                         let french = {
-                            id: entry.frenchId,
-                            translate: entry.french
+                            id: entry.fraTransId,
+                            translate: entry.french,
+                            language: 'french'
                         }
                         tran.push(english)
                         tran.push(russian)
                         tran.push(spanish)
                         tran.push(french)
-                        let data = []
+                        let updateData = []
+                        let addData = []
+                        let tempEntry = cloneDeep(entry)
                         tran.forEach(item => {
-                            if(item.id != undefined && item.id != '' && item.id != null){
-                                data.push(item)
+                            if(item.translate === '' || item.translate === null){
+                                tempEntry[this.languageMap[item.language].idName] = ""
+                            }
+                            if(item.id != undefined && item.id != '' && item.id != null 
+                            && item.translate != null && item.translate != '' ){
+                                updateData.push(item)
+                            }else{
+                                if(item.translate != '' && item.translate != null){
+                                    addData.push(item)
+                                }
                             }
                         })
-                        updateTranslation(data).then((res) => {
+                        // 修改翻译
+                        if(updateData.length > 0){
+                            updateTranslation(updateData).then((res) => {
                             
+                            })
+                        }
+                        
+
+                        addData.forEach(item => {
+                            let id = uuidv4()
+                            item.id = id
+                            tempEntry[this.languageMap[item.language].idName] = id
+                            // 新增翻译
+                            item.type = this.languageMap[item.language].chinese
+                            item.entry = tempEntry.entry
+                            item.versionID = tempEntry.versionID
+                            item.translateState = '已审核'
+                            addTranslate(item).then((res) => {
+
+                            })
                         })
-            
+                        entry = tempEntry
                     }
+                    updateEntryInfo(entry,params).then((res) => {
+                        
+                        this.$emit("editOk",entry.id)
+                    })
                 })
                 message.success("编辑成功！")
             }).catch(err => {

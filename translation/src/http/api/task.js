@@ -65,3 +65,13 @@ export function getFinishTaskInfo(params,data) {
         data
     });
 }
+
+// 基于任务生成新的任务
+export function taskCreateNewLanguageTask(params,data) {
+    return request({
+        url: "/taskManage/taskCreateNewLanguageTask",
+        method: "POST", 
+        params,
+        data
+    });
+}

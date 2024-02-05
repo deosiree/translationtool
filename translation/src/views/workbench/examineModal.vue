@@ -24,6 +24,8 @@
                 <a-button type="primary" size="small" style="margin-left:8px" @click="select">查询</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
+                <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
+                <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
             </div>
             <a-table 
             bordered
@@ -37,6 +39,7 @@
             :loading="loading"
             :rowClassName="getRowClassName"
             :customRow="doubleClick"
+            :expandIconColumnIndex="2"
             ref="workTable"
             @resizeColumn="handleResizeColumn"
             >
@@ -96,8 +99,31 @@
                         </div>
                     </template>
                 </template>
+                <template #expandIcon="props">
+                    <span v-if="props.record.children != null && props.record.children.length > 0">
+                        <div
+                            v-if="props.expanded"
+                            style="display: inline-block; margin-right: 10px"
+                            @click="(e) => {props.onExpand(props.record, e);}"
+                        >
+                            <CaretDownOutlined />
+                        </div>
+                        <div
+                            v-else
+                            style="display: inline-block; margin-right: 10px"
+                            @click="(e) => {props.onExpand(props.record, e);}"
+                        >
+                            <CaretRightOutlined />
+                        </div>
+                    </span>
+                    <span v-else style="margin-right:23px"></span>
+                </template>
             </a-table>
         </div>
+        <template v-slot:leftBottomBtn>
+            <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
+            <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
+        </template>
     </Modal>
 </template>
 <script>
@@ -110,13 +136,17 @@ import {
 import {
     CheckOutlined,
     CloseOutlined,
-    ExclamationCircleOutlined
+    ExclamationCircleOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 export default {
     components:{
         CheckOutlined,
         CloseOutlined,
+        CaretDownOutlined,
+        CaretRightOutlined,
         Modal
     },
     emits:['handleClose','handleOK'],
@@ -142,12 +172,13 @@ export default {
             tableHeight: { x:'100%',y: '315px' },
             loading:false,
             columns: [
-                {title: "序号",dataIndex: 'index',align:'center',width:40,customRender: (text, record, index, column) => {
+                {title: "序号",dataIndex: 'index',width:70,customRender: (text, record, index, column) => {
                     return text.index + 1
                 },fixed: 'left'},
-                {title: '词条',dataIndex: 'entry',align:'center',width:100,fixed: 'left',resizable: true},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:100,resizable: true,index:2},
-                {title: '翻译',dataIndex: 'translate',align:'center',width:100,ellipsis: true,resizable: true},
+                {title: '词条',dataIndex: 'entry',width:150,fixed: 'left',resizable: true},
+                // {title: 'Abbr',dataIndex: 'abbr',align:'center',width:100,resizable: true,index:2},
+                {title: '来源',dataIndex: 'source',align:'center',width:150,resizable: true,ellipsis:true},
+                {title: '翻译',dataIndex: 'translate',align:'center',width:150,ellipsis: true,resizable: true},
                 {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,},
                 {title: '说明',dataIndex: 'auditEntryFeedback',align:'center',width:100,ellipsis: true,resizable: true},
             ],
@@ -177,14 +208,22 @@ export default {
                 pageIndex: -1,
                 pageSize: -1
             }
+            this.loading = true
             getEntryTempByTaskID(params).then((res) => {
-
                 this.dataSource = res.data.list
                 this.allData = this.dataSource
+                
+                this.loading = false
             })
         },
         handleOK(){
             // console.log(this.allData)
+            for (let key in this.editableData) {
+				let entry = this.dataSource.find(item => item.id === key)
+                entry.translate = this.editableData[key].translate
+                entry.auditEntryFeedback = this.editableData[key].auditEntryFeedback
+			}
+            this.editableData = []
             updateEntryTemp(this.allData).then((res) => {
                 message.success('审核完成！')
                 this.$emit('handleClose')
@@ -251,11 +290,11 @@ export default {
             return {
                 onDblclick: (event) => {
                     this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
-                    if(this.columns.findIndex(item => item.dataIndex === 'operation') === -1){
-                        // 添加操作列
-                        let operation = {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right'}
-                        this.columns.push(operation)
-                    }
+                    // if(this.columns.findIndex(item => item.dataIndex === 'operation') === -1){
+                    //     // 添加操作列
+                    //     let operation = {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right'}
+                    //     this.columns.push(operation)
+                    // }
                 }
             }
         },
@@ -264,7 +303,7 @@ export default {
             record.auditEntryFeedback = this.editableData[record.id].auditEntryFeedback
             record.translate = this.editableData[record.id].translate
             delete this.editableData[record.id]
-            this.deleteOperationColumns()
+            // this.deleteOperationColumns()
         },
         // 编辑
         edit(record){
@@ -286,7 +325,61 @@ export default {
                 })
             }
         },
+        // 聚合
+        aggregation(){
+            if(this.selectedRows.length < 2){
+                message.warn("请选择两条以上词条聚合！")
+            }
+            let children = []
+            for(let i = 1; i < this.selectedRows.length; i++){
+                let child = this.selectedRows[i]
+                if(child.children && child.children.length > 0){
+                    child.children.forEach(item => {
+                        children.push(item)
+                    })
+                }
+                child.children = []
+                children.push(child)
+            }
+            children.forEach(item => {
+                item.parentID = this.selectedRows[0].id
 
+                this.dataSource = this.dataSource.filter(data => data.id != item.id)
+            })
+            if(this.selectedRows[0].children){
+                this.selectedRows[0].children = this.selectedRows[0].children.concat(children)
+            }else{
+                this.selectedRows[0].children = children
+            }
+            
+            this.allData = this.dataSource
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
+        // 取消聚合
+        cancelAggregation(){
+            // console.log(this.selectedRows)
+            this.selectedRows.forEach(item => {
+                if((item.parentID === '' || item.parentID ===null ) && item.children){
+                    let index = this.dataSource.findIndex(entry => entry.id === item.id)
+                    for(let i = 0; i < item.children.length; i++){
+                        let child = item.children[i]
+                        child.parentID = ""
+                        this.dataSource.splice(index + i + 1,0,child)
+                    }
+                    item.children = []
+                }else{
+                    let parent = this.dataSource.find(data => data.id === item.parentID)
+                    parent.children = parent.children.filter(child => child.id != item.id)
+                    let index = this.dataSource.findIndex(data => data.id === item.parentID)
+                    item.parentID = ""
+                    this.dataSource.splice(index + 1, 0 , item)
+                }
+            })
+            this.allData = this.dataSource
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
         afterClose(){
             this.editableData = {}
             this.selectedRows = []

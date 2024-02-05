@@ -3,7 +3,7 @@
         <a-row type="flex">
             <a-col flex="240px" class="vesionBox">
                 <div class="versionSearch">
-                    <a-input v-model:value="keyWords" placeholder="关键字搜索" style="width:90%">
+                    <a-input v-model:value="keyWords" placeholder="关键字搜索" style="width:90%" @pressEnter="getProductVersion">
                         <template #suffix>
                             <SearchOutlined style="color: #DCDCDC;"/>
                         </template>
@@ -40,7 +40,7 @@
                                     <span>{{ title }}</span>
                                     <template #overlay>
                                         <a-menu>
-                                            <a-menu-item>导出</a-menu-item>
+                                            <a-menu-item @click="versionExport(treeKey,title)">导出</a-menu-item>
                                             <a-menu-item v-if="edit" @click="editVersionName(treeKey,title)">重命名</a-menu-item>
                                             <a-menu-item v-if="edit" @click="editVersionDetails(treeKey)">修改详情</a-menu-item>
                                             <a-menu-item v-if="edit">
@@ -70,6 +70,7 @@
                             </a-tooltip>
                         </template>
                     </a-directory-tree>
+                    <span v-if="versions.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
                 </div>
             </a-col>
             <a-col flex="auto" class="taskBox">
@@ -139,9 +140,21 @@
                             :customRow="customRow"
                             >
                                 <template #bodyCell="{ column, record }">
+                                    <template v-if="column.dataIndex === 'state'">
+                                        <template v-if="record.state === '0'">
+                                            <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                                        </template>
+                                        <template v-if="record.state > '0' && record.state < '6'">
+                                            <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
+                                        </template>
+                                        <template v-if="record.state === '6'">
+                                            <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
+                                        </template>
+                                    </template>
                                     <template v-if="column.dataIndex === 'operation'">
                                         <div class="editable-row-operations">
                                         <span>
+                                            <!-- <a-button type="primary" ghost size="small" @click="viewTaskEntry(record)">查看</a-button> -->
                                             <a-button type="primary" ghost size="small" @click="exportTaskEntry(record)">导出</a-button>
                                         </span>
                                         </div>
@@ -160,8 +173,35 @@
     :currentVersion="currentVersion"
     @versionClose="versionClose"
     ></VersionModal>
+    <Modal
+    :visible="exportVisible" 
+    :okLoading="exportLoading"
+    modalTitle="导出"
+    @handleClose="exportClose"
+    @handleOK="exportOK"
+    @afterClose="exportAfterClose"
+    >
+        <div class="content">
+            <a-form
+                ref="formRef"
+                name="custom-validation"
+                :model="exportModal"
+            >
+                <a-form-item label="翻译语言" name="language">
+                    <a-select
+                    v-model:value="exportModal.language"
+                    placeholder="请选择内容"
+                    :options='translateTypes'
+                    :fieldNames="{label:'name',value:'name'}"
+                    >
+                    </a-select>
+                </a-form-item>
+            </a-form>
+        </div>
+    </Modal>
 </template>
 <script>
+import Modal from '@/components/modal/index.vue';
 import SearchBox from '@/components/search/searchBox.vue'
 import DataBox from '@/components/dataBox/index.vue'
 import VersionModal from '@/views/entry/versionModal.vue'
@@ -176,7 +216,8 @@ import {
 } from "@/http/api/product";
 import { 
     updateVersion,
-    deleteVersion
+    deleteVersion,
+    getVersionByName
 } from "@/http/api/productVersion";
 import { 
     searchTaskInfo
@@ -184,6 +225,14 @@ import {
 import { 
     getLanguage
 } from "@/http/api/translate";
+import {
+    versionExport,
+} from "@/http/api/entryManage"
+import {
+    versionDownload,
+    taskDownload,
+    exportEntryBytaskId
+} from "@/http/api/download"
 import { message } from 'ant-design-vue';
 export default {
     components:{
@@ -193,7 +242,8 @@ export default {
         SearchOutlined,
         EyeOutlined,
         PlusSquareOutlined,
-        InfoCircleOutlined
+        InfoCircleOutlined,
+        Modal
     },
     emits:['viewEntry'],
     props: {
@@ -227,17 +277,18 @@ export default {
                     return text.index + 1
                 },fixed: 'left'},
                 {title: '任务名称',dataIndex: 'name',align:'center',width:150,fixed: 'left',resizable: true},
-                {title: '执行部门',dataIndex: 'department',align:'center',width:150,resizable: true},
+                {title: '执行部门',dataIndex: 'department',align:'center',width:150},
                 {title: '产品名称',dataIndex: 'productName',align:'center',width:180,resizable: true},
-                {title: '版本',dataIndex: 'versionName',align:'center',width:180,resizable: true},
-                {title: '词条数量',dataIndex: 'entryNum',align:'center',width:150,resizable: true},
-                {title: '翻译语种',dataIndex: 'translateType',align:'center',width:150,resizable: true},
-                {title: '开发员',dataIndex: 'developer',align:'center',width:150,resizable: true},
-                {title: '词条审核员',dataIndex: 'entryAuditor',align:'center',width:150,resizable: true},
-                {title: '翻译员',dataIndex: 'translator',align:'center',width:150,resizable: true},
-                {title: '翻译审核员',dataIndex: 'translationAuditor',align:'center',width:150,resizable: true},
+                {title: '版本',dataIndex: 'versionName',align:'center',width:180},
+                {title: '翻译语种',dataIndex: 'translateType',align:'center',width:150},
+                {title: '导入词条数量',dataIndex: 'entryNum',align:'center',width:150},
+                {title: '开发员',dataIndex: 'developer',align:'center',width:150},
+                {title: '词条审核员',dataIndex: 'entryAuditor',align:'center',width:150},
+                {title: '翻译员',dataIndex: 'translator',align:'center',width:150},
+                {title: '翻译审核员',dataIndex: 'translationAuditor',align:'center',width:150},
                 {title: '任务描述',dataIndex: 'description',align:'center',width:150,resizable: true},
-                {title: '下发时间',dataIndex: 'deliveryTime',align:'center',width:150,resizable: true},
+                {title: '下发时间',dataIndex: 'deliveryTime',align:'center',width:200},
+                {title: '任务状态',dataIndex: 'state',align:'center',width:100,fixed: 'right'},
                 {title: '操作',dataIndex: 'operation',align:'center',fixed: 'right',width:80},
             ],
             dataSource:[],
@@ -246,6 +297,15 @@ export default {
             versionVisible: false,
             versionModalTitle:'添加版本',
             currentVersion:{},
+            exportVisible: false,
+            exportModal:{
+                language:'英文'
+            },
+            exportVersion:{
+                id:"",
+                name:""
+            },
+            exportLoading: false
         }
     },
     
@@ -363,6 +423,28 @@ export default {
             // message.info('查看版本词条')
             this.$emit('viewEntry',treeKey)
         },
+        // 导出
+        exportTaskEntry(record){
+            let params = {
+                taskId: record.id
+            }
+            this.loading = true
+            exportEntryBytaskId(params).then((res) => {
+                let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
+                let contentType = res.headers['content-type']
+                const blob = new Blob([res.data], {type: contentType})
+                const a = document.createElement('a') // 转换完成，创建一个a标签用于下载
+                a.download = decodeURI(fileName)
+                a.href = window.URL.createObjectURL(blob)
+                a.click()
+                a.remove()
+                window.URL.revokeObjectURL(a.href);
+                this.loading = false
+            }).catch((err) => {
+                this.loading = false
+                message.error("导出失败！")
+            })
+        },
         // 表格列可伸缩
         handleResizeColumn: (w, col) => {
             col.width = w;
@@ -371,7 +453,7 @@ export default {
         customRow(record, index){
             return {
                 onClick: (event) => {
-                    this.selectedRowIndex = record.id
+                    // this.selectedRowIndex = record.id
                 },
                 onDblclick: (event) => {
                     
@@ -380,11 +462,14 @@ export default {
         },
         // 查询产品的所有版本
         getProductVersion(){
-            let params = {
-                productName:this.product.title,
-                department:this.product.department
+            if(Object.keys(this.product).length === 0){
+                return
             }
-            getProductVersion(params).then((res) => {
+            let params = {
+                versionName: this.keyWords,
+                productID: this.product.key
+            }
+            getVersionByName(params).then((res) => {
                 let data = []
                 res.data.list.forEach(element => {
                     let res = JSON.parse(
@@ -439,6 +524,7 @@ export default {
             }
 
             this.versionVisible = true
+            this.versionModalTitle = '添加版本'
         },
         // 修改详情
         editVersionDetails(key){
@@ -464,9 +550,60 @@ export default {
             }
             this.getTaskList()
         },
-        // 导出
-        exportTaskEntry(record){
-            message.info("导出！")
+        // 查看任务词条
+        viewTaskEntry(record){
+            message.info("查看任务词条")
+        },
+
+        // 版本导出
+        versionExport(key,title){
+            this.exportVisible = true
+            this.exportVersion.id = key
+            this.exportVersion.name = title
+        },
+        exportOK(){
+            // 版本词条导出
+            let params = {
+                versionID: this.exportVersion.id,
+                translateType: this.exportModal.language
+            }
+            this.exportLoading = true
+            versionDownload(params).then((res) => {
+                let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
+                let contentType = res.headers['content-type']
+                const blob = new Blob([res.data], {type: contentType})
+                const a = document.createElement('a') // 转换完成，创建一个a标签用于下载
+                a.download = decodeURI(fileName)
+                a.href = window.URL.createObjectURL(blob)
+                a.click()
+                a.remove()
+                window.URL.revokeObjectURL(a.href);
+                this.exportVisible = false
+                this.exportLoading = false
+            })
+        },
+        exportClose(){
+            this.exportVisible = false
+        },
+        exportAfterClose(){
+            this.exportVersion = {
+                id:"",
+                name:""
+            }
+        },
+        
+        getTime(){
+            const now = new Date();
+            // 格式化时间
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const second = now.getSeconds();
+            const currentTime = `${year}${month >= 10 ? month : '0' + month}${day >= 10 ? day : '0' + day}`;
+            // 将格式化后的时间存入 data 中
+            return currentTime;
         }
     }
 }

@@ -35,3 +35,12 @@ export function deleteVersion(data){
         data, 
     });
 }
+
+// 版本条件查询
+export function getVersionByName(params){
+    return request({
+        url: "/version/getVersionByName",
+        method: "GET", 
+        params, 
+    });
+}

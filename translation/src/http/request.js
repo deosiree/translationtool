@@ -30,7 +30,7 @@ error => {
     return Promise.reject(error);
 }
 );
- 
+let messageFlag = true
 // 响应拦截器
 service.interceptors.response.use(
 response => {
@@ -38,11 +38,24 @@ response => {
     // 这里拦截401错误，并重新跳入登页重新获取token
     if (response.status && response.status === 200) {
       // 通讯成功
+      // if(response.data.code === 205){
+      //   // 如果是token过期，跳转至登录
+      //   message.error("登录已过期，请重新登录！");
+      //    // 移除token，跳转至登录页面
+      //   store.commit("removeData")
+      //   router.push({ path: '/' })
+      // }else{
+      //   return response.data
+      // }
       if (response.data.code === 200) {
         return response.data
       } else if (response.data.code === 205) { 
         // 如果是token过期，跳转至登录
-        message.error("登录已过期，请重新登录！");
+        if(messageFlag){
+          messageFlag = false
+          message.error({content:"登录已过期，请重新登录！",onClose:(() => {messageFlag = true})});
+        }
+        
          // 移除token，跳转至登录页面
         store.commit("removeData")
         router.push({ path: '/' })

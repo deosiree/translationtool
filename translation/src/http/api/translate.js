@@ -8,3 +8,12 @@ export function getLanguage(data) {
         data 
     });
 }
+
+// 新增翻译
+export function addTranslate(data) {
+    return request({
+        url:"/translate/addTranslate",
+        method: "POST", 
+        data 
+    });
+}

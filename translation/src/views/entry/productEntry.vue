@@ -1,6 +1,6 @@
 <template>
     <div class="productEntryBox" ref="productEntryBox">
-        <SearchBox ref="search">
+        <SearchBox ref="search" :operate="false">
             <template v-slot:form>
                 <a-form
                     :model="search"
@@ -47,12 +47,16 @@
                     >
                         <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
                     </a-form-item>
+                    <a-form-item>
+                        <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                        <a-button type="primary" size="middle" @click="getEntryByVersion" style="margin-left:8px">查询</a-button>
+                    </a-form-item>
                 </a-form>
             </template>
-            <template v-slot:operate>
+            <!-- <template v-slot:operate>
                 <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
                 <a-button type="primary" size="middle" @click="getEntryByVersion">查询</a-button>
-            </template>
+            </template> -->
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:label>
@@ -101,63 +105,65 @@
             </template>
             <template v-slot:data>
                 <div style="width:100%;position: absolute;">
-                    <a-table 
-                    bordered
-                    class="ant-table-striped"
-                    :columns="columns" 
-                    :data-source="dataSource" 
-                    :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
-                    :row-key="record => record.id"
-                    :scroll="tableHeight"
-                    :pagination='false'
-                    :loading="loading"
-                    :rowClassName="getRowClassName"
-                    ref="taskTable"
-                    @resizeColumn="handleResizeColumn"
-                    :customRow="customRow"
-                    >
-                        <template #bodyCell="{ column, record, text }">
-                            <template v-if="inputColumn.includes(column.dataIndex)">
-                                <div>
-                                    <template v-if="editableData[record.id]">
-                                        <a-input
-                                            v-model:value="editableData[record.id][column.dataIndex]"
-                                            style="margin: -5px 0"
-                                            @click="clickInput"
-                                        />
-                                    </template>
-                                    <template v-else>
-                                        {{ text }}
-                                    </template>
-                                </div>
+                    <a-config-provider :locale="locale">
+                        <a-table 
+                        bordered
+                        class="ant-table-striped"
+                        :columns="columns" 
+                        :data-source="dataSource" 
+                        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+                        :row-key="record => record.id"
+                        :scroll="tableHeight"
+                        :loading="loading"
+                        :rowClassName="getRowClassName"
+                        :pagination="pagination"
+                        ref="taskTable"
+                        @resizeColumn="handleResizeColumn"
+                        :customRow="customRow"
+                        >
+                            <template #bodyCell="{ column, record, text }">
+                                <template v-if="inputColumn.includes(column.dataIndex)">
+                                    <div>
+                                        <template v-if="editableData[record.id]">
+                                            <a-input
+                                                v-model:value="editableData[record.id][column.dataIndex]"
+                                                style="margin: -5px 0"
+                                                @click="clickInput"
+                                            />
+                                        </template>
+                                        <template v-else>
+                                            {{ text }}
+                                        </template>
+                                    </div>
+                                </template>
+                                <template v-if="admin && translateColumn.includes(column.dataIndex)">
+                                    <div>
+                                        <template v-if="editableData[record.id]">
+                                            <a-input
+                                                v-model:value="editableData[record.id][column.dataIndex]"
+                                                style="margin: -5px 0"
+                                                @click="clickInput"
+                                            />
+                                        </template>
+                                        <template v-else>
+                                            {{ text }}
+                                        </template>
+                                    </div>
+                                </template>
+                                <template v-if="column.dataIndex === 'operation'">
+                                    <div class="editable-row-operations">
+                                    <span v-if="editableData[record.id]">
+                                        <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
+                                        <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                                    </span>
+                                    <span v-else>
+                                        <a-button type="primary" ghost size="small" @click.stop="entryDetails(record)">详情</a-button>
+                                    </span>
+                                    </div>
+                                </template>
                             </template>
-                            <template v-if="admin && translateColumn.includes(column.dataIndex)">
-                                <div>
-                                    <template v-if="editableData[record.id]">
-                                        <a-input
-                                            v-model:value="editableData[record.id][column.dataIndex]"
-                                            style="margin: -5px 0"
-                                            @click="clickInput"
-                                        />
-                                    </template>
-                                    <template v-else>
-                                        {{ text }}
-                                    </template>
-                                </div>
-                            </template>
-                            <template v-if="column.dataIndex === 'operation'">
-                                <div class="editable-row-operations">
-                                <span v-if="editableData[record.id]">
-                                    <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                                    <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
-                                </span>
-                                <span v-else>
-                                    <a-button type="primary" ghost size="small" @click.stop="entryDetails(record)">详情</a-button>
-                                </span>
-                                </div>
-                            </template>
-                        </template>
-                    </a-table>
+                        </a-table>
+                    </a-config-provider>
                 </div>
             </template>
         </DataBox>
@@ -269,6 +275,7 @@
 </template>
 <script>
 import tableParam from "./tableParam.js";
+import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import common from "./common.js";
 import SearchBox from '@/components/search/searchBox.vue'
 import DataBox from '@/components/dataBox/index.vue'
@@ -283,6 +290,9 @@ import {
 import { 
     getProductVersion
 } from "@/http/api/product";
+import {
+    getVersionByName
+} from "@/http/api/productVersion"
 import { 
     getEntryByVersion,
     deleteEntryInfo,
@@ -323,6 +333,7 @@ export default {
     },
     data() {
         return{
+            locale:zhCN,
             box:0,
             user:{},
             admin:false,
@@ -358,6 +369,10 @@ export default {
                 {title: '操作',dataIndex: 'operation',align:'center',width:150,fixed: 'right',index:100}
             ],
             dataSource:[],
+            pagination:{
+                pageSizeOptions:['20','50','100'],
+                defaultPageSize:20
+            },
             overlayStyle: tableParam.overlayStyle,
             checkboxList: tableParam.checkboxList,
             checkedColumn: tableParam.checkedColumn,
@@ -440,7 +455,7 @@ export default {
                 } catch (error) {
                     
                 }
-                this.tableHeight.y = this.dataHeight - buttonHeight - 110
+                this.tableHeight.y = this.dataHeight - buttonHeight - 110 - 40
             })
         },
         // 设置表格每一行的class
@@ -461,24 +476,28 @@ export default {
 
         // 查询产品的所有版本
         getProductVersion(){
-            let params = {
-                productName:this.product.title,
-                department:this.product.department
+            if(Object.keys(this.product).length === 0){
+                return
             }
-            getProductVersion(params).then((res) => {
+            let params = {
+                versionName: "",
+                productID: this.product.key
+            }
+            getVersionByName(params).then((res) => {
                 this.productVersions = res.data.list
                 if(this.productVersions.length > 0){
                     this.currentVersion = this.productVersions[0].id
-                    // 获取版本下的词条
-                    this.getEntryByVersion()
                 }else{
                     this.currentVersion = null
                 }
+                // 获取版本下的词条
+                this.getEntryByVersion()
             })
         },
         // 获取版本词条
         getEntryByVersion(){
             if(this.currentVersion === null){
+                this.dataSource = []
                 return
             }
             let params = {
@@ -494,10 +513,17 @@ export default {
                 partOfSpeech:this.search.partOfSpeech,
                 entrySource:this.search.entrySource
             }
-
+            this.loading = true
             getEntryByVersion(data,params).then((res) => {
-                this.assemblyTableData(res.data.list)
+                // this.assemblyTableData(res.data.list)
+                this.dataSource = res.data.list
+                let version = this.productVersions.find(item => item.id === this.currentVersion)
+                this.dataSource.forEach(item => {
+                    item.tableName = version.tableName
+                })
+                this.loading = false
             })
+            this.editableData = {}
         },
         // 组装表格数据
         assemblyTableData(data){
@@ -540,6 +566,8 @@ export default {
                 dataSource.push(item)
             });
             this.dataSource = dataSource
+            // console.log(this.dataSource)
+            this.loading = false
         },
         changeVersion(version){
             // console.log(version)
@@ -551,18 +579,18 @@ export default {
         // 添加表格行点击事件
         customRow(record, index){
             return {
-                onClick: (event) => {
-                    let _this = this
-                    clearTimeout(this.timer)
-                    this.timer = setTimeout(function () {
-                        _this.selectedRowIndex = record.id
-                        _this.currentEntry = record
-                        _this.showOperationArea = true
-                        _this.setTableHeight()
-                    }, 300);
-                },
+                // onClick: (event) => {
+                //     let _this = this
+                //     clearTimeout(this.timer)
+                //     this.timer = setTimeout(function () {
+                //         _this.selectedRowIndex = record.id
+                //         _this.currentEntry = record
+                //         _this.showOperationArea = true
+                //         _this.setTableHeight()
+                //     }, 300);
+                // },
                 onDblclick: (event) => {
-                    clearTimeout(this.timer)
+                    // clearTimeout(this.timer)
                     if(this.edit){
                         this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                     }
@@ -646,25 +674,25 @@ export default {
             let data = []
             if(this.currentEntry.englishChecked){
                 let ele = {
-                    id: this.currentEntry.englishId
+                    id: this.currentEntry.enTransId
                 }
                 data.push(ele)
             }
             if(this.currentEntry.russianChecked){
                 let ele = {
-                    id: this.currentEntry.russianId
+                    id: this.currentEntry.ruTransId
                 }
                 data.push(ele)
             }
             if(this.currentEntry.spanishChecked){
                 let ele = {
-                    id: this.currentEntry.spanishId
+                    id: this.currentEntry.spaTransId
                 }
                 data.push(ele)
             }
             if(this.currentEntry.frenchChecked){
                 let ele = {
-                    id: this.currentEntry.frenchId
+                    id: this.currentEntry.fraTransId
                 }
                 data.push(ele)
             }
@@ -761,7 +789,7 @@ export default {
         td{
             border: 1px solid #E7E7E7;
             text-align: center;
-            color: var(--text-icon-font-gy-340-placeholder, rgba(0, 0, 0, 0.40));
+            // color: var(--text-icon-font-gy-340-placeholder, rgba(0, 0, 0, 0.40));
             /* 五级文字/常规 */
             font-family: Microsoft YaHei;
             font-size: 12px;
@@ -797,6 +825,9 @@ export default {
             bottom: 0px;
         }
     }
+}
+:deep(.ant-pagination) {
+    margin: 8px 0px 0px 0px;
 }
 
 </style>

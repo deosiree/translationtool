@@ -82,7 +82,7 @@
                                     </template>
                                 </div>
                             </template>
-                            <template v-else-if="column.dataIndex === 'type'">
+                            <!-- <template v-else-if="column.dataIndex === 'type'">
                                 <div>
                                     <template v-if="editableData[record.id]">
                                         <a-select
@@ -98,15 +98,13 @@
                                         {{ text }}
                                     </template>
                                 </div>
-                            </template>
+                            </template> -->
                             <template v-else-if="column.dataIndex === 'operation'">
                                 <div class="editable-row-operations">
                                     <span v-if="editableData[record.id]">
-                                        <!-- <a-button type="primary" ghost size="small" @click="save(record.id)">保存</a-button>
-                                        <a-popconfirm title="是否取消?" ok-text='是' cancel-text='否' @confirm="cancel(record.id)">
-                                        <a-button type="primary" ghost size="small">取消</a-button>
-                                        </a-popconfirm> -->
-                                        <a-tooltip placement="top">
+                                        <a-button type="primary" ghost size="small" @click.stop="save(record)">保存</a-button>
+                                        <a-button type="primary" ghost size="small" danger @click.stop="cancel(record)">取消</a-button>
+                                        <!-- <a-tooltip placement="top">
                                             <template #title>
                                             <span>保存</span>
                                             </template>
@@ -117,7 +115,7 @@
                                             <span>取消</span>
                                             </template>
                                             <CloseOutlined style="color:red;margin-left:8px" @click="cancel(record)"/>
-                                        </a-tooltip>
+                                        </a-tooltip> -->
                                     </span>
                                 </div>
                             </template>
@@ -297,7 +295,7 @@ export default {
                         // 管理员 可修改
                         this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                         if(this.columns.findIndex(item => item.dataIndex === 'operation') === -1){
-                            let operation = {title: '操作',dataIndex: 'operation',align:'center',width:50}
+                            let operation = {title: '操作',dataIndex: 'operation',align:'center',width:80}
                             this.columns.push(operation)
                         }
                     }

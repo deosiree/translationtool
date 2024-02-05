@@ -2,7 +2,7 @@
     <div ref="box" class="box">
         <a-row type="flex">
             <a-col flex="240px" class="treeBox">
-                <a-input v-model:value="keyWords" placeholder="关键字搜索">
+                <a-input v-model:value="keyWords" placeholder="关键字搜索" @pressEnter="getClassTree">
                     <template #suffix>
                         <SearchOutlined style="color: #DCDCDC;"/>
                     </template>
@@ -42,6 +42,7 @@
                         </a-dropdown>
                     </template>
                 </a-tree>
+                <span v-if="treeData.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
             </a-col>
             <a-col flex="auto" class="dataBox">
                 <div class="entryBox" v-if="isProduct">
@@ -84,7 +85,8 @@ import ClassifyModal from '@/views/entry/classifyModal.vue'
 import ProductAuthorityNodal from '@/views/entry/productAuthorityModal.vue'
 import { 
     getClassTree,
-    deleteEntryClassfy
+    deleteEntryClassfy,
+    updateEntryClassfy
 } from "@/http/api/entryManage";
 import { 
     deleteProduct,
@@ -144,7 +146,8 @@ export default {
         // 查询分类树
         getClassTree(){
             let params = {
-                department:this.$store.state.admin ? '' : this.user.department
+                department:this.$store.state.admin ? '' : this.user.department,
+                className: this.keyWords
             }
             getClassTree(params).then((res) => {
                 this.treeData = res.data.list
@@ -238,6 +241,8 @@ export default {
             }else if(node.type === 'common'){
                 this.isProduct = false
                 this.currentClickProduct = node
+            }else {
+                this.currentClickProduct = node
             }
         },
         // 分类拖拽
@@ -257,12 +262,20 @@ export default {
                 // 是目标分类的子集
                 dragNode.parentId = node.key
             }
+            if(node.type === 'common'){// 公共库分类无子类
+                return
+            }
+
             // updateEntryClassfy(dragNode).then((res) => {
-            //     this.getClassifyData()
+            //     message.success('已保存！') 
+            //     this.getClassTree()
+            // }).catch((err) => {
+            //     message.error("操作失败！")
             // })
         },
         viewEntry(versionId){
             this.activeKey = '1'
+            this.$refs.productEntry.getProductVersion()
             this.$refs.productEntry.changeVersion(versionId)
         },
         

@@ -15,12 +15,12 @@
                 <div :class="task.state >= item.state ? 'circular circular_green' : 'circular circular_grey'">
                     <div class="top_info">
                         <div v-if="showButton" class="buttonBox">
-                            <a-button type="primary" ghost size="small" v-if="item.state === '1'" :disabled="task.state === item.state ? false : true" @click="importEntry">导入</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '2'" :disabled="task.state === item.state ? false : true" @click="examineEntry">词条审核</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '3'" :disabled="task.state === item.state ? false : true" @click="translateEntry">翻译</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '4'" :disabled="task.state === item.state ? false : true" @click="examineTranslate">翻译审核</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state != '5'" :disabled="task.state === item.state ? false : true" @click="submitTask">递交</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="task.state === item.state ? false : true">导出</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state === '1'" :disabled="currentUser.userName === item.user ? false : true" @click="importEntry">导入</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state === '2'" :disabled="currentUser.userName === item.user ? false : true" @click="examineEntry">词条审核</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state === '3'" :disabled="currentUser.userName === item.user ? false : true" @click="translateEntry">翻译</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state === '4'" :disabled="currentUser.userName === item.user ? false : true" @click="examineTranslate">翻译审核</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state != '5'" :disabled="currentUser.userName === item.user ? false : true" @click="submitTask">递交</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="currentUser.userName === item.user ? false : true" @click="exportEntry">导出</a-button>
                         </div>
                         <span v-if="!showButton && item.state === task.state">
                             <span v-if="task.state === '6'">已完成</span>
@@ -58,7 +58,7 @@ export default {
         },
         currentTask:{}
     },
-    emits:['importEntry','examineEntry','translateEntry','examineTranslate','refresh'],
+    emits:['importEntry','examineEntry','translateEntry','examineTranslate','refresh','exportEntry'],
     data(){
         return {
             task:{},
@@ -155,6 +155,10 @@ export default {
         // 翻译审核
         examineTranslate(){
             this.$emit('examineTranslate')
+        },
+        // 导出
+        exportEntry(){
+            this.$emit('exportEntry')
         },
         submitTask(){
             Modal.confirm({

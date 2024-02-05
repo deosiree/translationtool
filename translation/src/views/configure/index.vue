@@ -40,7 +40,7 @@ export default({
   },
   mounted() {
     this.$nextTick(() => {
-      console.log(this.$store.state.tabActive)
+      // console.log(this.$store.state.tabActive)
       // 页面加载完成后执行的代码
       let list = this.$store.state.menu
       for(var item of list){
