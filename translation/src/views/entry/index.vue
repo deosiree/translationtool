@@ -19,15 +19,16 @@
                 @dragenter="onDragEnter"
                 @drop="onDrop"
                 >
-                    <template #title="{ key: treeKey, title, type }">
+                    <template #title="{ key: treeKey, title, type,maxByte }">
                         <a-dropdown :trigger="['contextmenu']">
                             <span>{{ title }}</span>
                             <template #overlay>
                                 <a-menu  v-if="$store.state.admin">
-                                    <a-menu-item v-if="type !='common' && type != 'product'" @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
-                                    <a-menu-item v-if="type !='common' && type != 'product'" @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
+                                    <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
+                                    <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
                                     <a-menu-item v-if="type === 'product'" @click="productAuthority(treeKey)">权限设置</a-menu-item>
-                                    <a-menu-item v-if="type !='department' && type !='common'" @click="editClassify(treeKey, title, type)">编辑</a-menu-item>
+                                    <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey,'module')">添加模块</a-menu-item>
+                                    <a-menu-item v-if="type !='department' && type !='common'" @click="editClassify(treeKey, title, type,maxByte)">编辑</a-menu-item>
                                     <a-menu-item v-if="type !='department' && type !='common'">
                                         <a-popconfirm
                                             title="确定要删除吗?"
@@ -169,19 +170,24 @@ export default {
                 this.classifyModalTitle = "添加产品"
             }else if(type === 'classify'){
                 this.classifyModalTitle = "添加分类"
+            }else if(type === 'module'){
+                this.classifyModalTitle = "添加模块"
             }
         },
         // 编辑分类或产品
-        editClassify(treeKey,title,type){
+        editClassify(treeKey,title,type,maxByte){
             this.currentClass = {
                 key: treeKey,
-                title: title
+                title: title,
+                maxByte:maxByte
             }
             this.classifyVisible = true
             if(type === 'product'){
                 this.classifyModalTitle = "编辑产品"
             }else if(type === 'classify'){
                 this.classifyModalTitle = "编辑分类"
+            }else if(type === 'module'){
+                this.classifyModalTitle = "编辑模块"
             }
         },
         // 删除分类或产品
@@ -196,7 +202,7 @@ export default {
                     this.getClassTree()
                 })
 
-            }else if(type === 'classify'){
+            }else if(type === 'classify' || type === 'module'){
                 let data = [treeKey]
                 deleteEntryClassfy(data).then((res) => {
                     message.success("删除成功！")
@@ -216,12 +222,14 @@ export default {
 
         // 词条分类点击事件
         clickTree(selectedKeys,e){
+            // console.log(e)
             if(e.selected){
                 this.selectedTreeKeys = selectedKeys
             }else{
                 this.selectedTreeKeys = [e.node.key]
             }
             let node = e.node.dataRef
+            // console.log(node)
             if(node.type === 'product'){
                 this.isProduct = true
                 this.currentClickProduct = node
@@ -240,6 +248,13 @@ export default {
                 
             }else if(node.type === 'common'){
                 this.isProduct = false
+                this.currentClickProduct = node
+            }else if(node.type === 'module'){
+                this.isProduct = true
+                // let product = e.node.parent.node
+                // product.filter = node.title
+                // this.currentClickProduct = product
+                node.key = node.parentId
                 this.currentClickProduct = node
             }else {
                 this.currentClickProduct = node

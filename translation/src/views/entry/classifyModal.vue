@@ -20,9 +20,9 @@
                 >
                     <a-input v-model:value="classify.title" placeholder="请输入内容"></a-input>
                 </a-form-item>
-                <!-- <a-form-item label="最大字节数" name="maxLength">
-                    <a-input-number v-model:value="classify.maxByte" placeholder="请输入最大字节数" style="width:100%"></a-input-number>
-                </a-form-item> -->
+                <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="限制字符数" name="maxByte">
+                    <a-input-number v-model:value="classify.maxByte" placeholder="请输入最大字符数" style="width:100%"></a-input-number>
+                </a-form-item>
             </a-form>
         </div>
     </Modal>
@@ -56,10 +56,11 @@ export default {
     },
     data() {
         return{
-            labelCol: { style: { width: '50px' } },
+            labelCol: { style: { width: '80px' } },
             modalWidth:"400px",
             classify:{
-                title:""
+                title:"",
+                maxByte:""
             }
         }
     },
@@ -81,12 +82,12 @@ export default {
         },
         handleOK(){
             this.$refs.formRef.validate().then(() => {
-                if(this.modalTitle === '添加分类'){
+                if(this.modalTitle === '添加分类' || this.modalTitle === '添加模块'){
                     addEntryClassfy(this.classify).then((res) => {
                         message.success('新增成功！')
                         this.$emit("classifyClose")
                     })
-                }else if(this.modalTitle === '编辑分类'){
+                }else if(this.modalTitle === '编辑分类' || this.modalTitle === '编辑模块'){
                     updateEntryClassfy(this.classify).then((res) => {
                         message.success("编辑成功！")
                         this.$emit("classifyClose")
@@ -127,6 +128,7 @@ export default {
         },
         afterClose(){
             this.classify.title = ""
+            this.classify.maxByte = ""
             this.$refs.formRef.clearValidate()
         }
     }

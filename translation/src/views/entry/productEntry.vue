@@ -62,12 +62,13 @@
             <template v-slot:label>
                 当前版本： <a-select
                             v-model:value="currentVersion"
-                            style="width: 120px"
-                            placeholder="请选择内容"
+                            allowClear
+                            style="width: 150px"
+                            placeholder="请选择版本"
                             :options='productVersions'
                             :fieldNames="{label:'name',value:'id'}"
                             size="small"
-                            @select="changeVersion"
+                            @change="changeVersion"
                             >
                             </a-select>
             </template>
@@ -414,6 +415,8 @@ export default {
             this.setTableHeight()
         },
         currentProduct(newval,oldval){
+            console.log(newval)
+            
             this.product = newval
             this.init()
             // console.log(newval)
@@ -428,6 +431,7 @@ export default {
     methods: {
         init(){
            this.getProductVersion()
+           this.getEntryByVersion()
         },
         // 获取翻译语言
         getLanguage(){
@@ -485,18 +489,20 @@ export default {
             }
             getVersionByName(params).then((res) => {
                 this.productVersions = res.data.list
-                if(this.productVersions.length > 0){
-                    this.currentVersion = this.productVersions[0].id
-                }else{
-                    this.currentVersion = null
-                }
+                // if(this.productVersions.length > 0){
+                //     this.currentVersion = this.productVersions[0].id
+                // }else{
+                //     this.currentVersion = null
+                // }
                 // 获取版本下的词条
-                this.getEntryByVersion()
+                // this.getEntryByVersion()
             })
         },
         // 获取版本词条
         getEntryByVersion(){
+            // TODO  product type === module时 加筛选条件
             if(this.currentVersion === null){
+                // TODO  this.currentVersion === null时 获取产品下的版本
                 this.dataSource = []
                 return
             }
@@ -571,9 +577,14 @@ export default {
         },
         changeVersion(version){
             // console.log(version)
-            this.currentVersion = version
+            if(version === undefined){
+                this.currentVersion = null
+            }else{
+                this.currentVersion = version
+            }
             // 查询版本词条
             this.getEntryByVersion()
+            
         },
 
         // 添加表格行点击事件
