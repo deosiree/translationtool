@@ -96,8 +96,7 @@ public class HTTPUtils {
         }
 
         // 请求结果
-        int responseCode = httpConnection.
-                getResponseCode();
+        int responseCode = httpConnection.getResponseCode();
         if (responseCode != 200) {
             throw new Exception(responseCode + ":" + inputStream2String(httpConnection.getErrorStream(), ENCODING));
         }

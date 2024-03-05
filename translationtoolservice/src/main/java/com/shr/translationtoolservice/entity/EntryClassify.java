@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import lombok.Data;
 
+import javax.persistence.Column;
+
 /**
  * 词条分类表
  * @TableName t_entry_classify
@@ -20,13 +22,14 @@ import lombok.Data;
 @Data
 public class EntryClassify implements Serializable {
 
-
+    @TableField(exist = false)
     List<EntryClassify> children;
     /**
      * 
      */
 
-    @TableField("id")
+    @TableId(value = "id")
+    @Column(name = "`key`")
     private String key;
 
     /**
@@ -44,7 +47,7 @@ public class EntryClassify implements Serializable {
     /**
      * 分类名称
      */
-    @TableField("name")
+    @TableField("`name`")
     private String title;
 
     /**
@@ -56,7 +59,7 @@ public class EntryClassify implements Serializable {
     /**
      * 序号
      */
-    @TableField("`maxbyte`")
+    @TableField("`max_byte`")
     private Integer maxByte;
 
 

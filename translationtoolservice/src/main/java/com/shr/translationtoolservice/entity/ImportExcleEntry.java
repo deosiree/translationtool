@@ -33,22 +33,29 @@ public class ImportExcleEntry {
     private String englishInterpretation;
 
     @Excel(name = "中文术语", orderNum = "1")
-    private String chinese;
+    private String entry;
 
-    @Excel(name = "中文字符数", orderNum = "1")
-    private int chineseLength;
+    @Excel(name = "中文术语字符数", orderNum = "1")
+    private Integer entryLength;
     //英文术语
     @Excel(name = "英文术语", orderNum = "1")
     private String english;
     //英文术语字符数
-    private int englishLength;
+    private Integer enCharLength;
     @Excel(name = "西文术语", orderNum = "1")
     private String spanish;
-    private int spanishLength;
+    private Integer spaCharLength;
     @Excel(name = "俄文术语", orderNum = "1")
     private String russia;
-    private int russiaLength;
-    private String classfy;
+    private Integer ruCharLength;
+
+    //英文术语
+    @Excel(name = "法文术语", orderNum = "1")
+    private String french;
+    //英文术语字符数
+    private Integer fraCharLength;
+    private String classfy1;
+    private String classfy2;
 
     private String ABTerm;
     private int ABLength;
@@ -68,16 +75,18 @@ public class ImportExcleEntry {
         put("partOfSpeech","词性备注");
         put("chineseInterpretation","术语中文释义");
         put("englishInterpretation","术语英文释义");
-        put("chinese","中文术语术语");
-        put("chineseLength","中文术语字符数");
+        put("entry","中文术语术语");
+        put("entryLength","中文术语字符数");
         put("english","英文术语术语");
-        put("englishLength","英文术语字符数");
+        put("enCharLength","英文术语字符数");
         put("spanish","西文术语术语");
-        put("spanishLength","西文术语字符数");
+        put("spaCharLength","西文术语字符数");
         put("russia","俄文术语术语");
-        put("russiaLength","俄文术语字符数");
-        put("classfy","类别");
-
+        put("ruCharLength","俄文术语字符数");
+        put("french","法文术语术语");
+        put("fraCharLength","法文术语字符数");
+        put("classfy1","类别1");
+        put("classfy2","类别2");
         put("ABTerm","ABB类全驼峰术语");
         put("ABLength","ABB类全驼峰字符数");
         put("ZSTerm","展开（缩写采用单驼峰,首字母大写）术语");
@@ -86,6 +95,7 @@ public class ImportExcleEntry {
         put("DDLength","单多驼峰搭配下划线（继保类似）字符数");
         put("DSTerm","展开（缩写可采用单/多驼峰）术语");
         put("DSLength","展开（缩写可采用单/多驼峰）字符数");
+
     }};
 
 

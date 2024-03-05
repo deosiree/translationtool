@@ -35,6 +35,7 @@ public class ErrorCodeList {
     public static final String EXPORT_ERROR = "导出失败";
     public static final String ABBR_HAS_EXIST = "ABBR已存在。";
     public static final String OPERATE_ERROR = "操作记录更新失败";
+    public static final String ENTRY_EXIST = "词条已存在";
     private final static List<String> ErrorCodeList = new ArrayList<>();
 
 

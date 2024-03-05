@@ -69,14 +69,14 @@ public class UserLoginServiceImpl implements UserLoginService {
 
         if (null == userInfo) {
             // 第一次登录   获取用户所属部门
-            List<JSONObject> userKey = ldapUtils.getUserKey(account,password);
+            List<JSONObject> userKey = ldapUtils.getUserKey(account, password);
             String department = "";
             if (!userKey.isEmpty()) {
                 String memberOf = userKey.get(0).getString(Constant.MEMBEROF);
                 department = memberOf.substring(memberOf.indexOf(Constant.EQUALE_SIGN) + 1, memberOf.indexOf(Constant.COMMA));
             }
             // 获取默认角色
-         //   Role role = roleMapper.getRoleByDefault();
+            //   Role role = roleMapper.getRoleByDefault();
             // 封装数据  插入数据库
             User user = new User();
             user.setId(commonUtils.getUUID());
@@ -109,13 +109,13 @@ public class UserLoginServiceImpl implements UserLoginService {
         // 获取当前角色对应的菜单权限
         List<Role> roles = roleMapper.selectRoleName(userInfo.getId());
         List<Menu> menus = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(roles)){
+        if (!CollectionUtils.isEmpty(roles)) {
             List<String> roleIds = new ArrayList<>();
-            for (Role role : roles){
+            for (Role role : roles) {
                 roleIds.add(role.getId());
             }
             // userInfo.setRoleName();
-             menus = menuMapper.selectByRoleId(roleIds);
+            menus = menuMapper.selectByRoleId(roleIds);
         }
 
 
@@ -145,11 +145,10 @@ public class UserLoginServiceImpl implements UserLoginService {
         rMap.put("user", userInfo);
         rMap.put("token", token);
         rMap.put("menu", treeUtils.listTree(menus));
-       // rMap.put("authority", menus);
+        // rMap.put("authority", menus);
 
         return Result.ok(rMap);
     }
-
 
 
 }

@@ -3,14 +3,11 @@ package com.shr.translationtoolservice.service.impl;
 import cn.afterturn.easypoi.cache.manager.IFileLoader;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shr.translationtoolservice.dao.UserMapper;
-import com.shr.translationtoolservice.dao.UserProductMapper;
-import com.shr.translationtoolservice.dao.VersionMapper;
+import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.ProductTreeVO;
 import com.shr.translationtoolservice.entity.vo.UserDetailsVo;
 import com.shr.translationtoolservice.service.ProductService;
-import com.shr.translationtoolservice.dao.ProductMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LDAPUtils;
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -47,6 +45,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     private UserMapper userMapper;
     @Autowired
     private LDAPUtils ldapUtils;
+    @Autowired
+    private ProductTableMapper productTableMapper;
 
     @Override
     public List<VersionEntity> getProductVersion(String productName, String department) {
@@ -68,6 +68,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
 
     @Override
     public String addProduct(ProductEntity productEntity, HttpServletRequest request) {
+
         if (StringUtils.isBlank(productEntity.getId())) {
             productEntity.setId(commonUtils.getUUID());
         }
@@ -86,11 +87,31 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             Date date = new Date(System.currentTimeMillis());
             productEntity.setCreateTime(date);
         }
+
         productEntity.setIsDelete(0);
         int insert = productMapper.insert(productEntity);
+
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;
         }
+
+        //创建产品表
+        Date date = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
+        String da = format.format(date);
+        String tableName = " t_entry_info" ;
+        String relationTableName = " t_product_relation" ;
+        ProductTableEntity productTableEntity = new ProductTableEntity();
+        productTableEntity.setEntryInfoTableName(tableName);
+        productTableEntity.setEntryRelationTableName(relationTableName);
+        productTableEntity.setId(commonUtils.getUUID());
+        productTableEntity.setProductId(productEntity.getId());
+        //创建信息表
+        //productTableMapper.createProductInfoTable(tableName);
+        //创建关系
+        //productTableMapper.createProductRelationTable(relationTableName);
+        productTableMapper.addProductTable(productTableEntity);
+
         return ConstantInterface.OK_STR;
     }
 

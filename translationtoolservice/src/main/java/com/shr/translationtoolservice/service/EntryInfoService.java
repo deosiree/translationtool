@@ -3,9 +3,7 @@ package com.shr.translationtoolservice.service;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
-import com.shr.translationtoolservice.entity.vo.EntryVO;
-import com.shr.translationtoolservice.entity.vo.UpgradeVO;
+import com.shr.translationtoolservice.entity.vo.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,9 +41,9 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
 
-    List<EntryTempEntity>  importExcle(MultipartFile multipartFile,String taskID);
+    List<EntryInfoEntity>  importExcle(MultipartFile multipartFile,String taskID);
 
-    String addEntryByTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request, String tableName);
+    String addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request);
 
     TranslateEntities translate(String name, String type,String visualRange);
 
@@ -54,4 +52,19 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     void addTransID(TranslateEntity translateEntities, EntryInfoEntity entryInfoEntity);
 
     void versionExport(String versionID, HttpServletResponse response,String translateType);
+
+    List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID,HttpServletRequest httpServletRequest);
+
+    String insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
+
+
+    String addEntryAudit(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
+
+    String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
+
+    void entryExportByCondition( ExcelExportVO excelExportVO, HttpServletResponse response);
+
+    List<EntryClassify> getClassfy(String parentId, String type);
+
+    String addProductRelation(List<ProductRelationEntity>  relationEntity);
 }

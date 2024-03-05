@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds">
     <!-- 自定义变量 -->
-    <property name="appName" value="ouyangjun-logback" />
+    <property name="appName" value="syhr-logback" />
     <property name="dev.log.filePath" value="log"/>
     <!-- 日志文件名称, 可随便命名 -->
-    <property name="baseFile" value="ouyangjun-logback" />
+    <property name="baseFile" value="syhr-logback" />
 
     <!-- 项目所在盘符的根目录下, 也可以指定具体盘符位置, 如：E:\\app\\ouyangjun-logback\\logs -->
-    <property name="rootPath" value="/app/ouyangjun-logback/logs" />
+    <property name="rootPath" value="/home/shr/translationtoolservice/logs" />
 
     <!-- 日志输出格式 -->
     <property name="pattern" value="%X{thread} [%date{yyyy-MM-dd HH:mm:ss.SSS}] %level %logger{36} %line - %msg%n"/>
@@ -81,7 +81,26 @@
         </filter>
     </appender>
 
-    <root level="INFO">
+    <!--输出INFO日志-->
+    <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${dev.log.filePath}/debug/translationtoolserviceinfo.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印INFO日志 -->
+            <level>debug</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <root level="info">
         <!-- 生产环境,可以不需要再控制台输出日志 -->
         <appender-ref ref="STDOUT" />
 
@@ -93,7 +112,7 @@
 
         <appender-ref ref="WARN" />
 
-
+        <appender-ref ref="DEBUG" />
 
     </root>
 

@@ -16,5 +16,6 @@ public class DictionaryVo {
     private String comments;
     private String source;
     private String tag;
+    // "en_US": "dofodifdoi1",
     private List<Map<String, String>> translation;
 }

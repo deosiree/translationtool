@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -36,6 +37,8 @@ public interface TaskInfoMapper extends BaseMapper<TaskInfoEntity> {
     List<TaskInfoEntity> getFinishTaskInfo(@Param("userName") String userName, @Param("offset") Integer offset, @Param("limit") Integer pageSize,@Param("taskInfoEntity") TaskInfoEntity taskInfoEntity);
 
     int getFinishTaskInfoTotal(@Param("userName") String userName,@Param("taskInfoEntity") TaskInfoEntity taskInfoEntity);
+
+    TaskInfoEntity getTaskEntityByTaskID(String taskID);
 }
 
 

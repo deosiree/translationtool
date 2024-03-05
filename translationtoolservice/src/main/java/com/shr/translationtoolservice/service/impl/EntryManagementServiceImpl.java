@@ -425,31 +425,44 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     }
 
     @Override
-    public List<EntryCommonEntity> importExcle(MultipartFile multipartFile) {
-        String name = multipartFile.getOriginalFilename();
+    public List<EntryInfoEntity> importExcle(MultipartFile multipartFile,String transType) {
+       // String name = multipartFile.getOriginalFilename();
 
         //读取excle转换的实体
-        List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         try {
 
-            importExcleEntries = excelUtils.readExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        List<EntryCommonEntity> entryEntitys = new ArrayList<>();
 
-        for (ImportExcleEntry importExcleEntry : importExcleEntries) {
-            EntryCommonEntity entryEntity = new EntryCommonEntity();
-            BeanUtils.copyProperties(importExcleEntry, entryEntity);
-            if (entryEntity.getEntryState() == null) {
-                entryEntity.setEntryState(2);
+        for (EntryInfoEntity  entryInfoEntity : entryInfoEntities){
+            switch (transType){
+                case ConstantInterface.ENGLISH:
+                    if (StringUtils.isBlank(entryInfoEntity.getEnglish())){
+                        entryInfoEntity.setEnglishTranslateState("0");
+                    }
+                    break;
+                case ConstantInterface.RUSSIAN:
+                    if (StringUtils.isBlank(entryInfoEntity.getRussian())){
+                        entryInfoEntity.setRussianTranslateState("0");
+                    }
+                    break;
+                case ConstantInterface.FRENCH:
+                    if (StringUtils.isBlank(entryInfoEntity.getFrench())){
+                        entryInfoEntity.setFrenchTranslateState("0");
+                    }
+                    break;
+                case ConstantInterface.SPANISH:
+                    if (StringUtils.isBlank(entryInfoEntity.getSpanish())){
+                        entryInfoEntity.setSpanishTranslateState("0");
+                    }
+                    break;
             }
-
-            entryEntitys.add(entryEntity);
         }
 
-
-        return entryEntitys;
+        return entryInfoEntities;
     }
 
     @Override
@@ -931,12 +944,13 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         TranslateEntities translateEntities = new TranslateEntities();
         List<Translate> translateEntityList = new ArrayList<>();
         List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
+
         Translate baiduEntities = baiduTranslate(name, type, tLanguages);
         translateEntityList.add(baiduEntities);
 
 
         //有道翻译
-        Translate youdao_Entities =     youdaoTranslate(name, type, tLanguages);
+        Translate youdao_Entities = youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
 

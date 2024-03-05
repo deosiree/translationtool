@@ -23,7 +23,7 @@ public class ProductEntity implements Serializable {
     /**
      * 主键
      */
-    @TableField(value = "id")
+    @TableId(value = "id")
     private String id;
 
     /**

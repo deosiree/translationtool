@@ -29,11 +29,19 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     int deleteByIdList(@Param("idList") List<String> idList, @Param("tableName") String tableName);
 
-    List<EntryInfoEntity> getEntryByTaskID( @Param("id")String id,@Param("tableName") String tableName);
+    List<EntryInfoEntity> getEntryByTaskID( @Param("id")String id,@Param("entryState") String entryState);
 
 
 
     List<EntryInfoEntity> getEntryByVersionID(@Param("tableName") String tableName,@Param("versionID") String versionID);
+
+    List<EntryInfoEntity> getExistEntryList(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
+
+    Integer getLastVersionNum(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity);
+
+    List<EntryInfoEntity> getTransStateEntry(String sql);
+
+    List<EntryInfoEntity> getEntryInfo(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity);
 }
 
 

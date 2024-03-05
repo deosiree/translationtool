@@ -15,13 +15,14 @@
         <result property="publicState" column="public_state" jdbcType="INTEGER"/>
         <result property="deleteState" column="delete_state" jdbcType="INTEGER"/>
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
-        <result property="translateState" column="translate_state" jdbcType="VARCHAR"/>
+        <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
+        <result property="auditSuggest" column="audit_suggest" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,entry,`translate`,
         `unique`,remark,`type`,
-        visual_range,public_state,delete_state,version_id,translate_state
+        visual_range,public_state,delete_state,version_id,translate_state,audit_suggest
     </sql>
 
     <select id="getTrans" resultMap="BaseResultMap">
@@ -123,7 +124,10 @@
         and entry = #{name,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
         and public_state = 1
-        and visual_range = #{visualRange,jdbcType=VARCHAR}
+        <if test="visualRange != null  and visualRange != ''">
+            and visual_range = #{visualRange,jdbcType=VARCHAR}
+        </if>
+
         and translate_state ='已审核'
     </select>
 
@@ -133,6 +137,16 @@
         where delete_state = 0
         and entry = #{entry,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
-        and translate_state ='已审核'
+        and translate_state =3
+    </select>
+
+    <select id="getRepTrans" resultMap="BaseResultMap">
+        select  <include refid="Base_Column_List"/>
+        from t_translate
+        where delete_state = 0
+        and entry = #{entry,jdbcType=VARCHAR}
+        and `type` = #{translateType,jdbcType=VARCHAR}
+        and translate_state =3
+        and `translate` =  #{translate,jdbcType=VARCHAR}
     </select>
 </mapper>

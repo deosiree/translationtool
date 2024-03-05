@@ -59,7 +59,7 @@ public interface EntryManagementService {
 
     String mergerSplit(List<String> idList);
 
-    List<EntryCommonEntity>  importExcle(MultipartFile multipartFile);
+    List<EntryInfoEntity>  importExcle(MultipartFile multipartFile,String transType);
 
     String createVersionTable(List<EntryCommonEntity> entryEntities, String version,String remark, String department,HttpServletRequest request);
 

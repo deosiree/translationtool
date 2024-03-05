@@ -35,7 +35,7 @@ public class TranslateUtils {
 
 
     // 对接的api为百度翻译
-    private static final String TRANS_API_HOST = "http://api.fanyi.baidu.com/api/trans/vip/translate";
+    private static final String BAIDU_TRANS_API_HOST = "http://api.fanyi.baidu.com/api/trans/vip/translate";
 
     @Value("${baidu.translate.appid}")
     private  String appid = ConstantInterface.BAIDU_TRANSLATE_APPID;
@@ -93,7 +93,7 @@ public class TranslateUtils {
 
             String transText = "";
 
-            transText = httpUtils.get(TRANS_API_HOST, params);
+            transText = httpUtils.get(BAIDU_TRANS_API_HOST, params);
 
 
             // String transText = HttpUtil.get(TRANS_API_HOST, params);
@@ -179,12 +179,38 @@ public class TranslateUtils {
 
     }
 
+
+    public  Translate modelTranslate(String name, String type, List<TLanguage> tLanguages) {
+        // YoudaoTrans.readJsonFromUrl(name,ConstantInterface.ENGLISH);]
+        Translate entryEntity = new Translate();
+        //QueryWrapper queryWrapper = new QueryWrapper();
+        //List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
+
+        entryEntity.setSource("模型翻译");
+        entryEntity.setEntry(name);
+        ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
+
+
+        for (TLanguage tLanguage : tLanguages) {
+          /*  if (tLanguage.getName().equals(type)) {
+                continue;
+            }*/
+            languageEntities.add(YoudaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+        }
+
+
+        entryEntity.setLanguageEntities(languageEntities);
+
+        return entryEntity;
+
+    }
+
     public Translate localTranslate(String name, String type, List<TranslateEntity> translates) {
         Translate entryEntity = new Translate();
         entryEntity.setSource("本地翻译");
         entryEntity.setEntry(name);
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
-        for (TranslateEntity translate : translates){
+            for (TranslateEntity translate : translates){
             LanguageEntity languageEntity = new LanguageEntity();
             languageEntity.setLanguage(translate.getType());
             languageEntity.setValue(translate.getTranslate());

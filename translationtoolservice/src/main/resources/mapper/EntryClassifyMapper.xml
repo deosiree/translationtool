@@ -196,7 +196,7 @@
                 </if>
             </where>
             UNION
-            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.id = parent.parent_id
+            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.`key` = parent.parent_id
         )
         SELECT * FROM parent;
     </select>
@@ -215,5 +215,25 @@
             SELECT tt.* FROM t_entry_classify tt JOIN child ON tt.parent_id = child.id
         )
         SELECT * FROM child
+    </select>
+
+    <select id="getClassfy" resultMap="BaseResultMap">
+        SELECT  `id` ,`type`,parent_id,`name` ,`index`,`max_byte`,`department`,`creator`,`create_time`
+        FROM t_entry_classify     WHERE 1=1
+        <if test="entryClassify.parentId != null  and entryClassify.parentId != ''">
+           and parent_id = #{entryClassify.parentId ,jdbcType=VARCHAR}
+        </if>
+        <if test="entryClassify.index != null  and entryClassify.index != ''">
+            and `index` = #{entryClassify.index,jdbcType=INTEGER}
+        </if>
+        <if test="entryClassify.title != null  and entryClassify.title != ''">
+            and `name` = #{entryClassify.title ,jdbcType=VARCHAR}
+        </if>
+        <if test="entryClassify.maxByte != null  and entryClassify.maxByte != ''">
+            and `max_byte` = #{entryClassify.maxByte ,jdbcType=VARCHAR}
+        </if>
+        <if test="entryClassify.type != null  and entryClassify.type != ''">
+            and `type` = #{entryClassify.type ,jdbcType=VARCHAR}
+        </if>
     </select>
 </mapper>

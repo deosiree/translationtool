@@ -9,9 +9,7 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.EntryInfoService;
-import com.shr.translationtoolservice.util.CommonUtils;
-import com.shr.translationtoolservice.util.ExcelUtils;
-import com.shr.translationtoolservice.util.HTTPUtils;
+import com.shr.translationtoolservice.util.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -30,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import sun.reflect.FieldInfo;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -84,6 +83,11 @@ public class I18SeverController extends BaseController {
 
     @Autowired
     private EntryInfoMapper entryInfoMapper;
+    @Autowired
+    private ProductTableMapper productTableMapper;
+
+    @Autowired
+    private EntryProcessUtils entryProcessUtils;
 
 
     @GetMapping("/language")
@@ -145,19 +149,22 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getWords(@RequestBody List<String> fileNames,
                                                     @RequestParam String taskID,
-                                                    @RequestParam String translateType) {
+                                                    @RequestParam String translateType, HttpServletRequest request) {
 
-        List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
-
+        //List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
         List<String> versionIDs = taskInfoMapper.getVersionIDByTaskID(taskID);
         String versionID = "";
         if (!CollectionUtils.isEmpty(versionIDs)) {
             versionID = versionIDs.get(0);
         }
-        String language = languageList.get(0).getName();
-        ResponseListModel<EntryTempEntity> responseListModel = new ResponseListModel<>();
+        String productId = versionMapper.getVersionByID(versionID).getProductId();
+        // String language = languageList.get(0).getName();
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
 
-        ArrayList<EntryTempEntity> list = new ArrayList<>();
+        ArrayList<EntryInfoEntity> list = new ArrayList<>();
         for (String fileName : fileNames) {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("fileName", fileName);
@@ -174,18 +181,21 @@ public class I18SeverController extends BaseController {
                     String entry = jsonArray1.get(0).toString();
                     String translate = jsonArray1.getString(1);
                     String tag = jsonArray1.getString(2);
-                    EntryTempEntity entryTempEntity = new EntryTempEntity();
-                    entryTempEntity.setId(commonUtils.getUUID());
-                    entryTempEntity.setSource(fileName);
-                    entryTempEntity.setAuditState(0);
-                    entryTempEntity.setTaskId(taskID);
-                    entryTempEntity.setTranslateType(language);
-                    entryTempEntity.setEntry(entry);
-                    entryTempEntity.setTranslate(translate);
-                    entryTempEntity.setTag(tag);
-                    entryTempEntity.setVersionID(versionID);
-                    entryTempEntity.setImportype(ConstantInterface.TS);
-                    list.add(entryTempEntity);
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID());
+                    entryInfoEntity.setEntrySource(fileName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setEntry(entry);
+                    entryInfoEntity.setUpdate(userName);
+                    entryInfoEntity.setUpdateTime(date);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntity.setTag(tag);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setImportType(ConstantInterface.TS);
+                    entryInfoEntity.setIsDelete(0);
+                    createNewTrans(entryInfoEntity,translateType,translate);
+                    list.add(entryInfoEntity);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -194,10 +204,50 @@ public class I18SeverController extends BaseController {
 
         }
 
-        List<EntryTempEntity> entryTempEntities1 = buildRepeTempEntry(list);
-        responseListModel.setList(entryTempEntities1);
-        responseListModel.setTotalNum(entryTempEntities1.size());
+        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list,translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryInfoEntities,taskID);
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
+    }
+
+    private void createNewTrans(EntryInfoEntity entryInfoEntity,String  translateType,String translate) {
+        //写入翻译字段
+        switch (translateType){
+            case ConstantInterface.ENGLISH:
+                if (StringUtils.isNotBlank(translate)){
+                    entryInfoEntity.setEnglish(translate);
+                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
+                }else {
+                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
+            case ConstantInterface.SPANISH:
+                if (StringUtils.isNotBlank(translate)){
+                    entryInfoEntity.setSpanish(translate);
+                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
+                }else {
+                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
+            case ConstantInterface.RUSSIAN:
+                if (StringUtils.isNotBlank(translate)){
+                    entryInfoEntity.setRussian(translate);
+                    entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
+                }else {
+                    entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
+            case ConstantInterface.FRENCH:
+                if (StringUtils.isNotBlank(translate)){
+                    entryInfoEntity.setFrench(translate);
+                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
+                }else {
+                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
+        }
     }
 
     @PostMapping("/saveWords")
@@ -343,8 +393,8 @@ public class I18SeverController extends BaseController {
 
         TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
 
-
-        insert += buildTranslateEntity(tempEntities, entryInfoEntities,taskInfoEntity);
+        int isUpdate = taskInfoEntity.getUpgrade();
+        //insert += buildTranslateEntity(tempEntities, entryInfoEntities,isUpdate);
 
       /*  if ("excel".equals(outputType)) {
 
@@ -366,12 +416,12 @@ public class I18SeverController extends BaseController {
         }
 */
 
-            int delete = deleteTempEntry(tempEntities);
-        if (insert == delete) {
+           // int delete = deleteTempEntry(tempEntities);
+        /*if (insert == delete) {
             return checkResult(ConstantInterface.OK_STR);
-        }
+        }*/
 
-        return checkResult(ErrorCodeList.INSERT_ERROR);
+        return checkResult(ConstantInterface.OK_STR);
     }
 
     private int deleteTempEntry(List<EntryTempEntity> tempEntities) {
@@ -383,7 +433,7 @@ public class I18SeverController extends BaseController {
     //2.如果词条有翻译id 则代表是公共词条 ，没有则创建翻译，插入翻译表
     //3.检查词条实体是否存在儿子，如果存在则让父子翻译id相同
     //4.插入词条
-    public int buildTranslateEntity(List<EntryTempEntity> entryTempEntities, List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity) {
+    public int buildTranslateEntity(List<EntryTempEntity> entryTempEntities, List<EntryInfoEntity> entryInfoEntities,  int isUpdate) {
         int insert = 0;
         for (EntryTempEntity entryTempEntity : entryTempEntities) {
             String transID = commonUtils.getUUID();
@@ -395,7 +445,7 @@ public class I18SeverController extends BaseController {
             if (StringUtils.isBlank(entryTempEntity.getTranslateID())){
                 translateEntity.setId(transID);
                 translateEntity.setTranslate(entryTempEntity.getTranslate());
-                translateEntity.setTranslateState(ConstantInterface.AUDIT);
+                translateEntity.setTranslateState("3");
                 translateEntity.setEntry(entryTempEntity.getEntry());
                 translateEntity.setType(entryTempEntity.getTranslateType());
                 translateEntity.setVisualRange("部门");
@@ -418,23 +468,23 @@ public class I18SeverController extends BaseController {
                     EntryInfoEntity entryInfoEntity1 = new EntryInfoEntity();
                     childTempEntry.setId(childTempEntry.getId());
                     entryInfoService.addTransID(translateEntity, entryInfoEntity1);
-                    insertTempToVersionEntry(childTempEntry,entryInfoEntity1,taskInfoEntity);
+
+                    insertTempToVersionEntry(childTempEntry,entryInfoEntity1,isUpdate);
                     entryInfoEntities.add(entryInfoEntity1);
                 }
             }
-            insert += insertTempToVersionEntry(entryTempEntity,entryInfoEntity,taskInfoEntity);
+            insert += insertTempToVersionEntry(entryTempEntity,entryInfoEntity,isUpdate);
             entryInfoEntities.add(entryInfoEntity);
 
         }
-
         return insert;
     }
 
-    private int insertTempToVersionEntry(EntryTempEntity entryTempEntity, EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity) {
+    private int insertTempToVersionEntry(EntryTempEntity entryTempEntity, EntryInfoEntity entryInfoEntity, int isUpdate) {
         int insert = 0;
-        if (1 == taskInfoEntity.getUpgrade()){
+        if (1 == isUpdate){
              insert = entryInfoMapper.updateEntryInfo(entryInfoEntity);
-        }else if  (0 == taskInfoEntity.getUpgrade()){
+        }else if  (0 == isUpdate){
             //写版本表
             entryInfoEntity.setEntry(entryTempEntity.getEntry());
             entryInfoEntity.setVersionID(entryTempEntity.getVersionID());
@@ -444,11 +494,13 @@ public class I18SeverController extends BaseController {
             entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
             entryInfoEntity.setIsDelete(0);
             entryInfoEntity.setImportType(entryTempEntity.getImportype());
-            entryInfoEntity.setEntryState(ConstantInterface.AUDIT);
+            entryInfoEntity.setEntryState(0);
             String versionID = entryTempEntity.getVersionID();
             VersionEntity versionEntity = versionMapper.selectById(versionID);
             String tableName = versionEntity.getTableName();
             insert += entryInfoMapper.insertEntry(entryInfoEntity,tableName);
+
+
             //entryInfoMapper.insert(entryInfoEntity);
 
         }
@@ -463,46 +515,67 @@ public class I18SeverController extends BaseController {
     public HttpResponse<ResponseListModel> getDictionaryInfo(@RequestParam String type,
                                                              @RequestParam String transType,
                                                              @RequestParam String versionID,
-                                                             @RequestParam String taskID) {
+                                                             @RequestParam String taskID,HttpServletRequest request) {
 
-        ResponseListModel<EntryTempEntity> responseListModel = new ResponseListModel<>();
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
         List<TLanguage> languageList = languageMapper.selectLaguageByName(transType);
         String code = "";
         if (CollectionUtils.isEmpty(languageList)) {
             code = languageList.get(0).getName();
         }
-
         JSONArray jsonArray = new JSONArray();
         String s = "";
-        ArrayList<EntryTempEntity> list = new ArrayList<>();
+        ArrayList<EntryInfoEntity> list = new ArrayList<>();
+        String productId = versionMapper.getVersionByID(versionID).getProductId();
         try {
             s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + type);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
-                EntryTempEntity entryTempEntity = new EntryTempEntity();
-                entryTempEntity.setId(commonUtils.getUUID());
-                entryTempEntity.setEntry(dictionaryVo.getSource());
-                entryTempEntity.setTranslateType(transType);
-                entryTempEntity.setVersionID(versionID);
-                entryTempEntity.setTaskId(taskID);
-                entryTempEntity.setImportype("DI");
-                entryTempEntity.setAuditState(0);
-                entryTempEntity.setSource(type);
+                EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                entryInfoEntity.setId(commonUtils.getUUID());
+                entryInfoEntity.setEntry(dictionaryVo.getSource());
+                entryInfoEntity.setVersionID(versionID);
+                entryInfoEntity.setTaskId(taskID);
+                entryInfoEntity.setImportType(ConstantInterface.DI);
+                entryInfoEntity.setEntryState(1);
+                entryInfoEntity.setEntrySource(type);
+                entryInfoEntity.setProductID(productId);
+                entryInfoEntity.setIsDelete(0);
+                entryInfoEntity.setUpdateTime(date);
+                entryInfoEntity.setUpdate(userName);
                 for (Map<String, String> map : dictionaryVo.getTranslation()) {
                     if (StringUtils.isBlank(map.get(code))) {
-                        entryTempEntity.setTranslate(map.get(code));
+                        switch (code){
+                            case ConstantInterface.ENGLISH:
+                                entryInfoEntity.setEnglish(map.get(code));
+                                break;
+                            case ConstantInterface.RUSSIAN:
+                                entryInfoEntity.setRussian(map.get(code));
+                                break;
+                            case ConstantInterface.FRENCH:
+                                entryInfoEntity.setFrench(map.get(code));
+                                break;
+                            case ConstantInterface.SPANISH:
+                                entryInfoEntity.setSpanish(map.get(code));
+                                break;
+                        }
                     }
-                    list.add(entryTempEntity);
+                    list.add(entryInfoEntity);
                 }
 
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        List<EntryTempEntity> entryTempEntities1 = buildRepeTempEntry(list);
-        responseListModel.setList(entryTempEntities1);
-        responseListModel.setTotalNum(entryTempEntities1.size());
+        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list,transType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryInfoEntities,taskID);
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
     }
 
@@ -695,13 +768,17 @@ public class I18SeverController extends BaseController {
                                                         @RequestParam String versionID,
                                                         @RequestParam String taskID,
                                                         @RequestParam String translateType,
-                                                        @RequestBody List<TDBFieldInfo> fieldInfos
+                                                        @RequestBody List<TDBFieldInfo> fieldInfos,HttpServletRequest request
     ) {
-        ResponseListModel<EntryTempEntity> responseListModel = new ResponseListModel<>();
-        ArrayList<EntryTempEntity> entryTempEntities = new ArrayList<>();
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+        String productId = versionMapper.getVersionByID(versionID).getProductId();
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         JSONArray jsonArray = new JSONArray();
         String s = "";
-        ArrayList<EntryTempEntity> fieldList = new ArrayList<>();
+        ArrayList<EntryInfoEntity> fieldList = new ArrayList<>();
 
         try {
             JSONObject jsonObject = new JSONObject();
@@ -721,17 +798,20 @@ public class I18SeverController extends BaseController {
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo tdbFieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
                 for (String entry : tdbFieldInfo.getFieldDatas()) {
-                    EntryTempEntity fieldEntry = new EntryTempEntity();
+                    EntryInfoEntity fieldEntry = new EntryInfoEntity();
                     fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldID());
                     fieldEntry.setEntry(entry);
 
-                    fieldEntry.setSource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tbName + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldName());
-                    fieldEntry.setAuditState(0);
+                    fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tbName + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldName());
+                    fieldEntry.setEntryState(1);
                     fieldEntry.setVersionID(versionID);
                     fieldEntry.setTaskId(taskID);
-                    fieldEntry.setTranslateType(translateType);
-                    fieldEntry.setImportype(ConstantInterface.DB);
-                    entryTempEntities.add(fieldEntry);
+                    fieldEntry.setUpdate(userName);
+                    fieldEntry.setUpdateTime(date);
+                    fieldEntry.setProductID(productId);
+                    fieldEntry.setIsDelete(0);
+                    fieldEntry.setImportType(ConstantInterface.DB);
+                    entryInfoEntities.add(fieldEntry);
                 }
 
 
@@ -744,9 +824,11 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
         }
 
-        List<EntryTempEntity> entryTempEntities1 = buildRepeTempEntry(entryTempEntities);
-        responseListModel.setList(entryTempEntities1);
-        responseListModel.setTotalNum(entryTempEntities1.size());
+        List<EntryInfoEntity> entryInfoEntities1 = buildRepeTempEntry(entryInfoEntities,translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryInfoEntities,taskID);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
     }
 
@@ -760,10 +842,15 @@ public class I18SeverController extends BaseController {
                                                     @RequestParam String appName,
                                                     @RequestParam String versionID,
                                                     @RequestParam String taskID,
-                                                    @RequestParam String translateType
+                                                    @RequestParam String translateType,HttpServletRequest request
     ) {
-        ResponseListModel<EntryTempEntity> responseListModel = new ResponseListModel<>();
-        ArrayList<EntryTempEntity> entryTempEntities = new ArrayList<>();
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+         String productId = versionMapper.selectById(versionID).getProductId();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+
         JSONArray jsonArray = new JSONArray();
         String s = "";
         try {
@@ -777,31 +864,32 @@ public class I18SeverController extends BaseController {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
 
                 //将表的别名写入词条
-                EntryTempEntity entryTempEntity = new EntryTempEntity();
-                entryTempEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                entryTempEntity.setEntry(tdbTableInfo.getAlias());
+                EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                entryInfoEntity.setEntry(tdbTableInfo.getAlias());
 
-                entryTempEntity.setSource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
-                entryTempEntity.setAuditState(0);
-                entryTempEntity.setVersionID(versionID);
-                entryTempEntity.setTaskId(taskID);
-                entryTempEntity.setTranslateType(translateType);
-                entryTempEntity.setImportype(ConstantInterface.DB);
-                entryTempEntities.add(entryTempEntity);
+                entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                entryInfoEntity.setEntryState(1);
+                entryInfoEntity.setVersionID(versionID);
+                entryInfoEntity.setTaskId(taskID);
+                createNewTrans(entryInfoEntity,translateType,"");
+                entryInfoEntity.setImportType(ConstantInterface.DB);
+                entryInfoEntity.setProductID(productId);
+                entryInfoEntities.add(entryInfoEntity);
 
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
-                    EntryTempEntity fieldEntryTemp = new EntryTempEntity();
-                    fieldEntryTemp.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
-                    fieldEntryTemp.setEntry(fieldInfo.getAliasName());
-                    fieldEntryTemp.setSource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
-                    fieldEntryTemp.setAuditState(0);
-                    fieldEntryTemp.setVersionID(versionID);
-                    fieldEntryTemp.setTaskId(taskID);
-                    fieldEntryTemp.setTranslateType(translateType);
-                    fieldEntryTemp.setImportype(ConstantInterface.DB);
-                    entryTempEntities.add(fieldEntryTemp);
+                    EntryInfoEntity fieldEntry = new EntryInfoEntity();
+                    fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                    fieldEntry.setEntry(fieldInfo.getAliasName());
+                    fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                    fieldEntry.setEntryState(1);
+                    fieldEntry.setIsDelete(0);
+                    fieldEntry.setUpdateTime(date);
+                    fieldEntry.setUpdate(userName);
+                    fieldEntry.setImportType(ConstantInterface.DB);
+                    entryInfoEntities.add(fieldEntry);
                 }
 
 
@@ -811,49 +899,40 @@ public class I18SeverController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        List<EntryTempEntity> entryTempEntities1 = buildRepeTempEntry(entryTempEntities);
-        responseListModel.setList(entryTempEntities1);
-        responseListModel.setTotalNum(entryTempEntities1.size());
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities,translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryEntities1,taskID);
+        responseListModel.setList(entryEntities1);
+        responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
     }
 
 
-    public List<EntryTempEntity> buildRepeTempEntry(List<EntryTempEntity> entryTempEntities) {
-        List<EntryTempEntity> newTempEntry = new ArrayList<>();
-        //entry_translate,entryTempEntity
-        Map<String, EntryTempEntity> entryTempEntityMap = new HashMap<>();
-        for (EntryTempEntity entryTempEntity : entryTempEntities) {
-            String entry = entryTempEntity.getEntry();
-            String translate = "";
-            //有翻译字段 直接放到map里
+    public List<EntryInfoEntity> buildRepeTempEntry(List<EntryInfoEntity> entryInfoEntities,String translateType) {
+       return entryProcessUtils.buildRepeEntry(entryInfoEntities,translateType);
+    }
 
-            translate = entryTempEntity.getTranslate();
-            EntryTempEntity mapValueEntry = entryTempEntityMap.get(entry + ConstantInterface.UNDERLINE + translate);
-            //判断map 是否有这个key
-            if (Objects.nonNull(mapValueEntry)) {
-                entryTempEntity.setParentID(mapValueEntry.getId());
+    //校验是否有重复词条
+    private void caseExistEntry(List<EntryInfoEntity> newEntry,String taskID) {
+        TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
 
-                if (CollectionUtils.isEmpty(mapValueEntry.getChildren())) {
-                    List<EntryTempEntity> entryTempEntities1 = new ArrayList<>();
-                    entryTempEntities1.add(entryTempEntity);
-                    mapValueEntry.setChildren(entryTempEntities1);
-                } else {
-                    mapValueEntry.getChildren().add(entryTempEntity);
-                }
+      //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
+        String productTableName = "t_entry_info";
 
-            } else {
-                entryTempEntity.setParentID("");
-                entryTempEntityMap.put(entry + ConstantInterface.UNDERLINE + translate, entryTempEntity);
+        for (EntryInfoEntity entryInfoEntity : newEntry){
+            // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+            List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName,entryInfoEntity,taskInfoEntity.getProductId());
+            if (CollectionUtils.isEmpty(entryEntities)){
+                //创建新翻译
+                entryInfoEntity.setIsExist(0);
+                entryInfoEntity.setEntryVersion(0);
+                entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+            }else {
+                entryInfoEntity.setIsExist(1);
+                entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
             }
         }
 
-
-        Collection<EntryTempEntity> values = entryTempEntityMap.values();
-        Iterator<EntryTempEntity> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            newTempEntry.add(iterator.next());
-        }
-        return newTempEntry;
     }
 
 

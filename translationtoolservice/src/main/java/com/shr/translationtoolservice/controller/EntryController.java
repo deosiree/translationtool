@@ -324,9 +324,9 @@ public class EntryController extends BaseController {
     @ApiOperation("导入excle")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> importExcle(@RequestBody MultipartFile multipartFile) {
+    public HttpResponse<ResponseListModel> importExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam String transType) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryCommonEntity> entryEntities = entryManagementService.importExcle(multipartFile);
+        List<EntryInfoEntity> entryEntities = entryManagementService.importExcle(multipartFile,transType);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
 

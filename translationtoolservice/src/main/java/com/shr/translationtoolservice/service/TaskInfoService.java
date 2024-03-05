@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.service;
 
+import com.shr.translationtoolservice.entity.EntryTempEntity;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
@@ -43,4 +44,6 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
     Map<String, String> getImportType(String taskID);
 
     void exportEntryByTaskId(String taskId, HttpServletResponse response);
+
+    String putTempToProductTable(List<EntryTempEntity> entryTempEntities);
 }

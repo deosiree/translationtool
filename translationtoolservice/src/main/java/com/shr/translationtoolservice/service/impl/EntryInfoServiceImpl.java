@@ -7,10 +7,7 @@ import com.shr.translationtoolservice.common.Constant;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
-import com.shr.translationtoolservice.entity.vo.EntryVO;
-import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
-import com.shr.translationtoolservice.entity.vo.UpgradeVO;
+import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +63,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private TLanguageMapper languageMapper;
 
     @Autowired
+    private ProductRelationMapper productRelationMapper;
+
+    @Autowired
     private TranslateUtils translateUtils;
     @Autowired
     private ExcelUtils excelUtils;
@@ -76,9 +76,20 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Autowired
     private ProductMapper productMapper;
 
+    @Autowired
+    private ProductTableMapper productTableMapper;
+
+    @Autowired
+    private EntryProcessUtils entryProcessUtils;
+
     @Override
-    public List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer offset, Integer pagesize) {
-        List<EntryInfoEntity> entryByVersion = entryInfoMapper.getEntryByVersion(entryInfoEntity1, offset, pagesize);
+    public List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer pageIndex, Integer pageSize) {
+        int offset = 0;
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            offset = (pageIndex - 1) * pageSize;
+
+        }
+        List<EntryInfoEntity> entryByVersion = entryInfoMapper.getEntryByVersion(entryInfoEntity1, offset, pageSize);
 
       /*  List<EntryVO> entryVOS = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryByVersion) {
@@ -156,7 +167,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 entryInfoEntity.setId(commonUtils.getUUID());
             }
             entryInfoEntity.setIsDelete(0);
-            entryInfoEntity.setEntryState(ConstantInterface.CREATE_STATE);
+            entryInfoEntity.setEntryState(0);
             int insert = entryInfoMapper.insertEntry(entryInfoEntity, entryVO.getTableName());
 
 
@@ -214,12 +225,16 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     public String updateEntryInfo(EntryInfoEntity entryInfoEntity, HttpServletRequest request, String notes) {
         EntryInfoEntity beforEntry = entryInfoMapper.selectEntryById(entryInfoEntity);
-        beforEntry.setTableName(entryInfoEntity.getTableName());
+        //beforEntry.setTableName(entryInfoEntity.getTableName());
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         Date date = new Date();
         entryInfoEntity.setUpdate(userName);
         entryInfoEntity.setUpdateTime(date);
+
+        //翻译如果更新的情况下 查找翻译表存在相同的 挂在已存在的额id 没有新增一个翻译
+        updateTrans(entryInfoEntity);
+
         int update = entryInfoMapper.updateEntryInfo(entryInfoEntity);
         if (update < ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" entryInfoEntity update  error ! ");
@@ -245,6 +260,101 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         return ConstantInterface.OK_STR;
     }
+    //翻译如果更新的情况下 查找翻译表存在相同的 挂在已存在的额id 没有新增一个翻译
+    //此方法只适用已审核的翻译
+    private void updateTrans(EntryInfoEntity entryInfoEntity) {
+        String id = "";
+        String transType = "";
+        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish()) ){
+            transType = ConstantInterface.ENGLISH;
+            TranslateEntity translateEntity ;
+            translateEntity = translateMapper.getRepTrans(entryInfoEntity.getEntry(),transType,entryInfoEntity.getEnglish());
+
+            if (Objects.isNull(translateEntity)){
+                translateEntity = new TranslateEntity();
+                id = commonUtils.getUUID();
+                translateEntity.setId(id);
+                translateEntity.setEntry(entryInfoEntity.getEntry());
+                translateEntity.setVersionID(entryInfoEntity.getVersionID());
+                translateEntity.setTranslate(entryInfoEntity.getEnglish());
+                translateEntity.setPublicState(0);
+                translateEntity.setTranslateState("3");
+                translateEntity.setDeleteState(0);
+                translateEntity.setType(ConstantInterface.ENGLISH);
+                translateMapper.insert(translateEntity);
+
+            }else {
+                id = translateEntity.getId();
+            }
+            entryInfoEntity.setEnTransId(id);
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getFrench()) ){
+            transType = ConstantInterface.FRENCH;
+            TranslateEntity translateEntity ;
+            translateEntity = translateMapper.getRepTrans(entryInfoEntity.getEntry(),transType,entryInfoEntity.getFrench());
+            if (Objects.isNull(translateEntity)){
+                translateEntity = new TranslateEntity();
+                id = commonUtils.getUUID();
+                translateEntity.setId(id);
+                translateEntity.setEntry(entryInfoEntity.getEntry());
+                translateEntity.setTranslate(entryInfoEntity.getFrench());
+                translateEntity.setVersionID(entryInfoEntity.getVersionID());
+                translateEntity.setPublicState(0);
+                translateEntity.setTranslateState("3");
+                translateEntity.setDeleteState(0);
+                translateEntity.setType(transType);
+                translateMapper.insert(translateEntity);
+            }else {
+                id = translateEntity.getId();
+            }
+            entryInfoEntity.setFraTransId(id);
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish()) ){
+            transType = ConstantInterface.SPANISH;
+            TranslateEntity translateEntity ;
+            translateEntity = translateMapper.getRepTrans(entryInfoEntity.getEntry(),transType,entryInfoEntity.getSpanish());
+            if (Objects.isNull(translateEntity)){
+                translateEntity = new TranslateEntity();
+                id = commonUtils.getUUID();
+                translateEntity.setId(id);
+                translateEntity.setEntry(entryInfoEntity.getEntry());
+                translateEntity.setTranslate(entryInfoEntity.getSpanish());
+                translateEntity.setVersionID(entryInfoEntity.getVersionID());
+                translateEntity.setPublicState(0);
+                translateEntity.setTranslateState("3");
+                translateEntity.setDeleteState(0);
+                translateEntity.setType(transType);
+                translateMapper.insert(translateEntity);
+            }else {
+                id = translateEntity.getId();
+            }
+            entryInfoEntity.setSpaTransId(id);
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getRussian()) ){
+            transType = ConstantInterface.RUSSIAN;
+            TranslateEntity translateEntity ;
+            translateEntity = translateMapper.getRepTrans(entryInfoEntity.getEntry(),transType,entryInfoEntity.getRussian());
+            if (Objects.isNull(translateEntity)){
+                translateEntity = new TranslateEntity();
+                id = commonUtils.getUUID();
+                translateEntity.setId(id);
+                translateEntity.setEntry(entryInfoEntity.getEntry());
+                translateEntity.setTranslate(entryInfoEntity.getRussian());
+                translateEntity.setVersionID(entryInfoEntity.getVersionID());
+                translateEntity.setPublicState(0);
+                translateEntity.setTranslateState("3");
+                translateEntity.setDeleteState(0);
+                translateEntity.setType(transType);
+                translateMapper.insert(translateEntity);
+            }else {
+                id = translateEntity.getId();
+            }
+            entryInfoEntity.setRuTransId(id);
+        }
+
+
+
+    }
 
     //更新操作记录表
     private EntryOperate insertUpdateOperate(EntryInfoEntity beforEntry, String notes) throws Exception {
@@ -268,6 +378,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //操作记录写入
         for (ComparisonResult comparisonResult : operateContentEntity.getResults()) {
             String name = comparisonResult.getKey();
+            if ("enTransId".equals(name) || "ruTransId".equals(name) || "fraTransId".equals(name) || "spaTransId".equals(name) ){
+                continue;
+            }
             //不写入操作内容的字段
             if ("update".equals(name) || "updateTime".equals(name) || "entryLength".equals(name) || "tableName".equals(name)) {
                 continue;
@@ -285,8 +398,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.RU_TRANS) ||
                         ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.SPA_TRANS) ||
                         ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.FRA_TRANS)) {
-                    String transStr = translateMapper.selectById(r2).getTranslate();
-                    str = entryName.get(name) + " 新增值为： " + transStr;
+                   // String transStr = translateMapper.selectById(r2).getTranslate();
+                    str = entryName.get(name) + " 新增值为： " + r2;
 
                 } else {
                     str = entryName.get(name) + " 新增值为： " + r2;
@@ -299,9 +412,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.RU_TRANS) ||
                         ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.SPA_TRANS) ||
                         ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.FRA_TRANS)) {
-                    String r1TransStr = translateMapper.selectById(r1).getTranslate();
-                    String r2TransStr = translateMapper.selectById(r2).getTranslate();
-                    str = entryName.get(name) + " 值由 ( " + r1TransStr + " ) 改为 ( " + r2TransStr + " )  ";
+                   // String r1TransStr = translateMapper.selectById(r1).getTranslate();
+                  //  String r2TransStr = translateMapper.selectById(r2).getTranslate();
+                    str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  ";
 
                 } else {
                     str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  ";
@@ -496,8 +609,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String tableName = versionEntity.getTableName();
         String productID = versionEntity.getProductId();
 
-         ProductEntity productEntity = productMapper.selectById(productID);
-
+        ProductEntity productEntity = productMapper.selectById(productID);
 
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByVersionID(tableName, versionID);
 
@@ -507,20 +619,20 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String da = format.format(date);
 //        List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
         String excelName = translateType +
-                ConstantInterface.UNDERLINE  + productEntity.getName() +
+                ConstantInterface.UNDERLINE + productEntity.getName() +
                 ConstantInterface.UNDERLINE + versionEntity.getName() + ConstantInterface.UNDERLINE + da;
 
         String fileName = excelName + ".xls";
 
         try {
             fileName = URLEncoder.encode(fileName, "UTF-8");
-            log.warn( " **** fileName : " + fileName + " ***** ");
+            log.warn(" **** fileName : " + fileName + " ***** ");
             response.setContentType("application/octet-stream;charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
             response.addHeader("Pargam", "no-cache");
             response.addHeader("Cache-Control", "no-cache");
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-           response.setStatus(200);
+            response.setStatus(200);
         } catch (Exception e) {
             log.error("代码生成出错", e);
             try {
@@ -552,6 +664,304 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
+    @Override
+    public List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID, HttpServletRequest request) {
+        String name = multipartFile.getOriginalFilename();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+        //读取excle转换的实体
+        List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
+        try {
+            importExcleEntries = excelUtils.readZZExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //拼成词条实体
+        //2区分出已存在词条 和新词条 is_exist 区分
+        //3.新词条翻译预写在词条中
+        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
+        TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
+
+        //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
+        String productTableName = "t_entry_info";
+
+
+        for (ImportExcleEntry importExcleEntry : importExcleEntries) {
+
+            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+            BeanUtils.copyProperties(importExcleEntry, entryInfoEntity);
+            entryInfoEntity.setAbbr(importExcleEntry.getAbbr());
+            entryInfoEntity.setEntry(importExcleEntry.getEntry());
+            entryInfoEntity.setEntryLength(importExcleEntry.getEntryLength());
+            entryInfoEntity.setUpdate(userName);
+            entryInfoEntity.setUpdateTime(date);
+            entryInfoEntity.setChineseInterpretation(importExcleEntry.getChineseInterpretation());
+            entryInfoEntity.setEnglishInterpretation(importExcleEntry.getEnglishInterpretation());
+            entryInfoEntity.setClassfy1(importExcleEntry.getClassfy1());
+            entryInfoEntity.setClassfy2(importExcleEntry.getClassfy2());
+            entryInfoEntity.setProductID(taskInfoEntity.getProductId());
+            entryInfoEntity.setIsDelete(0);
+            entryInfoEntity.setIsPublic(0);
+            entryInfoEntity.setEntryState(1);
+            entryInfoEntity.setTaskId(taskID);
+            entryInfoEntity.setId(commonUtils.getUUID());
+            if (Objects.nonNull(taskInfoEntity)) {
+                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
+            }
+            entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+            entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + name);
+            caseExisttry(entryInfoEntity, taskInfoEntity, importExcleEntry, productTableName);
+            entryEntitys.add(entryInfoEntity);
+        }
+
+        return  entryProcessUtils.buildRepeEntry(entryEntitys,taskInfoEntity.getTranslateType());
+    }
+
+    @Override
+    //用is_exist 区分 已存在和新词条，已存在升级词条版本在插入
+    public String insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
+        int insert = 0;
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+        String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
+        TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
+
+        ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
+        // String entryRelationTableName = productTableEntity.getEntryRelationTableName();
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            //存在升级版本
+            if (1 == entryInfoEntity.getIsExist()) {
+                int versionNum = entryInfoMapper.getLastVersionNum(entryInfoEntity);
+                entryInfoEntity.setEntryVersion(versionNum + 1);
+            }
+            setTranslate(entryInfoEntity, translateType, department);
+
+            //版本和任务不为空 才往关系表中写入
+            if (StringUtils.isNotBlank(taskID) || StringUtils.isNotBlank(taskInfoEntity.getVersionId())) {
+                ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+                productRelationEntity.setId(commonUtils.getUUID());
+                productRelationEntity.setEntryId(entryInfoEntity.getId());
+                productRelationEntity.setTaskId(taskID);
+                productRelationEntity.setProductId(taskInfoEntity.getProductId());
+                productRelationEntity.setVersionId(taskInfoEntity.getVersionId());
+                productRelationMapper.insert(productRelationEntity);
+            }
+
+            insert += entryInfoMapper.insert(entryInfoEntity);
+
+        }
+        if (insert != entryInfoEntities.size()) {
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String addEntryAudit(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
+        return null;
+    }
+
+    @Override
+    public String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request) {
+        //创建版本  更新关联表
+        String id = commonUtils.getUUID();
+
+        VersionEntity versionEntity = new VersionEntity();
+        versionEntity.setId(id);
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        versionEntity.setCreator(userName);
+        versionEntity.setCreateTime(new Date(System.currentTimeMillis()));
+        versionEntity.setIsDelete(0);
+        versionEntity.setProductId(productID);
+        versionEntity.setName(versionName);
+        versionEntity.setDetails(common);
+        versionEntity.setTableName("t_entry_info");
+        int insert = versionMapper.insert(versionEntity);
+
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+            productRelationEntity.setVersionId(id);
+            productRelationEntity.setEntryId(entryInfoEntity.getId());
+            productRelationEntity.setProductId(entryInfoEntity.getProductID());
+
+            productRelationMapper.insert(productRelationEntity);
+
+        }
+
+        return id;
+    }
+
+    @Override
+    public void entryExportByCondition(ExcelExportVO excelExportVO, HttpServletResponse response) {
+        EntryInfoEntity entryInfoEntity = excelExportVO.getEntryInfoEntity();
+        List<String> columnNames = excelExportVO.getColumnNames();
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
+        Date date = new Date();
+        String da = format.format(date);
+        String excelName = excelExportVO.getExcelName() +"_"+  da;;
+        List<EntryInfoEntity> entryInfoEntities;
+        if (!CollectionUtils.isEmpty(excelExportVO.getEntryInfoEntities())){
+           entryInfoEntities = excelExportVO.getEntryInfoEntities();
+        }else {
+            entryInfoEntities = entryInfoMapper.getEntryInfo(entryInfoEntity);
+        }
+        List<String> exportFields = new ArrayList<>();
+        for (String column : columnNames) {
+            exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get(column));
+        }
+        excelUtils.getWorkBook(entryInfoEntities, response, exportFields, columnNames, excelName);
+
+    }
+
+    @Override
+    public List<EntryClassify> getClassfy(String parentId, String type) {
+        EntryClassify entryClassify = new EntryClassify();
+        entryClassify.setParentId(parentId);
+        entryClassify.setType(type);
+        List<EntryClassify> entryClassifies = entryClassifyMapper.getClassfy(entryClassify);
+        return entryClassifies;
+    }
+
+    @Override
+    public String addProductRelation(List<ProductRelationEntity>  relationEntity) {
+        for (ProductRelationEntity relationEntity1 : relationEntity){
+            relationEntity1.setId(commonUtils.getUUID());
+            productRelationMapper.insert(relationEntity1);
+        }
+
+        return ConstantInterface.OK_STR;
+    }
+
+    private void setTranslate(EntryInfoEntity entryInfoEntity, String translateType, String department) {
+        String translate = "";
+        Integer translateLength = null;
+        String translateID = commonUtils.getUUID();
+        switch (translateType) {
+            case ConstantInterface.ENGLISH:
+                translate = entryInfoEntity.getEnglish();
+                translateLength = entryInfoEntity.getEnCharLength();
+                entryInfoEntity.setEnTransId(translateID);
+                break;
+            case ConstantInterface.RUSSIAN:
+                translate = entryInfoEntity.getRussian();
+                translateLength = entryInfoEntity.getRuCharLength();
+                entryInfoEntity.setRuTransId(translateID);
+                break;
+            case ConstantInterface.SPANISH:
+                translate = entryInfoEntity.getSpanish();
+                translateLength = entryInfoEntity.getSpaCharLength();
+                entryInfoEntity.setSpaTransId(translateID);
+                break;
+            case ConstantInterface.FRENCH:
+                translate = entryInfoEntity.getSpanish();
+                translateLength = entryInfoEntity.getSpaCharLength();
+                entryInfoEntity.setFraTransId(translateID);
+                break;
+
+        }
+
+        addTranslateEntity(entryInfoEntity, translateType, translate, translateLength, translateID, department);
+
+
+    }
+
+    //构建写入翻译表
+    private void addTranslateEntity(EntryInfoEntity entryInfoEntity,
+                                    String translateType, String translate, Integer translateLength, String translateID, String department) {
+        TranslateEntity translateEntity = new TranslateEntity();
+        translateEntity.setEntry(entryInfoEntity.getEntry());
+        translateEntity.setType(translateType);
+        if (StringUtils.isNotBlank(translate)) {
+            translateEntity.setTranslateState("1");
+        } else {
+            translateEntity.setTranslateState("0");
+            return;
+
+        }
+        translateEntity.setDeleteState(0);
+        translateEntity.setPublicState(0);
+        translateEntity.setVisualRange(department);
+        translateEntity.setId(translateID);
+        translateEntity.setTranslate(translate);
+        if (Objects.isNull(translateLength)) {
+            translateEntity.setCharLength(translate.length());
+        }
+
+        translateMapper.insert(translateEntity);
+
+    }
+
+
+    private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry, String productTableName) {
+        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity,taskInfoEntity.getProductId());
+        if (CollectionUtils.isEmpty(entryEntities)) {
+            //创建新翻译
+            entryInfoEntity.setIsExist(0);
+            entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+            entryInfoEntity.setEntryVersion(0);
+            createNewTrans(entryInfoEntity, taskInfoEntity, importExcleEntry);
+        } else {
+            entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
+            entryInfoEntity.setIsExist(1);
+        }
+    }
+
+    private void createNewTrans(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry) {
+        //写入翻译字段
+        switch (taskInfoEntity.getTranslateType()) {
+            case ConstantInterface.ENGLISH:
+                if (StringUtils.isNotBlank(importExcleEntry.getEnglish())) {
+                    entryInfoEntity.setEnglish(importExcleEntry.getEnglish());
+                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                if (!Objects.isNull(importExcleEntry.getEnCharLength())) {
+                    entryInfoEntity.setEntryLength(importExcleEntry.getEnCharLength());
+                }
+                break;
+            case ConstantInterface.SPANISH:
+                if (StringUtils.isNotBlank(importExcleEntry.getSpanish())) {
+                    entryInfoEntity.setSpanish(importExcleEntry.getSpanish());
+                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                if (!Objects.isNull(importExcleEntry.getSpaCharLength())) {
+                    entryInfoEntity.setEntryLength(importExcleEntry.getSpaCharLength());
+                }
+                break;
+            case ConstantInterface.RUSSIAN:
+                if (StringUtils.isNotBlank(importExcleEntry.getRussia())) {
+                    entryInfoEntity.setRussian(importExcleEntry.getRussia());
+                    entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                if (!Objects.isNull(importExcleEntry.getRuCharLength())) {
+                    entryInfoEntity.setEntryLength(importExcleEntry.getRuCharLength());
+                }
+                break;
+            case ConstantInterface.FRENCH:
+                if (StringUtils.isNotBlank(importExcleEntry.getFrench())) {
+                    entryInfoEntity.setFrench(importExcleEntry.getFrench());
+                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                if (!Objects.isNull(importExcleEntry.getFraCharLength())) {
+                    entryInfoEntity.setEntryLength(importExcleEntry.getFraCharLength());
+                }
+                break;
+        }
+    }
+
+
     //检查abbr 是否重复 重复返回true
     private boolean checkAbbrRepe(EntryInfoEntity entryInfoEntity, String tableName) {
         List<EntryInfoEntity> abbrEntryInfo = new ArrayList<>();
@@ -567,7 +977,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryTempEntity> importExcle(MultipartFile multipartFile,String taskID) {
+    public List<EntryInfoEntity> importExcle(MultipartFile multipartFile, String taskID) {
         String name = multipartFile.getOriginalFilename();
 
         //读取excle转换的实体
@@ -578,74 +988,116 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         } catch (Exception e) {
             e.printStackTrace();
         }
-        List<EntryTempEntity> entryEntitys = new ArrayList<>();
+        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
 
         for (ImportExcleVO importExcleEntry : importExcleEntries) {
-           EntryTempEntity entryTempEntity = new EntryTempEntity();
-            BeanUtils.copyProperties(importExcleEntry, entryTempEntity);
-            entryTempEntity.setAuditState(1);
-            entryTempEntity.setTaskId(taskID);
-            entryTempEntity.setId(commonUtils.getUUID());
+            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+            BeanUtils.copyProperties(importExcleEntry, entryInfoEntity);
+            entryInfoEntity.setEntryState(0);
+            entryInfoEntity.setTaskId(taskID);
+            entryInfoEntity.setId(commonUtils.getUUID());
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
-            if (Objects.nonNull(taskInfoEntity)){
-                entryTempEntity.setVersionID(taskInfoEntity.getVersionId());
+            if (Objects.nonNull(taskInfoEntity)) {
+                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
             }
-            entryTempEntity.setImportype(ConstantInterface.EXCEL);
-            if (StringUtils.isBlank(entryTempEntity.getSource())){
-                entryTempEntity.setSource(name);
-            }
-            entryEntitys.add(entryTempEntity);
+            entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + "fileName" + name);
+
+            entryEntitys.add(entryInfoEntity);
         }
-
-
         return entryEntitys;
     }
 
     @Override
-    public String addEntryByTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request, String tableName) {
-        String token = request.getHeader("token");
-        //String userName = JWTTokenUtils.getUserName(token);
-        String department = JWTTokenUtils.getDepartment(token);
-
-        List<String> entryIdList = entryTempEntities.stream().map(EntryTempEntity::getId).collect(Collectors.toList());
-        for (EntryTempEntity entryTempEntity : entryTempEntities) {
-            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-            entryInfoEntity.setId(entryTempEntity.getId());
-            entryInfoEntity.setEntry(entryTempEntity.getEntry());
-            entryInfoEntity.setTableName(tableName);
-            entryInfoEntity.setIsDelete(0);
-            entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
-            entryInfoEntity.setEntrySource(entryTempEntity.getSource());
-            entryInfoEntity.setTaskId(entryInfoEntity.getTaskId());
-            entryInfoEntity.setIsPublic(0);
-            entryInfoEntity.setVersionID(entryTempEntity.getVersionID());
-            entryInfoEntity.setEntryState(ConstantInterface.AUDIT);
-            //如果存在翻译则复用 没有则创建
-            List<TranslateEntity> translates = translateMapper.selectRepByEntryTemp(entryTempEntity);
-            if (0 == translates.size()) {
-                TranslateEntity translate = new TranslateEntity();
-                String transId = commonUtils.getUUID();
-
-                translate.setId(transId);
-                translate.setVersionID(entryInfoEntity.getVersionID());
-                translate.setPublicState(0);
-                translate.setDeleteState(0);
-                translate.setType(entryTempEntity.getTranslateType());
-                translate.setEntry(entryTempEntity.getEntry());
-                translate.setTranslate(entryTempEntity.getTranslate());
-                translate.setTranslateState(ConstantInterface.AUDIT);
-                translate.setVisualRange(department);
-                //写入翻译id
-                addTransID(translate, entryInfoEntity);
-                int insert = translateMapper.insert(translate);
-            } else if (1 == translates.size()) {
-                addTransID(translates.get(0), entryInfoEntity);
-            } else {
-                return ErrorCodeList.TRANSLATE_HAS_EXIST;
+    public String addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
+        if (entryInfoEntity.isUpgrade()){
+            return upgradeEnrty(entryInfoEntity,request);
+        }else {
+            //存在词条
+            List<EntryInfoEntity> entryInfos = entryInfoMapper.getExistEntryList("t_entry_info", entryInfoEntity,entryInfoEntity.getProductID());
+            if (!CollectionUtils.isEmpty(entryInfos)) {
+                entryInfoEntity.setEntryVersionID(entryInfos.get(0).getEntryVersionID());
+                entryInfoEntity.setEntryVersion(entryInfos.size() + 1);
+                entryInfoEntity.setIsExist(1);
+            }else {
+                entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+                entryInfoEntity.setEntryVersion(0);
+                entryInfoEntity.setIsExist(0);
             }
-            entryInfoMapper.insertEntry(entryInfoEntity, tableName);
         }
-        int delete = entryTempMapper.deleteBatchIds(entryIdList);
+
+
+        String id = commonUtils.getUUID();
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+        Date date = new Date(System.currentTimeMillis());
+        entryInfoEntity.setIsDelete(0);
+        entryInfoEntity.setId(id);
+        entryInfoEntity.setEntrySource("UPGRADE");
+        entryInfoEntity.setIsPublic(0);
+        entryInfoEntity.setEntryState(0);
+
+        entryInfoEntity.setUpdate(userName);
+        entryInfoEntity.setUpdateTime(date);
+
+
+        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+            setTranslate(entryInfoEntity, ConstantInterface.ENGLISH, department);
+        } else if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
+            setTranslate(entryInfoEntity, ConstantInterface.SPANISH, department);
+        } else if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
+            setTranslate(entryInfoEntity, ConstantInterface.FRENCH, department);
+        } else if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
+            setTranslate(entryInfoEntity, ConstantInterface.RUSSIAN, department);
+        }
+
+        if (StringUtils.isNotBlank(entryInfoEntity.getTaskId()) || StringUtils.isNotBlank(entryInfoEntity.getVersionID())) {
+            ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+            productRelationEntity.setId(commonUtils.getUUID());
+            productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
+            productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
+            productRelationEntity.setProductId(entryInfoEntity.getProductID());
+            productRelationEntity.setEntryId(entryInfoEntity.getId());
+            productRelationMapper.insert(productRelationEntity);
+        }
+        int insert = entryInfoMapper.insert(entryInfoEntity);
+        if (insert != 1) {
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        return ConstantInterface.OK_STR;
+    }
+
+    private String upgradeEnrty(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
+        int lastVersionNum = entryInfoMapper.getLastVersionNum(entryInfoEntity);
+        entryInfoEntity.setEntryVersion(lastVersionNum +1);
+        entryInfoEntity.setIsExist(0);
+
+        String id = commonUtils.getUUID();
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+        Date date = new Date(System.currentTimeMillis());
+        entryInfoEntity.setIsDelete(0);
+        entryInfoEntity.setId(id);
+        entryInfoEntity.setEntrySource("UPGRADE");
+        entryInfoEntity.setIsPublic(0);
+        entryInfoEntity.setEntryState(0);
+
+        entryInfoEntity.setUpdate(userName);
+        entryInfoEntity.setUpdateTime(date);
+        if (StringUtils.isNotBlank(entryInfoEntity.getTaskId()) || StringUtils.isNotBlank(entryInfoEntity.getVersionID())) {
+            ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+            productRelationEntity.setId(commonUtils.getUUID());
+            productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
+            productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
+            productRelationEntity.setProductId(entryInfoEntity.getProductID());
+            productRelationEntity.setEntryId(entryInfoEntity.getId());
+            productRelationMapper.insert(productRelationEntity);
+        }
+        int insert = entryInfoMapper.insert(entryInfoEntity);
+        if (insert != 1) {
+            return ErrorCodeList.INSERT_ERROR;
+        }
         return ConstantInterface.OK_STR;
     }
 
@@ -666,6 +1118,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         Translate youdao_Entities = translateUtils.youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
+        //有道翻译
+        Translate model_Entities = translateUtils.modelTranslate(name, type, tLanguages);
+        translateEntityList.add(model_Entities);
+
+
         //本地翻译 ：部门
         List<TranslateEntity> departTranslates = translateMapper.getSuggestTrans(name, type, visualRange);
         Translate localTranslate = translateUtils.localTranslate(name, type, departTranslates);
@@ -677,6 +1134,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         Translate comLocalTranslate = translateUtils.localTranslate(name, type, companyTranslates);
         comLocalTranslate.setSource("本地翻译-公司");
         translateEntityList.add(comLocalTranslate);
+
+        //本地翻译 publicState：公司
+        List<TranslateEntity> qtTranslates = translateMapper.getSuggestTrans(name, type, "");
+        Translate qtLocalTranslate = translateUtils.localTranslate(name, type, companyTranslates);
+        comLocalTranslate.setSource("本地翻译-其他");
+        translateEntityList.add(qtLocalTranslate);
         translateEntities.setTranslateEntities(translateEntityList);
         return translateEntities;
     }

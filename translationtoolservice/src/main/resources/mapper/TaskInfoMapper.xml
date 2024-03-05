@@ -41,7 +41,7 @@
         DATE_FORMAT(entry_autior_start_time, '%Y-%m-%d %H:%i:%s'),
         DATE_FORMAT(translation_auditor_start_time, '%Y-%m-%d %H:%i:%s'),
         DATE_FORMAT(translate_start_time, '%Y-%m-%d %H:%i:%s'),
-        DATE_FORMAT(delivery_time, '%Y-%m-%d %H:%i:%s'),translate_type,is_delete
+        DATE_FORMAT(delivery_time, '%Y-%m-%d %H:%i:%s'),translate_type,is_delete,product_id
     </sql>
 
     <sql id="t1_Column_List">
@@ -50,23 +50,22 @@
         DATE_FORMAT(t1.end_time, '%Y-%m-%d %H:%i:%s') as end_time,t1.department as department,
         t1.developer as developer,t1.entry_auditor as entry_auditor ,t1.translator as translator,
         t1.translation_auditor as translation_auditor, t1.description as 'description',t1.state as state,
-         t2.id as version_id  ,
         DATE_FORMAT(t1.import_time, '%Y-%m-%d %H:%i:%s') as import_time,
         DATE_FORMAT(t1.entry_autior_start_time, '%Y-%m-%d %H:%i:%s') as entry_autior_start_time,
         DATE_FORMAT(t1.translation_auditor_start_time, '%Y-%m-%d %H:%i:%s') as translation_auditor_start_time,
         DATE_FORMAT(t1.translate_start_time, '%Y-%m-%d %H:%i:%s') as translate_start_time,
         DATE_FORMAT(t1.delivery_time, '%Y-%m-%d %H:%i:%s') as delivery_time ,t1.translate_type as translate_type,t1.is_delete as is_delete,
-        t2.id as version_id,t2.name as version_name,
-        t3.id as product_id,t3.name as product_name
+        t3.id as version_id,t3.name as version_name,
+        t2.id as product_id,t2.name as product_name
     </sql>
 
     <select id="getTaskInfo" resultMap="BaseResultMap">
         select
         <include refid="t1_Column_List"/>
-        from t_task_info t1,t_version t2,t_product t3
-        where t1.is_delete = 0 and t1.version_id = t2.id and t2.product_id = t3.id
+        from ((t_task_info t1 left join t_product t2 ON t1.product_id = t2.id) LEFT JOIN t_version t3  ON t1.version_id = t3.id)
+        where t1.is_delete = 0
         <if test="taskInfoEntity.productId != null  and taskInfoEntity.productId != ''">
-            and t3.id = #{taskInfoEntity.productId ,jdbcType=VARCHAR}
+            and t2.id = #{taskInfoEntity.productId ,jdbcType=VARCHAR}
         </if>
 
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
@@ -120,8 +119,8 @@
     <select id="getTaskInfoTotal" resultType="integer">
         select
         count(1)
-        from t_task_info t1,t_version t2,t_product t3
-        where t1.is_delete = 0 and t1.version_id = t2.id and t2.product_id = t3.id
+        from ((t_task_info t1 left join t_product t2 ON t1.product_id = t2.id) LEFT JOIN t_version t3  ON t1.version_id = t3.id)
+        where t1.is_delete = 0
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.`name` = #{taskInfoEntity.name ,jdbcType=VARCHAR}
         </if>
@@ -170,20 +169,19 @@
     <select id="getTaskInfoByUserName" resultMap="BaseResultMap">
         SELECT
         <include refid="t1_Column_List"/>
-        FROM `t_task_info` t1 ,t_version t2,t_product t3
-        where t1.version_id = t2.id and t2.product_id = t3.id
-        and t1.is_delete != 1 and
+        FROM  ((t_task_info t1 left join t_product t2 ON t1.product_id = t2.id) LEFT JOIN t_version t3  ON t1.version_id = t3.id)
+       where   t1.is_delete != 1 and t1.state != 6 and  state != 0 and
         (
-        (t1.entry_auditor = #{userName,jdbcType=VARCHAR} and ( t1.state = 2 ) )
-        or (t1.developer = #{userName,jdbcType=VARCHAR} and ( t1.state =1 or t1.state = 5) )
-        or (t1.translator = #{userName,jdbcType=VARCHAR} and ( t1.state = 3 ) )
-        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} and ( t1.state = 4 )) )
+        (t1.entry_auditor = #{userName,jdbcType=VARCHAR}  )
+        or (t1.developer = #{userName,jdbcType=VARCHAR} )
+        or (t1.translator = #{userName,jdbcType=VARCHAR} )
+        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} ) )
 
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name = #{taskInfoEntity.name }
         </if>
         <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
-            and t3.name = #{taskInfoEntity.productName }
+            and t2.name = #{taskInfoEntity.productName }
         </if>
         <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
             and t1.translate_type = #{taskInfoEntity.translateType }
@@ -197,6 +195,7 @@
         <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
             and t1.creator = #{taskInfoEntity.creator }
         </if>
+
         order by t1.delivery_time DESC
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
@@ -208,14 +207,13 @@
 </select>
 
     <select id="getToDoTaskInfoTotal" resultType="int">
-        SELECT count(1)   FROM `t_task_info` t1 ,t_version t2,t_product t3
-        where t1.version_id = t2.id and t2.product_id = t3.id
-        and t1.is_delete != 1      and
+        SELECT count(1)   FROM  ((t_task_info t1 left join t_product t2 ON t1.product_id = t2.id) LEFT JOIN t_version t3  ON t1.version_id = t3.id)
+        where  t1.is_delete != 1      and t1.state != 6 and state != 0 and
         (
-        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} and ( t1.state = 2 ) )
-        or  (t1.developer =  #{userName,jdbcType=VARCHAR} and ( t1.state =1 or  t1.state = 5)   )
-         or  (t1.translator =  #{userName,jdbcType=VARCHAR} and ( t1.state = 3 )  )
-         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  and ( t1.state = 4 ))  )
+        (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} )
+        or  (t1.developer =  #{userName,jdbcType=VARCHAR}  )
+         or  (t1.translator =  #{userName,jdbcType=VARCHAR}   )
+         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  )  )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name = #{taskInfoEntity.name }
         </if>
@@ -239,13 +237,12 @@
     <select id="getFinishTaskInfo" resultMap="BaseResultMap">
         SELECT
         <include refid="t1_Column_List"/>
-        FROM `t_task_info` t1 ,t_version t2,t_product t3
-        where t1.version_id = t2.id and t2.product_id = t3.id
-        and t1.is_delete != 1 and
-        ((entry_auditor = #{userName,jdbcType=VARCHAR} and state > 2)
-        or (developer = #{userName,jdbcType=VARCHAR} and state > 1)
-        or (translator = #{userName,jdbcType=VARCHAR} and state > 3)
-        or (translation_auditor = #{userName,jdbcType=VARCHAR} and state > 4))
+        FROM  ((t_task_info t1 left join t_product t2 ON t1.product_id = t2.id) LEFT JOIN t_version t3  ON t1.version_id = t3.id)
+        where  t1.is_delete != 1 and t1.state = 6 and
+        ((entry_auditor = #{userName,jdbcType=VARCHAR} )
+        or (developer = #{userName,jdbcType=VARCHAR} )
+        or (translator = #{userName,jdbcType=VARCHAR})
+        or (translation_auditor = #{userName,jdbcType=VARCHAR}))
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name = #{taskInfoEntity.name }
         </if>
@@ -273,13 +270,12 @@
     <select id="getFinishTaskInfoTotal" resultType="int">
         SELECT
         count(1)
-          FROM `t_task_info` t1 ,t_version t2,t_product t3
-        where t1.version_id = t2.id and t2.product_id = t3.id
-        and t1.is_delete != 1           and
-        ((entry_auditor = #{userName,jdbcType=VARCHAR} and state > 2)
-        or (developer =  #{userName,jdbcType=VARCHAR} and state > 1)
-        or (translator = #{userName,jdbcType=VARCHAR} and state > 3)
-        or (translation_auditor =  #{userName,jdbcType=VARCHAR} and state > 4))
+        FROM  ((t_task_info t1 left join t_product t2 ON t1.product_id = t2.id) LEFT JOIN t_version t3  ON t1.version_id = t3.id)
+        where  t1.is_delete != 1 and t1.state = 6 and
+        ((entry_auditor = #{userName,jdbcType=VARCHAR})
+        or (developer =  #{userName,jdbcType=VARCHAR} )
+        or (translator = #{userName,jdbcType=VARCHAR})
+        or (translation_auditor =  #{userName,jdbcType=VARCHAR} ))
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name = #{taskInfoEntity.name }
         </if>
@@ -298,5 +294,10 @@
         <if test="taskInfoEntity.creator != null  and taskInfoEntity.creator != ''">
             and t1.creator = #{taskInfoEntity.creator }
         </if>
+    </select>
+
+    <select id="getTaskEntityByTaskID" resultType="com.shr.translationtoolservice.entity.TaskInfoEntity">
+     select   <include refid="Base_Column_List"/>
+      from t_task_info where id =  #{taskID}
     </select>
 </mapper>

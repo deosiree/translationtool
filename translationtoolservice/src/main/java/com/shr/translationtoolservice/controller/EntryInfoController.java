@@ -6,10 +6,7 @@ import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.EntryMapper;
 import com.shr.translationtoolservice.dao.EntryVersionMapper;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.entity.vo.EntryTempCompareVO;
-import com.shr.translationtoolservice.entity.vo.EntryVO;
-import com.shr.translationtoolservice.entity.vo.ProductTreeVO;
-import com.shr.translationtoolservice.entity.vo.UpgradeVO;
+import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
@@ -62,8 +59,8 @@ public class EntryInfoController extends BaseController {
     @Token
     @CrossOrigin
     public HttpResponse<ResponseListModel<TranslateEntity>> getPublicEntry(@RequestBody TranslateEntity translateEntity,
-                                                                      @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                                                      @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+                                                                           @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                           @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<TranslateEntity> result = new ResponseListModel<>();
         List<TranslateEntity> entryPublicEntities = new ArrayList<>();
 
@@ -84,7 +81,7 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<String> updatePublicEntry(@RequestBody TranslateEntity translateEntity) {
 
 
-        String  result = entryInfoService.updatePublicEntry(translateEntity);
+        String result = entryInfoService.updatePublicEntry(translateEntity);
 
         return checkResult(result);
     }
@@ -96,7 +93,7 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<String> addPublicEntry(@RequestBody List<TranslateEntity> translateEntity) {
 
 
-        String  result = entryInfoService.addPublicEntry(translateEntity);
+        String result = entryInfoService.addPublicEntry(translateEntity);
 
         return checkResult(result);
     }
@@ -108,7 +105,7 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<String> deletePublicEntry(@RequestBody List<String> idlist) {
 
 
-        String  result = entryInfoService.deletePublicEntry(idlist);
+        String result = entryInfoService.deletePublicEntry(idlist);
 
         return checkResult(result);
     }
@@ -117,12 +114,12 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("查询分类树")
     @Token
     @CrossOrigin
-    public HttpResponse<ResponseListModel> getClassTree(String department,String className,HttpServletRequest request) {
+    public HttpResponse<ResponseListModel> getClassTree(String department, String className, HttpServletRequest request) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryClassify> entryClassifies = new ArrayList<>();
 
         //department 空 为管理员，可查看所有分类
-        entryClassifies = entryClassifyService.getEntryClassfy(department,className,request);
+        entryClassifies = entryClassifyService.getEntryClassfy(department, className, request);
         responseListModel.setList(entryClassifies);
         responseListModel.setTotalNum(entryClassifies.size());
         return checkResult(responseListModel);
@@ -166,20 +163,19 @@ public class EntryInfoController extends BaseController {
 
 
     @PostMapping("/getEntryByVersion")
-    @ApiOperation("获取版本词条")
+    @ApiOperation("获取产品版本词条")
     @CrossOrigin
     @Token
     public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByVersion(@RequestBody EntryInfoEntity entryInfoEntity,
-                                                                      @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
-                                                                      @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+                                                                              @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                              @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            int offset = (pageIndex - 1) * pageSize;
-            entryInfoEntities = entryInfoService.getEntryByVersion(entryInfoEntity, offset, pageSize);
-        }
+
+        entryInfoEntities = entryInfoService.getEntryByVersion(entryInfoEntity, pageIndex, pageSize);
+
         responseListModel.setList(entryInfoEntities);
-        responseListModel.setTotalNum(entryInfoEntities.size());
+        responseListModel.setTotalNum(entryInfoService.getEntryByVersionTotal(entryInfoEntity));
         return checkResult(responseListModel);
     }
 
@@ -194,6 +190,34 @@ public class EntryInfoController extends BaseController {
         return checkResult(entryInfoService.addEntryByVersion(entryVOS, request));
     }
 
+
+    @PostMapping("/addEntryAudit")
+    @ApiOperation("词条送审")
+    @CrossOrigin
+    @Token
+    @Transactional
+    public HttpResponse<String> addEntryAudit(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                              @RequestParam String taskID,
+                                              HttpServletRequest request) {
+
+        return checkResult(entryInfoService.addEntryAudit(entryInfoEntities, taskID, request));
+    }
+
+
+    @PostMapping("/createVersionByEntry")
+    @ApiOperation("词条生成版本")
+    @CrossOrigin
+    @Token
+    @Transactional
+    public HttpResponse<String> createVersionByEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                                     @RequestParam String productID,
+                                                     @RequestParam String common,
+                                                     @RequestParam String versionName,
+                                                     HttpServletRequest request) {
+
+        return checkResult(entryInfoService.createVersionByEntry(entryInfoEntities, productID, common,versionName,request));
+    }
+
     @PostMapping("/addEntryInfo")
     @ApiOperation("新增词条(单条无翻译)")
     @CrossOrigin
@@ -206,16 +230,15 @@ public class EntryInfoController extends BaseController {
         return checkResult(entryInfoService.addEntryInfo(entryInfoEntity, request, tableName));
     }
 
-    @PostMapping("/addEntryByTemp")
-    @ApiOperation("新增词条(临时表写入)")
+    @PostMapping("/addSingleEntry")
+    @ApiOperation("新增单条词条")
     @CrossOrigin
     @Token
     @Transactional
-    public HttpResponse<String> addEntryByTemp(@RequestBody List<EntryTempEntity> entryTempEntities,
-                                             String tableName,
-                                             HttpServletRequest request) {
+    public HttpResponse<String> addSingleEntry(@RequestBody EntryInfoEntity entryInfoEntity,
+                                               HttpServletRequest request) {
         //tableName = "t_version_202311";
-        return checkResult(entryInfoService.addEntryByTemp(entryTempEntities, request, tableName));
+        return checkResult(entryInfoService.addSingleEntry(entryInfoEntity, request));
     }
 
     @PostMapping("/updateEntryTemp")
@@ -224,7 +247,7 @@ public class EntryInfoController extends BaseController {
     @Token
     @Transactional
     public HttpResponse<String> updateEntryTemp(@RequestBody List<EntryTempEntity> entryTempEntities,
-                                               HttpServletRequest request) {
+                                                HttpServletRequest request) {
         //tableName = "t_version_202311";
         return checkResult(entryInfoService.updateEntryTemp(entryTempEntities, request));
     }
@@ -235,11 +258,9 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional(propagation = Propagation.NESTED)
     @Token
-    public HttpResponse<String> updateEntryInfo(@RequestBody EntryInfoEntity entryInfoEntity,HttpServletRequest request,String notes) {
-            if (StringUtils.isBlank(entryInfoEntity.getTableName())) {
-            return checkResult(ErrorCodeList.TBALE_IS_NULL);
-        }
-        String result = entryInfoService.updateEntryInfo(entryInfoEntity, request,notes);
+    public HttpResponse<String> updateEntryInfo(@RequestBody EntryInfoEntity entryInfoEntity, HttpServletRequest request, String notes) {
+
+        String result = entryInfoService.updateEntryInfo(entryInfoEntity, request, notes);
 
         return checkResult(result);
     }
@@ -251,9 +272,9 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional(propagation = Propagation.NESTED)
     @Token
-    public HttpResponse<String> updateEntryInfoList(@RequestBody List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request,String notes) {
+    public HttpResponse<String> updateEntryInfoList(@RequestBody List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
 
-        String result = entryInfoService.updateEntryInfoList(entryInfoEntities, request,notes);
+        String result = entryInfoService.updateEntryInfoList(entryInfoEntities, request, notes);
 
         return checkResult(result);
     }
@@ -264,13 +285,12 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<String> deleteEntryInfo(@RequestBody List<String> idList,String tableName) {
+    public HttpResponse<String> deleteEntryInfo(@RequestBody List<String> idList, String tableName) {
 
-        String result = entryInfoService.deleteEntryInfo(idList,tableName);
+        String result = entryInfoService.deleteEntryInfo(idList, tableName);
 
         return checkResult(result);
     }
-
 
 
     //编辑词条
@@ -279,9 +299,9 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     @Token
-    public HttpResponse<String> upgrade(@RequestBody UpgradeVO upgradeVO,HttpServletRequest request) {
+    public HttpResponse<String> upgrade(@RequestBody UpgradeVO upgradeVO, HttpServletRequest request) {
 
-        String result = entryInfoService.upgrade(upgradeVO,request);
+        String result = entryInfoService.upgrade(upgradeVO, request);
 
         return checkResult(result);
     }
@@ -300,17 +320,16 @@ public class EntryInfoController extends BaseController {
     }
 
 
-
     @PostMapping("/translate")
     @ApiOperation("翻译词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<TranslateEntities> translate(@RequestParam String name,@RequestParam String type,@RequestParam String department) {
-        if (StringUtils.isBlank(type)){
-            checkResult(null," 入参 type 不能为空 ！");
+    public HttpResponse<TranslateEntities> translate(@RequestParam String name, @RequestParam String type, @RequestParam String department) {
+        if (StringUtils.isBlank(type)) {
+            checkResult(null, " 入参 type 不能为空 ！");
         }
 
-        TranslateEntities translateEntity = entryInfoService.translate(name,type,department);
+        TranslateEntities translateEntity = entryInfoService.translate(name, type, department);
         return checkResult(translateEntity);
     }
 
@@ -319,12 +338,40 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     public void versionExport(@RequestParam String versionID,
-                                              @RequestParam String translateType,
-                                                         HttpServletResponse response) {
+                              @RequestParam String translateType,
+                              HttpServletResponse response) {
+        entryInfoService.versionExport(versionID, response, translateType);
+    }
+
+    @PostMapping("/entryExportByCondition")
+    @ApiOperation("导出词条（版本，任务，产品）")
+    @CrossOrigin
+    @Transactional
+    public void entryExportByCondition(@RequestBody ExcelExportVO excelExportVO,
+                                       HttpServletResponse response) {
+        entryInfoService.entryExportByCondition(excelExportVO,response);
+    }
+
+    @PostMapping("/getClassfy")
+    @ApiOperation("分类查询")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse<ResponseListModel<EntryClassify> > getClassfy(@RequestParam String parentId,@RequestParam String type) {
+        ResponseListModel<EntryClassify> responseListModel = new ResponseListModel<>();
+        List<EntryClassify> entryClassifies = entryInfoService.getClassfy(parentId,type);
+        responseListModel.setList(entryClassifies);
+        responseListModel.setTotalNum(entryClassifies.size());
+        return checkResult(responseListModel);
+    }
 
 
-        entryInfoService.versionExport(versionID,response,translateType);
+    @PostMapping("/addProductRelation")
+    @ApiOperation("关系表新增")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse<String> addProductRelation(@RequestBody List<ProductRelationEntity> relationEntity) {
+        String relation = entryInfoService.addProductRelation(relationEntity);
 
-
+        return checkResult(relation);
     }
 }

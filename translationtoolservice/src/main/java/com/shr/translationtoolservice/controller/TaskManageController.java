@@ -203,4 +203,19 @@ public class TaskManageController extends BaseController {
 
         return checkResult(typeMap);
     }
+
+    //写入版本表词条
+    @PostMapping("/putTempToProductTable")
+    @ApiOperation("写入版本表词条")
+    @CrossOrigin
+    public HttpResponse<String> putTempToProductTable( @RequestParam List<EntryTempEntity> entryTempEntities) {
+
+        ResponseListModel<String> result = new ResponseListModel<>();
+        String i = taskInfoService.putTempToProductTable(entryTempEntities);
+
+        return checkResult(i);
+    }
+
+
+
 }

@@ -44,17 +44,22 @@ logging.level.com.shr.translationtoolservice.dao: debug
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
   type-aliases-package: com.shr.translationtoolservice.entity
-  configuration:
-    cache-enable: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  ##configuration:
+   # cache-enable: true
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     #call-setters-on-nulls: true
+
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    com.shr.translationtoolservice.dao: debug
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/*Mapper.xml
   type-aliases-package: com.shr.translationtoolservice.entity
-  configuration:
-    cache-enable: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  #configuration:
+   # cache-enable: true
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     #call-setters-on-nulls: true
 #是否开启swagger
 swagger:
@@ -67,11 +72,16 @@ ldap:
   user: "Administrator"
   password: "Admin@1234"
 
+log:
+  level: debug
+
 I18server:
   #url: http://10.16.193.26:18099/
-  url: http://10.16.193.84:18099/
+  #linx
+  url: http://10.16.193.63:18099/
 ConfigFile:
-  #url: "src/main//resources/config/import.xls"
-  url: "./config/import.xls"
+  url: "src/main/resources/config/import.xls"
+  #linx
+  #url: "./config/import.xls"
 
 

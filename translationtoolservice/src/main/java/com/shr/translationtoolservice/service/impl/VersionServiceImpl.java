@@ -2,11 +2,9 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shr.translationtoolservice.dao.ProductTableMapper;
 import com.shr.translationtoolservice.dao.VersionTableMapper;
-import com.shr.translationtoolservice.entity.ConstantInterface;
-import com.shr.translationtoolservice.entity.ErrorCodeList;
-import com.shr.translationtoolservice.entity.VersionEntity;
-import com.shr.translationtoolservice.entity.VersionTableEntity;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.VersionService;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
@@ -38,6 +36,9 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
     @Autowired
     private VersionTableMapper versionTableMapper;
 
+    @Autowired
+    private ProductTableMapper productTableMapper;
+
 
 
     @Override
@@ -54,10 +55,7 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
     @Override
     public String createVersion(VersionEntity versionEntity, HttpServletRequest request) {
         String id = commonUtils.getUUID();
-        Date date = new Date();
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
-        String da = format.format(date);
-        String tableName = " t_version_" + da;
+
 
         versionEntity.setId(id);
         String token = request.getHeader("token");
@@ -65,18 +63,10 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
         versionEntity.setCreator(userName);
         versionEntity.setCreateTime(new Date(System.currentTimeMillis()));
         versionEntity.setIsDelete(0);
-        versionEntity.setTableName(tableName);
+        ProductTableEntity tableInfoByProductId = productTableMapper.getTableInfoByProductId(versionEntity.getProductId());
+        versionEntity.setTableName(tableInfoByProductId.getEntryInfoTableName());
         int insert = versionMapper.insert(versionEntity);
 
-        //
-        VersionTableEntity versionTableEntity = new VersionTableEntity();
-        versionTableEntity.setVersionTableName(tableName);
-        versionTableEntity.setId(id);
-        versionTableEntity.setVersionId(id);
-
-        versionTableMapper.addVersionTable(versionTableEntity);
-        //创建表
-        versionTableMapper.createVersionTable(tableName);
 
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.INSERT_ERROR;

@@ -17,6 +17,8 @@ public interface TLanguageMapper extends BaseMapper<TLanguage> {
     List<TLanguage> getLanguages(@Param("language") TLanguage language);
 
     List<TLanguage>  selectLaguageByName(@Param("language")String language);
+
+    TLanguage getLanguageByTask(String taskID);
 }
 
 

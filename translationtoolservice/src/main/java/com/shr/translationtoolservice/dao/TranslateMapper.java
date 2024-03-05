@@ -1,9 +1,6 @@
 package com.shr.translationtoolservice.dao;
 
-import com.shr.translationtoolservice.entity.EntryPublicEntity;
-import com.shr.translationtoolservice.entity.EntryTempEntity;
-import com.shr.translationtoolservice.entity.Translate;
-import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -35,6 +32,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
     List<TranslateEntity> getSuggestTrans(@Param("name") String name,@Param("translateType")  String type,@Param("visualRange")  String visualRange);
 
     List<TranslateEntity> getVersionSuggestTrans(@Param("entry") String entry,@Param("translateType") String translateType);
+
+    TranslateEntity getRepTrans(@Param("entry")String entry,@Param("translateType") String translateType,@Param("translate") String translate);
 }
 
 

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
+import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.TaskInfoService;
 import com.shr.translationtoolservice.util.CommonUtils;
@@ -59,28 +60,28 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Autowired
     private EntryTempService entryTempService;
 
+    @Autowired
+    private TranslateMapper translateMapper;
+
+    @Autowired
+    private EntryInfoService entryInfoService;
+
     @Override
     //获取任务信息
     //入参 taskInfoEntity 任务实体 ， offset 页码，pageSize 页内行数
     public List<TaskInfoEntity> getTaskInfo(TaskInfoEntity taskInfoEntity, Integer offset, Integer pageSize, HttpServletRequest request) {
 
         List<TaskInfoEntity> taskInfoEntities = taskInfoMapper.getTaskInfo(taskInfoEntity, offset, pageSize);
-        VersionEntity versionEntity = versionMapper.selectById(taskInfoEntity.getVersionId());
+       /* VersionEntity versionEntity = versionMapper.selectById(taskInfoEntity.getVersionId());
         if (Objects.nonNull(versionEntity)) {
             for (TaskInfoEntity taskInfoEntity1 : taskInfoEntities) {
-                if (ConstantInterface.END_STATE.equals(taskInfoEntity1.getState())){
                     // 当前任务已完成时 从t_version_xxxxxx表中查询词条数量
                     List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskInfoEntity1.getId(), versionEntity.getTableName());
                     taskInfoEntity1.setEntryNum(entryInfoEntities.size());
-                }else {
-                    // 当前任务未完成时 从t_entry_temp表中查询词条数量
-                    List<EntryTempEntity> entryTempByTaskID = entryTempService.getEntryTempByTaskID(taskInfoEntity1.getId());
-                    taskInfoEntity1.setEntryNum(entryTempByTaskID.size());
-                }
 
             }
         }
-
+*/
         return taskInfoEntities;
     }
 
@@ -91,7 +92,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-    public String addTaskInfoList(List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
+        public String addTaskInfoList(List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
 
         String token = request.getHeader("token");
 
@@ -369,6 +370,107 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         }
 
 
+    }
+
+    @Override
+    public String putTempToProductTable(List<EntryTempEntity> entryTempEntities) {
+
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+
+
+        //写入翻译表，写入版本表 删除临时表
+        int insert = 0;
+
+        
+        insert += buildTranslateEntity(entryTempEntities, entryInfoEntities);
+
+        int delete = deleteTempEntry(entryTempEntities);
+        if (insert == delete) {
+            return ConstantInterface.OK_STR;
+        }
+        return ErrorCodeList.UPDATE_ERROR;
+
+    }
+
+    private int deleteTempEntry(List<EntryTempEntity> tempEntities) {
+        int delete = entryTempMapper.deleteByTaskID(tempEntities.get(0).getTaskId());
+        return delete;
+    }
+    //1.遍历 entryTempEntities
+    //2.如果词条有翻译id 则代表是公共词条 ，没有则创建翻译，插入翻译表
+    //3.检查词条实体是否存在儿子，如果存在则让父子翻译id相同
+    //4.插入词条
+    public int buildTranslateEntity(List<EntryTempEntity> entryTempEntities, List<EntryInfoEntity> entryInfoEntities) {
+        int insert = 0;
+        for (EntryTempEntity entryTempEntity : entryTempEntities) {
+            String transID = commonUtils.getUUID();
+            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+            entryInfoEntity.setId(entryTempEntity.getId());
+            TranslateEntity translateEntity = new TranslateEntity();
+
+            //翻译id是空 则不是公共词条库的词条，需新增翻译
+            if (StringUtils.isBlank(entryTempEntity.getTranslateID())){
+                translateEntity.setId(transID);
+                translateEntity.setTranslate(entryTempEntity.getTranslate());
+                translateEntity.setTranslateState("3");
+                translateEntity.setEntry(entryTempEntity.getEntry());
+                translateEntity.setType(entryTempEntity.getTranslateType());
+                translateEntity.setVisualRange("部门");
+                translateEntity.setDeleteState(0);
+                translateEntity.setVersionID(entryTempEntity.getVersionID());
+
+                if (StringUtils.isNotBlank(entryTempEntity.getTranslate())){
+                    translateMapper.insert(translateEntity);
+                }
+
+                entryInfoService.addTransID(translateEntity, entryInfoEntity);
+            }else {
+                translateEntity.setId(entryTempEntity.getTranslateID());
+                translateEntity.setType(entryTempEntity.getTranslateType());
+            }
+
+            //如果孩子不为空，则新建词条插入
+            if (!CollectionUtils.isEmpty(entryTempEntity.getChildren())){
+                for (EntryTempEntity childTempEntry : entryTempEntities){
+                    EntryInfoEntity entryInfoEntity1 = new EntryInfoEntity();
+                    childTempEntry.setId(childTempEntry.getId());
+                    entryInfoService.addTransID(translateEntity, entryInfoEntity1);
+
+                    insertTempToVersionEntry(childTempEntry,entryInfoEntity1);
+                    entryInfoEntities.add(entryInfoEntity1);
+                }
+            }
+            insert += insertTempToVersionEntry(entryTempEntity,entryInfoEntity);
+            entryInfoEntities.add(entryInfoEntity);
+
+        }
+        return insert;
+    }
+
+    private int insertTempToVersionEntry(EntryTempEntity entryTempEntity, EntryInfoEntity entryInfoEntity) {
+        int insert = 0;
+        int isUpdate = entryTempEntity.getIsUpdate();
+        if (1 == isUpdate){
+            insert = entryInfoMapper.updateEntryInfo(entryInfoEntity);
+        }else if  (0 == isUpdate){
+            //写版本表
+            entryInfoEntity.setEntry(entryTempEntity.getEntry());
+            entryInfoEntity.setVersionID(entryTempEntity.getVersionID());
+            entryInfoEntity.setIsPublic(0);
+            entryInfoEntity.setTaskId(entryTempEntity.getTaskId());
+            entryInfoEntity.setEntrySource(entryTempEntity.getSource());
+            entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
+            entryInfoEntity.setIsDelete(0);
+            entryInfoEntity.setImportType(entryTempEntity.getImportype());
+            entryInfoEntity.setEntryState(2);
+            String versionID = entryTempEntity.getVersionID();
+            VersionEntity versionEntity = versionMapper.selectById(versionID);
+            String tableName = versionEntity.getTableName();
+            insert += entryInfoMapper.insertEntry(entryInfoEntity,tableName);
+            //entryInfoMapper.insert(entryInfoEntity);
+
+        }
+        return insert;
     }
 
     @Override

@@ -41,5 +41,9 @@
         </if>
 
     </select>
+    
+    <select id="getLanguageByTask" resultMap="BaseResultMap">
+      select t1.* from t_language t1 join t_task_info t2 on  t1.`name` = t2.translate_type where t2.id =#{taskID,jdbcType=VARCHAR}
+    </select>
 
 </mapper>

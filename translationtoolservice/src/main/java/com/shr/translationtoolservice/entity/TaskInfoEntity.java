@@ -24,7 +24,7 @@ public class TaskInfoEntity implements Serializable {
     private String versionName;
     @TableField(exist = false)
     private String productName;
-    @TableField(exist = false)
+    @TableField(value = "product_id")
     private String productId;
     @TableField(exist = false)
     private int entryNum;
@@ -33,7 +33,7 @@ public class TaskInfoEntity implements Serializable {
     /**
      * 主键
      */
-    @TableField(value = "id")
+    @TableId(value = "id")
     private String id;
 
     /**

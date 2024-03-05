@@ -8,47 +8,41 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * 翻译语言表
- * @TableName t_language
+ * 
+ * @TableName t_product_relation
  */
-@TableName(value ="t_language")
+@TableName(value ="t_product_relation")
 @Data
-public class TLanguage implements Serializable {
+public class ProductRelationEntity implements Serializable {
     /**
-     * 主键
+     * id
      */
-    @TableId
+    @TableId(value = "id")
     private String id;
 
     /**
-     * 语言代码
+     * 词条id
      */
-    private String code;
+    @TableField(value = "entry_id")
+    private String entryId;
 
     /**
-     * 语言名称
+     * 版本id
      */
-    private String name;
+    @TableField(value = "version_id")
+    private String versionId;
 
     /**
-     * 百度翻译语言代码
+     * 产品id
      */
-    private String bdCode;
+    @TableField(value = "product_id")
+    private String productId;
 
     /**
-     * 有道翻译语言代码
+     * 任务id
      */
-    private String ydCode;
-
-    /**
-     * 英文全拼
-     */
-    private String english;
-
-    /**
-     * 删除状态
-     */
-    private int isDelete;
+    @TableField(value = "task_id")
+    private String taskId;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

@@ -32,6 +32,7 @@
     <select id="getProductList" resultMap="BaseResultMap" parameterType="com.shr.translationtoolservice.entity.ProductEntity">
         select <include refid="Base_Column_List"></include> from  t_product
         <where>
+            is_delete = 0
             <if test="productEntity.department != null and productEntity.department != ''">
                 and department = #{productEntity.department}
             </if>

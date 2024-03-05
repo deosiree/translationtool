@@ -79,6 +79,8 @@ public class EntryTempEntity implements Serializable {
     @TableField(value = "audit_entry_feedback")
     private String auditEntryFeedback;
 
+
+
     /**
      * Abbr
      */
@@ -108,6 +110,61 @@ public class EntryTempEntity implements Serializable {
      */
     @TableField(value = "import_type")
     private String importype;
+
+    //是否是升级词条
+    @TableField(value = "is_update")
+    private int isUpdate;
+
+    //词条状态（1导入，2词条审核，3翻译，4翻译审核，导出）
+    @TableField(value = "entry_state")
+    private int entryState;
+
+
+    /**
+     * 产品ID
+     */
+    @TableField(value = "product_id")
+    private String productID;
+
+    /**
+     * 中文释义
+     */
+    @TableField(value = "chinese_interpretation")
+    private String chineseInterpretation;
+
+    /**
+     * 英文释义
+     */
+    @TableField(value = "english_interpretation")
+    private String englishInterpretation;
+
+    /**
+     * 翻译字符数
+     */
+    @TableField(value = "translate_char_length")
+    private int translateCharLength;
+
+
+    /**
+     * 1级分类
+     */
+    @TableField(value = "classfy1")
+    private String classfy1;
+
+    /**
+     * 2级分类
+     */
+    @TableField(value = "classfy2")
+    private String classfy2;
+
+    /**
+     * 词条版本
+     */
+    @TableField(value = "entry_version")
+    private String entryVersion;
+
+
+
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

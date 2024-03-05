@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.EntryClassify;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -36,6 +37,8 @@ public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
     List<EntryClassify> getParentClassify(@Param("department") String department, @Param("className") String className);
 
     List<EntryClassify> getChildClassify(@Param("department") String department, @Param("className") String className);
+
+    List<EntryClassify> getClassfy(@Param("entryClassify") EntryClassify entryClassify);
 }
 
 
