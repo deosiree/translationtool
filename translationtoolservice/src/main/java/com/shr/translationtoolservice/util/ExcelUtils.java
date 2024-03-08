@@ -788,7 +788,8 @@ public class ExcelUtils {
         Workbook workbook = new XSSFWorkbook();
         // 创建工作表对象
         Sheet sheet = workbook.createSheet(excelName);
-        sheet.protectSheet("11");
+        //开启锁定
+       // sheet.protectSheet("11");
         //第一行 标题行
         Row oneHeaderRow = sheet.createRow(0);
         Cell oneHeaderCell = oneHeaderRow.createCell(0);

@@ -30,7 +30,7 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     void getTemplateFile(HttpServletResponse response);
 
-    List<EntryInfoEntity> getEntryInfoList(String taskID,String entryState, List<String> transStates);
+    List<EntryInfoEntity> getEntryInfoList(String taskID,String entryState, List<String> transStates,String entry);
 
     String updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
 

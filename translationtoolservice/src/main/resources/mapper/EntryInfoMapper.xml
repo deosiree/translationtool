@@ -65,7 +65,7 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
-         from ( t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id)
+         from ( t_product_relation t1  right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
@@ -73,6 +73,9 @@
         where  t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
            and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
+            and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.productID != null and entryInfoEntity.productID   != ''">
             and t2.product_id = #{entryInfoEntity.productID,jdbcType=VARCHAR}
@@ -105,7 +108,7 @@
 
     <select id="getEntryByVersionTotal" resultType="int">
         select COUNT( DISTINCT t2.id)
-        from ( t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id)
+        from ( t_product_relation t1  right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
@@ -113,6 +116,9 @@
         where  t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
             and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
+            and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.productID != null and entryInfoEntity.productID   != ''">
             and t2.product_id = #{entryInfoEntity.productID,jdbcType=VARCHAR}
@@ -358,7 +364,7 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
-        from ( t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id)
+        from ( t_product_relation t1  right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
@@ -384,7 +390,7 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
-        from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id and t2.entry_state =   #{entryState,jdbcType=VARCHAR})
+        from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
@@ -393,7 +399,23 @@
 
     </select>
 
+    <select id="getEntryByTaskIDAndEntry" resultMap="BaseResultMap">
+           select t2.*,
+        t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
+        t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
+        t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id and t2.entry_state =   #{entryState,jdbcType=VARCHAR})
+        left JOIN t_translate t3 ON t2.en_trans_id = t3.id
+        left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
+        left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
+        left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        where  t2.is_delete = 0 and  t1.task_id =  #{id,jdbcType=VARCHAR}
+        <if test="entry != null  and entry != ''">
+            and   t2.entry =  #{entry,jdbcType=VARCHAR}
+        </if>
 
+    </select>
 
     <select id="getEntryByVersionID" resultMap="BaseResultMap">
         select t2.*,
@@ -438,7 +460,7 @@
         ru.translate as russian,ru.translate_state as russianTranslateState,ru.public_state as russianPublicState,
         fra.translate as french,fra.translate_state as frenchTranslateState,fra.public_state as frenchPublicState,
         spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState from
-        t_product_relation t1 LEFT JOIN t_entry_info t2  on t1.entry_id = t2.id
+        t_product_relation t1 right JOIN t_entry_info t2  on t1.entry_id = t2.id
         left join t_translate en  on t2.en_trans_id = en.id
         <if test="entryInfoEntity.englishTranslateState != null  ">
             and  en.translate_state =  #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}

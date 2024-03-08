@@ -94,7 +94,7 @@ public class TranslateUtils {
             String transText = "";
 
             transText = httpUtils.get(BAIDU_TRANS_API_HOST, params);
-
+            Thread.sleep(1000);
 
             // String transText = HttpUtil.get(TRANS_API_HOST, params);
 

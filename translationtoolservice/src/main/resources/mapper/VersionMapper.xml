@@ -97,7 +97,7 @@
 
     <select id="getVersionByID" resultType="com.shr.translationtoolservice.entity.VersionEntity">
         select
-        t1.id as id ,  t2.name as productName,t1.name as name,t1.table_name as tableName
+        t1.id as id ,  t2.name as productName,t1.name as name,t1.table_name as tableName,t2.id as productId
          from t_version t1 , t_product t2
          where t1.id =  #{versionID,jdbcType=VARCHAR} and t1.product_id = t2.id
     </select>

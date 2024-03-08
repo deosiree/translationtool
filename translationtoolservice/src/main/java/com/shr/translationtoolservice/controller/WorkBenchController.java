@@ -100,10 +100,10 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("查询词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryInfoList(@RequestParam String taskID,@RequestParam String entryState ,@RequestBody List<String> transStates) {
+    public HttpResponse<ResponseListModel> getEntryInfoList(@RequestParam String taskID,@RequestParam String entry,@RequestParam String entryState ,@RequestBody List<String> transStates) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        entryInfoEntities = entryTempService.getEntryInfoList(taskID,entryState,transStates);
+        entryInfoEntities = entryTempService.getEntryInfoList(taskID,entryState,transStates,entry);
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
 

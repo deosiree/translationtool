@@ -63,8 +63,8 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
         versionEntity.setCreator(userName);
         versionEntity.setCreateTime(new Date(System.currentTimeMillis()));
         versionEntity.setIsDelete(0);
-        ProductTableEntity tableInfoByProductId = productTableMapper.getTableInfoByProductId(versionEntity.getProductId());
-        versionEntity.setTableName(tableInfoByProductId.getEntryInfoTableName());
+       // ProductTableEntity tableInfoByProductId = productTableMapper.getTableInfoByProductId(versionEntity.getProductId());
+       // versionEntity.setTableName(tableInfoByProductId.getEntryInfoTableName());
         int insert = versionMapper.insert(versionEntity);
 
 

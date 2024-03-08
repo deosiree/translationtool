@@ -206,6 +206,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntity.setId(commonUtils.getUUID());
         }
         int insert = entryInfoMapper.insertEntry(entryInfoEntity, tableName);
+        //版本和任务不为空 才往关系表中写入
+        ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+        productRelationEntity.setId(commonUtils.getUUID());
+        productRelationEntity.setEntryId(entryInfoEntity.getId());
+        productRelationEntity.setProductId(entryInfoEntity.getProductID());
+        productRelationMapper.insert(productRelationEntity);
+
+
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" t_entry_operate update insert error ! ");
             return ErrorCodeList.INSERT_ERROR;
@@ -740,7 +748,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             setTranslate(entryInfoEntity, translateType, department);
 
             //版本和任务不为空 才往关系表中写入
-            if (StringUtils.isNotBlank(taskID) || StringUtils.isNotBlank(taskInfoEntity.getVersionId())) {
+
                 ProductRelationEntity productRelationEntity = new ProductRelationEntity();
                 productRelationEntity.setId(commonUtils.getUUID());
                 productRelationEntity.setEntryId(entryInfoEntity.getId());
@@ -748,7 +756,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 productRelationEntity.setProductId(taskInfoEntity.getProductId());
                 productRelationEntity.setVersionId(taskInfoEntity.getVersionId());
                 productRelationMapper.insert(productRelationEntity);
-            }
+
 
             insert += entryInfoMapper.insert(entryInfoEntity);
 

@@ -128,7 +128,11 @@ public class YoudaoTrans {
         /** 处理结果 */
         try {
             JSONObject json = new JSONObject( requestForHttp(YOUDAO_URL, params).toString());
+
             JSONArray array = (JSONArray) json.get("translation");
+            if (Objects.isNull(array)){
+                return null;
+            }
             StringBuffer text = new StringBuffer();
             int i = 0;
             //考虑到批量查询   查询的词中间用\n分隔  为了返回的是个字符串  此处是拼起来了 用的时候分割也可以  你也可以直接用集合接收  随你高兴

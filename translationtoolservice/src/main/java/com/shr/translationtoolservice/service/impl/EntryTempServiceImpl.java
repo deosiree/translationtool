@@ -243,13 +243,38 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             case ConstantInterface.BD:
                 if (StringUtils.isBlank(translateRes)) {
                     LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                    translateRes = translateResult.getValue();
-                }
+                    if (!Objects.isNull(translateResult)){
+                        translateRes = translateResult.getValue();
+                    }else {
+                            LanguageEntity languageEntity = YoudaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                            if (!Objects.isNull(languageEntity)) {
+                                translateRes = languageEntity.getValue();
+                            }else {
+                                translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
+                            }
+
+                        }
+                    }
+
+
+                break;
             case ConstantInterface.YD:
                 if (StringUtils.isBlank(translateRes)) {
                     LanguageEntity languageEntity = YoudaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                    translateRes = languageEntity.getValue();
+                    if (!Objects.isNull(languageEntity)){
+                        translateRes = languageEntity.getValue();
+                    }else {
+                        LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                        if (!Objects.isNull(translateResult)){
+                            translateRes = translateResult.getValue();
+                        }else {
+                            translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
+                        }
+
+                    }
+
                 }
+                break;
             case ConstantInterface.GG:
                 //TODO
                 break;
@@ -303,12 +328,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     @Override
     //state 第一位 词条状态 第二位 翻译状态
-    public List<EntryInfoEntity> getEntryInfoList(String taskID, String entryState, List<String> transStates ) {
+    public List<EntryInfoEntity> getEntryInfoList(String taskID, String entryState, List<String> transStates ,String entry) {
         List<EntryInfoEntity> newEntry = new ArrayList<>();
        // List<EntryInfoEntity> entryInfoEntities;
 
         //没给翻译状态直接查词条状态
-        List<EntryInfoEntity> entryInfoEntities  = getEntryInfo(taskID,entryState,transStates);
+        List<EntryInfoEntity> entryInfoEntities  = getEntryInfo(taskID,entryState,transStates,entry);
 
 
 
@@ -388,23 +413,17 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return newEntry;
     }
     //没给翻译状态直接查词条状态
-    private List<EntryInfoEntity> getEntryInfo(String taskID, String entryState, List<String> transStates) {
+    private List<EntryInfoEntity> getEntryInfo(String taskID, String entryState, List<String> transStates,String entry) {
         List<EntryInfoEntity> entryInfoEntities ;
         TLanguage tLanguage = languageMapper.getLanguageByTask(taskID);
+
         if (CollectionUtils.isEmpty(transStates)) {
-            QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("task_id", taskID);
-            if (StringUtils.isNotBlank(entryState)) {
-                queryWrapper.eq("entry_state", entryState);
-            }
-
-            queryWrapper.eq("is_delete", 0);
             //  entryInfoEntities = entryInfoMapper.selectList(queryWrapper);
-            entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID, entryState);
-
+            entryInfoEntities = entryInfoMapper.getEntryByTaskIDAndEntry(taskID, entryState,entry);
         } else {
             String transState = "";
             String s = "";
+            String entrySql = "";
             // 翻译状态处理 结果 ： 1,2,3
             for (String transState1 : transStates) {
                 if (StringUtils.isBlank(transState)) {
@@ -413,15 +432,19 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     transState += ",'" + transState1 + "' ";
                 }
                 if (Integer.parseInt(transState1) == 0) {
-                    s = " or t2." + tLanguage.getYdCode() + "_trans_id  is null";
+                    s = " or t2." + tLanguage.getYdCode() + "_trans_id  is null or t2.en_trans_id = ''";
                 }
+            }
+            if (StringUtils.isNotBlank(entry)){
+                 entrySql =" and t2.entry = '"+entry + "'";
             }
 
             String sql = "select t2.* ,t3.audit_suggest as "   + tLanguage.getEnglish() +
                     "AuditSuggest  , t3.translate_state as " + tLanguage.getEnglish() +
                     "TranslateState ,t3.translate as "+ tLanguage.getEnglish() +
                     " from  t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id left JOIN t_translate t3 ON  t2." +
-                    tLanguage.getYdCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  "  +s + ") and  t1.task_id = '" + taskID + "' and t2.entry_state = " + entryState;
+                    tLanguage.getYdCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  "  +s + ") and  t1.task_id = '" + taskID + "' and t2.entry_state = " + entryState  +entrySql;
+
 
 
             entryInfoEntities = entryInfoMapper.getTransStateEntry(sql);
@@ -462,29 +485,21 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         //如果有翻译 就更新翻译
         switch (translateType) {
             case ConstantInterface.ENGLISH:
-                transId = updateTrans(entryInfoEntity.getEnglish(), entryInfoEntity.getEnTransId(), ConstantInterface.ENGLISH, entryInfoEntity.getEnglishTranslateState(), entryInfoEntity, department);
-                if (StringUtils.isNotBlank(transId)) {
-                    entryInfoEntity.setEnTransId(transId);
-                }
+                transId = updateTrans(entryInfoEntity.getEnglishAuditSuggest(),entryInfoEntity.getEnglish(), entryInfoEntity.getEnTransId(), ConstantInterface.ENGLISH, entryInfoEntity.getEnglishTranslateState(), entryInfoEntity, department);
+                entryInfoEntity.setEnTransId(transId);
                 writeI18Entry(entryInfoEntity, entryInfoEntity.getEnglish());
                 break;
             case ConstantInterface.RUSSIAN:
-                transId = updateTrans(entryInfoEntity.getRussian(), entryInfoEntity.getRuTransId(), ConstantInterface.RUSSIAN, entryInfoEntity.getRussianTranslateState(), entryInfoEntity, department);
-                if (StringUtils.isNotBlank(transId)) {
-                    entryInfoEntity.setRuTransId(transId);
-                }
+                transId = updateTrans(entryInfoEntity.getRussianAuditSuggest(),entryInfoEntity.getRussian(), entryInfoEntity.getRuTransId(), ConstantInterface.RUSSIAN, entryInfoEntity.getRussianTranslateState(), entryInfoEntity, department);
+                entryInfoEntity.setRuTransId(transId);
                 break;
             case ConstantInterface.FRENCH:
-                transId = updateTrans(entryInfoEntity.getFrench(), entryInfoEntity.getFraTransId(), ConstantInterface.FRENCH, entryInfoEntity.getFrenchTranslateState(), entryInfoEntity, department);
-                if (StringUtils.isNotBlank(transId)) {
-                    entryInfoEntity.setFraTransId(transId);
-                }
+                transId = updateTrans(entryInfoEntity.getFrenchAuditSuggest(),entryInfoEntity.getFrench(), entryInfoEntity.getFraTransId(), ConstantInterface.FRENCH, entryInfoEntity.getFrenchTranslateState(), entryInfoEntity, department);
+                entryInfoEntity.setFraTransId(transId);
                 break;
             case ConstantInterface.SPANISH:
-                transId = updateTrans(entryInfoEntity.getSpanish(), entryInfoEntity.getSpaTransId(), ConstantInterface.SPANISH, entryInfoEntity.getSpanishTranslateState(), entryInfoEntity, department);
-                if (StringUtils.isNotBlank(transId)) {
-                    entryInfoEntity.setSpaTransId(transId);
-                }
+                transId = updateTrans(entryInfoEntity.getSpanishAuditSuggest(),entryInfoEntity.getSpanish(), entryInfoEntity.getSpaTransId(), ConstantInterface.SPANISH, entryInfoEntity.getSpanishTranslateState(), entryInfoEntity, department);
+                entryInfoEntity.setSpaTransId(transId);
                 break;
         }
     }
@@ -503,7 +518,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         }
     }
 
-    private String updateTrans(String trans, String transId, String type, String transState, EntryInfoEntity entryInfoEntity, String department) {
+    private String updateTrans(String auditSuggest, String trans, String transId, String type, String transState, EntryInfoEntity entryInfoEntity, String department) {
         String newTransID = "";
         /*if (StringUtils.isBlank(transState)) {
             transState = "1";
@@ -549,9 +564,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             }else {
                 //如果是翻译审核 校验重复翻译 ID挂载重复的
                 if (3 == Integer.parseInt(transState)){
-                     newTransID = updateAuditTrans(entryInfoEntity,transId,type,newTransID,trans);
+                     newTransID = updateAuditTrans(entryInfoEntity,transId,type,newTransID,trans,auditSuggest,department);
                 }else {
-                    newTransID = updateTransEntity(transState,transId,newTransID,trans);
+                    newTransID = updateTransEntity(transState,transId,auditSuggest,trans);
                 }
 
             }
@@ -607,17 +622,18 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return newTransID;
     }
 
-    private String updateTransEntity(String transState, String transId, String newTransID, String trans) {
+    private String updateTransEntity(String transState, String transId, String auditSuggest, String trans) {
         TranslateEntity translateEntity = new TranslateEntity();
         translateEntity.setTranslate(trans);
         translateEntity.setTranslateState(transState);
         translateEntity.setId(transId);
+        translateEntity.setAuditSuggest(auditSuggest);
         int update = translateMapper.updateById(translateEntity);
         log.info("更新 （"+ update + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + "),  transState ( " + transState + ")  ");
         return transId;
     }
 
-    private String updateAuditTrans(EntryInfoEntity entryInfoEntity, String transId, String type, String newTransID, String trans) {
+    private String updateAuditTrans(EntryInfoEntity entryInfoEntity, String transId, String type, String newTransID, String trans,String auditSuggest,String department) {
 
         QueryWrapper<TranslateEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("entry", entryInfoEntity.getEntry());
@@ -625,6 +641,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         queryWrapper.eq("translate", trans);
         queryWrapper.eq("delete_state", 0);
         queryWrapper.eq("translate_state", 3);
+       // queryWrapper.eq("audit_suggest", auditSuggest);
         List<TranslateEntity> translateEntityList = translateMapper.selectList(queryWrapper);
         if (translateEntityList.size() > 1) {
             log.error(" ===== 词条更新翻译查重多于1条，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
@@ -636,6 +653,20 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             int delete = translateMapper.deleteById(transId);
             log.info("删除 （"+ delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
         }else if (translateEntityList.size() <1){
+
+            TranslateEntity translateEntity = new TranslateEntity();
+            translateEntity.setId(transId);
+            translateEntity.setTranslate(trans);
+            translateEntity.setTranslateState("3");
+            translateEntity.setId(newTransID);
+            translateEntity.setPublicState(0);
+            translateEntity.setVisualRange(department);
+            translateEntity.setDeleteState(0);
+            translateEntity.setType(type);
+            translateEntity.setEntry(entryInfoEntity.getEntry());
+            translateEntity.setAuditSuggest(auditSuggest);
+            int update = translateMapper.updateById(translateEntity);
+            log.info("更新 （"+ update + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
             newTransID = transId;
         }
         entryInfoEntity.setVersionID("");
