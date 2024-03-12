@@ -97,7 +97,7 @@
             and t2.entry_state = #{entryInfoEntity.entryState,jdbcType=INTEGER}
         </if>
         <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel   != ''">
-            and t2.entry_label = #{entryInfoEntity.entryLabel,jdbcType=VARCHAR}
+            and t2.entry_label like CONCAT('%',#{entryInfoEntity.entryLabel,jdbcType=VARCHAR},'%')
         </if>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
@@ -139,7 +139,7 @@
             and t2.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel   != ''">
-            and t2.entry_label = #{entryInfoEntity.entryLabel,jdbcType=VARCHAR}
+            and t2.entry_label like CONCAT('%',#{entryInfoEntity.entryLabel,jdbcType=VARCHAR},'%')
         </if>
     </select>
 
