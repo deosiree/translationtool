@@ -7,7 +7,9 @@ package com.shr.translationtoolservice.util;
  * @description：HTTPUtils
  */
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -180,6 +182,48 @@ public class HTTPUtils {
         }
         return "";
     }
+
+    /**
+     * 网络请求接口的工具类
+     *
+     * @param url 请求的url
+     */
+    public String post(String url, String param)
+    {
+        try {
+//            log.info("---post url is {}, param is {}", url, param);
+            SSLContext sslcontext = createIgnoreVerifySSL();
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register("http", PlainConnectionSocketFactory.INSTANCE)
+                    .register("https", new SSLConnectionSocketFactory(sslcontext))
+                    .build();
+            PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+            HttpClients.custom().setConnectionManager(connManager);
+            SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(SSLContexts.custom().loadTrustMaterial(null, new TrustAllStrategy()).build(), NoopHostnameVerifier.INSTANCE);
+            //创建自定义的httpclient对象
+            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory).build();
+            //CloseableHttpClient httpClient = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(300 * 1000)
+                    .setConnectTimeout(300 * 1000)
+                    .build();
+            HttpPost post = new HttpPost(url);
+            post.setConfig(requestConfig);
+            post.setHeader("Content-Type", "application/json");
+            //将参数信息添加到方法中,将参数绑定到请求信息中
+            StringEntity entity = new StringEntity(param, "utf-8");
+            post.setEntity(entity);
+            HttpResponse response = httpClient.execute(post);
+            StatusLine statusLine = response.getStatusLine();
+//            log.info("服务器响应编码.....{}", statusLine);
+            String resultJson = EntityUtils.toString(response.getEntity());
+            return resultJson;
+        }  catch (Exception e) {
+            log.info("请求过程中发生错误。错误信息如下 : " + e.toString());
+        }
+        return "";
+    }
+
     /**
      * GET请求
      *

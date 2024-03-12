@@ -39,6 +39,11 @@ public class EntryInfoEntity implements Serializable {
     @TableField(exist = false)
     @DefaultValue("")
     private String productName;
+    /**
+     * 写入di 文件名
+     */
+    @TableField(value = "di_file_name")
+    private String diFileName;
 
     /**
      * 主键
@@ -309,9 +314,9 @@ public class EntryInfoEntity implements Serializable {
 
     /**
      * tag
+     * db ：        nodeName_appName_dbName+tbName
      */
     @TableField(value = "tag")
-    @DefaultValue("")
     private String tag;
 
 

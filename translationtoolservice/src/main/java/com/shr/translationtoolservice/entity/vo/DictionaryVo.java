@@ -14,8 +14,9 @@ import java.util.Map;
 @Data
 public class DictionaryVo {
     private String comments;
+    //词条
     private String source;
     private String tag;
     // "en_US": "dofodifdoi1",
-    private List<Map<String, String>> translation;
+    private Map<String, String> translation;
 }

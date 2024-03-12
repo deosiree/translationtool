@@ -14,6 +14,7 @@ import java.util.List;
 public class TDBFieldInfo {
     private String fieldName = "";
     private String aliasName = "";
+    private String common = "";
     private List<String> fieldDatas ;
     private int fieldID ;
     private int size;

@@ -30,10 +30,15 @@ public class ConstantInterface {
     public static final String GET_FIELD_TABLE = "tdb/getFieldByTable";
     public static final String GET_FIELD_DATA = "tdb/getFieldData";
     public static final String GET_ALIAS = "tdb/getAlias";
+    public static final String GET_DBALLENTRYBYNODE= "tdb/getDBALLEntryByNode";
+    public static final String GET_CONGIF_ENTRY= "config/getEntry";
+    public static final String Create_DI= "/dictionary/createDic";
+
 
     public static final String SPRIT = "/";
     public static final String UNDERLINE = "_";
 
+    public static final String CONFIG = "CONFIG";
     public static final String DB = "DB";
     public static final String TS = "TS";
     public static final String DI = "DI";
