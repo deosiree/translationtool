@@ -57,11 +57,16 @@ public class EntryClassify implements Serializable {
     private Integer index;
 
     /**
-     * 序号
+     * 中文限制字符数
      */
     @TableField("`max_byte`")
     private Integer maxByte;
 
+    /**
+     * 外文限制字符数
+     */
+    @TableField("`foreign_max_byte`")
+    private Integer foreignMaxByte;
 
     /**
      * 部门

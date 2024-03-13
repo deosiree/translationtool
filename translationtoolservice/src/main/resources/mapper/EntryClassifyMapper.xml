@@ -10,6 +10,7 @@
         <result property="title" column="name" jdbcType="VARCHAR"/>
         <result property="index" column="index" jdbcType="INTEGER"/>
         <result property="maxByte" column="max_byte" jdbcType="INTEGER"/>
+        <result property="foreignMaxByte" column="foreign_max_byte" jdbcType="INTEGER"/>
         <result property="department" column="department" jdbcType="VARCHAR"/>
         <result property="creator" column="creator" jdbcType="VARCHAR"/>
         <result property="type" column="type" jdbcType="VARCHAR"/>
@@ -18,7 +19,7 @@
 
     <sql id="Base_Column_List">
         id ,parent_id,`name`,`type`,
-        `index`,max_byte,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
+        `index`,max_byte,foreign_max_byte,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
     </sql>
 
     <select id="getEntryClassfyIds" resultMap="BaseResultMap">
@@ -111,6 +112,9 @@
             <if test="entryClassify.maxByte != null">
                 `max_byte`,
             </if>
+            <if test="entryClassify.foreignMaxByte != null">
+                `foreign_max_byte`,
+            </if>
             <if test="entryClassify.department != null">
                 `department`,
             </if>
@@ -138,7 +142,10 @@
                 #{entryClassify.index,jdbcType=VARCHAR},
             </if>
             <if test="entryClassify.maxByte != null">
-                #{entryClassify.maxByte,jdbcType=VARCHAR},
+                #{entryClassify.maxByte,jdbcType=INTEGER}
+            </if>
+            <if test="entryClassify.foreignMaxByte != null">
+                #{entryClassify.foreignMaxByte,jdbcType=INTEGER}
             </if>
             <if test="entryClassify.department != null">
                 #{entryClassify.department,jdbcType=VARCHAR},
@@ -180,6 +187,9 @@
             <if test="entryClassify.maxByte != null  and entryClassify.maxByte != ''">
                 `max_byte` = #{entryClassify.maxByte ,jdbcType=VARCHAR},
             </if>
+            <if test="entryClassify.foreignMaxByte != null">
+                foreign_max_byte = #{entryClassify.foreignMaxByte,jdbcType=INTEGER}
+            </if>
 
         </set>
         where id = #{entryClassify.key ,jdbcType=VARCHAR}
@@ -218,7 +228,7 @@
     </select>
 
     <select id="getClassfy" resultMap="BaseResultMap">
-        SELECT  `id` ,`type`,parent_id,`name` ,`index`,`max_byte`,`department`,`creator`,`create_time`
+        SELECT  `id` ,`type`,parent_id,`name` ,`index`,`max_byte`,`foreign_max_byte`,`department`,`creator`,`create_time`
         FROM t_entry_classify     WHERE 1=1
         <if test="entryClassify.parentId != null  and entryClassify.parentId != ''">
            and parent_id = #{entryClassify.parentId ,jdbcType=VARCHAR}
