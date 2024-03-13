@@ -24,7 +24,7 @@
             <slot v-if="collapsed" />
         </div>
         <template #footer>
-            <div style="float: left;"><slot name="leftBottomBtn"/></div>
+            <slot name="leftBottomBtn"/>
             <a-button key="back" @click="cancel" v-if="showCancel">{{cancelText}}</a-button>
             <a-button key="submit" type="primary" @click="ok" v-if="showOk" :loading="okLoading">{{okText}}</a-button>
         </template>

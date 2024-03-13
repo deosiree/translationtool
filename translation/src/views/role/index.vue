@@ -238,6 +238,10 @@ export default {
         doubleClick(record, index){
             return {
                 onDblclick: (event) => {
+                    if(this.editableData.hasOwnProperty(record.id)){
+                        // 当前行在编辑状态
+                        return
+                    }
                     this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                 }
             }

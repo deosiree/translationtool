@@ -184,7 +184,7 @@
                                 </template>
                                 <template v-if="'versionName' === column.dataIndex">
                                     <template v-if="editableData[record.id]">
-                                        <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
+                                        <!-- <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
                                             <a-select
                                             v-model:value="editableData[record.id]['versionId']"
                                             style="width: 85%"
@@ -194,8 +194,17 @@
                                             >
                                             </a-select>
                                             <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)"/>
-                                        </a-form-item>
-                                        
+                                        </a-form-item> -->
+                                        <a-select
+                                        v-model:value="editableData[record.id]['versionId']"
+                                        allowClear
+                                        style="width: 85%"
+                                        placeholder="请选择"
+                                        :options='options[record.id]["versions"]'
+                                        @click="clickInput"
+                                        >
+                                        </a-select>
+                                        <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)"/>
                                     </template>
                                     <template v-else>
                                         {{ text }}
@@ -288,7 +297,7 @@
                                         <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
                                     </template>
                                     <template v-if="record.state === '6'">
-                                        <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
+                                        <a-badge color="#36BF7D" /><span style="color:#36BF7D">已归档</span>
                                     </template>
                                 </template>
                                 <template v-if="['description'].includes(column.dataIndex)">
@@ -435,7 +444,7 @@ export default {
                 {title: '任务名称',dataIndex: 'name',align:'center',width:150,fixed: 'left',resizable: true},
                 {title: '执行部门',dataIndex: 'department',align:'center',width:150,resizable: true},
                 {title: '产品名称',dataIndex: 'productName',align:'center',width:230,resizable: true},
-                {title: '版本名称',dataIndex: 'versionName',align:'center',width:180,resizable: true},
+                {title: '产品版本',dataIndex: 'versionName',align:'center',width:180,resizable: true},
                 {title: '翻译语种',dataIndex: 'translateType',align:'center',width:150},
                 {title: '开发员',dataIndex: 'developer',align:'center',width:150},
                 {title: '词条审核员',dataIndex: 'entryAuditor',align:'center',width:150},
@@ -600,7 +609,16 @@ export default {
                 onDblclick: (event) => {
                     // clearTimeout(this.timer)
                     // this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
-                    this.edit(record)
+                    if(this.editableData.hasOwnProperty(record.id)){
+                        // 当前行在编辑状态
+                        return
+                    }
+                    if(record.state != 0){
+                        message.warn("当前任务已下发，不可编辑！")
+                    }else{
+                        this.edit(record)
+                    }
+                    
                 }
             }
         },
@@ -733,6 +751,7 @@ export default {
                 icon: createVNode(ExclamationCircleOutlined),
                 okText: '确定',
                 cancelText: '取消',
+                style:{top:'30%'},
                 onOk: () => {
                     if(add.length > 0){
                         // 新增接口
@@ -804,6 +823,7 @@ export default {
                 icon: createVNode(ExclamationCircleOutlined),
                 okText: '确定',
                 cancelText: '取消',
+                style:{top:'30%'},
                 onOk: () => {
                     deleteTaskInfo(this.selectedRowKeys).then((res) => {
                         message.success("删除成功！")
@@ -825,6 +845,7 @@ export default {
                 icon: createVNode(ExclamationCircleOutlined),
                 okText: '确定',
                 cancelText: '取消',
+                style:{top:'30%'},
                 onOk: () => {
                     let ids = []
                     this.selectedRows.forEach(item => {
@@ -897,7 +918,7 @@ export default {
                         }
                         developer.push(op)
                     })
-                    // developer.push({label:"无",value:""})
+                    developer.push({label:"无",value:""})
                     this.options[record.id].developers = developer
                 }
                 if(data.ENTRY_AUDITOR){
@@ -995,6 +1016,7 @@ export default {
                 content: '',
                 okText: '是',
                 cancelText: '否',
+                style:{top:'30%'},
                 onOk() {
                     // console.log('OK');
                     copyIds.forEach(item => {

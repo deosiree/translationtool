@@ -2,10 +2,11 @@
 import request from "../request";
  
 // 保存临时词条
-export function insertEntry(data) {
+export function insertEntry(params,data) {
     return request({
         url: "/workbench/insertEntry",
         method: "POST", 
+        params,
         data 
     });
 }
@@ -38,11 +39,12 @@ export function deleteEntryTempByID(data) {
 }
 
 // 预翻译
-export function preTranslate(params) {
+export function preTranslate(params,data) {
     return request({
         url: "/workbench/preTranslate",
         method: "POST", 
-        params 
+        params,
+        data
     });
 }
 
@@ -61,6 +63,44 @@ export function importExcle(data) {
         url: "/workbench/importExcle",
         method: "POST", 
         data 
+    });
+}
+
+//读取装置 excel
+export function readZZExcle(data) {
+    return request({
+        url: "/workbench/readZZExcle",
+        method: "POST", 
+        data 
+    });
+}
+
+// 按词条状态查询词条
+export function getEntryInfoList(params,data) {
+    return request({
+        url: "/workbench/getEntryInfoList",
+        method: "POST", 
+        params,
+        data
+    });
+}
+
+// 修改词条
+export function updateEntryList(params,data) {
+    return request({
+        url: "/workbench/updateEntryList",
+        method: "POST", 
+        params,
+        data
+    });
+}
+
+// 删除词条
+export function deleteEntryInfoByID(data) {
+    return request({
+        url: "/workbench/deleteEntryInfoByID",
+        method: "POST", 
+        data
     });
 }
 

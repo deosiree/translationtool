@@ -353,6 +353,7 @@ export default {
                 // content: 'Bla bla ...',
                 okText: '确认',
                 cancelText: '取消',
+                style:{top:'30%'},
                 onOk: () => {
                     deleteVersionInfo(this.selectedRowKeys).then((res) => {
                         message.success("删除成功！")

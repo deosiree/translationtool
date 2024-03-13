@@ -41,8 +41,8 @@
                                     <template #overlay>
                                         <a-menu>
                                             <a-menu-item @click="versionExport(treeKey,title)">导出</a-menu-item>
-                                            <a-menu-item v-if="edit" @click="editVersionName(treeKey,title)">重命名</a-menu-item>
-                                            <a-menu-item v-if="edit" @click="editVersionDetails(treeKey)">修改详情</a-menu-item>
+                                            <!-- <a-menu-item v-if="edit" @click="editVersionName(treeKey,title)">重命名</a-menu-item> -->
+                                            <a-menu-item v-if="edit" @click="editVersionDetails(treeKey)">编辑</a-menu-item>
                                             <a-menu-item v-if="edit">
                                                 <a-popconfirm
                                                     title="确定要删除吗?"
@@ -176,7 +176,7 @@
     <Modal
     :visible="exportVisible" 
     :okLoading="exportLoading"
-    modalTitle="导出"
+    :modalTitle="exportTitle"
     @handleClose="exportClose"
     @handleOK="exportOK"
     @afterClose="exportAfterClose"
@@ -187,7 +187,7 @@
                 name="custom-validation"
                 :model="exportModal"
             >
-                <a-form-item label="翻译语言" name="language">
+                <!-- <a-form-item label="翻译语言" name="language">
                     <a-select
                     v-model:value="exportModal.language"
                     placeholder="请选择内容"
@@ -195,6 +195,19 @@
                     :fieldNames="{label:'name',value:'name'}"
                     >
                     </a-select>
+                </a-form-item> -->
+                <a-form-item
+                label="导出字段"
+                name="field"
+                :rules="[{ required: true, message: '请选择导出字段!' }]"
+                >
+                    <a-select
+                    mode="multiple"
+                    v-model:value="exportModal.field"
+                    :options="fieldOptions"
+                    :fieldNames="{label:'label',value:'label'}"
+                    placeholder="请选择"
+                    ></a-select>
                 </a-form-item>
             </a-form>
         </div>
@@ -231,9 +244,11 @@ import {
 import {
     versionDownload,
     taskDownload,
-    exportEntryBytaskId
+    exportEntryBytaskId,
+    entryExportByCondition
 } from "@/http/api/download"
 import { message } from 'ant-design-vue';
+import tableParam from './tableParam';
 export default {
     components:{
         SearchBox,
@@ -281,7 +296,7 @@ export default {
                 {title: '产品名称',dataIndex: 'productName',align:'center',width:180,resizable: true},
                 {title: '版本',dataIndex: 'versionName',align:'center',width:180},
                 {title: '翻译语种',dataIndex: 'translateType',align:'center',width:150},
-                {title: '导入词条数量',dataIndex: 'entryNum',align:'center',width:150},
+                // {title: '导入词条数量',dataIndex: 'entryNum',align:'center',width:150},
                 {title: '开发员',dataIndex: 'developer',align:'center',width:150},
                 {title: '词条审核员',dataIndex: 'entryAuditor',align:'center',width:150},
                 {title: '翻译员',dataIndex: 'translator',align:'center',width:150},
@@ -299,13 +314,17 @@ export default {
             currentVersion:{},
             exportVisible: false,
             exportModal:{
-                language:'英文'
+                language:'英文',
+                field:[]
             },
             exportVersion:{
                 id:"",
                 name:""
             },
-            exportLoading: false
+            exportTask:{},
+            exportLoading: false,
+            exportTitle:"",
+            fieldOptions: tableParam.exportFields
         }
     },
     
@@ -337,6 +356,7 @@ export default {
         init(){
             this.getProductVersion()
             this.getLanguage()
+            this.getTaskList()
         },
         // 获取翻译语言
         getLanguage(){
@@ -393,16 +413,13 @@ export default {
         },
         // 查询任务
         getTaskList(){
-            // console.log(this.selectedTreeKeys)
-            if(this.selectedTreeKeys.length === 0){
-                message.info("请选择版本！")
+            if(Object.keys(this.product).length === 0){
                 return
             }
             this.loading = true
-            // let version = this.versions.find(item => item.key === this.selectedTreeKeys[0])
             let data = {
                 versionId: this.selectedTreeKeys[0],
-                // tableName:version.tableName,
+                productId: this.selectedTreeKeys.length > 0 ? null : (this.product.type === 'module' ? this.product.parentId : this.product.key),
                 name: this.search.name,
                 developer: this.search.developer,
                 translator: this.search.translator,
@@ -425,25 +442,28 @@ export default {
         },
         // 导出
         exportTaskEntry(record){
-            let params = {
-                taskId: record.id
-            }
-            this.loading = true
-            exportEntryBytaskId(params).then((res) => {
-                let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
-                let contentType = res.headers['content-type']
-                const blob = new Blob([res.data], {type: contentType})
-                const a = document.createElement('a') // 转换完成，创建一个a标签用于下载
-                a.download = decodeURI(fileName)
-                a.href = window.URL.createObjectURL(blob)
-                a.click()
-                a.remove()
-                window.URL.revokeObjectURL(a.href);
-                this.loading = false
-            }).catch((err) => {
-                this.loading = false
-                message.error("导出失败！")
-            })
+            this.exportTask = record
+            this.exportVisible = true
+            this.exportTitle = '任务词条导出'
+            // let params = {
+            //     taskId: record.id
+            // }
+            // this.loading = true
+            // exportEntryBytaskId(params).then((res) => {
+            //     let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
+            //     let contentType = res.headers['content-type']
+            //     const blob = new Blob([res.data], {type: contentType})
+            //     const a = document.createElement('a') // 转换完成，创建一个a标签用于下载
+            //     a.download = decodeURI(fileName)
+            //     a.href = window.URL.createObjectURL(blob)
+            //     a.click()
+            //     a.remove()
+            //     window.URL.revokeObjectURL(a.href);
+            //     this.loading = false
+            // }).catch((err) => {
+            //     this.loading = false
+            //     message.error("导出失败！")
+            // })
         },
         // 表格列可伸缩
         handleResizeColumn: (w, col) => {
@@ -467,7 +487,7 @@ export default {
             }
             let params = {
                 versionName: this.keyWords,
-                productID: this.product.key
+                productID: this.product.type === 'module' ? this.product.parentId : this.product.key
             }
             getVersionByName(params).then((res) => {
                 let data = []
@@ -481,13 +501,13 @@ export default {
                 });
                 this.versions = data
 
-                if(this.versions.length > 0){
-                    let select = [this.versions[0].key]
-                    this.selectedTreeKeys = select
-                    this.getTaskList()
-                }else{
-                    this.dataSource = []
-                }
+                // if(this.versions.length > 0){
+                //     let select = [this.versions[0].key]
+                //     this.selectedTreeKeys = select
+                //     this.getTaskList()
+                // }else{
+                //     this.dataSource = []
+                // }
             })
         },
         // 版本重命名
@@ -520,7 +540,7 @@ export default {
                 id:"",
                 name:"",
                 details:"",
-                productId: this.product.key
+                productId: this.product.type === 'module' ? this.product.parentId : this.product.key
             }
 
             this.versionVisible = true
@@ -548,6 +568,7 @@ export default {
                 developer:'',
                 translateType:null
             }
+            this.selectedTreeKeys = []
             this.getTaskList()
         },
         // 查看任务词条
@@ -558,28 +579,45 @@ export default {
         // 版本导出
         versionExport(key,title){
             this.exportVisible = true
+            this.exportTitle = '版本词条导出'
             this.exportVersion.id = key
             this.exportVersion.name = title
         },
         exportOK(){
-            // 版本词条导出
-            let params = {
-                versionID: this.exportVersion.id,
-                translateType: this.exportModal.language
-            }
-            this.exportLoading = true
-            versionDownload(params).then((res) => {
-                let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
-                let contentType = res.headers['content-type']
-                const blob = new Blob([res.data], {type: contentType})
-                const a = document.createElement('a') // 转换完成，创建一个a标签用于下载
-                a.download = decodeURI(fileName)
-                a.href = window.URL.createObjectURL(blob)
-                a.click()
-                a.remove()
-                window.URL.revokeObjectURL(a.href);
-                this.exportVisible = false
-                this.exportLoading = false
+            // 导出
+            this.$refs.formRef.validate().then(() => {
+                let fields = ['id'].concat(this.exportModal.field)
+                let data = {
+                    columnNames: fields,
+                }
+                if(this.exportTitle === '版本词条导出'){
+                    data.excelName = this.exportVersion.name + "_词条导出"
+                    let entryInfoEntity = {
+                        versionID:this.exportVersion.id
+                    }
+                    data.entryInfoEntity = entryInfoEntity
+                }else if(this.exportTitle === '任务词条导出'){
+                    data.excelName = this.exportTask.name + "_词条导出"
+                    let entryInfoEntity = {
+                        taskId:this.exportTask.id
+                    }
+                    data.entryInfoEntity = entryInfoEntity
+                }
+                entryExportByCondition(data).then((res) => {
+                    let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
+                    let contentType = res.headers['content-type']
+                    const blob = new Blob([res.data], {type: contentType})
+                    const a = document.createElement('a') // 转换完成，创建一个a标签用于下载
+                    a.download = decodeURI(fileName)
+                    a.href = window.URL.createObjectURL(blob)
+                    a.click()
+                    a.remove()
+                    window.URL.revokeObjectURL(a.href);
+                    this.exportVisible = false
+                    this.exportLoading = false
+                })
+            }).catch((err) => {
+
             })
         },
         exportClose(){
@@ -590,6 +628,8 @@ export default {
                 id:"",
                 name:""
             }
+            this.exportTask = {}
+            this.exportModal.field = []
         },
         
         getTime(){

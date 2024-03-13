@@ -20,8 +20,11 @@
                 >
                     <a-input v-model:value="classify.title" placeholder="请输入内容"></a-input>
                 </a-form-item>
-                <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="限制字符数" name="maxByte">
-                    <a-input-number v-model:value="classify.maxByte" placeholder="请输入最大字符数" style="width:100%"></a-input-number>
+                <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="中文字符数" name="maxByte">
+                    <a-input-number v-model:value="classify.maxByte" placeholder="请输入中文最大字符数" style="width:100%"></a-input-number>
+                </a-form-item>
+                <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="外文字符数" name="foreignMaxByte">
+                    <a-input-number v-model:value="classify.foreignMaxByte" placeholder="请输入外文最大字符数" style="width:100%"></a-input-number>
                 </a-form-item>
             </a-form>
         </div>
@@ -60,7 +63,8 @@ export default {
             modalWidth:"400px",
             classify:{
                 title:"",
-                maxByte:""
+                maxByte:"",
+                foreignMaxByte:""
             }
         }
     },

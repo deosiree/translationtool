@@ -149,6 +149,7 @@
                     >
                         <template v-slot:content>
                             <TimeLine 
+                            ref="timeLineRef"
                             :currentTask="currentTask"
                             :showButton="timeLineBtn"
                             @importEntry="importEntry"
@@ -171,11 +172,13 @@
     ref="import"
     :visible="importVisible" 
     :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
     @handleClose="importClose"/>
     <ExamineModal 
     ref="examine"
     :visible="examineVisible" 
     :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
     :modalTitle="examineTitle"
     @handleClose="examineClose"/>
     />
@@ -183,12 +186,14 @@
     ref="translate"
     :visible="translateVisible" 
     :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
     @handleClose="translateClose"/>
     />
     <ExamineTranslateModal 
     ref="examineTranslate"
     :visible="examineTranslateVisible" 
     :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
     @handleClose="examineTranslateClose"/>
     />
     <ExportModal 
@@ -219,6 +224,9 @@ import {
     getToDoTaskInfo,
     getFinishTaskInfo
 } from "@/http/api/task";
+import {
+    getClassfy
+} from "@/http/api/entryManage"
 export default {
     components:{
         SearchBox,
@@ -256,9 +264,9 @@ export default {
                     return text.index + 1
                 },fixed: 'left',index:0},
                 {title: '任务名称',dataIndex: 'name',align:'center',width:100,fixed: 'left',resizable: true,index:1},
-                {title: '任务状态',dataIndex: 'state',align:'center',width:80,fixed: 'left',resizable: true,index:1},
+                // {title: '任务状态',dataIndex: 'state',align:'center',width:80,fixed: 'left',resizable: true,index:1},
                 {title: '产品名称',dataIndex: 'productName',align:'center',width:100,resizable: true,index:2},
-                {title: '版本名称',dataIndex: 'versionName',align:'center',width:100,resizable: true,index:2},
+                {title: '产品版本',dataIndex: 'versionName',align:'center',width:100,resizable: true,index:2},
                 // {title: '执行部门',dataIndex: 'department',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
                 {title: '翻译语种',dataIndex: 'translateType',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
                 {title: '任务描述',dataIndex: 'description',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
@@ -282,7 +290,8 @@ export default {
             examineTitle: '',
             translateVisible: false,
             examineTranslateVisible: false,
-            exportVisible: false
+            exportVisible: false,
+            classifyLimit:{}
         }
     },
     mounted () {
@@ -322,8 +331,25 @@ export default {
                     this.showOperationArea = true
                     this.setTableHeight()
                     this.currentTask = record
+                    this.getClassfy(record)
                 }
             }
+        },
+        getClassfy(task){
+            if(task.productId === null || task.productId === ""){
+                this.classifyLimit = {}
+                return
+            }
+            let params = {
+                parentId: task.productId,
+                type:"module"
+            }
+            getClassfy(params).then((res) => {
+                this.classifyLimit = {}
+                res.data.list.forEach(element => {
+                    this.classifyLimit[element.title] = element.maxByte
+                });
+            })
         },
         clickCard(index){
             this.activeCard = index
@@ -435,6 +461,8 @@ export default {
         },
         importClose(){
             this.importVisible = false
+            // 刷新词条数量
+            this.$refs.timeLineRef.initEntryCount()
         },
         // 词条审核
         examineEntry(){
@@ -444,14 +472,19 @@ export default {
         },
         examineClose(){
             this.examineVisible = false
+            // 刷新词条数量
+            this.$refs.timeLineRef.initEntryCount()
         },
         // 词条翻译
         translateEntry(){
             this.translateVisible = true
-            this.$refs.translate.getTranslateEntry()
+            // this.$refs.translate.getTranslateEntry()
+            this.$refs.translate.init()
         },
         translateClose(){
             this.translateVisible = false
+            // 刷新词条数量
+            this.$refs.timeLineRef.initEntryCount()
         },
         // 翻译审核
         examineTranslate(){
@@ -460,6 +493,8 @@ export default {
         },
         examineTranslateClose(){
             this.examineTranslateVisible = false
+            // 刷新词条数量
+            this.$refs.timeLineRef.initEntryCount()
         },
 
         // 词条导出

@@ -11,20 +11,32 @@
                 </div>
             </div>
             <div class="box" v-else>
-                <div :class="task.state >= item.state ? 'line line_green' : 'line line_grey'"></div>
-                <div :class="task.state >= item.state ? 'circular circular_green' : 'circular circular_grey'">
+                <!-- <div :class="task.state >= item.state ? 'line line_green' : 'line line_grey'"></div>
+                <div :class="task.state >= item.state ? 'circular circular_green' : 'circular circular_grey'"> -->
+                <div class="line line_green"></div>
+                <div class="circular circular_green">
                     <div class="top_info">
                         <div v-if="showButton" class="buttonBox">
-                            <a-button type="primary" ghost size="small" v-if="item.state === '1'" :disabled="currentUser.userName === item.user ? false : true" @click="importEntry">导入</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '2'" :disabled="currentUser.userName === item.user ? false : true" @click="examineEntry">词条审核</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '3'" :disabled="currentUser.userName === item.user ? false : true" @click="translateEntry">翻译</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '4'" :disabled="currentUser.userName === item.user ? false : true" @click="examineTranslate">翻译审核</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state != '5'" :disabled="currentUser.userName === item.user ? false : true" @click="submitTask">递交</a-button>
-                            <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="currentUser.userName === item.user ? false : true" @click="exportEntry">导出</a-button>
+                            <a-badge :count="entryRejectCount" :overflow-count="99" v-if="item.state === '1'">
+                                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true" @click="importEntry">导入</a-button>
+                            </a-badge>
+                            <a-badge :count="entryCheckCount" :overflow-count="99" v-if="item.state === '2'">
+                                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true" @click="examineEntry">词条审核</a-button>
+                            </a-badge>
+                            <a-badge :count="transalteCount" :overflow-count="99" v-if="item.state === '3'">
+                                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true" @click="translateEntry">翻译</a-button>
+                            </a-badge>
+                            <a-badge :count="translateCheckCount" :overflow-count="99" v-if="item.state === '4'">
+                                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true" @click="examineTranslate">翻译审核</a-button>
+                            </a-badge>
+                            
+                            <!-- <a-button type="primary" ghost size="small" v-if="item.state != '5'" :disabled="task.state === item.state ? false : true" @click="submitTask">递交</a-button> -->
+                            <!-- <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="task.state === item.state ? false : true" @click="exportEntry">导出</a-button> -->
+                            <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="currentUser.userName === item.user ? false : true" @click="taskEnd">归档</a-button>
                         </div>
                         <span v-if="!showButton && item.state === task.state">
                             <span v-if="task.state === '6'">已完成</span>
-                            <span v-else>当前流程</span>
+                            <!-- <span v-else>当前流程</span> -->
                         </span>
                     </div>
                     <div class="bottom_info">
@@ -48,8 +60,12 @@ import {
     updateTaskInfo
 } from '@/http/api/task'
 import {
-    getEntryTempByTaskID
+    getEntryTempByTaskID,
+    getEntryInfoList
 } from '@/http/api/workbench'
+import {
+    setInfoByTask
+}from '@/http/api/i18Server'
 export default {
     props:{
         showButton:{
@@ -63,7 +79,11 @@ export default {
         return {
             task:{},
             taskList:[],
-            currentUser:{}
+            currentUser:{},
+            entryRejectCount:0,
+            entryCheckCount:0,
+            transalteCount:0,
+            translateCheckCount:0,
         }
     },
     mounted(){
@@ -93,7 +113,7 @@ export default {
                 }
                 this.taskList.push(item)
             }
-            if(this.task.developer != ''){
+            if(this.task.developer != '' && this.task.developer != null){
                 let item = {
                     userType:'开发员',
                     user:this.task.developer,
@@ -102,7 +122,7 @@ export default {
                 }
                 this.taskList.push(item)
             }
-            if(this.task.entryAuditor != ''){
+            if(this.task.entryAuditor != '' && this.task.entryAuditor != null){
                 let item = {
                     userType:'词条审核员',
                     user:this.task.entryAuditor,
@@ -111,7 +131,7 @@ export default {
                 }
                 this.taskList.push(item)
             }
-            if(this.task.translator != ''){
+            if(this.task.translator != '' && this.task.translator != null){
                 let item = {
                     userType:'翻译员',
                     user:this.task.translator,
@@ -120,7 +140,7 @@ export default {
                 }
                 this.taskList.push(item)
             }
-            if(this.task.translationAuditor != ''){
+            if(this.task.translationAuditor != '' && this.task.translationAuditor != null){
                 let item = {
                     userType:'翻译审核员',
                     user:this.task.translationAuditor,
@@ -129,16 +149,16 @@ export default {
                 }
                 this.taskList.push(item)
             }
-            if(this.task.developer != ''){
+            if(this.task.creator != ''){
                 let item = {
-                    userType:'导出',
-                    user:this.task.developer,
+                    userType:'管理员',
+                    user:this.task.creator,
                     operateTime:this.task.endTime,
                     state:'5'
                 }
                 this.taskList.push(item)
             }
-            
+            this.initEntryCount()
         },
         // 词条导入
         importEntry(){
@@ -220,6 +240,99 @@ export default {
             updateTaskInfo(this.task).then((res) => {
                 message.success(msg)
                 this.$emit('refresh')
+            })
+        },
+        // 任务结束
+        taskEnd(){
+            let msg = ""
+            if(this.entryRejectCount > 0 || this.entryCheckCount > 0 
+            || this.transalteCount > 0 || this.translateCheckCount > 0){
+                msg = '当前任务存在未处理完成的词条'
+            }
+            Modal.confirm({
+                title: '是否确定归档?',
+                icon: createVNode(ExclamationCircleOutlined),
+                content: createVNode('div', { style: 'color:red;' }, msg),
+                okText: '是',
+                cancelText: '否',
+                onOk: () => {
+                    this.task.state = '6'
+                    updateTaskInfo(this.task).then((res) => {
+                        message.success("已归档！")
+                        this.$emit('refresh')
+                    })
+                    // 回写数据
+                    let params = {
+                        taskID: this.task.id
+                    }
+                    setInfoByTask(params).then((res) => {
+
+                    }).catch((err) => {
+                        
+                    })
+                }
+            });
+            
+        },
+        // 获取词条数量
+        initEntryCount(){
+            this.getEntryReject()
+            this.getEntryCheck()
+            this.getTranslate()
+            this.getTranslateCheck()
+        },
+        // 获取被驳回的词条
+        getEntryReject(){
+            let params = {
+                taskID: this.task.id,
+                entryState: '2',
+                entry: ''
+            }
+            getEntryInfoList(params,[]).then((res) => {
+                this.entryRejectCount = res.data.list.length
+            }).catch((err) => {
+                this.entryRejectCount = 0
+            })
+        },
+        // 获取待审核的词条
+        getEntryCheck(){
+            let params = {
+                taskID: this.task.id,
+                entryState: '1',
+                entry: ''
+            }
+            getEntryInfoList(params,[]).then((res) => {
+                this.entryCheckCount = res.data.list.length
+            }).catch((err) => {
+                this.entryCheckCount = 0
+            })
+        },
+        // 获取待翻译的词条
+        getTranslate(){
+            let params = {
+                taskID: this.task.id,
+                entryState: '3',
+                entry: ''
+            }
+            let data = ['0','2']
+            getEntryInfoList(params,data).then((res) => {
+                this.transalteCount = res.data.list.length
+            }).catch((err) => {
+                this.transalteCount = 0
+            })
+        },
+        // 获取翻译审核的词条
+        getTranslateCheck(){
+            let params = {
+                taskID: this.task.id,
+                entryState: '3',
+                entry: ''
+            }
+            let data = ['1']
+            getEntryInfoList(params,data).then((res) => {
+                this.translateCheckCount = res.data.list.length
+            }).catch((err) => {
+                this.translateCheckCount = 0
             })
         }
     }

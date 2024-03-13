@@ -60,3 +60,18 @@ export function templateFileDownload() {
         }
     )
 }
+
+// 导入模板下载
+export function entryExportByCondition(data) {
+    return axios(
+        {
+            url: env.dev.baseUrl+'/entryInfo/entryExportByCondition',
+            method: 'POST',
+            data:data,
+            headers: {
+                token: store.state.token
+            },
+            responseType: 'blob'
+        }
+    )
+}

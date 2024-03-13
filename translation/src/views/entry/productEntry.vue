@@ -16,40 +16,50 @@
                         <a-input v-model:value="search.entry" placeholder="请输入内容"></a-input>
                     </a-form-item>
                     
-                    <a-form-item
+                    <!-- <a-form-item
                     label="Abbr"
                     name="abbr"
                     >
                         <a-input v-model:value="search.abbr" placeholder="请输入内容"></a-input>
-                    </a-form-item>
-                    <a-form-item
-                    label="词性备注"
-                    name="partSpeech"
-                    >
-                        <a-input v-model:value="search.partOfSpeech" placeholder="请输入内容"></a-input>
-                    </a-form-item>
-                    <!-- <a-form-item
-                    label="翻译语种"
-                    name="language"
-                    >
-                        <a-select
-                        v-model:value="search.translateType"
-                        style="width: 186px"
-                        placeholder="请选择内容"
-                        :options='translateTypes'
-                        :fieldNames="{label:'name',value:'name'}"
-                        >
-                        </a-select>
                     </a-form-item> -->
                     <a-form-item
-                    label="词条来源"
-                    name="entrySource"
+                    label="词条状态"
+                    name="state"
                     >
-                        <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
+                        <a-select
+                        v-model:value="search.entryState"
+                        style="width: 186px"
+                        placeholder="请选择"
+                        >
+                            <a-select-option value="0">新建</a-select-option>
+                            <a-select-option value="1">审核中</a-select-option>
+                            <a-select-option value="2">审核不通过</a-select-option>
+                            <a-select-option value="3">已审核</a-select-option>
+                        </a-select>
+                    </a-form-item>
+                    <a-form-item
+                    label="TAG"
+                    name="entryLabel"
+                    >
+                        <a-input v-model:value="search.entryLabel" placeholder="请输入内容"></a-input>
+                    </a-form-item>
+                    <a-form-item
+                    label="二级分类"
+                    name="classfy2"
+                    >
+                        <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
+                        <a-select
+                        v-model:value="search.classfy2"
+                        style="width: 200px"
+                        placeholder="请选择"
+                        :fieldNames="{label:'name',value:'name'}"
+                        :options='classify2Option'
+                        >
+                        </a-select>
                     </a-form-item>
                     <a-form-item>
-                        <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-                        <a-button type="primary" size="middle" @click="getEntryByVersion" style="margin-left:8px">查询</a-button>
+                        <a-button type="primary" size="middle" @click="getEntryByVersion">查询</a-button>
+                        <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin-left:8px">重置</a-button>
                     </a-form-item>
                 </a-form>
             </template>
@@ -60,7 +70,7 @@
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:label>
-                当前版本： <a-select
+                产品版本： <a-select
                             v-model:value="currentVersion"
                             allowClear
                             style="width: 150px"
@@ -73,11 +83,20 @@
                             </a-select>
             </template>
             <template v-slot:operate>
-                <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:8px">
-                    <!-- <a-button type="primary" size="small"><template #icon><PlusOutlined /></template>新增</a-button> -->
-                    <a-button type="primary" size="small" @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button>
-                    <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button>
+                <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
+                    <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
+                    
+                    <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag">选择全部</a-button>
+                    <a-button type="primary" size="small" @click="cancelCreate" class="yellowBtn" v-if="createVersionFlag">取消选择</a-button>
+                    <a-badge :count="selectEntry.length" :overflow-count="99" v-if="createVersionFlag">
+                        <a-button type="primary" size="small" class="resetBtn" @click="viewCreateVersionEntry">已选词条</a-button>
+                    </a-badge>
+                    
+                    <a-button type="primary" size="small" @click="addEntry"><template #icon><PlusOutlined /></template>新增</a-button>
+                    <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
+                    <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
                     <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
+                    <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
                     <a-popover
                         trigger="click"
                         placement="leftTop"
@@ -112,17 +131,36 @@
                         class="ant-table-striped"
                         :columns="columns" 
                         :data-source="dataSource" 
-                        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+                        :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll} : null"
                         :row-key="record => record.id"
                         :scroll="tableHeight"
                         :loading="loading"
                         :rowClassName="getRowClassName"
                         :pagination="pagination"
-                        ref="taskTable"
+                        ref="entryTable"
                         @resizeColumn="handleResizeColumn"
                         :customRow="customRow"
                         >
                             <template #bodyCell="{ column, record, text }">
+                                
+                                <template v-if="column.dataIndex === 'entry'">
+                                    <div>
+                                        <template v-if="editableData[record.id]">
+                                            <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex" autocomplete="off">
+                                                <a-form-item :name="column.dataIndex">
+                                                    <a-input
+                                                        v-model:value="editableData[record.id][column.dataIndex]"
+                                                        style="margin: -5px 0"
+                                                        @click="clickInput"
+                                                    />
+                                                </a-form-item>
+                                            </a-form>
+                                        </template>
+                                        <template v-else>
+                                            {{ text }}
+                                        </template>
+                                    </div>
+                                </template>
                                 <template v-if="inputColumn.includes(column.dataIndex)">
                                     <div>
                                         <template v-if="editableData[record.id]">
@@ -137,19 +175,88 @@
                                         </template>
                                     </div>
                                 </template>
-                                <template v-if="admin && translateColumn.includes(column.dataIndex)">
+                                <template v-if="translateColumn.includes(column.dataIndex)">
                                     <div>
                                         <template v-if="editableData[record.id]">
-                                            <a-input
-                                                v-model:value="editableData[record.id][column.dataIndex]"
-                                                style="margin: -5px 0"
-                                                @click="clickInput"
-                                            />
+                                            <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex" autocomplete="off">
+
+                                                <a-form-item :name="column.dataIndex"
+                                                >
+                                                    <a-input
+                                                        v-model:value="editableData[record.id][column.dataIndex]"
+                                                        style="margin: -5px 0"
+                                                        @click="clickInput"
+                                                    />
+                                                </a-form-item>
+                                            </a-form>
                                         </template>
                                         <template v-else>
                                             {{ text }}
                                         </template>
                                     </div>
+                                </template>
+                                <template v-if="column.dataIndex === 'classfy1'">
+                                    <div>
+                                        <template v-if="editableData[record.id]">
+                                            <a-select
+                                            v-model:value="editableData[record.id][column.dataIndex]"
+                                            style="width: 100%"
+                                            placeholder="请选择"
+                                            :fieldNames="{label:'title',value:'title'}"
+                                            :options='classify1Option'
+                                            @change="getRowClassify2Option(record)"
+                                            >
+                                            </a-select>
+                                        </template>
+                                        <template v-else>
+                                            {{ text }}
+                                        </template>
+                                    </div>
+                                </template>
+                                <template v-if="column.dataIndex === 'classfy2'">
+                                    <div>
+                                        <template v-if="editableData[record.id]">
+                                            <a-select
+                                            v-model:value="editableData[record.id][column.dataIndex]"
+                                            style="width: 100%"
+                                            placeholder="请选择"
+                                            :fieldNames="{label:'name',value:'name'}"
+                                            :options='rowClassify2Option[record.id]'
+                                            >
+                                            </a-select>
+                                        </template>
+                                        <template v-else>
+                                            {{ text }}
+                                        </template>
+                                    </div>
+                                </template>
+                                <template v-if="column.dataIndex === 'entryState'">
+                                    <template v-if="record.entryState === 0">
+                                        <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                                    </template>
+                                    <template v-if="record.entryState === 1">
+                                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
+                                    </template>
+                                    <template v-if="record.entryState === 2">
+                                        <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+                                    </template>
+                                    <template v-if="record.entryState === 3">
+                                        <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+                                    </template>
+                                </template>
+                                <template v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
+                                    <template v-if="record[column.dataIndex] === '0'">
+                                        <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
+                                    </template>
+                                    <template v-if="record[column.dataIndex] === '1'">
+                                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
+                                    </template>
+                                    <template v-if="record[column.dataIndex] === '2'">
+                                        <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+                                    </template>
+                                    <template v-if="record[column.dataIndex] === '3'">
+                                        <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+                                    </template>
                                 </template>
                                 <template v-if="column.dataIndex === 'operation'">
                                     <div class="editable-row-operations">
@@ -159,12 +266,22 @@
                                     </span>
                                     <span v-else>
                                         <a-button type="primary" ghost size="small" @click.stop="entryDetails(record)">详情</a-button>
+                                        <a-button type="primary" ghost size="small" @click.stop="entryUpgrade(record)">升级</a-button>
                                     </span>
                                     </div>
                                 </template>
                             </template>
                         </a-table>
                     </a-config-provider>
+                    <!-- <a-pagination
+                    style="float:right"
+                    v-model:current="pagination.current"
+                    v-model:page-size="pagination.pageSize"
+                    :total="pagination.total"
+                    :pageSizeOptions="pagination.pageSizeOptions"
+                    :show-total="total => `共 ${total} 条`"
+                    @change="this.pageChange"
+                    /> -->
                 </div>
             </template>
         </DataBox>
@@ -195,35 +312,35 @@
                         <tr>
                             <td class="tableTitle">翻译状态</td>
                             <td>
-                                <template v-if="currentEntry.englishTranslateState === '已审核'">
-                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.englishTranslateState}}</span>
+                                <template v-if="currentEntry.englishTranslateState === '3'">
+                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.englishChineseState}}</span>
                                 </template>
                                 <template v-else-if="currentEntry.englishTranslateState != null">
-                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.englishTranslateState}}</span>
+                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.englishChineseState}}</span>
                                 </template>
                             </td>
                             <td>
-                                <template v-if="currentEntry.russianTranslateState === '已审核'">
-                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.russianTranslateState}}</span>
+                                <template v-if="currentEntry.russianTranslateState === '3'">
+                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.russianChineseState}}</span>
                                 </template>
                                 <template v-else-if="currentEntry.russianTranslateState != null">
-                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.russianTranslateState}}</span>
+                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.russianChineseState}}</span>
                                 </template>
                             </td>
                             <td>
-                                <template v-if="currentEntry.spanishTranslateState === '已审核'">
-                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.spanishTranslateState}}</span>
+                                <template v-if="currentEntry.spanishTranslateState === '3'">
+                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.spanishChineseState}}</span>
                                 </template>
                                 <template v-else-if="currentEntry.spanishTranslateState != null">
-                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.spanishTranslateState}}</span>
+                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.spanishChineseState}}</span>
                                 </template>
                             </td>
                             <td>
-                                <template v-if="currentEntry.frenchTranslateState === '已审核'">
-                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.frenchTranslateState}}</span>
+                                <template v-if="currentEntry.frenchTranslateState === '3'">
+                                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.frenchChineseState}}</span>
                                 </template>
                                 <template v-else-if="currentEntry.frenchTranslateState != null">
-                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.frenchTranslateState}}</span>
+                                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.frenchChineseState}}</span>
                                 </template>
                                 
                             </td>
@@ -232,28 +349,28 @@
                             <td class="tableTitle">选择</td>
                             <td>
                                 <a-checkbox 
-                                :disabled="currentEntry.englishTranslateState != '已审核'"
+                                :disabled="currentEntry.englishTranslateState != '3'"
                                 v-model:checked="currentEntry.englishChecked"
                                 >
                                 </a-checkbox>
                             </td>
                             <td>
                                 <a-checkbox 
-                                :disabled="currentEntry.russianTranslateState != '已审核'"
+                                :disabled="currentEntry.russianTranslateState != '3'"
                                 v-model:checked="currentEntry.russianChecked"
                                 >
                                 </a-checkbox>
                             </td>
                             <td>
                                 <a-checkbox 
-                                :disabled="currentEntry.spanishTranslateState != '已审核'"
+                                :disabled="currentEntry.spanishTranslateState != '3'"
                                 v-model:checked="currentEntry.spanishChecked"
                                 >
                                 </a-checkbox>
                             </td>
                             <td>
                                 <a-checkbox 
-                                :disabled="currentEntry.frenchTranslateState != '已审核'"
+                                :disabled="currentEntry.frenchTranslateState != '3'"
                                 v-model:checked="currentEntry.frenchChecked"
                                 >
                                 </a-checkbox>
@@ -273,6 +390,19 @@
         </OperationArea>
         <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk"/>
     </div>
+    <CreateVersionModal 
+    :visible="createVisible" 
+    :dataSource="selectEntry" 
+    :currentProduct="product"
+    @createClose="createClose" 
+    @removeEntry="removeEntry"
+    @cancelCreate="cancelCreate"/>
+
+    <SecondClassify 
+    ref="secondClassifyRef"
+    :visible="secondClassifyVisible" 
+    :currentProduct="product"
+    @secondClassifyClose="secondClassifyClose"/>
 </template>
 <script>
 import tableParam from "./tableParam.js";
@@ -282,9 +412,11 @@ import SearchBox from '@/components/search/searchBox.vue'
 import DataBox from '@/components/dataBox/index.vue'
 import OperationArea from '@/components/operationArea/index.vue'
 import EditReason from '@/views/entry/editReason.vue'
+import CreateVersionModal from '@/views/entry/createVersionModal.vue'
+import SecondClassify from '@/views/entry/secondClassify.vue'
 import { message,Modal } from 'ant-design-vue';
 import { defineComponent, ref, createVNode } from 'vue';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, iteratee } from 'lodash-es';
 import { 
     getLanguage
 } from "@/http/api/translate";
@@ -298,7 +430,11 @@ import {
     getEntryByVersion,
     deleteEntryInfo,
     updatePublicEntry,
+    addSingleEntry
 } from "@/http/api/entryManage";
+import {
+    getSecondClassify
+} from "@/http/api/secondClassify"
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -316,6 +452,8 @@ export default {
         DataBox,
         OperationArea,
         EditReason,
+        CreateVersionModal,
+        SecondClassify,
         PlusOutlined,
         DeleteOutlined,
         CopyOutlined,
@@ -346,7 +484,9 @@ export default {
                 abbr:'',
                 partOfSpeech:'',
                 translateType:null,
-                entrySource:''
+                classfy2:null,
+                entryState:null,
+                entryLabel:""
             },
             translateTypes:[],
             tableTitle:'词条列表',
@@ -359,20 +499,25 @@ export default {
                 {title: "序号",dataIndex: 'index',align:'center',width:50,customRender: (text, record, index, column) => {
                     return text.index + 1
                 },fixed: 'left',index:0},
+                {title: '词条状态',dataIndex: 'entryState',align:'center',width:130,fixed:'left',index:0.1,},
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,fixed: 'left',resizable: true,index:1},
-                {title: '词条',dataIndex: 'entry',align:'center',width:150,resizable: true,ellipsis: true,index:2},
-                {title: '词性备注',dataIndex: 'partOfSpeech',align:'center',width:180,resizable: true,index:4},
-                {title: '词条状态',dataIndex: 'entryState',align:'center',width:180,resizable: true,index:5,},
-                {title: '英文翻译',dataIndex: 'english',align:'center',width:150,resizable: true,index:9},
-                {title: '俄文翻译',dataIndex: 'russian',align:'center',width:150,resizable: true,index:16},
-                {title: '西文翻译',dataIndex: 'spanish',align:'center',width:150,resizable: true,index:19},
-                {title: '法文翻译',dataIndex: 'french',align:'center',width:150,resizable: true,index:22},
+                {title: '词条',dataIndex: 'entry',align:'center',width:160,resizable: true,index:2},
+                {title: '词条版本',dataIndex: 'entryVersion',align:'center',width:130,index:6,},
+                {title: '英文翻译',dataIndex: 'english',align:'center',width:180,resizable: true,index:10},
+                {title: '俄文翻译',dataIndex: 'russian',align:'center',width:180,resizable: true,index:16},
+                {title: '西文翻译',dataIndex: 'spanish',align:'center',width:180,resizable: true,index:19},
+                {title: '法文翻译',dataIndex: 'french',align:'center',width:180,resizable: true,index:22},
                 {title: '操作',dataIndex: 'operation',align:'center',width:150,fixed: 'right',index:100}
             ],
             dataSource:[],
             pagination:{
                 pageSizeOptions:['20','50','100'],
-                defaultPageSize:20
+                defaultPageSize:20,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
             },
             overlayStyle: tableParam.overlayStyle,
             checkboxList: tableParam.checkboxList,
@@ -390,7 +535,17 @@ export default {
             currentVersion:null,
             productVersions:[],
             editVisible:false,
-            editEntry:[]
+            editEntry:[],
+            createVersionFlag:false,
+            selectEntry:[],
+            createVisible: false,
+            rules:{},
+            batchSelectFlag: false,
+            moduleMap:{},
+            classify1Option:[],
+            secondClassifyVisible:false,
+            classify2Option:[],
+            rowClassify2Option:{}
         }
     },
     
@@ -415,11 +570,19 @@ export default {
             this.setTableHeight()
         },
         currentProduct(newval,oldval){
-            console.log(newval)
-            
+            this.currentVersion = null
             this.product = newval
+            this.showOperationArea = false
             this.init()
             // console.log(newval)
+            let moduleMap = {}
+            this.classify1Option = []
+            newval.children.forEach(item => {
+                moduleMap[item.title] = item.maxByte
+                this.classify1Option.push(item)
+            })
+            this.moduleMap = moduleMap
+
         },
         productEdit(newval,oldval){
             this.edit = newval
@@ -432,6 +595,8 @@ export default {
         init(){
            this.getProductVersion()
            this.getEntryByVersion()
+           this.setTableHeight()
+           this.selectSecondClassify()
         },
         // 获取翻译语言
         getLanguage(){
@@ -485,7 +650,7 @@ export default {
             }
             let params = {
                 versionName: "",
-                productID: this.product.key
+                productID: this.product.type === 'module' ? this.product.parentId : this.product.key
             }
             getVersionByName(params).then((res) => {
                 this.productVersions = res.data.list
@@ -500,33 +665,34 @@ export default {
         },
         // 获取版本词条
         getEntryByVersion(){
-            // TODO  product type === module时 加筛选条件
-            if(this.currentVersion === null){
-                // TODO  this.currentVersion === null时 获取产品下的版本
-                this.dataSource = []
+
+            if(Object.keys(this.product).length === 0){
                 return
+            }
+
+            let data = {
+                abbr:this.search.abbr,
+                entry:this.search.entry,
+                classfy2:this.search.classfy2,
+                classfy1: this.product.type === 'module' ? this.product.title : "",
+                entryState: this.search.entryState,
+                entryLabel: this.search.entryLabel
+            }
+            if(this.currentVersion === null){
+                data.productID = this.product.type === 'module' ? this.product.parentId : this.product.key
+            }else{
+                data.versionID = this.currentVersion
             }
             let params = {
                 pageIndex: -1,
                 pageSize: -1,
             }
-            let version = this.productVersions.find(item => item.id === this.currentVersion)
-            let data = {
-                versionID: this.currentVersion,
-                tableName: version.tableName,
-                abbr:this.search.abbr,
-                entry:this.search.entry,
-                partOfSpeech:this.search.partOfSpeech,
-                entrySource:this.search.entrySource
-            }
             this.loading = true
             getEntryByVersion(data,params).then((res) => {
-                // this.assemblyTableData(res.data.list)
                 this.dataSource = res.data.list
-                let version = this.productVersions.find(item => item.id === this.currentVersion)
-                this.dataSource.forEach(item => {
-                    item.tableName = version.tableName
-                })
+                this.loading = false
+                this.pagination.total = res.data.totalNum
+            }).catch((err) => {
                 this.loading = false
             })
             this.editableData = {}
@@ -537,7 +703,6 @@ export default {
             let version = this.productVersions.find(item => item.id === this.currentVersion)
             data.forEach(element => {
                 let item = element.entryInfoEntity
-                // TODO  
                 // item.tableName = element.tableName
                 item.tableName = version.tableName
                 if(element.translateEntity){
@@ -602,18 +767,62 @@ export default {
                 // },
                 onDblclick: (event) => {
                     // clearTimeout(this.timer)
+                    if(this.editableData.hasOwnProperty(record.id)){
+                        // 当前行在编辑状态
+                        return
+                    }
                     if(this.edit){
                         this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
+                        // 设置校验规则
+                        this.rules[record.id] = {
+                            entry:[{ validator: this.vilidFildLength(record) },
+                            { required: true, message: '请输入!' }],
+                            english:[{ validator: this.vilidFildLength(record) }],
+                            french:[{ validator: this.vilidFildLength(record) }],
+                            russian:[{ validator: this.vilidFildLength(record) }],
+                            spanish:[{ validator: this.vilidFildLength(record) }],
+                        }
+                        // 获取表格操作行的classify2Option
+                        this.getRowClassify2Option(record)
                     }
                 }
+            }
+        },
+        // 校验输入数据的长度
+        vilidFildLength(record){
+            return (rule,value) =>{
+                let maxLength = this.moduleMap[record.classfy1]
+                if(maxLength === undefined || maxLength === null || maxLength === 0){
+                    return Promise.resolve();
+                }
+                // 获取输入数据的长度
+                let length = common.byteLength(value)
+                if(length > maxLength){
+                    return Promise.reject('允许最大字符数为'+maxLength+'！');
+                }
+                return Promise.resolve();
             }
         },
         // 详情
         entryDetails(record){
             this.selectedRowIndex = record.id
             this.currentEntry = record
+            // 将翻译状态转换为中文
+            let language = ['english','russian','spanish','french']
+            language.forEach(item => {
+                if(this.currentEntry[item+'TranslateState'] != null && this.currentEntry[item+'TranslateState'] === '1'){
+                    this.currentEntry[item+'ChineseState'] = '待审核'
+                }
+                if(this.currentEntry[item+'TranslateState'] != null && this.currentEntry[item+'TranslateState'] === '2'){
+                    this.currentEntry[item+'ChineseState'] = '审核不通过'
+                }
+                if(this.currentEntry[item+'TranslateState'] != null && this.currentEntry[item+'TranslateState'] === '3'){
+                    this.currentEntry[item+'ChineseState'] = '已审核'
+                }
+            })
             this.showOperationArea = true
             this.setTableHeight()
+            console.log(this.currentEntry)
         },
         deleteEntry(){
             if(this.selectedRowKeys.length === 0){
@@ -622,8 +831,9 @@ export default {
             Modal.confirm({
                 title: '是否确定删除?',
                 icon: createVNode(ExclamationCircleOutlined),
-                okText: '确定',
-                cancelText: '取消',
+                okText: '是',
+                cancelText: '否',
+                style:{top:'30%'},
                 onOk: () => {
                     let version = this.productVersions.find(item => item.id === this.currentVersion)
                     let params = {
@@ -641,11 +851,57 @@ export default {
         // 取消
         cancel(id){
             delete this.editableData[id]
+            delete this.rules[id]
+            delete this.rowClassify2Option[id]
+            if(id.startsWith('new') || id.startsWith('copy')){
+                this.dataSource.some((item,i) => {
+                    if(item.id === id){
+                        this.dataSource.splice(i,1)
+                        return true
+                    }
+                })
+                this.pagination.pageSize = this.pagination.pageSize - 1
+            }
         },
         // 保存
         save(id){
-            this.editEntry = [this.editableData[id]]
-            this.editVisible = true
+            // 校验字段长度是否超限
+            let list = [eval("this.$refs.form"+ id.replaceAll('-','') + 'entry').validate(),
+                        eval("this.$refs.form"+ id.replaceAll('-','') + 'english').validate(),
+                        eval("this.$refs.form"+ id.replaceAll('-','') + 'russian').validate(),
+                        eval("this.$refs.form"+ id.replaceAll('-','') + 'spanish').validate(),
+                        eval("this.$refs.form"+ id.replaceAll('-','') + 'french').validate()]
+
+            Promise.all(list).then(() => {
+                // 校验成功
+                if(id.startsWith('new') || id.startsWith('copy')){
+                    // 新增词条/升级词条
+                    addSingleEntry(this.editableData[id]).then((res) => {
+                        message.success("新增成功!")
+                        this.getEntryByVersion()
+                        delete this.editableData[id]
+                        delete this.rowClassify2Option[id]
+                    })
+                    this.pagination.pageSize = this.pagination.pageSize - 1
+                }else{
+                    this.editEntry = [this.editableData[id]]
+                    this.editVisible = true
+                }
+                
+            }).catch((err) => {
+                
+            })
+        },
+        // 校验输入数据是否合规
+        checkedData(record){
+            if(common.byteLength(record.entry) > record.maxLength || common.byteLength(record.english) > record.maxLength
+            || common.byteLength(record.russian) > record.maxLength || common.byteLength(record.spanish) > record.maxLength
+            || common.byteLength(record.french) > record.maxLength){
+                message.error('输入的数据超长！')
+                return false
+            }else{
+                return true
+            }
         },
         // 批量保存
         batchSave(){
@@ -658,8 +914,10 @@ export default {
         },
         editOk(id){
             delete this.editableData[id]
+            delete this.rules[id]
             this.getEntryByVersion()
             this.editVisible = false
+            delete this.rowClassify2Option[id]
         },
         editClose(){
             this.editVisible = false
@@ -669,6 +927,7 @@ export default {
             this.selectedRowKeys = selectedRowKeys
             this.selectedRows = selectedRows
         },
+        
         // 表格列可伸缩
         handleResizeColumn: (w, col) => {
             col.width = w;
@@ -711,7 +970,8 @@ export default {
                 let data = {
                     id: element.id,
                     publicState: 1,
-                    visualRange: type === '1' ? this.currentProduct.department : '公司'
+                    visualRange: type === '1' ? this.currentProduct.department : '公司',
+                    translateState:"3"
                 }
                 updatePublicEntry(data).then((res) => {
 
@@ -726,7 +986,9 @@ export default {
                 abbr:'',
                 partOfSpeech:'',
                 translateType:null,
-                entrySource:''
+                entrySource:'',
+                entryState: null,
+                entryLabel: ""
             }
             this.getEntryByVersion()
         },
@@ -767,6 +1029,193 @@ export default {
         },
         clickInput(event){
             event.stopPropagation();
+        },
+        // 创建版本
+        createVersion(){
+            this.createVersionFlag = true
+            this.selectEntry = []
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            this.batchSelectFlag = true
+        },
+        // 已选词条按钮点击事件
+        viewCreateVersionEntry(){
+            this.createVisible = true
+        },
+        createClose(){
+            this.createVisible = false
+            this.getProductVersion()
+        },
+        // 移除已选择词条
+        removeEntry(record){
+            this.selectEntry = this.selectEntry.filter(item => {
+                return item != record
+            })
+            this.selectedRowKeys = this.selectedRowKeys.filter(item => {
+                return item != record.id
+            })
+            this.selectedRows = this.selectedRows.filter(item => {
+                return item != record
+            })
+        },
+        // 选择全部词条
+        selectAllEntry(){
+            let arr = this.selectEntry.concat(this.dataSource)
+            // 去重
+            this.selectEntry = Array.from(new Set(arr.map(JSON.stringify))).map(JSON.parse)
+            this.selectedRows =  this.dataSource
+            this.selectedRowKeys = []
+            this.dataSource.forEach(item => {
+                this.selectedRowKeys.push(item.id)
+            })
+        },
+        // 取消创建版本
+        cancelCreate(){
+            this.selectEntry = []
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            this.createVersionFlag = false
+            this.createVisible = false
+            this.batchSelectFlag = false
+        },
+        // 表格复选框点击事件
+        onSelect(record,selected){
+            if(this.createVersionFlag){
+                // 创建版本时使用
+                if(selected){
+                    this.selectEntry.push(record)
+                }else{
+                    this.selectEntry = this.selectEntry.filter(item => {
+                        return item !== record
+                    })
+                }
+            }
+        },
+        // 表格全选/反选框点击事件
+        onSelectAll(selected, selectedRows,changeRows){
+            if(this.createVersionFlag){
+                if(selected){
+                    this.selectEntry = this.selectEntry.concat(changeRows)
+                }else{
+                    changeRows.forEach(item => {
+                        this.selectEntry = this.selectEntry.filter(entry => {
+                            return entry !== item
+                        })
+                    })
+                }
+            }
+        },
+        //新增词条
+        addEntry(){
+            this.pagination.pageSize = this.pagination.pageSize + 1
+            let newData = {
+                id: `new${this.dataSource.length + 1}`,
+                entryState:0,
+                classfy1: this.product.type === 'module' ? this.product.title : "",
+                maxLength: this.product.type === 'module' ? this.product.maxByte : "",
+                versionID: this.currentVersion,
+                productID: this.product.type === 'module' ? this.product.parentId : this.product.key,
+            }
+            // console.log(newData)
+            // 设置校验规则
+            if(newData.maxLength != ""){
+                this.rules[newData.id] = {
+                    entry:[{ validator: this.vilidFildLength(newData) },
+                    { required: true, message: '请输入!' }],
+                    english:[{ validator: this.vilidFildLength(newData) }],
+                    french:[{ validator: this.vilidFildLength(newData) }],
+                    russian:[{ validator: this.vilidFildLength(newData) }],
+                    spanish:[{ validator: this.vilidFildLength(newData) }],
+                }
+            }
+
+            if(this.pagination.total >= this.pagination.pageSize){
+                this.dataSource.splice(this.pagination.pageSize - 1,0,newData)
+            }else{
+                this.dataSource.push(newData)
+            }
+            this.editableData[newData.id] = newData;
+            // 获取二级分类数据
+            this.getRowClassify2Option(newData)
+            // 滚动到最底部
+            this.$nextTick(()=>{
+                let container = this.$refs.entryTable.$el.querySelector('.ant-table-body')
+                container.scrollTop = container.scrollHeight
+            })
+        },
+        // 词条升级
+        entryUpgrade(entry){
+            this.pagination.pageSize = this.pagination.pageSize + 1
+            let copyEntry = cloneDeep(entry)
+            copyEntry.id = "copy_"+copyEntry.id 
+            // copyEntry.entryVersion = entry.entryVersion === null || entry.entryVersion === "" ? 0 : entry.entryVersion + 1
+            copyEntry.entryState = 0  // 新建状态
+            copyEntry.upgrade = true
+            copyEntry.maxLength = entry.maxLength
+            copyEntry.entryVersion = 'new'
+            // 设置校验规则
+            if(copyEntry.maxLength != ""){
+                this.rules[copyEntry.id] = {
+                    entry:[{ validator: this.vilidFildLength(copyEntry) },
+                    { required: true, message: '请输入!' }],
+                    english:[{ validator: this.vilidFildLength(copyEntry) }],
+                    french:[{ validator: this.vilidFildLength(copyEntry) }],
+                    russian:[{ validator: this.vilidFildLength(copyEntry) }],
+                    spanish:[{ validator: this.vilidFildLength(copyEntry) }],
+                }
+            }
+            let index = this.dataSource.indexOf(entry)
+            // if(index === this.pagination.pageSize - 1){
+            //     this.dataSource.splice(index,0,copyEntry)
+            // }else{
+            //     this.dataSource.splice(index + 1,0,copyEntry)
+            // }
+            this.dataSource.splice(index + 1,0,copyEntry)
+            this.editableData[copyEntry.id] = copyEntry
+            this.getRowClassify2Option(copyEntry)
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+            // this.getEntryByVersion()
+        },
+        // 二级分类管理
+        setSecondClassify(){
+            this.secondClassifyVisible = true
+            this.$refs.secondClassifyRef.init()
+        },
+        secondClassifyClose(){
+            this.secondClassifyVisible = false
+            this.selectSecondClassify()
+        },
+        // 获取二级分类
+        selectSecondClassify(){
+            if(this.product.type != 'module'){
+                this.classify2Option = []
+                return
+            }
+            let params = {
+                parentId:this.product.key,
+            }
+            getSecondClassify(params).then((res) => {
+                this.classify2Option = res.data.list
+            })
+        },
+        // 获取表格当前操作行的Classify2Option
+        getRowClassify2Option(record){
+            if(this.editableData[record.id].classfy1 === null || this.editableData[record.id].classfy1 === ""){
+                return
+            }
+            let classify1 = this.classify1Option.find(item => item.title === this.editableData[record.id].classfy1)
+            let params = {
+                parentId: classify1.key
+            }
+            getSecondClassify(params).then((res) => {
+                this.rowClassify2Option[record.id] = res.data.list
+            }).catch((err) => {
+                this.rowClassify2Option[record.id] = []
+            })
         },
     }
 }
@@ -836,6 +1285,9 @@ export default {
             bottom: 0px;
         }
     }
+}
+.ant-table-cell .ant-form-item{
+    margin-bottom: 0%;
 }
 :deep(.ant-pagination) {
     margin: 8px 0px 0px 0px;

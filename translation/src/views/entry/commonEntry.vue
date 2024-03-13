@@ -330,6 +330,7 @@ export default {
                 icon: createVNode(ExclamationCircleOutlined),
                 okText: '确定',
                 cancelText: '取消',
+                style:{top:'30%'},
                 onOk: () => {
                     for(let key in this.editableData){
                         updatePublicEntry(this.editableData[key]).then((res) => {

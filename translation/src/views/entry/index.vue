@@ -19,7 +19,7 @@
                 @dragenter="onDragEnter"
                 @drop="onDrop"
                 >
-                    <template #title="{ key: treeKey, title, type,maxByte }">
+                    <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
                         <a-dropdown :trigger="['contextmenu']">
                             <span>{{ title }}</span>
                             <template #overlay>
@@ -28,7 +28,7 @@
                                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
                                     <a-menu-item v-if="type === 'product'" @click="productAuthority(treeKey)">权限设置</a-menu-item>
                                     <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey,'module')">添加模块</a-menu-item>
-                                    <a-menu-item v-if="type !='department' && type !='common'" @click="editClassify(treeKey, title, type,maxByte)">编辑</a-menu-item>
+                                    <a-menu-item v-if="type !='department' && type !='common'" @click="editClassify(treeKey, title, type,maxByte,foreignMaxByte)">编辑</a-menu-item>
                                     <a-menu-item v-if="type !='department' && type !='common'">
                                         <a-popconfirm
                                             title="确定要删除吗?"
@@ -47,12 +47,12 @@
             </a-col>
             <a-col flex="auto" class="dataBox">
                 <div class="entryBox" v-if="isProduct">
-                    <a-tabs v-model:activeKey="activeKey" type="card">
+                    <a-tabs v-model:activeKey="activeKey" type="card" @change="tabChange">
                         <a-tab-pane key="1" tab="词条详情">
                             <ProductEntry :boxHeight="boxHeight" :currentProduct="currentClickProduct" :productEdit="productEdit" ref="productEntry"/>
                         </a-tab-pane>
                         <a-tab-pane key="2" tab="产品版本">
-                            <ProductVersion :boxHeight="boxHeight" :currentProduct="currentClickProduct" :productEdit="productEdit" @viewEntry="viewEntry"/>
+                            <ProductVersion ref="productVersionRef" :boxHeight="boxHeight" :currentProduct="currentClickProduct" :productEdit="productEdit" @viewEntry="viewEntry"/>
                         </a-tab-pane>
                     </a-tabs>
                 </div>
@@ -84,6 +84,7 @@ import ProductVersion from '@/views/entry/productVersion.vue'
 import CommonEntry from '@/views/entry/commonEntry.vue'
 import ClassifyModal from '@/views/entry/classifyModal.vue'
 import ProductAuthorityNodal from '@/views/entry/productAuthorityModal.vue'
+import { cloneDeep, iteratee } from 'lodash-es';
 import { 
     getClassTree,
     deleteEntryClassfy,
@@ -175,11 +176,12 @@ export default {
             }
         },
         // 编辑分类或产品
-        editClassify(treeKey,title,type,maxByte){
+        editClassify(treeKey,title,type,maxByte,foreignMaxByte){
             this.currentClass = {
                 key: treeKey,
                 title: title,
-                maxByte:maxByte
+                maxByte:maxByte,
+                foreignMaxByte:foreignMaxByte
             }
             this.classifyVisible = true
             if(type === 'product'){
@@ -233,10 +235,27 @@ export default {
             if(node.type === 'product'){
                 this.isProduct = true
                 this.currentClickProduct = node
-                if(this.$store.state.admin){
+                this.getproductIsEdit(node.key)
+            }else if(node.type === 'common'){
+                this.isProduct = false
+                this.currentClickProduct = node
+            }else if(node.type === 'module'){
+                this.isProduct = true
+                let product = e.node.parent.node
+                let newNode = cloneDeep(node)
+                newNode.children = product.children
+                this.currentClickProduct = newNode
+                this.getproductIsEdit(node.parentId)
+            }else {
+                this.currentClickProduct = node
+            }
+        },
+        // 查询产品 用户是否可编辑
+        getproductIsEdit(productId){
+            if(this.$store.state.admin){
                     this.productEdit = true
                 }else{
-                    let params = {productId:node.key}
+                    let params = {productId:productId}
                     getUserProduct(params).then((res) => {
                         if(res.data && res.data.write === 1){
                             this.productEdit = true
@@ -245,20 +264,6 @@ export default {
                         }
                     })
                 }
-                
-            }else if(node.type === 'common'){
-                this.isProduct = false
-                this.currentClickProduct = node
-            }else if(node.type === 'module'){
-                this.isProduct = true
-                // let product = e.node.parent.node
-                // product.filter = node.title
-                // this.currentClickProduct = product
-                node.key = node.parentId
-                this.currentClickProduct = node
-            }else {
-                this.currentClickProduct = node
-            }
         },
         // 分类拖拽
         onDragEnter(info){
@@ -293,7 +298,11 @@ export default {
             this.$refs.productEntry.getProductVersion()
             this.$refs.productEntry.changeVersion(versionId)
         },
-        
+        tabChange(activeKey){
+            if(activeKey === '2'){
+                this.$refs.productVersionRef.getProductVersion()
+            }
+        }
     }
 }
 </script>

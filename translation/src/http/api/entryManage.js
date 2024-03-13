@@ -122,3 +122,41 @@ export function versionExport(params) {
         params
     });
 }
+
+
+// 词条生成版本
+export function createVersionByEntry(params,data) {
+    return request({
+        url: "/entryInfo/createVersionByEntry",
+        method: "POST", 
+        params,
+        data
+    });
+}
+
+// 新增单个词条
+export function addSingleEntry(data) {
+    return request({
+        url: "/entryInfo/addSingleEntry",
+        method: "POST", 
+        data
+    });
+}
+
+// 查询分类限制字符串长度
+export function getClassfy(params) {
+    return request({
+        url: "/entryInfo/getClassfy",
+        method: "POST", 
+        params
+    });
+}
+
+// 关系表新增
+export function addProductRelation(data) {
+    return request({
+        url: "/entryInfo/addProductRelation",
+        method: "POST", 
+        data
+    });
+}

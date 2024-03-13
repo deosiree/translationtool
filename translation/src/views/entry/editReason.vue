@@ -88,78 +88,87 @@ export default {
                 let params = {
                     notes:this.edit.reason
                 }
+
                 this.editEntry.forEach(entry => {
-                    if(this.$store.state.admin){
-                        let tran = []
-                        let english = {
-                            id: entry.enTransId,
-                            translate: entry.english,
-                            language: 'english'
-                        }
-                        let russian = {
-                            id: entry.ruTransId,
-                            translate: entry.russian,
-                            language: 'russian'
-                        }
-                        let spanish = {
-                            id: entry.spaTransId,
-                            translate: entry.spanish,
-                            language: 'spanish'
-                        }
-                        let french = {
-                            id: entry.fraTransId,
-                            translate: entry.french,
-                            language: 'french'
-                        }
-                        tran.push(english)
-                        tran.push(russian)
-                        tran.push(spanish)
-                        tran.push(french)
-                        let updateData = []
-                        let addData = []
-                        let tempEntry = cloneDeep(entry)
-                        tran.forEach(item => {
-                            if(item.translate === '' || item.translate === null){
-                                tempEntry[this.languageMap[item.language].idName] = ""
-                            }
-                            if(item.id != undefined && item.id != '' && item.id != null 
-                            && item.translate != null && item.translate != '' ){
-                                updateData.push(item)
-                            }else{
-                                if(item.translate != '' && item.translate != null){
-                                    addData.push(item)
-                                }
-                            }
-                        })
-                        // 修改翻译
-                        if(updateData.length > 0){
-                            updateTranslation(updateData).then((res) => {
-                            
-                            })
-                        }
-                        
-
-                        addData.forEach(item => {
-                            let id = uuidv4()
-                            item.id = id
-                            tempEntry[this.languageMap[item.language].idName] = id
-                            // 新增翻译
-                            item.type = this.languageMap[item.language].chinese
-                            item.entry = tempEntry.entry
-                            item.versionID = tempEntry.versionID
-                            item.translateState = '已审核'
-                            addTranslate(item).then((res) => {
-
-                            })
-                        })
-                        entry = tempEntry
-                    }
                     updateEntryInfo(entry,params).then((res) => {
-                        
                         this.$emit("editOk",entry.id)
+                        message.success('已保存！')
                     })
                 })
-                message.success("编辑成功！")
+                
+                
+                // this.editEntry.forEach(entry => {
+                //     // if(this.$store.state.admin){
+                //         let tran = []
+                //         let english = {
+                //             id: entry.enTransId,
+                //             translate: entry.english,
+                //             language: 'english'
+                //         }
+                //         let russian = {
+                //             id: entry.ruTransId,
+                //             translate: entry.russian,
+                //             language: 'russian'
+                //         }
+                //         let spanish = {
+                //             id: entry.spaTransId,
+                //             translate: entry.spanish,
+                //             language: 'spanish'
+                //         }
+                //         let french = {
+                //             id: entry.fraTransId,
+                //             translate: entry.french,
+                //             language: 'french'
+                //         }
+                //         tran.push(english)
+                //         tran.push(russian)
+                //         tran.push(spanish)
+                //         tran.push(french)
+                //         let updateData = []
+                //         let addData = []
+                //         let tempEntry = cloneDeep(entry)
+                //         tran.forEach(item => {
+                //             if(item.translate === '' || item.translate === null){
+                //                 tempEntry[this.languageMap[item.language].idName] = ""
+                //             }
+                //             if(item.id != undefined && item.id != '' && item.id != null 
+                //             && item.translate != null && item.translate != '' ){
+                //                 updateData.push(item)
+                //             }else{
+                //                 if(item.translate != '' && item.translate != null){
+                //                     addData.push(item)
+                //                 }
+                //             }
+                //         })
+                //         // 修改翻译
+                //         if(updateData.length > 0){
+                //             updateTranslation(updateData).then((res) => {
+                            
+                //             })
+                //         }
+                        
+
+                //         addData.forEach(item => {
+                //             let id = uuidv4()
+                //             item.id = id
+                //             tempEntry[this.languageMap[item.language].idName] = id
+                //             // 新增翻译
+                //             item.type = this.languageMap[item.language].chinese
+                //             item.entry = tempEntry.entry
+                //             item.versionID = tempEntry.versionID
+                //             item.translateState = '1'
+                //             addTranslate(item).then((res) => {
+
+                //             })
+                //         })
+                //         entry = tempEntry
+                //     // }
+                //     updateEntryInfo(entry,params).then((res) => {
+                        
+                //         this.$emit("editOk",entry.id)
+                //     })
+                // })
+                // message.success("编辑成功！")
             }).catch(err => {
                 // console.log('error', err);
             });

@@ -30,6 +30,7 @@
               html-type="submit"
               @click="handleLogin"
               style="width:100%"
+              :loading="loading"
             >
               登录
             </a-button>
@@ -70,6 +71,7 @@ export default {
     
     handleLogin() {
       this.$refs.loginFrom.validate().then(() => {
+        this.loading = true
           login(this.loginForm).then((res) => {
               // message.info('登录成功！')
               this.$store.commit("setData", res.data)
@@ -78,8 +80,10 @@ export default {
               }else{
                 this.$router.push('/translate');
               }
+              this.loading = false
           }).catch((err) => {
               console.log(err);
+              this.loading = false
           });
       }).catch(err => {
           console.log('error', err);

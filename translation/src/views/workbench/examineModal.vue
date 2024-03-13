@@ -1,8 +1,9 @@
 <template>
-    <Modal
+    <CustomModal
     :visible="visible" 
     :modalTitle="modalTitle"
     :modalWidth="modalWidth"
+    okText="保存"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
@@ -14,16 +15,27 @@
                 <div class="taskItem">翻译语种：{{task.translateType}}</div>
             </div>
             <div class="form">
-                词条展示：
+                词条：
                 <a-input
                     v-model:value="keyWords"
-                    style="width:50%"
+                    style="width:300px"
                     size="small"
-                    placeholder='请输入关键词搜索'
+                    placeholder='请输入词条搜索'
                 />
-                <a-button type="primary" size="small" style="margin-left:8px" @click="select">查询</a-button>
+                <span style="margin-left:10px">词条状态：</span>
+                <a-select
+                v-model:value="entryState"
+                size="small"
+                style="width: 300px"
+                >
+                    <a-select-option value="1">待审核</a-select-option>
+                    <a-select-option value="2">审核不通过</a-select-option>
+                    <a-select-option value="3">审核通过</a-select-option>
+                </a-select>
+                <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
+                <a-button type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
                 <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
             </div>
@@ -44,21 +56,26 @@
             @resizeColumn="handleResizeColumn"
             >
                 <template #bodyCell="{ column, text, record }">
-                    <template v-if="column.dataIndex === 'translate'">
+                    <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
-                                <a-input
-                                    v-model:value="editableData[record.id][column.dataIndex]"
-                                    style="margin: -5px 0"
-                                    @pressEnter="inputPressEnter(record)"
-                                />
+                                <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex" autocomplete="off">
+                                    <a-form-item :name="column.dataIndex"
+                                    >
+                                        <a-input
+                                            v-model:value="editableData[record.id][column.dataIndex]"
+                                            style="margin: -5px 0"
+                                            @pressEnter="inputPressEnter(record)"
+                                        />
+                                    </a-form-item>
+                                </a-form>
                             </template>
                             <template v-else>
                                 {{ text }}
                             </template>
                         </div>
                     </template>
-                    <template v-if="column.dataIndex === 'auditEntryFeedback'">
+                    <template v-if="['chineseInterpretation','englishInterpretation','auditSuggess','entryLabel'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
                                 <a-input
@@ -79,6 +96,28 @@
                                 <a-checkable-tag :checked="record.auditState === 0" :class="record.auditState === 0 ? 'rejectTagChecked' : 'rejectTag'" @change="rejectTagChange(record)">驳回</a-checkable-tag>
                             </span>
                         </div>
+                    </template>
+                    <template v-if="column.dataIndex === 'entryState'">
+                        <template v-if="record.entryState === 0">
+                            <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                        </template>
+                        <template v-if="record.entryState === 1">
+                            <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
+                        </template>
+                        <template v-if="record.entryState === 2">
+                            <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+                        </template>
+                        <template v-if="record.entryState === 3">
+                            <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+                        </template>
+                    </template>
+                    <template v-if="column.dataIndex === 'isExist'">
+                        <template v-if="record.isExist === 0">
+                            <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                        </template>
+                        <template v-if="record.isExist === 1">
+                            <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
+                        </template>
                     </template>
                     <template v-else-if="column.dataIndex === 'operation'">
                         <div class="editable-row-operations">
@@ -121,17 +160,20 @@
             </a-table>
         </div>
         <template v-slot:leftBottomBtn>
-            <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
-            <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
+            <a-button type="primary" size="small" style="margin-left:8px;float:left" class="resetBtn" @click="aggregation">聚合</a-button>
+            <a-button type="primary" size="small" style="margin-left:8px;float:left" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
         </template>
-    </Modal>
+    </CustomModal>
 </template>
 <script>
-import Modal from '@/components/modal/index.vue';
+import CustomModal from '@/components/modal/index.vue';
 import { cloneDeep, iteratee } from 'lodash-es';
 import {
     getEntryTempByTaskID,
-    updateEntryTemp
+    updateEntryTemp,
+    getEntryInfoList,
+    updateEntryList,
+    deleteEntryInfoByID
 } from '@/http/api/workbench'
 import {
     CheckOutlined,
@@ -140,14 +182,17 @@ import {
     CaretDownOutlined,
     CaretRightOutlined
 } from '@ant-design/icons-vue';
-import { message } from 'ant-design-vue';
+import { message ,Modal} from 'ant-design-vue';
+import workbenchCommon from '@/views/workbench/common.js';
+import common from '../entry/common';
+import { defineComponent, ref, createVNode } from 'vue';
 export default {
     components:{
         CheckOutlined,
         CloseOutlined,
         CaretDownOutlined,
         CaretRightOutlined,
-        Modal
+        CustomModal
     },
     emits:['handleClose','handleOK'],
     props: {
@@ -161,32 +206,43 @@ export default {
         },
         currentTask:{
             type:Object
+        },
+        classifyLimit:{
+            type: Object
         }
     },
     
     data() {
         return{
-            modalWidth:"50%",
+            modalWidth:"70%",
             task:{},
             keyWords:"",
-            tableHeight: { x:'100%',y: '315px' },
+            tableHeight: { x:'100%',y: '415px' },
             loading:false,
             columns: [
                 {title: "序号",dataIndex: 'index',width:70,customRender: (text, record, index, column) => {
                     return text.index + 1
-                },fixed: 'left'},
+                },fixed: 'left',align:'center'},
+                {title: '存在状态',dataIndex: 'isExist',align:'center',width:100,fixed: 'left'},
                 {title: '词条',dataIndex: 'entry',width:150,fixed: 'left',resizable: true},
-                // {title: 'Abbr',dataIndex: 'abbr',align:'center',width:100,resizable: true,index:2},
-                {title: '来源',dataIndex: 'source',align:'center',width:150,resizable: true,ellipsis:true},
-                {title: '翻译',dataIndex: 'translate',align:'center',width:150,ellipsis: true,resizable: true},
-                {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,},
-                {title: '说明',dataIndex: 'auditEntryFeedback',align:'center',width:100,ellipsis: true,resizable: true},
+                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
+                {title: '翻译',dataIndex: 'translate',align:'center',width:200,ellipsis: true,resizable: true},
+                {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true},
+                {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true},
+                {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:200},
+                {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true},
+                {title: '词条状态',dataIndex: 'entryState',align:'center',width:100,fixed: 'right'},
+                {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,fixed: 'right'},
             ],
             dataSource:[],
             allData:[],
             selectedRowKeys:[],
             selectedRows:[],
-            editableData:{}
+            editableData:{},
+            rules:{},
+            entryState:'1',
+            selectedRowIndex: null,
+            timer: null
         }
     },
     
@@ -198,36 +254,83 @@ export default {
     watch:{
         currentTask(newval,oldval){
             this.task = newval
+            this.setTranslateColumn()
         },
     },
     methods: {
+        // 设置翻译列展示的语言
+        setTranslateColumn(){
+            this.columns.forEach(item => {
+                if(item.title === '翻译'){
+                    item.dataIndex = workbenchCommon.languageMap[this.task.translateType].code
+                }
+            })
+        },
         // 获取待审核词条
         getTaskEntry(){
             let params = {
                 taskID: this.task.id,
-                pageIndex: -1,
-                pageSize: -1
+                entryState: this.entryState,
+                entry: this.keyWords
             }
             this.loading = true
-            getEntryTempByTaskID(params).then((res) => {
+            getEntryInfoList(params,[]).then((res) => {
                 this.dataSource = res.data.list
-                this.allData = this.dataSource
-                
+                // 排序  将已存在的词条放到前面
+                this.dataSource.sort(function(a,b){
+                    return b.isExist - a.isExist
+                })
+                this.dataSource.forEach(item => {
+                    item.auditState = -1
+                })
+                // this.allData = this.dataSource
+                this.loading = false
+                // this.select()
+            }).catch((err) => {
                 this.loading = false
             })
         },
         handleOK(){
-            // console.log(this.allData)
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             for (let key in this.editableData) {
 				let entry = this.dataSource.find(item => item.id === key)
-                entry.translate = this.editableData[key].translate
-                entry.auditEntryFeedback = this.editableData[key].auditEntryFeedback
+                entry.auditSuggess = this.editableData[key].auditSuggess
+                entry[languageCode] = this.editableData[key][languageCode]
+
+                entry.chineseInterpretation =  this.editableData[key].chineseInterpretation
+                entry.englishInterpretation =  this.editableData[key].englishInterpretation
+                entry.entryLabel = this.editableData[key].entryLabel
+
+                if(entry[languageCode] != null && entry[languageCode] != null){
+                    // 翻译存在  则状态为待审核状态
+                    entry[languageCode+"TranslateState"] = '1'
+                }
 			}
-            this.editableData = []
-            updateEntryTemp(this.allData).then((res) => {
-                message.success('审核完成！')
-                this.$emit('handleClose')
+            this.editableData = {}
+            let params = {
+                taskID: this.task.id
+            }
+            let updateArr = []
+            this.dataSource.forEach(item => {
+                if(item.auditState === 1){
+                    // 词条审核通过
+                    item.entryState = 3
+                    updateArr.push(item)
+                }else if(item.auditState === 0){
+                    // 词条审核不通过
+                    item.entryState = 2
+                    updateArr.push(item)
+                }
             })
+            if(updateArr.length > 0){
+                updateEntryList(params,updateArr).then((res) => {
+                    message.success('已保存！')
+                    this.getTaskEntry()
+                }).catch((err) => {
+                    message.error('保存失败！')
+                })
+            }
+            
         },
         handleClose(){
             this.$emit('handleClose')
@@ -236,11 +339,11 @@ export default {
             let className = null
             if(index % 2 === 1){
                 className = 'table-striped'
-                if(this.selectedRowIndex === index){
+                if(this.selectedRowIndex === record.id){
                     className = className + " highlighted-row"
                 }
             }else{
-                if(this.selectedRowIndex === index){
+                if(this.selectedRowIndex === record.id){
                     className = "highlighted-row"
                 }
             }
@@ -259,15 +362,22 @@ export default {
         },
         // 通过标签点击事件
         passTagChange(record){
-            if(record.auditState === 0){
+            if(record.auditState === 1){
+                // 取消选择
+                record.auditState = -1
+            }else{
                 record.auditState = 1
             }
+            
         },
         // 驳回标签点击事件
         rejectTagChange(record){
-            if(record.auditState === 1){
+            if(record.auditState === 0){
+                record.auditState = -1
+            }else{
                 record.auditState = 0
             }
+             
         },
         // 通过按钮点击事件
         pass(){
@@ -288,22 +398,68 @@ export default {
         //双击表格行 可编辑
         doubleClick(record, index){
             return {
+                // onClick: (event) => {
+                //     let _this = this
+                //     clearTimeout(this.timer)
+                    
+                //     this.timer = setTimeout(function () {
+                //         _this.selectedRowIndex = record.id
+                //     }, 500);
+                // },
                 onDblclick: (event) => {
+                    // clearTimeout(this.timer)
+                    if(this.editableData.hasOwnProperty(record.id)){
+                        // 当前行在编辑状态
+                        return
+                    }
                     this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
-                    // if(this.columns.findIndex(item => item.dataIndex === 'operation') === -1){
-                    //     // 添加操作列
-                    //     let operation = {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right'}
-                    //     this.columns.push(operation)
-                    // }
+                    // 设置校验规则
+                    this.rules[record.id] = {
+                        entry:[{ validator: this.vilidFildLength(record) },
+                        { required: true, message: '请输入!' }]
+                    }
+                    let languageCode = workbenchCommon.languageMap[this.task.translateType].code
+                    this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record) }]
                 }
+            }
+        },
+        // 校验输入数据的长度
+        vilidFildLength(record){
+            return (rule,value) =>{
+                let maxLength = this.classifyLimit[record.classfy1]
+                if(maxLength === undefined || maxLength === null || maxLength === 0){
+                    return Promise.resolve();
+                }
+                // 获取输入数据的长度
+                let length = common.byteLength(value)
+                if(length > maxLength){
+                    return Promise.reject('允许最大字符数为'+maxLength+'！');
+                }
+                return Promise.resolve();
             }
         },
         // 说明 输入框 回车事件
         inputPressEnter(record){
-            record.auditEntryFeedback = this.editableData[record.id].auditEntryFeedback
-            record.translate = this.editableData[record.id].translate
-            delete this.editableData[record.id]
-            // this.deleteOperationColumns()
+
+            record.chineseInterpretation =  this.editableData[record.id].chineseInterpretation
+            record.englishInterpretation =  this.editableData[record.id].englishInterpretation
+            record.entryLabel = this.editableData[record.id].entryLabel
+
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
+            // 长度校验
+            let list = [eval("this.$refs.form"+ record.id.replaceAll('-','') + languageCode).validate()]
+            Promise.all(list).then(() => {
+                record.auditSuggess = this.editableData[record.id].auditSuggess
+                record[languageCode] = this.editableData[record.id][languageCode]
+
+                if(record[languageCode] != null && record[languageCode] != null){
+                    // 翻译存在  则状态为待审核状态
+                    record[languageCode+"TranslateState"] = '1'
+                }
+                delete this.editableData[record.id]
+            }).catch((err) => {
+
+            })
         },
         // 编辑
         edit(record){
@@ -352,7 +508,7 @@ export default {
                 this.selectedRows[0].children = children
             }
             
-            this.allData = this.dataSource
+            // this.allData = this.dataSource
             this.selectedRowKeys = []
             this.selectedRows = []
         },
@@ -376,7 +532,7 @@ export default {
                     this.dataSource.splice(index + 1, 0 , item)
                 }
             })
-            this.allData = this.dataSource
+            // this.allData = this.dataSource
             this.selectedRowKeys = []
             this.selectedRows = []
         },
@@ -385,6 +541,30 @@ export default {
             this.selectedRows = []
             this.selectedRowKeys = []
             this.keyWords = ""
+        },
+        // 删除词条
+        deleteTaskEntry(){
+            if(this.selectedRows.length === 0){
+                return
+            }
+            Modal.confirm({
+                title: '是否确定删除?',
+                icon: createVNode(ExclamationCircleOutlined),
+                okText: '是',
+                cancelText: '否',
+                style:{top:'30%'},
+                onOk: () => {
+                    deleteEntryInfoByID(this.selectedRowKeys).then((res) => {
+                        message.success('删除成功！')
+                        this.getTaskEntry()
+                    }).catch((err) => {
+                        message.error('删除失败！')
+                    })
+                },
+                onCancel: () => {
+                    
+                }
+            });
         }
     }
 }
@@ -451,5 +631,8 @@ export default {
         background-color: #FBB31F;
         color: white;
     }
+}
+.ant-table-cell .ant-form-item{
+    margin-bottom: 0%;
 }
 </style>
