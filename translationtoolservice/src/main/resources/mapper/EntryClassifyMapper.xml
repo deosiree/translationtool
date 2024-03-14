@@ -142,10 +142,10 @@
                 #{entryClassify.index,jdbcType=VARCHAR},
             </if>
             <if test="entryClassify.maxByte != null">
-                #{entryClassify.maxByte,jdbcType=INTEGER}
+                #{entryClassify.maxByte,jdbcType=INTEGER},
             </if>
             <if test="entryClassify.foreignMaxByte != null">
-                #{entryClassify.foreignMaxByte,jdbcType=INTEGER}
+                #{entryClassify.foreignMaxByte,jdbcType=INTEGER},
             </if>
             <if test="entryClassify.department != null">
                 #{entryClassify.department,jdbcType=VARCHAR},
