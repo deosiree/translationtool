@@ -48,7 +48,7 @@ export function exportEntryBytaskId(params) {
 }
 
 // 导入模板下载
-export function templateFileDownload() {
+export function templateFileDownload(params) {
     return axios(
         {
             url: env.dev.baseUrl+'/workbench/getTemplateFile',
@@ -56,7 +56,8 @@ export function templateFileDownload() {
             headers: {
                 token: store.state.token
             },
-            responseType: 'blob'
+            responseType: 'blob',
+            params
         }
     )
 }

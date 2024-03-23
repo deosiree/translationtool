@@ -347,7 +347,7 @@ export default {
             getClassfy(params).then((res) => {
                 this.classifyLimit = {}
                 res.data.list.forEach(element => {
-                    this.classifyLimit[element.title] = element.maxByte
+                    this.classifyLimit[element.title] = element
                 });
             })
         },

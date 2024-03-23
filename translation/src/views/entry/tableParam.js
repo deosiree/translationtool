@@ -24,7 +24,7 @@ export default{
         {label: "备注",value: "remark",index:29},
     ],
     checkedColumn: ["abbr", "entry","entryState","entryVersion","english","russian","spanish","french"],
-    inputColumn:["abbr","chineseInterpretation","englishInterpretation","entrySource","partOfSpeech","remark","entryLabel"],
+    inputColumn:["abbr","chineseInterpretation","englishInterpretation","partOfSpeech","remark"],
     translateColumn:["english","russian","spanish","french"],
     overlayStyle:{
         maxHeight:'300px',

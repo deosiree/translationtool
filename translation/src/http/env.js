@@ -1,7 +1,6 @@
 export default {
     // 开发环境
     dev: {
-        // baseUrl: "http://10.16.189.163:18001"
         baseUrl: "http://10.16.193.26:18001"
         // baseUrl: "http://10.16.196.50:18001"
         // baseUrl: "http://localhost:18001"

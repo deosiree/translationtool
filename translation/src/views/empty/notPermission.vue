@@ -1,12 +1,9 @@
 <template>
-    <a-empty >
-        <template #description>
-            <span>
-                暂无权限  请联系管理员分配权限
-            </span>
-        </template>
-        <a-button type="primary" @click="logout">重新登陆</a-button>
-    </a-empty>
+    <a-result status="403" title="无权限" sub-title="暂无权限，请联系管理员分配权限">
+      <template #extra>
+        <a-button type="primary" @click="logout">重新登录</a-button>
+      </template>
+    </a-result>
 </template>
 <script>
 export default {

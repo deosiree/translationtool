@@ -69,7 +69,7 @@ export function importExcle(data) {
 //读取装置 excel
 export function readZZExcle(data) {
     return request({
-        url: "/workbench/readZZExcle",
+        url: "/workbench/entryImportExcle",
         method: "POST", 
         data 
     });
@@ -104,3 +104,21 @@ export function deleteEntryInfoByID(data) {
     });
 }
 
+// 过滤语言
+export function filterSourceLanguage(params,data) {
+    return request({
+        url: "/workbench/filterSourceLanguage",
+        method: "POST", 
+        params,
+        data
+    });
+}
+
+// 查看辞典
+export function getDictory(params) {
+    return request({
+        url: "/workbench/getDictory",
+        method: "POST", 
+        params
+    });
+}

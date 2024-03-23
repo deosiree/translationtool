@@ -21,7 +21,8 @@
                 >
                     <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
                         <a-dropdown :trigger="['contextmenu']">
-                            <span>{{ title }}</span>
+                            <span v-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
+                            <span v-else>{{ title }}</span>
                             <template #overlay>
                                 <a-menu  v-if="$store.state.admin">
                                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>

@@ -4,11 +4,13 @@
     modalTitle="批量选择"
     :visible="visible"
     :showCancel="false"
+    :fullFlag="true"
     cancelText="取消"
     okText="创建版本"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
     >
         <div style="width:100%;height:515px">
             <!-- <a-form
@@ -32,7 +34,7 @@
                     class="ant-table-striped"
                     :columns="columns" 
                     :data-source="dataSource"
-                    :scroll="{x:'100%' , y: '395px'}"
+                    :scroll="tableHeight"
                     :pagination="pagination"
                     :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
                     ref="historyTable"
@@ -174,6 +176,19 @@
                         <a-select-option value="法文">法文</a-select-option>
                     </a-select>
                 </a-form-item>
+                <a-form-item
+                label="回写TAG"
+                name="isTag"
+                >
+                    <a-switch v-model:checked="writeBack.isTag" checked-children="是" un-checked-children="否" />
+                </a-form-item>
+                <a-form-item
+                label="回写来源"
+                name="isComment"
+                >
+                    <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
+                </a-form-item>
+                
             </a-form>
         </div>
         
@@ -232,6 +247,7 @@ export default {
         return{
             locale: zh_CN,
             modalWidth:"60%",
+            tableHeight:{x:'100%' , y: 395},
             columns: [
                 {title: "序号",dataIndex: 'index',align:'center',width:60,customRender: (text, record, index, column) => {
                     return text.index + 1
@@ -264,7 +280,7 @@ export default {
             operateVisible: false,
             operateWidth:'500px',
             exportClass:{
-                field:[]
+                field:["abbr","词条"]
             },
             fieldOptions:tableParam.exportFields,
             product:{},
@@ -286,7 +302,9 @@ export default {
             taskDataSource:[],
             selectedTaskRows:[],
             writeBack:{
-                language:null
+                language:null,
+                isTag:null,
+                isComment: null
             }
         }
     },
@@ -467,7 +485,9 @@ export default {
                 })
             }else if(this.title === '回写'){
                 let params = {
-                    translateType: this.writeBack.language
+                    translateType: this.writeBack.language,
+                    isTag: this.writeBack.isTag ? 1 : 0,
+                    isComment: this.writeBack.isComment ? 1 : 0
                 }
                 setInfo(params,this.dataSource).then((res) => {
                     message.success('回写成功！')
@@ -506,7 +526,20 @@ export default {
         
         afterOperateClose(){
             this.version = {versionName:"",remarks:""}
-            this.exportClass = {field:[]}
+            this.exportClass = {field:["abbr","词条"]}
+            this.writeBack = {
+                language:null,
+                isTag:null,
+                isComment: null
+            }
+        },
+        // 动态设置表格高度
+        setTableHeight(height,type){
+            if(type === 'full'){
+                this.tableHeight.y = height - 150
+            }else if(type === 'reduce'){
+                this.tableHeight.y = 395
+            }
         },
     }
 }

@@ -64,7 +64,8 @@ import {
     getEntryInfoList
 } from '@/http/api/workbench'
 import {
-    setInfoByTask
+    setInfoByTask,
+    setInfo
 }from '@/http/api/i18Server'
 export default {
     props:{
@@ -263,9 +264,12 @@ export default {
                     })
                     // 回写数据
                     let params = {
-                        taskID: this.task.id
+                        taskID: this.task.id,
+                        translateType: this.task.translateType,
+                        isTag:0,
+                        isComment:0
                     }
-                    setInfoByTask(params).then((res) => {
+                    setInfo(params,[]).then((res) => {
 
                     }).catch((err) => {
                         

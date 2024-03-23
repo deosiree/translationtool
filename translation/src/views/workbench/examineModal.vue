@@ -3,10 +3,12 @@
     :visible="visible" 
     :modalTitle="modalTitle"
     :modalWidth="modalWidth"
+    :fullFlag="true"
     okText="保存"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
     >
         <div class="content">
             <div class="taskInfo">
@@ -33,11 +35,36 @@
                     <a-select-option value="3">审核通过</a-select-option>
                 </a-select>
                 <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
+                <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
                 <a-button type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
                 <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
+                <a-popover
+                    trigger="click"
+                    placement="leftTop"
+                    :overlayStyle="overlayStyle"
+                >
+                    <template #content>
+                        <a-checkbox-group
+                            v-model:value="checkedColumn"
+                            @change="changeColumn"
+                        >
+                            <a-row
+                                v-for="item in checkboxList"
+                                :key="item.value"
+                            >
+                                <a-col :span="24">
+                                    <a-checkbox :value="item.value">
+                                        {{ item.label }}
+                                    </a-checkbox>
+                                </a-col>
+                            </a-row>
+                        </a-checkbox-group>
+                    </template>
+                    <a-button type="primary" size="small" style="margin-left:auto"><template #icon><SettingOutlined /></template>展示列</a-button>
+                </a-popover>
             </div>
             <a-table 
             bordered
@@ -47,7 +74,7 @@
             :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             :row-key="record => record.id"
             :scroll="tableHeight"
-            :pagination='false'
+            :pagination='pagination'
             :loading="loading"
             :rowClassName="getRowClassName"
             :customRow="doubleClick"
@@ -157,6 +184,33 @@
                     </span>
                     <span v-else style="margin-right:23px"></span>
                 </template>
+                <!-- 设置筛选菜单 -->
+                <template
+                #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+                >
+                    <div style="padding: 8px">
+                        <a-input
+                        ref="searchInput"
+                        :placeholder="`搜索 ${column.title}`"
+                        :value="selectedKeys[0]"
+                        style="width: 188px; margin-bottom: 8px; display: block"
+                        @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                        @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                        />
+                        <a-button
+                        type="primary"
+                        size="small"
+                        style="width: 90px; margin-right: 8px"
+                        @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                        >
+                        <template #icon><SearchOutlined /></template>搜索</a-button>
+                        <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
+                    </div>
+                </template>
+                <!-- 设置筛选图标 -->
+                <template #customFilterIcon="{ filtered }">
+                    <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+                </template>
             </a-table>
         </div>
         <template v-slot:leftBottomBtn>
@@ -180,7 +234,9 @@ import {
     CloseOutlined,
     ExclamationCircleOutlined,
     CaretDownOutlined,
-    CaretRightOutlined
+    CaretRightOutlined,
+    SettingOutlined,
+    SearchOutlined
 } from '@ant-design/icons-vue';
 import { message ,Modal} from 'ant-design-vue';
 import workbenchCommon from '@/views/workbench/common.js';
@@ -192,6 +248,8 @@ export default {
         CloseOutlined,
         CaretDownOutlined,
         CaretRightOutlined,
+        SettingOutlined,
+        SearchOutlined,
         CustomModal
     },
     emits:['handleClose','handleOK'],
@@ -222,27 +280,49 @@ export default {
             columns: [
                 {title: "序号",dataIndex: 'index',width:70,customRender: (text, record, index, column) => {
                     return text.index + 1
-                },fixed: 'left',align:'center'},
-                {title: '存在状态',dataIndex: 'isExist',align:'center',width:100,fixed: 'left'},
-                {title: '词条',dataIndex: 'entry',width:150,fixed: 'left',resizable: true},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
-                {title: '翻译',dataIndex: 'translate',align:'center',width:200,ellipsis: true,resizable: true},
-                {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true},
-                {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true},
-                {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:200},
-                {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true},
-                {title: '词条状态',dataIndex: 'entryState',align:'center',width:100,fixed: 'right'},
-                {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,fixed: 'right'},
+                },fixed: 'left',index:0},
+                {title: '存在状态',dataIndex: 'isExist',align:'center',width:100,fixed: 'left',index:1},
+                {title: 'Abbr',dataIndex: 'abbr',align:'center',fixed: 'left',width:150,resizable: true,index:2},
+                {title: '词条',dataIndex: 'entry',width:200,resizable: true,index:3,align:'center',
+                    customFilterDropdown: true,
+                    onFilter: (value, record) =>
+                    record.entry.toString().toLowerCase().includes(value.toLowerCase()),
+                },
+                {title: '翻译',dataIndex: 'translate',align:'center',width:200,ellipsis: true,resizable: true,index:4},
+                {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true,index:5},
+                {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true,index:6},
+                // {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:200},
+                {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true,index:98},
+                {title: '词条状态',dataIndex: 'entryState',align:'center',width:100,fixed: 'right',index:99},
+                {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,fixed: 'right',index:100},
             ],
             dataSource:[],
             allData:[],
             selectedRowKeys:[],
             selectedRows:[],
             editableData:{},
+            pagination:{
+                pageSizeOptions:['20','50','100'],
+                defaultPageSize:20,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
+            },
             rules:{},
             entryState:'1',
             selectedRowIndex: null,
-            timer: null
+            timer: null,
+            overlayStyle: workbenchCommon.overlayStyle,
+            checkedColumn: workbenchCommon.checkedColumn,
+            checkboxList: workbenchCommon.checkboxList,
+            state:{
+                searchText: '',
+                searchedColumn: '',
+            },
+            clearFilters:null,
+            selectAllName:"全选"
         }
     },
     
@@ -322,6 +402,12 @@ export default {
                     updateArr.push(item)
                 }
             })
+            let num = this.verifyTranslationLength(updateArr)
+            if(num > 0){
+                // 存在超长
+                message.warn("存在超长数据，请检查！")
+                return
+            }
             if(updateArr.length > 0){
                 updateEntryList(params,updateArr).then((res) => {
                     message.success('已保存！')
@@ -386,6 +472,7 @@ export default {
             })
             this.selectedRowKeys = []
             this.selectedRows = []
+            this.selectAllName = "全选"
         },
         // 驳回按钮点击事件
         reject(){
@@ -394,6 +481,7 @@ export default {
             })
             this.selectedRowKeys = []
             this.selectedRows = []
+            this.selectAllName = "全选"
         },
         //双击表格行 可编辑
         doubleClick(record, index){
@@ -415,19 +503,34 @@ export default {
                     this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                     // 设置校验规则
                     this.rules[record.id] = {
-                        entry:[{ validator: this.vilidFildLength(record) },
+                        entry:[{ validator: this.vilidFildLength(record,'chinese') },
                         { required: true, message: '请输入!' }]
                     }
                     let languageCode = workbenchCommon.languageMap[this.task.translateType].code
-                    this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record) }]
+                    this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record,languageCode) }]
                 }
             }
         },
         // 校验输入数据的长度
-        vilidFildLength(record){
+        vilidFildLength(record,language){
             return (rule,value) =>{
-                let maxLength = this.classifyLimit[record.classfy1]
-                if(maxLength === undefined || maxLength === null || maxLength === 0){
+                let type = ""
+                if(language === 'chinese'){
+                    type = 'maxByte'
+                }else{
+                    type = 'foreignMaxByte'
+                }
+                let maxLength = null
+                if(this.classifyLimit[record.classfy1] === undefined || this.classifyLimit[record.classfy1] === null){
+                    if(record.maxLength != null && record.maxLength != ""){
+                        maxLength = record.maxLength
+                    }else{
+                        return Promise.resolve();
+                    }
+                }else{
+                    maxLength = this.classifyLimit[record.classfy1][type]
+                }
+                if(maxLength === null || maxLength === "" || maxLength === undefined || maxLength === 0){
                     return Promise.resolve();
                 }
                 // 获取输入数据的长度
@@ -541,6 +644,14 @@ export default {
             this.selectedRows = []
             this.selectedRowKeys = []
             this.keyWords = ""
+            this.pagination.current = 1
+            this.pagination.pageSize = 20
+            this.selectAllName = "全选"
+
+            if(this.clearFilters){
+                this.clearFilters({confirm:true})
+                this.state.searchText = ''
+            }
         },
         // 删除词条
         deleteTaskEntry(){
@@ -565,6 +676,147 @@ export default {
                     
                 }
             });
+        },
+        changeColumn(checkedValue) {
+            this.checkedColumn = checkedValue;
+            this.checkboxList.forEach((value) => {
+                let checkedIndex = this.checkedColumn.findIndex(
+                    (item) => item === value.value
+                );
+                let nowColumnIndex = this.columns.findIndex(
+                    (item) => item.dataIndex === value.value
+                );
+                if (
+                    (nowColumnIndex !== -1 && checkedIndex !== -1) ||
+                    (nowColumnIndex === -1 && checkedIndex === -1)
+                ) {
+                    return;
+                }
+                if (nowColumnIndex === -1 && checkedIndex !== -1) {
+                    let newCol = {
+                        title: value.label,
+                        dataIndex: value.value,
+                        align: "center",
+                        width: 200,
+                        ellipsis: true,
+                        resizable: true,
+                        index: value.index
+                    };
+                    if(newCol.dataIndex === 'abbr'){
+                        newCol.fixed = 'left'
+                    }
+                    if(newCol.dataIndex === 'entrySource'){
+                        // 添加词条来源可筛选
+                        newCol.width = 250,
+                        newCol.customFilterDropdown = true
+                        newCol.onFilter = eval('(value, record) => record.entrySource.toString().toLowerCase().includes(value.toLowerCase())')
+                    }
+                    this.columns.splice(-1, 0, newCol);
+                }
+                if (nowColumnIndex !== -1 && checkedIndex === -1) {
+                    this.columns.splice(nowColumnIndex, 1);
+                }
+            });
+            this.columns.sort(function(a, b){
+                return a.index - b.index
+            })
+        },
+        // 列筛选
+        handleSearch(selectedKeys, confirm, dataIndex,clearFilters){
+            confirm();
+            this.state.searchText = selectedKeys[0];
+            this.state.searchedColumn = dataIndex;
+            this.clearFilters = clearFilters
+        },
+        handleReset(clearFilters){
+            clearFilters({ confirm: true });
+            this.state.searchText = '';
+        },
+        // 动态设置表格高度
+        setTableHeight(height,type){
+            if(type === 'full'){
+                this.tableHeight.y = height - 230
+            }else if(type === 'reduce'){
+                this.tableHeight.y = 415
+            }
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+
+            // 翻页时校验已审核数据的长度
+            let data = this.dataSource.slice((page - 1) * pageSize,page * pageSize)
+            let arr = []
+            data.forEach(item => {
+                if(item.auditState >= 0){
+                    arr.push(item)
+                }
+            })
+            this.verifyTranslationLength(arr)
+        },
+        // 全选
+        selectAll(){
+            if(this.selectedRowKeys.length === this.dataSource.length){
+                // 已全选
+                this.selectedRowKeys = []
+                this.selectedRows = []
+                this.selectAllName = "全选"
+            }else{
+                this.selectedRowKeys = []
+                this.selectedRows = []
+                this.dataSource.forEach(item => {
+                    this.selectedRows.push(item)
+                    this.selectedRowKeys.push(item.id)
+                })
+                this.selectAllName = "取消全选"
+            }
+            
+        },
+        // 校验翻译长度
+        verifyTranslationLength(array){
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
+            let flag = 0
+            array.forEach(record => {
+                let maxLength = null
+                if(record.classfy1 === null || record.classfy1 === ""){
+                    if(record.maxLength != null && record.maxLength != ""){
+                        maxLength = record.maxLength
+                    }else{
+                        return
+                    }
+                }else{
+                    maxLength = this.classifyLimit[record.classfy1] ? this.classifyLimit[record.classfy1]['foreignMaxByte'] : null
+                }
+                if(maxLength === null || maxLength === "" || maxLength === undefined || maxLength === 0){
+                    return
+                }
+                // 是否编辑中
+                let text = this.editableData.hasOwnProperty(record.id) ? this.editableData[record.id][languageCode] : record[languageCode]
+                if(common.byteLength(text) > maxLength){
+                    flag++
+                    this.addEdit(record).then((res) => {
+                        eval("this.$refs.form"+ record.id.replaceAll('-','') + languageCode).validate().then(() => {
+
+                        }).catch((err) => {
+
+                        })
+                    })
+                    
+                }
+            })
+            return flag
+        },
+        addEdit(record){
+            this.editableData[record.id] = this.editableData.hasOwnProperty(record.id) ? this.editableData[record.id] : cloneDeep(record)
+            // 设置校验规则
+            this.rules[record.id] = {
+                entry:[{ validator: this.vilidFildLength(record,'chinese') },
+                { required: true, message: '请输入!' }]
+            }
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
+            this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record,languageCode) }]
+            return Promise.resolve()
         }
     }
 }
@@ -634,5 +886,8 @@ export default {
 }
 .ant-table-cell .ant-form-item{
     margin-bottom: 0%;
+}
+:deep(.ant-pagination) {
+    margin: 8px 0;
 }
 </style>

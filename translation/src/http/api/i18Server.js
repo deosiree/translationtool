@@ -19,7 +19,7 @@ export function getTsWords(params,data) {
     });
 }
 
-//获取字典列表
+//获取辞典列表
 export function getDictionary() {
     return request({
         url: "/I18Sever/getDictionary",
@@ -27,7 +27,7 @@ export function getDictionary() {
     });
 }
 
-// 获取字典词条
+// 获取辞典词条
 export function getDictionaryEntry(params) {
     return request({
         url: "/I18Sever/getDictionaryInfo",
@@ -122,12 +122,12 @@ export function setInfoByTask(params){
 export function getConfigEntry(params){
     return request({
         url: "/I18Sever/getConfigEntry",
-        method: "POST",
+        method: "GET",
         params
     });
 }
 
-// 创建字典
+// 创建辞典
 export function createDic(params){
     return request({
         url: "/I18Sever/createDic",

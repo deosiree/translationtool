@@ -5,7 +5,7 @@ export default {
             return 0
         }
         // 去除首尾空格
-        str = str.trim()
+        str = (""+str).trim()
         var strlen = 0;
         for(var i = 0;i < str.length; i++){
             if(str.charCodeAt(i) >= 0x4E00 && str.charCodeAt(i) <= 0x9FA5){ 

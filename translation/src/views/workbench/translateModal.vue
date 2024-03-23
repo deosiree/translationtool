@@ -4,9 +4,11 @@
     :modalTitle="modalTitle"
     :modalWidth="modalWidth"
     okText="保存"
+    :fullFlag="true"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
     >
         <div class="content">
             <div class="table">
@@ -57,7 +59,7 @@
                 :data-source="dataSource" 
                 :row-key="record => record.id"
                 :scroll="tableHeight"
-                :pagination='false'
+                :pagination='pagination'
                 :loading="loading"
                 :rowClassName="getRowClassName"
                 childrenColumnName="child"
@@ -103,6 +105,33 @@
                             </template>
                         </template>
                     </template>
+                    <!-- 设置筛选菜单 -->
+                    <template
+                    #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+                    >
+                        <div style="padding: 8px">
+                            <a-input
+                            ref="searchInput"
+                            :placeholder="`搜索 ${column.title}`"
+                            :value="selectedKeys[0]"
+                            style="width: 188px; margin-bottom: 8px; display: block"
+                            @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                            @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                            />
+                            <a-button
+                            type="primary"
+                            size="small"
+                            style="width: 90px; margin-right: 8px"
+                            @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                            >
+                            <template #icon><SearchOutlined /></template>搜索</a-button>
+                            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
+                        </div>
+                    </template>
+                    <!-- 设置筛选图标 -->
+                    <template #customFilterIcon="{ filtered }">
+                        <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+                    </template>
                 </a-table>
             </div>
             <div class="suggest">
@@ -140,7 +169,7 @@
                                 <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px"/>
                                 <span>{{item.title}}</span>
                             </div>
-                            <div class="tips">{{item.tips}}  Ctrl+{{index + 1}}</div>
+                            <div class="tips">{{item.tips}}  <span v-if="index < 9">Ctrl+{{index + 1}}</span></div>
                         </div>
                     </template>
                     <span class="title">外网翻译：</span>
@@ -150,7 +179,7 @@
                                 <img :src="require('../../assets/icon/'+item.type+'.png')" style="width:24px;height:24px;margin-right:8px"/>
                                 <span>{{item.title}}</span>
                             </div>
-                            <div class="tips">{{item.tips}}  Ctrl+{{index + this.suggest.local.length + 1}}</div>
+                            <div class="tips">{{item.tips}}  <span v-if="index + this.suggest.local.length < 9">Ctrl+{{index + this.suggest.local.length + 1}}</span></div>
                         </div>
                     </template>
                 </div>
@@ -243,7 +272,8 @@ import {
     importExcle
 } from '@/http/api/entry'
 import {
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
+  SearchOutlined
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import workbenchCommon from '@/views/workbench/common.js';
@@ -253,7 +283,8 @@ import key from 'keymaster'
 export default {
     components:{
         Modal,
-        QuestionCircleOutlined
+        QuestionCircleOutlined,
+        SearchOutlined
     },
     emits:['handleClose','handleOK'],
     props: {
@@ -278,14 +309,18 @@ export default {
             modalWidth:"75%",
             task:{},
             keyWords:"",
-            tableHeight: { x:'100%',y: '415px' },
+            tableHeight: { x:'100%',y: 415 },
             loading:false,
             columns: [
                 {title: "序号",dataIndex: 'index',align:'center',width:50,customRender: (text, record, index, column) => {
                     return text.index + 1
                 },fixed: 'left'},
                 {title: '翻译状态',dataIndex: 'state',align:'center',width:90,fixed: 'left'},
-                {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true},
+                {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true,
+                    customFilterDropdown: true,
+                    onFilter: (value, record) =>
+                    record.entry.toString().toLowerCase().includes(value.toLowerCase()),
+                },
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:300,ellipsis: true,resizable: true},
                 {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:150,ellipsis: true},
@@ -295,6 +330,15 @@ export default {
             dataSource:[],
             allData:[],
             editableData:{},
+            pagination:{
+                pageSizeOptions:['20','50','100'],
+                defaultPageSize:20,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
+            },
             selectedRowIndex:null,
             suggest:{
                 local:[],
@@ -314,11 +358,17 @@ export default {
             rules:{},
             exportVisible: false,
             exportModal:{
-                field:[]
+                field:["abbr","词条"]
             },
             fieldOptions: tableParam.exportFields,
             accept:".xls,.xlsx",
-            preTranslateOkLoading: false
+            preTranslateOkLoading: false,
+            state:{
+                searchText: '',
+                searchedColumn: '',
+            },
+            clearFilters: null,
+
         }
     },
     
@@ -411,7 +461,12 @@ export default {
                 }
                 
             })
-
+            let num = this.verifyTranslationLength(this.dataSource)
+            if(num > 0){
+                // 存在超长翻译
+                message.warn("存在超长翻译，请检查！")
+                return
+            }
             let params = {
                 taskID: this.task.id
             }
@@ -483,21 +538,36 @@ export default {
             }
         },
         edit(record){
-            this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
+            this.editableData[record.id] = this.editableData.hasOwnProperty(record.id) ? this.editableData[record.id] : cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
             // 设置校验规则
             this.rules[record.id] = {
-                entry:[{ validator: this.vilidFildLength(record) },
+                entry:[{ validator: this.vilidFildLength(record,'chinese') },
                 { required: true, message: '请输入!' }]
             }
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
-            this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record) }]
+            this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record,languageCode) }]
             return Promise.resolve()
         },
         // 校验输入数据的长度
-        vilidFildLength(record){
+        vilidFildLength(record,language){
             return (rule,value) =>{
-                let maxLength = this.classifyLimit[record.classfy1]
-                if(maxLength === undefined || maxLength === null || maxLength === 0){
+                let type = ""
+                if(language === 'chinese'){
+                    type = 'maxByte'
+                }else{
+                    type = 'foreignMaxByte'
+                }
+                let maxLength = null
+                if(this.classifyLimit[record.classfy1] === undefined || this.classifyLimit[record.classfy1] === null){
+                    if(record.maxLength != null && record.maxLength != ""){
+                        maxLength = record.maxLength
+                    }else{
+                        return Promise.resolve();
+                    }
+                }else{
+                    maxLength = this.classifyLimit[record.classfy1][type]
+                }
+                if(maxLength === null || maxLength === "" || maxLength === undefined || maxLength === 0){
                     return Promise.resolve();
                 }
                 // 获取输入数据的长度
@@ -556,8 +626,8 @@ export default {
                             type = 'google'
                         }else if(element.source.includes('模型')){
                             type = 'ai'
-                        }else{
-                            type = 'local'
+                        }else if(element.source.includes('DeepL')){
+                            type = 'DeepL'
                         }
                         element.languageEntities.forEach(item => {
                             let suggent = {
@@ -583,19 +653,27 @@ export default {
         // 设置翻译建议快捷键
         setShortcutKeys(){
             let _this = this
-            for(let i = 1 ; i<= this.suggest.local.length; i++){
-                key('ctrl+'+i,function(){_this.clickSug(i); return false })
-            }
-            for(let i = 1 ; i<= this.suggest.web.length; i++){
-                let j = this.suggest.local + i
-                key('ctrl+'+j,function(){_this.clickSug(i); return false })
+            // for(let i = 1 ; i<= this.suggest.local.length; i++){
+            //     key('ctrl+'+i,function(){_this.clickSug(i); return false })
+            // }
+            // for(let i = 1 ; i<= this.suggest.web.length; i++){
+            //     let j = this.suggest.local + i
+            //     key('ctrl+'+j,function(){_this.clickSug(i); return false })
+            // }
+            let list = this.suggest.local.concat(this.suggest.web)
+            for(let i = 1; i <= list.length; i++){
+                if(i < 10){
+                    key('ctrl+'+i,function(){_this.clickSug(i); return false })
+                }
             }
         },
         // 删除辅助翻译快捷键
         deleteShortcutKeys(){
             let list = this.suggest.local.concat(this.suggest.web)
-            for(let i = 1; i<= list.length;i++){
-                key.unbind('ctrl+'+i)
+            for(let i = 0; i<= list.length;i++){
+                if(i < 9){
+                    key.unbind('ctrl+'+i+1)
+                }
             }
         },
         // 辅助翻译快捷键点击事件
@@ -637,23 +715,7 @@ export default {
             }
             
             // 校验字符串长度
-            let maxLength = this.classifyLimit[record.classfy1]
-            if(common.byteLength(title) > maxLength){
-                if(this.editableData[this.selectedRowIndex] != undefined){
-                    let list = [eval("this.$refs.form"+ record.id.replaceAll('-','') + languageCode).validate()]
-                    Promise.all(list).then(() => {
-
-                    })
-                }else{
-                    this.edit(record).then(() => {
-                        eval("this.$refs.form"+ record.id.replaceAll('-','') + languageCode).validate().then(() => {
-
-                        }).catch((err) => {
-                            
-                        })
-                    })
-                }
-            }
+            this.verifyTranslationLength([record])
         },
         // 输入框 回车事件
         inputPressEnter(record){
@@ -706,6 +768,11 @@ export default {
                     this.loading = false
                     this.selectVisible = false
                     this.preTranslateOkLoading = false
+                    // 校验翻译长度
+                    let num = this.verifyTranslationLength(this.dataSource)
+                    if(num > 0){
+                        message.warn("存在超长翻译,请检查！")
+                    }
                 }).catch((err) => {
                     message.error("预翻译失败！")
                     this.loading = false
@@ -739,6 +806,14 @@ export default {
             this.editableData = {}
             // 解绑快捷键
             key.unbind('ctrl+down,ctrl+up,ctrl+shift+down,ctrl+shift+up,ctrl+e,ctrl+enter')
+
+            if(this.clearFilters){
+                this.clearFilters({confirm:true})
+                this.state.searchText = ''
+            }
+
+            this.pagination.current = 1
+            this.pagination.pageSize = 20
         },
 
         // 导出
@@ -807,6 +882,10 @@ export default {
             if(index === this.dataSource.length - 1){
                 return   
             }
+            if(index === this.pagination.current * this.pagination.pageSize - 1){
+                // 翻页
+                this.pageChange(this.pagination.current + 1,this.pagination.pageSize)
+            }
             index++ 
             this.selectedRowIndex = this.dataSource[index].id
             this.scrollTableToRow(index)
@@ -820,6 +899,10 @@ export default {
             let index = this.dataSource.findIndex(item => item.id === this.selectedRowIndex)
             if(index === 0){
                 return   
+            }
+            if(index === (this.pagination.current - 1) * this.pagination.pageSize){
+                // 翻页
+                this.pageChange(this.pagination.current - 1,this.pagination.pageSize)
             }
             index--
             this.selectedRowIndex = this.dataSource[index].id
@@ -844,6 +927,11 @@ export default {
                     break
                 }
             }
+            let recordPage = Math.floor(notTransIndex / this.pagination.pageSize) + 1
+            if(recordPage != this.pagination.current){
+                // 翻页
+                this.pageChange(recordPage,this.pagination.pageSize)
+            }
             this.selectedRowIndex = this.dataSource[notTransIndex].id
             this.scrollTableToRow(notTransIndex)
             // this.assistedTranslation(this.dataSource[notTransIndex])
@@ -865,6 +953,11 @@ export default {
                     preNotTransIndex = index
                     break
                 }
+            }
+            let recordPage = Math.floor(preNotTransIndex / this.pagination.pageSize) + 1
+            if(recordPage != this.pagination.current){
+                // 翻页
+                this.pageChange(recordPage,this.pagination.pageSize)
             }
             this.selectedRowIndex = this.dataSource[preNotTransIndex].id
             this.scrollTableToRow(preNotTransIndex)
@@ -896,17 +989,79 @@ export default {
         },
         // 滚动表格
         scrollTableToRow(rowIndex) {
-            const table = this.$refs.tableContainer; // 获取表格容器元素
-            if (table && rowIndex >= 0) {
-                // 根据索引查找目标行元素
-                const targetElement = table.$el.querySelectorAll('tr')[rowIndex]
-                // console.log(targetElement.offsetHeight)
-                let container = this.$refs.tableContainer.$el.querySelector('.ant-table-body')
-                if (targetElement) {
-                    // container.scrollTop = targetElement.offsetTop - container.scrollHeight / 2 + 40 // 设置滚动条位置
-                    container.scrollTop = rowIndex * targetElement.offsetHeight - 370 // 当前行 * 行高 - 表格展示高度
+            this.$nextTick(() => {
+                const table = this.$refs.tableContainer; // 获取表格容器元素
+                if (table && rowIndex >= 0) {
+                    // 根据索引查找目标行元素
+                    let flag = rowIndex - (this.pagination.current - 1) * this.pagination.pageSize
+                    const targetElement = table.$el.querySelectorAll('tr')[flag]
+                    let container = this.$refs.tableContainer.$el.querySelector('.ant-table-body')
+                    if (targetElement) {
+                        // container.scrollTop = targetElement.offsetTop - container.scrollHeight / 2 + 40 // 设置滚动条位置
+                        container.scrollTop = flag * targetElement.offsetHeight - this.tableHeight.y + 50 // 当前行 * 行高 - 表格展示高度
+                    }
                 }
+            })
+        },
+        // 列筛选
+        handleSearch(selectedKeys, confirm, dataIndex,clearFilters){
+            confirm();
+            this.state.searchText = selectedKeys[0];
+            this.state.searchedColumn = dataIndex;
+            this.clearFilters = clearFilters
+        },
+        handleReset(clearFilters){
+            clearFilters({ confirm: true });
+            this.state.searchText = '';
+        },
+        // 动态设置表格高度
+        setTableHeight(height,type){
+            if(type === 'full'){
+                this.tableHeight.y = height - 200
+            }else if(type === 'reduce'){
+                this.tableHeight.y = 415
             }
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+            // 校验该页数据翻译长度
+            let checkArr = this.dataSource.slice((page-1)*pageSize,page*pageSize)
+            this.verifyTranslationLength(checkArr)
+        },
+        // 校验翻译长度
+        verifyTranslationLength(array){
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
+            let flag = 0
+            array.forEach(record => {
+                let maxLength = null
+                if(record.classfy1 === null || record.classfy1 === ""){
+                    if(record.maxLength != null && record.maxLength != ""){
+                        maxLength = record.maxLength
+                    }else{
+                        return
+                    }
+                }else{
+                    maxLength = this.classifyLimit[record.classfy1] ? this.classifyLimit[record.classfy1]['foreignMaxByte'] : null
+                }
+                if(maxLength === null || maxLength === "" || maxLength === undefined || maxLength === 0){
+                    return
+                }
+                // 是否编辑中
+                let text = this.editableData.hasOwnProperty(record.id) ? this.editableData[record.id][languageCode] : record[languageCode]
+                if(common.byteLength(text) > maxLength){
+                    flag++
+                    this.edit(record).then(() => {
+                        eval("this.$refs.form"+ record.id.replaceAll('-','') + languageCode).validate().then(() => {
+
+                        }).catch((err) => {
+
+                        })
+                    })
+                }
+            })
+            return flag
         },
     }
 }
@@ -1023,5 +1178,8 @@ export default {
 }
 .ant-table-cell .ant-form-item{
     margin-bottom: 0%;
+}
+:deep(.ant-pagination) {
+    margin: 8px 0;
 }
 </style>

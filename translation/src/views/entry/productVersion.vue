@@ -315,7 +315,7 @@ export default {
             exportVisible: false,
             exportModal:{
                 language:'英文',
-                field:[]
+                field:["abbr","词条"]
             },
             exportVersion:{
                 id:"",
@@ -629,7 +629,7 @@ export default {
                 name:""
             }
             this.exportTask = {}
-            this.exportModal.field = []
+            this.exportModal.field = ["abbr","词条"]
         },
         
         getTime(){

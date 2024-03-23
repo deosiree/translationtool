@@ -1,9 +1,12 @@
 <template>
-  <electronTitle />
-  <router-view/>
+  <a-config-provider :locale="locale">
+    <electronTitle />
+    <router-view/>
+  </a-config-provider>
 </template>
 <script>
 import electronTitle from './components/title/electronTitle';
+import zhCN from 'ant-design-vue/es/locale/zh_CN';
 export default {
     name: '',
     components: {
@@ -11,6 +14,7 @@ export default {
     },
     data(){
       return{
+        locale:zhCN
       }
     }
 }

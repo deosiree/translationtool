@@ -6,11 +6,12 @@
         <div class="welcome">欢迎登录</div>
         <a-form
           :model="loginForm"
+          layout="vertical"
           ref="loginFrom"
         >
           <a-form-item 
           name="account"
-          :rules="[{ required: true, message: '请输入用户名!' }]"
+          label="用户名："
           >
             <a-input v-model:value="loginForm.account" placeholder="请输入用户名">
               <template #prefix><UserOutlined style="color: rgba(0, 0, 0, 0.25)" /></template>
@@ -18,13 +19,13 @@
           </a-form-item>
           <a-form-item
           name="password"
-          :rules="[{ required: true, message: '请输入密码!' }]"
+          label="密码："
           >
             <a-input-password v-model:value="loginForm.password" placeholder="请输入密码">
               <template #prefix><LockOutlined style="color: rgba(0, 0, 0, 0.25)" /></template>
             </a-input-password>
           </a-form-item>
-          <a-form-item>
+          <a-form-item style="margin-top:24px">
             <a-button
               type="primary"
               html-type="submit"
@@ -70,27 +71,29 @@ export default {
   methods: {
     
     handleLogin() {
-      this.$refs.loginFrom.validate().then(() => {
-        this.loading = true
-          login(this.loginForm).then((res) => {
-              // message.info('登录成功！')
-              this.$store.commit("setData", res.data)
-              if(res.data.menu.length === 0){
-                this.$router.push('/notPermission');
-              }else{
-                this.$router.push('/translate');
-              }
-              this.loading = false
-          }).catch((err) => {
-              console.log(err);
-              this.loading = false
-          });
-      }).catch(err => {
-          console.log('error', err);
+      if(this.loginForm.account === "" || this.loginForm.account === null){
+        message.info("请输入用户名！")
+        return
+      }
+      if(this.loginForm.password === "" || this.loginForm.password === null){
+        message.info("请输入密码！")
+        return
+      }
+      this.loading = true
+      login(this.loginForm).then((res) => {
+          // message.info('登录成功！')
+          this.$store.commit("setData", res.data)
+          if(res.data.menu.length === 0){
+            this.$router.push('/notPermission');
+          }else{
+            this.$router.push('/translate');
+          }
+          this.loading = false
+      }).catch((err) => {
+          // console.log(err);
+          this.loading = false
       });
-      
     }
-    
   },
 };
 </script>
@@ -105,7 +108,7 @@ export default {
 }
 .loginBox{
   width: 300px;
-  height: 280px;
+  height: 310px;
   position: absolute;
   top: 20%;
   right: 12%;
@@ -114,13 +117,18 @@ export default {
   width: 100%;
   height: 40px;
   text-align: center;
+  margin-bottom: 10px;
 }
 .title span{
-  font-size: 18px;
+  font-size: 24px;
   font-family: Microsoft YaHei;
   font-style: normal;
   font-weight: 700;
   line-height: 40px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(226, 250, 255, 0.8));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .loginBox .loginForm{
   width: 100%;
@@ -136,7 +144,7 @@ export default {
   font-family: Microsoft YaHei;
   font-style: normal;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 /* .ant-form{
   width: 400px;
@@ -147,5 +155,7 @@ export default {
   -ms-transform: translate(-50%,-50%);
   transform: translate(-50%,-50%);
 } */
-
+.ant-form-item{
+  margin-bottom: 12px;
+}
 </style>

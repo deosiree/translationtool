@@ -84,6 +84,7 @@
             </template>
             <template v-slot:operate>
                 <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
+                    <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button>
                     <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
                     
                     <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag">选择全部</a-button>
@@ -227,6 +228,35 @@
                                         </template>
                                         <template v-else>
                                             {{ text }}
+                                        </template>
+                                    </div>
+                                </template>
+                                <template v-if="column.dataIndex === 'entryLabel'">
+                                    <div>
+                                        <template v-if="editableData[record.id]">
+                                            <a-input
+                                                v-model:value="editableData[record.id][column.dataIndex]"
+                                                style="margin: -5px 0;width:90%"
+                                                @click="clickInput"
+                                            />
+                                            <a-tooltip placement="top">
+                                                <template #title>
+                                                <span>多个Tag按分号分割！</span>
+                                                </template>
+                                                <InfoCircleOutlined style="margin-left:3px"/>
+                                            </a-tooltip>
+                                        </template>
+                                        <template v-else>
+                                            <!-- {{ text }} -->
+                                            <span>
+                                                <a-tag
+                                                v-for="(tag,index) in companyCut(text)"
+                                                :key="index"
+                                                color="cyan"
+                                                >
+                                                    {{tag}}
+                                                </a-tag>
+                                            </span>
                                         </template>
                                     </div>
                                 </template>
@@ -403,6 +433,11 @@
     :visible="secondClassifyVisible" 
     :currentProduct="product"
     @secondClassifyClose="secondClassifyClose"/>
+    <Dictionary 
+    ref="dictionaryRef"
+    :visible="dictionaryVisible" 
+    :currentProduct="product"
+    @dictionaryClose="dictionaryClose"/>
 </template>
 <script>
 import tableParam from "./tableParam.js";
@@ -414,6 +449,7 @@ import OperationArea from '@/components/operationArea/index.vue'
 import EditReason from '@/views/entry/editReason.vue'
 import CreateVersionModal from '@/views/entry/createVersionModal.vue'
 import SecondClassify from '@/views/entry/secondClassify.vue'
+import Dictionary from '@/views/entry/dictionary.vue'
 import { message,Modal } from 'ant-design-vue';
 import { defineComponent, ref, createVNode } from 'vue';
 import { cloneDeep, iteratee } from 'lodash-es';
@@ -444,6 +480,7 @@ import {
   PlusCircleOutlined,
   SettingOutlined,
   SwapOutlined,
+  InfoCircleOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons-vue';
 export default {
@@ -454,6 +491,7 @@ export default {
         EditReason,
         CreateVersionModal,
         SecondClassify,
+        Dictionary,
         PlusOutlined,
         DeleteOutlined,
         CopyOutlined,
@@ -462,6 +500,7 @@ export default {
         PlusCircleOutlined,
         SettingOutlined,
         SwapOutlined,
+        InfoCircleOutlined,
         ExclamationCircleOutlined
     },
     emits:[],
@@ -541,11 +580,12 @@ export default {
             createVisible: false,
             rules:{},
             batchSelectFlag: false,
-            moduleMap:{},
+            limitMap:{},
             classify1Option:[],
             secondClassifyVisible:false,
             classify2Option:[],
-            rowClassify2Option:{}
+            rowClassify2Option:{},
+            dictionaryVisible: false,
         }
     },
     
@@ -575,13 +615,13 @@ export default {
             this.showOperationArea = false
             this.init()
             // console.log(newval)
-            let moduleMap = {}
+            let limitMap = {}
             this.classify1Option = []
             newval.children.forEach(item => {
-                moduleMap[item.title] = item.maxByte
+                limitMap[item.title] = item
                 this.classify1Option.push(item)
             })
-            this.moduleMap = moduleMap
+            this.limitMap = limitMap
 
         },
         productEdit(newval,oldval){
@@ -775,12 +815,12 @@ export default {
                         this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
                         // 设置校验规则
                         this.rules[record.id] = {
-                            entry:[{ validator: this.vilidFildLength(record) },
+                            entry:[{ validator: this.vilidFildLength(record,'chinese') },
                             { required: true, message: '请输入!' }],
-                            english:[{ validator: this.vilidFildLength(record) }],
-                            french:[{ validator: this.vilidFildLength(record) }],
-                            russian:[{ validator: this.vilidFildLength(record) }],
-                            spanish:[{ validator: this.vilidFildLength(record) }],
+                            english:[{ validator: this.vilidFildLength(record,'english') }],
+                            french:[{ validator: this.vilidFildLength(record,'french') }],
+                            russian:[{ validator: this.vilidFildLength(record,'russian') }],
+                            spanish:[{ validator: this.vilidFildLength(record,'spanish') }],
                         }
                         // 获取表格操作行的classify2Option
                         this.getRowClassify2Option(record)
@@ -789,10 +829,25 @@ export default {
             }
         },
         // 校验输入数据的长度
-        vilidFildLength(record){
+        vilidFildLength(record,language){
             return (rule,value) =>{
-                let maxLength = this.moduleMap[record.classfy1]
-                if(maxLength === undefined || maxLength === null || maxLength === 0){
+                let type = ""
+                if(language === 'chinese'){
+                    type = 'maxByte'
+                }else{
+                    type = 'foreignMaxByte'
+                }
+                let maxLength = null
+                if(this.limitMap[record.classfy1] === undefined || this.limitMap[record.classfy1] === null){
+                    if(record.maxLength != null && record.maxLength != ""){
+                        maxLength = record.maxLength
+                    }else{
+                        return Promise.resolve();
+                    }
+                }else{
+                    maxLength = this.limitMap[record.classfy1][type]
+                }
+                if(maxLength === undefined || maxLength === "" || maxLength === null || maxLength === 0){
                     return Promise.resolve();
                 }
                 // 获取输入数据的长度
@@ -822,7 +877,7 @@ export default {
             })
             this.showOperationArea = true
             this.setTableHeight()
-            console.log(this.currentEntry)
+            // console.log(this.currentEntry)
         },
         deleteEntry(){
             if(this.selectedRowKeys.length === 0){
@@ -1013,7 +1068,7 @@ export default {
                         dataIndex: value.value,
                         align: "center",
                         width: 200,
-                        ellipsis: true,
+                        // ellipsis: true,
                         resizable: true,
                         index: value.index
                     };
@@ -1115,17 +1170,18 @@ export default {
                 maxLength: this.product.type === 'module' ? this.product.maxByte : "",
                 versionID: this.currentVersion,
                 productID: this.product.type === 'module' ? this.product.parentId : this.product.key,
+                entryVersion:'new'
             }
             // console.log(newData)
             // 设置校验规则
             if(newData.maxLength != ""){
                 this.rules[newData.id] = {
-                    entry:[{ validator: this.vilidFildLength(newData) },
+                    entry:[{ validator: this.vilidFildLength(newData,'chinese') },
                     { required: true, message: '请输入!' }],
-                    english:[{ validator: this.vilidFildLength(newData) }],
-                    french:[{ validator: this.vilidFildLength(newData) }],
-                    russian:[{ validator: this.vilidFildLength(newData) }],
-                    spanish:[{ validator: this.vilidFildLength(newData) }],
+                    english:[{ validator: this.vilidFildLength(newData,'english') }],
+                    french:[{ validator: this.vilidFildLength(newData,'french') }],
+                    russian:[{ validator: this.vilidFildLength(newData,'russian') }],
+                    spanish:[{ validator: this.vilidFildLength(newData,'spanish') }],
                 }
             }
 
@@ -1156,12 +1212,12 @@ export default {
             // 设置校验规则
             if(copyEntry.maxLength != ""){
                 this.rules[copyEntry.id] = {
-                    entry:[{ validator: this.vilidFildLength(copyEntry) },
+                    entry:[{ validator: this.vilidFildLength(copyEntry,'chinese') },
                     { required: true, message: '请输入!' }],
-                    english:[{ validator: this.vilidFildLength(copyEntry) }],
-                    french:[{ validator: this.vilidFildLength(copyEntry) }],
-                    russian:[{ validator: this.vilidFildLength(copyEntry) }],
-                    spanish:[{ validator: this.vilidFildLength(copyEntry) }],
+                    english:[{ validator: this.vilidFildLength(copyEntry,'english') }],
+                    french:[{ validator: this.vilidFildLength(copyEntry,'french') }],
+                    russian:[{ validator: this.vilidFildLength(copyEntry,'russian') }],
+                    spanish:[{ validator: this.vilidFildLength(copyEntry,'spanish') }],
                 }
             }
             let index = this.dataSource.indexOf(entry)
@@ -1208,6 +1264,9 @@ export default {
                 return
             }
             let classify1 = this.classify1Option.find(item => item.title === this.editableData[record.id].classfy1)
+            if(classify1 === undefined || classify1 === null){
+                return
+            }
             let params = {
                 parentId: classify1.key
             }
@@ -1217,6 +1276,25 @@ export default {
                 this.rowClassify2Option[record.id] = []
             })
         },
+        // 切割字符串
+        companyCut(message){
+            let res = []
+            if(message === null || message === ''){
+                return res
+            }
+            const regex = /[;；]/;
+            res = message.split(regex)
+            res = res.filter(item => item != '')
+            return res
+        },
+        // 查看辞典
+        viewDictionary(){
+            this.dictionaryVisible = true
+            this.$refs.dictionaryRef.init()
+        },
+        dictionaryClose(){
+            this.dictionaryVisible = false
+        }
     }
 }
 </script>

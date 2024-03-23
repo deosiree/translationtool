@@ -613,9 +613,11 @@ export default {
                         // 当前行在编辑状态
                         return
                     }
-                    if(record.state != 0){
-                        message.warn("当前任务已下发，不可编辑！")
-                    }else{
+                    if(record.state != '0' && record.state != '6'){
+                        message.info("当前任务已下发，不可编辑！")
+                    }else if(record.state === '6'){
+                        message.info("当前任务已归档，不可编辑！")
+                    }else if(record.state === '0'){
                         this.edit(record)
                     }
                     
@@ -635,13 +637,15 @@ export default {
                 version:[],
                 developer:[]
             }
-            this.dataSource.push(newData);
+            // this.dataSource.push(newData); //在数组末尾插入元素
+            this.dataSource.unshift(newData) // 在数组开头插入元素
             this.editableData[newData.id] = newData;
             this.getOptions(newData)
-            // 滚动到最底部
+            // 滚动表格
             this.$nextTick(()=>{
                 let container = this.$refs.taskTable.$el.querySelector('.ant-table-body')
-                container.scrollTop = container.scrollHeight
+                // container.scrollTop = container.scrollHeight  //表格滚动到最底部 
+                container.scrollTop = 0  //表格滚动到顶部
             })
         },
         // 查看流程
@@ -998,7 +1002,7 @@ export default {
                 copyTask.id = id
                 copyTask.state = '0'
                 copyTask.name = copyTask.name+'(复制)'
-                this.dataSource.push(copyTask)
+                this.dataSource.unshift(copyTask)      
                 this.options[id] = {
                     products:[],
                     version:[],
@@ -1037,7 +1041,7 @@ export default {
             // 滚动到最底部
             this.$nextTick(()=>{
                 let container = this.$refs.taskTable.$el.querySelector('.ant-table-body')
-                container.scrollTop = container.scrollHeight
+                container.scrollTop = 0
             })
         },
         // 表格列可伸缩

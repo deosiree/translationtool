@@ -175,10 +175,10 @@ export function exportEntry(data) {
     });
 }
 
-// 导出
+// 导入
 export function importExcle(data) {
     return request({
-        url: "/entry/importExcle",
+        url: "/entry/importCommonExcle",
         method: "POST",
         data:data
     });
