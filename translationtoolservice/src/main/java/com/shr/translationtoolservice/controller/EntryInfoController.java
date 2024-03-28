@@ -374,4 +374,38 @@ public class EntryInfoController extends BaseController {
 
         return checkResult(relation);
     }
+
+
+
+    @PostMapping("/WriteDIEntry")
+    @ApiOperation("回写辞典")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse<String> WriteDIEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                               @RequestParam boolean common,@RequestParam String transType,
+                                               @RequestParam boolean tag) {
+        String relation = entryInfoService.writeDIEntry(entryInfoEntities,common,tag,transType);
+
+        return checkResult(relation);
+    }
+
+
+    @PostMapping("/setInfo")
+    @ApiOperation("回写")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> setInfo(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String translateType,
+                                        @RequestParam String writeType,@RequestParam int isTag,@RequestParam int isComment,   String fileName) {
+        boolean tag  =true;
+        boolean comment = true;
+        if (isTag ==0){
+            tag = false;
+        }
+        if (isComment == 0 ){
+            comment = false;
+        }
+
+        return checkResult(entryInfoService.setInfoByEntryList(entryInfoEntities,translateType,writeType,tag,comment,fileName));
+    }
+
 }

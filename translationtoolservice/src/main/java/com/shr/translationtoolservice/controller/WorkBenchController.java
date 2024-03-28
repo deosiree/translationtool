@@ -6,9 +6,11 @@ import com.shr.translationtoolservice.entity.EntryCommonEntity;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.EntryTempEntity;
 import com.shr.translationtoolservice.entity.ResponseListModel;
+import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.entity.vo.ImportResultEntryVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
+import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -44,8 +46,11 @@ public class WorkBenchController extends BaseController {
     @Autowired
     private CommonUtils commonUtils;
 
+    @Autowired
+    private I18nService i18nService;
+
     @PostMapping("/importExcle")
-    @ApiOperation("导入excle(待完善)")
+    @ApiOperation("导入excle(预留)")
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> importExcle(@RequestParam("file") MultipartFile multipartFile,
@@ -59,17 +64,32 @@ public class WorkBenchController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/importCommonExcle")
+    @ApiOperation("导入excle(翻译)")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> importCommonExcle(@RequestParam("file") MultipartFile multipartFile,
+                                                             @RequestParam("taskID") String taskID
+    ) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(multipartFile, taskID);
+        responseListModel.setList(entryEntities);
+        responseListModel.setTotalNum(entryEntities.size());
 
-    @PostMapping("/readZZExcle")
-    @ApiOperation("读取装置excle")
+        return checkResult(responseListModel);
+    }
+
+
+    @PostMapping("/entryImportExcle")
+    @ApiOperation("词条excle导入（通用和装置）")
     @CrossOrigin
     @Transactional
     //new
-    public HttpResponse<ResponseListModel> importZZExcle(@RequestParam("file") MultipartFile multipartFile,
-                                                         @RequestParam("taskID") String taskID,HttpServletRequest httpServletRequest
+    public HttpResponse<ResponseListModel> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,
+                                                            @RequestParam("taskID") String taskID, HttpServletRequest httpServletRequest
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
-         List<EntryInfoEntity> entryInfoEntities = entryInfoService.importZZExcle(multipartFile, taskID, httpServletRequest);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoService.importZZExcle(multipartFile, taskID, httpServletRequest);
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
@@ -80,19 +100,32 @@ public class WorkBenchController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> insertEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,
-                                            @RequestParam("taskID") String taskID,HttpServletRequest request) {
+                                            @RequestParam("taskID") String taskID, HttpServletRequest request) {
 
-        String result = entryInfoService.insertEntry(entryInfoEntities,taskID,request);
+        String result = entryInfoService.insertEntry(entryInfoEntities, taskID, request);
         return checkResult(result);
+    }
+
+    @PostMapping("/getDictory")
+    @ApiOperation("查询辞典")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<  ResponseListModel<DictionaryVo>> getDictory(String entry, String tag,
+                                                                      String common, @RequestParam String fileName) {
+        ResponseListModel<DictionaryVo> responseListModel = new ResponseListModel<>();
+        List<DictionaryVo> dictionaryVos = i18nService.getDictory(entry,tag,common,fileName);
+        responseListModel.setList(dictionaryVos);
+        responseListModel.setTotalNum(dictionaryVos.size());
+        return checkResult(responseListModel);
     }
 
     @PostMapping("/updateEntryList")
     @ApiOperation("更新词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateEntryList(@RequestBody List<EntryInfoEntity> entryInfoEntities,@RequestParam String taskID,HttpServletRequest request) {
+    public HttpResponse<String> updateEntryList(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, HttpServletRequest request) {
 
-        String result = entryTempService.updateEntryList(entryInfoEntities,taskID,request);
+        String result = entryTempService.updateEntryList(entryInfoEntities, taskID, request);
         return checkResult(result);
     }
 
@@ -100,17 +133,15 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("查询词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getEntryInfoList(@RequestParam String taskID,@RequestParam String entry,@RequestParam String entryState ,@RequestBody List<String> transStates) {
+    public HttpResponse<ResponseListModel> getEntryInfoList(@RequestParam String taskID, @RequestParam String entry,  String entryState, @RequestBody List<String> transStates) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        entryInfoEntities = entryTempService.getEntryInfoList(taskID,entryState,transStates,entry);
+        entryInfoEntities = entryTempService.getEntryInfoList(taskID, entryState, transStates, entry);
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
 
         return checkResult(responseListModel);
     }
-
-
 
 
     @PostMapping("/deleteEntryInfoByID")
@@ -128,10 +159,10 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("预翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> preTranslate(@RequestBody List<EntryInfoEntity> entryInfoEntities,@RequestParam String taskID,@RequestParam String priority) {
+    public HttpResponse<ResponseListModel> preTranslate(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, @RequestParam String priority) {
         ResponseListModel responseListModel = new ResponseListModel();
 
-        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(entryInfoEntities,taskID,priority);
+        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(entryInfoEntities, taskID, priority);
         responseListModel.setList(entryInfoEntities1);
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
@@ -141,11 +172,21 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("模板下载")
     @CrossOrigin
     @Transactional
-    public void getTemplateFile(HttpServletResponse response) {
-        entryTempService.getTemplateFile(response);
+    public void getTemplateFile(HttpServletResponse response, String fileType) {
+        entryTempService.getTemplateFile(response, fileType);
     }
 
-
+    @PostMapping("/filterSourceLanguage")
+    @ApiOperation("过滤语言")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> filterSourceLanguage(@RequestBody List<EntryInfoEntity> entryInfoEntities,@RequestParam  String languageType) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<EntryInfoEntity> entryInfoEntities1 = entryInfoService.filterSourceLanguage(entryInfoEntities, languageType);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
+        return checkResult(responseListModel);
+    }
 
 
 }

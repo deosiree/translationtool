@@ -30,7 +30,7 @@ import java.util.List;
 @RequestMapping("/product")
 @Api(tags = "产品管理")
 @Slf4j
-public class ProductController extends BaseController{
+public class ProductController extends BaseController {
 
 
     @Autowired
@@ -40,15 +40,14 @@ public class ProductController extends BaseController{
     @ApiOperation("获取产品版本")
     @CrossOrigin
     @Token
-    public HttpResponse<ResponseListModel< VersionEntity>> getProductVersion(String  productName, String department) {
-        ResponseListModel< VersionEntity> responseListModel = new ResponseListModel< VersionEntity>();
-        List<VersionEntity> versionEntities = productService.getProductVersion(productName,department);
+    public HttpResponse<ResponseListModel<VersionEntity>> getProductVersion(String productName, String department) {
+        ResponseListModel<VersionEntity> responseListModel = new ResponseListModel<VersionEntity>();
+        List<VersionEntity> versionEntities = productService.getProductVersion(productName, department);
         responseListModel.setList(versionEntities);
         responseListModel.setTotalNum(versionEntities.size());
         return checkResult(responseListModel);
 
     }
-
 
 
     @PostMapping("/getProduct")
@@ -72,11 +71,15 @@ public class ProductController extends BaseController{
     @CrossOrigin
     @Transactional
     //返回id
-    public HttpResponse<String> addProduct(@RequestBody ProductEntity productEntity, HttpServletRequest request) {
-
-        String id = productService.addProduct(productEntity,request);
-
-        return checkResult(id);
+    public HttpResponse<ProductEntity> addProduct(@RequestBody ProductEntity productEntity, HttpServletRequest request) {
+        ProductEntity product = new ProductEntity();
+        product.setName(productEntity.getName());
+        List<ProductEntity> product1 = productService.getProduct(product);
+        if (!product1.isEmpty()) {
+            return error(productEntity, "产品名称已存在！");
+        }
+        productService.addProduct(productEntity, request);
+        return checkResult(productEntity);
 
     }
 
@@ -111,9 +114,9 @@ public class ProductController extends BaseController{
     @CrossOrigin
     @Transactional
     //返回id 入参用户
-    public HttpResponse<String> bindUserProduct(@RequestBody List<UserDetailsVo> userDetailsVos,String productID) {
+    public HttpResponse<String> bindUserProduct(@RequestBody List<UserDetailsVo> userDetailsVos, String productID) {
 
-        String result = productService.bindUserProduct(userDetailsVos,productID);
+        String result = productService.bindUserProduct(userDetailsVos, productID);
 
         return checkResult(result);
 
@@ -125,9 +128,9 @@ public class ProductController extends BaseController{
     @CrossOrigin
     @Transactional
     //返回id
-    public HttpResponse< ResponseListModel<UserDetailsVo>> getPermissonByUserProduct( String userName,String productId) {
+    public HttpResponse<ResponseListModel<UserDetailsVo>> getPermissonByUserProduct(String userName, String productId) {
         ResponseListModel<UserDetailsVo> result = new ResponseListModel<>();
-        List<UserDetailsVo> userDetailsVos = productService.getPermissonByUserProduct(userName,productId);
+        List<UserDetailsVo> userDetailsVos = productService.getPermissonByUserProduct(userName, productId);
         result.setList(userDetailsVos);
         result.setTotalNum(userDetailsVos.size());
         return checkResult(result);
@@ -140,10 +143,10 @@ public class ProductController extends BaseController{
     @Transactional
     public HttpResponse<UserProductEntity> getUserProduct(String productId, HttpServletRequest request) {
 
-        if (StringUtils.isBlank(productId)){
+        if (StringUtils.isBlank(productId)) {
             return null;
         }
-        UserProductEntity result = productService.getUserProduct(productId,request);
+        UserProductEntity result = productService.getUserProduct(productId, request);
 
         return checkResult(result);
 

@@ -28,7 +28,7 @@ public class EntryInfoEntity implements Serializable {
     //重复词条
     @TableField(exist = false)
     private List<EntryInfoEntity> children;
-    @TableField(exist = false)
+    @TableField(value = "parent_id")
     @DefaultValue("")
     private String parentID;
 

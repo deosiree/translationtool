@@ -481,43 +481,11 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         int insert = taskInfoMapper.insert(taskInfoEntity);
         // 获取被复制的任务
         TaskInfoEntity CopiedTaks = taskInfoMapper.selectById(taskID);
-
-        List<EntryTempEntity> list = new ArrayList<>();
-        if (ConstantInterface.END_STATE.contains(CopiedTaks.getState())){
-            // 被复制的任务已完成  则从版本表中获取原任务已导入的词条
-
-            List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(CopiedTaks.getVersionId());
-            String tableName = versionInfoByVersion.get(0).getVersionTableName();
-            List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
-
-            for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-                EntryTempEntity entryTempEntity = new EntryTempEntity();
-                entryTempEntity.setId(commonUtils.getUUID());
-                entryTempEntity.setImportype(entryInfoEntity.getImportType());
-                entryTempEntity.setSource(entryInfoEntity.getEntrySource());
-                entryTempEntity.setTaskId(newId);
-                entryTempEntity.setTranslateType(taskInfoEntity.getTranslateType());
-                entryTempEntity.setAuditState(0);
-                entryTempEntity.setVersionID(taskInfoEntity.getVersionId());
-                entryTempEntity.setEntry(entryInfoEntity.getEntry());
-                entryTempEntity.setAbbr(entryInfoEntity.getAbbr());
-                list.add(entryTempEntity);
-            }
-        }else {
-            // 被复制的任务未完成  则从临时表 t_entry_temp 中获取原任务已导入的词条
-            list = entryTempService.getEntryTempByTaskID(CopiedTaks.getId());
-            for (EntryTempEntity entryTempEntity : list) {
-                entryTempEntity.setId(commonUtils.getUUID());
-                entryTempEntity.setTranslateType(taskInfoEntity.getTranslateType());
-                entryTempEntity.setTaskId(newId);
-                String translate = CopiedTaks.getTranslateType().equals(taskInfoEntity.getTranslateType()) ? entryTempEntity.getTranslate() : null;
-                entryTempEntity.setTranslate(translate);
-            }
-        }
-        if (!list.isEmpty()){
-            entryTempService.insertEntry(list);
-        }
-
+        List<EntryInfoEntity> entryInfoEntities ;
+        List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(CopiedTaks.getVersionId());
+        String tableName = "t_entry_info";
+        entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
+        entryTempService.insertEntry(entryInfoEntities);
         return taskInfoEntity.getId();
     }
 

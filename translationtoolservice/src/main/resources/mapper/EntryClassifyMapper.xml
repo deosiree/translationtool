@@ -15,24 +15,25 @@
         <result property="creator" column="creator" jdbcType="VARCHAR"/>
         <result property="type" column="type" jdbcType="VARCHAR"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id ,parent_id,`name`,`type`,
-        `index`,max_byte,foreign_max_byte,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
+        `index`,max_byte,foreign_max_byte,department,creator, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time,is_delete
     </sql>
 
     <select id="getEntryClassfyIds" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_entry_classify
+        from t_entry_classify   where is_delete = 0
 
     </select>
     <select id="getEntryClassfyById" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from t_entry_classify
-        where id =  #{classifyId,jdbcType=VARCHAR}
+        where is_delete = 0 and id =  #{classifyId,jdbcType=VARCHAR}
 
     </select>
     <select id="getEntryClassfyIdsByDepartment" resultMap="BaseResultMap">
@@ -40,8 +41,9 @@
         <include refid="Base_Column_List"/>
         from t_entry_classify
         <where>
+            is_delete = 0
             <if test="department != null  and department != ''">
-                department = #{department,jdbcType=VARCHAR}
+                and  department = #{department,jdbcType=VARCHAR}
             </if>
         </where>
     </select>
@@ -49,7 +51,7 @@
     <select id="getEntryClassfyByIds" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_entry_classify where id in (
+        from t_entry_classify where is_delete = 0 and id in (
         <foreach collection="classfies" item="classfy" index="index" separator=",">
         #{classfy,jdbcType=VARCHAR}
     </foreach>
@@ -60,7 +62,7 @@
     <select id="getEntryClassfyByNames" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_entry_classify where name in (
+        from t_entry_classify where is_delete = 0 and name in (
         <foreach collection="classfies" item="classfy" index="index" separator=",">
             #{classfy,jdbcType=VARCHAR}
         </foreach>
@@ -74,7 +76,7 @@
         select
         <include refid="Base_Column_List"/>
         from t_entry_classify
-        where parent_id in (
+        where is_delete = 0 and parent_id in (
 
         <foreach collection="ids" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}
@@ -85,13 +87,13 @@
     <select id="selectByParentId" resultType="com.shr.translationtoolservice.entity.EntryClassify">
         select      id `key`,parent_id,`name` `title`,
         `index`
-        from t_entry_classify where id =  #{parentId,jdbcType=VARCHAR}
+        from t_entry_classify where is_delete = 0 and id =  #{parentId,jdbcType=VARCHAR}
 
     </select>
     <select id="selectClassfyById" resultType="com.shr.translationtoolservice.entity.EntryClassify">
         select       id `key`,parent_id,`name` `title`,
         `index`
-        from t_entry_classify where id =  #{id,jdbcType=VARCHAR}
+        from t_entry_classify where is_delete = 0 and id =  #{id,jdbcType=VARCHAR}
 
     </select>
     <insert id="insertClassfy" parameterType="com.shr.translationtoolservice.entity.EntryClassify">
@@ -127,6 +129,9 @@
             <if test="entryClassify.type != null">
                 `type`,
             </if>
+            <if test="entryClassify.isDelete != null">
+                `is_delete`,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryClassify.key != null">
@@ -158,6 +163,9 @@
             </if>
             <if test="entryClassify.type != null">
                 #{entryClassify.type,jdbcType=TIMESTAMP},
+            </if>
+            <if test="entryClassify.isDelete != null">
+                #{entryClassify.isDelete,jdbcType=TIMESTAMP},
             </if>
         </trim>
     </insert>
@@ -198,6 +206,7 @@
         WITH RECURSIVE parent AS (
             SELECT * FROM t_entry_classify
             <where>
+                is_delete = 0
                 <if test="department != null  and department != ''">
                     and department = #{department,jdbcType=VARCHAR}
                 </if>
@@ -206,7 +215,7 @@
                 </if>
             </where>
             UNION
-            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.`key` = parent.parent_id
+            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.`id` = parent.parent_id
         )
         SELECT * FROM parent;
     </select>
@@ -214,6 +223,7 @@
         WITH RECURSIVE child AS (
             SELECT * FROM t_entry_classify
             <where>
+                is_delete = 0
                 <if test="department != null  and department != ''">
                     and department = #{department,jdbcType=VARCHAR}
                 </if>
@@ -229,7 +239,7 @@
 
     <select id="getClassfy" resultMap="BaseResultMap">
         SELECT  `id` ,`type`,parent_id,`name` ,`index`,`max_byte`,`foreign_max_byte`,`department`,`creator`,`create_time`
-        FROM t_entry_classify     WHERE 1=1
+        FROM t_entry_classify     WHERE  is_delete = 0
         <if test="entryClassify.parentId != null  and entryClassify.parentId != ''">
            and parent_id = #{entryClassify.parentId ,jdbcType=VARCHAR}
         </if>
@@ -246,4 +256,12 @@
             and `type` = #{entryClassify.type ,jdbcType=VARCHAR}
         </if>
     </select>
+
+    <update id="deleteList">
+        update t_entry_classify set is_delete = 1 where id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </update>
 </mapper>

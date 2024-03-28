@@ -16,7 +16,7 @@ import java.util.List;
  */
 public interface EntryTempService extends IService<EntryTempEntity> {
 
-    String insertEntry(List<EntryTempEntity> tempEntities);
+    String insertEntry(List<EntryInfoEntity> entryInfoEntities);
 
     String updateEntryTemp(List<EntryTempEntity> tempEntities);
 
@@ -28,7 +28,7 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     List<EntryInfoEntity> preTranslate( List<EntryInfoEntity> entryInfoEntities,String taskID,String priority);
 
-    void getTemplateFile(HttpServletResponse response);
+    void getTemplateFile(HttpServletResponse response,String fileType       );
 
     List<EntryInfoEntity> getEntryInfoList(String taskID,String entryState, List<String> transStates,String entry);
 

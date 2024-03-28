@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @ClassName Translate
@@ -105,7 +107,7 @@ public class TranslateUtils {
                 return languageEntity ;
             }
 
-            String str = JSONObject.parseArray(trans_result).getString(0);
+                String str = JSONObject.parseArray(trans_result).getString(0);
             result = JSONObject.parseObject(str).getString("dst");
             log.info(" **** trans : " + result + " **** ");
         } catch (Exception e) {
@@ -117,7 +119,17 @@ public class TranslateUtils {
     }
 
 
+    public  boolean containsChinese(String text) {
+        Pattern pattern = Pattern.compile("[\u4e00-\u9fa5]");
+        Matcher matcher = pattern.matcher(text);
+        return matcher.find();
+    }
 
+    public  boolean containsEnglish(String text) {
+        Pattern pattern = Pattern.compile("[a-zA-Z]");
+        Matcher matcher = pattern.matcher(text);
+        return matcher.find();
+    }
 
 
     //百度翻译  type 是当前语言

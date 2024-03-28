@@ -123,11 +123,9 @@
         where delete_state = 0
         and entry = #{name,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
-        and public_state = 1
         <if test="visualRange != null  and visualRange != ''">
             and visual_range = #{visualRange,jdbcType=VARCHAR}
         </if>
-
         and translate_state ='已审核'
     </select>
 
@@ -138,6 +136,8 @@
         and entry = #{entry,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
         and translate_state =3
+
+
     </select>
 
     <select id="getRepTrans" resultMap="BaseResultMap">

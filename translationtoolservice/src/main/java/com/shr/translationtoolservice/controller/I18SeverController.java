@@ -1,39 +1,28 @@
 package com.shr.translationtoolservice.controller;
 
-import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.google.gson.JsonArray;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.EntryInfoService;
+import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.ParameterResolutionDelegate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import sun.reflect.FieldInfo;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -90,6 +79,9 @@ public class I18SeverController extends BaseController {
     @Autowired
     private EntryProcessUtils entryProcessUtils;
 
+    @Autowired
+    private I18nService i18nService;
+
 
     @GetMapping("/language")
     @ApiOperation("获取语言缩写")
@@ -116,6 +108,8 @@ public class I18SeverController extends BaseController {
     }
 
 
+
+
     @GetMapping("/getFileListByLang")
     @ApiOperation("获取文件列表")
     @CrossOrigin
@@ -130,7 +124,7 @@ public class I18SeverController extends BaseController {
         String s = "";
         ArrayList<String> list = new ArrayList<>();
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.GET_FILE_LIST, headerParameters);
+                s = httpUtils.get(I18URL + ConstantInterface.GET_FILE_LIST, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 list.add(jsonArray.get(i).toString());
@@ -161,7 +155,7 @@ public class I18SeverController extends BaseController {
         if (!CollectionUtils.isEmpty(versionIDs)) {
             versionID = versionIDs.get(0);
         }
-        String productId = versionMapper.getVersionByID(versionID).getProductId();
+        String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
         // String language = languageList.get(0).getName();
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
 
@@ -191,7 +185,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setUpdate(userName);
                     entryInfoEntity.setUpdateTime(date);
                     entryInfoEntity.setProductID(productId);
-                    entryInfoEntity.setTag(tag);
+                    entryInfoEntity.setEntryLabel(tag);
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setImportType(ConstantInterface.TS);
                     entryInfoEntity.setIsDelete(0);
@@ -361,7 +355,8 @@ public class I18SeverController extends BaseController {
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
-            s = httpUtils.get(I18URL + ConstantInterface.Create_DI  , headerParameters);
+            System.out.println(I18URL + ConstantInterface.Create_DI);
+            s = httpUtils.get(I18URL + ConstantInterface.Create_DI, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -372,445 +367,32 @@ public class I18SeverController extends BaseController {
 
 
 
-    @Autowired
-    private ExcelUtils excelUtil;
 
-  /*  @PostMapping("/setInfo")
+    @PostMapping("/setInfo")
     @ApiOperation("回写")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> setInfo(@RequestBody List<EntryInfoEntity> entryInfoEntities, String translateType) {
-
-
-        //List<EntryInfoEntity> tempEntities = entryTempMapper.getEntryTempByTaskID(taskID);
-        ResponseListModel<String> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> dbEntrInfo = new ArrayList<>();
-        List<EntryInfoEntity> diEntryInfo = new ArrayList<>();
-        List<EntryInfoEntity> tsEntryInfo = new ArrayList<>();
-        String fileName = "";
-        ArrayList<Map<String, String>> tsEntryInfoMap = new ArrayList<>();
-        JSONObject jsonObject = new JSONObject();
-        //分组
-
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if ("TS".equals(entryInfoEntity.getImportType())) {
-                fileName = entryInfoEntity.getEntrySource();
-                //遍历单词
-                Map<String, String> requestMap = new HashMap<>();
-                requestMap.put("source", entryInfoEntity.getEntry());
-                requestMap.put("tag", entryInfoEntity.getTag());
-                String trans = getTransByType(entryInfoEntity, translateType);
-                if (StringUtils.isBlank(trans)) {
-                    continue;
-                }
-
-                requestMap.put("translate", trans);
-                tsEntryInfoMap.add(requestMap);
-            } else if ("DI".equals(entryInfoEntity.getImportType())) {
-                diEntryInfo.add(entryInfoEntity);
-                return checkResult(ConstantInterface.OK_STR);
-            } else if ("DB".equals(diEntryInfo)) {
-                dbEntrInfo.add(entryInfoEntity);
-                return checkResult(ConstantInterface.OK_STR);
-            }
+    public HttpResponse<String> setInfo(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String translateType,
+                                        @RequestParam( required = false) String taskID,@RequestParam int isTag,@RequestParam int isComment) {
+        boolean tag  =true;
+        boolean comment = true;
+        if (isTag ==0){
+            tag = false;
         }
-        //写入i18
-        if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
-            jsonObject.put("entry", tsEntryInfoMap);
-            String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
+        if (isComment == 0 ){
+            comment = false;
         }
-        if (!CollectionUtils.isEmpty(diEntryInfo)) {
-            //TODO 等待字典写入接口结束
-            log.warn("  DI导出暂未开放 ！");
+        if (StringUtils.isNotBlank(taskID)){
+            entryInfoEntities = entryInfoMapper.getWriteEntryByTaskID(taskID, "");
+            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+             translateType = taskInfoEntity.getTranslateType();
         }
-        if (!CollectionUtils.isEmpty(dbEntrInfo)) {
-            //TODO 等待字典写入接口结束
-            log.warn("  DB导出暂未开放 ！");
-        }
-
-        return checkResult(ConstantInterface.OK_STR);
-    }
-*/
-
-    @PostMapping("/setInfoByTask")
-    @ApiOperation("回写")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<String> setInfo(@RequestParam String taskID) {
-
-
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID, "");
-        TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
-        String translateType = taskInfoEntity.getTranslateType();
-        ResponseListModel<String> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> dbEntrInfo = new ArrayList<>();
-        List<EntryInfoEntity> diEntryInfo = new ArrayList<>();
-        List<EntryInfoEntity> tsEntryInfo = new ArrayList<>();
-        List<EntryInfoEntity> configEntryInfo = new ArrayList<>();
-        String fileName = "";
-        ArrayList<Map<String, String>> tsEntryInfoMap = new ArrayList<>();
-        JSONObject jsonObject = new JSONObject();
-        //di分组   fileName -> list
-        Map<String, List<EntryInfoEntity>> diTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> dbTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> configTypeMap = new HashMap<>();
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if ("TS".equals(entryInfoEntity.getImportType())) {
-                fileName = entryInfoEntity.getEntrySource();
-                //遍历单词
-                Map<String, String> requestMap = new HashMap<>();
-                requestMap.put("source", entryInfoEntity.getEntry());
-                requestMap.put("tag", entryInfoEntity.getTag());
-                String trans = getTransByType(entryInfoEntity, translateType);
-                if (StringUtils.isBlank(trans)) {
-                    continue;
-                }
-
-                requestMap.put("translate", trans);
-                tsEntryInfoMap.add(requestMap);
-            } else if ("DI".equals(entryInfoEntity.getImportType())) {
-                //di 来源处理
-                List<EntryInfoEntity> entities;
-                if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getEntrySource()))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    diTypeMap.put(entryInfoEntity.getEntrySource(), entities);
-                } else {
-                    entities = diTypeMap.get(entryInfoEntity.getEntrySource());
-                    entities.add(entryInfoEntity);
-                }
-
-                diEntryInfo.add(entryInfoEntity);
-
-            } else if ("DB".equals(entryInfoEntity.getImportType())) {
-                //dB 来源处理
-                //最后一位是写入DI 的文件名
-               // String[] s = entryInfoEntity.getDiFileName().split("_");
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-
-                if (CollectionUtils.isEmpty( dbTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    dbTypeMap.put(diFileName, entities);
-                } else {
-                    entities = dbTypeMap.get(diFileName);
-                    entities.add(entryInfoEntity);
-                }
-
-                dbEntrInfo.add(entryInfoEntity);
-
-            } else if ("CONFIG".equals(entryInfoEntity.getImportType())) {
-                //di 来源处理
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-
-                if (CollectionUtils.isEmpty( dbTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    configTypeMap.put(diFileName, entities);
-                } else {
-                    entities = configTypeMap.get(diFileName);
-                    entities.add(entryInfoEntity);
-                }
-                configEntryInfo.add(entryInfoEntity);
-
-            }
-        }
-        //写入i18
-        if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
-            jsonObject.put("entry", tsEntryInfoMap);
-            String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
-        }
-        if (!CollectionUtils.isEmpty(diEntryInfo)) {
-            //按照分裂写入di
-            for (String di_fileName : diTypeMap.keySet()) {
-                writeDiWords(di_fileName, translateType, dbEntrInfo);
-            }
-
-        }
-        if (!CollectionUtils.isEmpty(dbEntrInfo)) {
-            //按照分裂写入di
-            for (String dbFileName : dbTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                writeDbWords(dbFileName, translateType, dbEntrInfo);
-            }
-
-        }
-        if (!CollectionUtils.isEmpty(configEntryInfo)) {
-
-            //按照分裂写入di
-            for (String dbFileName : configTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                writeDbWords(dbFileName, translateType, configEntryInfo);
-            }
-        }
-        return checkResult(ConstantInterface.OK_STR);
-    }
-
-    private void writeDbWords(String dbFileName, String translateType, List<EntryInfoEntity> dbEntrInfo) {
-        //获取字典所有词条，将对应词条的对应翻译插入其中 ，再全量写入
-        String s = "";
-        String s2 = "";
-        JSONArray jsonArray;
-        try {
-            s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + dbFileName);
-            jsonArray = JSONArray.parseArray(s);
-            List<DictionaryVo> dictionaryVos = new ArrayList<>();
-            String langCode = languageMapper.selectLaguageByName(translateType).get(0).getCode();
-            for (EntryInfoEntity entryInfoEntity : dbEntrInfo) {
-                boolean isExist = updateTransToDiVo(langCode, jsonArray, entryInfoEntity, translateType, dictionaryVos);
-                //如果不存在 则新增词条
-                if (!isExist) {
-                    addEntryToDIVo(langCode, entryInfoEntity, translateType, dictionaryVos);
-                }
-            }
-            String dictionaryVosStr = JSONObject.toJSONString(dictionaryVos);
-
-            //10.16.193.63:18099/dictionary/user
-            s2 = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + dbFileName, dictionaryVosStr);
-
-
-        } catch (Exception e) {
-            log.error(" 请求失败 URL ： " + I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT  );
-            e.printStackTrace();
-        }
-    }
-
-    private void addEntryToDIVo(String langCode, EntryInfoEntity entryInfoEntity, String transType, List<DictionaryVo> dictionaryVos) {
-        DictionaryVo dictionaryVo = new DictionaryVo();
-        dictionaryVo.setSource(entryInfoEntity.getEntry());
-        dictionaryVo.setComments(entryInfoEntity.getDiFileName());
-        dictionaryVo.setTag(entryInfoEntity.getTag());
-        Map<String, String> transMap = new HashMap<>();
-        switch (transType) {
-            case ConstantInterface.ENGLISH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-                    transMap.put(langCode, entryInfoEntity.getEnglish());
-                    dictionaryVo.setTranslation(transMap);
-                }
-                break;
-            case ConstantInterface.RUSSIAN:
-                if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-                    transMap.put(langCode, entryInfoEntity.getRussian());
-                    dictionaryVo.setTranslation(transMap);
-                }
-                break;
-            case ConstantInterface.SPANISH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-                    transMap.put(langCode, entryInfoEntity.getSpanish());
-                    dictionaryVo.setTranslation(transMap);
-                }
-                break;
-            case ConstantInterface.FRENCH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-                    transMap.put(langCode, entryInfoEntity.getFrench());
-                    dictionaryVo.setTranslation(transMap);
-                }
-                break;
-        }
-        dictionaryVos.add(dictionaryVo);
-
-
-    }
-
-
-    private boolean updateTransToDiVo(String langCode, JSONArray jsonArray, EntryInfoEntity entryInfoEntity, String transType, List<DictionaryVo> dictionaryVos) {
-        boolean isExist = false;
-        for (int i = 0; i < jsonArray.size(); i++) {
-            DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
-            if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
-                if (!dictionaryVo.getTag().equals(entryInfoEntity.getTag())) {
-                    continue;
-                }
-                isExist = true;
-                Map<String, String> transMap = dictionaryVo.getTranslation();
-                if (CollectionUtils.isEmpty(transMap)) {
-                    transMap = new HashMap<>();
-                }
-                ArrayList<Map<String, String>> transList = new ArrayList<>();
-                switch (transType) {
-                    case ConstantInterface.ENGLISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-                            transMap.put(langCode, entryInfoEntity.getEnglish());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.RUSSIAN:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-                            transMap.put(langCode, entryInfoEntity.getRussian());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.SPANISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-                            transMap.put(langCode, entryInfoEntity.getSpanish());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.FRENCH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-                            transMap.put(langCode, entryInfoEntity.getFrench());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                }
-
-            }
-
-
-            dictionaryVos.add(dictionaryVo);
-
-        }
-        return isExist;
-    }
-
-
-    private boolean updateTransToDbcVo(DictionaryVo dictionaryVo, List<EntryInfoEntity> entryInfoEntities, String transType, List<DictionaryVo> dictionaryVos) {
-        String langCode = languageMapper.selectLaguageByName(transType).get(0).getCode();
-        boolean is_exist = false;
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
-                if (!dictionaryVo.getTag().equals(entryInfoEntity.getTag())) {
-                    continue;
-                }
-                is_exist = true;
-                Map<String, String> transMap = dictionaryVo.getTranslation();
-                if (CollectionUtils.isEmpty(transMap)) {
-                    transMap = new HashMap<>();
-                }
-                ArrayList<Map<String, String>> transList = new ArrayList<>();
-                switch (transType) {
-                    case ConstantInterface.ENGLISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-                            transMap.put(langCode, entryInfoEntity.getEnglish());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.RUSSIAN:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-                            transMap.put(langCode, entryInfoEntity.getRussian());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.SPANISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-                            transMap.put(langCode, entryInfoEntity.getSpanish());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.FRENCH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-                            transMap.put(langCode, entryInfoEntity.getFrench());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                }
-            }
-        }
-        dictionaryVos.add(dictionaryVo);
-        return is_exist;
-    }
-
-
-    private String getTransByType(EntryInfoEntity entryInfoEntity, String translateType) {
-        String trans = "";
-        switch (translateType) {
-            case ConstantInterface.ENGLISH:
-                trans = entryInfoEntity.getEnglish();
-                break;
-            case ConstantInterface.RUSSIAN:
-                trans = entryInfoEntity.getRussian();
-                break;
-            case ConstantInterface.SPANISH:
-                trans = entryInfoEntity.getSpanish();
-                break;
-            case ConstantInterface.FRENCH:
-                trans = entryInfoEntity.getFrench();
-                break;
-        }
-        return trans;
+        return checkResult(i18nService.setInfoByEntryList(entryInfoEntities,translateType,tag,comment));
     }
 
 
 
-    //1.遍历 entryTempEntities
-    //2.如果词条有翻译id 则代表是公共词条 ，没有则创建翻译，插入翻译表
-    //3.检查词条实体是否存在儿子，如果存在则让父子翻译id相同
-    //4.插入词条
-    public int buildTranslateEntity(List<EntryTempEntity> entryTempEntities, List<EntryInfoEntity> entryInfoEntities, int isUpdate) {
-        int insert = 0;
-        for (EntryTempEntity entryTempEntity : entryTempEntities) {
-            String transID = commonUtils.getUUID();
-            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-            entryInfoEntity.setId(entryTempEntity.getId());
-            TranslateEntity translateEntity = new TranslateEntity();
 
-            //翻译id是空 则不是公共词条库的词条，需新增翻译
-            if (StringUtils.isBlank(entryTempEntity.getTranslateID())) {
-                translateEntity.setId(transID);
-                translateEntity.setTranslate(entryTempEntity.getTranslate());
-                translateEntity.setTranslateState("3");
-                translateEntity.setEntry(entryTempEntity.getEntry());
-                translateEntity.setType(entryTempEntity.getTranslateType());
-                translateEntity.setVisualRange("部门");
-                translateEntity.setDeleteState(0);
-                translateEntity.setVersionID(entryTempEntity.getVersionID());
-
-                if (StringUtils.isNotBlank(entryTempEntity.getTranslate())) {
-                    translateMapper.insert(translateEntity);
-                }
-
-                entryInfoService.addTransID(translateEntity, entryInfoEntity);
-            } else {
-                translateEntity.setId(entryTempEntity.getTranslateID());
-                translateEntity.setType(entryTempEntity.getTranslateType());
-            }
-
-            //如果孩子不为空，则新建词条插入
-            if (!CollectionUtils.isEmpty(entryTempEntity.getChildren())) {
-                for (EntryTempEntity childTempEntry : entryTempEntities) {
-                    EntryInfoEntity entryInfoEntity1 = new EntryInfoEntity();
-                    childTempEntry.setId(childTempEntry.getId());
-                    entryInfoService.addTransID(translateEntity, entryInfoEntity1);
-
-                    insertTempToVersionEntry(childTempEntry, entryInfoEntity1, isUpdate);
-                    entryInfoEntities.add(entryInfoEntity1);
-                }
-            }
-            insert += insertTempToVersionEntry(entryTempEntity, entryInfoEntity, isUpdate);
-            entryInfoEntities.add(entryInfoEntity);
-
-        }
-        return insert;
-    }
-
-    private int insertTempToVersionEntry(EntryTempEntity entryTempEntity, EntryInfoEntity entryInfoEntity, int isUpdate) {
-        int insert = 0;
-        if (1 == isUpdate) {
-            insert = entryInfoMapper.updateEntryInfo(entryInfoEntity);
-        } else if (0 == isUpdate) {
-            //写版本表
-            entryInfoEntity.setEntry(entryTempEntity.getEntry());
-            entryInfoEntity.setVersionID(entryTempEntity.getVersionID());
-            entryInfoEntity.setIsPublic(0);
-            entryInfoEntity.setTaskId(entryTempEntity.getTaskId());
-            entryInfoEntity.setEntrySource(entryTempEntity.getSource());
-            entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
-            entryInfoEntity.setIsDelete(0);
-            entryInfoEntity.setImportType(entryTempEntity.getImportype());
-            entryInfoEntity.setEntryState(0);
-            String versionID = entryTempEntity.getVersionID();
-            VersionEntity versionEntity = versionMapper.selectById(versionID);
-            String tableName = versionEntity.getTableName();
-            insert += entryInfoMapper.insertEntry(entryInfoEntity, tableName);
-
-
-            //entryInfoMapper.insert(entryInfoEntity);
-
-        }
-        return insert;
-    }
 
 
     @GetMapping("/getDictionaryInfo")
@@ -834,7 +416,7 @@ public class I18SeverController extends BaseController {
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
-        String productId = versionMapper.getVersionByID(versionID).getProductId();
+        String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
         try {
             s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + type);
             jsonArray = JSONArray.parseArray(s);
@@ -1081,7 +663,7 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-        String productId = versionMapper.getVersionByID(versionID).getProductId();
+        String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
         ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         JSONArray jsonArray = new JSONArray();
         String s = "";
@@ -1152,11 +734,12 @@ public class I18SeverController extends BaseController {
                                                     @RequestParam String versionID,
                                                     @RequestParam String taskID,
                                                     @RequestParam String diFileName,
-                                                    @RequestParam String translateType, HttpServletRequest request
+                                                    @RequestParam String translateType,
+                                                    @RequestParam( required = false) Integer maxLength, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
         ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        String productId = versionMapper.selectById(versionID).getProductId();
+        String productId = taskInfoMapper.selectById(taskID).getProductId();
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
@@ -1173,34 +756,47 @@ public class I18SeverController extends BaseController {
             String source = nodeName + "_" + appName + "_" + dbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
+                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                    //将表的别名写入词条
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setEntrySource(source);
+                    //  entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    if (Objects.isNull(maxLength)){
+                        entryInfoEntity.setMaxLength(0);
+                    }else {
+                        entryInfoEntity.setMaxLength(maxLength);
+                    }
+                    createNewTrans(entryInfoEntity, translateType, "");
+                    entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntities.add(entryInfoEntity);
+                }
 
-                //将表的别名写入词条
-                EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                entryInfoEntity.setEntry(tdbTableInfo.getAlias());
-                entryInfoEntity.setDiFileName(diFileName);
-                entryInfoEntity.setEntrySource(source);
-                //  entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
-                entryInfoEntity.setEntryState(1);
-                entryInfoEntity.setVersionID(versionID);
-                entryInfoEntity.setTaskId(taskID);
-                createNewTrans(entryInfoEntity, translateType, "");
-                entryInfoEntity.setImportType(ConstantInterface.DB);
-                entryInfoEntity.setProductID(productId);
-                entryInfoEntities.add(entryInfoEntity);
 
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
+                    if (StringUtils.isBlank(fieldInfo.getAliasName())){
+                        continue;
+                    }
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
                     fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
                     fieldEntry.setEntry(fieldInfo.getAliasName());
                     fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                     fieldEntry.setEntryState(1);
+                    fieldEntry.setDiFileName(diFileName);
+                    fieldEntry.setMaxLength(maxLength);
                     fieldEntry.setEntrySource(source + "_" + tdbTableInfo.getTableName());
                     fieldEntry.setIsDelete(0);
                     fieldEntry.setUpdateTime(date);
                     fieldEntry.setUpdate(userName);
+                    fieldEntry.setProductID(productId);
                     fieldEntry.setImportType(ConstantInterface.DB);
                     entryInfoEntities.add(fieldEntry);
                 }
@@ -1248,6 +844,324 @@ public class I18SeverController extends BaseController {
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
+                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                    //将表的别名写入词条
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
+                    // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    createNewTrans(entryInfoEntity, translateType, "");
+                    entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntities.add(entryInfoEntity);
+                }
+
+
+                //写表下的别名
+                List<TDBFieldInfo> fields = tdbTableInfo.getFields();
+                for (TDBFieldInfo fieldInfo : fields) {
+                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())){
+                        EntryInfoEntity fieldEntry = new EntryInfoEntity();
+                        fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        fieldEntry.setEntry(fieldInfo.getAliasName());
+                        fieldEntry.setDiFileName(diFileName);
+                        // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                        fieldEntry.setEntryState(1);
+                        fieldEntry.setEntrySource(fieldInfo.getCommon());
+                        fieldEntry.setIsDelete(0);
+                        fieldEntry.setUpdateTime(date);
+                        fieldEntry.setUpdate(userName);
+                        fieldEntry.setProductID(productId);
+                        fieldEntry.setImportType(ConstantInterface.DB);
+                        entryInfoEntities.add(fieldEntry);
+                    }
+                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())){
+                        for (String data : fieldInfo.getFieldDatas()) {
+                            EntryInfoEntity dataEntry = new EntryInfoEntity();
+                            dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                            dataEntry.setEntry(data);
+                            // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                            dataEntry.setEntryState(1);
+                            dataEntry.setDiFileName(diFileName);
+                            dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
+                            dataEntry.setIsDelete(0);
+                            dataEntry.setProductID(productId);
+                            dataEntry.setUpdateTime(date);
+                            dataEntry.setUpdate(userName);
+                            dataEntry.setImportType(ConstantInterface.DB);
+                            entryInfoEntities.add(dataEntry);
+                        }
+                    }
+
+                }
+
+
+            }
+
+            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryEntities1, taskID);
+        responseListModel.setList(entryEntities1);
+        responseListModel.setTotalNum(entryEntities1.size());
+        return checkResult(responseListModel);
+    }
+
+
+    @PostMapping("/getDBALLEntryByNode")
+    @ApiOperation("通过节点名取DB词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getDBALLEntryByNode(@RequestBody List<I18nDBVO> i18nDBVO,
+                                                               @RequestParam String versionID,
+                                                               @RequestParam String taskID,
+                                                               @RequestParam String diFileName,
+                                                               @RequestParam String translateType, HttpServletRequest request
+    ) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        String productId = taskInfoMapper.selectById(taskID).getProductId();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+
+        JSONArray jsonArray = new JSONArray();
+
+        String s = "";
+        try {
+            Map<String, String> headerParameters = new HashMap<>();
+
+
+            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYNODE);
+            s = httpUtils.post(I18URL + ConstantInterface.GET_DBALLENTRYBYNODE, JSONArray.toJSONString(i18nDBVO));
+
+            jsonArray = JSONArray.parseArray(s);
+            if (Objects.isNull(jsonArray)) {
+                return checkResult(responseListModel);
+            }
+            for (int i = 0; i < jsonArray.size(); i++) {
+                TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
+                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                    //将表的别名写入词条
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
+                    // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    createNewTrans(entryInfoEntity, translateType, "");
+                    entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntities.add(entryInfoEntity);
+                }
+
+
+                //写表下的别名
+                List<TDBFieldInfo> fields = tdbTableInfo.getFields();
+                for (TDBFieldInfo fieldInfo : fields) {
+                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())){
+                        EntryInfoEntity fieldEntry = new EntryInfoEntity();
+                        fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        fieldEntry.setEntry(fieldInfo.getAliasName());
+                        fieldEntry.setDiFileName(diFileName);
+                        // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                        fieldEntry.setEntryState(1);
+                        fieldEntry.setEntrySource(fieldInfo.getCommon());
+                        fieldEntry.setIsDelete(0);
+                        fieldEntry.setProductID(productId);
+                        fieldEntry.setUpdateTime(date);
+                        fieldEntry.setUpdate(userName);
+                        fieldEntry.setImportType(ConstantInterface.DB);
+                        entryInfoEntities.add(fieldEntry);
+                    }
+                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())){
+                        for (String data : fieldInfo.getFieldDatas()) {
+                            EntryInfoEntity dataEntry = new EntryInfoEntity();
+                            dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                            dataEntry.setEntry(data);
+                            // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                            dataEntry.setEntryState(1);
+                            dataEntry.setDiFileName(diFileName);
+                            dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
+                            dataEntry.setIsDelete(0);
+                            dataEntry.setUpdateTime(date);
+                            dataEntry.setUpdate(userName);
+                            dataEntry.setProductID(productId);
+                            dataEntry.setImportType(ConstantInterface.DB);
+                            entryInfoEntities.add(dataEntry);
+                        }
+                    }
+
+                }
+
+
+            }
+
+            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryEntities1, taskID);
+        responseListModel.setList(entryEntities1);
+        responseListModel.setTotalNum(entryEntities1.size());
+        return checkResult(responseListModel);
+    }
+
+
+    @PostMapping("/getDBALLEntryByApp")
+    @ApiOperation("通过应用名取DB词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getDBALLEntryByApp(@RequestBody List<I18nDBVO> i18nDBVO,
+                                                              @RequestParam String versionID,
+                                                              @RequestParam String taskID,
+                                                              @RequestParam String diFileName,
+                                                              @RequestParam String translateType, HttpServletRequest request
+    ) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        String productId = taskInfoMapper.selectById(taskID).getProductId();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+
+        JSONArray jsonArray = new JSONArray();
+        int sum =0;
+        String s = "";
+        try {
+            Map<String, String> headerParameters = new HashMap<>();
+
+
+            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYAPP);
+            s = httpUtils.post(I18URL + ConstantInterface.GET_DBALLENTRYBYAPP, JSONArray.toJSONString(i18nDBVO));
+            jsonArray = JSONArray.parseArray(s);
+            if (Objects.isNull(jsonArray)) {
+                return checkResult(responseListModel);
+            }
+            for (int i = 0; i < jsonArray.size(); i++) {
+                sum ++;
+                TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
+                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                    //将表的别名写入词条
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
+                    // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    createNewTrans(entryInfoEntity, translateType, "");
+                    entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntities.add(entryInfoEntity);
+                }
+
+
+                //写表下的别名
+                List<TDBFieldInfo> fields = tdbTableInfo.getFields();
+                for (TDBFieldInfo fieldInfo : fields) {
+                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())){
+                        sum ++;
+                        EntryInfoEntity fieldEntry = new EntryInfoEntity();
+                        fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        fieldEntry.setEntry(fieldInfo.getAliasName());
+                        fieldEntry.setDiFileName(diFileName);
+                        // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                        fieldEntry.setEntryState(1);
+                        fieldEntry.setEntrySource(fieldInfo.getCommon());
+                        fieldEntry.setIsDelete(0);
+                        fieldEntry.setUpdateTime(date);
+                        fieldEntry.setUpdate(userName);
+                        fieldEntry.setProductID(productId);
+                        fieldEntry.setImportType(ConstantInterface.DB);
+                        entryInfoEntities.add(fieldEntry);
+                    }
+                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())){
+                        for (String data : fieldInfo.getFieldDatas()) {
+                            sum ++;
+                            EntryInfoEntity dataEntry = new EntryInfoEntity();
+                            dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                            dataEntry.setEntry(data);
+                            // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                            dataEntry.setEntryState(1);
+                            dataEntry.setDiFileName(diFileName);
+                            dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
+                            dataEntry.setIsDelete(0);
+                            dataEntry.setUpdateTime(date);
+                            dataEntry.setUpdate(userName);
+                            dataEntry.setProductID(productId);
+                            dataEntry.setImportType(ConstantInterface.DB);
+                            entryInfoEntities.add(dataEntry);
+                        }
+                    }
+
+                }
+
+
+            }
+
+            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryEntities1, taskID);
+        responseListModel.setList(entryEntities1);
+        responseListModel.setTotalNum(sum);
+        log.info(Integer.toString(sum) + " **** " + entryEntities1.size());
+
+        return checkResult(responseListModel);
+    }
+
+
+    @PostMapping("/getDBALLEntryByDB")
+    @ApiOperation("通过库名取DB词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getDBALLEntryByDB(@RequestBody List<I18nDBVO> i18nDBVO,
+                                                             @RequestParam String versionID,
+                                                             @RequestParam String taskID,
+                                                             @RequestParam String diFileName,
+                                                             @RequestParam String translateType, HttpServletRequest request
+    ) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        String productId = taskInfoMapper.selectById(taskID).getProductId();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+
+        JSONArray jsonArray = new JSONArray();
+
+        String s = "";
+        try {
+            Map<String, String> headerParameters = new HashMap<>();
+
+
+            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYDB);
+            s = httpUtils.post(I18URL + ConstantInterface.GET_DBALLENTRYBYDB, JSONArray.toJSONString(i18nDBVO));
+            jsonArray = JSONArray.parseArray(s);
+            if (Objects.isNull(jsonArray)) {
+                return checkResult(responseListModel);
+            }
+            for (int i = 0; i < jsonArray.size(); i++) {
+                TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
 
                 //将表的别名写入词条
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
@@ -1270,83 +1184,6 @@ public class I18SeverController extends BaseController {
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
                     fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
                     fieldEntry.setEntry(fieldInfo.getAliasName());
-                    fieldEntry.setDiFileName(diFileName);
-                    // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
-                    fieldEntry.setEntryState(1);
-                    fieldEntry.setEntrySource(fieldInfo.getCommon());
-                    fieldEntry.setIsDelete(0);
-                    fieldEntry.setUpdateTime(date);
-                    fieldEntry.setUpdate(userName);
-                    fieldEntry.setImportType(ConstantInterface.DB);
-                    entryInfoEntities.add(fieldEntry);
-                }
-
-
-            }
-
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
-        //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
-        responseListModel.setList(entryEntities1);
-        responseListModel.setTotalNum(entryEntities1.size());
-        return checkResult(responseListModel);
-    }
-
-
-    @GetMapping("/getDBALLFileEntryByNode")
-    @ApiOperation("通过节点名取字段")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<ResponseListModel> getDBALLFileEntryByNode(@RequestParam String nodeName,
-                                                                   @RequestParam String versionID,
-                                                                   @RequestParam String taskID,
-                                                                   @RequestParam String diFileName,
-                                                                   @RequestParam String translateType, HttpServletRequest request
-    ) {
-        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        String productId = taskInfoMapper.selectById(taskID).getProductId();
-        String token = request.getHeader("token");
-        Date date = new Date(System.currentTimeMillis());
-        String userName = JWTTokenUtils.getUserName(token);
-
-        JSONArray jsonArray = new JSONArray();
-        String s = "";
-        try {
-            Map<String, String> headerParameters = new HashMap<>();
-
-            headerParameters.put("nodeName", nodeName);
-            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYNODE);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_DBALLENTRYBYNODE, headerParameters);
-            jsonArray = JSONArray.parseArray(s);
-            for (int i = 0; i < jsonArray.size(); i++) {
-                TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-
-                //将表的别名写入词条
-                EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                entryInfoEntity.setEntry(tdbTableInfo.getTableName());
-                entryInfoEntity.setDiFileName(diFileName);
-                entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
-                // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
-                entryInfoEntity.setEntryState(1);
-                entryInfoEntity.setVersionID(versionID);
-                entryInfoEntity.setTaskId(taskID);
-                createNewTrans(entryInfoEntity, translateType, "");
-                entryInfoEntity.setImportType(ConstantInterface.DB);
-                entryInfoEntity.setProductID(productId);
-                entryInfoEntities.add(entryInfoEntity);
-
-                //写表下的别名
-                List<TDBFieldInfo> fields = tdbTableInfo.getFields();
-                for (TDBFieldInfo fieldInfo : fields) {
-                    EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                    fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
-                    fieldEntry.setEntry(fieldInfo.getFieldName());
                     // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                     fieldEntry.setEntryState(1);
                     fieldEntry.setDiFileName(diFileName);
@@ -1354,11 +1191,26 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setIsDelete(0);
                     fieldEntry.setUpdateTime(date);
                     fieldEntry.setUpdate(userName);
+                    fieldEntry.setProductID(productId);
                     fieldEntry.setImportType(ConstantInterface.DB);
                     entryInfoEntities.add(fieldEntry);
+                    for (String data : fieldInfo.getFieldDatas()) {
+                        EntryInfoEntity dataEntry = new EntryInfoEntity();
+                        dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        dataEntry.setEntry(data);
+                        // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                        dataEntry.setEntryState(1);
+                        dataEntry.setDiFileName(diFileName);
+                        dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
+                        dataEntry.setIsDelete(0);
+                        dataEntry.setUpdateTime(date);
+                        dataEntry.setUpdate(userName);
+                        dataEntry.setProductID(productId);
+                        dataEntry.setImportType(ConstantInterface.DB);
+                        entryInfoEntities.add(dataEntry);
+                    }
+
                 }
-
-
             }
 
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
@@ -1386,6 +1238,9 @@ public class I18SeverController extends BaseController {
         String productTableName = "t_entry_info";
 
         for (EntryInfoEntity entryInfoEntity : newEntry) {
+            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                caseExistEntry(entryInfoEntity.getChildren(),taskID);
+            }
             // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
             List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
             if (CollectionUtils.isEmpty(entryEntities)) {
@@ -1402,95 +1257,9 @@ public class I18SeverController extends BaseController {
     }
 
 
-    @PostMapping("/saveDIWords")
-    @ApiOperation("回写di")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<String> saveDIWords(@RequestParam String diFileName,
-                                            @RequestParam String transType,
-                                            @RequestBody List<EntryInfoEntity> entryInfoEntities) {
-        writeDiWords(diFileName, transType, entryInfoEntities);
-
-        return checkResult(ConstantInterface.OK_STR);
-
-    }
-
-    private void writeDiWords(String diFileName, String transType, List<EntryInfoEntity> diEntrInfo) {
-        //获取字典所有词条，将对应词条的对应翻译插入其中 ，再全量写入
-        String s = "";
-        String s2 = "";
-        JSONArray jsonArray;
-        String langCode = languageMapper.selectLaguageByName(transType).get(0).getCode();
-        try {
-            s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + diFileName);
-            jsonArray = JSONArray.parseArray(s);
-            List<DictionaryVo> dictionaryVos = new ArrayList<>();
-
-            for (EntryInfoEntity entryInfoEntity : diEntrInfo) {
-                boolean isExist = updateTransToDiVo(langCode, jsonArray, entryInfoEntity, transType, dictionaryVos);
-                if (!isExist){
-                    log.warn(" entry : ("  + entryInfoEntity.getEntry()  + ") tag : (" + entryInfoEntity.getTag() + ") 在辞典 " + diFileName + " 中没找到 ！ " );
-                }
-            }
-
-        /*    for (int i = 0; i < jsonArray.size(); i++) {
-                DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
-                addTransToDicVo(dictionaryVo, entryInfoEntities, transType, dictionaryVos);
-            }*/
-            String dictionaryVosStr = JSONObject.toJSONString(dictionaryVos);
-
-            //10.16.193.63:18099/dictionary/user
-            s2 = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + diFileName, dictionaryVosStr);
 
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    //写入翻译
-    private void addTransToDicVo(DictionaryVo dictionaryVo, List<EntryInfoEntity> entryInfoEntities, String transType, List<DictionaryVo> dictionaryVos) {
-        String langCode = languageMapper.selectLaguageByName(transType).get(0).getCode();
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
-                if (!dictionaryVo.getTag().equals(entryInfoEntity.getTag())) {
-                    continue;
-                }
-                Map<String, String> transMap = dictionaryVo.getTranslation();
-                if (CollectionUtils.isEmpty(transMap)) {
-                    transMap = new HashMap<>();
-                }
-                ArrayList<Map<String, String>> transList = new ArrayList<>();
-                switch (transType) {
-                    case ConstantInterface.ENGLISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-                            transMap.put(langCode, entryInfoEntity.getEnglish());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.RUSSIAN:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-                            transMap.put(langCode, entryInfoEntity.getRussian());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.SPANISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-                            transMap.put(langCode, entryInfoEntity.getSpanish());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                    case ConstantInterface.FRENCH:
-                        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-                            transMap.put(langCode, entryInfoEntity.getFrench());
-                            dictionaryVo.setTranslation(transMap);
-                        }
-                        break;
-                }
-            }
-        }
-        dictionaryVos.add(dictionaryVo);
-    }
 
 
     @GetMapping("/getConfigEntry")
@@ -1526,6 +1295,8 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
+                entryInfoEntity.setUpdateTime(date);
+                entryInfoEntity.setUpdate(userName);
                 entryInfoEntity.setVersionID(versionID);
                 entryInfoEntity.setTaskId(taskID);
                 createNewTrans(entryInfoEntity, translateType, "");
@@ -1547,6 +1318,66 @@ public class I18SeverController extends BaseController {
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
     }
+
+    @GetMapping("/getEnumEntry")
+    @ApiOperation("读取枚举文件词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getEnumEntry(@RequestParam String versionID,
+                                                          @RequestParam String taskID,
+                                                          @RequestParam String diFileName,
+                                                          @RequestParam String translateType, HttpServletRequest request
+    ) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        String productId = taskInfoMapper.selectById(taskID).getProductId();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+
+        JSONArray jsonArray = new JSONArray();
+        String s = "";
+        try {
+
+            s = httpUtils.get(I18URL + ConstantInterface.GET_ENUM_ENTRY);
+            jsonArray = JSONArray.parseArray(s);
+            for (int i = 0; i < jsonArray.size(); i++) {
+                TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
+
+                //将表的别名写入词条
+                EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                entryInfoEntity.setId(commonUtils.getUUID());
+                entryInfoEntity.setEntry(fieldInfo.getFieldName());
+                entryInfoEntity.setDiFileName(diFileName);
+                entryInfoEntity.setEntrySource(fieldInfo.getCommon());
+                entryInfoEntity.setUpdateTime(date);
+                entryInfoEntity.setUpdate(userName);
+                // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                entryInfoEntity.setEntryState(1);
+                entryInfoEntity.setVersionID(versionID);
+                entryInfoEntity.setTaskId(taskID);
+                createNewTrans(entryInfoEntity, translateType, "");
+                entryInfoEntity.setImportType(ConstantInterface.ENUM);
+                entryInfoEntity.setProductID(productId);
+                entryInfoEntities.add(entryInfoEntity);
+
+
+            }
+
+            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryEntities1, taskID);
+        responseListModel.setList(entryEntities1);
+        responseListModel.setTotalNum(entryEntities1.size());
+        return checkResult(responseListModel);
+    }
+
+
+
 
 
 }

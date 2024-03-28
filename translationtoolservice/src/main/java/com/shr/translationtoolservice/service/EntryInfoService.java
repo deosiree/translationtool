@@ -67,4 +67,12 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     List<EntryClassify> getClassfy(String parentId, String type);
 
     String addProductRelation(List<ProductRelationEntity>  relationEntity);
+
+    List<EntryInfoEntity> importCommonExcle(MultipartFile multipartFile, String taskID);
+
+    List<EntryInfoEntity>  filterSourceLanguage(List<EntryInfoEntity> entryInfoEntities, String languageType);
+
+    String writeDIEntry(List<EntryInfoEntity> entryInfoEntities, boolean common, boolean tag, String transType);
+
+    String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName);
 }

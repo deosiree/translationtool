@@ -29,8 +29,7 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
 
     List<TranslateEntity> selectRepByEntryTemp(@Param("entryTempEntity") EntryTempEntity entryTempEntity);
 
-    List<TranslateEntity> getSuggestTrans(@Param("name") String name,@Param("translateType")  String type,@Param("visualRange")  String visualRange);
-
+    List<TranslateEntity> getSuggestTrans(@Param("name") String name,@Param("translateType")  String type,@Param("visualRange")  String visualRangeh);
     List<TranslateEntity> getVersionSuggestTrans(@Param("entry") String entry,@Param("translateType") String translateType);
 
     TranslateEntity getRepTrans(@Param("entry")String entry,@Param("translateType") String translateType,@Param("translate") String translate);

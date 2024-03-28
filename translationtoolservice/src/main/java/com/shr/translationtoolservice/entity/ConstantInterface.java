@@ -31,17 +31,22 @@ public class ConstantInterface {
     public static final String GET_FIELD_DATA = "tdb/getFieldData";
     public static final String GET_ALIAS = "tdb/getAlias";
     public static final String GET_DBALLENTRYBYNODE= "tdb/getDBALLEntryByNode";
+    public static final String GET_DBALLENTRYBYAPP= "tdb/getDBALLEntryByAPP";
+    public static final String GET_DBALLENTRYBYDB= "tdb/getDBALLEntryByDB";
+
     public static final String GET_CONGIF_ENTRY= "config/getEntry";
-    public static final String Create_DI= "/dictionary/createDic";
+    public static final String GET_ENUM_ENTRY= "enum/getEntry";
+    public static final String Create_DI= "dictionary/createDic";
 
 
     public static final String SPRIT = "/";
     public static final String UNDERLINE = "_";
-
+    public static final String ENUM = "ENUM";
     public static final String CONFIG = "CONFIG";
     public static final String DB = "DB";
     public static final String TS = "TS";
     public static final String DI = "DI";
+    public static final String DEFAUT = "DEFAUT";
     public static final String EXCEL = "excel";
     public static final String FIELD = "field";
     public static final String ALIAS = "alias";
@@ -179,6 +184,7 @@ public class ConstantInterface {
         entryName.put("frenchTranslateState", "法文翻译状态");
         entryName.put("environmentRemark", "环境备注");
         entryName.put("remark", "备注");
+        entryName.put("tag", "tag");
         entryName.put("productName", "产品名");
         entryName.put("versionName", "版本名");
         entryName.put("maxLength", "翻译最大长度");
@@ -230,6 +236,7 @@ public class ConstantInterface {
         entryName.put("俄文术语字符数", "ruCharLength");
         entryName.put("西文术语字符数", "spaCharLength");
         entryName.put("法文术语字符数", "fraCharLength");
+        entryName.put("tag", "tag");
         return entryName;
     }
 

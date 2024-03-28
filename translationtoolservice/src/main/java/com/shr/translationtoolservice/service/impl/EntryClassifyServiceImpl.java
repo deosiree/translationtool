@@ -134,8 +134,10 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
 
     @Override
     public String deleteEntryClassfy(List<String> idList) {
-        int delete = entryClassifyMapper.deleteByIds(idList);
-        if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
+
+        int update = entryClassifyMapper.deleteList(idList);
+
+        if (update < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
         return ConstantInterface.OK_STR;

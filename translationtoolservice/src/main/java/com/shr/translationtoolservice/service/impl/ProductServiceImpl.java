@@ -47,6 +47,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     private LDAPUtils ldapUtils;
     @Autowired
     private ProductTableMapper productTableMapper;
+    @Autowired
+    private ProductRelationMapper productRelationMapper;
+    @Autowired
+    private EntryInfoMapper entryInfoMapper;
 
     @Override
     public List<VersionEntity> getProductVersion(String productName, String department) {
@@ -117,11 +121,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
 
     @Override
     public String deleteProduct(List<String> idList) {
-
         int update = productMapper.deleteList(idList);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
+
+        int i = productRelationMapper.deleteByProductIdList(idList);
+
+
+        int j = entryInfoMapper.deleteByProductIdList(idList);
 
         return ConstantInterface.OK_STR;
 

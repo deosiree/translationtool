@@ -24,6 +24,7 @@ public class EntryProcessUtils {
         //entry_translate,entryTempEntity
         Map<String, EntryInfoEntity> entryEntityMap = new HashMap<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+
             String entry = entryInfoEntity.getEntry();
             String translate = "";
             //有翻译字段 直接放到map里

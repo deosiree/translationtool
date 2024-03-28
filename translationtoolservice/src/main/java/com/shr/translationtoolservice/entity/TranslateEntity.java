@@ -93,6 +93,12 @@ public class TranslateEntity implements Serializable {
     @TableField(value = "char_length")
     private int charLength;
 
+    /**
+     * 最大限制字符数
+     */
+    @TableField(value = "max_length")
+    private int maxLength;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

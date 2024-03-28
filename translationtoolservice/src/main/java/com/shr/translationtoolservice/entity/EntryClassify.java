@@ -86,7 +86,11 @@ public class EntryClassify implements Serializable {
     @TableField("`create_time`")
     private Date createTime;
 
-
+    /**
+     * 删除状态（0存在，1删除）
+     */
+    @TableField("`is_delete`")
+    private Integer isDelete;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

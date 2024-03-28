@@ -50,8 +50,11 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     @Autowired
     private TaskInfoMapper taskInfoMapper;
 
-    @Value("${ConfigFile.url}")
-    private String configFileUrl;
+    @Value("${ConfigFile.zzUrl}")
+    private String configFileZZUrl;
+
+    @Value("${ConfigFile.commonUrl}")
+    private String configFileCommonUrl;
 
     @Autowired
     private ExcelUtils excelUtils;
@@ -69,19 +72,19 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     private TLanguageMapper languageMapper;
 
     @Override
-    public String insertEntry(List<EntryTempEntity> tempEntities) {
+    public String insertEntry(List<EntryInfoEntity> entities) {
         int insert = 0;
-        for (EntryTempEntity entryTempEntity : tempEntities) {
-            if (!CollectionUtils.isEmpty(entryTempEntity.getChildren())) {
-                for (EntryTempEntity entryTempEntity1 : entryTempEntity.getChildren()) {
-                    entryTempEntity1.setChildren(null);
-                    insert += entryTempMapper.insert(entryTempEntity1);
+        for (EntryInfoEntity entryInfoEntity : entities) {
+            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())) {
+                for (EntryInfoEntity entryInfoEntity1 : entryInfoEntity.getChildren()) {
+                    entryInfoEntity.setChildren(null);
+                    insert += entryInfoMapper.insert(entryInfoEntity1);
                 }
             }
-            entryTempEntity.setChildren(null);
-            insert += entryTempMapper.insert(entryTempEntity);
+            entryInfoEntity.setChildren(null);
+            insert += entryInfoMapper.insert(entryInfoEntity);
         }
-        if (insert < tempEntities.size()) {
+        if (insert < entities.size()) {
             log.error(" entryInfoEntity update  error ! ");
             return ErrorCodeList.OPERATE_ERROR;
         }
@@ -295,9 +298,25 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public void getTemplateFile(HttpServletResponse response) {
+    public void getTemplateFile(HttpServletResponse response,String fileType) {
         try {
-            String fileName = "模板文件.xls";
+            String fileUrl = "";
+            Workbook workbook ;
+            String fileName = "";
+            if (fileType.equals("common")){
+                fileUrl = configFileCommonUrl;
+                fileName = "通用词条翻译模板_common.xlsx";
+            }else if (fileType.equals("zz")){
+                fileUrl = configFileZZUrl;
+                fileName = "装置词条翻译模板_zz.xlsx";
+            }
+            FileInputStream fileInputStream = new FileInputStream(fileUrl);
+            if (fileUrl.endsWith(".xlsx")) {
+                workbook = new XSSFWorkbook(fileInputStream);
+            } else {
+                workbook = new HSSFWorkbook(fileInputStream);
+            }
+
             fileName = URLEncoder.encode(fileName, "UTF-8");
             log.warn(" **** fileName : " + fileName + " ***** ");
             response.setContentType("application/octet-stream;charset=UTF-8");
@@ -307,9 +326,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             response.setStatus(200);
 
-            FileInputStream fileInputStream = new FileInputStream(configFileUrl);
+
             ServletOutputStream outputStream = response.getOutputStream();
-            HSSFWorkbook workbook = new HSSFWorkbook(fileInputStream);
+
             workbook.write(outputStream);
             workbook.close();
             outputStream.close();
@@ -326,6 +345,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     }
 
+
     @Override
     //state 第一位 词条状态 第二位 翻译状态
     public List<EntryInfoEntity> getEntryInfoList(String taskID, String entryState, List<String> transStates ,String entry) {
@@ -335,39 +355,6 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         //没给翻译状态直接查词条状态
         List<EntryInfoEntity> entryInfoEntities  = getEntryInfo(taskID,entryState,transStates,entry);
 
-
-
-
-   /*     //翻译之后的查询 状态码都是2位 00 11
-        if (entryState.length() > 1) {
-            String entryState1 = entryState.substring(0, 1);
-            String entryState2 = entryState.substring(1, 2);
-            String s = "";
-
-            if (Integer.parseInt(entryState2) == 0) {
-                s = " or t2." + tLanguage.getYdCode() + "_trans_id  is null";
-            }
-            String sql = "select t2.* ,t3.translate_state as "
-                    + tLanguage.getEnglish() +
-                    "TranslateState ,t3.translate as "
-                    + tLanguage.getEnglish() +
-                    " from  t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id left JOIN t_translate t3 ON  t2." +
-                    tLanguage.getYdCode() + "_trans_id = t3.id   where ( t3.translate_state = '" + entryState2 + "' " + s + ") and  t1.task_id = '" + taskID + "' and t2.entry_state = " + entryState1;
-
-            entryInfoEntities = entryInfoMapper.getTransStateEntry(sql);
-        } else {
-            QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("task_id", taskID);
-            if (StringUtils.isNotBlank(entryState)) {
-                queryWrapper.eq("entry_state", entryState);
-            }
-
-            queryWrapper.eq("is_delete", 0);
-            //  entryInfoEntities = entryInfoMapper.selectList(queryWrapper);
-            entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID, entryState);
-
-
-        }*/
 
         int sum = 0;
         //entryid -> tempEntry
@@ -424,6 +411,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             String transState = "";
             String s = "";
             String entrySql = "";
+            String entryStateSql = "";
             // 翻译状态处理 结果 ： 1,2,3
             for (String transState1 : transStates) {
                 if (StringUtils.isBlank(transState)) {
@@ -438,12 +426,16 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             if (StringUtils.isNotBlank(entry)){
                  entrySql =" and t2.entry = '"+entry + "'";
             }
+            if (StringUtils.isNotBlank(entryState)){
+                 entryStateSql =" and t2.entry_state = "  +entryState;
+            }
+
 
             String sql = "select t2.* ,t3.audit_suggest as "   + tLanguage.getEnglish() +
                     "AuditSuggest  , t3.translate_state as " + tLanguage.getEnglish() +
                     "TranslateState ,t3.translate as "+ tLanguage.getEnglish() +
                     " from  t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id left JOIN t_translate t3 ON  t2." +
-                    tLanguage.getYdCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  "  +s + ") and  t1.task_id = '" + taskID + "' and t2.entry_state = " + entryState  +entrySql;
+                    tLanguage.getYdCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  "  +s + ") and  t1.task_id = '" + taskID + "' " +  entryStateSql  + entrySql;
 
 
 
@@ -461,13 +453,23 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
+            updateEntryInfoTranslate(translateType, entryInfoEntity, department);
             if (!CollectionUtils.isEmpty(childrenInfoEntry)) {
                 for (EntryInfoEntity entryInfoEntity1 : childrenInfoEntry) {
-                    updateEntryInfoTranslate(translateType, entryInfoEntity, department);
+                    entryInfoEntity1.setEntryState(entryInfoEntity.getEntryState());
+                    if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())){
+                        entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
+                    }else if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())){
+                        entryInfoEntity1.setRuTransId(entryInfoEntity.getRuTransId());
+                    }else if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())){
+                        entryInfoEntity1.setFraTransId(entryInfoEntity.getFraTransId());
+                    }else if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())){
+                        entryInfoEntity1.setSpaTransId(entryInfoEntity.getSpaTransId());
+                    }
                     update += entryInfoMapper.updateById(entryInfoEntity1);
                 }
             }
-            updateEntryInfoTranslate(translateType, entryInfoEntity, department);
+
 
             update += entryInfoMapper.updateById(entryInfoEntity);
         }
@@ -565,7 +567,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 //如果是翻译审核 校验重复翻译 ID挂载重复的
                 if (3 == Integer.parseInt(transState)){
                      newTransID = updateAuditTrans(entryInfoEntity,transId,type,newTransID,trans,auditSuggest,department);
-                }else {
+                } else{
                     newTransID = updateTransEntity(transState,transId,auditSuggest,trans);
                 }
 
@@ -605,6 +607,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         }
         return newTransID;*/
     }
+
+
 
     private String insertTransEntity(String trans, String transState, String department, String type, String entry) {
         String newTransID = commonUtils.getUUID();
@@ -658,7 +662,6 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             translateEntity.setId(transId);
             translateEntity.setTranslate(trans);
             translateEntity.setTranslateState("3");
-            translateEntity.setId(newTransID);
             translateEntity.setPublicState(0);
             translateEntity.setVisualRange(department);
             translateEntity.setDeleteState(0);
