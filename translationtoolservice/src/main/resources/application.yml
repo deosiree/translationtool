@@ -76,11 +76,12 @@ log:
   level: debug
 
 I18server:
-  #url: http://10.16.193.26:18099/
+  url: http://10.16.193.26:18099/
   #linx
-  url: http://10.16.193.63:18099/
+  #url: http://10.16.193.63:18099/
 ConfigFile:
-  url: "src/main/resources/config/import.xls"
+  zzUrl: "src/main/resources/config/装置词条翻译模板_zz.xlsx"
+  commonUrl: "src/main/resources/config/通用词条翻译模板_common.xlsx"
   #linx
   #url: "./config/import.xls"
 

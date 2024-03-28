@@ -39,9 +39,14 @@ import javax.naming.ldap.PagedResultsResponseControl;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.poi.sl.usermodel.PresetColor.Control;
 
@@ -49,139 +54,51 @@ import static org.apache.poi.sl.usermodel.PresetColor.Control;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:application.yml"})
 class TranslationtoolserviceApplicationTests {
+    private static final String DEEPL_TRANSLATE_URL = "https://api.deepl.com/v2/translate";
+    private static final String AUTH_HEADER_NAME = "Authorization";
+    private static final String AUTH_HEADER_VALUE_TEMPLATE = "DeepL-Auth-Key %s";
+    private static final String TARGET_LANG_QUERY_PARAM = "target_lang";
+    private static final String TEXT_QUERY_PARAM = "text";
 
-    private static String ldapURL = "ldap://10.16.2.171:389";
+    public static String translate(String apiKey, String text, String targetLang) throws Exception {
+        String url = buildUrl(DEEPL_TRANSLATE_URL, apiKey, text, targetLang);
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
+        con.setRequestMethod("POST");
+        con.setRequestProperty(AUTH_HEADER_NAME, String.format(AUTH_HEADER_VALUE_TEMPLATE, apiKey));
 
-    private static String accountSuffix = "@sp5000.com";
+        int responseCode = con.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) { // 200
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
 
-    @Value("${ldap.base}")
-    private String base;
-
-    public static void parseXML() {
-        Hashtable env = new Hashtable();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.PROVIDER_URL, ldapURL);
-        env.put(Context.SECURITY_AUTHENTICATION, "simple");
-        env.put(Context.SECURITY_PRINCIPAL, "Administrator" + accountSuffix);
-        env.put(Context.SECURITY_CREDENTIALS, "Admin@1234");
-
-
-        env.put("com.sun.jndi.ldap.connect.pool", "true");
-        env.put("java.naming.referral", "follow");
-        try {
-            // 创建LDAP连接
-            DirContext ctx = new InitialDirContext(env);
-
-            // 搜索所有的OU
-            SearchControls searchControls = new SearchControls();
-            searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-            searchControls.setReturningAttributes(new String[]{"displayName", "sAMAccountName", "cn", "ou", "distinguishedName", "mail", "employeeID", "userAccountControl"});
-
-            NamingEnumeration<SearchResult> results = ctx.search("DC=sp5000,DC=com", "(&(objectClass=top)(objectClass=user)(objectClass=person)(objectClass=organizationalPerson))", searchControls);
-
-            // 遍历OU结构树
-            int index = 0;
-
-            while (results.hasMoreElements()) {
-                SearchResult result = results.nextElement();
-                Attributes attrs = result.getAttributes();
-                // String ou = attrs.get("ou").get().toString();
-                String name = attrs.get("cn").get().toString();
-                Attribute email = attrs.get("mail");
-                String emailStr = "";
-                if (!Objects.isNull(email)) {
-                    emailStr = attrs.get("email").get().toString();
-                }
-                String distinguishedname = attrs.get("distinguishedname").get().toString();
-                if (!distinguishedname.contains("OU=")) {
-                    continue;
-                }
-                distinguishedname = distinguishedname.replace(",", "");
-
-                String[] split = distinguishedname.split("OU=");
-                String department = "";
-                String center = "";
-                String group = "";
-                //CN=郑运召OU= 监控系统部OU= 研发中心DC=sp5000DC=com
-                if (split.length == 3) {
-                    department = split[1];
-                    center = split[2].split("DC=")[0];
-
-
-                    //CN=郑运召OU= 前置通讯组OU= 监控系统部OU= 研发中心DC=sp5000DC=com
-                } else if (split.length > 3) {
-                    department = split[2];
-                    center = split[3].split("DC=")[0];
-                    group = split[1];
-                } else {
-                    continue;
-                }
-
-
-                if (name.equals("刘爱梅")) {
-                    int a = 1;
-                }
-                index += 1;
-                if (StringUtils.isBlank(group)) {
-                    System.out.println(index + ", 中心 ： " + center + ", 部门： " + department + ", 姓名:" + name);
-                } else {
-                    System.out.println(index + ", 中心 ： " + center + ", 部门： " + department + ", 组： " + group + ", 姓名:" + name);
-                }
-
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
             }
+            in.close();
 
-            // 关闭LDAP连接
-            ctx.close();
-        } catch (NamingException e) {
-            e.printStackTrace();
+            return response.toString();
+        } else {
+            return "Error: " + responseCode;
         }
-        System.out.println("end");
     }
-    public static void read(String filePath) throws IOException {
-        ExcelUtils excelUtils = new ExcelUtils();
-        FileInputStream inputStream =null;
-        inputStream=new FileInputStream(filePath);
-        List<ImportExcleVO> importExcleVOS = null;
+
+    private static String buildUrl(String baseUrl, String apiKey, String text, String targetLang) throws Exception {
+        return baseUrl + "?" + TARGET_LANG_QUERY_PARAM + "=" + targetLang + "&" + TEXT_QUERY_PARAM + "=" + URLEncoder.encode(text, "UTF-8");
+    }
+
+    public static void main(String[] args) {
         try {
-         importExcleVOS = excelUtils.readExcelToEntity(ImportExcleVO.class, inputStream, "20240117.xls");
+            String apiKey = "your_api_key_here";
+            String textToTranslate = "Hallo Welt!";
+            String targetLanguage = "EN";
+
+            String translatedText = translate(apiKey, textToTranslate, targetLanguage);
+            System.out.println(translatedText);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(" *** excel size : " + importExcleVOS.size() + " **** ");
-    }
-
-    public static void outPutExcel(EntryInfoEntity entryInfoEntity) throws IOException {
-
-            List<OutputExcel> dataList = new ArrayList<>();
-            for (int i = 0; i < 10; i++) {
-                OutputExcel userEntity = new OutputExcel();
-                userEntity.setEntry("苹果" + i);
-                userEntity.setTranslate("apple" + i);
-                userEntity.setNum(i);
-                userEntity.setVersion("V1.0");
-                userEntity.setClassify("class");
-                dataList.add(userEntity);
-            }
-            //生成excel文档
-            Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("词条翻译工具导出","词条数据"),
-                    OutputExcel.class, dataList);
-            FileOutputStream fos = new FileOutputStream("easypoi-user1.xls");
-            workbook.write(fos);
-            fos.close();
-
-
-
-    }
-
-    @Autowired
-    HTTPUtils httpUtils;
-
-    public static void main(String[] args) throws Exception {
-
-        read("20240117.xls");
-
-
     }
 }
