@@ -9,12 +9,16 @@
         <result property="code" column="code" jdbcType="VARCHAR"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="bdCode" column="bd_code" jdbcType="VARCHAR"/>
+        <result property="ydCode" column="yd_code" jdbcType="VARCHAR"/>
+        <result property="ggCode" column="gg_code" jdbcType="VARCHAR"/>
+        <result property="xfCode" column="xf_code" jdbcType="VARCHAR"/>
+        <result property="deeplCode" column="deepl_code" jdbcType="VARCHAR"/>
+        <result property="english" column="english" jdbcType="VARCHAR"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,code,name,
-        bd_code
+        id,code,name,bd_code,yd_code,gg_code,xf_code,deepl_code,english,is_delete
     </sql>
 
     <select id="getLanguages" resultMap="BaseResultMap">

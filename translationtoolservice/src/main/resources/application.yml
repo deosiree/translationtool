@@ -34,11 +34,22 @@ server:
 #logging:
  # config: ./logback-spring.xml
 
-
-baidu:
-  translate:
+translate:
+  #  百度翻译api信息
+  baidu:
+    url: http://api.fanyi.baidu.com/api/trans/vip/translate
     appid: 20230705001734655
     securityKey: Msyn6CIJy97uY1MXLW0c
+  #  DeepL翻译api信息
+  deepl:
+    url: https://api.deepl-pro.com
+    key: b253ec17-0877-4a1f-81cb-72c5f824b32c:dp
+  #  有道翻译api信息
+  youdao:
+    url: https://openapi.youdao.com/api
+    appKey: aCwCTdgEH1lVY1DEfTXjnIV8dJbgD8sZ
+    appKeyID: 12539761968f9072
+
 
 logging.level.com.shr.translationtoolservice.dao: debug
 mybatis:

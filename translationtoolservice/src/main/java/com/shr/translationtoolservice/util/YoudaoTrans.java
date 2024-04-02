@@ -34,6 +34,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.security.MessageDigest;
@@ -45,16 +47,22 @@ import java.util.*;
  * @USER: Cola
  * @Date 2023/9/15 0015 9:12
  **/
+@Service
 public class YoudaoTrans {
 
-    private static String appKeyID = "12539761968f9072";
-    private static String appKey = "aCwCTdgEH1lVY1DEfTXjnIV8dJbgD8sZ";
+    @Value("${translate.youdao.appKeyID}")
+    private String appKeyID;
+
+    @Value("${translate.youdao.appKey}")
+    private String appKey;
+
+    @Value("${translate.youdao.url}")
+    private String YOUDAO_URL;
+
     private static Logger logger = LoggerFactory.getLogger(YoudaoTrans.class);
 
-    private static final String YOUDAO_URL = "https://openapi.youdao.com/api";
 
-
-    public static void main(String[] args) {
+    public void main(String[] args) {
         String str1 = "wo+ni";
         //考虑到翻译词语可能会有特殊符号  必须经过处理 不然会错误
         String regEx = "[ _`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\n|\r|\t";
@@ -105,7 +113,7 @@ public class YoudaoTrans {
         }*/
     }
 
-    public static LanguageEntity youdaoTranslate(String entry, String from, TLanguage tLanguage) {
+    public LanguageEntity youdaoTranslate(String entry, String from, TLanguage tLanguage) {
         String ch = "";
 
         String to = tLanguage.getYdCode();
@@ -187,7 +195,7 @@ public class YoudaoTrans {
      *
      * @return
      */
-    public static String creatUrl(String query, String from, String to) {
+    public String creatUrl(String query, String from, String to) {
 
         String salt = String.valueOf(System.currentTimeMillis());
         String sign = md5(appKeyID + query + salt + appKey);
@@ -207,7 +215,7 @@ public class YoudaoTrans {
 
     }
 
-    public static String createParam(String query, String from, String to) {
+    public String createParam(String query, String from, String to) {
         String salt = String.valueOf(System.currentTimeMillis());
         String sign = md5(appKeyID + query + salt + appKey);
         Map<String, String> params = new HashMap<String, String>();
@@ -290,7 +298,7 @@ public class YoudaoTrans {
      * @param to    必填
      * @author S. Yichen
      */
-    public static LanguageEntity readJsonFromUrl(String query, String from, String to) throws IOException, JSONException {
+    public LanguageEntity readJsonFromUrl(String query, String from, String to) throws IOException, JSONException {
         LanguageEntity languageEntity = new LanguageEntity();
         languageEntity.setLanguage(to);
         //生成查询地址

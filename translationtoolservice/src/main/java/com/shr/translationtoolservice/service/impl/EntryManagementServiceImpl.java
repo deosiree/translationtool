@@ -79,6 +79,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     @Autowired
     private ExcelUtils excelUtils;
 
+    @Autowired
+    private YoudaoTrans youdaoTrans;
+
 
     @Override
     public ResponseListModel searchEntry(EntryCommonEntity entryEntity, String entryState, Integer pageIndex, Integer pageSize) {
@@ -973,7 +976,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
             if (tLanguage.getName().equals(type)) {
                 continue;
             }
-            languageEntities.add(YoudaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, tLanguage));
+            languageEntities.add(youdaoTrans.youdaoTranslate(name, ConstantInterface.AUTO, tLanguage));
         }
 
 

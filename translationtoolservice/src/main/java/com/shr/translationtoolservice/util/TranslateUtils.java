@@ -37,13 +37,15 @@ public class TranslateUtils {
 
 
     // 对接的api为百度翻译
-    private static final String BAIDU_TRANS_API_HOST = "http://api.fanyi.baidu.com/api/trans/vip/translate";
+    @Value("${translate.baidu.url}")
+    private String BAIDU_TRANS_API_HOST;
 
-    @Value("${baidu.translate.appid}")
-    private  String appid = ConstantInterface.BAIDU_TRANSLATE_APPID;
+    @Value("${translate.baidu.appid}")
+    private  String appid;
 
-    @Value("${baidu.translate.securityKey}")
-    private  String securityKey = ConstantInterface.BAIDU_TRANSLATE_KEY;
+    @Value("${translate.baidu.securityKey}")
+    private  String securityKey;
+
     @Autowired
     private  HTTPUtils httpUtils;
 
@@ -51,6 +53,12 @@ public class TranslateUtils {
 
     @Autowired
     private  TLanguageMapper languageMapper;
+
+    @Autowired
+    private DeepLTranslateUtils deepLTranslateUtils;
+
+    @Autowired
+    private YoudaoTrans youdaoTrans;
 
 
     public  TranslateUtils getInstance(){
@@ -135,7 +143,7 @@ public class TranslateUtils {
     //百度翻译  type 是当前语言
     public  Translate baiduTranslate(String entry, String type, List<TLanguage> tLanguages) {
         Translate entryEntity = new Translate();
-        entryEntity.setSource("百度翻译");
+        entryEntity.setSource(ConstantInterface.translateMachine().get(ConstantInterface.BD));
         entryEntity.setEntry(entry);
         //ArrayList<TranslateEntity> list = new ArrayList<>();
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
@@ -157,6 +165,7 @@ public class TranslateUtils {
         }
 
         return entryEntity;
+
     }
     public  String getTransStr( String type) {
          List<TLanguage> languageList = languageMapper.selectLaguageByName(type);
@@ -166,13 +175,13 @@ public class TranslateUtils {
          return "";
     }
 
-    public  Translate youdaoTranslate(String name, String type, List<TLanguage> tLanguages) {
+    public Translate youdaoTranslate(String name, String type, List<TLanguage> tLanguages) {
         // YoudaoTrans.readJsonFromUrl(name,ConstantInterface.ENGLISH);]
         Translate entryEntity = new Translate();
         //QueryWrapper queryWrapper = new QueryWrapper();
         //List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
 
-        entryEntity.setSource("有道翻译");
+        entryEntity.setSource(ConstantInterface.translateMachine().get(ConstantInterface.YD));
         entryEntity.setEntry(name);
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
 
@@ -181,7 +190,7 @@ public class TranslateUtils {
           /*  if (tLanguage.getName().equals(type)) {
                 continue;
             }*/
-            languageEntities.add(YoudaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+            languageEntities.add(youdaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
         }
 
 
@@ -198,7 +207,7 @@ public class TranslateUtils {
         //QueryWrapper queryWrapper = new QueryWrapper();
         //List<TLanguage> tLanguages = tLanguageMapper.selectList(new QueryWrapper<>());
 
-        entryEntity.setSource("模型翻译");
+        entryEntity.setSource(ConstantInterface.translateMachine().get(ConstantInterface.MD));
         entryEntity.setEntry(name);
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
 
@@ -207,7 +216,7 @@ public class TranslateUtils {
           /*  if (tLanguage.getName().equals(type)) {
                 continue;
             }*/
-            languageEntities.add(YoudaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+            languageEntities.add(youdaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
         }
 
 
@@ -230,6 +239,32 @@ public class TranslateUtils {
             languageEntities.add(languageEntity);
         }
         entryEntity.setLanguageEntities(languageEntities);
+        return entryEntity;
+    }
+
+    /**
+     * deepl翻译
+     * @param text 待翻译文本
+     * @param tLanguages 目标语言code
+     * @return
+     */
+    public Translate deeplTranslate(String text, List<TLanguage> tLanguages){
+        Translate entryEntity = new Translate();
+        entryEntity.setSource(ConstantInterface.translateMachine().get(ConstantInterface.DEEPL));
+        entryEntity.setEntry(text);
+        ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
+        for (TLanguage tLanguage : tLanguages) {
+            String code = tLanguage.getDeeplCode();
+            // 翻译
+            String translate = deepLTranslateUtils.translate(text, null, code);
+            // 设置返回值
+            LanguageEntity languageEntity = new LanguageEntity();
+            languageEntity.setValue(translate);
+            languageEntity.setLanguage(tLanguage.getCode());
+            languageEntities.add(languageEntity);
+        }
+        entryEntity.setLanguageEntities(languageEntities);
+
         return entryEntity;
     }
 }

@@ -1564,18 +1564,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         QueryWrapper<TLanguage> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("name", type);
         List<TLanguage> tLanguages = languageMapper.selectList(queryWrapper);
+        // 百度翻译
         Translate baiduEntities = translateUtils.baiduTranslate(name, type, tLanguages);
         translateEntityList.add(baiduEntities);
-
 
         //有道翻译
         Translate youdao_Entities = translateUtils.youdaoTranslate(name, type, tLanguages);
         translateEntityList.add(youdao_Entities);
 
+        //DeepL翻译
+        Translate deepl_translate = translateUtils.deeplTranslate(name, tLanguages);
+        translateEntityList.add(deepl_translate);
+
         //有道翻译
         Translate model_Entities = translateUtils.modelTranslate(name, type, tLanguages);
         translateEntityList.add(model_Entities);
-
 
         //本地翻译 ：部门
         List<TranslateEntity> departTranslates = translateMapper.getSuggestTrans(name, type, visualRange);

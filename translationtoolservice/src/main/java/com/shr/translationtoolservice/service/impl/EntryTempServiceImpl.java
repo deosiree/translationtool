@@ -22,10 +22,13 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -70,6 +73,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     @Autowired
     private TLanguageMapper languageMapper;
+
+    @Autowired
+    private YoudaoTrans youdaoTrans;
+
+    @Autowired
+    private DeepLTranslateUtils deepLTranslateUtils;
 
     @Override
     public String insertEntry(List<EntryInfoEntity> entities) {
@@ -194,7 +203,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             switch (translateType) {
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isBlank(entryInfoEntity.getEnglish())) {
-                        translate = addSuggessTrans(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setEnglish(translate);
                         }
@@ -203,7 +212,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 case ConstantInterface.SPANISH:
                     if (StringUtils.isBlank(entryInfoEntity.getSpanish())) {
-                        translate = addSuggessTrans(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setSpanish(translate);
                         }
@@ -212,7 +221,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 case ConstantInterface.FRENCH:
                     if (StringUtils.isBlank(entryInfoEntity.getFrench())) {
-                        translate = addSuggessTrans(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setFrench(translate);
                         }
@@ -221,7 +230,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 case ConstantInterface.RUSSIAN:
                     if (StringUtils.isBlank(entryInfoEntity.getRussian())) {
-                        translate = addSuggessTrans(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setRussian(translate);
                         }
@@ -249,7 +258,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     if (!Objects.isNull(translateResult)){
                         translateRes = translateResult.getValue();
                     }else {
-                            LanguageEntity languageEntity = YoudaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                            LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
                             if (!Objects.isNull(languageEntity)) {
                                 translateRes = languageEntity.getValue();
                             }else {
@@ -263,7 +272,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 break;
             case ConstantInterface.YD:
                 if (StringUtils.isBlank(translateRes)) {
-                    LanguageEntity languageEntity = YoudaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                    LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
                     if (!Objects.isNull(languageEntity)){
                         translateRes = languageEntity.getValue();
                     }else {
@@ -284,6 +293,50 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             case ConstantInterface.MD:
                 //TODO
                 break;
+        }
+        return translateRes;
+    }
+
+    //优先级  术语库 外网
+    private String addSuggessTransByPriority(EntryInfoEntity entryInfoEntity, String translateType, String priority) {
+        Queue<String> queue = new LinkedList<>();
+        queue.add(priority);
+        for (String key : ConstantInterface.translateMachine().keySet()) {
+            if (!priority.equals(key)){
+                queue.add(key);
+            }
+        }
+
+        TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
+        String translateRes = "";
+        while (!queue.isEmpty()){
+            if (translateRes != null && !"".equals(translateRes)){
+                break;
+            }
+            String type = queue.remove();
+            if (type.equals(ConstantInterface.DEEPL)){
+                // deepl翻译
+                translateRes = deepLTranslateUtils.translate(entryInfoEntity.getEntry(), null, language.getDeeplCode());
+            }else if (type.equals(ConstantInterface.BD)){
+                // 百度翻译
+                LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                if (!Objects.isNull(translateResult)){
+                    translateRes = translateResult.getValue();
+                }
+            }else if (type.equals(ConstantInterface.SYK)){
+                // 术语库翻译
+                translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
+            }else if (type.equals(ConstantInterface.YD)){
+                // 有道翻译
+                LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                if (!Objects.isNull(languageEntity)) {
+                    translateRes = languageEntity.getValue();
+                }
+            }else if (type.equals(ConstantInterface.GG)){
+                // TODO google翻译
+            }else if (type.equals(ConstantInterface.MD)){
+                // TODO 本地模型翻译
+            }
         }
         return translateRes;
     }

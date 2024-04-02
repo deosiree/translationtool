@@ -120,6 +120,18 @@ public class ConstantInterface {
     public static final String BD = "baidu";
     public static final String GG = "google";
     public static final String MD = "module";
+    public static final String DEEPL = "deepl";
+
+    public static HashMap<String, String> translateMachine() {
+        HashMap<String, String> translateMachine = new HashMap<>();
+        translateMachine.put(SYK, "术语库");
+        translateMachine.put(DEEPL, "DeepL翻译");
+        translateMachine.put(BD, "百度翻译");
+        translateMachine.put(GG, "Google翻译");
+        translateMachine.put(YD, "有道翻译");
+        translateMachine.put(MD, "模型翻译");
+        return translateMachine;
+    }
 
     public static HashMap<String, String> constructUserAndRole() {
         HashMap<String, String> user_role = new HashMap<>();

@@ -41,6 +41,21 @@ public class TLanguage implements Serializable {
     private String ydCode;
 
     /**
+     * deepl翻译语言代码
+     */
+    private String deeplCode;
+
+    /**
+     * Google翻译语言代码
+     */
+    private String ggCode;
+
+    /**
+     * 讯飞翻译语言代码
+     */
+    private String xfCode;
+
+    /**
      * 英文全拼
      */
     private String english;
