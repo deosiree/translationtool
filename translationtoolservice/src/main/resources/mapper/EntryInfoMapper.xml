@@ -102,6 +102,9 @@
         <if test="entryInfoEntity.tag != null and entryInfoEntity.tag   != ''">
             and t2.tag like CONCAT('%',#{entryInfoEntity.tag,jdbcType=VARCHAR},'%')
         </if>
+        <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
+            and t2.entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
+        </if>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -143,6 +146,9 @@
         </if>
         <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel   != ''">
             and t2.entry_label like CONCAT('%',#{entryInfoEntity.entryLabel,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
+            and t2.entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
         </if>
     </select>
 
