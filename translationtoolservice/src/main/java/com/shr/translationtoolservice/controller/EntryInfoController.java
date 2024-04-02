@@ -377,17 +377,6 @@ public class EntryInfoController extends BaseController {
 
 
 
-    @PostMapping("/WriteDIEntry")
-    @ApiOperation("回写辞典")
-    @CrossOrigin
-    @Transactional
-    public   HttpResponse<String> WriteDIEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,
-                                               @RequestParam boolean common,@RequestParam String transType,
-                                               @RequestParam boolean tag) {
-        String relation = entryInfoService.writeDIEntry(entryInfoEntities,common,tag,transType);
-
-        return checkResult(relation);
-    }
 
 
     @PostMapping("/setInfo")

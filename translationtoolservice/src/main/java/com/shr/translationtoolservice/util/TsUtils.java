@@ -31,8 +31,13 @@ public class TsUtils {
     private TLanguageMapper languageMapper;
 
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
-    public void writeTSEntry(List<EntryInfoEntity> entryInfoEntities, String fileName) {
+    public void writeTSEntry(List<EntryInfoEntity> entryInfoEntities, String fileName,boolean tag) {
         JSONObject jsonObject = new JSONObject();
+        for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities){
+            if (!tag) {
+                entryInfoEntity1.setEntryLabel("");
+            }
+        }
         jsonObject.put("entry", entryInfoEntities);
         String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
 

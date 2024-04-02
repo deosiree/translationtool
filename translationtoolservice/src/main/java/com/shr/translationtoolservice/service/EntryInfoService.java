@@ -72,7 +72,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity>  filterSourceLanguage(List<EntryInfoEntity> entryInfoEntities, String languageType);
 
-    String writeDIEntry(List<EntryInfoEntity> entryInfoEntities, boolean common, boolean tag, String transType);
+
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName);
 }

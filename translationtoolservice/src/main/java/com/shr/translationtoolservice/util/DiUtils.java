@@ -37,7 +37,7 @@ public class DiUtils {
     private TLanguageMapper languageMapper;
 
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
-    public void writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType) {
+    public void writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType,boolean tag,boolean common) {
         //获取字典所有词条，将对应词条的对应翻译插入其中 ，再全量写入
         String s = "";
         String s2 = "";
@@ -52,6 +52,12 @@ public class DiUtils {
             int update = 0 ;
             int sum =0;
             for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+                if (!tag) {
+                    entryInfoEntity.setEntryLabel("");
+                }
+                if (!common) {
+                    entryInfoEntity.setEntrySource("");
+                }
                 update++;
                 boolean isExist = updateTransToDiVo(langCode, entryInfoEntity, translateType, dictionaryVos);
                 //如果不存在 则新增词条

@@ -40,7 +40,7 @@ public interface EntryClassifyMapper extends BaseMapper<EntryClassify> {
 
     List<EntryClassify> getClassfy(@Param("entryClassify") EntryClassify entryClassify);
 
-    int deleteList(List<String> idList);
+    int deleteList(@Param("idList") List<String> idList);
 }
 
 

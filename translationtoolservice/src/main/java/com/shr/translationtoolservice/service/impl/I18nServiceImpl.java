@@ -42,6 +42,7 @@ public class I18nServiceImpl implements I18nService {
     @Override
     public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean common) {
 
+
         //先将词条分类，写到不同的 地方
         List<EntryInfoEntity> dbEntrInfo = new ArrayList<>();
         List<EntryInfoEntity> diEntryInfo = new ArrayList<>();
@@ -214,7 +215,7 @@ public class I18nServiceImpl implements I18nService {
             //按照分裂写入di
             for (String di_fileName : diTypeMap.keySet()) {
                 //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType);
+                diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common);
             }
 
         }
@@ -223,7 +224,7 @@ public class I18nServiceImpl implements I18nService {
             for (String dbFileName : dbTypeMap.keySet()) {
                 //没有的词条新增 已有的更新翻译
                 // writeDbWords(dbFileName, translateType, dbEntrInfo, tag, common);
-                diUtils.writeDiEntry(dbTypeMap.get(dbFileName),dbFileName,translateType);
+                diUtils.writeDiEntry(dbTypeMap.get(dbFileName),dbFileName,translateType,tag,common);
             }
 
         }
@@ -233,7 +234,7 @@ public class I18nServiceImpl implements I18nService {
             for (String cfFileName : configTypeMap.keySet()) {
                 //没有的词条新增 已有的更新翻译
                 //writeConfigWords(cfFileName, translateType, configEntryInfo, tag, common);
-                diUtils.writeDiEntry(configEntryInfo,cfFileName,translateType);
+                diUtils.writeDiEntry(configEntryInfo,cfFileName,translateType,tag,common);
             }
         }
         if (!CollectionUtils.isEmpty(enumEntryInfo)) {
@@ -242,7 +243,7 @@ public class I18nServiceImpl implements I18nService {
             for (String enumFileName : enumTypeMap.keySet()) {
                 //没有的词条新增 已有的更新翻译
                 //writeConfigWords(cfFileName, translateType, configEntryInfo, tag, common);
-                diUtils.writeDiEntry(enumEntryInfo,enumFileName,translateType);
+                diUtils.writeDiEntry(enumEntryInfo,enumFileName,translateType,tag,common);
             }
         }
 

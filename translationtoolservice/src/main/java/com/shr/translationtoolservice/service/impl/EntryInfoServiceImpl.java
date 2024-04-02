@@ -1079,158 +1079,22 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntityList;
     }
 
-    @Override
-    public String writeDIEntry(List<EntryInfoEntity> entryInfoEntities, boolean common, boolean tag, String translateType) {
 
-        //先将词条分类，写到不同的 地方
-        List<EntryInfoEntity> dbEntrInfo = new ArrayList<>();
-        List<EntryInfoEntity> diEntryInfo = new ArrayList<>();
-
-        List<EntryInfoEntity> configEntryInfo = new ArrayList<>();
-        String fileName = "";
-        ArrayList<Map<String, String>> tsEntryInfoMap = new ArrayList<>();
-        JSONObject jsonObject = new JSONObject();
-        //di分组   fileName -> list
-        Map<String, List<EntryInfoEntity>> diTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> dbTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> configTypeMap = new HashMap<>();
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            //取翻译状态为3的词条
-            String trans = getTransByType(entryInfoEntity, translateType);
-            if (StringUtils.isBlank(trans)) {
-                continue;
-            }
-            if ("TS".equals(entryInfoEntity.getImportType())) {
-                fileName = entryInfoEntity.getEntrySource();
-                //遍历单词
-                Map<String, String> requestMap = new HashMap<>();
-                requestMap.put("source", entryInfoEntity.getEntry());
-                requestMap.put("tag", entryInfoEntity.getEntryLabel());
-
-
-                requestMap.put("translate", trans);
-                tsEntryInfoMap.add(requestMap);
-            } else if ("DI".equals(entryInfoEntity.getImportType())) {
-                //di 来源处理
-                List<EntryInfoEntity> entities;
-                if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getEntrySource()))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    diTypeMap.put(entryInfoEntity.getEntrySource(), entities);
-                } else {
-                    entities = diTypeMap.get(entryInfoEntity.getEntrySource());
-                    entities.add(entryInfoEntity);
-                }
-
-                diEntryInfo.add(entryInfoEntity);
-
-            } else if ("DB".equals(entryInfoEntity.getImportType())) {
-                //dB 来源处理
-                //最后一位是写入DI 的文件名
-                // String[] s = entryInfoEntity.getDiFileName().split("_");
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-                //预处理
-                if (!tag) {
-                    entryInfoEntity.setEntryLabel("");
-                }
-                if (common) {
-                    //库名
-                    entryInfoEntity.setEntrySource(entryInfoEntity.getEntrySource().split("_")[2]);
-                } else {
-                    entryInfoEntity.setEntrySource("");
-                }
-                if (CollectionUtils.isEmpty(dbTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    dbTypeMap.put(diFileName, entities);
-                } else {
-                    entities = dbTypeMap.get(diFileName);
-                    entities.add(entryInfoEntity);
-                }
-
-                dbEntrInfo.add(entryInfoEntity);
-
-            } else if ("CONFIG".equals(entryInfoEntity.getImportType())) {
-                //di 来源处理
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-//预处理
-                if (!tag) {
-                    entryInfoEntity.setEntryLabel("");
-                }
-                if (common) {
-                    //库名
-                    entryInfoEntity.setEntrySource(entryInfoEntity.getEntrySource().split("_")[2]);
-                } else {
-                    entryInfoEntity.setEntrySource("");
-                }
-                if (CollectionUtils.isEmpty(dbTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    configTypeMap.put(diFileName, entities);
-                } else {
-                    entities = configTypeMap.get(diFileName);
-                    entities.add(entryInfoEntity);
-                }
-                configEntryInfo.add(entryInfoEntity);
-
-            }
-        }
-        //写入i18 ts
-        if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
-            jsonObject.put("entry", tsEntryInfoMap);
-            String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
-        }
-        if (!CollectionUtils.isEmpty(diEntryInfo)) {
-            //按照分裂写入di
-            for (String di_fileName : diTypeMap.keySet()) {
-                //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                diUtils.writeDiEntry(diEntryInfo, di_fileName, translateType);
-            }
-
-        }
-        if (!CollectionUtils.isEmpty(dbEntrInfo)) {
-            //按照分裂写入di
-            for (String dbFileName : dbTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                // writeDbWords(dbFileName, translateType, dbEntrInfo, tag, common);
-                diUtils.writeDiEntry(dbEntrInfo, dbFileName, translateType);
-            }
-
-        }
-        if (!CollectionUtils.isEmpty(configEntryInfo)) {
-
-            //按照分裂写入di
-            for (String cfFileName : configTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                //writeConfigWords(cfFileName, translateType, configEntryInfo, tag, common);
-                diUtils.writeDiEntry(configEntryInfo, cfFileName, translateType);
-            }
-        }
-
-        return ConstantInterface.OK_STR;
-    }
 
     @Override
     public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName) {
 
         for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
-            if (!tag) {
-                entryInfoEntity1.setEntryLabel("");
-            }
 
-            if (!comment) {
-                entryInfoEntity1.setEntrySource("");
-            }
+
 
         }
         switch (writeType) {
             case ConstantInterface.DI:
-                diUtils.writeDiEntry(entryInfoEntities, fileName, translateType);
+                diUtils.writeDiEntry(entryInfoEntities, fileName, translateType,tag,comment);
                 break;
             case ConstantInterface.TS:
-                tsUtils.writeTSEntry(entryInfoEntities, fileName);
+                tsUtils.writeTSEntry(entryInfoEntities, fileName,tag);
                 break;
             case ConstantInterface.DEFAUT:
                 i18nService.setInfoByEntryList(entryInfoEntities,translateType,tag,comment);
