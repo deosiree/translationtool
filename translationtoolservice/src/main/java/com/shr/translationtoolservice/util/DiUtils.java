@@ -65,7 +65,7 @@ public class DiUtils {
              sum = add+update;
             //10.16.193.63:18099/dictionary/user
             s2 = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + fileName, dictionaryVosStr);
-            log.info(" ==== 辞典新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
+            log.info(" ==== 辞典 " + fileName + " 新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
 
         } catch (Exception e) {
             log.error(" 请求失败 URL ： " + I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT);

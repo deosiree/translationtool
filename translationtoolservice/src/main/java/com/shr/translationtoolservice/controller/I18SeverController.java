@@ -1293,12 +1293,14 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
                 entryInfoEntity.setDiFileName(diFileName);
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
+                entryInfoEntity.setEntryLabel(fieldInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
                 entryInfoEntity.setVersionID(versionID);
                 entryInfoEntity.setTaskId(taskID);
+                entryInfoEntity.setIsDelete(0);
                 createNewTrans(entryInfoEntity, translateType, "");
                 entryInfoEntity.setImportType(ConstantInterface.CONFIG);
                 entryInfoEntity.setProductID(productId);
@@ -1350,6 +1352,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
                 entryInfoEntity.setDiFileName(diFileName);
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
+                entryInfoEntity.setEntryLabel(fieldInfo.getCommon());
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
@@ -1359,6 +1362,7 @@ public class I18SeverController extends BaseController {
                 createNewTrans(entryInfoEntity, translateType, "");
                 entryInfoEntity.setImportType(ConstantInterface.ENUM);
                 entryInfoEntity.setProductID(productId);
+                entryInfoEntity.setIsDelete(0);
                 entryInfoEntities.add(entryInfoEntity);
 
 
