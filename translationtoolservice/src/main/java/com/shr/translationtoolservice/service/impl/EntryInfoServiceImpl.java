@@ -1313,6 +1313,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntity.setEntryState(0);
             entryInfoEntity.setTaskId(taskID);
             entryInfoEntity.setId(commonUtils.getUUID());
+            entryInfoEntity.setIsDelete(0);
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
             if (Objects.nonNull(taskInfoEntity)) {
                 entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
@@ -1369,7 +1370,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             setTranslate(entryInfoEntity, ConstantInterface.RUSSIAN, department);
         }
 
-        if (StringUtils.isNotBlank(entryInfoEntity.getTaskId()) || StringUtils.isNotBlank(entryInfoEntity.getVersionID())) {
+
             ProductRelationEntity productRelationEntity = new ProductRelationEntity();
             productRelationEntity.setId(commonUtils.getUUID());
             productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
@@ -1377,7 +1378,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             productRelationEntity.setProductId(entryInfoEntity.getProductID());
             productRelationEntity.setEntryId(entryInfoEntity.getId());
             productRelationMapper.insert(productRelationEntity);
-        }
+
         int insert = entryInfoMapper.insert(entryInfoEntity);
         if (insert != 1) {
             return ErrorCodeList.INSERT_ERROR;
