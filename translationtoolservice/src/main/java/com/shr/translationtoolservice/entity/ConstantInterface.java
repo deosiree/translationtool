@@ -51,6 +51,7 @@ public class ConstantInterface {
     public static final String FIELD = "field";
     public static final String ALIAS = "alias";
 
+    public static final int MINUS_ONE = -1;
     public static final int ZERO = 0;
     public static final int DB_SUCCESS_RESULT = 1;
 
@@ -103,6 +104,12 @@ public class ConstantInterface {
     public static final String SPANISH = "西文";
     public static final String AUTO = "auto";
 
+    public static final String EN_CHINESE = "chinese";
+    public static final String EN_FRENCH = "french";
+    public static final String EN_ENGLISH = "english";
+    public static final String EN_RUSSIAN = "russian";
+    public static final String EN_SPANISH = "spanish";
+
     public static final String ENTRY_AUDITOR = "词条审核员";
     public static final String TRANSLATE_AUDITOR = "翻译审核员";
     public static final String TRANSLATOR = "翻译员";
@@ -121,6 +128,7 @@ public class ConstantInterface {
     public static final String GG = "google";
     public static final String MD = "module";
     public static final String DEEPL = "deepl";
+    public static final String SYNTHESIS = "synthesis";// 综合优先级
 
     public static HashMap<String, String> translateMachine() {
         HashMap<String, String> translateMachine = new HashMap<>();

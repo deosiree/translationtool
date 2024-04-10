@@ -299,6 +299,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     //优先级  术语库 外网
     private String addSuggessTransByPriority(EntryInfoEntity entryInfoEntity, String translateType, String priority) {
+        if (ConstantInterface.SYNTHESIS.equals(priority)){
+            // 综合优先级
+            String trans = synthesisPriority(entryInfoEntity, translateType);
+            return trans;
+        }
+        // 非综合优先级
         Queue<String> queue = new LinkedList<>();
         queue.add(priority);
         for (String key : ConstantInterface.translateMachine().keySet()) {
@@ -339,6 +345,53 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             }
         }
         return translateRes;
+    }
+
+    /**
+     * 综合优先级 （使用所有的翻译引擎进行翻译，取出现次数最多的翻译为当前词条的翻译！）
+     * @param entryInfoEntity 词条实体
+     * @param translateType 翻译语言
+     * @return 翻译结果
+     */
+    public String synthesisPriority(EntryInfoEntity entryInfoEntity, String translateType){
+        // 获取翻译语言代码
+        TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
+        List<String> translates = new ArrayList<>();
+        // 术语库翻译
+        String sykTranslate = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
+        if (null != sykTranslate && !"".equals(sykTranslate)){
+            translates.add(sykTranslate);
+        }
+        // deepl翻译
+        String deelp = deepLTranslateUtils.translate(entryInfoEntity.getEntry(), null, language.getDeeplCode());
+        if (null != deelp && !"".equals(deelp)){
+            translates.add(deelp);
+        }
+        // 百度翻译
+        LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+        if (!Objects.isNull(translateResult)){
+            translates.add(translateResult.getValue());
+        }
+        // 有道翻译
+        LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+        if (!Objects.isNull(languageEntity)) {
+            translates.add(languageEntity.getValue());
+        }
+        if (translates.isEmpty()){
+            return null;
+        }
+        // 计算出现次数最多的翻译
+        Map<String,Integer> countMap = new HashMap<>();
+        for (String translate : translates) {
+            String str = translate.toLowerCase();
+            countMap.put(str,countMap.getOrDefault(str,0) + 1);
+        }
+        // 找出出现次数最多的元素
+        Optional<Map.Entry<String, Integer>> max = countMap.entrySet().stream().max(Map.Entry.comparingByValue());
+
+        //获取key
+        String maxTranslate = max.get().getKey();
+        return maxTranslate;
     }
 
     private String getSYKTranslate(String entry, String translateType) {

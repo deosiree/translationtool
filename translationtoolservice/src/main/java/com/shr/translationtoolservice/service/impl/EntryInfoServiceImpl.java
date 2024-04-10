@@ -1,11 +1,7 @@
 package com.shr.translationtoolservice.service.impl;
 
-import cn.afterturn.easypoi.cache.manager.IFileLoader;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shr.translationtoolservice.common.Constant;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
@@ -22,17 +18,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.yaml.snakeyaml.events.Event;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -1327,7 +1320,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public String addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
+    public EntryInfoEntity addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
         if (entryInfoEntity.isUpgrade()) {
             return upgradeEnrty(entryInfoEntity, request);
         } else {
@@ -1352,7 +1345,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         Date date = new Date(System.currentTimeMillis());
         entryInfoEntity.setIsDelete(0);
         entryInfoEntity.setId(id);
-        entryInfoEntity.setEntrySource("UPGRADE");
+        entryInfoEntity.setEntrySource("ADD");
         entryInfoEntity.setIsPublic(0);
         entryInfoEntity.setEntryState(0);
 
@@ -1381,12 +1374,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         int insert = entryInfoMapper.insert(entryInfoEntity);
         if (insert != 1) {
-            return ErrorCodeList.INSERT_ERROR;
+            return null;
         }
-        return ConstantInterface.OK_STR;
+        return entryInfoEntity;
     }
 
-    private String upgradeEnrty(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
+    private EntryInfoEntity upgradeEnrty(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
         int lastVersionNum = entryInfoMapper.getLastVersionNum(entryInfoEntity);
         entryInfoEntity.setEntryVersion(lastVersionNum + 1);
         entryInfoEntity.setIsExist(0);
@@ -1415,9 +1408,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         int insert = entryInfoMapper.insert(entryInfoEntity);
         if (insert != 1) {
-            return ErrorCodeList.INSERT_ERROR;
+            return null;
         }
-        return ConstantInterface.OK_STR;
+        return entryInfoEntity;
     }
 
 

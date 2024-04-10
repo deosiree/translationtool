@@ -18,6 +18,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         urls.add("/swagger-ui/**");
         urls.add("/error");
         urls.add("/userLogin/login");
+        urls.add("/public/**");
 //        addInterceptor 就是加过滤器
         registry.addInterceptor(new JWTInterceptor())
                 .addPathPatterns("/**")

@@ -235,7 +235,7 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Token
     @Transactional
-    public HttpResponse<String> addSingleEntry(@RequestBody EntryInfoEntity entryInfoEntity,
+    public HttpResponse<EntryInfoEntity> addSingleEntry(@RequestBody EntryInfoEntity entryInfoEntity,
                                                HttpServletRequest request) {
         //tableName = "t_version_202311";
         return checkResult(entryInfoService.addSingleEntry(entryInfoEntity, request));
