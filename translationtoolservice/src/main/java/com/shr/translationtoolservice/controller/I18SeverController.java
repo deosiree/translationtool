@@ -756,17 +756,18 @@ public class I18SeverController extends BaseController {
             String source = nodeName + "_" + appName + "_" + dbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(source);
                     //  entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setIsDelete(0);
                     if (Objects.isNull(maxLength)){
                         entryInfoEntity.setMaxLength(0);
                     }else {
@@ -844,15 +845,16 @@ public class I18SeverController extends BaseController {
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                     // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setIsDelete(0);
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setTaskId(taskID);
                     createNewTrans(entryInfoEntity, translateType, "");
@@ -949,21 +951,23 @@ public class I18SeverController extends BaseController {
             }
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                     // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setIsDelete(0);
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setTaskId(taskID);
                     createNewTrans(entryInfoEntity, translateType, "");
                     entryInfoEntity.setImportType(ConstantInterface.DB);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntities.add(entryInfoEntity);
+
                 }
 
 
@@ -1054,16 +1058,17 @@ public class I18SeverController extends BaseController {
             for (int i = 0; i < jsonArray.size(); i++) {
                 sum ++;
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAlias())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                    entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                    entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                     // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
                     entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setIsDelete(0);
                     entryInfoEntity.setTaskId(taskID);
                     createNewTrans(entryInfoEntity, translateType, "");
                     entryInfoEntity.setImportType(ConstantInterface.DB);
@@ -1166,12 +1171,13 @@ public class I18SeverController extends BaseController {
                 //将表的别名写入词条
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
-                entryInfoEntity.setEntry(tdbTableInfo.getAlias());
+                entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                 entryInfoEntity.setDiFileName(diFileName);
                 entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
                 entryInfoEntity.setVersionID(versionID);
+                entryInfoEntity.setIsDelete(0);
                 entryInfoEntity.setTaskId(taskID);
                 createNewTrans(entryInfoEntity, translateType, "");
                 entryInfoEntity.setImportType(ConstantInterface.DB);

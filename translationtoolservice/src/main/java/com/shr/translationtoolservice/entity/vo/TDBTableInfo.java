@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 public class TDBTableInfo {
     private String tableName = "";
-    private String alias = "";
+    private String aliasName = "";
     private String common = "";
     private List<TDBFieldInfo> fields;
     private int tableId = 0;
