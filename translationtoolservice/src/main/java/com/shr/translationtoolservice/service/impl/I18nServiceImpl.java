@@ -133,6 +133,7 @@ public class I18nServiceImpl implements I18nService {
                 }
                 if (CollectionUtils.isEmpty(dbTypeMap.get(diFileName))) {
                     entities = new ArrayList<>();
+                    entities.add(entryInfoEntity);
                     dbTypeMap.put(diFileName, entities);
                 } else {
                     entities = dbTypeMap.get(diFileName);
