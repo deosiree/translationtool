@@ -17,6 +17,8 @@ import java.util.Map;
 @Component
 public class ConstantInterface {
 
+    public static final String TOKEN = "token";
+
     //i18server url
     public static final String LANGUAGE = "language";
     public static final String GET_FILE_LIST = "getFileListByLang";
