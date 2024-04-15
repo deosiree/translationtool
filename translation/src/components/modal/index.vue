@@ -14,9 +14,12 @@
     @ok="ok"
     @cancel="cancel"
     id="modalId"
-    ref="modalRef2"
+    ref="modalRef"
     >
-        <div class="modalHeader">
+        <div class="modalHeader" 
+        @dblclick="doubleClickHandler" 
+        ref="modalTitleRef"
+        >
             <div class="title">
                 <img src="../../assets/icon/modal.png" style="width:18px;height:18px"/>
                 <span>{{modalTitle}}</span>
@@ -34,6 +37,11 @@
             <slot name="leftBottomBtn"/>
             <a-button key="back" @click="cancel" v-if="showCancel">{{cancelText}}</a-button>
             <a-button key="submit" type="primary" @click="ok" v-if="showOk" :loading="okLoading">{{okText}}</a-button>
+        </template>
+        <template #modalRender="{ originVNode }">
+            <div :style="{transform: `translate(${transformX}px, ${transformY}px)`,}">
+                <component :is="originVNode" />
+            </div>
         </template>
     </a-modal>
 </template>
@@ -96,7 +104,16 @@ export default {
             oldWidth:"",
             width:"",
             spinning: false,
-            loadingTip:""
+            loadingTip:"",
+            
+            startX: 0,
+            startY: 0,
+            startedDrag: false,
+            transformX: 0,
+            transformY: 0,
+            preTransformX: 0,
+            preTransformY: 0,
+            dragRect: { left: 0, right: 0, top: 0, bottom: 0 },
         }
     },
     
@@ -104,6 +121,7 @@ export default {
     },
     mounted () {
         this.width = this.modalWidth
+
     },
     watch: {
         modalWidth(newval,oldval){
@@ -120,6 +138,7 @@ export default {
         afterClose(){
             this.$emit("afterClose")
         },
+        // 全屏展示
         full(){
             this.oldWidth = this.width
             this.width = "100%"
@@ -129,6 +148,7 @@ export default {
                 this.$emit('setTableHeight',height,'full')
             })
         },
+        // 还原
         reduce(){
             this.width = this.oldWidth
             this.fullScreen = false
@@ -136,7 +156,43 @@ export default {
                 let height = this.$refs.contentRef.offsetHeight
                 this.$emit('setTableHeight',height,'reduce')
             })
-        }
+        },
+        // 双击全屏/还原
+        doubleClickHandler(){
+            if(!this.fullFlag){
+                return
+            }
+            if(this.fullScreen){
+                this.reduce()
+            }else{
+                this.full()
+            }
+        },
+        
+        mousedown(event){
+            if (!this.startedDrag) {
+                this.startX = event.pageX;
+                this.startY = event.pageY;
+                const bodyRect = document.body.getBoundingClientRect();
+                const titleRect = this.$refs.modalTitleRef.getBoundingClientRect();
+                this.dragRect.right = bodyRect.width - titleRect.width;
+                this.dragRect.bottom = bodyRect.height - titleRect.height;
+                this.preTransformX = this.transformX;
+                this.preTransformY = this.transformY;
+            }
+            this.startedDrag = true;
+        },
+        mouseUp(event){
+            this.startedDrag = false
+        },
+        mousemove(event){
+            if (this.startedDrag) {
+                this.transformX = this.preTransformX + Math.min(Math.max(this.dragRect.left, event.pageX), this.dragRect.right) - this.startX;
+                this.transformY = this.preTransformY + Math.min(Math.max(this.dragRect.top, event.pageY), this.dragRect.bottom) - this.startY;
+                // console.log(this.transformX)
+                // console.log(this.transformY)
+            }
+        },
     }
 }
 </script>

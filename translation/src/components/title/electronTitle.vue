@@ -2,7 +2,7 @@
     <div id="title">
       <div class="electrontitle">
         <div class="logo"></div>
-        <span style="font-weight:bold">{{electrontitle}}</span>
+        <span>{{electrontitle}}</span>
       </div>
       <div :class="electron ? 'user' : 'webUser'">
         <a-dropdown>
@@ -129,12 +129,12 @@ export default {
   -webkit-app-region: drag;
 }
 .electrontitle{
-  padding: 4px 0px;
+  padding: 4px 10px;
 
   .logo{
-    width:32px;
-    height: 32px;
-    background-image: url("../../assets/title/logo.png");
+    width:30px;
+    height: 30px;
+    background-image: url("../../assets/title/sys_loge.png");
     background-size: 100%;
     background-repeat: no-repeat;
   }
@@ -146,8 +146,9 @@ export default {
     top: 0;
     bottom: 0;
     margin: auto 0;
-    left: 35px;
-    font-size: 14px;
+    left: 45px;
+    font-size: 15px;
+    font-weight:bold;
   }
 }
 #title .user{

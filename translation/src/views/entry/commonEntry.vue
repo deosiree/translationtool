@@ -225,7 +225,7 @@ export default {
     },
     methods: {
         init(){
-            console.log(this.common)
+            // console.log(this.common)
             this.getLanguage()
             this.getCommonEntry()
         },

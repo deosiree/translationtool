@@ -1,6 +1,6 @@
 <template>
     <div class="box" ref="box">
-        <SearchBox ref="search">
+        <SearchBox ref="search" @change="setTableHeight">
             <template v-slot:form>
                 <a-form
                     :model="search"
@@ -89,15 +89,15 @@
                 </a-form>
             </template>
             <template v-slot:operate>
-                <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
                 <a-button type="primary" size="middle" @click="searchTaskInfo">查询</a-button>
+                <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
             </template>
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
                 <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:8px">
                     <a-button type="primary" size="small" @click="handleAdd"><template #icon><PlusOutlined /></template>新增</a-button>
-                    <a-button type="primary" size="small" @click="deleteTask"><template #icon><DeleteOutlined /></template>删除</a-button>
+                    <a-button type="primary" size="small" @click="deleteTask" danger><template #icon><DeleteOutlined /></template>删除</a-button>
                     <a-popover v-model:visible="copyVisible" trigger="click" placement="bottom">
                         <template #content>
                             <a-input v-model:value="copyNumber" addon-before="复制" addon-after="条" type="number" style="width:180px" />
@@ -367,7 +367,7 @@ import OperationArea from '@/components/operationArea/index.vue'
 import TimeLine from '@/components/timeLine/index.vue'
 import ProductModal from '@/views/task/productModal.vue'
 import VersionModal from '@/views/task/versionModal.vue'
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, flatMap } from 'lodash-es';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -452,6 +452,7 @@ export default {
                 {title: '翻译审核员',dataIndex: 'translationAuditor',align:'center',width:150},
                 {title: '任务描述',dataIndex: 'description',align:'center',width:230,ellipsis: true,resizable: true},
                 {title: '下发时间',dataIndex: 'deliveryTime',align:'center',width:200},
+                {title: '结束时间',dataIndex: 'endTime',align:'center',width:200},
                 {title: '任务状态',dataIndex: 'state',align:'center',width:100,fixed: 'right'},
                 {title: '操作',dataIndex: 'operation',align:'center',width:150,fixed: 'right'}
             ],
@@ -665,6 +666,10 @@ export default {
         },
         saveEntry(id){
             // console.log(this.editableData[id])
+            let falg = this.checkTask(id);
+            if(!falg){
+                return
+            }
             if(id.startsWith('new')){
                 // 新增
                 let data = [this.editableData[id]]
@@ -717,6 +722,38 @@ export default {
                     delete this.editableData[id];
                 })
             }
+        },
+        checkTask(id){
+            //1、开发员和词条审核员必须成对出现
+            //2、翻译员和翻译审核员必须成对出现
+            //3、(开发员、词条审核员) 和 (翻译员、翻译审核员) 必须出现一对
+            let newTask = this.editableData[id]
+            if( !this.isEmptyString(newTask.developer) && this.isEmptyString(newTask.entryAuditor)){
+                message.info("请选择词条审核员！")
+                return false
+            }
+            if( !this.isEmptyString(newTask.entryAuditor) && this.isEmptyString(newTask.developer)){
+                message.info("请选择开发员！")
+                return false
+            }
+            if( !this.isEmptyString(newTask.translator) && this.isEmptyString(newTask.translationAuditor)){
+                message.info("请选择翻译审核员！")
+                return false
+            }
+            if( !this.isEmptyString(newTask.translationAuditor) && this.isEmptyString(newTask.translator)){
+                message.info("请选择翻译员！")
+                return false
+            }
+            if(this.isEmptyString(newTask.translationAuditor) && this.isEmptyString(newTask.translator)
+            && this.isEmptyString(newTask.developer) && this.isEmptyString(newTask.entryAuditor)
+            ){
+                message.info("请选择操作人员！")
+                return false
+            }
+            return true
+        },
+        isEmptyString(value){
+            return value === null || value === '' || value === undefined
         },
         
         // 批量保存
@@ -820,6 +857,16 @@ export default {
         deleteTask(){
             if(this.selectedRowKeys.length === 0){
                 message.info('请选择需要删除的任务！')
+                return
+            }
+            let flag = false
+            this.selectedRows.forEach(item => {
+                if(item.state != '0'){
+                    flag = true
+                }
+            })
+            if(flag){
+                message.error('已下发或已归档的任务不可删除！')
                 return
             }
             Modal.confirm({
@@ -1002,6 +1049,9 @@ export default {
                 copyTask.id = id
                 copyTask.state = '0'
                 copyTask.name = copyTask.name+'(复制)'
+                copyTask.deliveryTime = null
+                copyTask.createTime = new Date().toLocaleString().replaceAll('/','-')
+                copyTask.endTime = null
                 this.dataSource.unshift(copyTask)      
                 this.options[id] = {
                     products:[],

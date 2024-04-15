@@ -91,6 +91,7 @@ export default {
           this.loading = false
       }).catch((err) => {
           // console.log(err);
+          message.error("登录失败！")
           this.loading = false
       });
     }

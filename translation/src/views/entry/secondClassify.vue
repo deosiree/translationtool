@@ -152,7 +152,7 @@ export default {
         },
         // 初始化数据
         init(){
-            console.log(this.product)
+            // console.log(this.product)
             if(this.product.type === 'module'){
                 this.search.classify1 = this.product.key
                 // 获取二级分类
@@ -180,7 +180,7 @@ export default {
             })
         },
         classify1Select(value){
-            console.log(value)
+            // console.log(value)
             this.getSecondClassify()
         },
         add(){

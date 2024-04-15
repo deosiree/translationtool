@@ -35,7 +35,7 @@ router.beforeEach((to, from,next) => {
         }
       }
     } catch (error) {
-      console.log('出错了:',error)
+      // console.log('出错了:',error)
       // next(`/?redirect=${to.path}`)
     }
 

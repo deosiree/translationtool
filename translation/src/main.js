@@ -8,4 +8,4 @@ import './router/permission'
 
 import * as antIcons from '@ant-design/icons-vue'
 
-createApp(App).use(store).use(router).use(Antd).use(antIcons).mount('#app')
+createApp(App).use(store).use(router).use(Antd).mount('#app')

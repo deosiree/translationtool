@@ -98,17 +98,18 @@ export default {
                     })
                 }else if(this.modalTitle === '添加产品'){
                     this.classify.key = uuidv4()
-                    addEntryClassfy(this.classify).then((res) => {
-                    })
-
+                    // 产品表添加产品
                     let data = {
                         id:this.classify.key,
                         name:this.classify.title,
                         parentId: this.classify.parentId
                     }
                     addProduct(data).then((res) => {
-                        message.success('添加成功！')
-                        this.$emit("classifyClose")
+                        // 分类表添加产品
+                        addEntryClassfy(this.classify).then((res) => {
+                            message.success('添加成功！')
+                            this.$emit("classifyClose")
+                        })
                     })
 
                 }else if(this.modalTitle === '编辑产品'){

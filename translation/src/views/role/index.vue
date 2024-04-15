@@ -1,6 +1,6 @@
 <template>
 <div class="box" ref="box">
-    <SearchBox ref="search" :operate="false">
+    <SearchBox ref="search" :operate="false" @change="setTableHeight">
         <template v-slot:form>
             <a-form
                 :model="search"
@@ -231,7 +231,7 @@ export default {
                 this.menus = res.data.list
                 // console.log(this.menus)
                 this.menusList = this.treeToArray(this.menus)
-                console.log(this.menusList)
+                // console.log(this.menusList)
             })
         },
         //双击表格行 可编辑
@@ -289,7 +289,7 @@ export default {
             delete this.editableData[record.id]
         },
         selectMenu(value){
-            console.log(value)
+            // console.log(value)
         },
 
         getAllParentArr(list,id){

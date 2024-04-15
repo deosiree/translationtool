@@ -2,8 +2,10 @@
     <div class="search">
         <div class="title">
             <span>查询条件：</span>
+            <up-outlined class="icon" v-if="showContent" title="收起" @click="trigger"/>
+            <down-outlined class="icon" v-if="!showContent" title="展开" @click="trigger"/>
         </div>
-        <div class="content">
+        <div class="content" v-if="showContent">
             <div class="form">
                 <slot name="form" v-if="collapsed" />
             </div>
@@ -14,7 +16,15 @@
     </div>
 </template>
 <script>
+import {
+    UpOutlined,
+    DownOutlined
+} from '@ant-design/icons-vue';
 export default {
+    components:{
+        UpOutlined,
+        DownOutlined
+    },
     props:{
         operate:{
             type:Boolean,
@@ -23,12 +33,13 @@ export default {
     },
     data(){
         return{
-            collapsed: true
+            collapsed: true,
+            showContent: true
         }
     },
     methods:{
         trigger() {
-            this.collapsed = !this.collapsed;
+            this.showContent = !this.showContent;
             this.$emit("change")
         }
     }
@@ -38,7 +49,6 @@ export default {
 .search{
     border: 1px solid #DCDCDC;
     width: 100%;
-    // position: relative;
 
     .title{
         width: 100%;
@@ -59,6 +69,11 @@ export default {
             font-weight: 700;
             line-height: 22px;
         }
+
+        .icon{
+            margin-left:auto;
+            color:rgba(0, 0, 0, 0.4);
+        }
     }
 
     .content{
@@ -68,11 +83,15 @@ export default {
         align-items: flex-start;
         gap: 16px;
         align-self: stretch;
-        position: relative;
+        width: 100%;
 
         .form{
             width: 100%;
             height: 100%;
+
+            :deep(.ant-form-item-control){
+                width: 186px;
+            }
         }
 
         .operate{

@@ -4,6 +4,7 @@
     :modalTitle="modalTitle"
     :modalWidth="modalWidth"
     :fullFlag="true"
+    :okLoading="saveLoading"
     okText="保存"
     @handleClose="handleClose"
     @handleOK="handleOK"
@@ -35,7 +36,7 @@
                     <a-select-option value="3">审核通过</a-select-option>
                 </a-select>
                 <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-                <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button>
+                <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
                 <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
                 <a-button type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
@@ -71,7 +72,13 @@
             class="ant-table-striped"
             :columns="columns" 
             :data-source="dataSource" 
-            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+            :row-selection="{ selectedRowKeys: selectedRowKeys, 
+                onChange: onSelectChange,
+                selections:[
+                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                ]
+            }"
             :row-key="record => record.id"
             :scroll="tableHeight"
             :pagination='pagination'
@@ -81,6 +88,7 @@
             :expandIconColumnIndex="2"
             ref="workTable"
             @resizeColumn="handleResizeColumn"
+            @change="handleTableChange"
             >
                 <template #bodyCell="{ column, text, record }">
                     <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
@@ -102,7 +110,7 @@
                             </template>
                         </div>
                     </template>
-                    <template v-if="['chineseInterpretation','englishInterpretation','auditSuggess','entryLabel'].includes(column.dataIndex)">
+                    <template v-if="['chineseInterpretation','englishInterpretation','auditSuggess','diFileName'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
                                 <a-input
@@ -113,6 +121,35 @@
                             </template>
                             <template v-else>
                                 {{ text }}
+                            </template>
+                        </div>
+                    </template>
+                    <template v-if="column.dataIndex === 'entryLabel'">
+                        <div>
+                            <template v-if="editableData[record.id]">
+                                <a-input
+                                    v-model:value="editableData[record.id][column.dataIndex]"
+                                    style="margin: -5px 0;width:90%"
+                                    @pressEnter="inputPressEnter(record)"
+                                />
+                                <a-tooltip placement="top">
+                                    <template #title>
+                                    <span>多个Tag按分号分割！</span>
+                                    </template>
+                                    <InfoCircleOutlined style="margin-left:3px"/>
+                                </a-tooltip>
+                            </template>
+                            <template v-else>
+                                <!-- {{ text }} -->
+                                <span>
+                                    <a-tag
+                                    v-for="(tag,index) in companyCut(text)"
+                                    :key="index"
+                                    color="cyan"
+                                    >
+                                        {{tag}}
+                                    </a-tag>
+                                </span>
                             </template>
                         </div>
                     </template>
@@ -195,13 +232,13 @@
                         :value="selectedKeys[0]"
                         style="width: 188px; margin-bottom: 8px; display: block"
                         @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                        @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                        @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
                         />
                         <a-button
                         type="primary"
                         size="small"
                         style="width: 90px; margin-right: 8px"
-                        @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                        @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
                         >
                         <template #icon><SearchOutlined /></template>搜索</a-button>
                         <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
@@ -217,6 +254,29 @@
             <a-button type="primary" size="small" style="margin-left:8px;float:left" class="resetBtn" @click="aggregation">聚合</a-button>
             <a-button type="primary" size="small" style="margin-left:8px;float:left" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
         </template>
+    </CustomModal>
+    <CustomModal
+    :visible="rejectReasonVisible" 
+    modalTitle="驳回原因"
+    style="top:30%"
+    @handleClose="rejectReasonClose"
+    @handleOK="rejectReasonOK"
+    @afterClose="rejectReasonAfterClose"
+    >
+        <div style="width:100%;height:100%">
+            <a-form
+                ref="exportForm"
+                name="custom-validation"
+                :model="rejectReason"
+            >
+                <a-form-item
+                label="驳回原因"
+                name="reason"
+                >
+                    <a-textarea v-model:value="rejectReason.reason" placeholder="请输入驳回原因" allow-clear />
+                </a-form-item>
+            </a-form>
+        </div>
     </CustomModal>
 </template>
 <script>
@@ -236,7 +296,8 @@ import {
     CaretDownOutlined,
     CaretRightOutlined,
     SettingOutlined,
-    SearchOutlined
+    SearchOutlined,
+    InfoCircleOutlined
 } from '@ant-design/icons-vue';
 import { message ,Modal} from 'ant-design-vue';
 import workbenchCommon from '@/views/workbench/common.js';
@@ -250,6 +311,7 @@ export default {
         CaretRightOutlined,
         SettingOutlined,
         SearchOutlined,
+        InfoCircleOutlined,
         CustomModal
     },
     emits:['handleClose','handleOK'],
@@ -278,20 +340,20 @@ export default {
             tableHeight: { x:'100%',y: '415px' },
             loading:false,
             columns: [
-                {title: "序号",dataIndex: 'index',width:70,customRender: (text, record, index, column) => {
+                {title: "序号",dataIndex: 'index',width:90,customRender: (text, record, index, column) => {
                     return text.index + 1
                 },fixed: 'left',index:0},
-                {title: '存在状态',dataIndex: 'isExist',align:'center',width:100,fixed: 'left',index:1},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',fixed: 'left',width:150,resizable: true,index:2},
-                {title: '词条',dataIndex: 'entry',width:200,resizable: true,index:3,align:'center',
-                    customFilterDropdown: true,
-                    onFilter: (value, record) =>
-                    record.entry.toString().toLowerCase().includes(value.toLowerCase()),
+                {title: '存在状态',dataIndex: 'isExist',align:'center',width:100,fixed: 'left',index:1,
+                    filteredValue: null,
+                    filters: [{text: '已存在',value: 1,},{text: '新建',value: 0,}],
+                    onFilter: (value, record) => record.isExist === value,
                 },
+                {title: 'Abbr',dataIndex: 'abbr',align:'center',fixed: 'left',width:150,resizable: true,index:2},
+                {title: '词条',dataIndex: 'entry',width:200,resizable: true,index:3,align:'center',},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:200,ellipsis: true,resizable: true,index:4},
                 {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true,index:5},
                 {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true,index:6},
-                // {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:200},
+                // {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:200},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true,index:98},
                 {title: '词条状态',dataIndex: 'entryState',align:'center',width:100,fixed: 'right',index:99},
                 {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,fixed: 'right',index:100},
@@ -321,8 +383,14 @@ export default {
                 searchText: '',
                 searchedColumn: '',
             },
-            clearFilters:null,
-            selectAllName:"全选"
+            filters:null,
+            filteredData:[],
+            selectAllName:"全选",
+            saveLoading: false,
+            rejectReasonVisible: false,
+            rejectReason:{
+                reason:""
+            }
         }
     },
     
@@ -371,6 +439,7 @@ export default {
             })
         },
         handleOK(){
+            this.saveLoading = true
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             for (let key in this.editableData) {
 				let entry = this.dataSource.find(item => item.id === key)
@@ -380,6 +449,7 @@ export default {
                 entry.chineseInterpretation =  this.editableData[key].chineseInterpretation
                 entry.englishInterpretation =  this.editableData[key].englishInterpretation
                 entry.entryLabel = this.editableData[key].entryLabel
+                entry.diFileName = this.editableData[key].diFileName
 
                 if(entry[languageCode] != null && entry[languageCode] != null){
                     // 翻译存在  则状态为待审核状态
@@ -391,30 +461,38 @@ export default {
                 taskID: this.task.id
             }
             let updateArr = []
+            let okArr = []
             this.dataSource.forEach(item => {
                 if(item.auditState === 1){
                     // 词条审核通过
                     item.entryState = 3
                     updateArr.push(item)
+                    okArr.push(item)
                 }else if(item.auditState === 0){
                     // 词条审核不通过
                     item.entryState = 2
                     updateArr.push(item)
                 }
             })
-            let num = this.verifyTranslationLength(updateArr)
+            // 校验审核通过的词条
+            let num = this.verifyTranslationLength(okArr)
             if(num > 0){
                 // 存在超长
                 message.warn("存在超长数据，请检查！")
+                this.saveLoading = false
                 return
             }
             if(updateArr.length > 0){
                 updateEntryList(params,updateArr).then((res) => {
                     message.success('已保存！')
+                    this.saveLoading = false
                     this.getTaskEntry()
                 }).catch((err) => {
                     message.error('保存失败！')
+                    this.saveLoading = false
                 })
+            }else{
+                this.saveLoading = false
             }
             
         },
@@ -454,7 +532,11 @@ export default {
             }else{
                 record.auditState = 1
             }
-            
+            if(record.children && record.children.length > 0){
+                record.children.forEach(child => {
+                    child.auditState = record.auditState
+                })
+            }
         },
         // 驳回标签点击事件
         rejectTagChange(record){
@@ -463,12 +545,22 @@ export default {
             }else{
                 record.auditState = 0
             }
-             
+            if(record.children && record.children.length > 0){
+                record.children.forEach(child => {
+                    child.auditState = record.auditState
+                })
+            }
         },
         // 通过按钮点击事件
         pass(){
             this.selectedRows.forEach(item => {
                 item.auditState = 1
+
+                if(item.children && item.children.length > 0){
+                    item.children.forEach(child => {
+                        child.auditState = item.auditState
+                    })
+                }
             })
             this.selectedRowKeys = []
             this.selectedRows = []
@@ -476,12 +568,9 @@ export default {
         },
         // 驳回按钮点击事件
         reject(){
-            this.selectedRows.forEach(item => {
-                item.auditState = 0
-            })
-            this.selectedRowKeys = []
-            this.selectedRows = []
-            this.selectAllName = "全选"
+            if(this.selectedRows.length > 0){
+                this.rejectReasonVisible = true
+            }
         },
         //双击表格行 可编辑
         doubleClick(record, index){
@@ -547,6 +636,7 @@ export default {
             record.chineseInterpretation =  this.editableData[record.id].chineseInterpretation
             record.englishInterpretation =  this.editableData[record.id].englishInterpretation
             record.entryLabel = this.editableData[record.id].entryLabel
+            record.diFileName = this.editableData[record.id].diFileName
 
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             // 长度校验
@@ -648,10 +738,7 @@ export default {
             this.pagination.pageSize = 20
             this.selectAllName = "全选"
 
-            if(this.clearFilters){
-                this.clearFilters({confirm:true})
-                this.state.searchText = ''
-            }
+            this.clearFilters()
         },
         // 删除词条
         deleteTaskEntry(){
@@ -698,7 +785,6 @@ export default {
                         dataIndex: value.value,
                         align: "center",
                         width: 200,
-                        ellipsis: true,
                         resizable: true,
                         index: value.index
                     };
@@ -709,6 +795,7 @@ export default {
                         // 添加词条来源可筛选
                         newCol.width = 250,
                         newCol.customFilterDropdown = true
+                        newCol.filteredValue = null,
                         newCol.onFilter = eval('(value, record) => record.entrySource.toString().toLowerCase().includes(value.toLowerCase())')
                     }
                     this.columns.splice(-1, 0, newCol);
@@ -722,11 +809,10 @@ export default {
             })
         },
         // 列筛选
-        handleSearch(selectedKeys, confirm, dataIndex,clearFilters){
+        handleSearch(selectedKeys, confirm, dataIndex){
             confirm();
             this.state.searchText = selectedKeys[0];
             this.state.searchedColumn = dataIndex;
-            this.clearFilters = clearFilters
         },
         handleReset(clearFilters){
             clearFilters({ confirm: true });
@@ -817,6 +903,102 @@ export default {
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record,languageCode) }]
             return Promise.resolve()
+        },
+        // 表格change事件
+        handleTableChange(pagination, filters) {
+            this.filters = filters
+            for (let key in filters) {
+                this.columns.forEach(col => {
+                    if(col.dataIndex === key){
+                        col.filteredValue = filters[key]
+                    }
+                })
+			}
+            // 获取筛选后的数据
+            let isExistData = this.dataSource.filter(item => {
+                return filters.isExist && filters.isExist.includes(item.isExist);
+            });
+            let sourceData = this.dataSource.filter(item => {
+                return filters.entrySource && item.entrySource.includes(filters.entrySource);
+            });
+            this.filteredData = this.intersection(isExistData,sourceData)
+        },
+        // 两个数组取并集
+        intersection(nums1, nums2) {
+            if(nums1.length === 0){
+                return nums2
+            }
+            if(nums2.length === 0){
+                return nums1
+            }
+            let a=new Set(nums1);
+            let b=new Set(nums2);
+            let arr = Array.from(new Set([...b].filter(x => a.has(x))));
+            return arr;
+        },
+        // 清空表格筛选条件
+        clearFilters(){
+            if(this.filters){
+                for (let key in this.filters) {
+                    this.columns.forEach(col => {
+                        if(col.dataIndex === key){
+                            col.filteredValue = null
+                        }
+                    })
+                }
+            }
+        },
+        selectAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            if(this.filters && (this.filters.isExist || this.filters.entrySource)){
+                this.filteredData.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                    this.selectedRows.push(item)
+                })
+            }else{
+                this.dataSource.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                    this.selectedRows.push(item)
+                })
+            }
+        },
+        clearAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
+        // 切割字符串
+        companyCut(message){
+            let res = []
+            if(message === null || message === ''){
+                return res
+            }
+            const regex = /[;；]/;
+            res = message.split(regex)
+            res = res.filter(item => item != '')
+            return res
+        },
+        // 编辑原因确定
+        rejectReasonOK(){
+            this.selectedRows.forEach(item => {
+                item.auditState = 0
+                item.auditSuggess = this.rejectReason.reason
+                if(item.children && item.children.length > 0){
+                    item.children.forEach(child => {
+                        child.auditState = item.auditState
+                        child.auditSuggess = this.rejectReason.reason
+                    })
+                }
+            })
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            this.rejectReasonVisible = false
+        },
+        rejectReasonClose(){
+            this.rejectReasonVisible = false
+        },
+        rejectReasonAfterClose(){
+            this.rejectReason.reason = ""
         }
     }
 }

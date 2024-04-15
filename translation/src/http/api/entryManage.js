@@ -160,3 +160,13 @@ export function addProductRelation(data) {
         data
     });
 }
+
+// 词条管理中  词条翻译回写
+export function writeBack(params,data) {
+    return request({
+        url: "/entryInfo/setInfo",
+        method: "POST", 
+        params,
+        data
+    });
+}

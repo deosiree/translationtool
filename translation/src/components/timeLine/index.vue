@@ -32,7 +32,7 @@
                             
                             <!-- <a-button type="primary" ghost size="small" v-if="item.state != '5'" :disabled="task.state === item.state ? false : true" @click="submitTask">递交</a-button> -->
                             <!-- <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="task.state === item.state ? false : true" @click="exportEntry">导出</a-button> -->
-                            <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="currentUser.userName === item.user ? false : true" @click="taskEnd">归档</a-button>
+                            <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="currentUser.userName === item.user ? false : true" @click="archiveEntry">归档</a-button>
                         </div>
                         <span v-if="!showButton && item.state === task.state">
                             <span v-if="task.state === '6'">已完成</span>
@@ -75,7 +75,7 @@ export default {
         },
         currentTask:{}
     },
-    emits:['importEntry','examineEntry','translateEntry','examineTranslate','refresh','exportEntry'],
+    emits:['importEntry','examineEntry','translateEntry','examineTranslate','refresh','archiveEntry'],
     data(){
         return {
             task:{},
@@ -177,9 +177,9 @@ export default {
         examineTranslate(){
             this.$emit('examineTranslate')
         },
-        // 导出
-        exportEntry(){
-            this.$emit('exportEntry')
+        // 归档
+        archiveEntry(){
+            this.$emit('archiveEntry')
         },
         submitTask(){
             Modal.confirm({
@@ -258,6 +258,7 @@ export default {
                 cancelText: '否',
                 onOk: () => {
                     this.task.state = '6'
+                    this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
                     updateTaskInfo(this.task).then((res) => {
                         message.success("已归档！")
                         this.$emit('refresh')

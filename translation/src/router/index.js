@@ -11,7 +11,7 @@ const routes = [
   {
     path: '/notPermission',
     name: 'notPermission',
-    component: () => import('@/views/empty/notPermission.vue'),
+    component: () => import('@/views/errorPage/403.vue'),
   },
   {
     path: '/translate',
@@ -20,6 +20,10 @@ const routes = [
     children: [
       
     ]
+  },
+  {
+      path: '/:pathMatch(.*)*',
+      component: () => import('@/views/errorPage/404.vue')
   }
 ]
 

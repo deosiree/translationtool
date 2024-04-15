@@ -1,13 +1,14 @@
 <template>
     <div ref="box" class="box">
         <a-row type="flex">
-            <a-col flex="240px" class="treeBox">
-                <a-input v-model:value="keyWords" placeholder="关键字搜索" @pressEnter="getClassTree">
+            <a-col :flex="boxFlex" class="treeBox">
+                <a-input v-model:value="keyWords" placeholder="关键字搜索" @pressEnter="getClassTree" v-if="treeBoxOpen">
                     <template #suffix>
                         <SearchOutlined style="color: #DCDCDC;"/>
                     </template>
                 </a-input>
                 <a-tree
+                v-if="treeBoxOpen"
                 show-icon
                 v-model:expandedKeys="expandedKeys"
                 :defaultExpandAll="true"
@@ -44,7 +45,8 @@
                         </a-dropdown>
                     </template>
                 </a-tree>
-                <span v-if="treeData.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
+                <span v-if="treeBoxOpen && treeData.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
+                
             </a-col>
             <a-col flex="auto" class="dataBox">
                 <div class="entryBox" v-if="isProduct">
@@ -59,6 +61,10 @@
                 </div>
                 <div class="entryBox" v-else>
                     <CommonEntry :boxHeight="boxHeight" :currentCommon="currentClickProduct"/>
+                </div>
+                <div class="floatBtn">
+                    <left-outlined v-if="treeBoxOpen" @click="openOrCloseTree" title="收起树"/>
+                    <right-outlined v-if="!treeBoxOpen" @click="openOrCloseTree" title="展开树"/>
                 </div>
             </a-col>
         </a-row>
@@ -78,7 +84,9 @@
 </template>
 <script>
 import {
-  SearchOutlined
+  SearchOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from '@ant-design/icons-vue';
 import ProductEntry from '@/views/entry/productEntry.vue'
 import ProductVersion from '@/views/entry/productVersion.vue'
@@ -99,6 +107,8 @@ import { message } from 'ant-design-vue';
 export default {
     components:{
         SearchOutlined,
+        LeftOutlined,
+        RightOutlined,
         ProductEntry,
         ProductVersion,
         CommonEntry,
@@ -108,6 +118,7 @@ export default {
     data(){
         return{
             name:"entry",
+            boxFlex: "240px",
             user:{},
             boxHeight:0,
             keyWords:"",
@@ -122,7 +133,8 @@ export default {
             currentClickProduct:{},
             authorityVisible:false,
             authorityProductId:"",
-            productEdit:false
+            productEdit:false,
+            treeBoxOpen:true
         }
     },
     mounted () {
@@ -159,6 +171,7 @@ export default {
         classifyClose(){
             this.classifyVisible = false
             this.getClassTree()
+            this.$refs.productEntry.refresh(this.currentClickProduct)
         },
         // 新增分类或产品
         addClassify(treeKey,type){
@@ -301,7 +314,17 @@ export default {
         },
         tabChange(activeKey){
             if(activeKey === '2'){
-                this.$refs.productVersionRef.getProductVersion()
+                // this.$refs.productVersionRef.getProductVersion()
+            }
+        },
+        // treeBox展开与关闭
+        openOrCloseTree(){
+            this.treeBoxOpen = !this.treeBoxOpen
+
+            if(this.treeBoxOpen){
+                this.boxFlex = '240px'
+            }else{
+                this.boxFlex = '10px'
             }
         }
     }
@@ -327,6 +350,7 @@ export default {
         gap: 8px;
         align-self: stretch;
         border: 1px solid #DCDCDC;
+        overflow: auto;
     }
 
     .dataBox{
@@ -339,11 +363,27 @@ export default {
         align-self: stretch;
         border: 1px solid#DCDCDC;
         border-left: none;
+        width: calc(100% - 240px);
 
         .entryBox{
             width: 100%;
             height: 100%;
             // border: 1px solid red;
+        }
+
+        .floatBtn{
+            width: 16px;
+            height: 32px;
+            border: 1px solid #DCDCDC;
+            position: absolute;
+            left: 0px;
+            top: calc(50% - 16px);
+            color: black;
+            // box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.20), -1px 0px 8px 0px rgba(241, 189, 46, 0.20);
+
+            .anticon{
+                margin-top: 8px;
+            }
         }
     }
     
@@ -365,5 +405,12 @@ export default {
 }
 :deep(.ant-tree-node-selected .ant-dropdown-trigger){
     color: #369FFF;
+}
+// 树结构title超长时 滚动
+:deep(.ant-tree-title){
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 </style>

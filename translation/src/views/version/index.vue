@@ -373,7 +373,7 @@ export default {
         },
         //是否默认
         handelDefaultChange(record){
-            console.log("default:",record.isDefault)
+            // console.log("default:",record.isDefault)
 
             let status = record.isDefault === 1 ? 0 : 1
             // 非新增和编辑的版本
@@ -394,7 +394,6 @@ export default {
         },
         //是否可选
         handelSelectChange(record){
-            console.log('select:',record.isSelect)
 
             let status = record.isSelect === 1 ? 0 : 1
             // 非新增和编辑的角色

@@ -118,8 +118,8 @@
                         </a-form>
                     </template>
                     <template v-slot:operate>
-                        <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
                         <a-button type="primary" size="middle" @click="getTaskList">查询</a-button>
+                        <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
                     </template>
                 </SearchBox>
                 <DataBox :title="tableTitle" :height="dataHeight" :showOperate="false">
@@ -247,6 +247,10 @@ import {
     exportEntryBytaskId,
     entryExportByCondition
 } from "@/http/api/download"
+import {
+    queryUserPartiality,
+    updateUserPartiality
+} from '@/http/api/userPartiality'
 import { message } from 'ant-design-vue';
 import tableParam from './tableParam';
 export default {
@@ -335,8 +339,10 @@ export default {
         this.box = this.boxHeight
         this.product = this.currentProduct
         this.edit = this.productEdit
-        this.setTableHeight()
-        this.init()
+        this.$nextTick(() => {
+            this.setTableHeight()
+            this.init()
+        })
     },
     watch: {
         boxHeight(newval,oldval){
@@ -445,6 +451,7 @@ export default {
             this.exportTask = record
             this.exportVisible = true
             this.exportTitle = '任务词条导出'
+            this.queryPartiality()
             // let params = {
             //     taskId: record.id
             // }
@@ -536,6 +543,10 @@ export default {
         },
         // 添加版本
         addVersion(){
+            if(Object.keys(this.product).length === 0 || this.product.type === 'classify'){
+                message.info("请选择产品！")
+                return
+            }
             this.currentVersion = {
                 id:"",
                 name:"",
@@ -582,6 +593,7 @@ export default {
             this.exportTitle = '版本词条导出'
             this.exportVersion.id = key
             this.exportVersion.name = title
+            this.queryPartiality()
         },
         exportOK(){
             // 导出
@@ -616,6 +628,8 @@ export default {
                     this.exportVisible = false
                     this.exportLoading = false
                 })
+                // 记录偏好
+                this.exportFieldChange(this.exportModal.field)
             }).catch((err) => {
 
             })
@@ -644,6 +658,29 @@ export default {
             const currentTime = `${year}${month >= 10 ? month : '0' + month}${day >= 10 ? day : '0' + day}`;
             // 将格式化后的时间存入 data 中
             return currentTime;
+        },
+        // 获取用户偏好
+        queryPartiality(){
+            queryUserPartiality().then((res) => {
+                if(res.data.list && res.data.list.length > 0){
+                    let exportColumn = res.data.list[0].exportColumn
+                    if(exportColumn != null && exportColumn != ''){
+                        this.exportModal.field = exportColumn.split(",")
+                    }
+                }
+            })
+        },
+        // 设置偏好
+        updatePartiality(data){
+            updateUserPartiality(data).then((res) => {
+
+            })
+        },
+        exportFieldChange(value){
+            let data = {
+                exportColumn: value.join(',')
+            }
+            this.updatePartiality(data)
         }
     }
 }
@@ -693,6 +730,7 @@ export default {
         align-self: stretch;
         // border: 1px solid#DCDCDC;
         border-left: none;
+        width: calc(100% - 240px);
     }
 }
 .treeIcon{

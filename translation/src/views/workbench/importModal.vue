@@ -18,327 +18,357 @@
                 <div class="taskItem">产品名称：{{task.productName}}</div>
                 <div class="taskItem">翻译语种：{{task.translateType}}</div>
             </div>
-            <div style="width:100%">
-                数据类型：
-                <a-radio-group v-model:value="dataType" @change="dataTypeChange">
-                    <a-radio :value="'file'">文件</a-radio>
-                    <a-radio :value="'ts'">TS</a-radio>
-                    <a-radio :value="'database'">实时库</a-radio>
-                    <a-radio :value="'dictionary'">辞典</a-radio>
-                    <a-radio :value="'config'">配置文件</a-radio>
-                </a-radio-group>
-                <!-- <a-button type="primary" size="small" class="resetBtn" style="float:right" @click="importEntryData">导入</a-button> -->
-            </div>
-            <div class="dataTypeBox" v-if="dataType === 'file'" ref="fileRef">
-                词条文件：
-                <a-input
-                    v-model:value="filePath"
-                    style="width:65%"
-                    size="small"
-                    placeholder="文件名格式：装置: XXX_zz.xlsx ；通用: XXX_common.xlsx"
-                />
-                
-                <a-upload
-                    name="file"
-                    :beforeUpload="beforeUpload"
-                    :accept="accept"
-                    :showUploadList="false"
-                    @change="handleChange"
-                >
-                    <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
-                </a-upload>
-                <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
-                <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
-            </div>
-            <div class="dataTypeBox" v-if="dataType === 'ts'">
-                <a-form
-                ref="tsFormRef"
-                :model="tsFile"
-                style="width:100%"
-                >
-                    <a-form-item
-                    :label="selectTitle" 
-                    name="tsFileValue"
-                    :rules="[{ required: true, message: '请选择ts文件!' }]"
-                    >
-                        <a-select
-                        v-model:value="tsFile.tsFileValue"
-                        mode="multiple"
-                        :max-tag-count="4"
-                        allowClear
-                        style="width: 70%;margin-left:10px"
-                        placeholder="请选择"
-                        size="small"
-                        :options="tsOptions"
+            <div class="platformBox">
+                <a-tabs v-model:activeKey="platformKey">
+                    <a-tab-pane key="device" tab="装置平台">
+                        词条文件：
+                        <a-input
+                            v-model:value="filePath"
+                            style="width:65%"
+                            size="small"
+                            placeholder="文件名格式：装置: XXX_zz.xlsx ；通用: XXX_common.xlsx"
+                        />
+                        
+                        <a-upload
+                            name="file"
+                            :beforeUpload="beforeUpload"
+                            :accept="accept"
+                            :showUploadList="false"
+                            @change="handleChange"
                         >
-                            <template #dropdownRender="{ menuNode: menu }">
-                                <v-nodes :vnodes="menu" />
-                                <a-divider style="margin: 4px 0" />
-                                <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
-                                    <a-button type="link" @click="selectAllTs">全选</a-button>
-                                    <a-button type="link" @click="clearAllTs">清空</a-button>
-                                </div>
-                            </template>
-                        </a-select>
-                        <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                    </a-form-item>
-                </a-form>
-            </div>
-            <div class="dataTypeBox" v-if="dataType === 'dictionary'" ref="dicRef">
-                <a-radio-group v-model:value="dictionaryType" :options="dictionaryOptions">
-                </a-radio-group>
-                <span v-if="dictionaryOptions.length === 0" style="font-size:12px;color:rgba(0, 0, 0, 0.40);margin-left:45%">暂无数据</span>
-                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-            </div>
-            <div class="dataTypeBox" v-if="dataType === 'database'" style="padding-top:0px" ref="dataSourceRef">
-                <a-tabs v-model:activeKey="dataLibrary.type" size="small" style="width:100%" @change="changeDataLibraryType">
-                    <a-tab-pane key="field" tab="字段"></a-tab-pane>
-                    <a-tab-pane key="alias" tab="元数据"></a-tab-pane>
-                    <a-tab-pane key="allData" tab="全量"></a-tab-pane>
-                </a-tabs>
-                <a-form
-                ref="fieldFormRef"
-                name="advanced_search"
-                class="ant-advanced-search-form"
-                :model="dataLibrary"
-                style="width:100%"
-                v-if="dataLibrary.type === 'field'"
-                >
-                    <a-row :gutter="24">
-                        <a-col :span="8">
-                            <a-form-item 
-                            label="数据库" 
-                            name="table"
-                            :rules="[{ required: true, message: '请选择数据库!' }]"
-                            >
-                                <a-tree-select
-                                    v-model:value="dataLibrary.table"
-                                    tree-data-simple-mode
-                                    allowClear
-                                    style="width: 100%"
-                                    :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-                                    :tree-data="treeData"
-                                    placeholder="请选择表"
-                                    :load-data="onLoadData"
-                                    :show-checked-strategy="SHOW_PARENT"
-                                    @select="treeSelect"
-                                    size="small"
-                                />
-                            </a-form-item>
-                        </a-col>
-                        <a-col :span="8">
-                            <a-form-item 
-                            label="字段"
-                            name="field"
-                            :rules="[{ required: true, message: '请选择字段!' }]"
-                            >
-                                <a-select
-                                v-model:value="dataLibrary.field"
-                                mode="multiple"
-                                allowClear
-                                placeholder="请选择字段"
-                                :options="fieldOptions"
-                                :max-tag-count="3"
+                            <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
+                        </a-upload>
+                        <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
+                        <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
+                    </a-tab-pane>
+                    <a-tab-pane key="unify" tab="一体化平台">
+                        <div style="width:100%;margin-bottom:5px">
+                            数据类型：
+                            <a-radio-group v-model:value="dataType" @change="dataTypeChange">
+                                <a-radio :value="'file'">文件</a-radio>
+                                <a-radio :value="'ts'">TS</a-radio>
+                                <a-radio :value="'database'">实时库</a-radio>
+                                <a-radio :value="'dictionary'">辞典</a-radio>
+                                <a-radio :value="'config'">配置文件</a-radio>
+                                <a-radio :value="'enum'">枚举文件</a-radio>
+                            </a-radio-group>
+                            <!-- <a-button type="primary" size="small" class="resetBtn" style="float:right" @click="importEntryData">导入</a-button> -->
+                        </div>
+                        <div class="dataTypeBox" v-if="dataType === 'file'" ref="fileRef">
+                            词条文件：
+                            <a-input
+                                v-model:value="filePath"
+                                style="width:65%"
                                 size="small"
-                                >
-                                    <template #dropdownRender="{ menuNode: menu }">
-                                        <v-nodes :vnodes="menu" />
-                                        <a-divider style="margin: 4px 0" />
-                                        <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
-                                            <a-button type="link" @click="selectAllField">全选</a-button>
-                                            <a-button type="link" @click="clearAllField">清空</a-button>
-                                        </div>
-                                    </template>
-                                </a-select>
-                            </a-form-item>
-                        </a-col>
-                        <a-col :span="8">
-                            <a-form-item 
-                            label="回写辞典"
-                            name="diFileName"
-                            :rules="[{ required: true, message: '请选择回写辞典!' }]"
+                                placeholder="文件名格式：装置: XXX_zz.xlsx ；通用: XXX_common.xlsx"
+                            />
+                            
+                            <a-upload
+                                name="file"
+                                :beforeUpload="beforeUpload"
+                                :accept="accept"
+                                :showUploadList="false"
+                                @change="handleChange"
                             >
-                                <a-select
-                                v-model:value="dataLibrary.diFileName"
-                                allowClear
-                                placeholder="请选择翻译数据回写辞典目录"
-                                :options="dictionaryOptions"
-                                style="width:70%"
-                                size="small"
-                                >
-                                </a-select>
-                                <!-- <a-tooltip placement="top">
-                                    <template #title>
-                                    <span>添加辞典</span>
-                                    </template>
-                                    <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                </a-tooltip> -->
-                                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                            </a-form-item>
-                        </a-col>
-                    </a-row>
-                </a-form>
-                <a-form
-                ref="aliasFormRef"
-                name="advanced_search"
-                class="ant-advanced-search-form"
-                :model="dataLibrary"
-                style="width:100%"
-                v-if="dataLibrary.type === 'alias'"
-                >
-                    <a-row :gutter="24">
-                        <a-col :span="8">
-                            <a-form-item 
-                            label="数据库"
-                            name="table"
-                            :rules="[{ required: true, message: '请选择库!' }]"
+                                <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
+                            </a-upload>
+                            <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
+                            <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
+                        </div>
+                        <div class="dataTypeBox" v-if="dataType === 'ts'">
+                            <a-form
+                            ref="tsFormRef"
+                            :model="tsFile"
+                            style="width:100%"
                             >
-                                <a-tree-select
-                                    v-model:value="dataLibrary.table"
-                                    tree-data-simple-mode
+                                <a-form-item
+                                :label="selectTitle" 
+                                name="tsFileValue"
+                                :rules="[{ required: true, message: '请选择ts文件!' }]"
+                                >
+                                    <a-select
+                                    v-model:value="tsFile.tsFileValue"
+                                    mode="multiple"
+                                    :max-tag-count="4"
                                     allowClear
-                                    style="width: 100%"
-                                    :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-                                    :tree-data="treeData"
-                                    placeholder="请选择库"
-                                    :load-data="onLoadData"
-                                    @select="treeSelect"
-                                    size="small"
-                                />
-                            </a-form-item>
-                        </a-col>
-                        <a-col :span="8">
-                            <a-form-item label="限制长度">
-                                <a-input-number
-                                    v-model:value="dataLibrary.maxLength"
-                                    style="width:100%"
-                                    size="small"
-                                    placeholder="请输入限制长度"
-                                />
-                            </a-form-item>
-                        </a-col>
-                        <a-col :span="8">
-                            <a-form-item 
-                            label="回写辞典"
-                            name="diFileName"
-                            :rules="[{ required: true, message: '请选择回写辞典!' }]"
-                            >
-                                <a-select
-                                v-model:value="dataLibrary.diFileName"
-                                allowClear
-                                placeholder="请选择翻译数据回写辞典目录"
-                                :options="dictionaryOptions"
-                                style="width:80%"
-                                size="small"
-                                >
-                                </a-select>
-                                <!-- <a-tooltip placement="top">
-                                    <template #title>
-                                    <span>添加辞典</span>
-                                    </template>
-                                    <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                </a-tooltip> -->
-                                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                            </a-form-item>
-                        </a-col>
-                    </a-row>
-                </a-form>
-                <a-form
-                ref="allDataFormRef"
-                name="advanced_search"
-                class="ant-advanced-search-form"
-                :model="dataLibrary"
-                style="width:100%"
-                v-if="dataLibrary.type === 'allData'"
-                >
-                    <a-row :gutter="24">
-                        <a-col :span="12">
-                            <a-form-item 
-                            label="数据库"
-                            name="tables"
-                            :rules="[{ required: true, message: '请选择!' }]"
-                            >
-                                <a-tree-select
-                                    v-model:value="dataLibrary.tables"
-                                    allowClear
-                                    tree-data-simple-mode
-                                    style="width: 100%"
-                                    :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-                                    :tree-data="treeData"
+                                    style="width: 70%;margin-left:10px"
                                     placeholder="请选择"
-                                    :load-data="onLoadData"
-                                    :maxTagCount="3"
-                                    tree-checkable
-                                    :show-checked-strategy="SHOW_PARENT"
-                                    @select="treeBatchSelect"
                                     size="small"
-                                />
-                            </a-form-item>
-                        </a-col>
-                        <a-col :span="12">
-                            <a-form-item 
-                            label="回写辞典"
-                            name="diFileName"
-                            :rules="[{ required: true, message: '请选择回写辞典!' }]"
+                                    :options="tsOptions"
+                                    >
+                                        <template #dropdownRender="{ menuNode: menu }">
+                                            <v-nodes :vnodes="menu" />
+                                            <a-divider style="margin: 4px 0" />
+                                            <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
+                                                <a-button type="link" @click="selectAllTs">全选</a-button>
+                                                <a-button type="link" @click="clearAllTs">清空</a-button>
+                                            </div>
+                                        </template>
+                                    </a-select>
+                                    <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                                </a-form-item>
+                            </a-form>
+                        </div>
+                        <div class="dataTypeBox" v-if="dataType === 'dictionary'" ref="dicRef">
+                            <a-radio-group v-model:value="dictionaryType" :options="dictionaryOptions">
+                            </a-radio-group>
+                            <span v-if="dictionaryOptions.length === 0" style="font-size:12px;color:rgba(0, 0, 0, 0.40);margin-left:45%">暂无数据</span>
+                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                        </div>
+                        <div class="dataTypeBox" v-if="dataType === 'database'" style="padding-top:0px" ref="dataSourceRef">
+                            <a-tabs v-model:activeKey="dataLibrary.type" size="small" style="width:100%" @change="changeDataLibraryType">
+                                <a-tab-pane key="field" tab="字段"></a-tab-pane>
+                                <a-tab-pane key="alias" tab="元数据"></a-tab-pane>
+                                <a-tab-pane key="allData" tab="全量"></a-tab-pane>
+                            </a-tabs>
+                            <a-form
+                            ref="fieldFormRef"
+                            name="advanced_search"
+                            class="ant-advanced-search-form"
+                            :model="dataLibrary"
+                            style="width:100%"
+                            v-if="dataLibrary.type === 'field'"
                             >
-                                <a-select
-                                v-model:value="dataLibrary.diFileName"
-                                allowClear
-                                placeholder="请选择翻译数据回写辞典目录"
-                                :options="dictionaryOptions"
-                                style="width:80%"
-                                size="small"
+                                <a-row :gutter="24">
+                                    <a-col :span="8">
+                                        <a-form-item 
+                                        label="数据库" 
+                                        name="table"
+                                        :rules="[{ required: true, message: '请选择数据库!' }]"
+                                        >
+                                            <a-tree-select
+                                                v-model:value="dataLibrary.table"
+                                                tree-data-simple-mode
+                                                allowClear
+                                                style="width: 100%"
+                                                :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+                                                :tree-data="treeData"
+                                                placeholder="请选择表"
+                                                :load-data="onLoadData"
+                                                :show-checked-strategy="SHOW_PARENT"
+                                                @select="treeSelect"
+                                                size="small"
+                                            />
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :span="8">
+                                        <a-form-item 
+                                        label="字段"
+                                        name="field"
+                                        :rules="[{ required: true, message: '请选择字段!' }]"
+                                        >
+                                            <a-select
+                                            v-model:value="dataLibrary.field"
+                                            mode="multiple"
+                                            allowClear
+                                            placeholder="请选择字段"
+                                            :options="fieldOptions"
+                                            :max-tag-count="3"
+                                            size="small"
+                                            >
+                                                <template #dropdownRender="{ menuNode: menu }">
+                                                    <v-nodes :vnodes="menu" />
+                                                    <a-divider style="margin: 4px 0" />
+                                                    <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
+                                                        <a-button type="link" @click="selectAllField">全选</a-button>
+                                                        <a-button type="link" @click="clearAllField">清空</a-button>
+                                                    </div>
+                                                </template>
+                                            </a-select>
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :span="8">
+                                        <a-form-item 
+                                        label="回写辞典"
+                                        name="diFileName"
+                                        :rules="[{ required: true, message: '请选择回写辞典!' }]"
+                                        >
+                                            <a-select
+                                            v-model:value="dataLibrary.diFileName"
+                                            allowClear
+                                            placeholder="请选择翻译数据回写辞典目录"
+                                            :options="dictionaryOptions"
+                                            style="width:70%"
+                                            size="small"
+                                            >
+                                            </a-select>
+                                            <!-- <a-tooltip placement="top">
+                                                <template #title>
+                                                <span>添加辞典</span>
+                                                </template>
+                                                <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
+                                            </a-tooltip> -->
+                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                                        </a-form-item>
+                                    </a-col>
+                                </a-row>
+                            </a-form>
+                            <a-form
+                            ref="aliasFormRef"
+                            name="advanced_search"
+                            class="ant-advanced-search-form"
+                            :model="dataLibrary"
+                            style="width:100%"
+                            v-if="dataLibrary.type === 'alias'"
+                            >
+                                <a-row :gutter="24">
+                                    <a-col :span="8">
+                                        <a-form-item 
+                                        label="数据库"
+                                        name="table"
+                                        :rules="[{ required: true, message: '请选择库!' }]"
+                                        >
+                                            <a-tree-select
+                                                v-model:value="dataLibrary.table"
+                                                tree-data-simple-mode
+                                                allowClear
+                                                style="width: 100%"
+                                                :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+                                                :tree-data="treeData"
+                                                placeholder="请选择库"
+                                                :load-data="onLoadData"
+                                                @select="treeSelect"
+                                                size="small"
+                                            />
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :span="8">
+                                        <a-form-item label="限制长度">
+                                            <a-input-number
+                                                v-model:value="dataLibrary.maxLength"
+                                                style="width:100%"
+                                                size="small"
+                                                placeholder="请输入限制长度"
+                                            />
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :span="8">
+                                        <a-form-item 
+                                        label="回写辞典"
+                                        name="diFileName"
+                                        :rules="[{ required: true, message: '请选择回写辞典!' }]"
+                                        >
+                                            <a-select
+                                            v-model:value="dataLibrary.diFileName"
+                                            allowClear
+                                            placeholder="请选择翻译数据回写辞典目录"
+                                            :options="dictionaryOptions"
+                                            style="width:80%"
+                                            size="small"
+                                            >
+                                            </a-select>
+                                            <!-- <a-tooltip placement="top">
+                                                <template #title>
+                                                <span>添加辞典</span>
+                                                </template>
+                                                <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
+                                            </a-tooltip> -->
+                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                                        </a-form-item>
+                                    </a-col>
+                                </a-row>
+                            </a-form>
+                            <a-form
+                            ref="allDataFormRef"
+                            name="advanced_search"
+                            class="ant-advanced-search-form"
+                            :model="dataLibrary"
+                            style="width:100%"
+                            v-if="dataLibrary.type === 'allData'"
+                            >
+                                <a-row :gutter="24">
+                                    <a-col :span="12">
+                                        <a-form-item 
+                                        label="数据库"
+                                        name="tables"
+                                        :rules="[{ required: true, message: '请选择!' }]"
+                                        >
+                                            <a-tree-select
+                                                v-model:value="dataLibrary.tables"
+                                                allowClear
+                                                tree-data-simple-mode
+                                                style="width: 100%"
+                                                :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+                                                :tree-data="treeData"
+                                                placeholder="请选择"
+                                                :load-data="onLoadData"
+                                                :maxTagCount="3"
+                                                tree-checkable
+                                                :show-checked-strategy="SHOW_PARENT"
+                                                @select="treeBatchSelect"
+                                                size="small"
+                                            />
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :span="12">
+                                        <a-form-item 
+                                        label="回写辞典"
+                                        name="diFileName"
+                                        :rules="[{ required: true, message: '请选择回写辞典!' }]"
+                                        >
+                                            <a-select
+                                            v-model:value="dataLibrary.diFileName"
+                                            allowClear
+                                            placeholder="请选择翻译数据回写辞典目录"
+                                            :options="dictionaryOptions"
+                                            style="width:80%"
+                                            size="small"
+                                            >
+                                            </a-select>
+                                            <!-- <a-tooltip placement="top">
+                                                <template #title>
+                                                <span>添加辞典</span>
+                                                </template>
+                                                <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
+                                            </a-tooltip> -->
+                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                                        </a-form-item>
+                                    </a-col>
+                                </a-row>
+                            </a-form>
+                        </div>
+                        <div class="dataTypeBox" v-if="dataType === 'config' || dataType === 'enum'" ref="configRef">
+                            <a-form
+                            ref="configFormRef"
+                            name="advanced_search"
+                            class="ant-advanced-search-form"
+                            :model="configFile"
+                            style="width:100%"
+                            >
+                                <a-form-item
+                                label="回写辞典目录"
+                                name="dict"
+                                :rules="[{ required: true, message: '请选择回写辞典!' }]"
                                 >
-                                </a-select>
-                                <!-- <a-tooltip placement="top">
-                                    <template #title>
-                                    <span>添加辞典</span>
-                                    </template>
-                                    <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                </a-tooltip> -->
-                                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                            </a-form-item>
-                        </a-col>
-                    </a-row>
-                </a-form>
+                                    <a-select
+                                    v-model:value="configFile.dict"
+                                    allowClear
+                                    placeholder="请选择翻译数据回写辞典目录"
+                                    :options="dictionaryOptions"
+                                    style="width:50%"
+                                    size="small"
+                                    >
+                                    </a-select>
+                                    <!-- <a-tooltip placement="top">
+                                        <template #title>
+                                        <span>添加辞典</span>
+                                        </template>
+                                        <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
+                                    </a-tooltip> -->
+                                    <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                                </a-form-item>
+                            </a-form>
+                        </div>
+                    </a-tab-pane>
+                </a-tabs>
             </div>
-            <div class="dataTypeBox" v-if="dataType === 'config'" ref="configRef">
-                <a-form
-                ref="configFormRef"
-                name="advanced_search"
-                class="ant-advanced-search-form"
-                :model="configFile"
-                style="width:100%"
-                >
-                    <a-form-item
-                    label="回写辞典目录"
-                    name="dict"
-                    :rules="[{ required: true, message: '请选择回写辞典!' }]"
-                    >
-                        <a-select
-                        v-model:value="configFile.dict"
-                        allowClear
-                        placeholder="请选择翻译数据回写辞典目录"
-                        :options="dictionaryOptions"
-                        style="width:50%"
-                        size="small"
-                        >
-                        </a-select>
-                        <!-- <a-tooltip placement="top">
-                            <template #title>
-                            <span>添加辞典</span>
-                            </template>
-                            <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                        </a-tooltip> -->
-                        <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                    </a-form-item>
-                </a-form>
-            </div>
+            
+            
             <div class="form">
                 词条：
                 <a-input
                     v-model:value="keyWords"
-                    style="width:40%"
+                    style="width:30%"
                     size="small"
                     placeholder='请输入词条搜索'
                 />
@@ -357,30 +387,39 @@
                     <a-radio value="中文">中文</a-radio>
                     <a-radio value="英文">英文</a-radio>
                 </a-radio-group>
-                <a-popover
-                    trigger="click"
-                    placement="leftTop"
-                    :overlayStyle="overlayStyle"
-                >
-                    <template #content>
-                        <a-checkbox-group
-                            v-model:value="checkedColumn"
-                            @change="changeColumn"
-                        >
-                            <a-row
-                                v-for="item in checkboxList"
-                                :key="item.value"
+                <div style="margin-left:auto">
+
+                    <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAllEntry">
+                        选择全部
+                    </a-button>
+                    <a-button type="primary" size="small" style="margin-left:8px" @click="clearAllEntry">
+                        取消选择
+                    </a-button> -->
+                    <a-popover
+                        trigger="click"
+                        placement="leftTop"
+                        :overlayStyle="overlayStyle"
+                    >
+                        <template #content>
+                            <a-checkbox-group
+                                v-model:value="checkedColumn"
+                                @change="changeColumn"
                             >
-                                <a-col :span="24">
-                                    <a-checkbox :value="item.value">
-                                        {{ item.label }}
-                                    </a-checkbox>
-                                </a-col>
-                            </a-row>
-                        </a-checkbox-group>
-                    </template>
-                    <a-button type="primary" size="small" style="margin-left:auto"><template #icon><SettingOutlined /></template>展示列</a-button>
-                </a-popover>
+                                <a-row
+                                    v-for="item in checkboxList"
+                                    :key="item.value"
+                                >
+                                    <a-col :span="24">
+                                        <a-checkbox :value="item.value">
+                                            {{ item.label }}
+                                        </a-checkbox>
+                                    </a-col>
+                                </a-row>
+                            </a-checkbox-group>
+                        </template>
+                        <a-button type="primary" size="small" style="margin-left:8px"><template #icon><SettingOutlined /></template>展示列</a-button>
+                    </a-popover>
+                </div>
             </div>
             <a-table 
             bordered
@@ -394,11 +433,16 @@
             :rowClassName="getRowClassName"
             :customRow="customRow"
             :expandIconColumnIndex="2"
-            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange,getCheckboxProps:record => ({
-                disabled: record.parentID != '' ? true : false})
+            :row-selection="{selectedRowKeys: selectedRowKeys, 
+                onChange: onSelectChange,
+                selections:[
+                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                ]
             }"
             ref="workTable"
             @resizeColumn="handleResizeColumn"
+            @change="handleTableChange"
             >
                 <template #bodyCell="{ column, text, record }">
                     <template v-if="['entry','english','russian','spanish','french'].includes(column.dataIndex)">
@@ -420,7 +464,7 @@
                             </template>
                         </div>
                     </template>
-                    <template v-if="['chineseInterpretation','englishInterpretation','entryLabel'].includes(column.dataIndex)">
+                    <template v-if="['chineseInterpretation','englishInterpretation'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
                                 <a-input
@@ -455,6 +499,35 @@
                         <template v-if="record.isExist === 1">
                             <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
                         </template>
+                    </template>
+                    <template v-if="column.dataIndex === 'entryLabel'">
+                        <div>
+                            <template v-if="editableData[record.id]">
+                                <a-input
+                                    v-model:value="editableData[record.id][column.dataIndex]"
+                                    style="margin: -5px 0;width:90%"
+                                    @pressEnter="inputPressEnter(record)"
+                                />
+                                <a-tooltip placement="top">
+                                    <template #title>
+                                    <span>多个Tag按分号分割！</span>
+                                    </template>
+                                    <InfoCircleOutlined style="margin-left:3px"/>
+                                </a-tooltip>
+                            </template>
+                            <template v-else>
+                                <!-- {{ text }} -->
+                                <span>
+                                    <a-tag
+                                    v-for="(tag,index) in companyCut(text)"
+                                    :key="index"
+                                    color="cyan"
+                                    >
+                                        {{tag}}
+                                    </a-tag>
+                                </span>
+                            </template>
+                        </div>
                     </template>
                     <!-- <template v-else-if="column.dataIndex === 'label'">
                         <div class="editable-row-operations">
@@ -513,13 +586,13 @@
                         :value="selectedKeys[0]"
                         style="width: 188px; margin-bottom: 8px; display: block"
                         @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                        @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                        @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
                         />
                         <a-button
                         type="primary"
                         size="small"
                         style="width: 90px; margin-right: 8px"
-                        @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)"
+                        @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
                         >
                         <template #icon><SearchOutlined /></template>搜索</a-button>
                         <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
@@ -584,7 +657,7 @@
                 name="type"
                 :rules="[{ required: true, message: '请选择模板类型!' }]"
                 >
-                    <a-select v-model:value="templateObj.type">
+                    <a-select v-model:value="templateObj.type" placeholder="请选择">
                         <a-select-option value="zz">装置</a-select-option>
                         <a-select-option value="common">通用</a-select-option>
                     </a-select>
@@ -599,7 +672,7 @@ import { add, cloneDeep, iteratee } from 'lodash-es';
 import { message ,Modal} from 'ant-design-vue';
 import { defineComponent, ref, createVNode } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
-import { TreeSelect } from 'ant-design-vue';
+import { TreeSelect,Table } from 'ant-design-vue';
 import {
     CheckOutlined,
     CloseOutlined,
@@ -611,7 +684,8 @@ import {
     SearchOutlined,
     DeleteOutlined,
     DownOutlined,
-    UpOutlined
+    UpOutlined,
+    InfoCircleOutlined
 } from '@ant-design/icons-vue';
 import {
     getFileListByLang,
@@ -626,6 +700,7 @@ import {
     getFieldData,
     getAlias,
     getConfigEntry,
+    getEnumEntry,
     createDic,
     getDBALLEntryByApp,
     getDBALLEntryByNode,
@@ -647,6 +722,7 @@ import{
 } from '@/http/api/download'
 import workbenchCommon from '@/views/workbench/common.js';
 import common from '../entry/common';
+const filteredInfo = {};
 export default {
     components:{
         CheckOutlined,
@@ -661,6 +737,7 @@ export default {
         DeleteOutlined,
         DownOutlined,
         UpOutlined,
+        InfoCircleOutlined,
         VNodes: (_, { attrs }) => {
             return attrs.vnodes;
         },
@@ -690,23 +767,23 @@ export default {
             filePath:"",
             keyWords:"",
             dataType:'file',
-            tableHeight: { x:'100%',y: '330px' },
+            tableHeight: { x:'100%',y: '300px' },
             loading:false,
             columns: [
                 {title: "序号",dataIndex: 'index',width:90,customRender: (text, record, index, column) => {
                     return text.index + 1
-                },fixed: 'left',index:0},
-                {title: '存在状态',dataIndex: 'isExist',align:'center',width:100,fixed: 'left',index:1},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',fixed: 'left',width:150,resizable: true,index:2},
-                {title: '词条',dataIndex: 'entry',width:200,resizable: true,index:3,align:'center',
-                    customFilterDropdown: true,
-                    onFilter: (value, record) =>
-                    record.entry.toString().toLowerCase().includes(value.toLowerCase()),
+                },fixed: 'left',index:0,},
+                {title: '存在状态',dataIndex: 'isExist',align:'center',width:120,fixed: 'left',index:1,
+                    filteredValue: null,
+                    filters: [{text: '已存在',value: 1,},{text: '新建',value: 0,}],
+                    onFilter: (value, record) => record.isExist === value,
                 },
+                {title: 'Abbr',key:"abbr",dataIndex: 'abbr',align:'center',fixed: 'left',width:150,resizable: true,index:2},
+                {title: '词条',dataIndex: 'entry',width:200,resizable: true,index:3,align:'center',},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:200,resizable: true,index:4},
                 {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true,index:5},
                 {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true,index:6},
-                // {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:200},
+                // {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:200},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:150,resizable: true,index:99},
                 // {title: '来源',dataIndex: 'entrySource',align:'center',width:150,resizable: true},
                 {title: '词条状态',dataIndex: 'entryState',align:'center',width:100,fixed: 'right',index:100},
@@ -773,13 +850,15 @@ export default {
                 searchText: '',
                 searchedColumn: '',
             },
-            clearFilters: null,
+            filters: null,
+            filteredData:[],
             filterLanguage:null,
             filterSource:[],
             templateVisible: false,
             templateObj:{
                 type:null
             },
+            platformKey:'device'
         }
     },
     
@@ -902,10 +981,21 @@ export default {
 
             // 保存操作 将保存所有词条(allData) 改为 保存已勾选的词条 
             this.selectedRows.forEach(item => {
+                if(item.parentID != '' && item.parentID != null){
+                    // 存在父id的过滤掉
+                    return
+                }
                 
                 if((item.englishInterpretation === null || item.englishInterpretation === '')
                 && (item.chineseInterpretation === null || item.chineseInterpretation === '')){
                     notInterpretation.push(item)
+                }
+                // 聚合的子词条翻译和父一致
+                if(item.children && item.children.length > 0){
+                    item.children.forEach(child => {
+                        child[languageCode] = item[languageCode]
+                        child[languageCode+"TranslateState"] = item[languageCode+"TranslateState"]
+                    })
                 }
 
                 if(item.entryState === 2){
@@ -914,11 +1004,11 @@ export default {
                 }else if(item.entryState === 1){
                     addArr.push(item)
                 }
+                
             })
-
             if(notInterpretation.length > 0){
                 Modal.confirm({
-                    title: '含有中文释义和中文释义都不存在的词条，是否继续保存?',
+                    title: '保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?',
                     icon: createVNode(ExclamationCircleOutlined),
                     content: '',
                     okText: '是',
@@ -934,30 +1024,6 @@ export default {
             }else{
                 this.insertOrUpdateEntrys(addArr,updateArr)
             }
-
-            // let params = {
-            //     taskID: this.task.id
-            // }
-            // if(addArr.length > 0){
-            //     // 新增
-            //     insertEntry(params,addArr).then((res) => {
-            //         message.success('数据已保存！')
-            //         this.saveLoading = false
-            //         this.afterClose()
-            //     }).catch((err) => {
-            //         this.saveLoading = false
-            //     })
-            // }
-            // if(updateArr.length > 0){
-            //     // 编辑
-            //     updateEntryList(params,updateArr).then((res) => {
-            //         message.success('数据已保存！')
-            //         this.saveLoading = false
-            //         this.afterClose()
-            //     }).catch((err) => {
-            //         this.saveLoading = false
-            //     })
-            // }
         },
         // 
         insertOrUpdateEntrys(addArr,updateArr){
@@ -1114,6 +1180,9 @@ export default {
                 this.selectTitle = "选择文件"
                 this.getTsFiles()
             }else if(this.dataType === 'config'){
+                this.configFile.dict = null
+                this.getDictionary()
+            }else if(this.dataType === 'enum'){
                 this.configFile.dict = null
                 this.getDictionary()
             }
@@ -1450,6 +1519,30 @@ export default {
                     this.loading = false
                     this.importBtnLoading = false
                 })
+            }else if(this.dataType === 'enum'){
+                // 配置文件数据导入
+                this.$refs.configFormRef.validate().then(() => {
+                    let params = {
+                        diFileName: this.configFile.dict,
+                        taskID: this.task.id,
+                        versionID: this.task.versionId ? this.task.versionId : "",
+                        translateType : this.task.translateType, 
+                    }
+                    getEnumEntry(params).then((res) => {
+                        this.dataSource = res.data.list
+                        this.sortArray(this.dataSource,'isExist')
+                        this.allData = this.dataSource
+                        this.loading = false
+                        this.importBtnLoading = false
+                    }).catch((err) => {
+                        this.loading = false
+                        this.importBtnLoading = false
+                        message.error("数据获取失败！")
+                    })
+                }).catch((err) => {
+                    this.loading = false
+                    this.importBtnLoading = false
+                })
             }
             
         },
@@ -1766,10 +1859,8 @@ export default {
             }
             this.pagination.current = 1
             this.pagination.pageSize = 20
-            if(this.clearFilters){
-                this.clearFilters({confirm:true})
-                this.state.searchText = ''
-            }
+            this.clearFilters()
+            
         },
         
         // 创建辞典
@@ -1815,7 +1906,6 @@ export default {
                         dataIndex: value.value,
                         align: "center",
                         width: 200,
-                        ellipsis: true,
                         resizable: true,
                         index: value.index
                     };
@@ -1826,6 +1916,7 @@ export default {
                         // 添加词条来源可筛选
                         newCol.width = 250,
                         newCol.customFilterDropdown = true
+                        newCol.filteredValue = null
                         newCol.onFilter = eval('(value, record) => record.entrySource.toString().toLowerCase().includes(value.toLowerCase())')
                     }
                     this.columns.splice(-1, 0, newCol);
@@ -1839,11 +1930,10 @@ export default {
             })
         },
         // 列筛选
-        handleSearch(selectedKeys, confirm, dataIndex,clearFilters){
+        handleSearch(selectedKeys, confirm, dataIndex){
             confirm();
             this.state.searchText = selectedKeys[0];
             this.state.searchedColumn = dataIndex;
-            this.clearFilters = clearFilters
         },
         handleReset(clearFilters){
             clearFilters({ confirm: true });
@@ -1854,7 +1944,7 @@ export default {
             if(type === 'full'){
                 this.tableHeight.y = height - 370
             }else if(type === 'reduce'){
-                this.tableHeight.y = '330px'
+                this.tableHeight.y = '300px'
             }
             
         },
@@ -1907,7 +1997,81 @@ export default {
                     this.loading = false
                 })
             }
-        }
+        },
+        // 表格change事件
+        handleTableChange(pagination, filters) {
+            this.filters = filters
+            for (let key in filters) {
+                this.columns.forEach(col => {
+                    if(col.dataIndex === key){
+                        col.filteredValue = filters[key]
+                    }
+                })
+			}
+            // 获取筛选后的数据
+            let isExistData = this.dataSource.filter(item => {
+                return filters.isExist && filters.isExist.includes(item.isExist);
+            });
+            let sourceData = this.dataSource.filter(item => {
+                return filters.entrySource && item.entrySource.includes(filters.entrySource);
+            });
+            this.filteredData = this.intersection(isExistData,sourceData)
+        },
+        // 两个数组取并集
+        intersection(nums1, nums2) {
+            if(nums1.length === 0){
+                return nums2
+            }
+            if(nums2.length === 0){
+                return nums1
+            }
+            let a=new Set(nums1);
+            let b=new Set(nums2);
+            let arr = Array.from(new Set([...b].filter(x => a.has(x))));
+            return arr;
+        },
+        // 清空表格筛选条件
+        clearFilters(){
+            if(this.filters){
+                for (let key in this.filters) {
+                    this.columns.forEach(col => {
+                        if(col.dataIndex === key){
+                            col.filteredValue = null
+                        }
+                    })
+                }
+            }
+        },
+        selectAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            if(this.filters && (this.filters.isExist || this.filters.entrySource)){
+                this.filteredData.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                    this.selectedRows.push(item)
+                })
+            }else{
+                this.dataSource.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                    this.selectedRows.push(item)
+                })
+            }
+        },
+        clearAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
+        // 切割字符串
+        companyCut(message){
+            let res = []
+            if(message === null || message === ''){
+                return res
+            }
+            const regex = /[;；]/;
+            res = message.split(regex)
+            res = res.filter(item => item != '')
+            return res
+        },
     }
 }
 </script>
@@ -1939,6 +2103,14 @@ export default {
             flex: 1 0 0;
         }
     }
+    .platformBox{
+        width: 100%;
+        background-color: white;
+        padding: 0px 16px 16px 16px;
+        border-radius: 4px;
+    }
+
+
     .dataTypeBox{
         // display: flex;
         // align-items: center;
@@ -1947,7 +2119,7 @@ export default {
         border-radius: 4px;
         background-color: white;
         padding: 16px;
-
+        border: 1px solid #f0f0f0;
         :deep(.ant-tabs-nav){
             margin-bottom: 10px;
         }

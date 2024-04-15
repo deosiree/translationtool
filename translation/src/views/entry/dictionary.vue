@@ -67,7 +67,7 @@
                 bordered>
                     <template #bodyCell="{ column, text }">
                         <template v-if="column.dataIndex === 'translation'">
-                            <pre>{{ prettyJson(text) }}</pre>
+                            <pre>{{ text }}</pre>
                         </template>
                     </template>
                 </a-table>

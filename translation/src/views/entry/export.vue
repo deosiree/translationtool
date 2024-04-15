@@ -136,11 +136,11 @@ export default {
 
         // 文件状态改变时触发的事件
         handleChange(info) {
-          console.log(info)
+        //   console.log(info)
           const status = info.file.status;
-          console.log(status)
+        //   console.log(status)
           if (status !== 'uploading') {
-            console.log(info.file, info.fileList);
+            // console.log(info.file, info.fileList);
           }
           if (status === 'done') {
             message.success(`${info.file.name} 文件上传成功！`);

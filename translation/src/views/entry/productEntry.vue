@@ -1,10 +1,9 @@
 <template>
     <div class="productEntryBox" ref="productEntryBox">
-        <SearchBox ref="search" :operate="false">
+        <SearchBox ref="search" @change="setTableHeight">
             <template v-slot:form>
                 <a-form
                     :model="search"
-                    name="horizontal_login"
                     layout="inline"
                     autocomplete="off"
                     :label-col="labelCol"
@@ -28,7 +27,6 @@
                     >
                         <a-select
                         v-model:value="search.entryState"
-                        style="width: 186px"
                         placeholder="请选择"
                         >
                             <a-select-option value="0">新建</a-select-option>
@@ -38,7 +36,7 @@
                         </a-select>
                     </a-form-item>
                     <a-form-item
-                    label="TAG"
+                    label="Tag"
                     name="entryLabel"
                     >
                         <a-input v-model:value="search.entryLabel" placeholder="请输入内容"></a-input>
@@ -50,23 +48,28 @@
                         <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
                         <a-select
                         v-model:value="search.classfy2"
-                        style="width: 200px"
                         placeholder="请选择"
                         :fieldNames="{label:'name',value:'name'}"
                         :options='classify2Option'
                         >
                         </a-select>
                     </a-form-item>
-                    <a-form-item>
+                    <a-form-item
+                    label="词条来源"
+                    name="entrySource"
+                    >
+                        <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
+                    </a-form-item>
+                    <!-- <a-form-item>
                         <a-button type="primary" size="middle" @click="getEntryByVersion">查询</a-button>
                         <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin-left:8px">重置</a-button>
-                    </a-form-item>
+                    </a-form-item> -->
                 </a-form>
             </template>
-            <!-- <template v-slot:operate>
-                <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+            <template v-slot:operate>
                 <a-button type="primary" size="middle" @click="getEntryByVersion">查询</a-button>
-            </template> -->
+                <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin-left:8px">重置</a-button>
+            </template>
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:label>
@@ -84,15 +87,14 @@
             </template>
             <template v-slot:operate>
                 <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-                    <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button>
                     <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
                     
-                    <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag">选择全部</a-button>
+                    <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
                     <a-button type="primary" size="small" @click="cancelCreate" class="yellowBtn" v-if="createVersionFlag">取消选择</a-button>
                     <a-badge :count="selectEntry.length" :overflow-count="99" v-if="createVersionFlag">
                         <a-button type="primary" size="small" class="resetBtn" @click="viewCreateVersionEntry">已选词条</a-button>
                     </a-badge>
-                    
+                    <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button>
                     <a-button type="primary" size="small" @click="addEntry"><template #icon><PlusOutlined /></template>新增</a-button>
                     <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
                     <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
@@ -466,11 +468,16 @@ import {
     getEntryByVersion,
     deleteEntryInfo,
     updatePublicEntry,
-    addSingleEntry
+    addSingleEntry,
+    getClassfy
 } from "@/http/api/entryManage";
 import {
     getSecondClassify
 } from "@/http/api/secondClassify"
+import {
+    queryUserPartiality,
+    updateUserPartiality,
+} from "@/http/api/userPartiality"
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -525,7 +532,8 @@ export default {
                 translateType:null,
                 classfy2:null,
                 entryState:null,
-                entryLabel:""
+                entryLabel:"",
+                entrySource: ""
             },
             translateTypes:[],
             tableTitle:'词条列表',
@@ -586,6 +594,7 @@ export default {
             classify2Option:[],
             rowClassify2Option:{},
             dictionaryVisible: false,
+            selectAllLoading: false,
         }
     },
     
@@ -637,6 +646,18 @@ export default {
            this.getEntryByVersion()
            this.setTableHeight()
            this.selectSecondClassify()
+           this.getUserPartiality()
+        },
+        // 获取用户偏好
+        getUserPartiality(){
+            queryUserPartiality().then((res) => {
+                if(res.data.list && res.data.list.length > 0){
+                    let displayColumn = res.data.list[0].displayColumn
+                    if(displayColumn != null && displayColumn != ''){
+                        this.changeColumn(displayColumn.split(','))
+                    }
+                }
+            })
         },
         // 获取翻译语言
         getLanguage(){
@@ -716,7 +737,8 @@ export default {
                 classfy2:this.search.classfy2,
                 classfy1: this.product.type === 'module' ? this.product.title : "",
                 entryState: this.search.entryState,
-                entryLabel: this.search.entryLabel
+                entryLabel: this.search.entryLabel,
+                entrySource: this.search.entrySource
             }
             if(this.currentVersion === null){
                 data.productID = this.product.type === 'module' ? this.product.parentId : this.product.key
@@ -724,8 +746,8 @@ export default {
                 data.versionID = this.currentVersion
             }
             let params = {
-                pageIndex: -1,
-                pageSize: -1,
+                pageIndex: this.pagination.current,
+                pageSize: this.pagination.pageSize,
             }
             this.loading = true
             getEntryByVersion(data,params).then((res) => {
@@ -735,7 +757,6 @@ export default {
             }).catch((err) => {
                 this.loading = false
             })
-            this.editableData = {}
         },
         // 组装表格数据
         assemblyTableData(data){
@@ -908,7 +929,7 @@ export default {
             delete this.editableData[id]
             delete this.rules[id]
             delete this.rowClassify2Option[id]
-            if(id.startsWith('new') || id.startsWith('copy')){
+            if(id.startsWith('new' || id.startsWith('copy'))){
                 this.dataSource.some((item,i) => {
                     if(item.id === id){
                         this.dataSource.splice(i,1)
@@ -921,11 +942,19 @@ export default {
         // 保存
         save(id){
             // 校验字段长度是否超限
-            let list = [eval("this.$refs.form"+ id.replaceAll('-','') + 'entry').validate(),
-                        eval("this.$refs.form"+ id.replaceAll('-','') + 'english').validate(),
-                        eval("this.$refs.form"+ id.replaceAll('-','') + 'russian').validate(),
-                        eval("this.$refs.form"+ id.replaceAll('-','') + 'spanish').validate(),
-                        eval("this.$refs.form"+ id.replaceAll('-','') + 'french').validate()]
+            // let list = [eval("this.$refs.form"+ id.replaceAll('-','') + 'entry').validate(),
+            //             eval("this.$refs.form"+ id.replaceAll('-','') + 'english').validate(),
+            //             eval("this.$refs.form"+ id.replaceAll('-','') + 'russian').validate(),
+            //             eval("this.$refs.form"+ id.replaceAll('-','') + 'spanish').validate(),
+            //             eval("this.$refs.form"+ id.replaceAll('-','') + 'french').validate()]
+
+            let flagArr = ['entry','english','russian','spanish','french']
+            let list = []
+            this.columns.forEach(column => {
+                if(flagArr.includes(column.dataIndex)){
+                    list.push(eval("this.$refs.form"+ id.replaceAll('-','') + column.dataIndex).validate())
+                }
+            })
 
             Promise.all(list).then(() => {
                 // 校验成功
@@ -933,11 +962,14 @@ export default {
                     // 新增词条/升级词条
                     addSingleEntry(this.editableData[id]).then((res) => {
                         message.success("新增成功!")
-                        this.getEntryByVersion()
+                        // this.getEntryByVersion()
+                        let index = this.dataSource.findIndex(item => item.id === id);
+                        this.dataSource.splice(index,1)
+                        this.dataSource.splice(index,0,res.data)
                         delete this.editableData[id]
                         delete this.rowClassify2Option[id]
+                        this.pagination.total = this.pagination.total + 1
                     })
-                    this.pagination.pageSize = this.pagination.pageSize - 1
                 }else{
                     this.editEntry = [this.editableData[id]]
                     this.editVisible = true
@@ -967,12 +999,16 @@ export default {
             this.editEntry = edit
             this.editVisible = true
         },
-        editOk(id){
-            delete this.editableData[id]
-            delete this.rules[id]
-            this.getEntryByVersion()
+        editOk(entry){
+            delete this.editableData[entry.id]
+            delete this.rules[entry.id]
+            // this.getEntryByVersion()
+            let index = this.dataSource.findIndex(item => item.id === entry.id)
+            this.dataSource.splice(index,1)
+            this.dataSource.splice(index,0,entry)
+
             this.editVisible = false
-            delete this.rowClassify2Option[id]
+            delete this.rowClassify2Option[entry.id]
         },
         editClose(){
             this.editVisible = false
@@ -1081,6 +1117,12 @@ export default {
             this.columns.sort(function(a, b){
                 return a.index - b.index
             })
+
+            // 记录
+            let data = {
+                displayColumn: checkedValue.join(",")
+            }
+            this.recordPartiality(data)
         },
         clickInput(event){
             event.stopPropagation();
@@ -1115,14 +1157,46 @@ export default {
         },
         // 选择全部词条
         selectAllEntry(){
-            let arr = this.selectEntry.concat(this.dataSource)
-            // 去重
-            this.selectEntry = Array.from(new Set(arr.map(JSON.stringify))).map(JSON.parse)
-            this.selectedRows =  this.dataSource
-            this.selectedRowKeys = []
-            this.dataSource.forEach(item => {
-                this.selectedRowKeys.push(item.id)
+            // 获取所有的词条
+            if(Object.keys(this.product).length === 0){
+                return
+            }
+            this.selectAllLoading = true
+            let data = {
+                abbr:this.search.abbr,
+                entry:this.search.entry,
+                classfy2:this.search.classfy2,
+                classfy1: this.product.type === 'module' ? this.product.title : "",
+                entryState: this.search.entryState,
+                entryLabel: this.search.entryLabel,
+                entrySource: this.search.entrySource
+            }
+            if(this.currentVersion === null){
+                data.productID = this.product.type === 'module' ? this.product.parentId : this.product.key
+            }else{
+                data.versionID = this.currentVersion
+            }
+            let params = {
+                pageIndex: -1,
+                pageSize: -1,
+            }
+            this.loading = true
+            getEntryByVersion(data,params).then((res) => {
+                this.selectEntry = []
+                this.selectedRowKeys = []
+                this.selectedRows = res.data.list
+                this.selectEntry = res.data.list
+                res.data.list.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                })
+                this.loading = false
+                this.selectAllLoading = false
+            }).catch((err) => {
+                this.loading = false
+                this.selectAllLoading = false
             })
+
+            
         },
         // 取消创建版本
         cancelCreate(){
@@ -1170,7 +1244,7 @@ export default {
                 maxLength: this.product.type === 'module' ? this.product.maxByte : "",
                 versionID: this.currentVersion,
                 productID: this.product.type === 'module' ? this.product.parentId : this.product.key,
-                entryVersion:'new'
+                entryVersion:0
             }
             // console.log(newData)
             // 设置校验规则
@@ -1190,6 +1264,7 @@ export default {
             }else{
                 this.dataSource.push(newData)
             }
+
             this.editableData[newData.id] = newData;
             // 获取二级分类数据
             this.getRowClassify2Option(newData)
@@ -1208,7 +1283,7 @@ export default {
             copyEntry.entryState = 0  // 新建状态
             copyEntry.upgrade = true
             copyEntry.maxLength = entry.maxLength
-            copyEntry.entryVersion = 'new'
+            // copyEntry.entryVersion = 'new'
             // 设置校验规则
             if(copyEntry.maxLength != ""){
                 this.rules[copyEntry.id] = {
@@ -1234,7 +1309,13 @@ export default {
         pageChange(page,pageSize){
             this.pagination.current = page
             this.pagination.pageSize = pageSize
-            // this.getEntryByVersion()
+            this.getEntryByVersion()
+
+            // 分页后  保留之前勾选的词条
+            this.selectedRows = this.selectEntry
+            this.selectEntry.forEach(item => {
+                this.selectedRowKeys.push(item.id)
+            })
         },
         // 二级分类管理
         setSecondClassify(){
@@ -1260,7 +1341,7 @@ export default {
         },
         // 获取表格当前操作行的Classify2Option
         getRowClassify2Option(record){
-            if(this.editableData[record.id].classfy1 === null || this.editableData[record.id].classfy1 === ""){
+            if(this.editableData[record.id] === undefined || this.editableData[record.id].classfy1 === null || this.editableData[record.id].classfy1 === ""){
                 return
             }
             let classify1 = this.classify1Option.find(item => item.title === this.editableData[record.id].classfy1)
@@ -1294,7 +1375,31 @@ export default {
         },
         dictionaryClose(){
             this.dictionaryVisible = false
-        }
+        },
+        // 刷新翻译长度限制
+        refresh(product){
+            let params = {
+                type: 'module'
+            }
+            if(product && product.type === "module"){
+                params.parentId = product.parentId
+            }else if(product && product.type === "product"){
+                params.parentId = product.key
+            }
+            getClassfy(params).then((res) => {
+                let limitMap = {}
+                res.data.list.forEach(item => {
+                    limitMap[item.title] = item
+                })
+                this.limitMap = limitMap
+            })
+        },
+        // 记录用户偏好
+        recordPartiality(data){
+            updateUserPartiality(data).then((res) => {
+
+            })
+        },
     }
 }
 </script>

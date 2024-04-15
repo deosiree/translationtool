@@ -322,7 +322,7 @@ export default {
         },
         // 删除
         deleteLabel(id){
-            console.log("删除：",id)
+            // console.log("删除：",id)
             let data = [id]
             deleteLabel(data).then((res) => {
                 message.success("删除成功！")

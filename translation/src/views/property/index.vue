@@ -327,7 +327,6 @@ export default {
         },
         // 删除
         deleteLabel(id){
-            console.log("删除：",id)
             let data = [id]
             deleteProperty(data).then((res) => {
                 message.success("删除成功！")

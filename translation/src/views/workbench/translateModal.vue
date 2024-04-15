@@ -4,6 +4,7 @@
     :modalTitle="modalTitle"
     :modalWidth="modalWidth"
     okText="保存"
+    :okLoading="saveLoading"
     :fullFlag="true"
     @handleClose="handleClose"
     @handleOK="handleOK"
@@ -90,6 +91,19 @@
                                 </template>
                             </div>
                         </template>
+                        <template v-if="column.dataIndex === 'entryLabel'">
+                            <div>
+                                <span>
+                                    <a-tag
+                                    v-for="(tag,index) in companyCut(text)"
+                                    :key="index"
+                                    color="cyan"
+                                    >
+                                        {{tag}}
+                                    </a-tag>
+                                </span>
+                            </div>
+                        </template>
                         <template v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
                             <template v-if="record[column.dataIndex] === '0'">
                                 <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
@@ -153,7 +167,7 @@
                         </a-tooltip>
                     </span>
                 </div>
-                <div style="margin-bottom: 6px;">翻译建议：</div>
+                <div style="margin-bottom: 6px;">词条释义：</div>
                 <div class="suggentContent">
                     <div>
                         <span class="title">中文释义：</span><span>{{chineseInterpretation}}</span>
@@ -161,29 +175,32 @@
                     <div>
                         <span class="title">英文释义：</span><span>{{englishInterpretation}}</span>
                     </div>
-                    <span>翻译：</span>
-                    <span class="title">本地翻译：</span>
-                    <template v-for="(item,index) in suggest.local" :key="index">
-                        <div class="suggentItem" @click="suggestClick(item.title,item.id)">
-                            <div class="tran">
-                                <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px"/>
-                                <span>{{item.title}}</span>
-                            </div>
-                            <div class="tips">{{item.tips}}  <span v-if="index < 9">Ctrl+{{index + 1}}</span></div>
-                        </div>
-                    </template>
-                    <span class="title">外网翻译：</span>
-                    <template v-for="(item,index) in suggest.web" :key="index">
-                        <div class="suggentItem" @click="suggestClick(item.title,item.id)">
-                            <div class="tran">
-                                <img :src="require('../../assets/icon/'+item.type+'.png')" style="width:24px;height:24px;margin-right:8px"/>
-                                <span>{{item.title}}</span>
-                            </div>
-                            <div class="tips">{{item.tips}}  <span v-if="index + this.suggest.local.length < 9">Ctrl+{{index + this.suggest.local.length + 1}}</span></div>
-                        </div>
-                    </template>
                 </div>
-                <a-spin :spinning="spinning" tip="翻译中...."/>
+                <div style="margin-bottom: 6px;">翻译建议：</div>
+                <a-spin :spinning="spinning" tip="翻译中....">
+                    <div class="suggentContent">
+                        <span class="title">本地翻译：</span>
+                        <template v-for="(item,index) in suggest.local" :key="index">
+                            <div class="suggentItem" @click="suggestClick(item.title,item.id)">
+                                <div class="tran">
+                                    <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px"/>
+                                    <span>{{item.title}}</span>
+                                </div>
+                                <div class="tips">{{item.tips}}  <span v-if="index < 9">Ctrl+{{index + 1}}</span></div>
+                            </div>
+                        </template>
+                        <span class="title">外网翻译：</span>
+                        <template v-for="(item,index) in suggest.web" :key="index">
+                            <div class="suggentItem" @click="suggestClick(item.title,item.id)">
+                                <div class="tran">
+                                    <img :src="require('../../assets/icon/'+item.type+'.png')" style="width:24px;height:24px;margin-right:8px"/>
+                                    <span>{{item.title}}</span>
+                                </div>
+                                <div class="tips">{{item.tips}}  <span v-if="index + this.suggest.local.length < 9">Ctrl+{{index + this.suggest.local.length + 1}}</span></div>
+                            </div>
+                        </template>
+                    </div>
+                </a-spin>
             </div>
         </div>
     </Modal>
@@ -212,10 +229,20 @@
                     placeholder="请选择"
                     >
                         <a-select-option value="shuyuku">术语库</a-select-option>
+                        <a-select-option value="deepl">DeepL翻译</a-select-option>
                         <a-select-option value="youdao">有道翻译</a-select-option>
                         <a-select-option value="baidu">百度翻译</a-select-option>
                         <a-select-option value="google">Google翻译</a-select-option>
                         <a-select-option value="module">本地模型</a-select-option>
+                        <a-select-option value="synthesis">
+                            综合优先级
+                            <a-tooltip placement="top">
+                                <template #title>
+                                <span>使用所有的翻译引擎进行翻译，取出现次数最多的翻译为当前词条的翻译！</span>
+                                </template>
+                                <info-circle-outlined style="float:right;color:#FBB31F;margin-top:5px"/>
+                            </a-tooltip>
+                        </a-select-option>
                     </a-select>
                 </a-form-item>
             </a-form>
@@ -272,8 +299,13 @@ import {
     importExcle
 } from '@/http/api/entry'
 import {
+    queryUserPartiality,
+    updateUserPartiality
+} from '@/http/api/userPartiality'
+import {
   QuestionCircleOutlined,
-  SearchOutlined
+  SearchOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import workbenchCommon from '@/views/workbench/common.js';
@@ -284,7 +316,8 @@ export default {
     components:{
         Modal,
         QuestionCircleOutlined,
-        SearchOutlined
+        SearchOutlined,
+        InfoCircleOutlined
     },
     emits:['handleClose','handleOK'],
     props: {
@@ -316,16 +349,12 @@ export default {
                     return text.index + 1
                 },fixed: 'left'},
                 {title: '翻译状态',dataIndex: 'state',align:'center',width:90,fixed: 'left'},
-                {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true,
-                    customFilterDropdown: true,
-                    onFilter: (value, record) =>
-                    record.entry.toString().toLowerCase().includes(value.toLowerCase()),
-                },
+                {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true,},
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
-                {title: '翻译',dataIndex: 'translate',align:'center',width:300,ellipsis: true,resizable: true},
-                {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:150,ellipsis: true},
+                {title: '翻译',dataIndex: 'translate',align:'center',width:300,resizable: true},
+                {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:150,},
                 // {title: '来源',dataIndex: 'entrySource',align:'center',width:150,resizable: true,ellipsis:true},
-                {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:100,ellipsis: true,resizable: true},
+                {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:100,resizable: true},
             ],
             dataSource:[],
             allData:[],
@@ -368,7 +397,7 @@ export default {
                 searchedColumn: '',
             },
             clearFilters: null,
-
+            saveLoading: false,
         }
     },
     
@@ -422,6 +451,7 @@ export default {
             this.loading = true
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             let data = (this.translateState === null || this.translateState === undefined) ? ['0','2'] : [this.translateState]
+            // let data = (this.translateState === null || this.translateState === undefined) ? [] : [this.translateState]
             getEntryInfoList(params,data).then((res) => {
                 this.dataSource = res.data.list
                 if(this.dataSource.length > 0){
@@ -443,6 +473,7 @@ export default {
             })
         },
         handleOK(){
+            this.saveLoading = true
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             let transIdName = workbenchCommon.languageMap[this.task.translateType].transIdName
             for (let key in this.editableData) {
@@ -459,12 +490,12 @@ export default {
                 }else if(item[languageCode+"TranslateState"] === '0' || item[languageCode+"TranslateState"] === '2'){
                     item[languageCode+"TranslateState"] = '1'// 已翻译待审核
                 }
-                
             })
             let num = this.verifyTranslationLength(this.dataSource)
             if(num > 0){
                 // 存在超长翻译
                 message.warn("存在超长翻译，请检查！")
+                this.saveLoading = false
                 return
             }
             let params = {
@@ -472,8 +503,10 @@ export default {
             }
             updateEntryList(params,this.dataSource).then((res) => {
                 message.success('已保存！')
+                this.saveLoading = false
                 this.getTranslateEntry()
             }).catch((err) => {
+                this.saveLoading = false
                 message.error('保存失败！')
             })
         },
@@ -499,14 +532,6 @@ export default {
             for (let key in this.editableData) {
 				let entry = this.dataSource.find(item => item.id === key)
                 entry.translate = this.editableData[key].translate
-
-                // 如果有子词条  则写入子词条
-                if(record.children && record.children.length > 0){
-                    record.children.forEach(item => {
-                        item.translate = entry.translate
-                        item.translateID = entry.id
-                    })
-                }
 			}
             this.editableData = {}
             updateEntryTemp(this.dataSource).then((res) => {
@@ -606,7 +631,7 @@ export default {
                     web:[]
                 }
                 res.data.translateEntities.forEach(element => {
-                    if(element.source.includes('本地')){
+                    if(element.source.includes('本地翻译')){
                         element.languageEntities.forEach(item => {
                             let suggent = {
                                 title: item.value,
@@ -622,7 +647,7 @@ export default {
                             type = 'baidu'
                         }else if(element.source.includes('有道')){
                             type = 'youdao'
-                        }else if(element.source.includes('谷歌')){
+                        }else if(element.source.includes('Google')){
                             type = 'google'
                         }else if(element.source.includes('模型')){
                             type = 'ai'
@@ -653,13 +678,6 @@ export default {
         // 设置翻译建议快捷键
         setShortcutKeys(){
             let _this = this
-            // for(let i = 1 ; i<= this.suggest.local.length; i++){
-            //     key('ctrl+'+i,function(){_this.clickSug(i); return false })
-            // }
-            // for(let i = 1 ; i<= this.suggest.web.length; i++){
-            //     let j = this.suggest.local + i
-            //     key('ctrl+'+j,function(){_this.clickSug(i); return false })
-            // }
             let list = this.suggest.local.concat(this.suggest.web)
             for(let i = 1; i <= list.length; i++){
                 if(i < 10){
@@ -693,13 +711,6 @@ export default {
 
             record[languageCode] = title
             record[transIdName] = id
-            // 如果有子词条  则写入子词条
-            if(record.children && record.children.length > 0){
-                record.children.forEach(item => {
-                    item[languageCode] = title
-                    item[transIdName] = id
-                })
-            }
 
             if(this.editableData[this.selectedRowIndex] != undefined){
                 this.editableData[this.selectedRowIndex][languageCode] = title
@@ -728,14 +739,6 @@ export default {
             Promise.all(list).then(() => {
                 record[languageCode] = this.editableData[record.id][languageCode]
                 record[transIdName] = this.editableData[record.id][transIdName]
-                
-                // 如果有子词条  则写入子词条
-                if(record.children && record.children.length > 0){
-                    record.children.forEach(item => {
-                        item[languageCode] = record[languageCode]
-                        item[transIdName] = record[transIdName]
-                    })
-                }
                 delete this.editableData[record.id]
             }).catch((err) => {
                 
@@ -751,6 +754,7 @@ export default {
             this.selectVisible = true
         },
         selectHandleOK(){
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             this.$refs.formRef.validate().then(() => {
                 this.preTranslateOkLoading = true
                 let params = {
@@ -760,7 +764,6 @@ export default {
                 this.loading = true
                 preTranslate(params,this.dataSource).then((res) => {
                     this.dataSource = res.data.list
-                    // this.allData = this.dataSource
                     // 修改编辑中数据值
                     for (let key in this.editableData) {
                         this.editableData[key] = this.dataSource.find(item => item.id === key)
@@ -822,6 +825,8 @@ export default {
                 return
             }
             this.exportVisible = true
+
+            this.queryPartiality()
         },
         exportClose(){
             this.exportVisible = false
@@ -847,12 +852,15 @@ export default {
                     window.URL.revokeObjectURL(a.href);
                     this.exportVisible = false
                 })
+
+                // 记录偏好
+                this.exportFieldChange(this.exportModal.field)
             }).catch((err) => {
 
             })
         },
         exportAfterClose(){
-            this.exportModal.field = []
+            this.exportModal.field = ["abbr","词条"]
         },
         beforeUpload(file, fileList){
             // console.log("before");
@@ -1063,6 +1071,40 @@ export default {
             })
             return flag
         },
+        // 切割字符串
+        companyCut(message){
+            let res = []
+            if(message === null || message === ''){
+                return res
+            }
+            const regex = /[;；]/;
+            res = message.split(regex)
+            res = res.filter(item => item != '')
+            return res
+        },
+        // 获取用户偏好
+        queryPartiality(){
+            queryUserPartiality().then((res) => {
+                if(res.data.list && res.data.list.length > 0){
+                    let exportColumn = res.data.list[0].exportColumn
+                    if(exportColumn != null && exportColumn != ''){
+                        this.exportModal.field = exportColumn.split(",")
+                    }
+                }
+            })
+        },
+        // 设置偏好
+        updatePartiality(data){
+            updateUserPartiality(data).then((res) => {
+
+            })
+        },
+        exportFieldChange(value){
+            let data = {
+                exportColumn: value.join(',')
+            }
+            this.updatePartiality(data)
+        }
     }
 }
 </script>
@@ -1073,7 +1115,7 @@ export default {
 .content{
     width: 100%;
     height: 100%;
-    min-height: 400px;
+    // min-height: 400px;
     padding: 10px;
     background-color: #F3F3F3;
     display: flex;
@@ -1094,7 +1136,7 @@ export default {
 
         .suggentContent{
             width:100%;
-            height: calc(100% - 30px);
+            // height: calc(100% - 30px);
             background: #FFF;
             display: flex;
             padding: 10px;

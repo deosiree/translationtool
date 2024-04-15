@@ -6,7 +6,7 @@
     :showCancel="false"
     :fullFlag="true"
     cancelText="取消"
-    okText="创建版本"
+    okText="创建产品版本"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
@@ -42,8 +42,7 @@
                         <template #bodyCell="{ column, record }">
                             <template v-if="column.dataIndex === 'operation'">
                                 <div class="editable-row-operations">
-                                    <!-- <MinusSquareOutlined style="color:#369FFF;font-size:16px" @click="remove(record)"/> -->
-                                    <DeleteOutlined style="color:#369FFF;font-size:16px" @click="remove(record)"/>
+                                    <DeleteOutlined style="color:#369FFF;font-size:16px" @click="remove(record)" title="取消选择"/>
                                 </div>
                             </template>
                             <template v-if="column.dataIndex === 'entryState'">
@@ -169,6 +168,7 @@
                     <a-select
                     v-model:value="writeBack.language"
                     placeholder="请选择"
+                    @change="languageChange"
                     >
                         <a-select-option value="英文">英文</a-select-option>
                         <a-select-option value="俄文">俄文</a-select-option>
@@ -177,7 +177,47 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item
-                label="回写TAG"
+                label="回写类型"
+                name="type"
+                >
+                    <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
+                        <a-radio value="DEFAUT">默认 </a-radio>
+                        <a-radio value="TS">TS文件</a-radio>
+                        <a-radio value="DI">辞典</a-radio>
+                    </a-radio-group>
+                    <a-tooltip placement="top">
+                        <template #title>
+                        <span>默认：按词条来源回写；TS文件：写入到ts文件；辞典：写入到辞典</span>
+                        </template>
+                        <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px"/>
+                    </a-tooltip>
+                </a-form-item>
+                <a-form-item
+                :label="writeBack.label"
+                name="file"
+                v-if="writeBack.type != 'DEFAUT'"
+                >
+                    <a-select
+                    v-model:value="writeBack.file"
+                    :options="writeBack.fileOptions"
+                    placeholder="请选择"
+                    ></a-select>
+                </a-form-item>
+                <a-form-item
+                label=" "
+                :colon="false"
+                >
+                    <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
+                    <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
+                    <a-tooltip placement="top">
+                        <template #title>
+                        <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
+                        </template>
+                        <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px"/>
+                    </a-tooltip>
+                </a-form-item>
+                <!-- <a-form-item
+                label="回写Tag"
                 name="isTag"
                 >
                     <a-switch v-model:checked="writeBack.isTag" checked-children="是" un-checked-children="否" />
@@ -187,7 +227,7 @@
                 name="isComment"
                 >
                     <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
-                </a-form-item>
+                </a-form-item> -->
                 
             </a-form>
         </div>
@@ -201,7 +241,8 @@ import tableParam from "./tableParam.js";
 import {
   MinusSquareOutlined,
   ExclamationCircleOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  QuestionCircleOutlined
 } from '@ant-design/icons-vue';
 import { message, Modal } from 'ant-design-vue';
 import { defineComponent, ref, createVNode } from 'vue';
@@ -211,7 +252,8 @@ import {
 import {
     createVersionByEntry,
     addProductRelation,
-    updateEntryInfo
+    updateEntryInfo,
+    writeBack
 } from '@/http/api/entryManage'
 import {
     entryExportByCondition
@@ -220,14 +262,21 @@ import {
     searchTaskInfo
 } from '@/http/api/task'
 import {
-    setInfo
+    setInfo,
+    getDictionary,
+    getFileListByLang
 } from '@/http/api/i18Server'
+import {
+    queryUserPartiality,
+    updateUserPartiality
+} from '@/http/api/userPartiality'
 export default {
     components:{
         CustomModal,
         MinusSquareOutlined,
         ExclamationCircleOutlined,
-        DeleteOutlined
+        DeleteOutlined,
+        QuestionCircleOutlined
     },
     emits:['createClose','removeEntry','cancelCreate'],
     props: {
@@ -275,6 +324,8 @@ export default {
             pagination:{
                 pageSizeOptions:['20','50','100'],
                 defaultPageSize:20,
+                total:0,
+                showTotal:total => `共 ${total} 条`,
             },
             title:"",
             operateVisible: false,
@@ -303,8 +354,14 @@ export default {
             selectedTaskRows:[],
             writeBack:{
                 language:null,
+                type:"DEFAUT",
+                label:"",
+                file:null,
                 isTag:null,
-                isComment: null
+                isComment: null,
+                fileOptions:[],
+                commentDisabled: false,
+                tagDisabled: false
             }
         }
     },
@@ -372,6 +429,24 @@ export default {
             this.operateVisible = true
             this.operateWidth = '500px'
             this.title = "导出"
+
+            // 获取用户偏好
+            queryUserPartiality().then((res) => {
+                if(res.data.list && res.data.list.length > 0){
+                    let exportColumn = res.data.list[0].exportColumn
+                    if(exportColumn != null && exportColumn != ''){
+                        this.exportClass.field = exportColumn.split(",")
+                    }
+                }
+            })
+        },
+        exportFieldChange(value){
+            let data = {
+                exportColumn: value.join(',')
+            }
+            updateUserPartiality(data).then((res) => {
+
+            })
         },
         // 提交审核/翻译
         examine(){
@@ -445,6 +520,8 @@ export default {
                         this.$emit("createClose")
                         this.$emit("cancelCreate")
                     })
+                    // 记录偏好
+                    this.exportFieldChange(this.exportClass.field)
                 })
             }else if(this.title === '选择任务'){
                 //提交审核/翻译
@@ -452,44 +529,50 @@ export default {
                     message.warn('请选择任务！')
                     return
                 }
-                let params = {
-                    notes:""
+                // 判断词条中是否含有 中文释义和英文释义都不存在的词条
+                let notInterpretation = []
+                this.dataSource.forEach(item => {
+                    if((item.englishInterpretation === null || item.englishInterpretation === '')
+                    && (item.chineseInterpretation === null || item.chineseInterpretation === '')){
+                        notInterpretation.push(item)
+                    }
+                })
+                if(notInterpretation.length > 0){
+                    Modal.confirm({
+                        title: '保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?',
+                        icon: createVNode(ExclamationCircleOutlined),
+                        content: '',
+                        okText: '是',
+                        cancelText: '否',
+                        style:{top:'30%'},
+                        onOk: () => {
+                            this.submitExamine()
+                        },
+                        onCancel: () => {
+                            
+                        }
+                    });
+                }else{
+                    this.submitExamine()
                 }
-                // 修改词条状态
-                this.dataSource.forEach(item => {
-                    if(item.entryState === 0){
-                        item.entryState = 1
-                        updateEntryInfo(item,params).then((res) => {
 
-                        })
-                    }
-                })
-                // 将词条提交到任务
-                let data = []
-                this.dataSource.forEach(item => {
-                    let info = {
-                        entryId: item.id,
-                        productId: this.product.key,
-                        taskId: this.selectedTaskRows[0].id,
-                        versionId: this.selectedTaskRows[0].versionId
-                    }
-                    data.push(info)
-                })
-                addProductRelation(data).then((res) => {
-                    message.success('已提交！')
-                    this.operateVisible = false
-                    this.$emit("createClose")
-                    this.$emit("cancelCreate")
-                }).catch((err) => {
-                    message.error('提交失败！')
-                })
+                
             }else if(this.title === '回写'){
+
+                if(this.writeBack.type != 'DEFAUT' && this.writeBack.file === null){
+                    message.info("请选择"+this.writeBack.label+"!")
+                    return
+                }
+
                 let params = {
                     translateType: this.writeBack.language,
                     isTag: this.writeBack.isTag ? 1 : 0,
-                    isComment: this.writeBack.isComment ? 1 : 0
+                    isComment: this.writeBack.isComment ? 1 : 0,
+                    writeType: this.writeBack.type,
+                    fileName: this.writeBack.file
                 }
-                setInfo(params,this.dataSource).then((res) => {
+                // console.log(params)
+                writeBack(params,this.dataSource).then((res) => {
                     message.success('回写成功！')
                     this.operateVisible = false
                     this.$emit("createClose")
@@ -499,6 +582,40 @@ export default {
                 })
             }
             
+        },
+        // 提交审核/翻译
+        submitExamine(){
+            let params = {
+                notes:""
+            }
+            // 修改词条状态
+            this.dataSource.forEach(item => {
+                if(item.entryState === 0){
+                    item.entryState = 1
+                    updateEntryInfo(item,params).then((res) => {
+
+                    })
+                }
+            })
+            // 将词条提交到任务
+            let data = []
+            this.dataSource.forEach(item => {
+                let info = {
+                    entryId: item.id,
+                    productId: this.product.key,
+                    taskId: this.selectedTaskRows[0].id,
+                    versionId: this.selectedTaskRows[0].versionId
+                }
+                data.push(info)
+            })
+            addProductRelation(data).then((res) => {
+                message.success('已提交！')
+                this.operateVisible = false
+                this.$emit("createClose")
+                this.$emit("cancelCreate")
+            }).catch((err) => {
+                message.error('提交失败！')
+            })
         },
         // 删除词条
         deleteEntrys(){
@@ -529,8 +646,14 @@ export default {
             this.exportClass = {field:["abbr","词条"]}
             this.writeBack = {
                 language:null,
+                type:"DEFAUT",
+                label:"",
+                file:null,
                 isTag:null,
-                isComment: null
+                isComment: null,
+                fileOptions:[],
+                commentDisabled: false,
+                tagDisabled: false
             }
         },
         // 动态设置表格高度
@@ -541,6 +664,66 @@ export default {
                 this.tableHeight.y = 395
             }
         },
+        // 回写类型切换事件
+        writeBackTypeChange(){
+            this.writeBack.file = null
+            this.writeBack.fileOptions = []
+            this.writeBack.isTag = false
+            this.writeBack.isComment = false
+            this.writeBack.commentDisabled = false
+            this.writeBack.tagDisabled = false
+
+            if(this.writeBack.type === 'TS'){
+                this.writeBack.label = 'ts文件'
+                this.writeBack.isTag = true
+                this.writeBack.isComment = false
+                this.writeBack.commentDisabled = true
+                this.writeBack.tagDisabled = true
+                if(this.writeBack.language === null || this.writeBack.language === ""){
+                    message.warn('请选择回写语言！')
+                    return
+                }
+                // 获取ts文件列表
+                this.getTsFile()
+            }else if(this.writeBack.type === 'DI'){
+                this.writeBack.label = '辞典'
+                // 获取辞典文件列表
+                this.getDictionary()
+            }
+        },
+        // 获取ts文件
+        getTsFile(){
+            let params = {
+                language: this.writeBack.language
+            }
+            getFileListByLang(params).then((res) => {
+                res.data.list.forEach(item => {
+                    let option = {
+                        label: item,
+                        value: item
+                    }
+                    this.writeBack.fileOptions.push(option)
+                })
+            })
+        },
+        // 获取辞典
+        getDictionary(){
+            getDictionary().then((res) => {
+                res.data.list.forEach(item => {
+                    let option = {
+                        label: item,
+                        value: item
+                    }
+                    this.writeBack.fileOptions.push(option)
+                })
+            })
+        },
+        // 回写语言change事件
+        languageChange(){
+            if(this.writeBack.type === 'TS'){
+                this.getTsFile()
+            }
+        }
     }
 }
 </script>

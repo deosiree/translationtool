@@ -165,3 +165,12 @@ export function getDBALLEntryByDB(params,data){
         data
     });
 }
+
+// 获取枚举文件词条
+export function getEnumEntry(params){
+    return request({
+        url: "/I18Sever/getEnumEntry",
+        method: "GET",
+        params
+    });
+}

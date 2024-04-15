@@ -91,7 +91,7 @@ export default {
 
                 this.editEntry.forEach(entry => {
                     updateEntryInfo(entry,params).then((res) => {
-                        this.$emit("editOk",entry.id)
+                        this.$emit("editOk",entry)
                         message.success('已保存！')
                     })
                 })

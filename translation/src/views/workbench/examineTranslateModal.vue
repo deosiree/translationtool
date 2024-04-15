@@ -17,7 +17,7 @@
                 <div class="taskItem">任务名称：{{task.name}}</div>
                 <div class="taskItem">产品名称：{{task.productName}}</div>
                 <div class="taskItem">翻译语种：{{task.translateType}}</div>
-                <span style="float:right;font-size:12px">
+                <!-- <span style="float:right;font-size:12px">
                     <a-tooltip placement="left">
                         <template #title>
                             <table>
@@ -34,7 +34,7 @@
                         快捷键
                         <QuestionCircleOutlined />
                     </a-tooltip>
-                </span>
+                </span> -->
             </div>
             <div class="form">
                 词条：
@@ -57,7 +57,7 @@
                     <a-select-option value="3">审核通过</a-select-option>
                 </a-select>
                 <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-                <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button>
+                <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
                 <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
             </div>
@@ -66,14 +66,20 @@
             class="ant-table-striped"
             :columns="columns" 
             :data-source="dataSource" 
-            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+            :row-selection="{ 
+                selectedRowKeys: selectedRowKeys, 
+                onChange: onSelectChange,
+                selections:[
+                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                ]
+            }"
             :row-key="record => record.id"
             :scroll="tableHeight"
             :pagination='pagination'
             :loading="loading"
             :rowClassName="getRowClassName"
             :customRow="doubleClick"
-            childrenColumnName="child"
             ref="tableContainer"
             @resizeColumn="handleResizeColumn"
             >
@@ -111,6 +117,19 @@
                             </template>
                         </div>
                     </template>
+                    <template v-if="column.dataIndex === 'entryLabel'">
+                            <div>
+                                <span>
+                                    <a-tag
+                                    v-for="(tag,index) in companyCut(text)"
+                                    :key="index"
+                                    color="cyan"
+                                    >
+                                        {{tag}}
+                                    </a-tag>
+                                </span>
+                            </div>
+                        </template>
                     <template v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
                         <template v-if="record[column.dataIndex] === '0'">
                             <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
@@ -133,6 +152,25 @@
                             </span>
                         </div>
                     </template>
+                </template>
+                <template #expandIcon="props">
+                    <span v-if="props.record.children != null && props.record.children.length > 0">
+                        <div
+                            v-if="props.expanded"
+                            style="display: inline-block; margin-right: 10px"
+                            @click="(e) => {props.onExpand(props.record, e);}"
+                        >
+                            <CaretDownOutlined />
+                        </div>
+                        <div
+                            v-else
+                            style="display: inline-block; margin-right: 10px"
+                            @click="(e) => {props.onExpand(props.record, e);}"
+                        >
+                            <CaretRightOutlined />
+                        </div>
+                    </span>
+                    <span v-else style="margin-right:23px"></span>
                 </template>
                 <!-- 设置筛选菜单 -->
                 <template
@@ -164,6 +202,29 @@
             </a-table>
         </div>
     </Modal>
+    <Modal
+    :visible="rejectReasonVisible" 
+    modalTitle="驳回原因"
+    style="top:30%"
+    @handleClose="rejectReasonClose"
+    @handleOK="rejectReasonOK"
+    @afterClose="rejectReasonAfterClose"
+    >
+        <div style="width:100%;height:100%">
+            <a-form
+                ref="exportForm"
+                name="custom-validation"
+                :model="rejectReason"
+            >
+                <a-form-item
+                label="驳回原因"
+                name="reason"
+                >
+                    <a-textarea v-model:value="rejectReason.reason" placeholder="请输入驳回原因" allow-clear />
+                </a-form-item>
+            </a-form>
+        </div>
+    </Modal>
 </template>
 <script>
 import Modal from '@/components/modal/index.vue';
@@ -181,14 +242,18 @@ import { computed, defineComponent, ref } from 'vue';
 import {
     FileSearchOutlined,
     QuestionCircleOutlined,
-    SearchOutlined
+    SearchOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined,
 } from '@ant-design/icons-vue';
 import key from 'keymaster'
 export default {
     components:{
         Modal,
         QuestionCircleOutlined,
-        SearchOutlined
+        SearchOutlined,
+        CaretDownOutlined,
+        CaretRightOutlined,
     },
     emits:['handleClose','handleOK'],
     props: {
@@ -216,19 +281,15 @@ export default {
             tableHeight: { x:'100%',y: 415 },
             loading:false,
             columns: [
-                {title: "序号",dataIndex: 'index',align:'center',width:60,customRender: (text, record, index, column) => {
+                {title: "序号",dataIndex: 'index',width:70,customRender: (text, record, index, column) => {
                     return text.index + 1
-                },fixed: 'left'},
+                },fixed: 'left',index:0},
                 {title: '审核状态',dataIndex: 'state',align:'center',width:100,fixed: 'left'},
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
-                {title: '词条',dataIndex: 'entry',align:'center',width:200,resizable: true,
-                    customFilterDropdown: true,
-                    onFilter: (value, record) =>
-                    record.entry.toString().toLowerCase().includes(value.toLowerCase()),
-                },
+                {title: '词条',dataIndex: 'entry',align:'center',width:200,resizable: true,},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:200,ellipsis: true,resizable: true},
                 // {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
-                {title: 'TAG',dataIndex: 'entryLabel',align:'center',width:150,ellipsis: true},
+                {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:150,ellipsis: true},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,ellipsis: true,resizable: true},
                 {title: '操作',dataIndex: 'operation',align:'center',width:100,ellipsis: true,},
             ],
@@ -256,7 +317,11 @@ export default {
                 searchedColumn: '',
             },
             clearFilters: null,
-            selectAllName:"全选"
+            selectAllName:"全选",
+            rejectReasonVisible: false,
+            rejectReason:{
+                reason:""
+            }
         }
     },
     
@@ -326,6 +391,7 @@ export default {
                 taskID: this.task.id
             }
             let updateArr = []
+            let okArr = []
             this.dataSource.forEach(item => {
                 if(item.auditState === 0){
                     // 审核不通过
@@ -335,11 +401,14 @@ export default {
                     // 审核通过
                     item[languageCode+"TranslateState"] = '3'
                     updateArr.push(item)
+                    okArr.push(item)
                 }
             })
-            let num = this.verifyTranslationLength(updateArr)
+            // 校验审核通过的词条
+            let num = this.verifyTranslationLength(okArr)
             if(num > 0){
                 message.warn("存在超长翻译，请检查！")
+                this.saveLoading = false
                 return
             }
             if(updateArr.length > 0){
@@ -411,12 +480,16 @@ export default {
         },
         // 驳回按钮点击事件
         reject(){
-            this.selectedRows.forEach(item => {
-                item.auditState = 0
-            })
-            this.selectedRowKeys = []
-            this.selectedRows = []
-            this.selectAllName = "全选"
+            if(this.selectedRows.length > 0){
+                this.rejectReasonVisible = true
+            }
+            
+            // this.selectedRows.forEach(item => {
+            //     item.auditState = 0
+            // })
+            // this.selectedRowKeys = []
+            // this.selectedRows = []
+            // this.selectAllName = "全选"
         },
         //双击表格行 可编辑
         doubleClick(record, index){
@@ -691,7 +764,6 @@ export default {
                 })
                 this.selectAllName = "取消全选"
             }
-            
         },
         // 校验翻译长度
         verifyTranslationLength(array){
@@ -737,6 +809,53 @@ export default {
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             this.rules[record.id][languageCode] = [{ validator: this.vilidFildLength(record,languageCode) }]
             return Promise.resolve()
+        },
+        selectAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            if(this.filters && (this.filters.isExist || this.filters.entrySource)){
+                this.filteredData.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                    this.selectedRows.push(item)
+                })
+            }else{
+                this.dataSource.forEach(item => {
+                    this.selectedRowKeys.push(item.id)
+                    this.selectedRows.push(item)
+                })
+            }
+        },
+        clearAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
+        // 切割字符串
+        companyCut(message){
+            let res = []
+            if(message === null || message === ''){
+                return res
+            }
+            const regex = /[;；]/;
+            res = message.split(regex)
+            res = res.filter(item => item != '')
+            return res
+        },
+        // 编辑原因确定
+        rejectReasonOK(){
+            let suggent = workbenchCommon.languageMap[this.task.translateType].code + "AuditSuggest"
+            this.selectedRows.forEach(item => {
+                item.auditState = 0
+                item[suggent] = this.rejectReason.reason
+            })
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            this.rejectReasonVisible = false
+        },
+        rejectReasonClose(){
+            this.rejectReasonVisible = false
+        },
+        rejectReasonAfterClose(){
+            this.rejectReason.reason = ""
         }
     }
 }

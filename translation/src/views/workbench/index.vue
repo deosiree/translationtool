@@ -29,7 +29,7 @@
             </a-col>
             <a-col flex="auto">
                 <div class="dataBox">
-                    <SearchBox ref="search">
+                    <SearchBox ref="search" @change="setTableHeight">
                         <template v-slot:form>
                             <a-form
                                 :model="search"
@@ -77,8 +77,8 @@
                             </a-form>
                         </template>
                         <template v-slot:operate>
-                            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
                             <a-button type="primary" size="middle" @click="getTask">查询</a-button>
+                            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
                         </template>
                     </SearchBox>
                     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
@@ -128,13 +128,6 @@
                                                 <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
                                             </template>
                                         </template>
-                                        <template v-else-if="column.dataIndex === 'operation'">
-                                            <div class="editable-row-operations">
-                                                <span>
-                                                    <a-button type="primary" ghost size="small" :disabled="record.state > 4 ? false : true" @click.stop="exportEntry(record.id)">导出</a-button>
-                                                </span>
-                                            </div>
-                                        </template>
                                     </template>
                                 </a-table>
                             </div>
@@ -157,7 +150,7 @@
                             @translateEntry="translateEntry"
                             @examineTranslate="examineTranslate"
                             @refresh="getTask"
-                            @exportEntry="exportEntry"
+                            @archiveEntry="archiveEntry"
                             >
 
                             </TimeLine>
@@ -196,11 +189,12 @@
     :classifyLimit="classifyLimit"
     @handleClose="examineTranslateClose"/>
     />
-    <ExportModal 
-    ref="exportModal"
-    :visible="exportVisible" 
+    <ArchiveModal 
+    ref="archiveModalRef"
+    :visible="archiveVisible" 
     :currentTask="currentTask"
-    @handleClose="exportClose"/>
+    @handleClose="archiveClose"
+    @refresh="refreshTask"
     />
 </template>
 <script>
@@ -215,7 +209,7 @@ import ImportModal from '@/views/workbench/importModal.vue'
 import ExamineModal from '@/views/workbench/examineModal.vue'
 import TranslateModal from '@/views/workbench/translateModal.vue'
 import ExamineTranslateModal from '@/views/workbench/examineTranslateModal.vue'
-import ExportModal from '@/views/workbench/exportModal.vue'
+import ArchiveModal from '@/views/workbench/archiveModal.vue'
 import tableParam from "@/views/entry/tableParam.js";
 import {
   SendOutlined
@@ -238,7 +232,7 @@ export default {
         ExamineModal,
         TranslateModal,
         ExamineTranslateModal,
-        ExportModal,
+        ArchiveModal,
         SendOutlined
     },
     data(){
@@ -290,7 +284,7 @@ export default {
             examineTitle: '',
             translateVisible: false,
             examineTranslateVisible: false,
-            exportVisible: false,
+            archiveVisible: false,
             classifyLimit:{}
         }
     },
@@ -497,15 +491,21 @@ export default {
             this.$refs.timeLineRef.initEntryCount()
         },
 
-        // 词条导出
-        exportEntry(id){
-            // message.info(id)
-            this.exportVisible = true
-            this.$refs.exportModal.getImportType()
+        // 归档
+        archiveEntry(){
+            this.archiveVisible = true
+            this.$refs.archiveModalRef.getTaskEntry()
         },
-        exportClose(){
-            this.exportVisible = false
+        archiveClose(){
+            this.archiveVisible = false
+            // this.getTask()
+        },
+        refreshTask(){
             this.getTask()
+            this.archiveVisible = false
+            this.showOperationArea = false
+            this.setTableHeight()
+            this.getTaskTotal()
         },
         // 重置
         reset(){
