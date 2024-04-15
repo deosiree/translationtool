@@ -124,7 +124,7 @@ public class I18SeverController extends BaseController {
         String s = "";
         ArrayList<String> list = new ArrayList<>();
         try {
-                s = httpUtils.get(I18URL + ConstantInterface.GET_FILE_LIST, headerParameters);
+            s = httpUtils.get(I18URL + ConstantInterface.GET_FILE_LIST, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 list.add(jsonArray.get(i).toString());
@@ -355,7 +355,6 @@ public class I18SeverController extends BaseController {
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
-            System.out.println(I18URL + ConstantInterface.Create_DI);
             s = httpUtils.get(I18URL + ConstantInterface.Create_DI, headerParameters);
 
         } catch (Exception e) {
@@ -365,7 +364,20 @@ public class I18SeverController extends BaseController {
         return checkResult(ConstantInterface.OK_STR);
     }
 
+    @GetMapping("/clearDic")
+    @ApiOperation("清空辞典")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> clearDic(@RequestParam String dicName) {
+        try {
+            String s = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + "/" + dicName, new JSONObject());
+            log.info(" **** " + dicName + " dic has been clear ！ **** ");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        return checkResult(ConstantInterface.OK_STR);
+    }
 
 
     @PostMapping("/setInfo")
@@ -373,26 +385,22 @@ public class I18SeverController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> setInfo(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String translateType,
-                                        @RequestParam( required = false) String taskID,@RequestParam int isTag,@RequestParam int isComment) {
-        boolean tag  =true;
+                                        @RequestParam(required = false) String taskID, @RequestParam int isTag, @RequestParam int isComment) {
+        boolean tag = true;
         boolean comment = true;
-        if (isTag ==0){
+        if (isTag == 0) {
             tag = false;
         }
-        if (isComment == 0 ){
+        if (isComment == 0) {
             comment = false;
         }
-        if (StringUtils.isNotBlank(taskID)){
+        if (StringUtils.isNotBlank(taskID)) {
             entryInfoEntities = entryInfoMapper.getWriteEntryByTaskID(taskID, "");
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
-             translateType = taskInfoEntity.getTranslateType();
+            translateType = taskInfoEntity.getTranslateType();
         }
-        return checkResult(i18nService.setInfoByEntryList(entryInfoEntities,translateType,tag,comment));
+        return checkResult(i18nService.setInfoByEntryList(entryInfoEntities, translateType, tag, comment));
     }
-
-
-
-
 
 
     @GetMapping("/getDictionaryInfo")
@@ -735,7 +743,7 @@ public class I18SeverController extends BaseController {
                                                     @RequestParam String taskID,
                                                     @RequestParam String diFileName,
                                                     @RequestParam String translateType,
-                                                    @RequestParam( required = false) Integer maxLength, HttpServletRequest request
+                                                    @RequestParam(required = false) Integer maxLength, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
         ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
@@ -756,7 +764,7 @@ public class I18SeverController extends BaseController {
             String source = nodeName + "_" + appName + "_" + dbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
@@ -768,9 +776,9 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setTaskId(taskID);
                     entryInfoEntity.setIsDelete(0);
-                    if (Objects.isNull(maxLength)){
+                    if (Objects.isNull(maxLength)) {
                         entryInfoEntity.setMaxLength(0);
-                    }else {
+                    } else {
                         entryInfoEntity.setMaxLength(maxLength);
                     }
                     createNewTrans(entryInfoEntity, translateType, "");
@@ -783,7 +791,7 @@ public class I18SeverController extends BaseController {
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
-                    if (StringUtils.isBlank(fieldInfo.getAliasName())){
+                    if (StringUtils.isBlank(fieldInfo.getAliasName())) {
                         continue;
                     }
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
@@ -845,7 +853,7 @@ public class I18SeverController extends BaseController {
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
@@ -867,7 +875,7 @@ public class I18SeverController extends BaseController {
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
-                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())){
+                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())) {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
                         fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
@@ -882,7 +890,7 @@ public class I18SeverController extends BaseController {
                         fieldEntry.setImportType(ConstantInterface.DB);
                         entryInfoEntities.add(fieldEntry);
                     }
-                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())){
+                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
                         for (String data : fieldInfo.getFieldDatas()) {
                             EntryInfoEntity dataEntry = new EntryInfoEntity();
                             dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
@@ -951,7 +959,7 @@ public class I18SeverController extends BaseController {
             }
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
@@ -974,7 +982,7 @@ public class I18SeverController extends BaseController {
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
-                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())){
+                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())) {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
                         fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
@@ -989,7 +997,7 @@ public class I18SeverController extends BaseController {
                         fieldEntry.setImportType(ConstantInterface.DB);
                         entryInfoEntities.add(fieldEntry);
                     }
-                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())){
+                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
                         for (String data : fieldInfo.getFieldDatas()) {
                             EntryInfoEntity dataEntry = new EntryInfoEntity();
                             dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
@@ -1043,7 +1051,7 @@ public class I18SeverController extends BaseController {
         String userName = JWTTokenUtils.getUserName(token);
 
         JSONArray jsonArray = new JSONArray();
-        int sum =0;
+        int sum = 0;
         String s = "";
         try {
             Map<String, String> headerParameters = new HashMap<>();
@@ -1056,9 +1064,9 @@ public class I18SeverController extends BaseController {
                 return checkResult(responseListModel);
             }
             for (int i = 0; i < jsonArray.size(); i++) {
-                sum ++;
+                sum++;
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())){
+                if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
@@ -1080,8 +1088,8 @@ public class I18SeverController extends BaseController {
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
-                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())){
-                        sum ++;
+                    if (StringUtils.isNotBlank(fieldInfo.getAliasName())) {
+                        sum++;
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
                         fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
@@ -1096,9 +1104,9 @@ public class I18SeverController extends BaseController {
                         fieldEntry.setImportType(ConstantInterface.DB);
                         entryInfoEntities.add(fieldEntry);
                     }
-                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())){
+                    if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
                         for (String data : fieldInfo.getFieldDatas()) {
-                            sum ++;
+                            sum++;
                             EntryInfoEntity dataEntry = new EntryInfoEntity();
                             dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
                             dataEntry.setEntry(data);
@@ -1244,8 +1252,8 @@ public class I18SeverController extends BaseController {
         String productTableName = "t_entry_info";
 
         for (EntryInfoEntity entryInfoEntity : newEntry) {
-            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
-                caseExistEntry(entryInfoEntity.getChildren(),taskID);
+            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())) {
+                caseExistEntry(entryInfoEntity.getChildren(), taskID);
             }
             // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
             List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
@@ -1261,11 +1269,6 @@ public class I18SeverController extends BaseController {
         }
 
     }
-
-
-
-
-
 
 
     @GetMapping("/getConfigEntry")
@@ -1332,9 +1335,9 @@ public class I18SeverController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> getEnumEntry(@RequestParam String versionID,
-                                                          @RequestParam String taskID,
-                                                          @RequestParam String diFileName,
-                                                          @RequestParam String translateType, HttpServletRequest request
+                                                        @RequestParam String taskID,
+                                                        @RequestParam String diFileName,
+                                                        @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
         ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
@@ -1385,9 +1388,6 @@ public class I18SeverController extends BaseController {
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
     }
-
-
-
 
 
 }

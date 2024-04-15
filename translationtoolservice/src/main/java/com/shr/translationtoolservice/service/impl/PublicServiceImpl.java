@@ -1,16 +1,20 @@
 package com.shr.translationtoolservice.service.impl;
 
 import com.shr.translationtoolservice.dao.EntryInfoMapper;
+import com.shr.translationtoolservice.dao.ProductMapper;
 import com.shr.translationtoolservice.dao.TLanguageMapper;
+import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.PublicService;
 import com.shr.translationtoolservice.util.DeepLTranslateUtils;
 import com.shr.translationtoolservice.util.TranslateUtils;
 import com.shr.translationtoolservice.util.YoudaoTrans;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -30,6 +34,12 @@ public class PublicServiceImpl implements PublicService {
     private TLanguageMapper languageMapper;
 
     @Autowired
+    private ProductMapper productMapper;
+
+    @Autowired
+    private VersionMapper versionMapper;
+
+    @Autowired
     private DeepLTranslateUtils deepLTranslateUtils;
 
     @Autowired
@@ -41,6 +51,25 @@ public class PublicServiceImpl implements PublicService {
     @Override
     public List<PublicEntryEntity> queryTranslate(EntryInfoEntity entity, String targetLang) {
         List<PublicEntryEntity> res = new ArrayList<>();
+        if(StringUtils.isNotBlank(entity.getProductName()) && StringUtils.isBlank(entity.getProductID()) ){
+            List<ProductEntity> productEntities = productMapper.selectByName(entity.getProductName());
+            if (CollectionUtils.isEmpty(productEntities)){
+                return null;
+            }
+            entity.setProductID(productEntities.get(0).getId());
+        }
+        if (StringUtils.isNotBlank(entity.getVersionName()) && StringUtils.isBlank(entity.getVersionID())){
+             List<VersionEntity> versionEntities = versionMapper.selectByName(entity.getVersionName());
+             if (CollectionUtils.isEmpty(versionEntities)){
+                 entity.setVersionID(versionEntities.get(0).getId());
+             }
+        }
+        entity.setIsDelete(0);
+        entity.setEntryState(3);
+        entity.setEnglishTranslateState("3");
+        entity.setRussianTranslateState("3");
+        entity.setFrenchTranslateState("3");
+        entity.setSpanishTranslateState("3");
         List<EntryInfoEntity> entryList = entryInfoMapper.getEntryByVersion(entity, ConstantInterface.MINUS_ONE, ConstantInterface.MINUS_ONE);
         for (EntryInfoEntity entryInfoEntity : entryList) {
             PublicEntryEntity publicEntry = new PublicEntryEntity();

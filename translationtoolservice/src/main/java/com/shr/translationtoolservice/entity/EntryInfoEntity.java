@@ -39,6 +39,10 @@ public class EntryInfoEntity implements Serializable {
     @TableField(exist = false)
     @DefaultValue("")
     private String productName;
+
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String versionName;
     /**
      * 写入di 文件名
      */

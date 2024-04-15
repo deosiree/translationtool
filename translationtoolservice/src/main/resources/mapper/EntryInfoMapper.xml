@@ -58,9 +58,18 @@
         fra_trans_id,spa_trans_id,is_public,
         is_delete,import_type,entry_version_type
     </sql>
-
+    <sql id="Base_t2_Column_List">
+        t2.id,t2.abbr,t2.entry,
+        t2.entry_length,t2.chinese_interpretation,t2.english_interpretation,
+        t2.entry_source,t2.entry_state,t2.`update`,
+        t2.update_time,t2.version_id,t2.entry_label,
+        t2.part_of_speech,t2.classify_id,t2.remark,
+        t2.task_id,t2.en_trans_id,t2.ru_trans_id,
+        t2.fra_trans_id,t2.spa_trans_id,t2.is_public,
+        t2.is_delete,t2.import_type,t2.entry_version_type
+    </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
-        select  distinct t2.*,
+        select  distinct  <include refid="Base_t2_Column_List"/>,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
