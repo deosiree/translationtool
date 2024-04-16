@@ -15,7 +15,7 @@ public class I18nDBVO {
     private String node;
     private String app;
     private String db;
-    private String modeType;
+    private String modeName;
 
 
 }

@@ -24,4 +24,36 @@
         </foreach>
         );
     </delete>
+
+    <insert id="insertList">
+
+            insert into t_product_relation
+         (
+
+                    id,
+
+                    entry_id,
+
+                    product_id,
+
+                    task_id
+
+           )
+            values
+        <foreach collection="productRelationEntities" item="productRelationEntity" index="index" separator=",">
+        (
+
+
+                    #{productRelationEntity.id,jdbcType=VARCHAR},
+
+                    #{productRelationEntity.entryId,jdbcType=VARCHAR},
+
+                    #{productRelationEntity.productId,jdbcType=VARCHAR},
+
+                    #{productRelationEntity.taskId,jdbcType=VARCHAR}
+
+           )
+        </foreach>
+
+    </insert>
 </mapper>

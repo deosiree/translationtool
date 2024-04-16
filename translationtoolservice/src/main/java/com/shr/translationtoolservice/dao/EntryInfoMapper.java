@@ -46,6 +46,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     List<EntryInfoEntity> getEntryInfo(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity);
 
     int deleteByProductIdList(@Param("idList") List<String> idList);
+
+    int insertEntryList(@Param("entryInfoEntityList")  List<EntryInfoEntity> entryInfoEntityList);
 }
 
 

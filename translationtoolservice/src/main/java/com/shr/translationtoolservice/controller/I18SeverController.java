@@ -508,31 +508,20 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getAppByNode(@RequestParam String nodeName) {
         ResponseListModel<TDBappVo> responseListModel = new ResponseListModel<>();
-
-        JSONArray jsonArray = new JSONArray();
+        List<TDBappVo> tdbAppVos  = new ArrayList<>();
         String s = "";
-        ArrayList<TDBappVo> list = new ArrayList<>();
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("nodeName", nodeName);
             s = httpUtils.get(I18URL + ConstantInterface.GET_APP_BYNODE, headerParameters);
-            jsonArray = JSONArray.parseArray(s);
-            for (int i = 0; i < jsonArray.size(); i++) {
-                TDBappVo tdBappVo = new TDBappVo();
-                JSONArray jsonArray1 = JSONArray.parseArray(jsonArray.getString(i));
-                String name = jsonArray1.getString(0);
-                int type = jsonArray1.getInteger(1);
-                tdBappVo.setName(name);
-                tdBappVo.setType(type);
-                list.add(tdBappVo);
-            }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+           tdbAppVos = JSONObject.parseArray(s,TDBappVo.class);
+           log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        responseListModel.setList(list);
-        responseListModel.setTotalNum(list.size());
+        responseListModel.setList(tdbAppVos);
+        responseListModel.setTotalNum(tdbAppVos.size());
         return checkResult(responseListModel);
     }
 
@@ -543,7 +532,7 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getdbByApp(@RequestParam String nodeName,
                                                       @RequestParam String appName,
-                                                      @RequestParam String modeType) {
+                                                      @RequestParam String modeName) {
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
 
         JSONArray jsonArray = new JSONArray();
@@ -553,7 +542,7 @@ public class I18SeverController extends BaseController {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("nodeName", nodeName);
             headerParameters.put("appName", appName);
-            headerParameters.put("modeType", modeType);
+            headerParameters.put("modeName", modeName);
             s = httpUtils.get(I18URL + ConstantInterface.GET_DB_BYAPP, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {

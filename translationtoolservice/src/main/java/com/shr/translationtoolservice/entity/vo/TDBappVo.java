@@ -10,6 +10,8 @@ import lombok.Data;
  **/
 @Data
 public class TDBappVo {
-    private String name;
-    private Integer type;
+    private String appName ;
+    private String nodeName ;
+    private String siteName ;
+    private String modeName ;
 }

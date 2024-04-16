@@ -46,6 +46,8 @@
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
         <result property="importType" column="import_type" jdbcType="VARCHAR"/>
         <result property="entryVersionID" column="entry_version_type" jdbcType="VARCHAR"/>
+        <result property="parentID" column="parent_id" jdbcType="VARCHAR"/>
+        <result property="diFileName" column="di_file_name" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -56,7 +58,7 @@
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,
         fra_trans_id,spa_trans_id,is_public,
-        is_delete,import_type,entry_version_type
+        is_delete,import_type,entry_version_type,parent_id
     </sql>
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
@@ -69,19 +71,19 @@
         t2.is_delete,t2.import_type,t2.entry_version_type
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
-        select  distinct  <include refid="Base_t2_Column_List"/>,
+        select distinct<include refid="Base_t2_Column_List"/>,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
-         from ( t_product_relation t1  right join  t_entry_info t2 on t1.entry_id = t2.id)
+        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
-        where  t2.is_delete = 0
+        where t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
-           and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+            and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
             and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
@@ -126,14 +128,14 @@
 
     <select id="getEntryByVersionTotal" resultType="int">
         select COUNT( DISTINCT t2.id)
-        from ( t_product_relation t1  right join  t_entry_info t2 on t1.entry_id = t2.id)
+        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
-        where  t2.is_delete = 0
+        where t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
-           and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+            and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
             and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
@@ -178,6 +180,123 @@
         from ${tableName} where abbr = #{abbr,jdbcType=VARCHAR} and version_id =
         #{versionID,jdbcType=VARCHAR}
     </select>
+
+    <insert id="insertEntryList">
+
+
+        insert into t_entry_info
+        (
+
+        id,
+
+
+        abbr,
+
+        entry,
+
+        entry_length,
+
+        chinese_interpretation,
+
+        english_interpretation,
+
+        entry_source,
+
+        entry_state,
+
+        `update`,
+
+        update_time,
+
+        version_id,
+
+        entry_label,
+
+        part_of_speech,
+
+        classify_id,
+
+        remark,
+
+        task_id,
+
+        en_trans_id,
+
+        ru_trans_id,
+
+        fra_trans_id,
+
+        spa_trans_id,
+
+        is_public,
+
+        is_delete,
+
+        import_type,
+        parent_id,
+        di_file_name,
+        entry_version_type,
+        is_exist
+
+        )
+        values
+
+        <foreach collection="entryInfoEntityList" item="entryInfoEntity" index="index" separator=",">
+            (
+
+            #{entryInfoEntity.id,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.abbr,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.entry,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.entryLength,jdbcType=INTEGER},
+
+            #{entryInfoEntity.chineseInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.entryState,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.update,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.updateTime,jdbcType=TIMESTAMP},
+
+            #{entryInfoEntity.versionID,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.entryLabel,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.partOfSpeech,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.classifyId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.remark,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.taskId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.ruTransId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.fraTransId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.isPublic,jdbcType=INTEGER},
+
+            #{entryInfoEntity.isDelete,jdbcType=INTEGER},
+
+            #{entryInfoEntity.importType,jdbcType=VARCHAR},
+            #{entryInfoEntity.parentID,jdbcType=VARCHAR},
+            #{entryInfoEntity.diFileName,jdbcType=VARCHAR},
+            #{entryInfoEntity.entryVersionID,jdbcType=VARCHAR},
+            #{entryInfoEntity.isExist,jdbcType=VARCHAR}
+
+            )
+        </foreach>
+    </insert>
 
     <insert id="insertEntry">
         insert into ${tableName}
@@ -390,17 +509,17 @@
         where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
     </update>
     <select id="selectEntryById" resultMap="BaseResultMap">
-        select  distinct t2.*,
+        select distinct t2.*,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
-        from ( t_product_relation t1  right join  t_entry_info t2 on t1.entry_id = t2.id)
+        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
-        where  t2.is_delete = 0
+        where t2.is_delete = 0
         <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
             and t2.id = #{entryInfoEntity.id,jdbcType=VARCHAR}
         </if>
@@ -439,7 +558,7 @@
     </select>
 
 
-        <select id="getWriteEntryByTaskID" resultMap="BaseResultMap">
+    <select id="getWriteEntryByTaskID" resultMap="BaseResultMap">
            select t2.*,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
@@ -456,26 +575,24 @@
     </select>
 
 
-
-
     <select id="getEntryByTaskIDAndEntry" resultMap="BaseResultMap">
-           select t2.*,
+        select t2.*,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
-        from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
+        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
-        where  t2.is_delete = 0 and  t1.task_id =  #{id,jdbcType=VARCHAR}
+        where t2.is_delete = 0 and t1.task_id = #{id,jdbcType=VARCHAR}
         <if test="entryState != null  and entryState != ''">
-            and t2.entry_state =   #{entryState,jdbcType=VARCHAR}
+            and t2.entry_state = #{entryState,jdbcType=VARCHAR}
         </if>
 
         <if test="entry != null  and entry != ''">
-            and   t2.entry =  #{entry,jdbcType=VARCHAR}
+            and t2.entry = #{entry,jdbcType=VARCHAR}
         </if>
 
     </select>
@@ -496,11 +613,13 @@
     </select>
 
     <select id="getExistEntryList" resultMap="BaseResultMap">
-        select   <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from ${productTableName}
-        where is_delete =0     and  entry = #{entryInfoEntity.entry,jdbcType=VARCHAR} and product_id =#{entryInfoEntity.productID,jdbcType=VARCHAR}
+        where is_delete =0 and entry = #{entryInfoEntity.entry,jdbcType=VARCHAR} and product_id
+        =#{entryInfoEntity.productID,jdbcType=VARCHAR}
         <if test="entryInfoEntity.abbr != null  and entryInfoEntity.abbr != ''">
-          and  abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+            and abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
         </if>
     </select>
 
@@ -522,42 +641,42 @@
         en.translate as english,en.translate_state as englishTranslateState,en.public_state as englishPublicState,
         ru.translate as russian,ru.translate_state as russianTranslateState,ru.public_state as russianPublicState,
         fra.translate as french,fra.translate_state as frenchTranslateState,fra.public_state as frenchPublicState,
-        spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState from
-        t_product_relation t1 right JOIN t_entry_info t2  on t1.entry_id = t2.id
-        left join t_translate en  on t2.en_trans_id = en.id
+        spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState
+        from
+        t_product_relation t1 right JOIN t_entry_info t2 on t1.entry_id = t2.id
+        left join t_translate en on t2.en_trans_id = en.id
         <if test="entryInfoEntity.englishTranslateState != null  ">
-            and  en.translate_state =  #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+            and en.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
         </if>
-        left join t_translate ru  on t2.ru_trans_id = ru.id
+        left join t_translate ru on t2.ru_trans_id = ru.id
         <if test="entryInfoEntity.englishTranslateState != null  ">
-            and  ru.translate_state =  #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+            and ru.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
         </if>
-        left join t_translate fra  on t2.fra_trans_id = fra.id
+        left join t_translate fra on t2.fra_trans_id = fra.id
         <if test="entryInfoEntity.englishTranslateState != null  ">
-            and  fra.translate_state =  #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+            and fra.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
         </if>
-        left join t_translate spa  on t2.spa_trans_id = spa.id
+        left join t_translate spa on t2.spa_trans_id = spa.id
         <if test="entryInfoEntity.englishTranslateState != null  ">
-            and  spa.translate_state =  #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+            and spa.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if>
 
 
-
-        where  t2.is_delete = 0
+        where t2.is_delete = 0
         <if test="entryInfoEntity.classfy1 != null  ">
             and t2.classfy1 = #{entryInfoEntity.classfy1,jdbcType=VARCHAR},
         </if>
         <if test="entryInfoEntity.classfy2 != null  ">
-           and  t2.classfy2 = #{entryInfoEntity.classfy2,jdbcType=VARCHAR},
+            and t2.classfy2 = #{entryInfoEntity.classfy2,jdbcType=VARCHAR},
         </if>
         <if test="entryInfoEntity.versionID != null  ">
-            and  t1.version_id =  #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+            and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.productID != null  ">
-            and  t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
+            and t2.product_id = #{entryInfoEntity.productID,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.taskId != null  ">
-            and  t1.task_id =  #{entryInfoEntity.taskId,jdbcType=VARCHAR}
+            and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
 
     </select>

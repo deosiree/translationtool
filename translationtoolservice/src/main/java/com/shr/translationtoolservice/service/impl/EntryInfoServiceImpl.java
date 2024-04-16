@@ -16,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -832,8 +833,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
+    @Transactional
     //用is_exist 区分 已存在和新词条，已存在升级词条版本在插入
     public String insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
+        long start = System.currentTimeMillis();
         int insert = 0;
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
@@ -853,19 +856,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
         }*/
-        log.info(" ===== add entry number  :" + insert + " ===== ");
+        if ( 0 == insert){
+            return ErrorCodeList.INSERT_ERROR;
+        }
+        long end = System.currentTimeMillis();
+        log.info(" ===== add entry number  :" + insert + " == and time : {}=== " , end-start);
         return ConstantInterface.OK_STR;
     }
 
     private int insertRelation(List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity, String department) {
         int insert = 0;
+        List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
+        List<ProductRelationEntity> productRelationEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+
+            if ( entryInfoEntity.getEntry().length() > 512){
+                log.info(" ==== insert error : entry lenth too long : {} ======", entryInfoEntity.getEntry().length());
+                continue;
+            }
             int exist = 1;
             //空值代表解聚合词条，默认是新增词条
             if (Objects.isNull(entryInfoEntity.getIsExist())) {
                 exist = 0;
                 entryInfoEntity.setIsExist(exist);
-                log.warn(" ========== id : " + entryInfoEntity.getId() + " , entry  : " + entryInfoEntity.getEntry());
+                log.warn(" ========== id : " + entryInfoEntity.getId() + " , entry  : " + entryInfoEntity.getEntry() );
             }
             //存在升级版本
             if (1 == entryInfoEntity.getIsExist()) {
@@ -884,8 +898,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             productRelationEntity.setTaskId(taskInfoEntity.getId());
             productRelationEntity.setProductId(taskInfoEntity.getProductId());
             productRelationEntity.setVersionId(taskInfoEntity.getVersionId());
-            productRelationMapper.insert(productRelationEntity);
-            insert += entryInfoMapper.insert(entryInfoEntity);
+           // productRelationMapper.insert(productRelationEntity);
+           // System.out.println(" =============" + entryInfoEntity.getEntry() + " =============" + entryInfoEntity.getEntry().length());
+            entryInfoEntityList.add(entryInfoEntity);
+           productRelationEntities.add(productRelationEntity);
+           // insert += entryInfoMapper.insert(entryInfoEntity);
 
             if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())) {
                 for (EntryInfoEntity entryInfoEntity1 : entryInfoEntity.getChildren()) {
@@ -909,14 +926,18 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     productRelationEntity1.setTaskId(taskInfoEntity.getId());
                     productRelationEntity1.setProductId(taskInfoEntity.getProductId());
                     productRelationEntity1.setVersionId(taskInfoEntity.getVersionId());
-                    productRelationMapper.insert(productRelationEntity1);
-                    insert += entryInfoMapper.insert(entryInfoEntity1);
+                   // productRelationMapper.insert(productRelationEntity1);
+                    productRelationEntities.add(productRelationEntity1);
+                    entryInfoEntityList.add(entryInfoEntity1);
+
                 }
             }
 
 
         }
+        productRelationMapper.insertList(productRelationEntities);
 
+        insert += entryInfoMapper.insertEntryList(entryInfoEntityList);
         return insert;
     }
 
