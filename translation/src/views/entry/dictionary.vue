@@ -51,6 +51,7 @@
                 </a-form-item>
                 <a-form-item>
                     <a-button type="primary" @click="select">查看</a-button>
+                    <a-button type="primary" danger @click="clearDic" style="margin-left:8px">清空</a-button>
                 </a-form-item>
             </a-form>
             <div class="table">
@@ -82,7 +83,8 @@ import { message,Modal } from 'ant-design-vue';
 import { defineComponent, ref, createVNode } from 'vue';
 import { cloneDeep, iteratee } from 'lodash-es';
 import {
-    getDictionary
+    getDictionary,
+    clearDic
 } from "@/http/api/i18Server"
 import {
     getDictory
@@ -112,7 +114,7 @@ export default {
     
     data() {
         return{
-            modalWidth:"60%",
+            modalWidth:"65%",
             tableHeight:{x:'100%' , y: 380},
             dataSource:[],
             columns: [
@@ -124,8 +126,11 @@ export default {
                 {title: 'Tag',dataIndex: 'tag',align:'center',width:150,},
                 {title: '翻译',dataIndex: 'translation'}
             ],
-            search:{
-                dictionary:null
+            search: {
+                fileName:null,
+                source:"",
+                tag:"",
+                common:""
             },
             dictionaryOption:[],
             product:{},
@@ -216,6 +221,36 @@ export default {
                 this.tableHeight.y = 380
             }
         },
+        // 清空辞典
+        clearDic(){
+            if(this.search.fileName === null || this.search.fileName === ""){
+                message.info("请选择辞典！")
+                return
+            }
+            let fileName = this.search.fileName
+            Modal.confirm({
+                title: '确定要清空当前辞典吗?',
+                icon: createVNode(ExclamationCircleOutlined),
+                content: '',
+                okText: '确定',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk() {
+                    console.log(fileName)
+                    let params = {
+                        dicName : fileName
+                    }
+                    clearDic(params).then((res) => {
+                        message.success("清空成功！")
+                    }).catch((err) => {
+                        message.error("清空失败！")
+                    })
+                },
+                onCancel() {
+                    
+                },
+            });
+        }
     }
 }
 </script>

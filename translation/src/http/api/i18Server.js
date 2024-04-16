@@ -174,3 +174,12 @@ export function getEnumEntry(params){
         params
     });
 }
+
+// 获取枚举文件词条
+export function clearDic(params){
+    return request({
+        url: "/I18Sever/clearDic",
+        method: "GET",
+        params
+    });
+}

@@ -1236,6 +1236,10 @@ export default {
         },
         //新增词条
         addEntry(){
+            if(Object.keys(this.product).length === 0 || this.product.type === 'classify'){
+                message.info("请选择产品！")
+                return
+            }
             this.pagination.pageSize = this.pagination.pageSize + 1
             let newData = {
                 id: `new${this.dataSource.length + 1}`,

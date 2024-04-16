@@ -1256,10 +1256,11 @@ export default {
                                 pId: id,
                                 value: newId,
                                 key: newId,
-                                title: item.name,
+                                title: item.appName,
                                 type: 'app',
-                                appId: item.type,
+                                appId: item.appName,
                                 node: node.value,
+                                modeName: item.modeName,
                                 isLeaf: false
                             }
                             this.treeData.push(app)
@@ -1272,7 +1273,8 @@ export default {
                     let params = {
                         nodeName: node.dataRef.node,
                         appName: node.dataRef.title,
-                        modeType: node.dataRef.appId
+                        // modeType: node.dataRef.appId
+                        modeName: node.dataRef.modeName
                     }
                     getdbByApp(params).then((res) => {
                         res.data.list.forEach(item => {
@@ -1670,7 +1672,7 @@ export default {
             }
             if(apps.length > 0){
                 apps.forEach(item => {
-                    item.modeType = item.appId
+                    // item.modeType = item.appId
                     item.app = item.title
                 })
                 getDBALLEntryByApp(params,apps).then((res) => {
