@@ -63,12 +63,13 @@ export function templateFileDownload(params) {
 }
 
 // 导入模板下载
-export function entryExportByCondition(data) {
+export function entryExportByCondition(data,params) {
     return axios(
         {
             url: env.dev.baseUrl+'/entryInfo/entryExportByCondition',
             method: 'POST',
             data:data,
+            params:params,
             headers: {
                 token: store.state.token
             },

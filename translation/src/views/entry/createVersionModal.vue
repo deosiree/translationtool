@@ -198,6 +198,7 @@
                 v-if="writeBack.type != 'DEFAUT'"
                 >
                     <a-select
+                    show-search
                     v-model:value="writeBack.file"
                     :options="writeBack.fileOptions"
                     placeholder="请选择"
@@ -504,9 +505,10 @@ export default {
                     let data = {
                         columnNames: fields,
                         entryInfoEntities: this.dataSource,
-                        excelName:'词条导出'
+                        excelName: '词条导出'
                     }
-                    entryExportByCondition(data).then((res) => {
+                    let params = {}
+                    entryExportByCondition(data,params).then((res) => {
                         let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
                         let contentType = res.headers['content-type']
                         const blob = new Blob([res.data], {type: contentType})

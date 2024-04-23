@@ -100,6 +100,8 @@
                     <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
                     <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
                     <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
+                    <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button>
+                    
                     <a-popover
                         trigger="click"
                         placement="leftTop"
@@ -440,8 +442,57 @@
     :visible="dictionaryVisible" 
     :currentProduct="product"
     @dictionaryClose="dictionaryClose"/>
+    
+    <CustomModal
+    :visible="importVisible" 
+    :okLoading="importLoading"
+    modalTitle="导入"
+    @handleClose="importClose"
+    @handleOK="importOK"
+    @afterClose="importAfterClose"
+    >
+        <div class="content">
+            <a-form
+                ref="formRef"
+                name="custom-validation"
+                :model="importModal"
+            >
+                <a-form-item 
+                label="语言" 
+                name="language"
+                :rules="[{ required: true, message: '请选择!' }]"
+                >
+                    <a-select
+                    v-model:value="importModal.language"
+                    placeholder="请选择内容"
+                    :options='translateTypes'
+                    :fieldNames="{label:'name',value:'name'}"
+                    >
+                    </a-select>
+                </a-form-item>
+                <a-form-item
+                label="文件"
+                name="file"
+                :rules="[{required: true, validator: this.checkFile() }]"
+                >
+                    <a-upload
+                        name="file"
+                        :beforeUpload="beforeUpload"
+                        :accept="accept"
+                        :max-count="1"
+                        :fileList="fileList"
+                        @change="handleChange"
+                        @remove="removeFile"
+                    >
+                        <a-button type="primary" size="small">选择</a-button>
+                    </a-upload>
+                </a-form-item>
+            </a-form>
+        </div>
+    </CustomModal>
 </template>
 <script>
+import CustomModal from '@/components/modal/index.vue';
 import tableParam from "./tableParam.js";
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import common from "./common.js";
@@ -469,7 +520,8 @@ import {
     deleteEntryInfo,
     updatePublicEntry,
     addSingleEntry,
-    getClassfy
+    getClassfy,
+    entryImportExcle
 } from "@/http/api/entryManage";
 import {
     getSecondClassify
@@ -492,6 +544,7 @@ import {
 } from '@ant-design/icons-vue';
 export default {
     components:{
+        CustomModal,
         SearchBox,
         DataBox,
         OperationArea,
@@ -595,6 +648,14 @@ export default {
             rowClassify2Option:{},
             dictionaryVisible: false,
             selectAllLoading: false,
+            accept:".xls,.xlsx",
+            importVisible: false,
+            importLoading: false,
+            importModal:{
+                language: null
+            },
+            importFile: null,
+            fileList: []
         }
     },
     
@@ -1215,7 +1276,7 @@ export default {
                     this.selectEntry.push(record)
                 }else{
                     this.selectEntry = this.selectEntry.filter(item => {
-                        return item !== record
+                        return item.id !== record.id
                     })
                 }
             }
@@ -1320,6 +1381,7 @@ export default {
             this.selectEntry.forEach(item => {
                 this.selectedRowKeys.push(item.id)
             })
+            this.selectedRowKeys = Array.from(new Set(this.selectedRowKeys))
         },
         // 二级分类管理
         setSecondClassify(){
@@ -1404,6 +1466,67 @@ export default {
 
             })
         },
+        // 导入词条
+        importEntry(){
+            this.importVisible = true
+        },
+
+        importClose(){
+            this.importVisible = false
+        },
+        importOK(){
+            this.$refs.formRef.validate().then(() => {
+                this.importLoading = true
+                let formData = new FormData()
+                formData.append('file',this.importFile)
+                formData.append('transType',this.importModal.language)
+                entryImportExcle(formData).then((res) => {
+                    message.success('导入成功！')
+                    this.getEntryByVersion()
+                    this.importVisible = false
+                    this.importLoading = false
+                }).catch((err) => {
+                    message.error('导入失败！')
+                    this.importLoading = false
+                })
+            }).catch((err) => {
+
+            })
+            
+        },
+        importAfterClose(){
+            this.importModal.language = null
+            this.importFile = null
+            this.fileList = []
+            this.$refs.formRef.clearValidate()
+        },
+
+        // 导入词条
+        beforeUpload(file, fileList){
+            // console.log("before");
+            return false
+        },
+        handleChange(info){
+            this.fileList = info.fileList
+            if(info.fileList.length === 0){
+                this.importFile = null
+            }else{
+                this.importFile = info.file
+            } 
+        },
+        removeFile(file){
+            this.importFile = null
+            return true
+        },
+        // 校验上传文件是否为空
+        checkFile(){
+            return (rule,value) =>{
+                if(this.importFile === null){
+                   return Promise.reject('请选择文件！');
+                }
+                return Promise.resolve();
+            }
+        }
     }
 }
 </script>

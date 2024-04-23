@@ -122,3 +122,12 @@ export function getDictory(params) {
         params
     });
 }
+
+// 导入
+export function importCommonExcle(data) {
+    return request({
+        url: "/workbench/importCommonExcle",
+        method: "POST",
+        data:data
+    });
+}

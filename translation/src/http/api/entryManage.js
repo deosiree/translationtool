@@ -170,3 +170,11 @@ export function writeBack(params,data) {
         data
     });
 }
+
+export function entryImportExcle(data) {
+    return request({
+        url: "/entryInfo/entryImportExcle",
+        method: "POST", 
+        data
+    });
+}

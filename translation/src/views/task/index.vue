@@ -661,6 +661,8 @@ export default {
             this.$refs.tableFormRef.validate().then(() => {
                 // 保存词条
                 this.saveEntry(id)
+            }).catch((err) => {
+                
             })
             
         },

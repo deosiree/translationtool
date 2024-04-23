@@ -615,7 +615,8 @@ export default {
                     }
                     data.entryInfoEntity = entryInfoEntity
                 }
-                entryExportByCondition(data).then((res) => {
+                let params = {}
+                entryExportByCondition(data,params).then((res) => {
                     let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
                     let contentType = res.headers['content-type']
                     const blob = new Blob([res.data], {type: contentType})

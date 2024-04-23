@@ -288,6 +288,7 @@ import {
     preTranslate,
     getEntryInfoList,
     updateEntryList,
+    importCommonExcle
 } from '@/http/api/workbench'
 import {
     translate
@@ -838,9 +839,12 @@ export default {
                 let data = {
                     columnNames: fields,
                     entryInfoEntities: this.dataSource,
-                    excelName:'词条导出'
+                    excelName: this.task.name + "_"
                 }
-                entryExportByCondition(data).then((res) => {
+                let params = {
+                    taskID: this.task.id
+                }
+                entryExportByCondition(data,params).then((res) => {
                     let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
                     let contentType = res.headers['content-type']
                     const blob = new Blob([res.data], {type: contentType})
@@ -870,9 +874,9 @@ export default {
             let file = info.file
             let formData = new FormData()
             formData.append('file',file)
-            formData.append('transType',this.task.translateType)
+            formData.append('taskID',this.task.id)
             this.loading = true
-            importExcle(formData).then((res) => {
+            importCommonExcle(formData).then((res) => {
                 this.dataSource = res.data.list
                 // this.allData = this.dataSource
                 this.loading = false
