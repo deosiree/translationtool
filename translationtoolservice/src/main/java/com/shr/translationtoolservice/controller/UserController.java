@@ -114,7 +114,6 @@ public class UserController extends BaseController {
     @Transactional
     public HttpResponse<String > changeRoleAndMenu( String roleId,
                                                    @RequestBody List<String> menuIdList) {
-        ResponseListModel<UserDetailsVo> result = new ResponseListModel<>();
         String  res = userManageService.changeRoleAndMenu(roleId,menuIdList);
         return checkResult(res);
     }

@@ -58,7 +58,7 @@
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,
         fra_trans_id,spa_trans_id,is_public,
-        is_delete,import_type,entry_version_type,parent_id
+        is_delete,import_type,entry_version_type,parent_id,di_file_name
     </sql>
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
@@ -68,7 +68,7 @@
         t2.part_of_speech,t2.classify_id,t2.remark,
         t2.task_id,t2.en_trans_id,t2.ru_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,
-        t2.is_delete,t2.import_type,t2.entry_version_type
+        t2.is_delete,t2.import_type,t2.entry_version_type,t2.di_file_name
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
         select distinct<include refid="Base_t2_Column_List"/>,
@@ -678,6 +678,34 @@
         <if test="entryInfoEntity.taskId != null  ">
             and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
+
+    </select>
+
+    <select id="getTransByID" resultType="string">
+        select `translate` from t_entry_info t1,t_translate t2 where t1.id =  #{id,jdbcType=VARCHAR} and  t1.${transColum} = t2.id
+    </select>
+
+    <select id="getReTransEntry" parameterType="string" resultMap="BaseResultMap">
+        select t2.*,
+        en.translate as english,en.translate_state as englishTranslateState,en.public_state as englishPublicState,
+        ru.translate as russian,ru.translate_state as russianTranslateState,ru.public_state as russianPublicState,
+        fra.translate as french,fra.translate_state as frenchTranslateState,fra.public_state as frenchPublicState,
+        spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState
+        from
+        t_product_relation t1 right JOIN t_entry_info t2 on t1.entry_id = t2.id
+        left join t_translate en on t2.en_trans_id = en.id
+
+        left join t_translate ru on t2.ru_trans_id = ru.id
+
+        left join t_translate fra on t2.fra_trans_id = fra.id
+
+        left join t_translate spa on t2.spa_trans_id = spa.id
+
+
+        where t2.is_delete = 0 and t2.entry_state = 3
+
+        and t1.task_id = #{taskId,jdbcType=VARCHAR}
+
 
     </select>
 </mapper>

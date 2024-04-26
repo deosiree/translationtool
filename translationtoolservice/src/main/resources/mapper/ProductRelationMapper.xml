@@ -5,11 +5,11 @@
 <mapper namespace="com.shr.translationtoolservice.dao.ProductRelationMapper">
 
     <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.ProductRelationEntity">
-            <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="entryId" column="entry_id" jdbcType="VARCHAR"/>
-            <result property="versionId" column="version_id" jdbcType="VARCHAR"/>
-            <result property="productId" column="product_id" jdbcType="VARCHAR"/>
-            <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="entryId" column="entry_id" jdbcType="VARCHAR"/>
+        <result property="versionId" column="version_id" jdbcType="VARCHAR"/>
+        <result property="productId" column="product_id" jdbcType="VARCHAR"/>
+        <result property="taskId" column="task_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -18,7 +18,7 @@
     </sql>
 
     <delete id="deleteByProductIdList">
-        delete  from t_product_relation where product_id in(
+        delete from t_product_relation where product_id in(
         <foreach collection="idList" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}
         </foreach>
@@ -26,34 +26,23 @@
     </delete>
 
     <insert id="insertList">
-
-            insert into t_product_relation
-         (
-
-                    id,
-
-                    entry_id,
-
-                    product_id,
-
-                    task_id
-
-           )
-            values
-        <foreach collection="productRelationEntities" item="productRelationEntity" index="index" separator=",">
+        insert into t_product_relation
         (
-
-
-                    #{productRelationEntity.id,jdbcType=VARCHAR},
-
-                    #{productRelationEntity.entryId,jdbcType=VARCHAR},
-
-                    #{productRelationEntity.productId,jdbcType=VARCHAR},
-
-                    #{productRelationEntity.taskId,jdbcType=VARCHAR}
-
-           )
+        id,
+        entry_id,
+        version_id,
+        product_id,
+        task_id
+        )
+        values
+        <foreach collection="productRelationEntities" item="productRelationEntity" index="index" separator=",">
+            (
+            #{productRelationEntity.id,jdbcType=VARCHAR},
+            #{productRelationEntity.entryId,jdbcType=VARCHAR},
+            #{productRelationEntity.versionId,jdbcType=VARCHAR},
+            #{productRelationEntity.productId,jdbcType=VARCHAR},
+            #{productRelationEntity.taskId,jdbcType=VARCHAR}
+            )
         </foreach>
-
     </insert>
 </mapper>

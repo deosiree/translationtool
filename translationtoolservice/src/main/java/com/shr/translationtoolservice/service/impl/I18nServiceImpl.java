@@ -66,7 +66,7 @@ public class I18nServiceImpl implements I18nService {
                 if (CollectionUtils.isEmpty(tsEntryInfoMap.get(entryInfoEntity.getEntrySource()))){
                     List<Map<String, String>> tsEntrys = new ArrayList<>();
                     //遍历单词
-                    Map<String, String> requestMap = new HashMap<>();
+                    Map<String, String> requestMap  = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
                     requestMap.put("tag", entryInfoEntity.getEntryLabel());
                     requestMap.put("translate", trans);
@@ -92,12 +92,12 @@ public class I18nServiceImpl implements I18nService {
             } else if ("DI".equals(entryInfoEntity.getImportType())) {
                 //di 来源处理
                 List<EntryInfoEntity> entities;
-                if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getEntrySource()))) {
+                if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getDiFileName()))) {
                     entities = new ArrayList<>();
                     entities.add(entryInfoEntity);
-                    diTypeMap.put(entryInfoEntity.getEntrySource(), entities);
+                    diTypeMap.put(entryInfoEntity.getDiFileName(), entities);
                 } else {
-                    entities = diTypeMap.get(entryInfoEntity.getEntrySource());
+                    entities = diTypeMap.get(entryInfoEntity.getDiFileName());
                     for (EntryInfoEntity entryInfoEntity1 : entities){
                         if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
                             if (tag){

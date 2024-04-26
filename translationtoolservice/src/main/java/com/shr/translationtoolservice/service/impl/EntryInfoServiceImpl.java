@@ -729,7 +729,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntity.setIsDelete(0);
             entryInfoEntity.setIsPublic(0);
             entryInfoEntity.setEntryState(1);
-            entryInfoEntity.setTaskId(taskInfoEntity.getProductId());
+            entryInfoEntity.setTaskId(taskInfoEntity.getId());
             entryInfoEntity.setId(commonUtils.getUUID());
             if (Objects.nonNull(taskInfoEntity)) {
                 entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
@@ -856,11 +856,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
         }*/
-        if ( 0 == insert){
+        if (0 == insert) {
             return ErrorCodeList.INSERT_ERROR;
         }
         long end = System.currentTimeMillis();
-        log.info(" ===== add entry number  :" + insert + " == and time : {}=== " , end-start);
+        log.info(" ===== add entry number  :" + insert + " == and time : {}=== ", end - start);
         return ConstantInterface.OK_STR;
     }
 
@@ -870,7 +870,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<ProductRelationEntity> productRelationEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
 
-            if ( entryInfoEntity.getEntry().length() > 512){
+            if (entryInfoEntity.getEntry().length() > 512) {
                 log.info(" ==== insert error : entry lenth too long : {} ======", entryInfoEntity.getEntry().length());
                 continue;
             }
@@ -879,7 +879,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             if (Objects.isNull(entryInfoEntity.getIsExist())) {
                 exist = 0;
                 entryInfoEntity.setIsExist(exist);
-                log.warn(" ========== id : " + entryInfoEntity.getId() + " , entry  : " + entryInfoEntity.getEntry() );
+                log.warn(" ========== id : " + entryInfoEntity.getId() + " , entry  : " + entryInfoEntity.getEntry());
             }
             //存在升级版本
             if (1 == entryInfoEntity.getIsExist()) {
@@ -898,11 +898,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             productRelationEntity.setTaskId(taskInfoEntity.getId());
             productRelationEntity.setProductId(taskInfoEntity.getProductId());
             productRelationEntity.setVersionId(taskInfoEntity.getVersionId());
-           // productRelationMapper.insert(productRelationEntity);
-           // System.out.println(" =============" + entryInfoEntity.getEntry() + " =============" + entryInfoEntity.getEntry().length());
+            // productRelationMapper.insert(productRelationEntity);
+            // System.out.println(" =============" + entryInfoEntity.getEntry() + " =============" + entryInfoEntity.getEntry().length());
             entryInfoEntityList.add(entryInfoEntity);
-           productRelationEntities.add(productRelationEntity);
-           // insert += entryInfoMapper.insert(entryInfoEntity);
+            productRelationEntities.add(productRelationEntity);
+            // insert += entryInfoMapper.insert(entryInfoEntity);
 
             if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())) {
                 for (EntryInfoEntity entryInfoEntity1 : entryInfoEntity.getChildren()) {
@@ -926,7 +926,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     productRelationEntity1.setTaskId(taskInfoEntity.getId());
                     productRelationEntity1.setProductId(taskInfoEntity.getProductId());
                     productRelationEntity1.setVersionId(taskInfoEntity.getVersionId());
-                   // productRelationMapper.insert(productRelationEntity1);
+                    // productRelationMapper.insert(productRelationEntity1);
                     productRelationEntities.add(productRelationEntity1);
                     entryInfoEntityList.add(entryInfoEntity1);
 
@@ -978,23 +978,63 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public void entryExportByCondition(ExcelExportVO excelExportVO, HttpServletResponse response) {
+    public void entryExportByCondition(ExcelExportVO excelExportVO, HttpServletResponse response, String taskID) {
         EntryInfoEntity entryInfoEntity = excelExportVO.getEntryInfoEntity();
         List<String> columnNames = excelExportVO.getColumnNames();
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
         Date date = new Date();
         String da = format.format(date);
         String excelName = excelExportVO.getExcelName() + "_" + da;
-        ;
+        TaskInfoEntity taskEntity = null;
+        if (StringUtils.isNotBlank(taskID)) {
+            taskEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
+
+        }
+
         List<EntryInfoEntity> entryInfoEntities;
         if (!CollectionUtils.isEmpty(excelExportVO.getEntryInfoEntities())) {
             entryInfoEntities = excelExportVO.getEntryInfoEntities();
         } else {
             entryInfoEntities = entryInfoMapper.getEntryInfo(entryInfoEntity);
         }
+        for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
+            if (Objects.isNull(taskEntity)) {
+                QueryWrapper<ProductRelationEntity> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("entry_id", entryInfoEntity1.getId());
+                List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(queryWrapper);
+                String versionID = productRelationEntities.get(0).getVersionId();
+                String productID = productRelationEntities.get(0).getProductId();
+                if (StringUtils.isNotBlank(versionID)) {
+                    entryInfoEntity1.setVersionID(versionID);
+                    VersionEntity versionByID = versionMapper.getVersionByID(versionID);
+                    entryInfoEntity1.setVersionName(versionByID.getName());
+                }
+                if (StringUtils.isNotBlank(productID)) {
+                    entryInfoEntity1.setProductID(productID);
+                    ProductEntity productEntity = productMapper.selectById(productID);
+                    entryInfoEntity1.setProductName(productEntity.getName());
+                }
+            } else {
+                String versionID = taskEntity.getVersionId();
+                if (StringUtils.isNotBlank(versionID)) {
+                    entryInfoEntity1.setVersionID(versionID);
+                    VersionEntity versionByID = versionMapper.getVersionByID(versionID);
+                    entryInfoEntity1.setVersionName(versionByID.getName());
+                }
+                String productId = taskEntity.getProductId();
+                if (StringUtils.isNotBlank(productId)) {
+                    entryInfoEntity1.setProductID(productId);
+                    ProductEntity productEntity = productMapper.selectById(productId);
+                    entryInfoEntity1.setProductName(productEntity.getName());
+                }
+            }
+
+
+        }
         List<String> exportFields = new ArrayList<>();
         for (String column : columnNames) {
             exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get(column));
+
         }
         excelUtils.getWorkBook(entryInfoEntities, response, exportFields, columnNames, excelName);
 
@@ -1038,7 +1078,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 log.warn(" importCommonExcle **** 导入翻译词条异常, 词条 (" + entryInfoEntity.getEntry() + ")ID 为空 !!");
                 continue;
             }
-            entryInfoEntity.setEntryState(0);
+            if (entryInfoEntity.getEntryState() == null) {
+                entryInfoEntity.setEntryState(0);
+            }
             entryInfoEntity.setTaskId(taskID);
 
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
@@ -1070,7 +1112,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             entryEntitys.add(entryInfoEntity);
         }
-        return entryEntitys;
+
+        return entryProcessUtils.buildRepeEntry(entryEntitys, taskEntityByTaskID.getTranslateType());
     }
 
     @Override
@@ -1094,28 +1137,178 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
 
-
     @Override
     public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName) {
 
         for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
 
 
-
         }
         switch (writeType) {
             case ConstantInterface.DI:
-                diUtils.writeDiEntry(entryInfoEntities, fileName, translateType,tag,comment);
+                diUtils.writeDiEntry(entryInfoEntities, fileName, translateType, tag, comment);
                 break;
             case ConstantInterface.TS:
-                tsUtils.writeTSEntry(entryInfoEntities, fileName,tag);
+                tsUtils.writeTSEntry(entryInfoEntities, fileName, tag);
                 break;
             case ConstantInterface.DEFAUT:
-                i18nService.setInfoByEntryList(entryInfoEntities,translateType,tag,comment);
+                i18nService.setInfoByEntryList(entryInfoEntities, translateType, tag, comment);
                 break;
 
         }
         return ConstantInterface.OK_STR;
+    }
+
+    @Override
+    public String importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
+
+        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
+        String token = request.getHeader("token");
+        String department = JWTTokenUtils.getDepartment(token);
+
+        //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
+
+        try {
+            entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            if (CollectionUtils.isEmpty(entryEntitys)) {
+                return null;
+            }
+            for (EntryInfoEntity entryInfoEntity1 : entryEntitys) {
+                TranslateEntity translateEntity = new TranslateEntity();
+                translateEntity.setId(commonUtils.getUUID());
+                translateEntity.setEntry(entryInfoEntity1.getEntry());
+
+                translateEntity.setTranslateState("3");
+                translateEntity.setDeleteState(0);
+                translateEntity.setVisualRange(department);
+                translateEntity.setPublicState(0);
+
+                switch (transType) {
+                    case ConstantInterface.ENGLISH:
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getEnglish())) {
+                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "en_trans_id");
+                            //如果是空则返回
+                            if (trans.equals(entryInfoEntity1.getEnglish())) {
+                                continue;
+                            }
+                            translateEntity.setType(ConstantInterface.ENGLISH);
+
+                            entryInfoEntity1.setEnTransId(translateEntity.getId());
+
+                        }
+                    case ConstantInterface.SPANISH:
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getSpanish())) {
+                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "spa_trans_id");
+                            //如果是空则返回
+                            if (trans.equals(entryInfoEntity1.getSpanish())) {
+                                continue;
+                            }
+                            translateEntity.setType(ConstantInterface.SPANISH);
+
+                            entryInfoEntity1.setSpaTransId(translateEntity.getId());
+
+                        }
+                    case ConstantInterface.FRENCH:
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getFrench())) {
+                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "fra_trans_id");
+                            //如果是空则返回
+                            if (trans.equals(entryInfoEntity1.getFrench())) {
+                                continue;
+                            }
+                            translateEntity.setType(ConstantInterface.FRENCH);
+
+                            entryInfoEntity1.setFraTransId(translateEntity.getId());
+
+                        }
+                    case ConstantInterface.RUSSIAN:
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getRussian())) {
+                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "ru_trans_id");
+                            //如果是空则返回
+                            if (trans.equals(entryInfoEntity1.getRussian())) {
+                                continue;
+                            }
+                            translateEntity.setType(ConstantInterface.RUSSIAN);
+
+                            entryInfoEntity1.setRussian(translateEntity.getId());
+
+                        }
+                }
+
+                entryInfoMapper.updateById(entryInfoEntity1);
+                translateMapper.updateById(translateEntity);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return ConstantInterface.OK_STR;
+
+    }
+
+    @Override
+    public List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile, String taskID) {
+        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
+        List<EntryInfoEntity> reTransEntries = entryInfoMapper.getReTransEntry(taskID);
+        //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
+        try {
+            entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            if (CollectionUtils.isEmpty(entryEntitys)) {
+                return null;
+            }
+            for (EntryInfoEntity entryInfoEntity1 : entryEntitys) {
+                List<EntryInfoEntity> newChildren = new ArrayList<>();
+                for (EntryInfoEntity childEntry : reTransEntries) {
+                    //父亲设置
+                    if (entryInfoEntity1.getId().equals(childEntry.getId())) {
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getEnglish())){
+                            childEntry.setEnglish(entryInfoEntity1.getEnglish());
+                            childEntry.setEnglishTranslateState("1");
+                        }
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getSpanish())){
+                            childEntry.setSpanish(entryInfoEntity1.getSpanish());
+                            childEntry.setSpanishTranslateState("1");
+                        }
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getRussian())){
+                            childEntry.setRussian(entryInfoEntity1.getRussian());
+                            childEntry.setRussianTranslateState("1");
+                        }
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getFrench())){
+                            childEntry.setFrench(entryInfoEntity1.getFrench());
+                            childEntry.setFrenchTranslateState("1");
+                        }
+                        BeanUtils.copyProperties(childEntry,entryInfoEntity1);
+                    }
+                    //父子相认
+                    if (StringUtils.isNotBlank(childEntry.getParentID()) && entryInfoEntity1.getId().equals(childEntry.getParentID())) {
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getEnglish())){
+                            childEntry.setEnglish(entryInfoEntity1.getEnglish());
+                            childEntry.setEnglishTranslateState("1");
+                        }
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getSpanish())){
+                            childEntry.setSpanish(entryInfoEntity1.getSpanish());
+                            childEntry.setSpanishTranslateState("1");
+                        }
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getRussian())){
+                            childEntry.setRussian(entryInfoEntity1.getRussian());
+                            childEntry.setRussianTranslateState("1");
+                        }
+                        if (StringUtils.isNotBlank(entryInfoEntity1.getFrench())){
+                            childEntry.setFrench(entryInfoEntity1.getFrench());
+                            childEntry.setFrenchTranslateState("1");
+                        }
+                        newChildren.add(childEntry);
+                    }
+                }
+                entryInfoEntity1.setChildren(newChildren);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return entryEntitys;
+
     }
 
 
@@ -1385,13 +1578,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
 
 
-            ProductRelationEntity productRelationEntity = new ProductRelationEntity();
-            productRelationEntity.setId(commonUtils.getUUID());
-            productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
-            productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
-            productRelationEntity.setProductId(entryInfoEntity.getProductID());
-            productRelationEntity.setEntryId(entryInfoEntity.getId());
-            productRelationMapper.insert(productRelationEntity);
+        ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+        productRelationEntity.setId(commonUtils.getUUID());
+        productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
+        productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
+        productRelationEntity.setProductId(entryInfoEntity.getProductID());
+        productRelationEntity.setEntryId(entryInfoEntity.getId());
+        productRelationMapper.insert(productRelationEntity);
 
         int insert = entryInfoMapper.insert(entryInfoEntity);
         if (insert != 1) {

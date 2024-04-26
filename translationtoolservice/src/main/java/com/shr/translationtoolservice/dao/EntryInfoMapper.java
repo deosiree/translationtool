@@ -48,6 +48,10 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     int deleteByProductIdList(@Param("idList") List<String> idList);
 
     int insertEntryList(@Param("entryInfoEntityList")  List<EntryInfoEntity> entryInfoEntityList);
+
+    String getTransByID(@Param("id")String id,@Param("transColum") String transColum);
+
+    List<EntryInfoEntity> getReTransEntry(@Param("taskId")String taskID);
 }
 
 

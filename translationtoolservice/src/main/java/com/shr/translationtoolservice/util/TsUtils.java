@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName TsUtils
@@ -33,12 +35,25 @@ public class TsUtils {
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
     public void writeTSEntry(List<EntryInfoEntity> entryInfoEntities, String fileName,boolean tag) {
         JSONObject jsonObject = new JSONObject();
+        List<Map<String, String>> list = new ArrayList<>();
+        String trans = "";
+
         for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities){
+            Map<String, String> requestMap = new HashMap<>();
             if (!tag) {
                 entryInfoEntity1.setEntryLabel("");
             }
+            requestMap.put("source", entryInfoEntity1.getEntry());
+            requestMap.put("tag", entryInfoEntity1.getEntryLabel());
+            if (fileName.contains("en_US")){
+                trans = entryInfoEntity1.getEnglish();
+            }
+            requestMap.put("translate", trans);
+            list.add(requestMap);
         }
-        jsonObject.put("entry", entryInfoEntities);
+
+
+        jsonObject.put("entry", list);
         String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
 
     }

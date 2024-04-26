@@ -62,7 +62,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
 
-    void entryExportByCondition( ExcelExportVO excelExportVO, HttpServletResponse response);
+    void entryExportByCondition( ExcelExportVO excelExportVO, HttpServletResponse response,String taskID);
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
@@ -75,4 +75,8 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName);
+
+    String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
+
+    List<EntryInfoEntity>  workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 }

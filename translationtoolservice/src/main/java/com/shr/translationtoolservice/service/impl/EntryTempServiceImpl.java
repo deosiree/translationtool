@@ -78,6 +78,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     private YoudaoTrans youdaoTrans;
 
     @Autowired
+    private EntryProcessUtils entryProcessUtils;
+
+    @Autowired
     private DeepLTranslateUtils deepLTranslateUtils;
 
     @Override
@@ -244,58 +247,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return entryInfoEntities;
     }
 
-    //优先级  术语库 外网
-    private String addSuggessTrans(EntryInfoEntity entryInfoEntity, String translateType, String priority) {
-        //priority :
-        String translateRes = "";
-        TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
-        switch (priority) {
-            case ConstantInterface.SYK:
-                translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
-            case ConstantInterface.BD:
-                if (StringUtils.isBlank(translateRes)) {
-                    LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                    if (!Objects.isNull(translateResult)){
-                        translateRes = translateResult.getValue();
-                    }else {
-                            LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                            if (!Objects.isNull(languageEntity)) {
-                                translateRes = languageEntity.getValue();
-                            }else {
-                                translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
-                            }
 
-                        }
-                    }
-
-
-                break;
-            case ConstantInterface.YD:
-                if (StringUtils.isBlank(translateRes)) {
-                    LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                    if (!Objects.isNull(languageEntity)){
-                        translateRes = languageEntity.getValue();
-                    }else {
-                        LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                        if (!Objects.isNull(translateResult)){
-                            translateRes = translateResult.getValue();
-                        }else {
-                            translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
-                        }
-
-                    }
-
-                }
-                break;
-            case ConstantInterface.GG:
-                //TODO
-                break;
-            case ConstantInterface.MD:
-                //TODO
-                break;
-        }
-        return translateRes;
-    }
 
     //优先级  术语库 外网
     private String addSuggessTransByPriority(EntryInfoEntity entryInfoEntity, String translateType, String priority) {
@@ -306,12 +258,18 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         }
         // 非综合优先级
         Queue<String> queue = new LinkedList<>();
-        queue.add(priority);
         for (String key : ConstantInterface.translateMachine().keySet()) {
             if (!priority.equals(key)){
                 queue.add(key);
             }
         }
+        //术语库只走术语库
+        if (priority.equals(ConstantInterface.SYK)){
+            queue.clear();
+        }
+
+        queue.add(priority);
+
 
         TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
         String translateRes = "";
@@ -460,50 +418,11 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
         //没给翻译状态直接查词条状态
         List<EntryInfoEntity> entryInfoEntities  = getEntryInfo(taskID,entryState,transStates,entry);
+        TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
+        List<EntryInfoEntity> entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
 
 
-        int sum = 0;
-        //entryid -> tempEntry
-        Map<String, EntryInfoEntity> entryInfoEntityMap = new HashMap<>();
-        for (EntryInfoEntity childEntryInfo : entryInfoEntities) {
-            String parentID = childEntryInfo.getParentID();
-            //构建聚合结构
-            if (StringUtils.isNotBlank(parentID)) {
-                EntryInfoEntity parentEntryInfo = entryInfoEntityMap.get(parentID);
-                //判断map 空 则找到父 放到map里 不是空则把子放到父里
-                if (Objects.isNull(parentEntryInfo)) {
-                    for (EntryInfoEntity parentEntryInfo1 : entryInfoEntities) {
-                        if (parentID.equals(parentEntryInfo1.getId())) {
-                            ArrayList<EntryInfoEntity> entityArrayList = new ArrayList<>();
-                            entityArrayList.add(childEntryInfo);
-                            parentEntryInfo1.setChildren(entityArrayList);
-                            entryInfoEntityMap.put(parentEntryInfo1.getId(), parentEntryInfo1);
-                            sum += 1;
-                        }
-                    }
-
-                } else {
-                    if (CollectionUtils.isEmpty(parentEntryInfo.getChildren())) {
-                        ArrayList<EntryInfoEntity> childList = new ArrayList<>();
-                        childList.add(childEntryInfo);
-                        parentEntryInfo.setChildren(childList);
-                        sum += 1;
-                    } else {
-                        parentEntryInfo.getChildren().add(childEntryInfo);
-                        sum += 1;
-                    }
-                }
-
-            } else {
-                entryInfoEntityMap.put(childEntryInfo.getId(), childEntryInfo);
-                sum += 1;
-            }
-        }
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntityMap.values()) {
-            newEntry.add(entryInfoEntity);
-        }
-        log.warn(" ==== sum is : " + sum + " ==== ");
-        return newEntry;
+        return entryInfoEntityList;
     }
     //没给翻译状态直接查词条状态
     private List<EntryInfoEntity> getEntryInfo(String taskID, String entryState, List<String> transStates,String entry) {

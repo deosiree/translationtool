@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -191,6 +192,36 @@ public class EntryInfoController extends BaseController {
     }
 
 
+    @PostMapping("/entryImportExcle")
+    @ApiOperation("词条excle导入(更新翻译)")
+    @CrossOrigin
+    @Transactional
+    //new
+    public HttpResponse<String> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,
+                                                          HttpServletRequest httpServletRequest
+    ) {
+        String re = entryInfoService.importTransExcle(multipartFile, httpServletRequest,transType);
+
+        return checkResult(re);
+    }
+
+    @PostMapping("/workImportExcleTrans")
+    @ApiOperation("词条excle导入(工作台更新翻译)")
+    @CrossOrigin
+    @Transactional
+    //new
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> workImportExcleTrans(@RequestParam("file") MultipartFile multipartFile,@RequestParam("taskID") String taskID
+    ) {
+
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+        List<EntryInfoEntity> entryInfoEntities ;
+
+        entryInfoEntities = entryInfoService.workImportExcleTrans(multipartFile,taskID);
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
+        return checkResult(responseListModel);
+    }
+
     @PostMapping("/addEntryAudit")
     @ApiOperation("词条送审")
     @CrossOrigin
@@ -348,8 +379,8 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     public void entryExportByCondition(@RequestBody ExcelExportVO excelExportVO,
-                                       HttpServletResponse response) {
-        entryInfoService.entryExportByCondition(excelExportVO,response);
+                                       HttpServletResponse response,  String taskID) {
+        entryInfoService.entryExportByCondition(excelExportVO,response,taskID);
     }
 
     @PostMapping("/getClassfy")
