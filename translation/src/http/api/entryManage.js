@@ -178,3 +178,12 @@ export function entryImportExcle(data) {
         data
     });
 }
+
+// 翻译导入
+export function workImportExcleTrans(data) {
+    return request({
+        url: "/entryInfo/workImportExcleTrans",
+        method: "POST",
+        data:data
+    });
+}

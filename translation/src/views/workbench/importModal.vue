@@ -1141,6 +1141,12 @@ export default {
                     this.selectedRows.forEach(item => {
                         if(item.entryState === 2){// 词条审核未通过
                             deleteID.push(item.id)
+                            // 若存在子词条  则删除子词条
+                            if(item.children && item.children.length > 0){
+                                item.children.forEach(child => {
+                                    deleteID.push(child.id)
+                                })
+                            }
                         }
                     })
                     if(deleteID.length > 0){

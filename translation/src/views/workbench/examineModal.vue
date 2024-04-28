@@ -350,7 +350,7 @@ export default {
                 },
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',fixed: 'left',width:150,resizable: true,index:2},
                 {title: '词条',dataIndex: 'entry',width:200,resizable: true,index:3,align:'center',},
-                {title: '翻译',dataIndex: 'translate',align:'center',width:200,ellipsis: true,resizable: true,index:4},
+                {title: '翻译',dataIndex: 'translate',align:'center',width:200,resizable: true,index:4},
                 {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true,index:5},
                 {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true,index:6},
                 // {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:200},
@@ -752,7 +752,16 @@ export default {
                 cancelText: '否',
                 style:{top:'30%'},
                 onOk: () => {
-                    deleteEntryInfoByID(this.selectedRowKeys).then((res) => {
+                    let deleteIds = []
+                    this.selectedRows.forEach(item => {
+                        deleteIds.push(item.id)
+                        if(item.children && item.children.length > 0){
+                            item.children.forEach(child => {
+                                deleteIds.push(child.id)
+                            })
+                        }
+                    })
+                    deleteEntryInfoByID(deleteIds).then((res) => {
                         message.success('删除成功！')
                         this.getTaskEntry()
                     }).catch((err) => {

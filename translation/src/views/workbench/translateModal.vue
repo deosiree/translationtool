@@ -291,7 +291,8 @@ import {
     importCommonExcle
 } from '@/http/api/workbench'
 import {
-    translate
+    translate,
+    workImportExcleTrans
 } from '@/http/api/entryManage'
 import {
     entryExportByCondition
@@ -876,14 +877,28 @@ export default {
             formData.append('file',file)
             formData.append('taskID',this.task.id)
             this.loading = true
-            importCommonExcle(formData).then((res) => {
+            workImportExcleTrans(formData).then((res) => {
                 this.dataSource = res.data.list
-                // this.allData = this.dataSource
+                this.dataSource.forEach(item => {
+                    item.entryState = 3
+                })
                 this.loading = false
             }).catch((err) => {
                 message.error('导入失败！')
                 this.loading = false
             })
+
+
+            // importCommonExcle(formData).then((res) => {
+            //     this.dataSource = res.data.list
+            //     this.dataSource.forEach(item => {
+            //         item.entryState = 3
+            //     })
+            //     this.loading = false
+            // }).catch((err) => {
+            //     message.error('导入失败！')
+            //     this.loading = false
+            // })
         },
         // 下一个词条 快捷键
         nextEntry(){
