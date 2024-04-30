@@ -1,5 +1,10 @@
 # translation
 
+## nodejs version
+```
+V16.16.0
+```
+
 ## Project setup
 ```
 npm install
