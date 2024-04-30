@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.UserMapper">
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.User">
+        <!--@mbg.generated-->
+        <!--@Table t_user-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="job_number" jdbcType="VARCHAR" property="jobNumber"/>
+        <result column="department" jdbcType="VARCHAR" property="department"/>
+        <collection property="roleName" ofType="string">
+            <result property="roleName" column="role_name"/>
+        </collection>
+        <collection property="roleId" ofType="string">
+            <result property="roleId" column="role_id"/>
+        </collection>
+        <!--<collection property="roleId" select="selectRoleColumn" column="role_id" />-->
+    </resultMap>
+    <resultMap id="BaseResultMap2" type="com.shr.translationtoolservice.entity.User">
+        <!--@mbg.generated-->
+        <!--@Table t_user-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="job_number" jdbcType="VARCHAR" property="jobNumber"/>
+        <result column="department" jdbcType="VARCHAR" property="department"/>
+    </resultMap>
+
+    <resultMap id="BaseConfigResUserMap" type="com.shr.translationtoolservice.entity.ConfigResUser">
+        <!--@mbg.generated-->
+        <!--@Table t_user-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="job_number" jdbcType="VARCHAR" property="jobNumber"/>
+        <result column="department" jdbcType="VARCHAR" property="department"/>
+        <result column="role_type" jdbcType="VARCHAR" property="roleType"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        u.id, user_name, job_number, department
+    </sql>
+    <select id="selectRoleColumn">
+        select t2.role_name as role_name,t3.id as role_id
+        from t_user t1 ,t_role t2 ,t_user_role t3 where t1.id = t3.user_id
+        and t2.id = t3.role_id
+        <if test="userName != null and userName !='' ">
+            and t1.user_name = #{name,jdbcType=VARCHAR}
+        </if>
+        <if test="department != null and department !='' ">
+            and t1.department = #{department,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+
+        select t1.user_name as user_name , t1.department as department , t1.id as id ,t2.role_name as role_name,t2.id as
+        role_id
+        from t_user t1 ,t_role t2 ,t_user_role t3 where t1.id = t3.user_id
+        and t2.id = t3.role_id
+        and t1.user_name = #{name,jdbcType=VARCHAR}
+
+    </select>
+
+
+    <select id="getUserInfo" resultMap="BaseResultMap">
+        select t1.user_name as user_name , t1.id as id , t1.department as department , t2.role_name as role_name,t3.id
+        as role_id
+        from t_user t1 ,t_role t2 ,t_user_role t3 where t1.id = t3.user_id
+        and t2.id = t3.role_id
+        <if test="user.userName != null and user.userName  !='' ">
+            and t1.user_name = #{user.userName ,jdbcType=VARCHAR}
+        </if>
+        <if test="user.department != null and user.department !='' ">
+            and t1.department = #{user.department,jdbcType=VARCHAR}
+        </if>
+        <if test="user.roleName  != null  and user.roleName.size != 0 ">
+            and t2.role_name in (
+            <foreach collection="user.roleName" item="roleName" index="index" separator=",">
+                <if test="roleName != null ">
+                    #{roleName,jdbcType=VARCHAR}
+                </if>
+            </foreach>
+            )
+        </if>
+        order by t1.department desc
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+
+    <select id="getUserInfoTotal" resultType="integer">
+        select count(1)
+        from t_user t1 ,t_role t2 ,t_user_role t3 where t1.id = t3.user_id
+        and t2.id = t3.role_id
+        <if test="user.userName != null and user.userName  !='' ">
+            and t1.user_name = #{user.userName ,jdbcType=VARCHAR}
+        </if>
+        <if test="user.department != null and user.department !='' ">
+            and t1.department = #{user.department,jdbcType=VARCHAR}
+        </if>
+        <if test="user.roleName  != null and  user.roleName.size != 0 ">
+            and t2.role_name in (
+            <foreach collection="user.roleName" item="roleName" index="index" separator=",">
+                <if test="roleName != null  ">
+                    #{roleName,jdbcType=VARCHAR}
+                </if>
+            </foreach>
+            )
+        </if>
+
+    </select>
+
+
+    <delete id="deleteRoleAndUser">
+        delete t_user ,t_user_role from t_user join t_user_role on t_user.id = t_user_role.user_id where
+        t_user.user_name in
+        <trim prefix="(" suffix=")">
+            <foreach collection="users" item="user" index="index" separator=",">
+                #{user.userName,jdbcType=VARCHAR}
+            </foreach>
+        </trim>
+
+
+    </delete>
+
+    <delete id="deleteUser">
+        delete from t_user where user_id in
+        <trim prefix="(" suffix=")">
+            <foreach collection="users" item="user" index="index" separator=",">
+                #{user.id,jdbcType=VARCHAR}
+            </foreach>
+        </trim>
+    </delete>
+
+
+    <insert id="insertUser">
+        insert into t_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            user_name,
+            department,
+        </trim>
+        values
+        <foreach collection="users" item="user" index="index" separator=",">
+            (
+            <if test="user.id != null and user.id != '' ">#{user.id ,jdbcType=VARCHAR},
+            </if>
+            <if test="user.userName != null and user.userName != '' ">
+                #{user.userName ,jdbcType=VARCHAR},
+            </if>
+            <if test="user.department != null and user.department != '' ">
+                #{user.department ,jdbcType=VARCHAR}
+            </if>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertRoleAndUser">
+        insert into t_user_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            user_id,role_id
+        </trim>
+        values
+        <foreach collection="users" item="user" index="index" separator=",">
+            <foreach collection="user.roleId" item="roleId" index="index" separator=",">
+                (
+                #{user.id ,jdbcType=VARCHAR},
+                #{roleId,jdbcType=VARCHAR}
+                )
+            </foreach>
+        </foreach>
+    </insert>
+
+
+
+
+
+
+    <!--<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+      &lt;!&ndash;@mbg.generated&ndash;&gt;
+      delete from t_user
+      where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="com.shr.translationtoolservice.entity.User">
+      &lt;!&ndash;@mbg.generated&ndash;&gt;
+      insert into t_user (id, user_name, job_number,
+        department, role_id)
+      values (#{id,jdbcType=VARCHAR}, #{userName,jdbcType=VARCHAR}, #{jobNumber,jdbcType=VARCHAR},
+        #{department,jdbcType=VARCHAR}, #{roleId,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.shr.translationtoolservice.entity.User">
+      &lt;!&ndash;@mbg.generated&ndash;&gt;
+      insert into t_user
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="id != null">
+          id,
+        </if>
+        <if test="userName != null">
+          user_name,
+        </if>
+        <if test="jobNumber != null">
+          job_number,
+        </if>
+        <if test="department != null">
+          department,
+        </if>
+        <if test="roleId != null">
+          role_id,
+        </if>
+      </trim>
+      <trim prefix="values (" suffix=")" suffixOverrides=",">
+        <if test="id != null">
+          #{id,jdbcType=VARCHAR},
+        </if>
+        <if test="userName != null">
+          #{userName,jdbcType=VARCHAR},
+        </if>
+        <if test="jobNumber != null">
+          #{jobNumber,jdbcType=VARCHAR},
+        </if>
+        <if test="department != null">
+          #{department,jdbcType=VARCHAR},
+        </if>
+        <if test="roleId != null">
+          #{roleId,jdbcType=VARCHAR},
+        </if>
+      </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.shr.translationtoolservice.entity.User">
+      &lt;!&ndash;@mbg.generated&ndash;&gt;
+      update t_user
+      <set>
+        <if test="userName != null">
+          user_name = #{userName,jdbcType=VARCHAR},
+        </if>
+        <if test="jobNumber != null">
+          job_number = #{jobNumber,jdbcType=VARCHAR},
+        </if>
+        <if test="department != null">
+          department = #{department,jdbcType=VARCHAR},
+        </if>
+        <if test="roleId != null">
+          role_id = #{roleId,jdbcType=VARCHAR},
+        </if>
+      </set>
+      where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.shr.translationtoolservice.entity.User">
+      &lt;!&ndash;@mbg.generated&ndash;&gt;
+      update t_user
+      set user_name = #{userName,jdbcType=VARCHAR},
+        job_number = #{jobNumber,jdbcType=VARCHAR},
+        department = #{department,jdbcType=VARCHAR},
+        role_id = #{roleId,jdbcType=VARCHAR}
+      where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+
+  &lt;!&ndash;  <select id="getUserTotalNum" resultType="int">
+      select count(1)
+      from t_user t1 join t_role t2 on 1=1
+      <if test="user.userName != null and user.userName != ''">
+        and
+        user_name= #{user.userName,jdbcType=VARCHAR}
+      </if>
+      <if test="user.jobNumber != null and user.jobNumber != ''">
+        and
+        job_number= #{user.jobNumber,jdbcType=VARCHAR}
+      </if>
+      <if test="user.department != null and user.department != ''">
+        and
+        department= #{user.department,jdbcType=VARCHAR}
+      </if>
+      <if test="user.roleId != null and user.roleId != ''">
+        and
+
+        role_id= #{user.roleId,jdbcType=VARCHAR}
+
+      </if>
+      and
+      t1.role_id=t2.id
+
+
+    </select>&ndash;&gt;
+  &lt;!&ndash;
+
+    <select id="querUser" resultMap="BaseConfigResUserMap">
+      select t1.id,t1.user_name ,t1.job_number ,t1.department ,t2.role_name ,t2.describe,t2.is_default ,t1.role_id
+      from t_user t1  , t_role t2 where   t1.role_id = t2.id
+      <if test="user.userName != null and user.userName != ''">
+        and
+        user_name like CONCAT('%','${user.userName}','%' )
+      </if>
+      <if test="user.jobNumber != null and user.jobNumber != ''">
+        and
+        job_number= #{user.jobNumber,jdbcType=VARCHAR}
+      </if>
+      <if test="user.department != null and user.department != ''">
+        and
+        department= #{user.department,jdbcType=VARCHAR}
+      </if>
+      <if test="user.roleId != null and user.roleId != ''">
+        and
+
+        role_id= #{user.roleId,jdbcType=VARCHAR}
+
+      </if>
+
+      <if test="limit >= 0 and offset >= 0">
+        LIMIT #{limit} OFFSET #{offset}
+      </if>
+
+    </select>
+  &ndash;&gt;
+
+
+    <delete id="deleteUserInfoByList" parameterType="java.util.List">
+      DELETE FROM t_user WHERE id in(
+      <foreach collection="list" item="idList" index="index" separator=",">
+        #{idList,jdbcType=VARCHAR}
+      </foreach>
+      );
+    </delete>
+  &lt;!&ndash;
+
+    <update id="updateUserInfo" parameterType="com.shr.translationtoolservice.entity.ConfigResUser">
+      &lt;!&ndash;@mbg.generated&ndash;&gt;
+      update t_user
+      <set>
+
+        <if test="user.userName != null and user.userName != ''">
+
+          user_name= #{user.userName,jdbcType=VARCHAR},
+        </if>
+        <if test="user.jobNumber != null and user.jobNumber != ''">
+
+          job_number= #{user.jobNumber,jdbcType=VARCHAR},
+        </if>
+        <if test="user.department != null and user.department != ''">
+          department= #{user.department,jdbcType=VARCHAR},
+        </if>
+        <if test="user.roleName != null and user.roleName != ''">
+
+          role_id=  #{user.roleId,jdbcType=VARCHAR},
+        </if>
+
+      </set>
+      where id = #{user.id,jdbcType=VARCHAR}
+    </update>
+  &ndash;&gt;-->
+
+
+    <select id="getRoleUserByDepartment" resultMap="BaseResultMap">
+    select
+   t2.role_name as role_name ,
+    t1.id as id ,t1.user_name as user_name,t1.job_number as job_number,t1.department as `departmanet`,t2.id as role_id ,t2.type as role_type
+    from t_user t1 ,t_role t2,t_user_role t3
+    where t1.department = #{department,jdbcType=VARCHAR} and t2.id = t3.role_id and t1.id = t3.user_id
+  </select>
+
+    <select id="getPermissionByNameAndDepartment" resultMap="BaseResultMap">
+
+        select t1.user_name as user_name , t1.department as department , t1.id as id ,t2.role_name as role_name,t2.id as
+        role_id
+        from t_user t1 ,t_role t2 ,t_user_role t3 where t1.id = t3.user_id
+        and t2.id = t3.role_id
+        <if test="name != null and name !='' ">
+            and t1.user_name = #{name,jdbcType=VARCHAR}
+        </if>
+        <if test="department != null and department !='' ">
+            and t1.department = #{department,jdbcType=VARCHAR}
+        </if>
+    </select>
+    <delete id="deleteUserRole">
+        delete from t_user_role where user_id in
+            <foreach collection="userList" item="user" separator="," open="(" close=")">
+                #{user.id,jdbcType=VARCHAR}
+            </foreach>
+    </delete>
+    <insert id="insertUserRole">
+        insert into t_user_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            user_id,role_id
+        </trim>
+        values
+        <foreach collection="list" item="userRole" index="index" separator=",">
+            (
+            #{userRole.userId ,jdbcType=VARCHAR},
+            #{userRole.roleId,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="getUser" resultMap="BaseResultMap2">
+        select
+        <include refid="Base_Column_List"></include>
+        from t_user u
+        <where>
+            <if test="user.department != null and user.department != ''">
+              and department = #{user.department,jdbcType=VARCHAR}
+            </if>
+            <if test="user.userName != null and user.userName != ''">
+              and user_name = #{user.userName,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.RoleAuthorityEntryMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.RoleAuthorityEntity">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="roleId" column="role_id" jdbcType="VARCHAR"/>
+            <result property="authorityId" column="authority_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,role_id,authority_id
+    </sql>
+
+    <insert id="insertPermission" parameterType="com.shr.translationtoolservice.entity.RoleAuthorityEntity" >
+         insert into t_role_authority (id,role_id, authority_id)
+         values (#{roleAuthorityEntity.id,jdbcType=VARCHAR},#{roleAuthorityEntity.roleId,jdbcType=VARCHAR},#{roleAuthorityEntity.authorityId,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="selectAuthID" parameterType="java.lang.String" resultType="java.lang.String">
+        select  authority_id from t_role_authority where role_id =  #{roleId,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="selectPermiss" parameterType="com.shr.translationtoolservice.entity.RoleAuthorityEntity" resultMap="BaseResultMap">
+        select id,role_id , authority_id from t_role_authority where role_id =  #{roleAuthorityEntity.roleId,jdbcType=VARCHAR}
+        and authority_id=  #{roleAuthorityEntity.authorityId,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteAuthorityByID" parameterType="java.lang.String">
+        <!--@mbg.generated-->
+        delete from t_role_authority
+        where role_id = #{roleId,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteByRoleIds" parameterType="java.lang.String">
+        <!--@mbg.generated-->
+        delete from t_role_authority
+        where role_id in(
+        <foreach collection="list" item="idList" index="index" separator=",">
+            #{idList,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
+    <update id="updatePermiss"  parameterType="java.lang.String">
+        update t_role_authority set role_id = #{roleId,jdbcType=VARCHAR} ,authority_id = #{authority_id,jdbcType=VARCHAR}
+    </update>
+
+</mapper>

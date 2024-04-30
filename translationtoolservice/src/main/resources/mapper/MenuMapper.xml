@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.MenuMapper">
+  <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.Menu">
+    <!--@mbg.generated-->
+    <!--@Table t_menu-->
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="parent_id" jdbcType="VARCHAR" property="parentId" />
+    <result column="menu_name" jdbcType="VARCHAR" property="menuName" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="rank" jdbcType="INTEGER" property="rank" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="active_icon" jdbcType="VARCHAR" property="activeIcon" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="component" jdbcType="VARCHAR" property="component" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, parent_id, menu_name, url, `rank`, icon ,active_icon , name , component
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select 
+    <include refid="Base_Column_List" />
+    from t_menu
+    where id = #{id,jdbcType=VARCHAR} where is_delete =0
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    <!--@mbg.generated-->
+    delete from t_menu
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.shr.translationtoolservice.entity.Menu">
+    <!--@mbg.generated-->
+    insert into t_menu (id, parent_id, menu_name, 
+      url, `rank`, icon,is_delete)
+    values (#{id,jdbcType=VARCHAR}, #{parentId,jdbcType=VARCHAR}, #{menuName,jdbcType=VARCHAR}, 
+      #{url,jdbcType=VARCHAR}, #{rank,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR},0)
+  </insert>
+  <insert id="insertSelective" parameterType="com.shr.translationtoolservice.entity.Menu">
+    <!--@mbg.generated-->
+    insert into t_menu
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+    is_delete,
+      <if test="id != null">
+        id,
+      </if>
+      <if test="parentId != null">
+        parent_id,
+      </if>
+      <if test="menuName != null">
+        menu_name,
+      </if>
+      <if test="url != null">
+        url,
+      </if>
+      <if test="rank != null">
+        `rank`,
+      </if>
+      <if test="icon != null">
+        icon,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null">
+        #{parentId,jdbcType=VARCHAR},
+      </if>
+      <if test="menuName != null">
+        #{menuName,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="rank != null">
+        #{rank,jdbcType=INTEGER},
+      </if>
+      <if test="icon != null">
+        #{icon,jdbcType=VARCHAR},
+      </if>
+      ,0
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.shr.translationtoolservice.entity.Menu">
+    <!--@mbg.generated-->
+    update t_menu
+    <set>
+      <if test="parentId != null">
+        parent_id = #{parentId,jdbcType=VARCHAR},
+      </if>
+      <if test="menuName != null">
+        menu_name = #{menuName,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="rank != null">
+        `rank` = #{rank,jdbcType=INTEGER},
+      </if>
+      <if test="icon != null">
+        icon = #{icon,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.shr.translationtoolservice.entity.Menu">
+    <!--@mbg.generated-->
+    update t_menu
+    set parent_id = #{parentId,jdbcType=VARCHAR},
+      menu_name = #{menuName,jdbcType=VARCHAR},
+      url = #{url,jdbcType=VARCHAR},
+      `rank` = #{rank,jdbcType=INTEGER},
+      icon = #{icon,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByRoleId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_menu
+    where id in (
+    select distinct menu_id from t_role_menu where role_id in(
+    <foreach collection="roleIds" item="roleId" index="index" separator=",">
+      #{roleId,jdbcType=VARCHAR}
+    </foreach>
+    )  ) and is_delete =0
+
+  </select>
+  <select id="selectAllInfo" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_menu where is_delete = 0
+
+  </select>
+
+
+  <select id="selectMenyTotal" resultType="int">
+    select
+    count(1)
+    from t_menu  where is_delete = 0
+
+  </select>
+
+</mapper>

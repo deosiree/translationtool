@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.RoleMenuEntryMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.RoleMenuEntry">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="roleId" column="role_id" jdbcType="VARCHAR"/>
+            <result property="menuId" column="menu_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,role_id,menu_id
+    </sql>
+    <select id="getMenuIDByRoleID" parameterType="String" resultType="java.lang.String">
+        select menu_id from t_role_menu where role_id = #{roleId,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insertMenuIDByRoleID" parameterType="com.shr.translationtoolservice.entity.RoleMenuEntry">
+        insert into t_role_menu (role_id,menu_id) values (#{roleMenuEntry.roleId,jdbcType=VARCHAR},#{roleMenuEntry.menuId,jdbcType=VARCHAR})
+    </insert>
+    <delete id="deleteByRoleId" parameterType="String">
+         delete from t_role_menu where role_id = #{roleMenuEntry.roleId,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteByRoleIds" parameterType="String">
+         delete from t_role_menu where role_id in(
+        <foreach collection="list" item="idList" index="index" separator=",">
+            #{idList,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
+
+
+</mapper>
