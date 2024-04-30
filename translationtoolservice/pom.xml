@@ -246,7 +246,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <!-- deepl翻译 -->
+        <dependency>
+            <groupId>com.deepl.api</groupId>
+            <artifactId>deepl-java</artifactId>
+            <version>1.4.0</version>
+        </dependency>
 
 
 

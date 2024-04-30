@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.TranslateMapper">
+
+    <resultMap id="BaseResultMap" type="com.shr.translationtoolservice.entity.TranslateEntity">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="entry" column="entry" jdbcType="VARCHAR"/>
+        <result property="translate" column="translate" jdbcType="VARCHAR"/>
+        <result property="unique" column="unique" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="visualRange" column="visual_range" jdbcType="VARCHAR"/>
+        <result property="publicState" column="public_state" jdbcType="INTEGER"/>
+        <result property="deleteState" column="delete_state" jdbcType="INTEGER"/>
+        <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
+        <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
+        <result property="auditSuggest" column="audit_suggest" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,entry,`translate`,
+        `unique`,remark,`type`,
+        visual_range,public_state,delete_state,version_id,translate_state,audit_suggest
+    </sql>
+
+    <select id="getTrans" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_translate where delete_state =0 and public_state =0
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+    <select id="getPublicEntry" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_translate where delete_state =0  and public_state = 1
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and `type` = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="getPublicEntryTotal" resultType="int">
+        select
+        count(1)
+        from t_translate where delete_state =0  and public_state =0
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+        </if>
+
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+    <update id="deleteByIds">
+        update t_translate set delete_state = 1 where id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </update>
+<select id="selectPublicByEntry" resultMap="BaseResultMap">
+    select   <include refid="Base_Column_List"/>
+    from t_translate
+    where version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+    and public_state = 1 and delete_state = 0 and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+    and `translate` = #{translateEntity.translate,jdbcType=VARCHAR} and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+</select>
+
+    <update id="updateTranslation">
+        <foreach collection="translateEntityList" item="item" index="index" separator=";">
+            update t_translate set translate = #{item.translate} where id = #{item.id}
+        </foreach>
+    </update>
+
+    <select id="selectRepByEntryTemp" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/>
+        from t_translate
+        where delete_state = 0 and  version_id = #{entryTempEntity.versionID,jdbcType=VARCHAR}
+        and entry = #{entryTempEntity.entry,jdbcType=VARCHAR}
+        and `translate` = #{entryTempEntity.translate,jdbcType=VARCHAR}
+        and `type` = #{entryTempEntity.translateType,jdbcType=VARCHAR}
+    </select>
+
+
+
+    <select id="getSuggestTrans" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/>
+        from t_translate
+        where delete_state = 0
+        and entry = #{name,jdbcType=VARCHAR}
+        and `type` = #{translateType,jdbcType=VARCHAR}
+        <if test="visualRange != null  and visualRange != ''">
+            and visual_range = #{visualRange,jdbcType=VARCHAR}
+        </if>
+        and translate_state ='已审核'
+    </select>
+
+    <select id="getVersionSuggestTrans" resultMap="BaseResultMap">
+        select   <include refid="Base_Column_List"/>
+        from t_translate
+        where delete_state = 0
+        and entry = #{entry,jdbcType=VARCHAR}
+        and `type` = #{translateType,jdbcType=VARCHAR}
+        and translate_state =3
+
+
+    </select>
+
+    <select id="getRepTrans" resultMap="BaseResultMap">
+        select  <include refid="Base_Column_List"/>
+        from t_translate
+        where delete_state = 0
+        and entry = #{entry,jdbcType=VARCHAR}
+        and `type` = #{translateType,jdbcType=VARCHAR}
+        and translate_state =3
+        and `translate` =  #{translate,jdbcType=VARCHAR}
+    </select>
+</mapper>
