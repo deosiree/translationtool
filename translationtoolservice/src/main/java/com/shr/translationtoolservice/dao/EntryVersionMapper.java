@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.ConfigResUser;
+import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.EntryVersion;
 import com.shr.translationtoolservice.entity.User;
 import org.apache.ibatis.annotations.Mapper;
@@ -29,4 +30,5 @@ public interface EntryVersionMapper {
     int updateDefault0();
 
     EntryVersion getNewVersion();
+
 }

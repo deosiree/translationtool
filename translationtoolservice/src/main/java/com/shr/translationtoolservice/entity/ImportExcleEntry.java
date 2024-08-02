@@ -95,7 +95,7 @@ public class ImportExcleEntry {
         put("DDLength","单多驼峰搭配下划线（继保类似）字符数");
         put("DSTerm","展开（缩写可采用单/多驼峰）术语");
         put("DSLength","展开（缩写可采用单/多驼峰）字符数");
-
+        put("diFileName","回写词典");
     }};
 
 

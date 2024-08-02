@@ -93,6 +93,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Value("${I18server.url}")
     private String I18URL;
 
+    @Autowired
+    private EntryVersionMapper entryVersionMapper;
     @Override
     public List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer pageIndex, Integer pageSize) {
         int offset = 0;
@@ -101,6 +103,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         }
         List<EntryInfoEntity> entryByVersion = entryInfoMapper.getEntryByVersion(entryInfoEntity1, offset, pageSize);
+
 
       /*  List<EntryVO> entryVOS = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryByVersion) {
@@ -707,8 +710,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             } else if (fileName.contains("_common.xlsx")) {
                 entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
                 ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-            } else {
-                return null;
+            } else  if (fileName.contains("_jk.xlsx")){
+                entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+                ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
             }
         } catch (Exception e) {
             e.printStackTrace();

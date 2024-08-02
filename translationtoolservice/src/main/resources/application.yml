@@ -28,7 +28,7 @@ spring:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
 server:
-  port: 18001
+  port: 18002
 
 
 #logging:
@@ -92,8 +92,9 @@ I18server:
   url: http://10.16.193.185:18099/
   #url: http://10.16.193.63:18099/
 ConfigFile:
-  zzUrl: "src/main/resources/config/装置词条翻译模板_zz.xlsx"
-  commonUrl: "src/main/resources/config/通用词条翻译模板_common.xlsx"
+  zzUrl: "src/main/resources/config/zz.xlsx"
+  commonUrl: "src/main/resources/config/common.xlsx"
+  jkUrl: "src/main/resources/config/jk.xlsx"
   #linx
   #url: "./config/import.xls"
 

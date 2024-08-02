@@ -1249,10 +1249,11 @@ public class I18SeverController extends BaseController {
             if (CollectionUtils.isEmpty(entryEntities)) {
                 //创建新翻译
                 entryInfoEntity.setIsExist(0);
-                entryInfoEntity.setEntryVersion(0);
+                entryInfoEntity.setEntryVersion(1);
                 entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
             } else {
                 entryInfoEntity.setIsExist(1);
+                entryInfoEntity.setEntryVersion(entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion());
                 entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
             }
         }

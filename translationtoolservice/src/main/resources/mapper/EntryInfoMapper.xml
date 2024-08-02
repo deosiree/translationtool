@@ -64,11 +64,11 @@
         t2.id,t2.abbr,t2.entry,
         t2.entry_length,t2.chinese_interpretation,t2.english_interpretation,
         t2.entry_source,t2.entry_state,t2.`update`,
-        t2.update_time,t2.version_id,t2.entry_label,
+        t2.update_time,t1.version_id,t2.entry_label,
         t2.part_of_speech,t2.classify_id,t2.remark,
         t2.task_id,t2.en_trans_id,t2.ru_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,
-        t2.is_delete,t2.import_type,t2.entry_version_type,t2.di_file_name
+        t2.is_delete,t2.import_type,t2.entry_version_type,t2.di_file_name,t1.product_id,t2.entry_version
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
         select distinct<include refid="Base_t2_Column_List"/>,
@@ -99,7 +99,7 @@
         </if>
 
         <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
-            and t2.entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
+            and t2.entry like '%${entryInfoEntity.entry,jdbcType=VARCHAR}%'
         </if>
         <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr   != ''">
             and t2.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
@@ -188,7 +188,7 @@
         (
 
         id,
-
+        entry_version,
 
         abbr,
 
@@ -245,7 +245,7 @@
             (
 
             #{entryInfoEntity.id,jdbcType=VARCHAR},
-
+            #{entryInfoEntity.entryVersion,jdbcType=VARCHAR},
             #{entryInfoEntity.abbr,jdbcType=VARCHAR},
 
             #{entryInfoEntity.entry,jdbcType=VARCHAR},
@@ -624,10 +624,12 @@
     </select>
 
     <select id="getLastVersionNum" resultType="integer">
-        select max(entry_version)  from t_entry_info  where is_delete =0 and entry_version_type = #{entryInfoEntity.entryVersionID,jdbcType=VARCHAR}
+        select ifnull(max(entry_version),0)  from t_entry_info  where is_delete =0 and entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
 
         and  product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
-
+        <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr != ''  ">
+            and abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+        </if>
 
     </select>
 
