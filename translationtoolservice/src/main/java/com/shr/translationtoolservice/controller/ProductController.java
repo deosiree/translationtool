@@ -72,9 +72,7 @@ public class ProductController extends BaseController {
     @Transactional
     //返回id
     public HttpResponse<ProductEntity> addProduct(@RequestBody ProductEntity productEntity, HttpServletRequest request) {
-        ProductEntity product = new ProductEntity();
-        product.setName(productEntity.getName());
-        List<ProductEntity> product1 = productService.getProduct(product);
+        List<ProductEntity> product1 = productService.getProduct(productEntity);
         if (!product1.isEmpty()) {
             return error(productEntity, "产品名称已存在！");
         }

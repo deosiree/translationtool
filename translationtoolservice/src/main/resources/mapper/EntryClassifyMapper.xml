@@ -84,6 +84,15 @@
         )
     </select>
 
+    <select id="getParentClassfyById" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify
+        where is_delete = 0 and parent_id =    #{id,jdbcType=VARCHAR}
+    </select>
+
+
+
     <select id="selectByParentId" resultType="com.shr.translationtoolservice.entity.EntryClassify">
         select      id `key`,parent_id,`name` `title`,
         `index`
@@ -208,14 +217,14 @@
             <where>
                 is_delete = 0
                 <if test="department != null  and department != ''">
-                    and department = #{department,jdbcType=VARCHAR}
+                    and department  #{department,jdbcType=VARCHAR}
                 </if>
                 <if test="className != null  and className != ''">
-                    and name = #{className,jdbcType=VARCHAR}
+                    and name  like CONCAT('%',#{className,jdbcType=VARCHAR},'%')
                 </if>
             </where>
             UNION
-            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.`id` = parent.parent_id
+            SELECT tt.* FROM t_entry_classify tt JOIN parent ON tt.`id` = parent.parent_id and  tt.is_delete = 0
         )
         SELECT * FROM parent;
     </select>
@@ -228,11 +237,11 @@
                     and department = #{department,jdbcType=VARCHAR}
                 </if>
                 <if test="className != null  and className != ''">
-                    and name = #{className,jdbcType=VARCHAR}
+                    and name like  CONCAT('%',#{className,jdbcType=VARCHAR},'%')
                 </if>
             </where>
             UNION
-            SELECT tt.* FROM t_entry_classify tt JOIN child ON tt.parent_id = child.id
+            SELECT tt.* FROM t_entry_classify tt JOIN child ON tt.parent_id = child.id and tt.is_delete = 0
         )
         SELECT * FROM child
     </select>

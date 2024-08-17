@@ -15,11 +15,6 @@ public class TranslationtoolserviceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(TranslationtoolserviceApplication.class, args);
-        ApplicationHome home = new ApplicationHome (TranslationtoolserviceApplication.class);
-        File jarFile = home.getSource();
-        String jarDir = jarFile.getParentFile().getPath();
-        System.out.println("JAR directory: " + jarDir);
-        log.info(" ===== JAR directory: " + jarDir);
     }
 
 }

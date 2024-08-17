@@ -26,7 +26,7 @@ public interface TaskInfoMapper extends BaseMapper<TaskInfoEntity> {
 
     int getTaskInfoTotal(@Param("taskInfoEntity") TaskInfoEntity taskInfoEntity);
 
-    List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize);
+
 
     List<String>  getVersionIDByTaskID(@Param("taskID")  String taskID);
 

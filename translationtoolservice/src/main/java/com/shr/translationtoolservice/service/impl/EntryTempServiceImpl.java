@@ -30,6 +30,8 @@ import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -195,22 +197,23 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public List<EntryInfoEntity> preTranslate(List<EntryInfoEntity> entryInfoList, String taskID, String priority) {
-
+    public List<EntryInfoEntity> preTranslate(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String taskID, String priority) {
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoList) {
             //子不翻译
             if (StringUtils.isNotBlank(entryInfoEntity.getParentID())) {
                 continue;
             }
-            String entry = entryInfoEntity.getEntry();
             String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
             String translate = "";
 
             switch (translateType) {
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isBlank(entryInfoEntity.getEnglish())) {
-                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority,department);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setEnglish(translate);
                         }
@@ -219,7 +222,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 case ConstantInterface.SPANISH:
                     if (StringUtils.isBlank(entryInfoEntity.getSpanish())) {
-                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority,department);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setSpanish(translate);
                         }
@@ -228,7 +231,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 case ConstantInterface.FRENCH:
                     if (StringUtils.isBlank(entryInfoEntity.getFrench())) {
-                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority,department);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setFrench(translate);
                         }
@@ -237,7 +240,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 case ConstantInterface.RUSSIAN:
                     if (StringUtils.isBlank(entryInfoEntity.getRussian())) {
-                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority);
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority,department);
                         if (StringUtils.isNotBlank(translate)) {
                             entryInfoEntity.setRussian(translate);
                         }
@@ -253,10 +256,10 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
 
     //优先级  术语库 外网
-    private String addSuggessTransByPriority(EntryInfoEntity entryInfoEntity, String translateType, String priority) {
+    private String addSuggessTransByPriority(EntryInfoEntity entryInfoEntity, String translateType, String priority,String department) {
         if (ConstantInterface.SYNTHESIS.equals(priority)) {
             // 综合优先级
-            String trans = synthesisPriority(entryInfoEntity, translateType);
+            String trans = synthesisPriority(entryInfoEntity, translateType,department);
             return trans;
         }
         // 非综合优先级
@@ -292,7 +295,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 }
             } else if (type.equals(ConstantInterface.SYK)) {
                 // 术语库翻译
-                translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
+                translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType,department);
             } else if (type.equals(ConstantInterface.YD)) {
                 // 有道翻译
                 LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
@@ -315,12 +318,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
      * @param translateType   翻译语言
      * @return 翻译结果
      */
-    public String synthesisPriority(EntryInfoEntity entryInfoEntity, String translateType) {
+    public String synthesisPriority(EntryInfoEntity entryInfoEntity, String translateType,String department) {
         // 获取翻译语言代码
         TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
         List<String> translates = new ArrayList<>();
         // 术语库翻译
-        String sykTranslate = getSYKTranslate(entryInfoEntity.getEntry(), translateType);
+        String sykTranslate = getSYKTranslate(entryInfoEntity.getEntry(), translateType,department);
         if (null != sykTranslate && !"".equals(sykTranslate)) {
             translates.add(sykTranslate);
         }
@@ -356,11 +359,16 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return maxTranslate;
     }
 
-    private String getSYKTranslate(String entry, String translateType) {
-        List<TranslateEntity> versionSuggestTrans = translateMapper.getVersionSuggestTrans(entry, translateType);
+    private String getSYKTranslate(String entry, String translateType,String department) {
+        List<TranslateEntity> versionSuggestTrans = translateMapper.getVersionSuggestTrans(entry, translateType,department);
+
         String translate = "";
         if (!CollectionUtils.isEmpty(versionSuggestTrans)) {
-            translate = versionSuggestTrans.get(0).getTranslate();
+
+             TranslateEntity translateEntity = versionSuggestTrans
+                    .stream()
+                    .max(Comparator.comparing(TranslateEntity::getLastUseTime)).orElse(null);
+            translate = translateEntity.getTranslate();
         }
         return translate;
     }
@@ -380,7 +388,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 fileName = "装置词条翻译模板_zz.xlsx";
             } else if (fileType.equals("jk")) {
                 fileUrl = configFilejkUrl;
-
+                fileName = "监控词条翻译模板_zz.xlsx";
             }
             //ClassLoader classLoader = EntryTempServiceImpl.class.getClassLoader();
            // File configFile = new File(classLoader.getResource(fileUrl).getFile());
@@ -463,7 +471,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 }
             }
             if (StringUtils.isNotBlank(entry)) {
-                entrySql = " and t2.entry = '" + entry + "'";
+                entrySql = " and t2.entry like '%" + entry + "%'";
             }
             if (StringUtils.isNotBlank(entryState)) {
                 entryStateSql = " and t2.entry_state = " + entryState;
@@ -657,6 +665,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         translateEntity.setPublicState(0);
         translateEntity.setVisualRange(department);
         translateEntity.setDeleteState(0);
+        translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
         translateEntity.setType(type);
         translateEntity.setEntry(entry);
         int insert = translateMapper.insert(translateEntity);
@@ -669,6 +678,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         translateEntity.setTranslate(trans);
         translateEntity.setTranslateState(transState);
         translateEntity.setId(transId);
+        translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
         translateEntity.setAuditSuggest(auditSuggest);
         int update = translateMapper.updateById(translateEntity);
         log.info("更新 （" + update + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + "),  transState ( " + transState + ")  ");
@@ -687,11 +697,18 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         List<TranslateEntity> translateEntityList = translateMapper.selectList(queryWrapper);
         if (translateEntityList.size() > 1) {
             log.error(" ===== 词条更新翻译查重多于1条，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
-            newTransID = translateEntityList.get(0).getId();
+            //更新使用时间
+             TranslateEntity translateEntity = translateEntityList.get(0);
+             translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
+             newTransID = translateEntity.getId();
+            translateMapper.updateById(translateEntity);
             int delete = translateMapper.deleteById(transId);
             log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
         } else if (translateEntityList.size() == 1) {
-            newTransID = translateEntityList.get(0).getId();
+            TranslateEntity translateEntity = translateEntityList.get(0);
+            translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
+            newTransID = translateEntity.getId();
+            translateMapper.updateById(translateEntity);
             int delete = translateMapper.deleteById(transId);
             log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
         } else if (translateEntityList.size() < 1) {
@@ -702,6 +719,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             translateEntity.setTranslateState("3");
             translateEntity.setPublicState(0);
             translateEntity.setVisualRange(department);
+            translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
             translateEntity.setDeleteState(0);
             translateEntity.setType(type);
             translateEntity.setEntry(entryInfoEntity.getEntry());

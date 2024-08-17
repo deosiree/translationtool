@@ -73,8 +73,9 @@ public class ConstantInterface {
 
     public static final String UNTRANSLATED = "未翻译";
     public static final String TRANSLATED = "已翻译";
-    public static final String TRANSLATING = "正在翻译";
-    public static final String AUDIT = "已审核";
+    public static final String TRANSLAT_UNAUDIT = "正在翻译";
+    public static final String TRANSLAT_AUDIT = "已审核";
+    public static final String TRANSLAT_FAIL_AUDIT = "审核未通过";
 
     public static final String OPERATION_TYPE_INSERT = "新增";
     public static final String OPERATION_TYPE_UPDATE = "编辑";

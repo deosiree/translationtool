@@ -534,10 +534,17 @@ public class I18SeverController extends BaseController {
                                                       @RequestParam String appName,
                                                       @RequestParam String modeName) {
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
-
+        ArrayList<String> list = new ArrayList<>();
+        if (appName.equals("sysmgr")){
+            list.add("sysmdl");
+            list.add("iaspalarm");
+            responseListModel.setList(list);
+            responseListModel.setTotalNum(list.size());
+            return checkResult(responseListModel);
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
-        ArrayList<String> list = new ArrayList<>();
+
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("nodeName", nodeName);
@@ -548,6 +555,8 @@ public class I18SeverController extends BaseController {
             for (int i = 0; i < jsonArray.size(); i++) {
 
                 list.add(jsonArray.getString(i));
+
+
             }
 
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
@@ -685,7 +694,7 @@ public class I18SeverController extends BaseController {
                 TDBFieldInfo tdbFieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
                 for (String entry : tdbFieldInfo.getFieldDatas()) {
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                    fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldID());
+                    fieldEntry.setId(commonUtils.getUUID());
                     fieldEntry.setEntry(entry);
 
                     // fieldEntry.setEntrySource(  nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tbName + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldName());
@@ -750,13 +759,14 @@ public class I18SeverController extends BaseController {
             headerParameters.put("nodeName", nodeName);
             s = httpUtils.get(I18URL + ConstantInterface.GET_ALIAS, headerParameters);
             jsonArray = JSONArray.parseArray(s);
-            String source = nodeName + "_" + appName + "_" + dbName;
+            String source = nodeName +  ConstantInterface.UNDERLINE + appName +  ConstantInterface.UNDERLINE  + dbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
+                source= source +  ConstantInterface.UNDERLINE + tdbTableInfo.getTableId();
                 if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(source);
@@ -784,7 +794,7 @@ public class I18SeverController extends BaseController {
                         continue;
                     }
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                    fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                    fieldEntry.setId(commonUtils.getUUID());
                     fieldEntry.setEntry(fieldInfo.getAliasName());
                     fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                     fieldEntry.setEntryState(1);
@@ -845,7 +855,7 @@ public class I18SeverController extends BaseController {
                 if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
@@ -866,7 +876,7 @@ public class I18SeverController extends BaseController {
                 for (TDBFieldInfo fieldInfo : fields) {
                     if (StringUtils.isNotBlank(fieldInfo.getAliasName())) {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                        fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        fieldEntry.setId(commonUtils.getUUID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
                         fieldEntry.setDiFileName(diFileName);
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
@@ -882,7 +892,7 @@ public class I18SeverController extends BaseController {
                     if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
                         for (String data : fieldInfo.getFieldDatas()) {
                             EntryInfoEntity dataEntry = new EntryInfoEntity();
-                            dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                            dataEntry.setId(commonUtils.getUUID());
                             dataEntry.setEntry(data);
                             // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                             dataEntry.setEntryState(1);
@@ -951,7 +961,7 @@ public class I18SeverController extends BaseController {
                 if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
@@ -973,7 +983,7 @@ public class I18SeverController extends BaseController {
                 for (TDBFieldInfo fieldInfo : fields) {
                     if (StringUtils.isNotBlank(fieldInfo.getAliasName())) {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                        fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        fieldEntry.setId(commonUtils.getUUID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
                         fieldEntry.setDiFileName(diFileName);
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
@@ -989,7 +999,7 @@ public class I18SeverController extends BaseController {
                     if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
                         for (String data : fieldInfo.getFieldDatas()) {
                             EntryInfoEntity dataEntry = new EntryInfoEntity();
-                            dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                            dataEntry.setId(commonUtils.getUUID());
                             dataEntry.setEntry(data);
                             // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                             dataEntry.setEntryState(1);
@@ -1058,7 +1068,7 @@ public class I18SeverController extends BaseController {
                 if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                    entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                    entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                     entryInfoEntity.setDiFileName(diFileName);
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
@@ -1080,7 +1090,7 @@ public class I18SeverController extends BaseController {
                     if (StringUtils.isNotBlank(fieldInfo.getAliasName())) {
                         sum++;
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                        fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        fieldEntry.setId(commonUtils.getUUID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
                         fieldEntry.setDiFileName(diFileName);
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
@@ -1097,7 +1107,7 @@ public class I18SeverController extends BaseController {
                         for (String data : fieldInfo.getFieldDatas()) {
                             sum++;
                             EntryInfoEntity dataEntry = new EntryInfoEntity();
-                            dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                            dataEntry.setId(commonUtils.getUUID());
                             dataEntry.setEntry(data);
                             // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                             dataEntry.setEntryState(1);
@@ -1167,7 +1177,7 @@ public class I18SeverController extends BaseController {
 
                 //将表的别名写入词条
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-                entryInfoEntity.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId());
+                entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
                 entryInfoEntity.setDiFileName(diFileName);
                 entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
@@ -1185,7 +1195,7 @@ public class I18SeverController extends BaseController {
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
-                    fieldEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                    fieldEntry.setId(commonUtils.getUUID());
                     fieldEntry.setEntry(fieldInfo.getAliasName());
                     // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                     fieldEntry.setEntryState(1);
@@ -1199,7 +1209,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntities.add(fieldEntry);
                     for (String data : fieldInfo.getFieldDatas()) {
                         EntryInfoEntity dataEntry = new EntryInfoEntity();
-                        dataEntry.setId(commonUtils.getUUID() + ConstantInterface.UNDERLINE + fieldInfo.getFieldID());
+                        dataEntry.setId(commonUtils.getUUID());
                         dataEntry.setEntry(data);
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                         dataEntry.setEntryState(1);

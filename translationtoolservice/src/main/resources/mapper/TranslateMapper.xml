@@ -17,12 +17,13 @@
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
         <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
         <result property="auditSuggest" column="audit_suggest" jdbcType="VARCHAR"/>
+        <result property="lastUseTime" column="last_use_time" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,entry,`translate`,
         `unique`,remark,`type`,
-        visual_range,public_state,delete_state,version_id,translate_state,audit_suggest
+        visual_range,public_state,delete_state,version_id,translate_state,audit_suggest,last_use_time
     </sql>
 
     <select id="getTrans" resultMap="BaseResultMap">
@@ -30,13 +31,13 @@
         <include refid="Base_Column_List"/>
         from t_translate where delete_state =0 and public_state =0
         <if test="translateEntity.translate != null  and translateEntity.translate != ''">
-            and `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+            and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
             and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.entry != null  and translateEntity.entry != ''">
-            and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+            and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
             and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
@@ -50,13 +51,13 @@
         <include refid="Base_Column_List"/>
         from t_translate where delete_state =0  and public_state = 1
         <if test="translateEntity.translate != null  and translateEntity.translate != ''">
-            and `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+            and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
             and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.entry != null  and translateEntity.entry != ''">
-            and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+            and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
             and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
@@ -71,13 +72,13 @@
         count(1)
         from t_translate where delete_state =0  and public_state =0
         <if test="translateEntity.translate != null  and translateEntity.translate != ''">
-            and `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+            and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
             and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.entry != null  and translateEntity.entry != ''">
-            and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+            and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
         </if>
 
         <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
@@ -97,7 +98,7 @@
     from t_translate
     where version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
     and public_state = 1 and delete_state = 0 and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
-    and `translate` = #{translateEntity.translate,jdbcType=VARCHAR} and entry = #{translateEntity.entry,jdbcType=VARCHAR}
+    and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR} and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
 </select>
 
     <update id="updateTranslation">
@@ -110,8 +111,8 @@
         select   <include refid="Base_Column_List"/>
         from t_translate
         where delete_state = 0 and  version_id = #{entryTempEntity.versionID,jdbcType=VARCHAR}
-        and entry = #{entryTempEntity.entry,jdbcType=VARCHAR}
-        and `translate` = #{entryTempEntity.translate,jdbcType=VARCHAR}
+        and  entry = #{entryTempEntity.entry,jdbcType=VARCHAR}
+        and  `translate` = #{entryTempEntity.translate,jdbcType=VARCHAR}
         and `type` = #{entryTempEntity.translateType,jdbcType=VARCHAR}
     </select>
 
@@ -121,21 +122,24 @@
         select   <include refid="Base_Column_List"/>
         from t_translate
         where delete_state = 0
-        and entry = #{name,jdbcType=VARCHAR}
+        and  entry = #{name,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
         <if test="visualRange != null  and visualRange != ''">
             and visual_range = #{visualRange,jdbcType=VARCHAR}
         </if>
-        and translate_state ='已审核'
+        and translate_state ='3'
     </select>
 
     <select id="getVersionSuggestTrans" resultMap="BaseResultMap">
         select   <include refid="Base_Column_List"/>
         from t_translate
         where delete_state = 0
-        and entry = #{entry,jdbcType=VARCHAR}
+        and  entry = #{entry,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
-        and translate_state =3
+        <if test="visualRange != null  and visualRange != ''">
+            and visual_range = #{visualRange,jdbcType=VARCHAR}
+        </if>
+        and translate_state ='3'
 
 
     </select>
@@ -144,9 +148,12 @@
         select  <include refid="Base_Column_List"/>
         from t_translate
         where delete_state = 0
-        and entry = #{entry,jdbcType=VARCHAR}
+        and  entry = #{entry,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
-        and translate_state =3
-        and `translate` =  #{translate,jdbcType=VARCHAR}
+        <if test="visualRange != null  and visualRange != ''">
+            and visual_range = #{visualRange,jdbcType=VARCHAR}
+        </if>
+        and translate_state ='3'
+        and  `translate` =  #{translate,jdbcType=VARCHAR}
     </select>
 </mapper>

@@ -20,7 +20,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     #url: jdbc:mysql://localhost:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     #
-    url: jdbc:mysql://10.16.196.50:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
 
     username: root
     password: 123456
@@ -37,9 +37,9 @@ server:
 translate:
   #  百度翻译api信息
   baidu:
-    url: http://api.fanyi.baidu.com/api/trans/vip/translate
+    url: https://api.fanyi.baidu.com/api/trans/vip/translate
     appid: 20230705001734655
-    securityKey: Msyn6CIJy97uY1MXLW0c
+    securityKey: tGq6U8CfAaztFjBO7WT8
   #  DeepL翻译api信息
   deepl:
     url: https://api.deepl-pro.com
@@ -77,7 +77,7 @@ swagger:
   enabled: true
 
 ldap:
-  ldapURL: ldap://10.16.2.171:389
+  ldapURL: ldap://ldap.sieyuan.top:389
   accountSuffix: "@sp5000.com"
   base: "DC=sp5000,DC=com"
   user: "Administrator"
@@ -87,9 +87,9 @@ log:
   level: debug
 
 I18server:
-  #url: http://10.16.193.26:18099/
+  #url: http://10.17.70.25:18099/
   #linx
-  url: http://10.16.193.185:18099/
+  url: http://10.17.14.101:18099/
   #url: http://10.16.193.63:18099/
 ConfigFile:
   zzUrl: "src/main/resources/config/zz.xlsx"

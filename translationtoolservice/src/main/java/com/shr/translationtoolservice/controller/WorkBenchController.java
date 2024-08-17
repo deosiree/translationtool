@@ -159,10 +159,10 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("预翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> preTranslate(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, @RequestParam String priority) {
+    public HttpResponse<ResponseListModel> preTranslate( HttpServletRequest request,@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, @RequestParam String priority) {
         ResponseListModel responseListModel = new ResponseListModel();
 
-        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(entryInfoEntities, taskID, priority);
+        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(request,entryInfoEntities, taskID, priority);
         responseListModel.setList(entryInfoEntities1);
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
