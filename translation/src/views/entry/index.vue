@@ -1,7 +1,7 @@
 <template>
     <div ref="box" class="box">
         <a-row type="flex">
-            <a-col :flex="boxFlex" class="treeBox">
+            <a-col :flex="boxFlex" class="treeBox" ref="treeBox">
                 <a-input v-model:value="keyWords" placeholder="关键字搜索" @pressEnter="getClassTree" v-if="treeBoxOpen">
                     <template #suffix>
                         <SearchOutlined style="color: #DCDCDC;"/>
@@ -14,6 +14,7 @@
                 :defaultExpandAll="true"
                 :selectedKeys="selectedTreeKeys"
                 :tree-data="treeData"
+                :height="treeHeight"
                 @select="clickTree"
                 draggable
                 block-node
@@ -134,7 +135,8 @@ export default {
             authorityVisible:false,
             authorityProductId:"",
             productEdit:false,
-            treeBoxOpen:true
+            treeBoxOpen:true,
+            treeHeight: 0
         }
     },
     mounted () {
@@ -157,6 +159,13 @@ export default {
 
         init(){
             this.getClassTree()
+            this.getTreeHeight()
+        },
+
+        // 计算树高度
+        getTreeHeight(){
+            let treeBox = this.$refs.treeBox.$el.offsetHeight
+            this.treeHeight = treeBox - 80
         },
         // 查询分类树
         getClassTree(){
@@ -387,6 +396,9 @@ export default {
         }
     }
     
+}
+:deep(.ant-tree){
+    width: 100%;
 }
 .ant-tabs{
     height: 100%;

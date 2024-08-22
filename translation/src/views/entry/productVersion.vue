@@ -118,8 +118,8 @@
                         </a-form>
                     </template>
                     <template v-slot:operate>
-                        <a-button type="primary" size="middle" @click="getTaskList">查询</a-button>
                         <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                        <a-button type="primary" size="middle" @click="getTaskList">查询</a-button>
                     </template>
                 </SearchBox>
                 <DataBox :title="tableTitle" :height="dataHeight" :showOperate="false">

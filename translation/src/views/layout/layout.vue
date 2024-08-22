@@ -53,7 +53,7 @@ export default ({
         menuIcon:{'Work':Work,'WorkActive':WorkActive,'Entry':Entry,'EntryActive':EntryActive,'Config':Config,'ConfigActive':ConfigActive},
         menu: [],
         isActive: "",
-        menuWidth: '70px',
+        menuWidth: '90px',
         showName: true,
         showToolTip: false
     };
@@ -82,7 +82,7 @@ export default ({
             this.showName = false
             this.showToolTip = undefined
         }else{
-            this.menuWidth = '70px'
+            this.menuWidth = '90px'
             this.showName = true
             this.showToolTip = false
         }
@@ -137,24 +137,24 @@ export default ({
 }
 .menu .menuItem{
     width: 100%;
-    height: 60px;
+    height: 90px;
     border-bottom: 1px solid #E7E7E7;
     position: relative;
 }
 .menuItem img{
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     position:absolute;
     left: 0;
     right: 0;
-    top: 10px;
+    top: 20px;
     margin: 0 auto;
 }
 .menuItem span{
     position:absolute;
     left: 0;
     right: 0;
-    top: 38px;
+    top: 50px;
     margin: 0 auto;
     text-align: center;
     font-size: 12px;

@@ -131,7 +131,7 @@ export function getConfigEntry(params){
 export function createDic(params){
     return request({
         url: "/I18Sever/createDic",
-        method: "POST",
+        method: "GET",
         params
     });
 }
@@ -179,6 +179,34 @@ export function getEnumEntry(params){
 export function clearDic(params){
     return request({
         url: "/I18Sever/clearDic",
+        method: "GET",
+        params
+    });
+}
+
+// 删除辞典
+export function removeDic(params){
+    return request({
+        url: "/I18Sever/removeDic",
+        method: "GET",
+        params
+    });
+}
+
+// 删除辞典中的数据
+export function removeDicTerms(params,data){
+    return request({
+        url: "/I18Sever/removeDicTerms",
+        method: "POST",
+        params,
+        data
+    });
+}
+
+// 新增辞典数据
+export function addDicTerm(params){
+    return request({
+        url: "/I18Sever/addDicTerm",
         method: "GET",
         params
     });

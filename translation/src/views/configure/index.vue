@@ -11,6 +11,7 @@
             <Label v-if="item.name === 'label'"/>
             <Property v-if="item.name === 'property'"/>
             <Task v-if="item.name === 'task'"/>
+            <Dict v-if="item.name === 'dictionary'"/>
           </a-tab-pane>
       </a-tabs>
     </div>
@@ -22,6 +23,7 @@ import Version from '../version/index.vue';
 import Label from '../label/index.vue';
 import Property from '../property/index.vue';
 import Task from '../task/index.vue'
+import Dict from '../dictionary/index.vue'
 export default({
   name: 'layout',
   components: {
@@ -30,7 +32,8 @@ export default({
     Version,
     Label,
     Property,
-    Task
+    Task,
+    Dict
   },
   data() {
     return {

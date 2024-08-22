@@ -15,6 +15,7 @@
             <div class="taskInfo">
                 <div class="taskItem">任务名称：{{task.name}}</div>
                 <div class="taskItem">产品名称：{{task.productName}}</div>
+                <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
                 <div class="taskItem">翻译语种：{{task.translateType}}</div>
             </div>
             <div class="form">
@@ -92,7 +93,10 @@
             @resizeColumn="handleResizeColumn"
             @change="handleTableChange"
             >
-                <template #bodyCell="{ column, record }">
+                <template #bodyCell="{ column, record,text }">
+                    <template v-if="column.dataIndex === 'entry'">
+                        <span v-text="text.replace(/\n/g, '\\n')"></span>
+                    </template>
                     <template v-if="column.dataIndex === 'entryState'">
                         <template v-if="record.entryState === 0">
                             <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>

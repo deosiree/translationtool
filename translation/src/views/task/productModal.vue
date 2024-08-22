@@ -121,6 +121,13 @@ export default {
         },
         handleOK(){
             this.$refs.formRef.validate().then(() => {
+                // 判断产品名称是否已存在
+                if(this.task.allProducts){
+                    if(this.task.allProducts.find(item=>item.name===this.product.name)){
+                        message.info("产品名称已存在，请重新输入！")
+                        return
+                    }
+                }
                 let classify = {
                     key: uuidv4(),
                     title: this.product.name,

@@ -9,7 +9,7 @@ export default{
         {label: "abbr",value: "abbr",index:2},
         {label: "英文释义",value: "englishInterpretation",index:5},
         {label: "中文释义",value: "chineseInterpretation",index:6},
-        {label:'Tag',value:'entryLabel',index:7},
+        {label:'Tag',value:'tag',index:7},
         {label: "一级分类",value: "classfy1",index:8},
         {label: "二级分类",value: "classfy2",index:9},
         {label: "词条来源",value: "entrySource",index:10},

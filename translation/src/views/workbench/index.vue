@@ -2,20 +2,20 @@
     <div ref="box" class="box">
         <a-row type="flex">
             <a-col flex="296px" class="cardBox">
-                <a-card hoverable :class="activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'">
+                <a-card hoverable :class="activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'" @click="clickCard(1)">
                     <div class="title">待办事项</div>
                     <div class="logo"><img src="../../assets/workIcon/handle.png"/></div>
                     <div class="data">
                         <span>{{toDoNum}}</span><span>条</span>
-                        <a-button type="primary" ghost size="small" @click="clickCard(1)">查看</a-button>
+                        <!-- <a-button type="primary" ghost size="small" @click="clickCard(1)">查看</a-button> -->
                     </div>
                 </a-card>
-                <a-card hoverable :class="activeCard === 2 ? 'processedCard activeProcessedCard' : 'processedCard'">
+                <a-card hoverable :class="activeCard === 2 ? 'processedCard activeProcessedCard' : 'processedCard'" @click="clickCard(2)">
                     <div class="title">已办事项</div>
                     <div class="logo"><img src="../../assets/workIcon/processed.png"/></div>
                     <div class="data">
                         <span>{{finishNum}}</span><span>条</span>
-                        <a-button type="primary" ghost size="small" @click="clickCard(2)">查看</a-button>
+                        <!-- <a-button type="primary" ghost size="small" @click="clickCard(2)">查看</a-button> -->
                     </div>
                 </a-card>
                 <!-- <a-card hoverable :class="activeCard === 3 ? 'exportCard activeExportCard' : 'exportCard'">
@@ -77,8 +77,8 @@
                             </a-form>
                         </template>
                         <template v-slot:operate>
-                            <a-button type="primary" size="middle" @click="getTask">查询</a-button>
                             <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                            <a-button type="primary" size="middle" @click="getTask">查询</a-button>
                         </template>
                     </SearchBox>
                     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">

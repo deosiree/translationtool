@@ -30,6 +30,7 @@ export default {
   color: #F3F3F3;
   height: 100%;
   overflow: hidden;
+  white-space: pre-wrap;
 }
 
 </style>

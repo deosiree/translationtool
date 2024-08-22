@@ -71,6 +71,7 @@ export default {
     watch: {
         currentVersion(newval,oldval){
             this.record = newval
+            console.log(newval)
         }
     },
     methods: {
@@ -79,6 +80,13 @@ export default {
         },
         handleOK(){
             this.$refs.formRef.validate().then(() => {
+                // 判断版本名称是否已存在
+                if(this.record.allVersions){
+                    if(this.record.allVersions.find(item=>item.label===this.version.name)){
+                        message.info("版本名称已存在，请重新输入！")
+                        return
+                    }
+                }
                 let data = {
                     name:this.version.name,
                     details:this.version.details,
