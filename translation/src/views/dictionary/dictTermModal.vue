@@ -18,7 +18,10 @@
                 <a-form-item label="词条" name="entry"
                     :rules="[{ required: true, message: '请输入词条!' }]"
                 >
-                    <a-input v-model:value="dictTerm.entry" placeholder="请输入内容"></a-input>
+                    <a-input v-model:value="dictTerm.entry" placeholder="请输入内容" :disabled="modalTitle.includes('编辑') ? true : false"></a-input>
+                </a-form-item>
+                <a-form-item label="Tag" name="Tag">
+                    <a-input v-model:value="dictTerm.tag" placeholder="请输入内容" :disabled="modalTitle.includes('编辑') ? true : false"></a-input>
                 </a-form-item>
                 <a-form-item label="翻译语言" name="lang"
                     :rules="[{ required: true, message: '请选择!' }]"
@@ -27,12 +30,10 @@
                     v-model:value="dictTerm.lang"
                     placeholder="请选择"
                     :options='translateTypes'
-                    :fieldNames="{label:'name',value:'name'}"
+                    :fieldNames="{label:'name',value:'code'}"
+                    @change="tranlateChange"
                     >
                     </a-select>
-                </a-form-item>
-                <a-form-item label="Tag" name="Tag">
-                    <a-input v-model:value="dictTerm.tag" placeholder="请输入内容"></a-input>
                 </a-form-item>
                 <a-form-item label="翻译" name="translation"
                     :rules="[{ required: true, message: '请输入内容!' }]"
@@ -48,7 +49,8 @@ import Modal from '@/components/modal/index.vue';
 import { message } from 'ant-design-vue';
 import { v4 as uuidv4 } from 'uuid';
 import {
-    addDicTerm
+    addDicTerm,
+    updateDicTrans
 } from '@/http/api/i18Server';
 import {
     getLanguage
@@ -64,10 +66,10 @@ export default {
             default: false
         },
         modalTitle:{
-            type:String,
-            default:"新增辞典"
+            type:String
         },
-        currentDict:{}
+        currentDict:{},
+        currentData:{}
     },
     data() {
         return{
@@ -81,7 +83,8 @@ export default {
                 lang:null,
                 tag:""
             },
-            translateTypes: []
+            translateTypes: [],
+            editData:{},
         }
     },
     
@@ -90,19 +93,42 @@ export default {
     },
     mounted () {
         this.dict = this.currentDict
-        this.getLanguage()
+        this.editData = this.currentData
+        if(this.modalTitle.includes("编辑")){
+            this.initEdit()
+        }
     },
     watch: {
         currentDict(newval,oldval){
             this.dict = newval
+        },
+        currentData(newval,oldval){
+            this.editData = newval
+            if(this.modalTitle.includes("编辑")){
+                this.initEdit()
+            }
         }
     },
     methods: {
-        // 获取翻译语言
-        getLanguage(){
+        
+        init(){
+            // 获取翻译语言
             let data = {}
             getLanguage(data).then((res) => {
-                this.translateTypes = res.data.list
+                if(this.modalTitle.includes("编辑")){
+                    let keys = []
+                    for (var key in this.editData.translation) {
+                        keys.push(key)
+                    }
+                    res.data.list.forEach(element => {
+                        if(!keys.includes(element.code)){
+                            element.disabled = true
+                        }
+                    });
+                    this.translateTypes = res.data.list
+                }else{
+                    this.translateTypes = res.data.list
+                }
             })
         },
         handleClose(){
@@ -111,12 +137,22 @@ export default {
         handleOK(){
             this.$refs.dictTermRef.validate().then(() => {
                 this.dictTerm.dicName = this.dict
-                addDicTerm(this.dictTerm).then((res) => {
-                    message.success("新增成功！")
-                    this.$emit("modalClose",true)
-                }).catch((err) => {
-                    message.error("新增失败！")
-                })
+
+                if(this.modalTitle.includes("新增")){
+                    addDicTerm(this.dictTerm).then((res) => {
+                        message.success("新增成功！")
+                        this.$emit("modalClose",true)
+                    }).catch((err) => {
+                        message.error("新增失败！")
+                    })
+                }else if(this.modalTitle.includes("编辑")){
+                    updateDicTrans(this.dictTerm).then((res) => {
+                        message.success("编辑成功！")
+                        this.$emit("modalClose",true)
+                    }).catch((err) => {
+                        message.error("编辑失败！")
+                    })
+                }
                 
             })
         },
@@ -129,6 +165,17 @@ export default {
                 tag:""
             }
             this.$refs.dictTermRef.clearValidate()
+        },
+        initEdit(){
+            this.dictTerm.dicName = this.dict
+            this.dictTerm.entry = this.editData.source
+            this.dictTerm.tag = this.editData.tag
+        },
+        // 翻译语言选择事件
+        tranlateChange(value){
+            if(this.modalTitle.includes("编辑")){
+                this.dictTerm.translation = this.editData.translation[value]
+            }
         }
     }
 }

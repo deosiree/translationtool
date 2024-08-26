@@ -112,6 +112,12 @@
                                 </template>
                                 删除
                             </a-button>
+                            <a-button type="primary" size="small" class="yellowBtn" @click="editData">
+                                <template #icon>
+                                    <EditOutlined />
+                                </template>
+                                编辑
+                            </a-button>
                             <a-button type="primary" size="small" @click="addDictTerm">
                                 <template #icon>
                                     <PlusOutlined />
@@ -126,6 +132,7 @@
                             class="ant-table-striped"
                             :columns="columns" 
                             :data-source="dataSource"
+                            :pagination="pagination"
                             :scroll="tableHeight"
                             :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
                             :row-key="record => record.id"
@@ -150,8 +157,11 @@
     @modalClose="dictClose"
     />
     <DictTerm
+    ref="dictTermRef"
     :visible="dictTermVisible" 
     :currentDict="currentDict"
+    :modalTitle="dictTitle"
+    :currentData="currentData"
     @modalClose="dictTermClose"
     />
 </template>
@@ -165,6 +175,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
   PlusSquareOutlined,
+  EditOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons-vue';
 import { message,Modal } from 'ant-design-vue';
@@ -188,6 +199,7 @@ export default {
         DeleteOutlined,
         PlusSquareOutlined,
         ExclamationCircleOutlined,
+        EditOutlined,
         Dict,
         DictTerm
     },
@@ -227,7 +239,17 @@ export default {
             selectedRowKeys: [],
             selectedRows:[],
             dictTermVisible: false,
-            currentDict: ""
+            currentDict: "",
+            pagination:{
+                showSizeChanger:true,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
+            },
+            dictTitle:"",
+            currentData:{}
         }
     },
     
@@ -329,6 +351,8 @@ export default {
             if(this.selectedTreeKeys.length === 0){
                 return
             }
+            this.selectedRowKeys = []
+            this.selectedRows = []
             this.loading = true
             this.search.fileName = this.selectedTreeKeys[0]
             getDictory(this.search).then((res) => {
@@ -336,6 +360,7 @@ export default {
                 this.dataSource.forEach(item => {
                     item.id = uuidv4()
                 })
+                this.pagination.total = this.dataSource.length
                 this.loading = false
             }).catch((err) => {
                 this.loading = false
@@ -394,7 +419,7 @@ export default {
                 return
             }
             let dict = this.selectedTreeKeys[0]
-            let selects = this.selectedRows
+            let data = this.selectedRows
             let _this = this
             Modal.confirm({
                 title: '是否确定删除当前选择的数据?',
@@ -407,14 +432,6 @@ export default {
                     let param = {
                         dicName: dict
                     }
-                    let data = []
-                    selects.forEach(item => {
-                        let en = {
-                            entry: item.source,
-                            tag: item.tag
-                        }
-                        data.push(en)
-                    })
                     removeDicTerms(param,data).then((res) => {
                         message.info("删除成功！")
                         _this.queryDictronary()
@@ -438,12 +455,31 @@ export default {
             }
             this.currentDict = this.selectedTreeKeys[0]
             this.dictTermVisible = true
+            this.dictTitle = '新增辞典内容'
+            this.$refs.dictTermRef.init()
         },
         dictTermClose(flag){
             this.dictTermVisible = false
             if(flag){
                 this.queryDictronary()
             }
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+        },
+        // 编辑
+        editData(){
+            if(this.selectedTreeKeys.length === 0 || this.selectedRows.length != 1){
+                message.info("请选择一条数据！")
+                return
+            }
+            this.currentDict = this.selectedTreeKeys[0]
+            this.currentData = this.selectedRows[0]
+            this.dictTermVisible = true
+            this.dictTitle = '编辑辞典内容'
+            this.$refs.dictTermRef.init()
         }
     }
 }

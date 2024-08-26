@@ -90,7 +90,7 @@
             </template>
             <template v-slot:operate>
                 <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-                <a-button type="primary" size="middle" @click="searchTaskInfo">查询</a-button>
+                <a-button type="primary" size="middle" @click="query">查询</a-button>
             </template>
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
@@ -123,7 +123,7 @@
                         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                         :row-key="record => record.id"
                         :scroll="tableHeight"
-                        :pagination='false'
+                        :pagination='pagination'
                         :loading="loading"
                         :rowClassName="getRowClassName"
                         ref="taskTable"
@@ -522,7 +522,16 @@ export default {
                 versionName: [{ required: true, message: '请选择' }],
                 translateType: [{ required: true, message: '请选择' }]
             },
-            searchValue:""
+            searchValue:"",
+            pagination:{
+                showSizeChanger:true,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
+            },
+            pageChangeSearch:{}
         }
     },
     mounted () {
@@ -568,7 +577,7 @@ export default {
                 } catch (error) {
                     
                 }
-                this.tableHeight.y = this.dataHeight - buttonHeight - 110
+                this.tableHeight.y = this.dataHeight - buttonHeight - 150
 
                 // console.log(this.tableHeight.y)
             })
@@ -593,16 +602,25 @@ export default {
                 this.translateTypes = res.data.list
             })
         },
+        // 查询按钮点击事件
+        query(){
+            this.pageChangeSearch = this.search
+            this.searchTaskInfo()
+        },
         // 获取任务列表
         searchTaskInfo(){
+            this.searchTaskByCondition(this.search)
+        },
+        searchTaskByCondition(data){
             this.loading = true
             let params = {
-                pageIndex:-1,
-                pageSize:-1
+                pageIndex: this.pagination.current,
+                pageSize: this.pagination.pageSize
             }
-            searchTaskInfo(this.search,params).then((res) => {
+            searchTaskInfo(data,params).then((res) => {
                 this.dataSource = res.data.list
                 this.loading = false
+                this.pagination.total = res.data.totalNum
             }).catch((err) => {
                 this.loading = false
             })
@@ -1203,6 +1221,7 @@ export default {
                 translator:'',
                 translationAuditor:''
             }
+            this.pageChangeSearch = this.search
             this.searchTaskInfo()
         },
         // 获取当前时间
@@ -1221,7 +1240,14 @@ export default {
             this.currentTask = record
             this.showOperationArea = true
             this.setTableHeight()
-        }
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+
+            this.searchTaskByCondition(this.pageChangeSearch)
+        },
     }
 }
 </script>

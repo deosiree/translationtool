@@ -211,3 +211,12 @@ export function addDicTerm(params){
         params
     });
 }
+
+// 编辑辞典数据
+export function updateDicTrans(params){
+    return request({
+        url: "/I18Sever/updateDicTrans",
+        method: "GET",
+        params
+    });
+}
