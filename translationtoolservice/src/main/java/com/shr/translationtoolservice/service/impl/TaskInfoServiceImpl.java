@@ -484,6 +484,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
             entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
             entryInfoEntity.setIsDelete(0);
             entryInfoEntity.setImportType(entryTempEntity.getImportype());
+            entryInfoEntity.setWriteType(entryTempEntity.getWriteype());
             entryInfoEntity.setEntryState(2);
             String versionID = entryTempEntity.getVersionID();
             VersionEntity versionEntity = versionMapper.selectById(versionID);

@@ -17,6 +17,7 @@
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
         <result property="entryLabel" column="entry_label" jdbcType="VARCHAR"/>
+        <result property="tag" column="tag" jdbcType="VARCHAR"/>
         <result property="partOfSpeech" column="part_of_speech" jdbcType="VARCHAR"/>
         <result property="classifyId" column="classify_id" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
@@ -45,6 +46,7 @@
         <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
         <result property="isDelete" column="is_delete" jdbcType="INTEGER"/>
         <result property="importType" column="import_type" jdbcType="VARCHAR"/>
+        <result property="writeType" column="write_type" jdbcType="VARCHAR"/>
         <result property="entryVersionID" column="entry_version_type" jdbcType="VARCHAR"/>
         <result property="parentID" column="parent_id" jdbcType="VARCHAR"/>
         <result property="diFileName" column="di_file_name" jdbcType="VARCHAR"/>
@@ -54,21 +56,21 @@
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
         entry_source,entry_state,`update`,
-        update_time,version_id,entry_label,
+        update_time,version_id,entry_label,tag,
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,
         fra_trans_id,spa_trans_id,is_public,
-        is_delete,import_type,entry_version_type,parent_id,di_file_name
+        is_delete,import_type,write_type,entry_version_type,parent_id,di_file_name
     </sql>
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
         t2.entry_length,t2.chinese_interpretation,t2.english_interpretation,
         t2.entry_source,t2.entry_state,t2.`update`,
-        t2.update_time,t1.version_id,t2.entry_label,
+        t2.update_time,t1.version_id,t2.entry_label,t2.tag,
         t2.part_of_speech,t2.classify_id,t2.remark,
         t2.task_id,t2.en_trans_id,t2.ru_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,
-        t2.is_delete,t2.import_type,t2.entry_version_type,t2.di_file_name,t1.product_id,t2.entry_version
+        t2.is_delete,t2.import_type,t2.write_type,t2.entry_version_type,t2.di_file_name,t1.product_id,t2.entry_version
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
         select distinct<include refid="Base_t2_Column_List"/>,
@@ -265,7 +267,7 @@
 
         version_id,
 
-        entry_label,
+        tag,
 
         part_of_speech,
 
@@ -288,6 +290,7 @@
         is_delete,
 
         import_type,
+        write_type,
         parent_id,
         di_file_name,
         entry_version_type,
@@ -321,7 +324,7 @@
 
             #{entryInfoEntity.versionID,jdbcType=VARCHAR},
 
-            #{entryInfoEntity.entryLabel,jdbcType=VARCHAR},
+            #{entryInfoEntity.tag,jdbcType=VARCHAR},
 
             #{entryInfoEntity.partOfSpeech,jdbcType=VARCHAR},
 
@@ -344,6 +347,7 @@
             #{entryInfoEntity.isDelete,jdbcType=INTEGER},
 
             #{entryInfoEntity.importType,jdbcType=VARCHAR},
+            #{entryInfoEntity.writeType,jdbcType=VARCHAR},
             #{entryInfoEntity.parentID,jdbcType=VARCHAR},
             #{entryInfoEntity.diFileName,jdbcType=VARCHAR},
             #{entryInfoEntity.entryVersionID,jdbcType=VARCHAR},
@@ -425,6 +429,9 @@
             <if test="entryInfoEntity.importType != null  and entryInfoEntity.importType   != ''">
                 import_type,
             </if>
+            <if test="entryInfoEntity.writeType != null  and entryInfoEntity.writeType   != ''">
+                write_type,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
@@ -495,6 +502,9 @@
             </if>
             <if test="entryInfoEntity.importType != null and entryInfoEntity.importType   != ''">
                 #{entryInfoEntity.importType,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.writeType != null and entryInfoEntity.writeType   != ''">
+                #{entryInfoEntity.writeType,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>

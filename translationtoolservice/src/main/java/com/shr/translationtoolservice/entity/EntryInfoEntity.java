@@ -102,7 +102,7 @@ public class EntryInfoEntity implements Serializable {
 
     /**
      * 词条状态(0新建，
-     * 1词条待审核，
+     * 1词条待审核，entryInfo
      * 2词条审核不通过
      * 3词条审核通过4已归档)
      */
@@ -292,6 +292,13 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "import_type")
     @DefaultValue("")
     private String importType;
+
+    /**
+     * 回写类型
+     */
+    @TableField(value = "write_type")
+    @DefaultValue("")
+    private String writeType;
 
     /**
      * 词条版本

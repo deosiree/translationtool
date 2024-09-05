@@ -43,7 +43,12 @@ public class DiUtils {
         String s2 = "";
         JSONArray jsonArray;
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + fileName);
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("dictionary", fileName);
+            s = httpUtils.get(I18URL + ConstantInterface.GET_DICTIONARY ,headerParameters);
+            if (!s.equals(ConstantInterface.HTTP_SUCCESS)){
+                log.error("http error : writeDiEntry error !");
+            }
             jsonArray = JSONArray.parseArray(s);
             List<DictionaryVo> dictionaryVos = new ArrayList<>();
             constructDIVO(jsonArray, dictionaryVos);
@@ -53,7 +58,7 @@ public class DiUtils {
             int sum =0;
             for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
                 if (!tag) {
-                    entryInfoEntity.setEntryLabel("");
+                    entryInfoEntity.setTag("");
                 }
                 if (!common) {
                     entryInfoEntity.setEntrySource("");
@@ -66,11 +71,12 @@ public class DiUtils {
                     addEntryToDIVo(langCode, entryInfoEntity, translateType, dictionaryVos);
                 }
             }
-
             String dictionaryVosStr = JSONObject.toJSONString(dictionaryVos);
+            headerParameters.put("dictionaryInfo", dictionaryVosStr);
+            String req =  JSONObject.toJSONString(headerParameters);
              sum = add+update;
             //10.16.193.63:18099/dictionary/user
-            s2 = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + fileName, dictionaryVosStr);
+            s2 = httpUtils.post(I18URL + ConstantInterface.UPDTAE_DICTIONARY , req);
             log.info(" ==== 辞典 " + fileName + " 新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
 
         } catch (Exception e) {
@@ -85,7 +91,7 @@ public class DiUtils {
         dictionaryVo.setSource(entryInfoEntity.getEntry());
         dictionaryVo.setComments(entryInfoEntity.getEntrySource());
 
-        dictionaryVo.setTag(entryInfoEntity.getEntryLabel());
+        dictionaryVo.setTag(entryInfoEntity.getTag());
 
         // dictionaryVo.setComments(entryInfoEntity.getEntrySource().split("_")[2]);
         // dictionaryVo.setTag(entryInfoEntity.getEntryLabel());
@@ -126,7 +132,7 @@ public class DiUtils {
         for (DictionaryVo dictionaryVo : dictionaryVos) {
             if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
                 //是否需要tag 查询
-                if (!entryInfoEntity.getEntryLabel().equals(dictionaryVo.getTag())) {
+                if (!entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
                    continue;
                 }
 

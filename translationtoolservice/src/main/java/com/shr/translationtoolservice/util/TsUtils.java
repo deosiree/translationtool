@@ -40,11 +40,11 @@ public class TsUtils {
 
         for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities){
             Map<String, String> requestMap = new HashMap<>();
-            if (!tag) {
-                entryInfoEntity1.setEntryLabel("");
-            }
+            /*if (!tag) {
+                entryInfoEntity1.setTag("");
+            }*/
             requestMap.put("source", entryInfoEntity1.getEntry());
-            requestMap.put("tag", entryInfoEntity1.getEntryLabel());
+            requestMap.put("tag", entryInfoEntity1.getTag());
             if (fileName.contains("en_US")){
                 trans = entryInfoEntity1.getEnglish();
             }

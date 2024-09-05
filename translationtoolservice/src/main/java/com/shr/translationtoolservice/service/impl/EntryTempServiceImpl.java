@@ -553,10 +553,10 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     private void writeI18Entry(EntryInfoEntity entryInfoEntity, String translate) {
-        if (StringUtils.isBlank(entryInfoEntity.getImportType())) {
+        if (StringUtils.isBlank(entryInfoEntity.getWriteType())) {
             return;
         }
-        switch (entryInfoEntity.getImportType()) {
+        switch (entryInfoEntity.getWriteType()) {
             case ConstantInterface.DB:
                 break;
             case ConstantInterface.DICTIONARY:

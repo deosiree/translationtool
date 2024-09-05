@@ -23,7 +23,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.*;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @ClassName I18SeverController
@@ -101,13 +105,12 @@ public class I18SeverController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(list);
         responseListModel.setTotalNum(list.size());
         return checkResult(responseListModel);
     }
-
-
 
 
     @GetMapping("/getFileListByLang")
@@ -131,6 +134,7 @@ public class I18SeverController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(list);
         responseListModel.setTotalNum(list.size());
@@ -185,15 +189,17 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setUpdate(userName);
                     entryInfoEntity.setUpdateTime(date);
                     entryInfoEntity.setProductID(productId);
-                    entryInfoEntity.setEntryLabel(tag);
+                    entryInfoEntity.setTag(tag);
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setImportType(ConstantInterface.TS);
+                    entryInfoEntity.setWriteType(ConstantInterface.TS);
                     entryInfoEntity.setIsDelete(0);
                     createNewTrans(entryInfoEntity, translateType, translate);
                     list.add(entryInfoEntity);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                return checkResult(responseListModel, "请求异常！");
             }
 
 
@@ -285,6 +291,7 @@ public class I18SeverController extends BaseController {
 
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult("请求异常！");
         }
         return checkResult(s);
     }
@@ -309,10 +316,85 @@ public class I18SeverController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(list);
         responseListModel.setTotalNum(list.size());
         return checkResult(responseListModel);
+    }
+
+    @GetMapping("/getInvalidDictionary")
+    @ApiOperation("获取未生效字典列表")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getAllDictionary() {
+
+        ResponseListModel<Option> responseListModel = new ResponseListModel<>();
+
+        JSONArray jsonArray = new JSONArray();
+        String s = "";
+        List<Option> optionList = new ArrayList<>();
+
+        try {
+            s = httpUtils.get(I18URL + ConstantInterface.GET_ALL_DICTIONARY);
+            //String enbleDic = httpUtils.get(I18URL + ConstantInterface.DICTIONARY);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // 解析JSON字符串为JsonNode对象
+            JsonNode rootNode = objectMapper.readTree(s);
+
+            // 遍历JsonNode的字段
+            Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> field = fields.next();
+
+                // 获取label和对应的options
+                String label = field.getKey();
+                List<String> options = new ArrayList<>();
+
+                // 将options JsonNode转换为List<String>
+                field.getValue().forEach(option -> options.add(option.asText()));
+
+                // 创建Option对象并添加到List中
+                Option option = new Option(label, options);
+                optionList.add(option);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
+        }
+        responseListModel.setList(optionList);
+        responseListModel.setTotalNum(optionList.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/valDictionary")
+    @ApiOperation("辞典生效")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> valDictionary(@RequestBody List<String> dicNames) {
+
+
+        String s = "";
+
+        try {
+            for (String dicName : dicNames) {
+                Map<String, String> headerParameters = new HashMap<>();
+                headerParameters.put("dictionary", dicName);
+                s = httpUtils.get(I18URL + ConstantInterface.VAL_DICTIONARY, headerParameters);
+                if (!s.equals("true")) {
+                    return checkResult("请求异常！");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult("请求异常！");
+        }
+
+        return checkResult(s);
     }
 
 
@@ -329,7 +411,9 @@ public class I18SeverController extends BaseController {
         ArrayList<String> list = new ArrayList<>();
         try {
             for (String type : types) {
-                s = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + "/" + type, new JSONObject());
+                Map<String, String> headerParameters = new HashMap<>();
+                headerParameters.put("dictionary", type);
+                s = httpUtils.post(I18URL + ConstantInterface.UPDTAE_DICTIONARY + "/" + type, new JSONObject());
             }
 
             jsonArray = JSONArray.parseArray(s);
@@ -351,14 +435,121 @@ public class I18SeverController extends BaseController {
     public HttpResponse<String> createDic(@RequestParam String dicName) {
 
         String s = "";
-        ArrayList<String> list = new ArrayList<>();
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
-            s = httpUtils.get(I18URL + ConstantInterface.Create_DI, headerParameters);
+            s = httpUtils.get(I18URL + ConstantInterface.CREATE_DI, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        return checkResult(ConstantInterface.OK_STR);
+    }
+
+    @GetMapping("/removeDic")
+    @ApiOperation("删除辞典")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> removeDic(@RequestParam String dicName) {
+
+        String s = "";
+        try {
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("dictionary", dicName);
+            s = httpUtils.get(I18URL + ConstantInterface.REMOVE_DI, headerParameters);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult("请求异常！");
+        }
+
+        return checkResult(ConstantInterface.OK_STR);
+    }
+
+    @GetMapping("/addDicTerm")
+    @ApiOperation("新增辞典词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> addDicTerm(@RequestParam String dicName, @RequestParam String entry, @RequestParam String translation, @RequestParam String lang, @RequestParam String tag) {
+
+        String s = "";
+        if (StringUtils.isBlank(entry)) {
+            checkResult("入参非法。");
+        }
+        try {
+            JSONObject jsonObject = new JSONObject();
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("dictionary", dicName);
+            headerParameters.put("term", entry);
+            headerParameters.put("translation", translation);
+            headerParameters.put("lang", lang);
+            headerParameters.put("tag", tag);
+            String pa = headerParameters.toString();
+            s = httpUtils.get(I18URL + ConstantInterface.ADD_DIC_TERM, headerParameters);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult("请求异常！");
+        }
+
+        return checkResult(ConstantInterface.OK_STR);
+    }
+
+    @GetMapping("/updateDicTrans")
+    @ApiOperation("更新辞典翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> updateDicTrans(@RequestParam String dicName, @RequestParam String entry, @RequestParam String translation, @RequestParam String lang, @RequestParam String tag) {
+
+        String s = "";
+        if (StringUtils.isBlank(entry)) {
+            checkResult("入参非法。");
+        }
+        try {
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("dictionary", dicName);
+            headerParameters.put("term", entry);
+            headerParameters.put("translation", translation);
+            headerParameters.put("lang", lang);
+            headerParameters.put("tag", tag);
+
+            s = httpUtils.get(I18URL + ConstantInterface.UPDATE_DIC_TRANS, headerParameters);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult("请求异常！");
+        }
+
+        return checkResult(ConstantInterface.OK_STR);
+    }
+
+    @PostMapping("/removeDicTerms")
+    @ApiOperation("删除辞典词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> removeDicTerms(@RequestParam String dicName, @RequestBody List<DictionaryVo> terms) {
+
+        String s = "";
+        try {
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("dictionary", dicName);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("dictionary", dicName);
+            List<HashMap<String, String>> termList = new ArrayList<>();
+            for (DictionaryVo term : terms) {
+                HashMap<String, String> termmap = new HashMap<>();
+                termmap.put(term.getSource(), term.getTag());
+                termList.add(termmap);
+            }
+            jsonObject.put("terms", termList);
+
+            String a = jsonObject.toJSONString();
+            s = httpUtils.post(I18URL + ConstantInterface.REMOVE_DIC_TERMS, jsonObject);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult("请求异常！");
         }
 
         return checkResult(ConstantInterface.OK_STR);
@@ -370,10 +561,13 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<String> clearDic(@RequestParam String dicName) {
         try {
-            String s = httpUtils.post(I18URL + ConstantInterface.DICTIONARY + "/" + dicName, new JSONObject());
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("dictionary", dicName);
+            String s = httpUtils.post(I18URL + ConstantInterface.UPDTAE_DICTIONARY, jsonObject);
             log.info(" **** " + dicName + " dic has been clear ！ **** ");
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult("请求异常！");
         }
 
         return checkResult(ConstantInterface.OK_STR);
@@ -426,16 +620,24 @@ public class I18SeverController extends BaseController {
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
         String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + type);
+
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("dictionary", type);
+
+            s = httpUtils.get(I18URL + ConstantInterface.GET_DICTIONARY, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
+                if (dictionaryVo.getSource().equals("初始化词条")) {
+                    continue;
+                }
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(dictionaryVo.getSource());
                 entryInfoEntity.setVersionID(versionID);
                 entryInfoEntity.setTaskId(taskID);
                 entryInfoEntity.setImportType(ConstantInterface.DI);
+                entryInfoEntity.setWriteType(ConstantInterface.DI);
                 entryInfoEntity.setEntryState(1);
                 entryInfoEntity.setEntrySource(type);
                 entryInfoEntity.setDiFileName(type);
@@ -464,8 +666,98 @@ public class I18SeverController extends BaseController {
 
 
             }
+
+
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "i18n请求异常 ！ ");
+        }
+        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, transType);
+        //查询产品表里的词条是否有重复的
+        caseExistEntry(entryInfoEntities, taskID);
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
+        return checkResult(responseListModel);
+    }
+
+
+    @PostMapping("/importDictionaryEntry")
+    @ApiOperation("导入字典词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> importDictionaryEntry(@RequestBody List<String> dicList,
+                                                                 @RequestParam String transType,
+                                                                 @RequestParam String versionID,
+                                                                 @RequestParam String taskID, HttpServletRequest request) {
+
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        String token = request.getHeader("token");
+        Date date = new Date(System.currentTimeMillis());
+        String userName = JWTTokenUtils.getUserName(token);
+        List<TLanguage> languageList = languageMapper.selectLaguageByName(transType);
+        String code = "";
+        if (CollectionUtils.isEmpty(languageList)) {
+            code = languageList.get(0).getName();
+        }
+        JSONArray jsonArray = new JSONArray();
+        String s = "";
+        ArrayList<EntryInfoEntity> list = new ArrayList<>();
+        String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
+
+        try {
+            for (String dic : dicList) {
+                String dicName = "";
+                Map<String, String> headerParameters = new HashMap<>();
+                if (dic.contains("平台")){
+                    dicName = dic.replaceAll("平台","pt");
+                }else if (dic.contains("监控")){
+                     dicName = dic.replaceAll("监控","jk");
+                }
+                headerParameters.put("dictionary", dicName);
+                s = httpUtils.get(I18URL + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
+                jsonArray = JSONArray.parseArray(s);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID());
+                    entryInfoEntity.setEntry(dictionaryVo.getSource());
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setTag(dictionaryVo.getTag());
+                    entryInfoEntity.setEntryLabel(dictionaryVo.getComments());
+                    entryInfoEntity.setImportType(ConstantInterface.DI);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setEntrySource(dicName);
+                    entryInfoEntity.setDiFileName("tr/" + dicName);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntity.setIsDelete(0);
+                    entryInfoEntity.setUpdateTime(date);
+                    entryInfoEntity.setUpdate(userName);
+                    Map<String, String> map = dictionaryVo.getTranslation();
+                    if (StringUtils.isBlank(map.get(code))) {
+                        switch (code) {
+                            case ConstantInterface.ENGLISH:
+                                entryInfoEntity.setEnglish(map.get(code));
+                                break;
+                            case ConstantInterface.RUSSIAN:
+                                entryInfoEntity.setRussian(map.get(code));
+                                break;
+                            case ConstantInterface.FRENCH:
+                                entryInfoEntity.setFrench(map.get(code));
+                                break;
+                            case ConstantInterface.SPANISH:
+                                entryInfoEntity.setSpanish(map.get(code));
+                                break;
+                        }
+                    }
+                    list.add(entryInfoEntity);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult(responseListModel, "i18n请求异常 ！ ");
         }
         List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, transType);
         //查询产品表里的词条是否有重复的
@@ -496,6 +788,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_ALL_NODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(list);
         responseListModel.setTotalNum(list.size());
@@ -508,17 +801,18 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getAppByNode(@RequestParam String nodeName) {
         ResponseListModel<TDBappVo> responseListModel = new ResponseListModel<>();
-        List<TDBappVo> tdbAppVos  = new ArrayList<>();
+        List<TDBappVo> tdbAppVos = new ArrayList<>();
         String s = "";
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("nodeName", nodeName);
             s = httpUtils.get(I18URL + ConstantInterface.GET_APP_BYNODE, headerParameters);
 
-           tdbAppVos = JSONObject.parseArray(s,TDBappVo.class);
-           log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            tdbAppVos = JSONObject.parseArray(s, TDBappVo.class);
+            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(tdbAppVos);
         responseListModel.setTotalNum(tdbAppVos.size());
@@ -535,7 +829,7 @@ public class I18SeverController extends BaseController {
                                                       @RequestParam String modeName) {
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
         ArrayList<String> list = new ArrayList<>();
-        if (appName.equals("sysmgr")){
+        if (appName.equals("sysmgr")) {
             list.add("sysmdl");
             list.add("iaspalarm");
             responseListModel.setList(list);
@@ -562,6 +856,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(list);
         responseListModel.setTotalNum(list.size());
@@ -596,6 +891,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         responseListModel.setList(list);
         responseListModel.setTotalNum(list.size());
@@ -641,6 +937,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
 
 
@@ -699,7 +996,7 @@ public class I18SeverController extends BaseController {
 
                     // fieldEntry.setEntrySource(  nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tbName + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldName());
                     fieldEntry.setEntryState(1);
-                    fieldEntry.setDiFileName(diFileName);
+                    fieldEntry.setDiFileName("db/" + dbName);
                     fieldEntry.setEntrySource(source);
                     fieldEntry.setVersionID(versionID);
                     fieldEntry.setTaskId(taskID);
@@ -708,6 +1005,7 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setProductID(productId);
                     fieldEntry.setIsDelete(0);
                     fieldEntry.setImportType(ConstantInterface.DB);
+                    fieldEntry.setWriteType(ConstantInterface.DI);
                     entryInfoEntities.add(fieldEntry);
                 }
 
@@ -719,6 +1017,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
 
         List<EntryInfoEntity> entryInfoEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
@@ -759,16 +1058,17 @@ public class I18SeverController extends BaseController {
             headerParameters.put("nodeName", nodeName);
             s = httpUtils.get(I18URL + ConstantInterface.GET_ALIAS, headerParameters);
             jsonArray = JSONArray.parseArray(s);
-            String source = nodeName +  ConstantInterface.UNDERLINE + appName +  ConstantInterface.UNDERLINE  + dbName;
+            String source = nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                source= source +  ConstantInterface.UNDERLINE + tdbTableInfo.getTableId();
+                source = source + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId();
+                diFileName = "DB_" + dbName;
                 if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
-                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setDiFileName("db/" + dbName);
                     entryInfoEntity.setEntrySource(source);
                     //  entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
@@ -782,6 +1082,7 @@ public class I18SeverController extends BaseController {
                     }
                     createNewTrans(entryInfoEntity, translateType, "");
                     entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntities.add(entryInfoEntity);
                 }
@@ -798,7 +1099,7 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setEntry(fieldInfo.getAliasName());
                     fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                     fieldEntry.setEntryState(1);
-                    fieldEntry.setDiFileName(diFileName);
+                    fieldEntry.setDiFileName("db/" + dbName);
                     fieldEntry.setMaxLength(maxLength);
                     fieldEntry.setEntrySource(source + "_" + tdbTableInfo.getTableName());
                     fieldEntry.setIsDelete(0);
@@ -806,6 +1107,7 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setUpdate(userName);
                     fieldEntry.setProductID(productId);
                     fieldEntry.setImportType(ConstantInterface.DB);
+                    fieldEntry.setWriteType(ConstantInterface.DI);
                     entryInfoEntities.add(fieldEntry);
                 }
 
@@ -815,6 +1117,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
@@ -857,7 +1160,7 @@ public class I18SeverController extends BaseController {
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
-                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setDiFileName("db/" + tdbTableInfo.getDb_name());
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                     // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
@@ -866,6 +1169,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setTaskId(taskID);
                     createNewTrans(entryInfoEntity, translateType, "");
                     entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntities.add(entryInfoEntity);
                 }
@@ -878,7 +1182,7 @@ public class I18SeverController extends BaseController {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
                         fieldEntry.setId(commonUtils.getUUID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
-                        fieldEntry.setDiFileName(diFileName);
+                        fieldEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                         fieldEntry.setEntryState(1);
                         fieldEntry.setEntrySource(fieldInfo.getCommon());
@@ -887,6 +1191,7 @@ public class I18SeverController extends BaseController {
                         fieldEntry.setUpdate(userName);
                         fieldEntry.setProductID(productId);
                         fieldEntry.setImportType(ConstantInterface.DB);
+                        fieldEntry.setWriteType(ConstantInterface.DI);
                         entryInfoEntities.add(fieldEntry);
                     }
                     if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
@@ -896,13 +1201,14 @@ public class I18SeverController extends BaseController {
                             dataEntry.setEntry(data);
                             // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                             dataEntry.setEntryState(1);
-                            dataEntry.setDiFileName(diFileName);
+                            dataEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                             dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
                             dataEntry.setIsDelete(0);
                             dataEntry.setProductID(productId);
                             dataEntry.setUpdateTime(date);
                             dataEntry.setUpdate(userName);
                             dataEntry.setImportType(ConstantInterface.DB);
+                            dataEntry.setWriteType(ConstantInterface.DI);
                             entryInfoEntities.add(dataEntry);
                         }
                     }
@@ -915,6 +1221,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
@@ -963,7 +1270,7 @@ public class I18SeverController extends BaseController {
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
-                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setDiFileName("db/" + tdbTableInfo.getDb_name());
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                     // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
@@ -972,12 +1279,11 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setTaskId(taskID);
                     createNewTrans(entryInfoEntity, translateType, "");
                     entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntities.add(entryInfoEntity);
 
                 }
-
-
                 //写表下的别名
                 List<TDBFieldInfo> fields = tdbTableInfo.getFields();
                 for (TDBFieldInfo fieldInfo : fields) {
@@ -985,7 +1291,7 @@ public class I18SeverController extends BaseController {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
                         fieldEntry.setId(commonUtils.getUUID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
-                        fieldEntry.setDiFileName(diFileName);
+                        fieldEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                         fieldEntry.setEntryState(1);
                         fieldEntry.setEntrySource(fieldInfo.getCommon());
@@ -994,6 +1300,7 @@ public class I18SeverController extends BaseController {
                         fieldEntry.setUpdateTime(date);
                         fieldEntry.setUpdate(userName);
                         fieldEntry.setImportType(ConstantInterface.DB);
+                        fieldEntry.setWriteType(ConstantInterface.DI);
                         entryInfoEntities.add(fieldEntry);
                     }
                     if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
@@ -1003,13 +1310,14 @@ public class I18SeverController extends BaseController {
                             dataEntry.setEntry(data);
                             // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                             dataEntry.setEntryState(1);
-                            dataEntry.setDiFileName(diFileName);
+                            dataEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                             dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
                             dataEntry.setIsDelete(0);
                             dataEntry.setUpdateTime(date);
                             dataEntry.setUpdate(userName);
                             dataEntry.setProductID(productId);
                             dataEntry.setImportType(ConstantInterface.DB);
+                            dataEntry.setWriteType(ConstantInterface.DI);
                             entryInfoEntities.add(dataEntry);
                         }
                     }
@@ -1022,6 +1330,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
@@ -1070,7 +1379,7 @@ public class I18SeverController extends BaseController {
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
-                    entryInfoEntity.setDiFileName(diFileName);
+                    entryInfoEntity.setDiFileName("db/" + tdbTableInfo.getDb_name());
                     entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                     // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                     entryInfoEntity.setEntryState(1);
@@ -1079,6 +1388,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setTaskId(taskID);
                     createNewTrans(entryInfoEntity, translateType, "");
                     entryInfoEntity.setImportType(ConstantInterface.DB);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntities.add(entryInfoEntity);
                 }
@@ -1092,7 +1402,7 @@ public class I18SeverController extends BaseController {
                         EntryInfoEntity fieldEntry = new EntryInfoEntity();
                         fieldEntry.setId(commonUtils.getUUID());
                         fieldEntry.setEntry(fieldInfo.getAliasName());
-                        fieldEntry.setDiFileName(diFileName);
+                        fieldEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                         fieldEntry.setEntryState(1);
                         fieldEntry.setEntrySource(fieldInfo.getCommon());
@@ -1101,6 +1411,7 @@ public class I18SeverController extends BaseController {
                         fieldEntry.setUpdate(userName);
                         fieldEntry.setProductID(productId);
                         fieldEntry.setImportType(ConstantInterface.DB);
+                        fieldEntry.setWriteType(ConstantInterface.DI);
                         entryInfoEntities.add(fieldEntry);
                     }
                     if (!CollectionUtils.isEmpty(fieldInfo.getFieldDatas())) {
@@ -1111,13 +1422,14 @@ public class I18SeverController extends BaseController {
                             dataEntry.setEntry(data);
                             // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                             dataEntry.setEntryState(1);
-                            dataEntry.setDiFileName(diFileName);
+                            dataEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                             dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
                             dataEntry.setIsDelete(0);
                             dataEntry.setUpdateTime(date);
                             dataEntry.setUpdate(userName);
                             dataEntry.setProductID(productId);
                             dataEntry.setImportType(ConstantInterface.DB);
+                            dataEntry.setWriteType(ConstantInterface.DI);
                             entryInfoEntities.add(dataEntry);
                         }
                     }
@@ -1130,6 +1442,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
@@ -1179,7 +1492,7 @@ public class I18SeverController extends BaseController {
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
-                entryInfoEntity.setDiFileName(diFileName);
+                entryInfoEntity.setDiFileName("db/" + tdbTableInfo.getDb_name());
                 entryInfoEntity.setEntrySource(tdbTableInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
@@ -1188,6 +1501,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setTaskId(taskID);
                 createNewTrans(entryInfoEntity, translateType, "");
                 entryInfoEntity.setImportType(ConstantInterface.DB);
+                entryInfoEntity.setWriteType(ConstantInterface.DI);
                 entryInfoEntity.setProductID(productId);
                 entryInfoEntities.add(entryInfoEntity);
 
@@ -1199,13 +1513,14 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setEntry(fieldInfo.getAliasName());
                     // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                     fieldEntry.setEntryState(1);
-                    fieldEntry.setDiFileName(diFileName);
+                    fieldEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                     fieldEntry.setEntrySource(fieldInfo.getCommon());
                     fieldEntry.setIsDelete(0);
                     fieldEntry.setUpdateTime(date);
                     fieldEntry.setUpdate(userName);
                     fieldEntry.setProductID(productId);
                     fieldEntry.setImportType(ConstantInterface.DB);
+                    fieldEntry.setWriteType(ConstantInterface.DI);
                     entryInfoEntities.add(fieldEntry);
                     for (String data : fieldInfo.getFieldDatas()) {
                         EntryInfoEntity dataEntry = new EntryInfoEntity();
@@ -1213,13 +1528,14 @@ public class I18SeverController extends BaseController {
                         dataEntry.setEntry(data);
                         // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
                         dataEntry.setEntryState(1);
-                        dataEntry.setDiFileName(diFileName);
+                        dataEntry.setDiFileName("db/" + fieldInfo.getDb_name());
                         dataEntry.setEntrySource(fieldInfo.getCommon() + "_" + fieldInfo.getFieldName());
                         dataEntry.setIsDelete(0);
                         dataEntry.setUpdateTime(date);
                         dataEntry.setUpdate(userName);
                         dataEntry.setProductID(productId);
                         dataEntry.setImportType(ConstantInterface.DB);
+                        fieldEntry.setWriteType(ConstantInterface.DI);
                         entryInfoEntities.add(dataEntry);
                     }
 
@@ -1229,6 +1545,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
@@ -1300,9 +1617,9 @@ public class I18SeverController extends BaseController {
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
-                entryInfoEntity.setDiFileName(diFileName);
+                entryInfoEntity.setDiFileName("config/" + fieldInfo.getDb_name());
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
-                entryInfoEntity.setEntryLabel(fieldInfo.getCommon());
+                entryInfoEntity.setTag(fieldInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
                 entryInfoEntity.setUpdateTime(date);
@@ -1312,6 +1629,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setIsDelete(0);
                 createNewTrans(entryInfoEntity, translateType, "");
                 entryInfoEntity.setImportType(ConstantInterface.CONFIG);
+                entryInfoEntity.setWriteType(ConstantInterface.DI);
                 entryInfoEntity.setProductID(productId);
                 entryInfoEntities.add(entryInfoEntity);
 
@@ -1321,6 +1639,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
@@ -1359,9 +1678,9 @@ public class I18SeverController extends BaseController {
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
-                entryInfoEntity.setDiFileName(diFileName);
+                entryInfoEntity.setDiFileName("enum/" + fieldInfo.getDb_name());
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
-                entryInfoEntity.setEntryLabel(fieldInfo.getCommon());
+                entryInfoEntity.setTag(fieldInfo.getCommon());
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
@@ -1370,6 +1689,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setTaskId(taskID);
                 createNewTrans(entryInfoEntity, translateType, "");
                 entryInfoEntity.setImportType(ConstantInterface.ENUM);
+                entryInfoEntity.setWriteType(ConstantInterface.DI);
                 entryInfoEntity.setProductID(productId);
                 entryInfoEntity.setIsDelete(0);
                 entryInfoEntities.add(entryInfoEntity);
@@ -1380,6 +1700,7 @@ public class I18SeverController extends BaseController {
             log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
         }
         List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的

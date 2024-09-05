@@ -595,8 +595,8 @@ public class ExcelUtils {
                                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
                                     String format = simpleDateFormat.format(dd);
                                 }*/
-                                log.info(" **** 当前读取的值为 " + convertType(field.getType(), value.trim()) + " **** ");
-                                method.invoke(instance, convertType(field.getType(), value.trim()));
+                                log.info(" **** 当前读取的值为 " + convertType(field.getType(), value) + " **** ");
+                                method.invoke(instance, convertType(field.getType(), value));
                             }
                             log.info(" ======= headName is : " + headName + " ======== ");
                             break;

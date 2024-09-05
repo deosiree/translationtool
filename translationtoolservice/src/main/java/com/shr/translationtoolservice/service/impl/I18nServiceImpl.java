@@ -62,13 +62,17 @@ public class I18nServiceImpl implements I18nService {
             if (StringUtils.isBlank(trans)) {
                 continue;
             }
-            if ("TS".equals(entryInfoEntity.getImportType())) {
+            if ("TS".equals(entryInfoEntity.getWriteType())) {
                 if (CollectionUtils.isEmpty(tsEntryInfoMap.get(entryInfoEntity.getEntrySource()))){
                     List<Map<String, String>> tsEntrys = new ArrayList<>();
                     //遍历单词
                     Map<String, String> requestMap  = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
-                    requestMap.put("tag", entryInfoEntity.getEntryLabel());
+                    String tagStr =  entryInfoEntity.getTag();
+                   /* if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
+                        tagStr =  entryInfoEntity.getTag();
+                    }*/
+                    requestMap.put("tag", tagStr);
                     requestMap.put("translate", trans);
                     tsEntrys.add(requestMap);
                     tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),tsEntrys);
@@ -76,7 +80,11 @@ public class I18nServiceImpl implements I18nService {
                     //遍历单词
                     Map<String, String> requestMap = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
-                    requestMap.put("tag", entryInfoEntity.getEntryLabel());
+                    String tagStr =  entryInfoEntity.getTag();
+                    /*if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
+                        tagStr =  entryInfoEntity.getTag();
+                    }*/
+                    requestMap.put("tag", tagStr);
                     requestMap.put("translate", trans);
                     List<Map<String, String>> list = tsEntryInfoMap.get(entryInfoEntity.getEntrySource());
                     list.add(requestMap);
@@ -89,7 +97,7 @@ public class I18nServiceImpl implements I18nService {
                 requestMap.put("translate", trans);
                 tsEntrys.add(requestMap);
                 tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),requestMap);*/
-            } else if ("DI".equals(entryInfoEntity.getImportType())) {
+            } else if ("DI".equals(entryInfoEntity.getWriteType())) {
                 //di 来源处理
                 List<EntryInfoEntity> entities;
                 if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getDiFileName()))) {
@@ -102,20 +110,19 @@ public class I18nServiceImpl implements I18nService {
                         if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
                             if (tag){
                                 if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag())){
-                                    break;
+                                    continue;
                                 }else {
-                                    diEntryInfo.add(entryInfoEntity);
+                                    entities.add(entryInfoEntity);
+                                    break;
                                 }
                             }
                         }else {
-                            diEntryInfo.add(entryInfoEntity);
+                            entities.add(entryInfoEntity);
+                            break;
                         }
                     }
-
                 }
-
-
-            } else if ("DB".equals(entryInfoEntity.getImportType())) {
+            } /* else if ("DB".equals(entryInfoEntity.getImportType())) {
                 //dB 来源处理
                 //最后一位是写入DI 的文件名
                 // String[] s = entryInfoEntity.getDiFileName().split("_");
@@ -123,7 +130,7 @@ public class I18nServiceImpl implements I18nService {
                 List<EntryInfoEntity> entities;
                 //预处理
                 if (!tag){
-                    entryInfoEntity.setEntryLabel("");
+                    entryInfoEntity.setTag("");
                 }
                 if (common){
                     //库名
@@ -154,16 +161,13 @@ public class I18nServiceImpl implements I18nService {
                     }
                     dbEntrInfo.add(entryInfoEntity);
                 }
-
-
-
-            } else if ("CONFIG".equals(entryInfoEntity.getImportType())) {
+            }else if ("CONFIG".equals(entryInfoEntity.getWriteType())) {
                 //di 来源处理
                 String diFileName = entryInfoEntity.getDiFileName();
                 List<EntryInfoEntity> entities;
 //预处理
                 if (!tag){
-                    entryInfoEntity.setEntryLabel("");
+                    entryInfoEntity.setTag("");
                 }
                 if (!common){
                     entryInfoEntity.setEntrySource("");
@@ -185,7 +189,7 @@ public class I18nServiceImpl implements I18nService {
                 List<EntryInfoEntity> entities;
 //预处理
                 if (!tag){
-                    entryInfoEntity.setEntryLabel("");
+                    entryInfoEntity.setTag("");
                 }
                 if (!common){
                     entryInfoEntity.setEntrySource("");
@@ -200,7 +204,7 @@ public class I18nServiceImpl implements I18nService {
                     entities.add(entryInfoEntity);
                 }
                 enumEntryInfo.add(entryInfoEntity);
-            }
+            }*/
         }
         //写入i18 ts
         if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
@@ -212,7 +216,7 @@ public class I18nServiceImpl implements I18nService {
            // jsonObject.put("entry", tsEntryInfoMap);
            // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
         }
-        if (!CollectionUtils.isEmpty(diEntryInfo)) {
+        if (!CollectionUtils.isEmpty(diTypeMap)) {
             //按照分裂写入di
             for (String di_fileName : diTypeMap.keySet()) {
                 //writeDiWords(di_fileName, translateType, dbEntrInfo);
@@ -220,7 +224,7 @@ public class I18nServiceImpl implements I18nService {
             }
 
         }
-        if (!CollectionUtils.isEmpty(dbEntrInfo)) {
+ /*       if (!CollectionUtils.isEmpty(dbEntrInfo)) {
             //按照分裂写入di
             for (String dbFileName : dbTypeMap.keySet()) {
                 //没有的词条新增 已有的更新翻译
@@ -246,7 +250,7 @@ public class I18nServiceImpl implements I18nService {
                 //writeConfigWords(cfFileName, translateType, configEntryInfo, tag, common);
                 diUtils.writeDiEntry(enumEntryInfo,enumFileName,translateType,tag,common);
             }
-        }
+        }*/
 
         return ConstantInterface.OK_STR;
     }
@@ -257,13 +261,17 @@ public class I18nServiceImpl implements I18nService {
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<DictionaryVo> list = new ArrayList<>();
-
+        Map<String, String> requestMap  = new HashMap<>();
+        requestMap.put("name", fileName);
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT + fileName);
+            s = httpUtils.get(I18URL + ConstantInterface.GET_INIT_DICTIONARY ,requestMap);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 boolean a = false;
                 DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
+                if (dictionaryVo.getSource().equals("初始化词条")){
+                    continue;
+                }
                 if (StringUtils.isNotBlank(entry) ){
                     if (! dictionaryVo.getSource().equals(entry)){
                       continue;

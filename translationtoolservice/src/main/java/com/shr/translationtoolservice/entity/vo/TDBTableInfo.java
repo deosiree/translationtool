@@ -15,6 +15,7 @@ public class TDBTableInfo {
     private String tableName = "";
     private String aliasName = "";
     private String common = "";
+    private String db_name = "";
     private List<TDBFieldInfo> fields;
     private int tableId = 0;
 }

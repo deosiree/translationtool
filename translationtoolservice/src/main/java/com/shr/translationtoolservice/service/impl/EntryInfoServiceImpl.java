@@ -828,6 +828,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
             }
             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+            entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
             entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
             String productTableName = "t_entry_info";
             // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
@@ -918,6 +919,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
             }
             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+            entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
             entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
             String productTableName = "t_entry_info";
             caseExisttry(entryInfoEntity, taskInfoEntity, importExcleEntry, productTableName);
@@ -1233,10 +1235,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName) {
 
-        for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
-
-
-        }
         switch (writeType) {
             case ConstantInterface.DI:
                 diUtils.writeDiEntry(entryInfoEntities, fileName, translateType, tag, comment);
