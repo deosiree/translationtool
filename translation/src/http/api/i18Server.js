@@ -220,3 +220,30 @@ export function updateDicTrans(params){
         params
     });
 }
+
+// 获取全部辞典
+export function getInvalidDictionary(){
+    return request({
+        url: "/I18Sever/getInvalidDictionary",
+        method: "GET"
+    });
+}
+
+// 辞典生效
+export function valDictionary(data){
+    return request({
+        url: "/I18Sever/valDictionary",
+        method: "POST",
+        data
+    });
+}
+
+// 批量获取辞典内容
+export function importDictionaryEntry(params,data){
+    return request({
+        url: "/I18Sever/importDictionaryEntry",
+        method: "POST",
+        params,
+        data
+    });
+}

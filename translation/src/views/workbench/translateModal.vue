@@ -219,7 +219,6 @@
     <Modal  
     :visible="selectVisible" 
     modalTitle="预翻译"
-    style="top: 30%"
     :okLoading="preTranslateOkLoading"
     @handleClose="selectHandleClose"
     @handleOK="selectHandleOK"
@@ -263,7 +262,6 @@
     <Modal
     :visible="exportVisible" 
     modalTitle="导出"
-    style="top:30%"
     @handleClose="exportClose"
     @handleOK="exportOK"
     @afterClose="exportAfterClose"

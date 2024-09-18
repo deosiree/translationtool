@@ -15,6 +15,15 @@
                 :model="dict"
                 :label-col="labelCol"
             >
+                <a-form-item label="辞典类型" name="type"
+                    :rules="[{ required: true, message: '请选择!' }]"
+                >
+                    <a-select
+                    v-model:value="dict.type"
+                    :options="dictTypes"
+                    placeholder="请选择"
+                    ></a-select>
+                </a-form-item>
                 <a-form-item label="辞典名称" name="name"
                     :rules="[{ required: true, message: '请输入名称!' }]"
                 >
@@ -35,7 +44,7 @@ export default {
     components:{
         Modal
     },
-    emits:['modalClose'],
+    emits:['modalClose','modalOK'],
     props: {
         visible:{
             type: Boolean,
@@ -52,8 +61,16 @@ export default {
             labelCol: { style: { width: '80px' } },
             modalWidth:"400px",
             dict:{
-                name:""
-            }
+                name:"",
+                type: null
+            },
+            dictTypes:[
+                {label:'数据库',value:'db'},
+                {label:'枚举',value:'enum'},
+                {label:'配置文件',value:'config'},
+                {label:'i18n_tr',value:'tr'},
+                {label:'其他',value:'other'}
+            ]
         }
     },
     
@@ -74,12 +91,14 @@ export default {
         },
         handleOK(){
             this.$refs.dictRef.validate().then(() => {
+
                 let params = {
-                    dicName: this.dict.name
+                    dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name
                 }
                 createDic(params).then((res) => {
                     message.success("创建成功！")
                     this.$emit("modalClose",true)
+                    this.$emit('modalOK')
                 }).catch((err) => {
                     message.error("创建失败！")
                 })
@@ -88,6 +107,7 @@ export default {
         },
         afterClose(){
             this.dict.name = ""
+            this.dict.type = null
             this.$refs.dictRef.clearValidate()
         }
     }

@@ -5,7 +5,8 @@
     :modalWidth="modalWidth"
     :fullFlag="true"
     :okLoading="saveLoading"
-    okText="归档"
+    :showCancel="false"
+    okText="归档并结束任务"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
@@ -89,6 +90,15 @@
             :rowClassName="getRowClassName"
             :expandIconColumnIndex="2"
             :customRow="customRow"
+            :row-selection="{ 
+                selectedRowKeys: selectedRowKeys, 
+                selectedRows: selectedRows,
+                onChange: onSelectChange,
+                selections:[
+                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                ]
+            }"
             ref="archiveTable"
             @resizeColumn="handleResizeColumn"
             @change="handleTableChange"
@@ -174,6 +184,10 @@
                 </template>
             </a-table>
         </div>
+        <template v-slot:leftBottomBtn>
+            <a-button @click="handleClose">取消</a-button>
+            <a-button type="primary" ghost @click="writeBackFun">归档</a-button>
+        </template>
     </CustomModal>
 </template>
 <script>
@@ -272,7 +286,9 @@ export default {
             },
             filters:null,
             filteredData:[],
-            saveLoading: false
+            saveLoading: false,
+            selectedRowKeys: [],
+            selectedRows: []
         }
     },
     
@@ -353,7 +369,7 @@ export default {
                 });
             }else{
                 Modal.confirm({
-                    title: '是否确定归档?',
+                    title: '是否确定归档并结束任务?',
                     icon: createVNode(ExclamationCircleOutlined),
                     okText: '是',
                     cancelText: '否',
@@ -532,6 +548,43 @@ export default {
                 }
             }
         },
+        onSelectChange(selectedRowKeys,selectedRows){
+            this.selectedRowKeys = selectedRowKeys
+            this.selectedRows = selectedRows
+        },
+        selectAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+            this.dataSource.forEach(item => {
+                this.selectedRowKeys.push(item.id)
+                this.selectedRows.push(item)
+            })
+        },
+        clearAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
+        // 归档  回写数据
+        writeBackFun(){
+            if(this.selectedRows.length === 0){
+                message.info("请选择词条")
+                return
+            }
+            // 回写数据
+            let params = {
+                taskID: this.task.id,
+                translateType: this.task.translateType,
+                isTag:0,
+                isComment:0
+            }
+            setInfo(params,this.selectedRows).then((res) => {
+                message.success("归档成功！")
+                this.selectedRowKeys = []
+                this.selectedRows = []
+            }).catch((err) => {
+                message.error("归档失败！")
+            })
+        }
     }
 }
 </script>

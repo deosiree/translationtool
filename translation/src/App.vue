@@ -1,5 +1,5 @@
 <template>
-  <a-config-provider :locale="locale">
+  <a-config-provider :locale="locale" aria-hidden="true">
     <electronTitle />
     <router-view/>
   </a-config-provider>

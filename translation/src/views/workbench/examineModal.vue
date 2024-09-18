@@ -263,7 +263,6 @@
     <CustomModal
     :visible="rejectReasonVisible" 
     modalTitle="驳回原因"
-    style="top:30%"
     @handleClose="rejectReasonClose"
     @handleOK="rejectReasonOK"
     @afterClose="rejectReasonAfterClose"

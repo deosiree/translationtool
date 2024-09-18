@@ -9,6 +9,7 @@
     :afterClose="afterClose"
     :maskClosable='false'
     :wrap-class-name=" fullScreen ? 'full-modal' : null"
+    centered
     ok-text="确定"
     cancel-text="取消"
     @ok="ok"

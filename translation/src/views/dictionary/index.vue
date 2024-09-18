@@ -1,9 +1,9 @@
 <template>
     <div class="dictBox" ref="box">
         <a-row type="flex">
-            <a-col flex="240px" class="dictionaryBox">
+            <a-col flex="240px" class="dictionaryBox" ref="treeBox">
                 <div class="dictSearch">
-                    <a-input v-model:value="keyWords" placeholder="关键字搜索" style="width:90%" >
+                    <a-input v-model:value="keyWords" placeholder="关键字搜索" style="width:90%" @pressEnter="getDictionarys">
                         <template #suffix>
                             <SearchOutlined style="color: #DCDCDC;"/>
                         </template>
@@ -16,12 +16,12 @@
                     </a-tooltip>
                 </div>
                 <div class="dictionary">
-                    <a-directory-tree
+                    <a-tree
                     v-model:expandedKeys="expandedKeys"
                     :defaultExpandAll="true"
                     :selectedKeys="selectedTreeKeys"
+                    block-node
                     :tree-data="dicts"
-                    :replaceFileds="{title:'name',key:'id'}"
                     @select="clickTree"
                     >
                         <template #title="{ key: treeKey, title}">
@@ -64,7 +64,7 @@
                             </template>
                             
                         </template>
-                    </a-directory-tree>
+                    </a-tree>
                     <span v-if="dicts.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
                 </div>
             </a-col>
@@ -184,7 +184,9 @@ import {
     getDictionary,
     clearDic,
     removeDic,
-    removeDicTerms
+    removeDicTerms,
+    getAllDictionary,
+    valDictionary
 } from "@/http/api/i18Server"
 import {
     getDictory
@@ -249,7 +251,14 @@ export default {
                 onChange: this.pageChange
             },
             dictTitle:"",
-            currentData:{}
+            currentData:{},
+            dictTypes:[
+                {label:'数据库',value:'db'},
+                {label:'枚举',value:'enum'},
+                {label:'配置文件',value:'config'},
+                {label:'i18n_tr',value:'tr'},
+                {label:'其他',value:'other'}
+            ]
         }
     },
     
@@ -319,14 +328,79 @@ export default {
         getDictionarys(){
             getDictionary().then((res) => {
                 this.dicts = []
+                if(res.data.list === null){
+                    return
+                }
                 res.data.list.forEach(item => {
                     let option = {
                         title: item,
                         key: item
                     }
-                    this.dicts.push(option)
+                    if(this.keyWords.trim() != ""){
+                        if(item.includes(this.keyWords.trim())){
+                            this.dicts.push(option)
+                        }
+                    }else{
+                        this.dicts.push(option)
+                    }
                 })
+                this.listToTree()
             })
+        },
+        // 将辞典数据转为树结构
+        listToTree(){
+            let tree = []
+            // this.dicts = [
+            //     {key:'tr/svc_filemgr',title:'tr/svc_filemgr1111111111111111111111'},
+            //     {key:'tr/filemagr',title:'tr/filemagr'},
+            //     {key:'db/sysmdl',title:'db/sysmdl'},
+            //     {key:'db/fileinfo',title:'db/fileinfo'},
+            //     {key:'enum/secinfo',title:'enum/secinfo'},
+            //     {key:'enum/sysmdl',title:'enum/sysmdl'},
+            //     {key:'config/aa',title:'config/aa'},
+            //     {key:'config/bb',title:'config/bb'},
+            //     {key:'pingtai',title:'pingtai'},
+            //     {key:'user',title:'user'},
+            //     {key:'user1',title:'user'},
+            //     {key:'user2',title:'user'},
+            //     {key:'user3',title:'user'},
+            //     {key:'user4',title:'user'},
+            //     {key:'user5',title:'user'},
+            //     {key:'user6',title:'user'},
+            //     {key:'user7',title:'user'},
+            //     {key:'user8',title:'user'},
+            //     {key:'user9',title:'user'},
+            //     {key:'user10',title:'user'},
+            //     {key:'user11',title:'user'},
+            //     {key:'user12',title:'user'},
+            //     {key:'user13',title:'user'},
+            //     {key:'user14',title:'user'},
+            //     {key:'user14',title:'user'},
+            //     {key:'user16',title:'user'},
+            //     {key:'user17',title:'user'},
+            //     {key:'user18',title:'user'},
+            //     ]
+            this.dicts.forEach(item => {
+                if(item.title.includes('/')){
+                    let paras = item.title.split('/')
+                    let parentTitle = this.dictTypes.find(type => type.value === paras[0]).label
+                    let childTitle = paras[1]
+                    let parent = tree.find(t => t.title === parentTitle);
+                    if(!parent){
+                        parent = { title: parentTitle, key: paras[0],selectable: false, children: [] }
+                        tree.push(parent)
+                    }
+                    parent.children.push({title:childTitle,key:item.key})
+                }else{
+                    let parent = tree.find(t => t.title === '其他');
+                    if(!parent){
+                        parent = { title: '其他', key: 'other',selectable: false, children: [] }
+                        tree.push(parent)
+                    }
+                    parent.children.push({title:item.title,key:item.key})
+                }
+            })
+            this.dicts = tree
         },
         // 历史版本点击事件
         clickTree(selectedKeys,e){
@@ -408,6 +482,18 @@ export default {
                 message.error("清空失败！")
             })
         },
+        // 辞典生效
+        valDictionary(dicName){
+            let params = {
+                dicName : dicName
+            }
+            valDictionary(params).then((res) => {
+                message.success("已生效！")
+                this.queryDictronary()
+            }).catch((err) => {
+                message.error("生效失败！")
+            })
+        },
         onSelectChange(selectedRowKeys,selectedRows){
             this.selectedRowKeys = selectedRowKeys
             this.selectedRows = selectedRows
@@ -480,7 +566,7 @@ export default {
             this.dictTermVisible = true
             this.dictTitle = '编辑辞典内容'
             this.$refs.dictTermRef.init()
-        }
+        },
     }
 }
 </script>
@@ -506,9 +592,11 @@ export default {
         position: relative;
 
         .dictionary{
-            width: 100%;
-            height: calc(100vh - 220px);
-            overflow-y: auto;
+            width: calc(100% - 32px);
+            height: calc(100vh - 200px);
+            overflow: auto;
+            position: absolute;
+            bottom: 16px;
         }
 
         .dictSearch{
@@ -536,21 +624,7 @@ export default {
     font-size:16px;
     margin-top:4px
 }
-</style>
-<style scoped lang="less">
-    :deep(.ant-tree-switcher){
-        display: none;
-    }
-    :deep(.ant-tree){
-        width: 100%;
-    }
-    :deep(.ant-tree .ant-tree-node-content-wrapper .ant-tree-iconEle){
-        display: none;
-    }
-    :deep(.ant-tree.ant-tree-directory .ant-tree-treenode-selected::before){
-        background-color: #EEF7FF;
-    }
-    :deep(.ant-tree.ant-tree-directory .ant-tree-treenode .ant-tree-node-content-wrapper.ant-tree-node-selected){
-        color: #369FFF;
-    }
+:deep(.ant-dropdown-trigger){
+    color: black;
+}
 </style>
