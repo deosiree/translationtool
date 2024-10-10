@@ -728,8 +728,6 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             log.info("更新 （" + update + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
             newTransID = transId;
         }
-        entryInfoEntity.setVersionID("");
-        entryInfoEntity.setTaskId("");
         return newTransID;
     }
 

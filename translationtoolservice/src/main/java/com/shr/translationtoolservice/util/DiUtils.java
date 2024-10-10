@@ -37,18 +37,19 @@ public class DiUtils {
     private TLanguageMapper languageMapper;
 
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
-    public void writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType,boolean tag,boolean common) {
+    public void writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType,boolean tag,boolean common,String i18nUrl) {
         //获取字典所有词条，将对应词条的对应翻译插入其中 ，再全量写入
         String s = "";
         String s2 = "";
         JSONArray jsonArray;
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", fileName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_DICTIONARY ,headerParameters);
-            if (!s.equals(ConstantInterface.HTTP_SUCCESS)){
-                log.error("http error : writeDiEntry error !");
-            }
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DICTIONARY ,headerParameters);
+
             jsonArray = JSONArray.parseArray(s);
             List<DictionaryVo> dictionaryVos = new ArrayList<>();
             constructDIVO(jsonArray, dictionaryVos);
@@ -76,12 +77,13 @@ public class DiUtils {
             String req =  JSONObject.toJSONString(headerParameters);
              sum = add+update;
             //10.16.193.63:18099/dictionary/user
-            s2 = httpUtils.post(I18URL + ConstantInterface.UPDTAE_DICTIONARY , req);
+            s2 = httpUtils.post(i18nUrl + ConstantInterface.UPDTAE_DICTIONARY , req);
             log.info(" ==== 辞典 " + fileName + " 新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
 
         } catch (Exception e) {
-            log.error(" 请求失败 URL ： " + I18URL + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT);
+            log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT);
             e.printStackTrace();
+            return;
         }
 
     }

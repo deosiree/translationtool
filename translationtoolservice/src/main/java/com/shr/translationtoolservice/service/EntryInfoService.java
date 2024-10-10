@@ -74,7 +74,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
 
 
-    String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName);
+    String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
 
     String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
 

@@ -40,9 +40,11 @@ public class I18nServiceImpl implements I18nService {
     private String I18URL;
 
     @Override
-    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean common) {
+    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean common,String i18nUrl) {
 
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         //先将词条分类，写到不同的 地方
         List<EntryInfoEntity> dbEntrInfo = new ArrayList<>();
         List<EntryInfoEntity> diEntryInfo = new ArrayList<>();
@@ -90,13 +92,6 @@ public class I18nServiceImpl implements I18nService {
                     list.add(requestMap);
                 }
 
-             /*   //遍历单词
-                Map<String, String> requestMap = new HashMap<>();
-                requestMap.put("source", entryInfoEntity.getEntry());
-                requestMap.put("tag", entryInfoEntity.getEntryLabel());
-                requestMap.put("translate", trans);
-                tsEntrys.add(requestMap);
-                tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),requestMap);*/
             } else if ("DI".equals(entryInfoEntity.getWriteType())) {
                 //di 来源处理
                 List<EntryInfoEntity> entities;
@@ -122,96 +117,14 @@ public class I18nServiceImpl implements I18nService {
                         }
                     }
                 }
-            } /* else if ("DB".equals(entryInfoEntity.getImportType())) {
-                //dB 来源处理
-                //最后一位是写入DI 的文件名
-                // String[] s = entryInfoEntity.getDiFileName().split("_");
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-                //预处理
-                if (!tag){
-                    entryInfoEntity.setTag("");
-                }
-                if (common){
-                    //库名
-                    entryInfoEntity.setEntrySource("DB_" + entryInfoEntity.getEntrySource().split("_")[2]);
-                }else {
-                    entryInfoEntity.setEntrySource("");
-                }
-                if (CollectionUtils.isEmpty(dbTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    dbTypeMap.put(diFileName, entities);
-                } else {
-                    entities = dbTypeMap.get(diFileName);
-                    for (EntryInfoEntity entryInfoEntity1 : entities){
-                        if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
-                            if (tag){
-                                if (!entryInfoEntity1.getTag().equals(entryInfoEntity.getTag())){
-                                    diEntryInfo.add(entryInfoEntity);
-                                }
-                            }else if (common){
-                                if (!entryInfoEntity1.getEntrySource().equals(entryInfoEntity.getEntrySource())){
-                                    diEntryInfo.add(entryInfoEntity);
-                                }
-                            }
-                        }else {
-                            diEntryInfo.add(entryInfoEntity);
-                        }
-                    }
-                    dbEntrInfo.add(entryInfoEntity);
-                }
-            }else if ("CONFIG".equals(entryInfoEntity.getWriteType())) {
-                //di 来源处理
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-//预处理
-                if (!tag){
-                    entryInfoEntity.setTag("");
-                }
-                if (!common){
-                    entryInfoEntity.setEntrySource("");
-                }
-
-                if (CollectionUtils.isEmpty(configTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    configTypeMap.put(diFileName, entities);
-                } else {
-                    entities = configTypeMap.get(diFileName);
-                    entities.add(entryInfoEntity);
-                }
-                configEntryInfo.add(entryInfoEntity);
-
-            }else if (ConstantInterface.ENUM.equals(entryInfoEntity.getImportType())) {
-                //di 来源处理
-                String diFileName = entryInfoEntity.getDiFileName();
-                List<EntryInfoEntity> entities;
-//预处理
-                if (!tag){
-                    entryInfoEntity.setTag("");
-                }
-                if (!common){
-                    entryInfoEntity.setEntrySource("");
-                }
-
-                if (CollectionUtils.isEmpty(enumTypeMap.get(diFileName))) {
-                    entities = new ArrayList<>();
-                    entities.add(entryInfoEntity);
-                    enumTypeMap.put(diFileName, entities);
-                } else {
-                    entities = enumTypeMap.get(diFileName);
-                    entities.add(entryInfoEntity);
-                }
-                enumEntryInfo.add(entryInfoEntity);
-            }*/
+            }
         }
         //写入i18 ts
         if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
            for (String fileName : tsEntryInfoMap.keySet()){
                JSONObject jsonObject = new JSONObject();
                jsonObject.put("entry", tsEntryInfoMap.get(fileName));
-               String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
+               String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
            }
            // jsonObject.put("entry", tsEntryInfoMap);
            // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
@@ -220,51 +133,30 @@ public class I18nServiceImpl implements I18nService {
             //按照分裂写入di
             for (String di_fileName : diTypeMap.keySet()) {
                 //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common);
+                diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common,i18nUrl);
             }
 
         }
- /*       if (!CollectionUtils.isEmpty(dbEntrInfo)) {
-            //按照分裂写入di
-            for (String dbFileName : dbTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                // writeDbWords(dbFileName, translateType, dbEntrInfo, tag, common);
-                diUtils.writeDiEntry(dbTypeMap.get(dbFileName),dbFileName,translateType,tag,common);
-            }
 
-        }
-        if (!CollectionUtils.isEmpty(configEntryInfo)) {
-
-            //按照分裂写入di
-            for (String cfFileName : configTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                //writeConfigWords(cfFileName, translateType, configEntryInfo, tag, common);
-                diUtils.writeDiEntry(configEntryInfo,cfFileName,translateType,tag,common);
-            }
-        }
-        if (!CollectionUtils.isEmpty(enumEntryInfo)) {
-
-            //按照分裂写入di
-            for (String enumFileName : enumTypeMap.keySet()) {
-                //没有的词条新增 已有的更新翻译
-                //writeConfigWords(cfFileName, translateType, configEntryInfo, tag, common);
-                diUtils.writeDiEntry(enumEntryInfo,enumFileName,translateType,tag,common);
-            }
-        }*/
 
         return ConstantInterface.OK_STR;
     }
 
     @Override
-    public List<DictionaryVo> getDictory(String entry, String tag, String common,String fileName) {
-
+    public List<DictionaryVo> getDictory(String entry, String tag, String common,String fileName,String i18nUrl) {
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<DictionaryVo> list = new ArrayList<>();
         Map<String, String> requestMap  = new HashMap<>();
         requestMap.put("name", fileName);
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.GET_INIT_DICTIONARY ,requestMap);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_INIT_DICTIONARY ,requestMap);
+            if (StringUtils.isBlank(s)){
+                return list;
+            }
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 boolean a = false;
@@ -273,17 +165,17 @@ public class I18nServiceImpl implements I18nService {
                     continue;
                 }
                 if (StringUtils.isNotBlank(entry) ){
-                    if (! dictionaryVo.getSource().equals(entry)){
+                    if (! dictionaryVo.getSource().contains(entry)){
                       continue;
                     }
                 }
                 if (StringUtils.isNotBlank(tag)){
-                    if (! dictionaryVo.getTag().equals(tag)){
+                    if (! dictionaryVo.getTag().contains(tag)){
                         continue;
                     }
                 }
                 if (StringUtils.isNotBlank(common)){
-                    if (! dictionaryVo.getComments().equals(common)){
+                    if (! dictionaryVo.getComments().contains(common)){
                         continue;
                     }
                 }
@@ -291,6 +183,7 @@ public class I18nServiceImpl implements I18nService {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return list;
         }
         return list;
     }

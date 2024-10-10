@@ -14,6 +14,7 @@ import io.swagger.annotations.ApiOperation;
 
 import lombok.extern.slf4j.Slf4j;
 
+import lombok.val;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,14 +92,17 @@ public class I18SeverController extends BaseController {
     @ApiOperation("获取语言缩写")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> language() {
+    public HttpResponse<ResponseListModel> language(@RequestParam String i18nUrl) {
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
 
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<String> list = new ArrayList<>();
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.LANGUAGE);
+            s = httpUtils.get(i18nUrl + ConstantInterface.LANGUAGE);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 list.add(jsonArray.get(i).toString());
@@ -117,7 +121,7 @@ public class I18SeverController extends BaseController {
     @ApiOperation("获取文件列表")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getFileListByLang(@RequestParam String language) {
+    public HttpResponse<ResponseListModel> getFileListByLang(@RequestParam String language,@RequestParam String i18nUrl) {
         //获取语言code
         List<TLanguage> languageList = languageMapper.selectLaguageByName(language);
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
@@ -126,8 +130,11 @@ public class I18SeverController extends BaseController {
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<String> list = new ArrayList<>();
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.GET_FILE_LIST, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_FILE_LIST, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 list.add(jsonArray.get(i).toString());
@@ -148,7 +155,9 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getWords(@RequestBody List<String> fileNames,
                                                     @RequestParam String taskID,
-                                                    @RequestParam String translateType, HttpServletRequest request) {
+                                                    @RequestParam String translateType,
+                                                    @RequestParam String i18nUrl,
+                                                    HttpServletRequest request) {
 
         //List<TLanguage> languageList = languageMapper.selectLaguageByName(translateType);
         String token = request.getHeader("token");
@@ -158,6 +167,9 @@ public class I18SeverController extends BaseController {
         String versionID = "";
         if (!CollectionUtils.isEmpty(versionIDs)) {
             versionID = versionIDs.get(0);
+        }
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
         }
         String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
         // String language = languageList.get(0).getName();
@@ -172,7 +184,7 @@ public class I18SeverController extends BaseController {
             String s = "";
 
             try {
-                s = httpUtils.get(I18URL + ConstantInterface.GET_WORDS, headerParameters);
+                s = httpUtils.get(i18nUrl + ConstantInterface.GET_WORDS, headerParameters);
 
                 jsonArray = JSONArray.parseArray(s);
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -255,7 +267,10 @@ public class I18SeverController extends BaseController {
     @ApiOperation("回写ts文件")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> saveWords(@RequestBody List<TSWordVO> tsWordVOS) {
+    public HttpResponse<String> saveWords(@RequestBody List<TSWordVO> tsWordVOS, @RequestParam String i18nUrl) {
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         String s = "";
         try {
             //遍历文件
@@ -286,7 +301,7 @@ public class I18SeverController extends BaseController {
                 }
                 jsonObject.put("entry", requestList);
                 jsonObject.put("test", "test6");
-                s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + ffileName, jsonObject);
+                s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + ffileName, jsonObject);
             }
 
         } catch (Exception e) {
@@ -300,18 +315,19 @@ public class I18SeverController extends BaseController {
     @ApiOperation("获取字典列表")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getDictionary() {
+    public HttpResponse<ResponseListModel> getDictionary(@RequestParam String i18nUrl) {
 
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<String> list = new ArrayList<>();
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.DICTIONARY);
+            s = httpUtils.get(i18nUrl + ConstantInterface.DICTIONARY);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
-
                 list.add(jsonArray.get(i).toString());
             }
         } catch (Exception e) {
@@ -327,16 +343,18 @@ public class I18SeverController extends BaseController {
     @ApiOperation("获取未生效字典列表")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getAllDictionary() {
+    public HttpResponse<ResponseListModel> getAllDictionary(@RequestParam String i18nUrl) {
 
         ResponseListModel<Option> responseListModel = new ResponseListModel<>();
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         List<Option> optionList = new ArrayList<>();
 
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.GET_ALL_DICTIONARY);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ALL_DICTIONARY);
             //String enbleDic = httpUtils.get(I18URL + ConstantInterface.DICTIONARY);
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -374,16 +392,18 @@ public class I18SeverController extends BaseController {
     @ApiOperation("辞典生效")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> valDictionary(@RequestBody List<String> dicNames) {
+    public HttpResponse<String> valDictionary(@RequestBody List<String> dicNames,@RequestParam String i18nUrl) {
 
 
         String s = "";
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
             for (String dicName : dicNames) {
                 Map<String, String> headerParameters = new HashMap<>();
                 headerParameters.put("dictionary", dicName);
-                s = httpUtils.get(I18URL + ConstantInterface.VAL_DICTIONARY, headerParameters);
+                s = httpUtils.get(i18nUrl + ConstantInterface.VAL_DICTIONARY, headerParameters);
                 if (!s.equals("true")) {
                     return checkResult("请求异常！");
                 }
@@ -402,10 +422,12 @@ public class I18SeverController extends BaseController {
     @ApiOperation("回写字典详情")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> setDictionaryInfo(@RequestBody List<String> types) {
+    public HttpResponse<ResponseListModel> setDictionaryInfo(@RequestBody List<String> types,@RequestParam String i18nUrl) {
 
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<String> list = new ArrayList<>();
@@ -413,7 +435,7 @@ public class I18SeverController extends BaseController {
             for (String type : types) {
                 Map<String, String> headerParameters = new HashMap<>();
                 headerParameters.put("dictionary", type);
-                s = httpUtils.post(I18URL + ConstantInterface.UPDTAE_DICTIONARY + "/" + type, new JSONObject());
+                s = httpUtils.post(i18nUrl + ConstantInterface.UPDTAE_DICTIONARY + "/" + type, new JSONObject());
             }
 
             jsonArray = JSONArray.parseArray(s);
@@ -432,13 +454,16 @@ public class I18SeverController extends BaseController {
     @ApiOperation("创建辞典")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> createDic(@RequestParam String dicName) {
+    public HttpResponse<String> createDic(@RequestParam String dicName,@RequestParam String i18nUrl) {
 
         String s = "";
         try {
+            if (StringUtils.isBlank(i18nUrl)) {
+                i18nUrl = I18URL;
+            }
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
-            s = httpUtils.get(I18URL + ConstantInterface.CREATE_DI, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DICTIONARY, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -451,13 +476,16 @@ public class I18SeverController extends BaseController {
     @ApiOperation("删除辞典")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> removeDic(@RequestParam String dicName) {
+    public HttpResponse<String> removeDic(@RequestParam String dicName,@RequestParam String i18nUrl) {
 
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
-            s = httpUtils.get(I18URL + ConstantInterface.REMOVE_DI, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.REMOVE_DI, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -471,9 +499,16 @@ public class I18SeverController extends BaseController {
     @ApiOperation("新增辞典词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> addDicTerm(@RequestParam String dicName, @RequestParam String entry, @RequestParam String translation, @RequestParam String lang, @RequestParam String tag) {
+    public HttpResponse<String> addDicTerm(@RequestParam String dicName,
+                                           @RequestParam String entry,
+                                           @RequestParam String translation,
+                                           @RequestParam String lang,
+                                           @RequestParam String tag,@RequestParam String i18nUrl) {
 
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         if (StringUtils.isBlank(entry)) {
             checkResult("入参非法。");
         }
@@ -486,7 +521,7 @@ public class I18SeverController extends BaseController {
             headerParameters.put("lang", lang);
             headerParameters.put("tag", tag);
             String pa = headerParameters.toString();
-            s = httpUtils.get(I18URL + ConstantInterface.ADD_DIC_TERM, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.ADD_DIC_TERM, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -500,9 +535,12 @@ public class I18SeverController extends BaseController {
     @ApiOperation("更新辞典翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateDicTrans(@RequestParam String dicName, @RequestParam String entry, @RequestParam String translation, @RequestParam String lang, @RequestParam String tag) {
+    public HttpResponse<String> updateDicTrans(@RequestParam String i18nUrl,@RequestParam String dicName, @RequestParam String entry, @RequestParam String translation, @RequestParam String lang, @RequestParam String tag) {
 
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         if (StringUtils.isBlank(entry)) {
             checkResult("入参非法。");
         }
@@ -514,7 +552,7 @@ public class I18SeverController extends BaseController {
             headerParameters.put("lang", lang);
             headerParameters.put("tag", tag);
 
-            s = httpUtils.get(I18URL + ConstantInterface.UPDATE_DIC_TRANS, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.UPDATE_DIC_TRANS, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -528,9 +566,12 @@ public class I18SeverController extends BaseController {
     @ApiOperation("删除辞典词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> removeDicTerms(@RequestParam String dicName, @RequestBody List<DictionaryVo> terms) {
+    public HttpResponse<String> removeDicTerms(@RequestParam String i18nUrl,@RequestParam String dicName, @RequestBody List<DictionaryVo> terms) {
 
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
@@ -545,7 +586,8 @@ public class I18SeverController extends BaseController {
             jsonObject.put("terms", termList);
 
             String a = jsonObject.toJSONString();
-            s = httpUtils.post(I18URL + ConstantInterface.REMOVE_DIC_TERMS, jsonObject);
+            String u = i18nUrl + ConstantInterface.REMOVE_DIC_TERMS;
+            s = httpUtils.post(i18nUrl + ConstantInterface.REMOVE_DIC_TERMS, jsonObject);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -559,11 +601,14 @@ public class I18SeverController extends BaseController {
     @ApiOperation("清空辞典")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> clearDic(@RequestParam String dicName) {
+    public HttpResponse<String> clearDic(@RequestParam String dicName,@RequestParam String i18nUrl) {
         try {
             JSONObject jsonObject = new JSONObject();
+            if (StringUtils.isBlank(i18nUrl)) {
+                i18nUrl = I18URL;
+            }
             jsonObject.put("dictionary", dicName);
-            String s = httpUtils.post(I18URL + ConstantInterface.UPDTAE_DICTIONARY, jsonObject);
+            String s = httpUtils.post(i18nUrl + ConstantInterface.UPDTAE_DICTIONARY, jsonObject);
             log.info(" **** " + dicName + " dic has been clear ！ **** ");
         } catch (Exception e) {
             e.printStackTrace();
@@ -579,7 +624,8 @@ public class I18SeverController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> setInfo(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String translateType,
-                                        @RequestParam(required = false) String taskID, @RequestParam int isTag, @RequestParam int isComment) {
+                                        @RequestParam(required = false) String taskID,
+                                        @RequestParam int isTag, @RequestParam int isComment,@RequestParam String i18nUrl) {
         boolean tag = true;
         boolean comment = true;
         if (isTag == 0) {
@@ -593,7 +639,7 @@ public class I18SeverController extends BaseController {
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
             translateType = taskInfoEntity.getTranslateType();
         }
-        return checkResult(i18nService.setInfoByEntryList(entryInfoEntities, translateType, tag, comment));
+        return checkResult(i18nService.setInfoByEntryList(entryInfoEntities, translateType, tag, comment,i18nUrl));
     }
 
 
@@ -602,11 +648,15 @@ public class I18SeverController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> getDictionaryInfo(@RequestParam String type,
+                                                             @RequestParam String i18nUrl,
                                                              @RequestParam String transType,
                                                              @RequestParam String versionID,
                                                              @RequestParam String taskID, HttpServletRequest request) {
 
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
@@ -624,7 +674,7 @@ public class I18SeverController extends BaseController {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", type);
 
-            s = httpUtils.get(I18URL + ConstantInterface.GET_DICTIONARY, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DICTIONARY, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
@@ -686,12 +736,16 @@ public class I18SeverController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> importDictionaryEntry(@RequestBody List<String> dicList,
+                                                                 @RequestParam String i18nUrl,
                                                                  @RequestParam String transType,
                                                                  @RequestParam String versionID,
                                                                  @RequestParam String taskID, HttpServletRequest request) {
 
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
         String token = request.getHeader("token");
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
         List<TLanguage> languageList = languageMapper.selectLaguageByName(transType);
@@ -714,7 +768,8 @@ public class I18SeverController extends BaseController {
                      dicName = dic.replaceAll("监控","jk");
                 }
                 headerParameters.put("dictionary", dicName);
-                s = httpUtils.get(I18URL + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
+                 String dicName1 = dicName.split("/")[1];
+                s = httpUtils.get(i18nUrl + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
                 jsonArray = JSONArray.parseArray(s);
                 for (int i = 0; i < jsonArray.size(); i++) {
                     DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
@@ -729,7 +784,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setEntryState(1);
                     entryInfoEntity.setEntrySource(dicName);
-                    entryInfoEntity.setDiFileName("tr/" + dicName);
+                    entryInfoEntity.setDiFileName("tr/" + dicName1);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntity.setIsDelete(0);
                     entryInfoEntity.setUpdateTime(date);
@@ -772,20 +827,23 @@ public class I18SeverController extends BaseController {
     @ApiOperation("获取节点信息")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getAllNode() {
+    public HttpResponse<ResponseListModel> getAllNode( @RequestParam String i18nUrl) {
 
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
 
         JSONArray jsonArray = new JSONArray();
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         ArrayList<String> list = new ArrayList<>();
         try {
-            s = httpUtils.get(I18URL + ConstantInterface.GET_ALL_NODE);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ALL_NODE);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 list.add(jsonArray.get(i).toString());
             }
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_ALL_NODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_ALL_NODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -799,17 +857,20 @@ public class I18SeverController extends BaseController {
     @ApiOperation("获取应用信息")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getAppByNode(@RequestParam String nodeName) {
+    public HttpResponse<ResponseListModel> getAppByNode(@RequestParam String nodeName,@RequestParam String i18nUrl) {
         ResponseListModel<TDBappVo> responseListModel = new ResponseListModel<>();
         List<TDBappVo> tdbAppVos = new ArrayList<>();
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         try {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("nodeName", nodeName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_APP_BYNODE, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_APP_BYNODE, headerParameters);
 
             tdbAppVos = JSONObject.parseArray(s, TDBappVo.class);
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -826,9 +887,13 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getdbByApp(@RequestParam String nodeName,
                                                       @RequestParam String appName,
-                                                      @RequestParam String modeName) {
+                                                      @RequestParam String modeName,
+                                                      @RequestParam String i18nUrl) {
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
         ArrayList<String> list = new ArrayList<>();
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         if (appName.equals("sysmgr")) {
             list.add("sysmdl");
             list.add("iaspalarm");
@@ -844,7 +909,7 @@ public class I18SeverController extends BaseController {
             headerParameters.put("nodeName", nodeName);
             headerParameters.put("appName", appName);
             headerParameters.put("modeName", modeName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_DB_BYAPP, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DB_BYAPP, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
 
@@ -853,7 +918,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -869,9 +934,12 @@ public class I18SeverController extends BaseController {
     @Transactional
     public HttpResponse<ResponseListModel> getTableByApp(@RequestParam String dbName,
                                                          @RequestParam String nodeName,
-                                                         @RequestParam String appName) {
+                                                         @RequestParam String appName,
+                                                         @RequestParam String i18nUrl) {
         ResponseListModel<TDBTableInfo> responseListModel = new ResponseListModel<>();
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<TDBTableInfo> list = new ArrayList<>();
@@ -880,7 +948,7 @@ public class I18SeverController extends BaseController {
             headerParameters.put("dbName", dbName);
             headerParameters.put("appName", appName);
             headerParameters.put("nodeName", nodeName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_TB_APP, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_TB_APP, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
@@ -888,7 +956,7 @@ public class I18SeverController extends BaseController {
                 list.add(tdbTableInfo);
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -906,12 +974,15 @@ public class I18SeverController extends BaseController {
     public HttpResponse<ResponseListModel> getFieldByTable(@RequestParam String dbName,
                                                            @RequestParam String nodeName,
                                                            @RequestParam String appName,
-
+                                                           @RequestParam String i18nUrl,
                                                            @RequestParam String tbName
     ) {
         ResponseListModel<TDBFieldInfo> responseListModel = new ResponseListModel<>();
         JSONArray jsonArray = new JSONArray();
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         ArrayList<TDBFieldInfo> fieldList = new ArrayList<>();
 
         try {
@@ -921,7 +992,7 @@ public class I18SeverController extends BaseController {
             headerParameters.put("appName", appName);
             headerParameters.put("tbName", tbName);
             headerParameters.put("nodeName", nodeName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_FIELD_TABLE, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_FIELD_TABLE, headerParameters);
             if ("0".equals(s)) {
                 return checkResult(null, " request error ! ");
             }
@@ -934,7 +1005,7 @@ public class I18SeverController extends BaseController {
             }
             //  tdbTableInfo.setFields(fieldList);
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -960,6 +1031,7 @@ public class I18SeverController extends BaseController {
                                                         @RequestParam String taskID,
                                                         @RequestParam String translateType,
                                                         @RequestParam String diFileName,
+                                                        @RequestParam String i18nUrl,
                                                         @RequestBody List<TDBFieldInfo> fieldInfos, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -970,8 +1042,10 @@ public class I18SeverController extends BaseController {
         ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         JSONArray jsonArray = new JSONArray();
         String s = "";
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         ArrayList<EntryInfoEntity> fieldList = new ArrayList<>();
-
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("dbName", dbName);
@@ -980,7 +1054,7 @@ public class I18SeverController extends BaseController {
             jsonObject.put("nodeName", nodeName);
             jsonObject.put("tbID", tbID);
             jsonObject.put("fieldInfos", fieldInfos);
-            s = httpUtils.post(I18URL + ConstantInterface.GET_FIELD_DATA, jsonObject);
+            s = httpUtils.post(i18nUrl + ConstantInterface.GET_FIELD_DATA, jsonObject);
             if ("0".equals(s)) {
                 return checkResult(null, " request error ! ");
             }
@@ -1014,7 +1088,7 @@ public class I18SeverController extends BaseController {
             }
             //  tdbTableInfo.setFields(fieldList);
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1040,6 +1114,7 @@ public class I18SeverController extends BaseController {
                                                     @RequestParam String taskID,
                                                     @RequestParam String diFileName,
                                                     @RequestParam String translateType,
+                                                    @RequestParam String i18nUrl,
                                                     @RequestParam(required = false) Integer maxLength, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1048,7 +1123,9 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         try {
@@ -1056,7 +1133,7 @@ public class I18SeverController extends BaseController {
             headerParameters.put("dbName", dbName);
             headerParameters.put("appName", appName);
             headerParameters.put("nodeName", nodeName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_ALIAS, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ALIAS, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             String source = nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName;
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -1114,7 +1191,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1136,6 +1213,7 @@ public class I18SeverController extends BaseController {
                                                                     @RequestParam String versionID,
                                                                     @RequestParam String taskID,
                                                                     @RequestParam String diFileName,
+                                                                    @RequestParam String i18nUrl,
                                                                     @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1144,14 +1222,16 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         try {
             Map<String, String> headerParameters = new HashMap<>();
 
             headerParameters.put("nodeName", nodeName);
-            s = httpUtils.get(I18URL + ConstantInterface.GET_DBALLENTRYBYNODE, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DBALLENTRYBYNODE, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
@@ -1218,7 +1298,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1240,6 +1320,7 @@ public class I18SeverController extends BaseController {
                                                                @RequestParam String versionID,
                                                                @RequestParam String taskID,
                                                                @RequestParam String diFileName,
+                                                               @RequestParam String i18nUrl,
                                                                @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1248,7 +1329,9 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
 
         String s = "";
@@ -1256,8 +1339,8 @@ public class I18SeverController extends BaseController {
             Map<String, String> headerParameters = new HashMap<>();
 
 
-            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYNODE);
-            s = httpUtils.post(I18URL + ConstantInterface.GET_DBALLENTRYBYNODE, JSONArray.toJSONString(i18nDBVO));
+            System.out.println("get request :" + i18nUrl + ConstantInterface.GET_DBALLENTRYBYNODE);
+            s = httpUtils.post(i18nUrl + ConstantInterface.GET_DBALLENTRYBYNODE, JSONArray.toJSONString(i18nDBVO));
 
             jsonArray = JSONArray.parseArray(s);
             if (Objects.isNull(jsonArray)) {
@@ -1327,7 +1410,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1349,6 +1432,7 @@ public class I18SeverController extends BaseController {
                                                               @RequestParam String versionID,
                                                               @RequestParam String taskID,
                                                               @RequestParam String diFileName,
+                                                              @RequestParam String i18nUrl,
                                                               @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1357,7 +1441,9 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         int sum = 0;
         String s = "";
@@ -1365,8 +1451,8 @@ public class I18SeverController extends BaseController {
             Map<String, String> headerParameters = new HashMap<>();
 
 
-            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYAPP);
-            s = httpUtils.post(I18URL + ConstantInterface.GET_DBALLENTRYBYAPP, JSONArray.toJSONString(i18nDBVO));
+            System.out.println("get request :" + i18nUrl + ConstantInterface.GET_DBALLENTRYBYAPP);
+            s = httpUtils.post(i18nUrl + ConstantInterface.GET_DBALLENTRYBYAPP, JSONArray.toJSONString(i18nDBVO));
             jsonArray = JSONArray.parseArray(s);
             if (Objects.isNull(jsonArray)) {
                 return checkResult(responseListModel);
@@ -1439,7 +1525,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1463,6 +1549,7 @@ public class I18SeverController extends BaseController {
                                                              @RequestParam String versionID,
                                                              @RequestParam String taskID,
                                                              @RequestParam String diFileName,
+                                                             @RequestParam String i18nUrl,
                                                              @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1471,7 +1558,9 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
 
         String s = "";
@@ -1479,8 +1568,8 @@ public class I18SeverController extends BaseController {
             Map<String, String> headerParameters = new HashMap<>();
 
 
-            System.out.println("get request :" + I18URL + ConstantInterface.GET_DBALLENTRYBYDB);
-            s = httpUtils.post(I18URL + ConstantInterface.GET_DBALLENTRYBYDB, JSONArray.toJSONString(i18nDBVO));
+            System.out.println("get request :" + i18nUrl + ConstantInterface.GET_DBALLENTRYBYDB);
+            s = httpUtils.post(i18nUrl + ConstantInterface.GET_DBALLENTRYBYDB, JSONArray.toJSONString(i18nDBVO));
             jsonArray = JSONArray.parseArray(s);
             if (Objects.isNull(jsonArray)) {
                 return checkResult(responseListModel);
@@ -1542,7 +1631,7 @@ public class I18SeverController extends BaseController {
                 }
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1595,6 +1684,7 @@ public class I18SeverController extends BaseController {
     public HttpResponse<ResponseListModel> getConfigEntry(@RequestParam String versionID,
                                                           @RequestParam String taskID,
                                                           @RequestParam String diFileName,
+                                                          @RequestParam String i18nUrl,
                                                           @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1603,12 +1693,14 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         try {
 
-            s = httpUtils.get(I18URL + ConstantInterface.GET_CONGIF_ENTRY);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONGIF_ENTRY);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
@@ -1636,7 +1728,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
@@ -1656,6 +1748,7 @@ public class I18SeverController extends BaseController {
     public HttpResponse<ResponseListModel> getEnumEntry(@RequestParam String versionID,
                                                         @RequestParam String taskID,
                                                         @RequestParam String diFileName,
+                                                        @RequestParam String i18nUrl,
                                                         @RequestParam String translateType, HttpServletRequest request
     ) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
@@ -1664,12 +1757,14 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
-
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
         JSONArray jsonArray = new JSONArray();
         String s = "";
         try {
 
-            s = httpUtils.get(I18URL + ConstantInterface.GET_ENUM_ENTRY);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_ENTRY);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
@@ -1697,7 +1792,7 @@ public class I18SeverController extends BaseController {
 
             }
 
-            log.info(" start send http request : " + I18URL + ConstantInterface.GET_APP_BYNODE);
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");

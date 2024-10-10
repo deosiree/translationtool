@@ -193,10 +193,10 @@
         or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} ) )
 
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
-            and t1.name = #{taskInfoEntity.name }
+            and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
         <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
-            and t2.name = #{taskInfoEntity.productName }
+            and t2.name  like CONCAT('%','${taskInfoEntity.productName}','%' )
         </if>
         <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
             and t1.translate_type = #{taskInfoEntity.translateType }
@@ -230,10 +230,10 @@
          or  (t1.translator =  #{userName,jdbcType=VARCHAR}   )
          or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  )  )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
-            and t1.name = #{taskInfoEntity.name }
+            and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
         <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
-            and t3.name = #{taskInfoEntity.productName }
+            and t2.name  like CONCAT('%','${taskInfoEntity.productName}','%' )
         </if>
         <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
             and t1.translate_type = #{taskInfoEntity.translateType }
@@ -259,10 +259,10 @@
         or (translator = #{userName,jdbcType=VARCHAR})
         or (translation_auditor = #{userName,jdbcType=VARCHAR}))
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
-            and t1.name = #{taskInfoEntity.name }
+            and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
         <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
-            and t3.name = #{taskInfoEntity.productName }
+            and t2.name  like CONCAT('%','${taskInfoEntity.productName}','%' )
         </if>
         <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
             and t1.translate_type = #{taskInfoEntity.translateType }
@@ -292,10 +292,10 @@
         or (translator = #{userName,jdbcType=VARCHAR})
         or (translation_auditor =  #{userName,jdbcType=VARCHAR} ))
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
-            and t1.name = #{taskInfoEntity.name }
+            and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
         <if test="taskInfoEntity.productName != null  and taskInfoEntity.productName != ''">
-            and t3.name = #{taskInfoEntity.productName }
+            and t2.name  like CONCAT('%','${taskInfoEntity.productName}','%' )
         </if>
         <if test="taskInfoEntity.translateType != null  and taskInfoEntity.translateType != ''">
             and t1.translate_type = #{taskInfoEntity.translateType }

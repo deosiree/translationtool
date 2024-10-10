@@ -49,7 +49,7 @@ public class ConstantInterface {
     public static final String CREATE_DI= "dic/createDic";
     public static final String REMOVE_DI= "dic/removeDic";
     public static final String ADD_DIC_TERM= "dic/addDicTerm";
-    public static final String REMOVE_DIC_TERMS= "dic/remogetDictionaryListveDicTerms";
+    public static final String REMOVE_DIC_TERMS= "dic/removeDicTerms";
     public static final String UPDATE_DIC_TRANS= "dic/updateDicTrans";
 
 

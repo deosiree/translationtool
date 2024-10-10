@@ -298,6 +298,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         productRelationEntity.setId(commonUtils.getUUID());
         productRelationEntity.setEntryId(entryInfoEntity.getId());
         productRelationEntity.setProductId(entryInfoEntity.getProductID());
+        productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
         productRelationMapper.insert(productRelationEntity);
 
 
@@ -552,6 +553,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if (delete != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
+        productRelationMapper.deleteByEntryID(idList);
         return ConstantInterface.OK_STR;
     }
 
@@ -1233,17 +1235,18 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName) {
+    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities,
+                                     String translateType, String writeType, boolean tag, boolean comment, String fileName, String i18nUrl) {
 
         switch (writeType) {
             case ConstantInterface.DI:
-                diUtils.writeDiEntry(entryInfoEntities, fileName, translateType, tag, comment);
+                diUtils.writeDiEntry(entryInfoEntities, fileName, translateType, tag, comment,i18nUrl);
                 break;
             case ConstantInterface.TS:
-                tsUtils.writeTSEntry(entryInfoEntities, fileName, tag);
+                tsUtils.writeTSEntry(entryInfoEntities, fileName, tag,i18nUrl);
                 break;
             case ConstantInterface.DEFAUT:
-                i18nService.setInfoByEntryList(entryInfoEntities, translateType, tag, comment);
+                i18nService.setInfoByEntryList(entryInfoEntities, translateType, tag, comment,i18nUrl);
                 break;
 
         }

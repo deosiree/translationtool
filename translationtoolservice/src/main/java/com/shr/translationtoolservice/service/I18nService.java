@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public interface I18nService {
 
-    String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean comment);
+    String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean comment,String i18nUrl);
 
-    List<DictionaryVo> getDictory(String entry, String tag, String common,String fileName);
+    List<DictionaryVo> getDictory(String entry, String tag, String common,String fileName,String i18nUrl);
 }
