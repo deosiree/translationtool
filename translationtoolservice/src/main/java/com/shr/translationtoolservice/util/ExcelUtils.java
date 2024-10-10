@@ -18,6 +18,7 @@ import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -145,9 +146,10 @@ public class ExcelUtils {
      * @return
      * @throws IOException
      */
-    private Workbook getWorkBoot(InputStream in, String fileName) throws IOException {
+    private Workbook getWorkBoot(InputStream in, String fileName) throws IOException, InvalidFormatException {
         if (fileName.endsWith(".xlsx")) {
-            return new XSSFWorkbook(in);
+            Workbook workbook=WorkbookFactory.create(in);
+            return workbook;
         } else {
             return new HSSFWorkbook(in);
         }
@@ -195,9 +197,9 @@ public class ExcelUtils {
 
             String classfy = "";
             for (int rowIndex = firstRowNum + 2; rowIndex <= lastRowNum; rowIndex++) {
-
+                isWrite = false;
                 log.info(" **** 正在读Excel 第 " + rowIndex + "行 **** ");
-                isWrite = true;
+               // isWrite = true;
                 Row dataRow = sheet.getRow(rowIndex);
                 if (dataRow == null)
                     continue;
@@ -205,9 +207,9 @@ public class ExcelUtils {
                 if (CollectionUtils.isEmpty(excelHeads)) {  //非头部映射方式，默认不校验是否为空，提高效率
                     firstCellNum = dataRow.getFirstCellNum();
                     lastCellNum = dataRow.getLastCellNum();
-                    if (0 != firstCellNum) {
+                   /* if (0 != firstCellNum) {
                         break;
-                    }
+                    }*/
                 }
                 for (int cellIndex = firstCellNum; cellIndex < lastCellNum; cellIndex++) {
                     Cell headCell = head.getCell(cellIndex);
@@ -355,6 +357,12 @@ public class ExcelUtils {
                                     volidateValueRequired(eHead, sheetName, rowIndex);
                                     break;
                                 }
+                                if (headName.equals("词条") &&  !StringUtils.isEmpty(value)){
+                                    isWrite = true;
+                                }
+                                if (headName.equals("词条") &&  StringUtils.isEmpty(value)){
+                                    break;
+                                }
                            /*     if (headName.contains("日期")){
                                     int intDay = Integer.parseInt( convertType(field.getType(), value.trim()));
                                     Date dd = DateUtils.addDays(calendar.getTime(),intDay);
@@ -423,9 +431,9 @@ public class ExcelUtils {
             Field[] fields = classzz.getDeclaredFields();
             String classfy = "";
             for (int rowIndex = firstRowNum + 1; rowIndex <= lastRowNum; rowIndex++) {
-
+                isWrite = false;
                 log.info(" **** 正在读Excel 第 " + rowIndex + "行 **** ");
-                isWrite = true;
+
                 Row dataRow = sheet.getRow(rowIndex);
                 if (dataRow == null)
                     continue;
@@ -433,9 +441,9 @@ public class ExcelUtils {
                 if (CollectionUtils.isEmpty(excelHeads)) {  //非头部映射方式，默认不校验是否为空，提高效率
                     firstCellNum = dataRow.getFirstCellNum();
                     lastCellNum = dataRow.getLastCellNum();
-                    if (0 != firstCellNum) {
+                   /* if (0 != firstCellNum) {
                         break;
-                    }
+                    }*/
                 }
                 for (int cellIndex = firstCellNum; cellIndex < lastCellNum; cellIndex++) {
                     Cell headCell = head.getCell(cellIndex);
@@ -524,7 +532,6 @@ public class ExcelUtils {
                         }
 */
 
-
                         if (headName.equalsIgnoreCase(ConstantInterface.constructEntryName().get(field.getName()))) {
                             String methodName = MethodUtils.setMethodName(field.getName());
                             System.out.println(methodName);
@@ -571,6 +578,13 @@ public class ExcelUtils {
                                     cell.setCellType(Cell.CELL_TYPE_STRING);
                                     value = cell.getStringCellValue();
                                 }
+                                //如果词条字段不是空 写入
+                                if (headName.equals("词条") &&  !StringUtils.isEmpty(value)){
+                                    isWrite = true;
+                                }
+                                if (headName.equals("词条") &&  StringUtils.isEmpty(value)){
+                                    break;
+                                }
                                 if (StringUtils.isEmpty(value)) {
                                     volidateValueRequired(eHead, sheetName, rowIndex);
                                     break;
@@ -581,15 +595,13 @@ public class ExcelUtils {
                                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
                                     String format = simpleDateFormat.format(dd);
                                 }*/
-                                log.info(" **** 当前读取的值为 " + convertType(field.getType(), value.trim()) + " **** ");
-                                method.invoke(instance, convertType(field.getType(), value.trim()));
+                                log.info(" **** 当前读取的值为 " + convertType(field.getType(), value) + " **** ");
+                                method.invoke(instance, convertType(field.getType(), value));
                             }
                             log.info(" ======= headName is : " + headName + " ======== ");
                             break;
                         }
                     }
-
-
                 }
                 //是否要写
                 if (isWrite) {

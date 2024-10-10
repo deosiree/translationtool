@@ -11,6 +11,7 @@ import java.util.List;
 
 public class ErrorCodeList {
     public static final String NAME_EXIST = "名称已存在。";
+    public static final String REQUEST_ERROR = "请求异常！";
     public static final String OBJECT_NOT_EXIST = "对象不存在。";
     public static final String INPUT_IS_NULL = "入参为空。";
     public static final String VERSION_IS_EXIST = "version已存在。";

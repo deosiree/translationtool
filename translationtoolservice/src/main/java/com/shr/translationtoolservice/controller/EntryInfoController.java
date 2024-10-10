@@ -415,7 +415,8 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<String> setInfo(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String translateType,
-                                        @RequestParam String writeType,@RequestParam int isTag,@RequestParam int isComment,   String fileName) {
+                                        @RequestParam String writeType,@RequestParam int isTag,
+                                        @RequestParam int isComment,   String fileName, @RequestParam  String i18nUrl) {
         boolean tag  =true;
         boolean comment = true;
         if (isTag ==0){
@@ -425,7 +426,7 @@ public class EntryInfoController extends BaseController {
             comment = false;
         }
 
-        return checkResult(entryInfoService.setInfoByEntryList(entryInfoEntities,translateType,writeType,tag,comment,fileName));
+        return checkResult(entryInfoService.setInfoByEntryList(entryInfoEntities,translateType,writeType,tag,comment,fileName,i18nUrl));
     }
 
 }

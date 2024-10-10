@@ -2,15 +2,13 @@ package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
-import com.shr.translationtoolservice.entity.EntryCommonEntity;
-import com.shr.translationtoolservice.entity.EntryInfoEntity;
-import com.shr.translationtoolservice.entity.EntryTempEntity;
-import com.shr.translationtoolservice.entity.ResponseListModel;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.entity.vo.ImportResultEntryVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.I18nService;
+import com.shr.translationtoolservice.service.TI8nAddressService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,6 +45,8 @@ public class WorkBenchController extends BaseController {
     private CommonUtils commonUtils;
 
     @Autowired
+    private TI8nAddressService ti8nAddressService;
+    @Autowired
     private I18nService i18nService;
 
     @PostMapping("/importExcle")
@@ -62,6 +62,48 @@ public class WorkBenchController extends BaseController {
         responseListModel.setTotalNum(entryEntities.size());
 
         return checkResult(responseListModel);
+    }
+
+
+    @GetMapping("/getI18nAdress")
+    @ApiOperation("获取i8n地址")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getI18nAdress(
+    ) {
+        ResponseListModel responseListModel = new ResponseListModel();
+        List<TI8nAddress> i18nAddress = ti8nAddressService.getI18nAdress();
+        responseListModel.setList(i18nAddress);
+        responseListModel.setTotalNum(i18nAddress.size());
+        return checkResult(responseListModel);
+    }
+    @GetMapping("/addI18nAdress")
+    @ApiOperation("新增i8n地址")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<Integer> addI18nAdress(@RequestParam("ip") String ip
+    ) {
+        int res = ti8nAddressService.addI18nAdress(ip);
+        return checkResult(res);
+    }
+    @GetMapping("/changeI18nAdress")
+    @ApiOperation("修改i8n地址")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<Integer> changeI18nAdress(@RequestParam("id") String id,
+                                                            @RequestParam("ip") String ip
+    ) {
+        int res = ti8nAddressService.changeI18nAdress(id,ip);
+        return checkResult(res);
+    }
+    @GetMapping("/deleteI18nAdress")
+    @ApiOperation("删除i8n地址")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<Integer> deleteI18nAdress(@RequestParam("id") String id
+    ) {
+        int res = ti8nAddressService.deleteI18nAdress(id);
+        return checkResult(res);
     }
 
     @PostMapping("/importCommonExcle")
@@ -111,9 +153,9 @@ public class WorkBenchController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<  ResponseListModel<DictionaryVo>> getDictory(String entry, String tag,
-                                                                      String common, @RequestParam String fileName) {
+                                                                      String common, @RequestParam String fileName,@RequestParam String i18nUrl) {
         ResponseListModel<DictionaryVo> responseListModel = new ResponseListModel<>();
-        List<DictionaryVo> dictionaryVos = i18nService.getDictory(entry,tag,common,fileName);
+        List<DictionaryVo> dictionaryVos = i18nService.getDictory(entry,tag,common,fileName,i18nUrl);
         responseListModel.setList(dictionaryVos);
         responseListModel.setTotalNum(dictionaryVos.size());
         return checkResult(responseListModel);
@@ -159,10 +201,10 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("预翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> preTranslate(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, @RequestParam String priority) {
+    public HttpResponse<ResponseListModel> preTranslate( HttpServletRequest request,@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, @RequestParam String priority) {
         ResponseListModel responseListModel = new ResponseListModel();
 
-        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(entryInfoEntities, taskID, priority);
+        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(request,entryInfoEntities, taskID, priority);
         responseListModel.setList(entryInfoEntities1);
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);

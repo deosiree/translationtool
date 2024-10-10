@@ -110,6 +110,11 @@ public class EntryTempEntity implements Serializable {
      */
     @TableField(value = "import_type")
     private String importype;
+    /**
+     * 版本ID
+     */
+    @TableField(value = "write_type")
+    private String writeype;
 
     //是否是升级词条
     @TableField(value = "is_update")

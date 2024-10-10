@@ -2,6 +2,8 @@ package com.shr.translationtoolservice.entity;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * @ClassName LanguageEntity
  * @USER: Cola
@@ -15,5 +17,6 @@ public class LanguageEntity {
     //翻译结果
     private String value;
     private boolean state;
+    private Date createTime;
     private String id;
 }

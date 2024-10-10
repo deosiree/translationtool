@@ -51,6 +51,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     private ProductRelationMapper productRelationMapper;
     @Autowired
     private EntryInfoMapper entryInfoMapper;
+    @Autowired
+    private EntryClassifyMapper entryClassifyMapper;
 
     @Override
     public List<VersionEntity> getProductVersion(String productName, String department) {
@@ -62,6 +64,17 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     @Override
     public List<ProductEntity> getProduct(ProductEntity productEntity) {
         List<ProductEntity> productEntities = productMapper.getProductList(productEntity);
+        //新建产品的产品名字 拼上上一级的分类名
+        for (ProductEntity productEntity1 : productEntities) {
+            if (StringUtils.isBlank(productEntity1.getParentId())) {
+                continue;
+            }
+            EntryClassify entryClassify = entryClassifyMapper.selectClassfyById(productEntity1.getParentId());
+            if (Objects.isNull(entryClassify)) {
+                continue;
+            }
+            productEntity1.setName( entryClassify.getTitle() + "-" +  productEntity1.getName() );
+        }
         return productEntities;
     }
 
@@ -103,8 +116,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         Date date = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyyMM ");
         String da = format.format(date);
-        String tableName = " t_entry_info" ;
-        String relationTableName = " t_product_relation" ;
+        String tableName = " t_entry_info";
+        String relationTableName = " t_product_relation";
         ProductTableEntity productTableEntity = new ProductTableEntity();
         productTableEntity.setEntryInfoTableName(tableName);
         productTableEntity.setEntryRelationTableName(relationTableName);
@@ -151,7 +164,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         for (UserDetailsVo userDetailsVo : userDetailsVos) {
             //查询表里是否有数据，如果有进行修改
             UserProductEntity userProductEntity;
-            userProductEntity = userProductMapper.getPermissionByNameAndDepartment(userDetailsVo.getName(), userDetailsVo.getDepartment(),productID);
+            userProductEntity = userProductMapper.getPermissionByNameAndDepartment(userDetailsVo.getName(), userDetailsVo.getDepartment(), productID);
             if (Objects.isNull(userProductEntity)) {
                 // 没有进行新增
                 userProductEntity = new UserProductEntity();
@@ -192,7 +205,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     }
 
     @Override
-    public List<UserDetailsVo> getPermissonByUserProduct(String userName,String prodectId) {
+    public List<UserDetailsVo> getPermissonByUserProduct(String userName, String prodectId) {
         List<UserDetailsVo> userDetailsAllVos = new ArrayList<>();
         // key -> department , value -> ldapUsers
         Map<String, List<LDAPUser>> allUser = ldapUtils.getAllUser();
@@ -206,7 +219,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             String department = iterator.next();
 
             List<LDAPUser> ldapUsers = allUser.get(department);
-            List<UserDetailsVo> userDetailsVos = constructLdapList(ldapUsers, department, userName,prodectId);
+            List<UserDetailsVo> userDetailsVos = constructLdapList(ldapUsers, department, userName, prodectId);
             if (CollectionUtils.isEmpty(userDetailsVos)) {
                 continue;
             }
@@ -221,8 +234,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     }
 
 
-
-    private List<UserDetailsVo> constructLdapList(List<LDAPUser> ldapUsers, String department, String filter,String productId) {
+    private List<UserDetailsVo> constructLdapList(List<LDAPUser> ldapUsers, String department, String filter, String productId) {
         List<UserDetailsVo> userDetailsVos = new ArrayList<>();
         for (LDAPUser ldapUser : ldapUsers) {
             UserDetailsVo userDetailsVo = new UserDetailsVo();
@@ -231,7 +243,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             if (!StringUtils.isBlank(filter) && !name.equals(filter)) {
                 continue;
             }
-            UserProductEntity user = userProductMapper.getPermissionByNameAndDepartment(name, department,productId);
+            UserProductEntity user = userProductMapper.getPermissionByNameAndDepartment(name, department, productId);
             userDetailsVo.setType(ConstantInterface.USER);
             userDetailsVo.setName(name);
 
@@ -265,11 +277,11 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
     }
 
     @Override
-    public UserProductEntity getUserProduct(String productId,HttpServletRequest request) {
+    public UserProductEntity getUserProduct(String productId, HttpServletRequest request) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
-        UserProductEntity userProductEntity =  userProductMapper.getPermissionByNameAndDepartment(userName,department,productId);
+        UserProductEntity userProductEntity = userProductMapper.getPermissionByNameAndDepartment(userName, department, productId);
         return userProductEntity;
     }
 

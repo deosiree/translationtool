@@ -30,6 +30,9 @@ public class TaskInfoEntity implements Serializable {
     private int entryNum;
     @TableField(exist = false)
     private String tableName;
+    @TableField(exist = false)
+    private String classifyName;
+
     /**
      * 主键
      */

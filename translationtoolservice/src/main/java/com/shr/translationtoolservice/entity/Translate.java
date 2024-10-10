@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.entity;
 
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,5 +15,4 @@ public class Translate {
     private List<LanguageEntity> languageEntities;
     private String entry;
     private String source;
-
 }

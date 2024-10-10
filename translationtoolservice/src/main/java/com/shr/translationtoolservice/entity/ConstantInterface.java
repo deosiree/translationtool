@@ -24,6 +24,14 @@ public class ConstantInterface {
     public static final String GET_FILE_LIST = "getFileListByLang";
     public static final String GET_WORDS = "getWords";
     public static final String DICTIONARY = "dictionary";
+    public static final String GET_INIT_DICTIONARY = "getInitDictionary";
+
+    public static final String UPDTAE_DICTIONARY = "updateDictionary";
+    public static final String GET_DICTIONARY = "getDictionary";
+    public static final String GET_ALL_DICTIONARY = "getDictionaryList";
+
+    public static final String IMPORT_DICTIONARY = "importDictionary";
+    public static final String VAL_DICTIONARY = "valDictionary";
     public static final String SAVE_WORDS = "saveWords";
     public static final String GET_ALL_NODE = "tdb/getAllNode";
     public static final String GET_APP_BYNODE = "tdb/getAppByNode";
@@ -38,7 +46,11 @@ public class ConstantInterface {
 
     public static final String GET_CONGIF_ENTRY= "config/getEntry";
     public static final String GET_ENUM_ENTRY= "enum/getEntry";
-    public static final String Create_DI= "dictionary/createDic";
+    public static final String CREATE_DI= "dic/createDic";
+    public static final String REMOVE_DI= "dic/removeDic";
+    public static final String ADD_DIC_TERM= "dic/addDicTerm";
+    public static final String REMOVE_DIC_TERMS= "dic/removeDicTerms";
+    public static final String UPDATE_DIC_TRANS= "dic/updateDicTrans";
 
 
     public static final String SPRIT = "/";
@@ -57,6 +69,8 @@ public class ConstantInterface {
     public static final int ZERO = 0;
     public static final int DB_SUCCESS_RESULT = 1;
 
+    public static final String HTTP_SUCCESS = "200";
+
     public static final String DELIVERY_STATE = "0";
     public static final String IMPORT_STATE = "1";
     public static final String ENTRY_AUDIT_STATE = "2";
@@ -68,13 +82,15 @@ public class ConstantInterface {
 
     public static final String IS_DEFAULT = "1";
     public static final String OK_STR = "OK";
+    public static final String ENTRY_BLANK = "词条为空";
     public static final String NOCHANGE = "词条未有变化";
     public static final String REPETITION_STR = "版本库存在重复的词条";
 
     public static final String UNTRANSLATED = "未翻译";
     public static final String TRANSLATED = "已翻译";
-    public static final String TRANSLATING = "正在翻译";
-    public static final String AUDIT = "已审核";
+    public static final String TRANSLAT_UNAUDIT = "正在翻译";
+    public static final String TRANSLAT_AUDIT = "已审核";
+    public static final String TRANSLAT_FAIL_AUDIT = "审核未通过";
 
     public static final String OPERATION_TYPE_INSERT = "新增";
     public static final String OPERATION_TYPE_UPDATE = "编辑";

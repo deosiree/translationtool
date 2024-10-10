@@ -15,6 +15,7 @@ public class TDBFieldInfo {
     private String fieldName = "";
     private String aliasName = "";
     private String common = "";
+    private String db_name = "";
     private List<String> fieldDatas ;
     private long fieldID ;
     private long size;

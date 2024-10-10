@@ -39,6 +39,9 @@
             <if test="productEntity.name != null and productEntity.name != ''">
                 and name = #{productEntity.name}
             </if>
+            <if test="productEntity.parentId != null and productEntity.parentId != ''">
+                and parent_id = #{productEntity.parentId}
+            </if>
         </where>
     </select>
 </mapper>

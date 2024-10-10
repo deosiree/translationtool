@@ -66,6 +66,9 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Autowired
     private EntryInfoService entryInfoService;
 
+    @Autowired
+    private EntryClassifyMapper entryClassifyMapper;
+
     @Override
     //获取任务信息
     //入参 taskInfoEntity 任务实体 ， offset 页码，pageSize 页内行数
@@ -199,9 +202,19 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
 
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getTaskInfoByUserName(userName, offset, pageSize, taskInfoEntity);
+        List<TaskInfoEntity> taskInfos = taskInfoMapper.getTaskInfoByUserName(userName, offset, pageSize, taskInfoEntity);
+        for (TaskInfoEntity taskInfo : taskInfos){
+             EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
+             if (Objects.nonNull(entryClassify)){
+                 EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
+                 if (Objects.nonNull(parentClassfy)){
+                     taskInfo.setClassifyName(parentClassfy.getTitle());
+                 }
+             }
 
-        return taskInfo;
+        }
+
+        return taskInfos;
     }
 
     @Override
@@ -217,9 +230,18 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     public List<TaskInfoEntity> getFinishTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
-        List<TaskInfoEntity> taskInfo = taskInfoMapper.getFinishTaskInfo(userName, offset, pageSize, taskInfoEntity);
+            List<TaskInfoEntity> taskInfos = taskInfoMapper.getFinishTaskInfo(userName, offset, pageSize, taskInfoEntity);
+        for (TaskInfoEntity taskInfo : taskInfos){
+            EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
+            if (Objects.nonNull(entryClassify)){
+                EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
+                if (Objects.nonNull(parentClassfy)){
+                    taskInfo.setClassifyName(parentClassfy.getTitle());
+                }
+            }
 
-        return taskInfo;
+        }
+        return taskInfos;
     }
 
     @Override
@@ -462,6 +484,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
             entryInfoEntity.setAbbr(entryTempEntity.getAbbr());
             entryInfoEntity.setIsDelete(0);
             entryInfoEntity.setImportType(entryTempEntity.getImportype());
+            entryInfoEntity.setWriteType(entryTempEntity.getWriteype());
             entryInfoEntity.setEntryState(2);
             String versionID = entryTempEntity.getVersionID();
             VersionEntity versionEntity = versionMapper.selectById(versionID);
