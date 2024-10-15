@@ -131,7 +131,7 @@ export function getConfigEntry(params){
 export function createDic(params){
     return request({
         url: "/I18Sever/createDic",
-        method: "POST",
+        method: "GET",
         params
     });
 }
@@ -181,5 +181,69 @@ export function clearDic(params){
         url: "/I18Sever/clearDic",
         method: "GET",
         params
+    });
+}
+
+// 删除辞典
+export function removeDic(params){
+    return request({
+        url: "/I18Sever/removeDic",
+        method: "GET",
+        params
+    });
+}
+
+// 删除辞典中的数据
+export function removeDicTerms(params,data){
+    return request({
+        url: "/I18Sever/removeDicTerms",
+        method: "POST",
+        params,
+        data
+    });
+}
+
+// 新增辞典数据
+export function addDicTerm(params){
+    return request({
+        url: "/I18Sever/addDicTerm",
+        method: "GET",
+        params
+    });
+}
+
+// 编辑辞典数据
+export function updateDicTrans(params){
+    return request({
+        url: "/I18Sever/updateDicTrans",
+        method: "GET",
+        params
+    });
+}
+
+// 获取全部辞典
+export function getInvalidDictionary(){
+    return request({
+        url: "/I18Sever/getInvalidDictionary",
+        method: "GET"
+    });
+}
+
+// 辞典生效
+export function valDictionary(data){
+    return request({
+        url: "/I18Sever/valDictionary",
+        method: "POST",
+        data
+    });
+}
+
+// 批量获取辞典内容
+export function importDictionaryEntry(params,data){
+    return request({
+        url: "/I18Sever/importDictionaryEntry",
+        method: "POST",
+        params,
+        data
     });
 }

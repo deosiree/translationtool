@@ -1,51 +1,54 @@
 <template>
     <div ref="box" class="box">
         <a-row type="flex">
-            <a-col :flex="boxFlex" class="treeBox">
+            <a-col :flex="boxFlex" class="treeBox" ref="treeBox">
                 <a-input v-model:value="keyWords" placeholder="关键字搜索" @pressEnter="getClassTree" v-if="treeBoxOpen">
                     <template #suffix>
                         <SearchOutlined style="color: #DCDCDC;"/>
                     </template>
                 </a-input>
-                <a-tree
-                v-if="treeBoxOpen"
-                show-icon
-                v-model:expandedKeys="expandedKeys"
-                :defaultExpandAll="true"
-                :selectedKeys="selectedTreeKeys"
-                :tree-data="treeData"
-                @select="clickTree"
-                draggable
-                block-node
-                @dragenter="onDragEnter"
-                @drop="onDrop"
-                >
-                    <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
-                        <a-dropdown :trigger="['contextmenu']">
-                            <span v-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
-                            <span v-else>{{ title }}</span>
-                            <template #overlay>
-                                <a-menu  v-if="$store.state.admin">
-                                    <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
-                                    <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
-                                    <a-menu-item v-if="type === 'product'" @click="productAuthority(treeKey)">权限设置</a-menu-item>
-                                    <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey,'module')">添加模块</a-menu-item>
-                                    <a-menu-item v-if="type !='department' && type !='common'" @click="editClassify(treeKey, title, type,maxByte,foreignMaxByte)">编辑</a-menu-item>
-                                    <a-menu-item v-if="type !='department' && type !='common'">
-                                        <a-popconfirm
-                                            title="确定要删除吗?"
-                                            ok-text="是"
-                                            cancel-text="否"
-                                            @confirm="deleteClassify(treeKey,type)"
-                                        >删除
-                                        </a-popconfirm>
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-                    </template>
-                </a-tree>
-                <span v-if="treeBoxOpen && treeData.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
+                <div class="productTree">
+                    <a-tree
+                    v-if="treeBoxOpen"
+                    show-icon
+                    v-model:expandedKeys="expandedKeys"
+                    :defaultExpandAll="true"
+                    :selectedKeys="selectedTreeKeys"
+                    :tree-data="treeData"
+                    @select="clickTree"
+                    draggable
+                    block-node
+                    @dragenter="onDragEnter"
+                    @drop="onDrop"
+                    >
+                        <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
+                            <a-dropdown :trigger="['contextmenu']">
+                                <span v-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
+                                <span v-else>{{ title }}</span>
+                                <template #overlay>
+                                    <a-menu  v-if="$store.state.admin">
+                                        <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
+                                        <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'" @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
+                                        <a-menu-item v-if="type === 'product'" @click="productAuthority(treeKey)">权限设置</a-menu-item>
+                                        <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey,'module')">添加模块</a-menu-item>
+                                        <a-menu-item v-if="type !='department' && type !='common'" @click="editClassify(treeKey, title, type,maxByte,foreignMaxByte)">编辑</a-menu-item>
+                                        <a-menu-item v-if="type !='department' && type !='common'">
+                                            <a-popconfirm
+                                                title="确定要删除吗?"
+                                                ok-text="是"
+                                                cancel-text="否"
+                                                @confirm="deleteClassify(treeKey,type)"
+                                            >删除
+                                            </a-popconfirm>
+                                        </a-menu-item>
+                                    </a-menu>
+                                </template>
+                            </a-dropdown>
+                        </template>
+                    </a-tree>
+                    <span v-if="treeBoxOpen && treeData.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
+                </div>
+                
                 
             </a-col>
             <a-col flex="auto" class="dataBox">
@@ -134,7 +137,8 @@ export default {
             authorityVisible:false,
             authorityProductId:"",
             productEdit:false,
-            treeBoxOpen:true
+            treeBoxOpen:true,
+            treeHeight: 0
         }
     },
     mounted () {
@@ -157,6 +161,13 @@ export default {
 
         init(){
             this.getClassTree()
+            // this.getTreeHeight()
+        },
+
+        // 计算树高度
+        getTreeHeight(){
+            let treeBox = this.$refs.treeBox.$el.offsetHeight
+            this.treeHeight = treeBox - 80
         },
         // 查询分类树
         getClassTree(){
@@ -351,6 +362,15 @@ export default {
         align-self: stretch;
         border: 1px solid #DCDCDC;
         overflow: auto;
+        position: relative;
+
+        .productTree{
+            width: calc(100% - 32px);
+            height: calc(100vh - 150px);
+            overflow: auto;
+            position: absolute;
+            bottom: 16px;
+        }
     }
 
     .dataBox{
@@ -387,6 +407,9 @@ export default {
         }
     }
     
+}
+:deep(.ant-tree){
+    width: 100%;
 }
 .ant-tabs{
     height: 100%;

@@ -121,11 +121,11 @@
                 </a-form-item>
                 <a-form-item
                 label="词条标签"
-                name="entryLabel"
+                name="tag"
                 >
                     <!-- <a-select
-                    v-model:value="record.entryLabel"
-                    :options='entryLabels'
+                    v-model:value="record.tag"
+                    :options='tags'
                     mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
                     size="small"
                     placeholder="请选择或输入"
@@ -136,7 +136,7 @@
                         mode="multiple"
                         :max-tag-count="maxTagCount"
                         placeholder="请选择标签"
-                        :options='entryLabels'
+                        :options='tags'
                         size="small"
                         >
                         </a-select>
@@ -275,7 +275,7 @@ export default {
         versions:{
             type: Array
         },
-        entryLabels:{
+        tags:{
             type: Array
         },
         dataSource:{
@@ -299,7 +299,7 @@ export default {
             record:{
                 entryState:'',
                 classifyId:'',
-                entryLabel:''
+                tag:''
             },
             labelCol: { style: { width: '70px' } },
             showAuxiliary: false,
@@ -391,11 +391,11 @@ export default {
         // 修改词条
         update(){
             if(this.record.labelList != undefined){
-                this.record.entryLabel = ""
+                this.record.tag = ""
                 this.record.labelList.forEach(item => {
-                    this.record.entryLabel += item +','
+                    this.record.tag += item +','
                 })
-                this.record.entryLabel = this.record.entryLabel.substring(0, this.record.entryLabel.lastIndexOf(','))
+                this.record.tag = this.record.tag.substring(0, this.record.tag.lastIndexOf(','))
             }
             updateEntry(this.record).then((res) => {
                 message.success("编辑成功！")

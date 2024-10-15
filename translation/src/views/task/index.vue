@@ -89,8 +89,8 @@
                 </a-form>
             </template>
             <template v-slot:operate>
-                <a-button type="primary" size="middle" @click="searchTaskInfo">查询</a-button>
                 <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                <a-button type="primary" size="middle" @click="query">查询</a-button>
             </template>
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
@@ -123,7 +123,7 @@
                         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                         :row-key="record => record.id"
                         :scroll="tableHeight"
-                        :pagination='false'
+                        :pagination='pagination'
                         :loading="loading"
                         :rowClassName="getRowClassName"
                         ref="taskTable"
@@ -165,7 +165,7 @@
                                 <template v-if="'productName' === column.dataIndex">
                                     <template v-if="editableData[record.id]">
                                         <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
-                                            <a-select
+                                            <!-- <a-select
                                             v-model:value="editableData[record.id]['productId']"
                                             style="width: 85%"
                                             placeholder="请选择"
@@ -174,7 +174,40 @@
                                             @click="clickInput"
                                             @change="changeProduct(record)"
                                             >
-                                            </a-select>
+                                            </a-select> -->
+                                            <a-tree-select
+                                                v-model:value="editableData[record.id]['productId']"
+                                                v-model:searchValue="searchValue"
+                                                show-search
+                                                style="width: 85%"
+                                                :dropdown-style="{ maxHeight: '400px', overflow: 'auto',minWidth: '400px' }"
+                                                placeholder="请选择"
+                                                allow-clear
+                                                tree-default-expand-all
+                                                :tree-data="options[record.id]['products']"
+                                                tree-node-filter-prop="title"
+                                                :fieldNames="{children:'children', label:'title', value: 'key'}"
+                                                :treeDefaultExpandAll="false"
+                                                @click="clickInput"
+                                                @change="changeProduct(record)"
+                                            >
+                                                <template #title="{ title }">
+                                                    <template
+                                                        v-for="(fragment, i) in title
+                                                            .toString()
+                                                            .split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))"
+                                                        >
+                                                        <span
+                                                            v-if="fragment.toLowerCase() === searchValue.toLowerCase()"
+                                                            :key="i"
+                                                            style="color: #08c"
+                                                        >
+                                                            {{ fragment }}
+                                                        </span>
+                                                        <template v-else>{{ fragment }}</template>
+                                                        </template>
+                                                </template>
+                                            </a-tree-select>
                                             <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)"/>
                                         </a-form-item>
                                     </template>
@@ -398,6 +431,9 @@ import {
 import { 
     getLanguage
 } from "@/http/api/translate";
+import { 
+    getClassTree
+} from "@/http/api/entryManage";
 import { defineComponent, ref, createVNode } from 'vue';
 export default {
     components:{
@@ -463,7 +499,7 @@ export default {
             selectedRowIndex:null,
             currentTask:{},
             options:{},
-            operationAreaTitle:"流程显示区",
+            operationAreaTitle:"流程信息",
             operationAreaHeight:190,
             showOperationArea: false,
             timer:null,
@@ -486,6 +522,16 @@ export default {
                 versionName: [{ required: true, message: '请选择' }],
                 translateType: [{ required: true, message: '请选择' }]
             },
+            searchValue:"",
+            pagination:{
+                showSizeChanger:true,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
+            },
+            pageChangeSearch:{}
         }
     },
     mounted () {
@@ -531,7 +577,7 @@ export default {
                 } catch (error) {
                     
                 }
-                this.tableHeight.y = this.dataHeight - buttonHeight - 110
+                this.tableHeight.y = this.dataHeight - buttonHeight - 150
 
                 // console.log(this.tableHeight.y)
             })
@@ -556,16 +602,25 @@ export default {
                 this.translateTypes = res.data.list
             })
         },
+        // 查询按钮点击事件
+        query(){
+            this.pageChangeSearch = this.search
+            this.searchTaskInfo()
+        },
         // 获取任务列表
         searchTaskInfo(){
+            this.searchTaskByCondition(this.search)
+        },
+        searchTaskByCondition(data){
             this.loading = true
             let params = {
-                pageIndex:-1,
-                pageSize:-1
+                pageIndex: this.pagination.current,
+                pageSize: this.pagination.pageSize
             }
-            searchTaskInfo(this.search,params).then((res) => {
+            searchTaskInfo(data,params).then((res) => {
                 this.dataSource = res.data.list
                 this.loading = false
+                this.pagination.total = res.data.totalNum
             }).catch((err) => {
                 this.loading = false
             })
@@ -922,6 +977,13 @@ export default {
             });
             
         },
+        dealData (param) {
+            return param.map(item => ({
+                ...item,
+                disabled: item.type != "product" ? true : false,
+                children: item.children ? this.dealData(item.children) : []
+            }))
+        },
         // 获取可编辑行下拉菜单的选项
         getOptions(record){
             let products = []
@@ -933,13 +995,22 @@ export default {
             this.options[record.id] = op
             // console.log(this.options[record.id])
             // 获取部门产品列表
-            let product = {
-                // department: record.department
-                department: this.user.department
-            }
-            getProduct(product).then((res) => {
+            // let product = {
+            //     // department: record.department
+            //     department: this.user.department
+            // }
+            // getProduct(product).then((res) => {
                 
+            //     this.options[record.id].products = res.data.list
+            // })
+            let product = {
+                department:"",
+                className: record.department
+            }
+            getClassTree(product).then((res) => {
                 this.options[record.id].products = res.data.list
+                // console.log(this.options[record.id].products)
+                this.options[record.id].products = this.dealData(this.options[record.id].products)
             })
             // 获取产品版本列表
             if(record.productId != null){
@@ -1109,6 +1180,7 @@ export default {
         addProduct(record){
             // message.info("添加产品！")
             this.addProductTask = this.editableData[record.id]
+            this.addProductTask.allProducts = this.options[record.id].products
             this.addProductVisible = true
         },
         addProductOk(record){
@@ -1126,6 +1198,7 @@ export default {
                 return
             }
             this.addProductTask = this.editableData[record.id]
+            this.addProductTask.allVersions = this.options[record.id].versions
             this.addVersionVisible = true
         },
         addVersionOk(record){
@@ -1148,6 +1221,7 @@ export default {
                 translator:'',
                 translationAuditor:''
             }
+            this.pageChangeSearch = this.search
             this.searchTaskInfo()
         },
         // 获取当前时间
@@ -1166,7 +1240,14 @@ export default {
             this.currentTask = record
             this.showOperationArea = true
             this.setTableHeight()
-        }
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+
+            this.searchTaskByCondition(this.pageChangeSearch)
+        },
     }
 }
 </script>

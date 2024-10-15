@@ -90,7 +90,6 @@
     :modalTitle="title"
     :modalWidth="operateWidth"
     :modalVisible="operateVisible"
-    style="top: 30%"
     @handleClose="operateClose"
     @handleOK="operateOk"
     @afterClose="afterOperateClose"

@@ -131,3 +131,11 @@ export function importCommonExcle(data) {
         data:data
     });
 }
+
+// 获取i18 ip地址
+export function getI18nAdress() {
+    return request({
+        url: "/workbench/getI18nAdress",
+        method: "GET"
+    });
+}

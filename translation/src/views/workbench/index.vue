@@ -2,20 +2,20 @@
     <div ref="box" class="box">
         <a-row type="flex">
             <a-col flex="296px" class="cardBox">
-                <a-card hoverable :class="activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'">
+                <a-card hoverable :class="activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'" @click="clickCard(1)">
                     <div class="title">待办事项</div>
                     <div class="logo"><img src="../../assets/workIcon/handle.png"/></div>
                     <div class="data">
                         <span>{{toDoNum}}</span><span>条</span>
-                        <a-button type="primary" ghost size="small" @click="clickCard(1)">查看</a-button>
+                        <!-- <a-button type="primary" ghost size="small" @click="clickCard(1)">查看</a-button> -->
                     </div>
                 </a-card>
-                <a-card hoverable :class="activeCard === 2 ? 'processedCard activeProcessedCard' : 'processedCard'">
+                <a-card hoverable :class="activeCard === 2 ? 'processedCard activeProcessedCard' : 'processedCard'" @click="clickCard(2)">
                     <div class="title">已办事项</div>
                     <div class="logo"><img src="../../assets/workIcon/processed.png"/></div>
                     <div class="data">
                         <span>{{finishNum}}</span><span>条</span>
-                        <a-button type="primary" ghost size="small" @click="clickCard(2)">查看</a-button>
+                        <!-- <a-button type="primary" ghost size="small" @click="clickCard(2)">查看</a-button> -->
                     </div>
                 </a-card>
                 <!-- <a-card hoverable :class="activeCard === 3 ? 'exportCard activeExportCard' : 'exportCard'">
@@ -77,8 +77,8 @@
                             </a-form>
                         </template>
                         <template v-slot:operate>
-                            <a-button type="primary" size="middle" @click="getTask">查询</a-button>
                             <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                            <a-button type="primary" size="middle" @click="query">查询</a-button>
                         </template>
                     </SearchBox>
                     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
@@ -97,7 +97,7 @@
                                 
                                 :row-key="record => record.id"
                                 :scroll="tableHeight"
-                                :pagination='false'
+                                :pagination='pagination'
                                 :loading="loading"
                                 :rowClassName="getRowClassName"
                                 ref="workTable"
@@ -285,7 +285,16 @@ export default {
             translateVisible: false,
             examineTranslateVisible: false,
             archiveVisible: false,
-            classifyLimit:{}
+            classifyLimit:{},
+            pagination:{
+                showSizeChanger:true,
+                total:0,
+                current:1,
+                pageSize:20,
+                showTotal:total => `共 ${total} 条`,
+                onChange: this.pageChange
+            },
+            pageChangeSearch:{}
         }
     },
     mounted () {
@@ -364,7 +373,7 @@ export default {
                 //     this.columns.push(operate)
                 // }
             }
-            this.getTask()
+            this.reset()
         },
         init(){
             this.setTableHeight()
@@ -390,7 +399,7 @@ export default {
                 } catch (error) {
                     
                 }
-                this.tableHeight.y = this.dataHeight - buttonHeight - 120
+                this.tableHeight.y = this.dataHeight - buttonHeight - 150
 
                 // console.log(this.tableHeight.y)
             })
@@ -411,16 +420,26 @@ export default {
             })
 
         },
+        // 查询按钮点击事件
+        query(){
+            this.pageChangeSearch = this.search
+            this.getTask()
+        },
         // 获取任务
         getTask(){
+            this.getTaskByCondition(this.search)
+        },
+        getTaskByCondition(data){
+            this.loading = true
             let params = {
-                pageIndex: -1,
-                pageSize: -1
+                pageIndex: this.pagination.current,
+                pageSize: this.pagination.pageSize
             }
             if(this.activeCard === 1){
                 // 待办事项
-                getToDoTaskInfo(params,this.search).then((res) => {
+                getToDoTaskInfo(params,data).then((res) => {
                     this.dataSource = res.data.list
+                    this.pagination.total = res.data.totalNum
                     // if(this.dataSource.length > 0){
                     //     this.selectedRowIndex = this.dataSource[0].id
                     //     this.currentTask = this.dataSource[0]
@@ -428,11 +447,19 @@ export default {
                     // this.selectedRowIndex = null
                     // this.showOperationArea = false
                     // this.setTableHeight()
+                    this.loading = false
+                }).catch((err) => {
+                    message.error("数据获取失败！")
+                    this.loading = false
                 })
             }else if(this.activeCard === 2){
                 // 已办事项
-                getFinishTaskInfo(params,this.search).then((res) => {
+                getFinishTaskInfo(params,data).then((res) => {
                     this.dataSource = res.data.list
+                    this.loading = false
+                }).catch((err) => {
+                    message.error("数据获取失败！")
+                    this.loading = false
                 })
             }
         },
@@ -517,8 +544,16 @@ export default {
                 auditor: '',
                 creator: ''
             }
+            this.pageChangeSearch = this.search
             this.getTask()
-        }
+        },
+        // 分页切换
+        pageChange(page,pageSize){
+            this.pagination.current = page
+            this.pagination.pageSize = pageSize
+
+            this.getTaskByCondition(this.pageChangeSearch)
+        },
     }
 }
 </script>

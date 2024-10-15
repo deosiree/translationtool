@@ -15,15 +15,17 @@
             <div class="taskInfo">
                 <div class="taskItem">任务名称：{{task.name}}</div>
                 <div class="taskItem">产品名称：{{task.productName}}</div>
+                <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
                 <div class="taskItem">翻译语种：{{task.translateType}}</div>
             </div>
             <div class="form">
                 词条：
-                <a-input
+                <a-textarea
                     v-model:value="keyWords"
                     style="width:300px"
                     size="small"
                     placeholder='请输入词条搜索'
+                    :auto-size="{ minRows: 1 }"
                 />
                 <span style="margin-left:10px">词条状态：</span>
                 <a-select
@@ -91,6 +93,9 @@
             @change="handleTableChange"
             >
                 <template #bodyCell="{ column, text, record }">
+                    <template v-if="column.dataIndex === 'entry'">
+                        <span v-text="text.replace(/\n/g, '\\n')"></span>
+                    </template>
                     <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
@@ -124,7 +129,7 @@
                             </template>
                         </div>
                     </template>
-                    <template v-if="column.dataIndex === 'entryLabel'">
+                    <template v-if="column.dataIndex === 'tag'">
                         <div>
                             <template v-if="editableData[record.id]">
                                 <a-input
@@ -258,7 +263,6 @@
     <CustomModal
     :visible="rejectReasonVisible" 
     modalTitle="驳回原因"
-    style="top:30%"
     @handleClose="rejectReasonClose"
     @handleOK="rejectReasonOK"
     @afterClose="rejectReasonAfterClose"
@@ -353,7 +357,7 @@ export default {
                 {title: '翻译',dataIndex: 'translate',align:'center',width:200,resizable: true,index:4},
                 {title: '中文释义',dataIndex: 'chineseInterpretation',align:'center',width:200,resizable: true,index:5},
                 {title: '英文释义',dataIndex: 'englishInterpretation',align:'center',width:200,resizable: true,index:6},
-                // {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:200},
+                // {title: 'Tag',dataIndex: 'tag',align:'center',width:200},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true,index:98},
                 {title: '词条状态',dataIndex: 'entryState',align:'center',width:100,fixed: 'right',index:99},
                 {title: '审核',dataIndex: 'audit',align:'center',width:100,ellipsis: true,fixed: 'right',index:100},
@@ -448,7 +452,7 @@ export default {
 
                 entry.chineseInterpretation =  this.editableData[key].chineseInterpretation
                 entry.englishInterpretation =  this.editableData[key].englishInterpretation
-                entry.entryLabel = this.editableData[key].entryLabel
+                entry.tag = this.editableData[key].tag
                 entry.diFileName = this.editableData[key].diFileName
 
                 if(entry[languageCode] != null && entry[languageCode] != null){
@@ -635,7 +639,7 @@ export default {
 
             record.chineseInterpretation =  this.editableData[record.id].chineseInterpretation
             record.englishInterpretation =  this.editableData[record.id].englishInterpretation
-            record.entryLabel = this.editableData[record.id].entryLabel
+            record.tag = this.editableData[record.id].tag
             record.diFileName = this.editableData[record.id].diFileName
 
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code

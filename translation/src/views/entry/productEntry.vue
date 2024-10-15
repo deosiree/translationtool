@@ -1,6 +1,6 @@
 <template>
     <div class="productEntryBox" ref="productEntryBox">
-        <SearchBox ref="search" @change="setTableHeight">
+        <SearchBox ref="search" @change="setTableHeight" :operate="false">
             <template v-slot:form>
                 <a-form
                     :model="search"
@@ -8,68 +8,101 @@
                     autocomplete="off"
                     :label-col="labelCol"
                 >
-                    <a-form-item
-                    label="词条"
-                    name="entry"
-                    >
-                        <a-input v-model:value="search.entry" placeholder="请输入内容"></a-input>
-                    </a-form-item>
-                    
-                    <!-- <a-form-item
-                    label="Abbr"
-                    name="abbr"
-                    >
-                        <a-input v-model:value="search.abbr" placeholder="请输入内容"></a-input>
-                    </a-form-item> -->
-                    <a-form-item
-                    label="词条状态"
-                    name="state"
-                    >
-                        <a-select
-                        v-model:value="search.entryState"
-                        placeholder="请选择"
+                    <a-row style="width:100%">
+                        <a-form-item
+                        label="词条"
+                        name="entry"
                         >
-                            <a-select-option value="0">新建</a-select-option>
-                            <a-select-option value="1">审核中</a-select-option>
-                            <a-select-option value="2">审核不通过</a-select-option>
-                            <a-select-option value="3">已审核</a-select-option>
-                        </a-select>
-                    </a-form-item>
-                    <a-form-item
-                    label="Tag"
-                    name="entryLabel"
-                    >
-                        <a-input v-model:value="search.entryLabel" placeholder="请输入内容"></a-input>
-                    </a-form-item>
-                    <a-form-item
-                    label="二级分类"
-                    name="classfy2"
-                    >
-                        <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
-                        <a-select
-                        v-model:value="search.classfy2"
-                        placeholder="请选择"
-                        :fieldNames="{label:'name',value:'name'}"
-                        :options='classify2Option'
+                            <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
+                        </a-form-item>
+                        
+                        <!-- <a-form-item
+                        label="Abbr"
+                        name="abbr"
                         >
-                        </a-select>
-                    </a-form-item>
-                    <a-form-item
-                    label="词条来源"
-                    name="entrySource"
-                    >
-                        <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
-                    </a-form-item>
-                    <!-- <a-form-item>
-                        <a-button type="primary" size="middle" @click="getEntryByVersion">查询</a-button>
-                        <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin-left:8px">重置</a-button>
-                    </a-form-item> -->
+                            <a-input v-model:value="search.abbr" placeholder="请输入内容"></a-input>
+                        </a-form-item> -->
+                        <a-form-item
+                        label="词条状态"
+                        name="state"
+                        >
+                            <a-select
+                            v-model:value="search.entryState"
+                            placeholder="请选择"
+                            >
+                                <a-select-option value="0">新建</a-select-option>
+                                <a-select-option value="1">审核中</a-select-option>
+                                <a-select-option value="2">审核不通过</a-select-option>
+                                <a-select-option value="3">已审核</a-select-option>
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item
+                        label="Tag"
+                        name="tag"
+                        >
+                            <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
+                        </a-form-item>
+                        <a-form-item
+                        label="二级分类"
+                        name="classfy2"
+                        >
+                            <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
+                            <a-select
+                            v-model:value="search.classfy2"
+                            placeholder="请选择"
+                            :fieldNames="{label:'name',value:'name'}"
+                            :options='classify2Option'
+                            >
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item
+                        label="词条来源"
+                        name="entrySource"
+                        >
+                            <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
+                        </a-form-item>
+                    </a-row>
+                    <a-row style="width:100%;margin-top:8px">
+                        <a-form-item
+                        label="翻译语言"
+                        name="language"
+                        >
+                            <a-select
+                            v-model:value="search.language"
+                            placeholder="请选择"
+                            :fieldNames="{label:'name',value:'name'}"
+                            :options='translateTypes'
+                            >
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item
+                        label="翻译状态"
+                        name="translateState"
+                        >
+                            <a-select
+                            v-model:value="search.translateState"
+                            placeholder="请选择"
+                            :options='translateStates'
+                            >
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item
+                        label="翻译结果"
+                        name="translate"
+                        >
+                            <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
+                        </a-form-item>
+                        <div style="display: flex;justify-content: flex-end;width:calc(100% - 858px)">
+                            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                            <a-button type="primary" size="middle" @click="conditionalQuery" style="margin-left:8px">查询</a-button>
+                        </div>
+                    </a-row>
                 </a-form>
             </template>
-            <template v-slot:operate>
-                <a-button type="primary" size="middle" @click="getEntryByVersion">查询</a-button>
+            <!-- <template v-slot:operate>
                 <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin-left:8px">重置</a-button>
-            </template>
+                <a-button type="primary" size="middle" @click="conditionalQuery">查询</a-button>
+            </template> -->
         </SearchBox>
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:label>
@@ -94,7 +127,7 @@
                     <a-badge :count="selectEntry.length" :overflow-count="99" v-if="createVersionFlag">
                         <a-button type="primary" size="small" class="resetBtn" @click="viewCreateVersionEntry">已选词条</a-button>
                     </a-badge>
-                    <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button>
+                    <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
                     <a-button type="primary" size="small" @click="addEntry"><template #icon><PlusOutlined /></template>新增</a-button>
                     <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
                     <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
@@ -145,6 +178,7 @@
                         ref="entryTable"
                         @resizeColumn="handleResizeColumn"
                         :customRow="customRow"
+                        @change="handleTableChange"
                         >
                             <template #bodyCell="{ column, record, text }">
                                 
@@ -153,16 +187,19 @@
                                         <template v-if="editableData[record.id]">
                                             <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex" autocomplete="off">
                                                 <a-form-item :name="column.dataIndex">
-                                                    <a-input
+                                                    <a-textarea
                                                         v-model:value="editableData[record.id][column.dataIndex]"
                                                         style="margin: -5px 0"
                                                         @click="clickInput"
+                                                        :auto-size="{ minRows: 1}"
                                                     />
                                                 </a-form-item>
                                             </a-form>
                                         </template>
                                         <template v-else>
-                                            {{ text }}
+                                            <!-- {{ text }} -->
+                                            <span v-html="text"></span>
+                                            <!-- <span v-text="text.replace(/\n/g, '\\n')"></span> -->
                                         </template>
                                     </div>
                                 </template>
@@ -187,10 +224,11 @@
 
                                                 <a-form-item :name="column.dataIndex"
                                                 >
-                                                    <a-input
+                                                    <a-textarea
                                                         v-model:value="editableData[record.id][column.dataIndex]"
                                                         style="margin: -5px 0"
                                                         @click="clickInput"
+                                                        :auto-size="{ minRows: 1}"
                                                     />
                                                 </a-form-item>
                                             </a-form>
@@ -235,7 +273,7 @@
                                         </template>
                                     </div>
                                 </template>
-                                <template v-if="column.dataIndex === 'entryLabel'">
+                                <template v-if="column.dataIndex === 'tag'">
                                     <div>
                                         <template v-if="editableData[record.id]">
                                             <a-input
@@ -585,9 +623,18 @@ export default {
                 translateType:null,
                 classfy2:null,
                 entryState:null,
-                entryLabel:"",
-                entrySource: ""
+                tag:"",
+                entrySource: "",
+                language: null,
+                translateState: null,
+                translate:""
             },
+            translateStates:[
+                {label:"未翻译",value:"0"},
+                {label:"待审核",value:"1"},
+                {label:"审核不通过",value:"2"},
+                {label:"已审核",value:"3"},
+            ],
             translateTypes:[],
             tableTitle:'词条列表',
             copyVisible:false,
@@ -603,7 +650,7 @@ export default {
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,fixed: 'left',resizable: true,index:1},
                 {title: '词条',dataIndex: 'entry',align:'center',width:160,resizable: true,index:2},
                 {title: '词条版本',dataIndex: 'entryVersion',align:'center',width:130,index:6,},
-                {title: '英文翻译',dataIndex: 'english',align:'center',width:180,resizable: true,index:10},
+                {title: '英文翻译',dataIndex: 'english',align:'center',width:180,resizable: true,index:10,},
                 {title: '俄文翻译',dataIndex: 'russian',align:'center',width:180,resizable: true,index:16},
                 {title: '西文翻译',dataIndex: 'spanish',align:'center',width:180,resizable: true,index:19},
                 {title: '法文翻译',dataIndex: 'french',align:'center',width:180,resizable: true,index:22},
@@ -655,7 +702,8 @@ export default {
                 language: null
             },
             importFile: null,
-            fileList: []
+            fileList: [],
+            filters: null,
         }
     },
     
@@ -683,6 +731,7 @@ export default {
             this.currentVersion = null
             this.product = newval
             this.showOperationArea = false
+            this.pagination.current = 1
             this.init()
             // console.log(newval)
             let limitMap = {}
@@ -708,6 +757,9 @@ export default {
            this.setTableHeight()
            this.selectSecondClassify()
            this.getUserPartiality()
+        },
+        format(text){
+            return text.replace(/\n/g, '\\n')
         },
         // 获取用户偏好
         getUserPartiality(){
@@ -785,32 +837,57 @@ export default {
                 // this.getEntryByVersion()
             })
         },
+        // 条件查询
+        conditionalQuery(){
+            // 将页码变为第一页
+            this.pagination.current = 1
+            this.getEntryByVersion()
+        },
         // 获取版本词条
         getEntryByVersion(){
 
             if(Object.keys(this.product).length === 0){
                 return
             }
-
+            if((this.search.translate != "" || this.search.translateState != null) && this.search.language === null){
+                message.info("请选择翻译语言！");
+                return;
+            } 
             let data = {
                 abbr:this.search.abbr,
                 entry:this.search.entry,
                 classfy2:this.search.classfy2,
                 classfy1: this.product.type === 'module' ? this.product.title : "",
                 entryState: this.search.entryState,
-                entryLabel: this.search.entryLabel,
+                tag: this.search.tag,
                 entrySource: this.search.entrySource
             }
+            // data.entry = data.entry.replace(/\\n/g, '\n')
+            // console.log("data:",data)
             if(this.currentVersion === null){
                 data.productID = this.product.type === 'module' ? this.product.parentId : this.product.key
             }else{
                 data.versionID = this.currentVersion
+            }
+            if(this.search.language === '英文'){
+                data.english = this.search.translate;
+                data.englishTranslateState = this.search.translateState
+            }else if(this.search.language === '俄文'){
+                data.russian = this.search.translate;
+                data.russianTranslateState = this.search.translateState
+            }else if(this.search.language === '西文'){
+                data.spanish = this.search.translate;
+                data.spanishTranslateState = this.search.translateState
+            }else if(this.search.language === '法文'){
+                data.french = this.search.translate;
+                data.frenchTranslateState = this.search.translateState
             }
             let params = {
                 pageIndex: this.pagination.current,
                 pageSize: this.pagination.pageSize,
             }
             this.loading = true
+            
             getEntryByVersion(data,params).then((res) => {
                 this.dataSource = res.data.list
                 this.loading = false
@@ -869,6 +946,7 @@ export default {
             }else{
                 this.currentVersion = version
             }
+            this.pagination.current = 1
             // 查询版本词条
             this.getEntryByVersion()
             
@@ -1140,7 +1218,10 @@ export default {
                 translateType:null,
                 entrySource:'',
                 entryState: null,
-                entryLabel: ""
+                tag: "",
+                language: null,
+                translateState: null,
+                translate:""
             }
             this.getEntryByVersion()
         },
@@ -1169,6 +1250,15 @@ export default {
                         resizable: true,
                         index: value.index
                     };
+                    // filteredValue: null,
+                    // filters: [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}],
+                    // onFilter: (value, record) => record.englishTranslateState === value,
+                    let index = value.value
+                    if(['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(value.value)){
+                        newCol.filteredValue = null
+                        newCol.filters = [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}]
+                        newCol.onFilter = eval('(value, record) => record.'+index+' === value')
+                    }
                     this.columns.splice(-1, 0, newCol);
                 }
                 if (nowColumnIndex !== -1 && checkedIndex === -1) {
@@ -1229,7 +1319,7 @@ export default {
                 classfy2:this.search.classfy2,
                 classfy1: this.product.type === 'module' ? this.product.title : "",
                 entryState: this.search.entryState,
-                entryLabel: this.search.entryLabel,
+                tag: this.search.tag,
                 entrySource: this.search.entrySource
             }
             if(this.currentVersion === null){
@@ -1526,7 +1616,41 @@ export default {
                 }
                 return Promise.resolve();
             }
-        }
+        },
+        // 表格change事件
+        handleTableChange(pagination, filters) {
+            this.filters = filters
+            // console.log(filters)
+            for (let key in filters) {
+                this.columns.forEach(col => {
+                    if(col.dataIndex === key){
+                        col.filteredValue = filters[key]
+                    }
+                })
+			}
+            // console.log(this.columns)
+            // 获取筛选后的数据
+            let isExistData = this.dataSource.filter(item => {
+                return filters.isExist && filters.isExist.includes(item.isExist);
+            });
+            let sourceData = this.dataSource.filter(item => {
+                return filters.entrySource && item.entrySource.includes(filters.entrySource);
+            });
+            this.filteredData = this.intersection(isExistData,sourceData)
+        },
+        // 两个数组取并集
+        intersection(nums1, nums2) {
+            if(nums1.length === 0){
+                return nums2
+            }
+            if(nums2.length === 0){
+                return nums1
+            }
+            let a=new Set(nums1);
+            let b=new Set(nums2);
+            let arr = Array.from(new Set([...b].filter(x => a.has(x))));
+            return arr;
+        },
     }
 }
 </script>

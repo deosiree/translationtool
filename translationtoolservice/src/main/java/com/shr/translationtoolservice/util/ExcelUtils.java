@@ -357,10 +357,10 @@ public class ExcelUtils {
                                     volidateValueRequired(eHead, sheetName, rowIndex);
                                     break;
                                 }
-                                if (headName.equals("词条") &&  !StringUtils.isEmpty(value)){
+                                if (headName.equals("中文术语术语") &&  !StringUtils.isEmpty(value)){
                                     isWrite = true;
                                 }
-                                if (headName.equals("词条") &&  StringUtils.isEmpty(value)){
+                                if (headName.equals("中文术语术语") &&  StringUtils.isEmpty(value)){
                                     break;
                                 }
                            /*     if (headName.contains("日期")){

@@ -16,6 +16,7 @@
                 <div class="taskInfo">
                     <div class="taskItem">任务名称：{{task.name}}</div>
                     <div class="taskItem">产品名称：{{task.productName}}</div>
+                    <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
                     <div class="taskItem">翻译语种：{{task.translateType}}</div>
                 </div>
                 <div class="form">
@@ -66,9 +67,20 @@
                 childrenColumnName="child"
                 ref="tableContainer"
                 @resizeColumn="handleResizeColumn"
+                :row-selection="{selectedRowKeys: selectedRowKeys, 
+                    onChange: onSelectChange,
+                    selections:[
+                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                    ]
+                }"
                 :customRow="customRow"
+                
                 >
                     <template #bodyCell="{ column, text, record }">
+                        <template v-if="column.dataIndex === 'entry'">
+                            <span v-text="text.replace(/\n/g, '\\n')"></span>
+                        </template>
                         <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                             <div>
                                 <template v-if="editableData[record.id]">
@@ -91,7 +103,7 @@
                                 </template>
                             </div>
                         </template>
-                        <template v-if="column.dataIndex === 'entryLabel'">
+                        <template v-if="column.dataIndex === 'tag'">
                             <div>
                                 <span>
                                     <a-tag
@@ -207,7 +219,6 @@
     <Modal  
     :visible="selectVisible" 
     modalTitle="预翻译"
-    style="top: 30%"
     :okLoading="preTranslateOkLoading"
     @handleClose="selectHandleClose"
     @handleOK="selectHandleOK"
@@ -251,7 +262,6 @@
     <Modal
     :visible="exportVisible" 
     modalTitle="导出"
-    style="top:30%"
     @handleClose="exportClose"
     @handleOK="exportOK"
     @afterClose="exportAfterClose"
@@ -354,7 +364,7 @@ export default {
                 {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true,},
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:300,resizable: true},
-                {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:150,},
+                {title: 'Tag',dataIndex: 'tag',align:'center',width:150,},
                 // {title: '来源',dataIndex: 'entrySource',align:'center',width:150,resizable: true,ellipsis:true},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:100,resizable: true},
             ],
@@ -400,6 +410,8 @@ export default {
             },
             clearFilters: null,
             saveLoading: false,
+            selectedRowKeys: [],
+            selectedRows: []
         }
     },
     
@@ -475,6 +487,10 @@ export default {
             })
         },
         handleOK(){
+            if(this.selectedRows.length === 0){
+                message.info("请选择需要保存的数据！")
+                return
+            }
             this.saveLoading = true
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             let transIdName = workbenchCommon.languageMap[this.task.translateType].transIdName
@@ -485,15 +501,22 @@ export default {
                 entry[transIdName] = this.editableData[key][transIdName]
 			}
             this.editableData = {}
-            // 设置翻译状态
+            // 获取保存数据
+            let saveEntrys = []
             this.dataSource.forEach(item => {
+                if(this.selectedRowKeys.includes(item.id)){
+                    saveEntrys.push(item)
+                }
+            })
+            // 设置翻译状态
+            saveEntrys.forEach(item => {
                 if(item[languageCode] === null || item[languageCode] === ""){
                     item[languageCode+"TranslateState"] = '0'// 待翻译
                 }else if(item[languageCode+"TranslateState"] === '0' || item[languageCode+"TranslateState"] === '2'){
                     item[languageCode+"TranslateState"] = '1'// 已翻译待审核
                 }
             })
-            let num = this.verifyTranslationLength(this.dataSource)
+            let num = this.verifyTranslationLength(saveEntrys)
             if(num > 0){
                 // 存在超长翻译
                 message.warn("存在超长翻译，请检查！")
@@ -503,10 +526,13 @@ export default {
             let params = {
                 taskID: this.task.id
             }
-            updateEntryList(params,this.dataSource).then((res) => {
+
+            updateEntryList(params,saveEntrys).then((res) => {
                 message.success('已保存！')
                 this.saveLoading = false
                 this.getTranslateEntry()
+                this.selectedRowKeys = []
+                this.selectedRows = []
             }).catch((err) => {
                 this.saveLoading = false
                 message.error('保存失败！')
@@ -819,6 +845,9 @@ export default {
 
             this.pagination.current = 1
             this.pagination.pageSize = 20
+
+            this.selectedRowKeys = []
+            this.selectedRows = []
         },
 
         // 导出
@@ -1123,7 +1152,21 @@ export default {
                 exportColumn: value.join(',')
             }
             this.updatePartiality(data)
-        }
+        },
+        onSelectChange(selectedRowKeys,selectedRows){
+            this.selectedRowKeys = selectedRowKeys
+            this.selectedRows = selectedRows
+        },
+        selectAllEntry(){
+            this.dataSource.forEach(item => {
+                this.selectedRowKeys.push(item.id)
+                this.selectedRows.push(item)
+            })
+        },
+        clearAllEntry(){
+            this.selectedRowKeys = []
+            this.selectedRows = []
+        },
     }
 }
 </script>

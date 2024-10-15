@@ -16,6 +16,7 @@
             <div class="taskInfo">
                 <div class="taskItem">任务名称：{{task.name}}</div>
                 <div class="taskItem">产品名称：{{task.productName}}</div>
+                <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
                 <div class="taskItem">翻译语种：{{task.translateType}}</div>
                 <!-- <span style="float:right;font-size:12px">
                     <a-tooltip placement="left">
@@ -84,6 +85,9 @@
             @resizeColumn="handleResizeColumn"
             >
                 <template #bodyCell="{ column, text, record }">
+                    <template v-if="column.dataIndex === 'entry'">
+                        <span v-text="text.replace(/\n/g, '\\n')"></span>
+                    </template>
                     <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
@@ -117,7 +121,7 @@
                             </template>
                         </div>
                     </template>
-                    <template v-if="column.dataIndex === 'entryLabel'">
+                    <template v-if="column.dataIndex === 'tag'">
                             <div>
                                 <span>
                                     <a-tag
@@ -205,7 +209,6 @@
     <Modal
     :visible="rejectReasonVisible" 
     modalTitle="驳回原因"
-    style="top:30%"
     @handleClose="rejectReasonClose"
     @handleOK="rejectReasonOK"
     @afterClose="rejectReasonAfterClose"
@@ -289,7 +292,7 @@ export default {
                 {title: '词条',dataIndex: 'entry',align:'center',width:200,resizable: true,},
                 {title: '翻译',dataIndex: 'translate',align:'center',width:200,resizable: true},
                 // {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
-                {title: 'Tag',dataIndex: 'entryLabel',align:'center',width:150,},
+                {title: 'Tag',dataIndex: 'tag',align:'center',width:150,},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true},
                 {title: '操作',dataIndex: 'operation',align:'center',width:100,ellipsis: true,},
             ],
