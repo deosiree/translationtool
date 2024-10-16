@@ -495,17 +495,19 @@ public class I18SeverController extends BaseController {
         return checkResult(ConstantInterface.OK_STR);
     }
 
-    @GetMapping("/addDicTerm")
+    @PostMapping("/addDicTerm")
     @ApiOperation("新增辞典词条")
     @CrossOrigin
     @Transactional
     public HttpResponse<String> addDicTerm(@RequestParam String dicName,
-                                           @RequestParam String entry,
-                                           @RequestParam String translation,
+                                           @RequestBody DictionaryVo dictionaryVo,
                                            @RequestParam String lang,
-                                           @RequestParam String tag,@RequestParam String i18nUrl) {
+                                           @RequestParam String i18nUrl) {
 
         String s = "";
+        String entry = dictionaryVo.getSource();
+        String translation = dictionaryVo.getTranslation().get(lang);
+        String tag = dictionaryVo.getTag();
         if (StringUtils.isBlank(i18nUrl)) {
             i18nUrl = I18URL;
         }
@@ -531,17 +533,21 @@ public class I18SeverController extends BaseController {
         return checkResult(ConstantInterface.OK_STR);
     }
 
-    @GetMapping("/updateDicTrans")
+    @PostMapping("/updateDicTrans")
     @ApiOperation("更新辞典翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateDicTrans(@RequestParam String i18nUrl,@RequestParam String dicName, @RequestParam String entry, @RequestParam String translation, @RequestParam String lang, @RequestParam String tag) {
+    public HttpResponse<String> updateDicTrans(@RequestParam String i18nUrl,@RequestParam String dicName,
+                                               @RequestBody DictionaryVo dictionaryVo,  @RequestParam String lang) {
 
         String s = "";
         if (StringUtils.isBlank(i18nUrl)) {
             i18nUrl = I18URL;
         }
-        if (StringUtils.isBlank(entry)) {
+        String entry = dictionaryVo.getSource();
+        String translation = dictionaryVo.getTranslation().get(lang);
+        String tag = dictionaryVo.getTag();
+        if (StringUtils.isBlank(dictionaryVo.getSource())) {
             checkResult("入参非法。");
         }
         try {
