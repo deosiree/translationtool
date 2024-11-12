@@ -468,6 +468,7 @@
     :currentProduct="product"
     @createClose="createClose" 
     @removeEntry="removeEntry"
+    @refresh="refreshTable"
     @cancelCreate="cancelCreate"/>
 
     <SecondClassify 
@@ -741,7 +742,6 @@ export default {
                 this.classify1Option.push(item)
             })
             this.limitMap = limitMap
-
         },
         productEdit(newval,oldval){
             this.edit = newval
@@ -800,6 +800,7 @@ export default {
                 }
                 this.tableHeight.y = this.dataHeight - buttonHeight - 110 - 40
             })
+            
         },
         // 设置表格每一行的class
         getRowClassName(record, index){
@@ -1294,6 +1295,9 @@ export default {
             this.createVisible = false
             this.getProductVersion()
         },
+        refreshTable(){
+            this.getEntryByVersion()
+        },
         // 移除已选择词条
         removeEntry(record){
             this.selectEntry = this.selectEntry.filter(item => {
@@ -1326,6 +1330,19 @@ export default {
                 data.productID = this.product.type === 'module' ? this.product.parentId : this.product.key
             }else{
                 data.versionID = this.currentVersion
+            }
+            if(this.search.language === '英文'){
+                data.english = this.search.translate;
+                data.englishTranslateState = this.search.translateState
+            }else if(this.search.language === '俄文'){
+                data.russian = this.search.translate;
+                data.russianTranslateState = this.search.translateState
+            }else if(this.search.language === '西文'){
+                data.spanish = this.search.translate;
+                data.spanishTranslateState = this.search.translateState
+            }else if(this.search.language === '法文'){
+                data.french = this.search.translate;
+                data.frenchTranslateState = this.search.translateState
             }
             let params = {
                 pageIndex: -1,

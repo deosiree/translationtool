@@ -326,6 +326,8 @@ export default {
         tabChange(activeKey){
             if(activeKey === '2'){
                 // this.$refs.productVersionRef.getProductVersion()
+            }else {
+                this.$refs.productEntry.setTableHeight()
             }
         },
         // treeBox展开与关闭
@@ -354,22 +356,17 @@ export default {
     }
 
     .treeBox{
-        display: flex;
         padding: 16px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        align-self: stretch;
         border: 1px solid #DCDCDC;
-        overflow: auto;
         position: relative;
 
         .productTree{
             width: calc(100% - 32px);
-            height: calc(100vh - 150px);
+            height: calc(100% - 70px);
             overflow: auto;
             position: absolute;
             bottom: 16px;
+            // border: 1px solid red;
         }
     }
 
@@ -384,6 +381,8 @@ export default {
         border: 1px solid#DCDCDC;
         border-left: none;
         width: calc(100% - 240px);
+        height: 100%;
+        position: relative;
 
         .entryBox{
             width: 100%;
@@ -394,11 +393,11 @@ export default {
         .floatBtn{
             width: 16px;
             height: 32px;
-            border: 1px solid #DCDCDC;
+            // border: 1px solid #DCDCDC;
             position: absolute;
             left: 0px;
             top: calc(50% - 16px);
-            color: black;
+            color: #d1d1c8;
             // box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.20), -1px 0px 8px 0px rgba(241, 189, 46, 0.20);
 
             .anticon{

@@ -3,7 +3,14 @@
         <a-row type="flex">
             <a-col flex="240px" class="dictionaryBox" ref="treeBox">
                 <div class="dictSearch">
-                    <a-input v-model:value="keyWords" placeholder="关键字搜索" style="width:90%" @pressEnter="getDictionarys">
+                    <a-select
+                    v-model:value="ip"
+                    :options="ips"
+                    @change="ipChange"
+                    style="width:90%"
+                    placeholder="请选择IP"
+                    ></a-select>
+                    <a-input v-model:value="keyWords" placeholder="关键字搜索" style="width:90%;margin-top:5px" @pressEnter="getDictionarys">
                         <template #suffix>
                             <SearchOutlined style="color: #DCDCDC;"/>
                         </template>
@@ -69,91 +76,95 @@
                 </div>
             </a-col>
             <a-col flex="auto" class="taskBox">
-                <SearchBox ref="search">
-                    <template v-slot:form>
-                        <a-form
-                            :model="search"
-                            name="horizontal_login"
-                            layout="inline"
-                            autocomplete="off"
-                            :label-col="labelCol"
-                        >
-                            <a-form-item
-                            label="词条"
-                            name="entry"
+                <div class="dicBox">
+                    <SearchBox ref="search">
+                        <template v-slot:form>
+                            <a-form
+                                :model="search"
+                                name="horizontal_login"
+                                layout="inline"
+                                autocomplete="off"
+                                :label-col="labelCol"
                             >
-                                <a-input v-model:value="search.entry" placeholder="请输入内容"></a-input>
-                            </a-form-item>
-                            <a-form-item
-                            label="Tag"
-                            name="tag"
-                            >
-                                <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
-                            </a-form-item>
-                            <a-form-item
-                            label="来源"
-                            name="common"
-                            >
-                                <a-input v-model:value="search.common" placeholder="请输入内容"></a-input>
-                            </a-form-item>
-                        </a-form>
-                    </template>
-                    <template v-slot:operate>
-                        <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-                        <a-button type="primary" size="middle" @click="queryDictronary">查询</a-button>
-                    </template>
-                </SearchBox>
-                <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
-                    <template v-slot:operate>
-                        <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-                            <a-button type="primary" size="small" danger @click="deleteDictData">
-                                <template #icon>
-                                    <DeleteOutlined />
-                                </template>
-                                删除
-                            </a-button>
-                            <a-button type="primary" size="small" class="yellowBtn" @click="editData">
-                                <template #icon>
-                                    <EditOutlined />
-                                </template>
-                                编辑
-                            </a-button>
-                            <a-button type="primary" size="small" @click="addDictTerm">
-                                <template #icon>
-                                    <PlusOutlined />
-                                </template>
-                                新增
-                            </a-button>
-                        </div>
-                    </template>
-                    <template v-slot:data>
-                        <div style="width:100%;position: absolute;">
-                            <a-table 
-                            class="ant-table-striped"
-                            :columns="columns" 
-                            :data-source="dataSource"
-                            :pagination="pagination"
-                            :scroll="tableHeight"
-                            :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
-                            :row-key="record => record.id"
-                            :loading="loading"
-                            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
-                            ref="dictionaryTable"
-                            bordered>
-                                <template #bodyCell="{ column, text }">
-                                    <template v-if="column.dataIndex === 'translation'">
-                                        <pre>{{ text }}</pre>
+                                <a-form-item
+                                label="词条"
+                                name="entry"
+                                >
+                                    <a-input v-model:value="search.entry" placeholder="请输入内容"></a-input>
+                                </a-form-item>
+                                <a-form-item
+                                label="Tag"
+                                name="tag"
+                                >
+                                    <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
+                                </a-form-item>
+                                <a-form-item
+                                label="来源"
+                                name="common"
+                                >
+                                    <a-input v-model:value="search.common" placeholder="请输入内容"></a-input>
+                                </a-form-item>
+                            </a-form>
+                        </template>
+                        <template v-slot:operate>
+                            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+                            <a-button type="primary" size="middle" @click="queryDictronary">查询</a-button>
+                        </template>
+                    </SearchBox>
+                    <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
+                        <template v-slot:operate>
+                            <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
+                                <a-button type="primary" size="small" danger @click="deleteDictData">
+                                    <template #icon>
+                                        <DeleteOutlined />
                                     </template>
-                                </template>
-                            </a-table>
-                        </div>
-                    </template>
-                </DataBox>
+                                    删除
+                                </a-button>
+                                <a-button type="primary" size="small" class="yellowBtn" @click="editData">
+                                    <template #icon>
+                                        <EditOutlined />
+                                    </template>
+                                    编辑
+                                </a-button>
+                                <a-button type="primary" size="small" @click="addDictTerm">
+                                    <template #icon>
+                                        <PlusOutlined />
+                                    </template>
+                                    新增
+                                </a-button>
+                            </div>
+                        </template>
+                        <template v-slot:data>
+                            <div style="width:100%;position: absolute;">
+                                <a-table 
+                                class="ant-table-striped"
+                                :columns="columns" 
+                                :data-source="dataSource"
+                                :pagination="pagination"
+                                :scroll="tableHeight"
+                                :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+                                :row-key="record => record.id"
+                                :loading="loading"
+                                :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+                                ref="dictionaryTable"
+                                bordered>
+                                    <template #bodyCell="{ column, text }">
+                                        <template v-if="column.dataIndex === 'translation'">
+                                            <pre>{{ text }}</pre>
+                                        </template>
+                                    </template>
+                                </a-table>
+                            </div>
+                        </template>
+                    </DataBox>
+                </div>
+                
             </a-col>
         </a-row>
     </div>
     <Dict 
     :visible="dictVisible" 
+    :currentIP="ip"
     @modalClose="dictClose"
     />
     <DictTerm
@@ -162,6 +173,7 @@
     :currentDict="currentDict"
     :modalTitle="dictTitle"
     :currentData="currentData"
+    :currentIP="ip"
     @modalClose="dictTermClose"
     />
 </template>
@@ -189,7 +201,8 @@ import {
     valDictionary
 } from "@/http/api/i18Server"
 import {
-    getDictory
+    getDictory,
+    getI18nAdress
 } from '@/http/api/workbench'
 import { v4 as uuidv4 } from 'uuid';
 export default {
@@ -258,7 +271,9 @@ export default {
                 {label:'配置文件',value:'config'},
                 {label:'i18n_tr',value:'tr'},
                 {label:'其他',value:'other'}
-            ]
+            ],
+            ip: null,
+            ips: [],
         }
     },
     
@@ -281,7 +296,8 @@ export default {
     methods: {
         init(){
             this.setTableHeight()
-            this.getDictionarys()
+            // this.getDictionarys()
+            this.getI118IPs()
         },
         clickInput(event){
             event.stopPropagation();
@@ -326,7 +342,10 @@ export default {
         },
         // 获取辞典列表
         getDictionarys(){
-            getDictionary().then((res) => {
+            let params = {
+                i18nUrl: this.ip
+            }
+            getDictionary(params).then((res) => {
                 this.dicts = []
                 if(res.data.list === null){
                     return
@@ -429,6 +448,7 @@ export default {
             this.selectedRows = []
             this.loading = true
             this.search.fileName = this.selectedTreeKeys[0]
+            this.search.i18nUrl = this.ip
             getDictory(this.search).then((res) => {
                 this.dataSource = res.data.list
                 this.dataSource.forEach(item => {
@@ -461,7 +481,8 @@ export default {
         // 删除辞典
         removeDic(dicName){
             let param = {
-                dicName: dicName
+                dicName: dicName,
+                i18nUrl: this.ip
             }
             removeDic(param).then((res) => {
                 message.success("删除成功！")
@@ -473,7 +494,8 @@ export default {
         // 清空辞典
         clearDic(dicName){
             let params = {
-                dicName : dicName
+                dicName : dicName,
+                i18nUrl: this.ip
             }
             clearDic(params).then((res) => {
                 message.success("清空成功！")
@@ -516,7 +538,8 @@ export default {
                 cancelText: '取消',
                 onOk() {
                     let param = {
-                        dicName: dict
+                        dicName: dict,
+                        i18nUrl: _this.ip
                     }
                     removeDicTerms(param,data).then((res) => {
                         message.info("删除成功！")
@@ -567,6 +590,26 @@ export default {
             this.dictTitle = '编辑辞典内容'
             this.$refs.dictTermRef.init()
         },
+        // IP切换事件
+        ipChange(value){
+            this.getDictionarys()
+        },
+        getI118IPs(){
+            this.ips = []
+            getI18nAdress().then((res) => {
+                res.data.list.forEach(item => {
+                    let ip = {
+                        label: item.ip,
+                        value: item.ip
+                    }
+                    if(item.state === '1'){
+                        this.ip = item.ip
+                    }
+                    this.ips.push(ip)
+                })
+                this.getDictionarys()
+            })
+        }
     }
 }
 </script>
@@ -593,7 +636,7 @@ export default {
 
         .dictionary{
             width: calc(100% - 32px);
-            height: calc(100vh - 200px);
+            height: calc(100% - 110px);
             overflow: auto;
             position: absolute;
             bottom: 16px;
@@ -601,22 +644,28 @@ export default {
 
         .dictSearch{
             width: 100%;
-            display:flex;
-            align-items:center;
-            justify-content:center;
+            // display:flex;
+            // align-items:center;
+            // justify-content:center;
         }
     }
 
     .taskBox{
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+        // display: flex;
+        // flex-direction: column;
+        // align-items: flex-start;
         // gap: 16px;
-        flex: 1 0 0;
-        align-self: stretch;
-        // border: 1px solid#DCDCDC;
-        border-left: none;
-        width: calc(100% - 240px);
+        // flex: 1 0 0;
+        // align-self: stretch;
+        // border-left: none;
+        position: relative;
+
+        .dicBox{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+        }
+
     }
 }
 .treeIcon{

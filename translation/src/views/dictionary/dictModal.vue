@@ -54,7 +54,8 @@ export default {
             type:String,
             default:"新增辞典"
         },
-        currentDict:{}
+        currentDict:{},
+        currentIP:null
     },
     data() {
         return{
@@ -93,7 +94,8 @@ export default {
             this.$refs.dictRef.validate().then(() => {
 
                 let params = {
-                    dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name
+                    dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name,
+                    i18nUrl: this.currentIP
                 }
                 createDic(params).then((res) => {
                     message.success("创建成功！")

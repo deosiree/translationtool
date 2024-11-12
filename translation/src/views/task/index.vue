@@ -191,7 +191,7 @@
                                                 @click="clickInput"
                                                 @change="changeProduct(record)"
                                             >
-                                                <template #title="{ title }">
+                                                <!-- <template #title="{ title }">
                                                     <template
                                                         v-for="(fragment, i) in title
                                                             .toString()
@@ -206,7 +206,7 @@
                                                         </span>
                                                         <template v-else>{{ fragment }}</template>
                                                         </template>
-                                                </template>
+                                                </template> -->
                                             </a-tree-select>
                                             <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)"/>
                                         </a-form-item>

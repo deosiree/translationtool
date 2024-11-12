@@ -69,7 +69,8 @@ export default {
             type:String
         },
         currentDict:{},
-        currentData:{}
+        currentData:{},
+        currentIP:null
     },
     data() {
         return{
@@ -137,16 +138,29 @@ export default {
         handleOK(){
             this.$refs.dictTermRef.validate().then(() => {
                 this.dictTerm.dicName = this.dict
-
+                this.dictTerm.i18nUrl = this.currentIP
+                let params = {
+                    dicName: this.dictTerm.dicName,
+                    lang: this.dictTerm.lang,
+                    i18nUrl: this.dictTerm.i18nUrl
+                }
+                let map = {}
+                map[this.dictTerm.lang] = this.dictTerm.translation
+                
+                let data = {
+                    translation: map,
+                    source: this.dictTerm.entry,
+                    tag : this.dictTerm.tag
+                }
                 if(this.modalTitle.includes("新增")){
-                    addDicTerm(this.dictTerm).then((res) => {
+                    addDicTerm(params,data).then((res) => {
                         message.success("新增成功！")
                         this.$emit("modalClose",true)
                     }).catch((err) => {
                         message.error("新增失败！")
                     })
                 }else if(this.modalTitle.includes("编辑")){
-                    updateDicTrans(this.dictTerm).then((res) => {
+                    updateDicTrans(params,data).then((res) => {
                         message.success("编辑成功！")
                         this.$emit("modalClose",true)
                     }).catch((err) => {

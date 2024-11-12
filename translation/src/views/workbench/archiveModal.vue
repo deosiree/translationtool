@@ -186,15 +186,43 @@
         </div>
         <template v-slot:leftBottomBtn>
             <a-button @click="handleClose">取消</a-button>
-            <a-button type="primary" ghost @click="writeBackFun">归档</a-button>
+            <a-button type="primary" ghost @click="placeOnFile">归档</a-button>
         </template>
+    </CustomModal>
+    <CustomModal
+    :visible="ipSelectModal" 
+    modalTitle="回写服务器"
+    @handleClose="ipSelectClose"
+    @handleOK="ipSelectOK"
+    @afterClose="ipSelectAfterClose"
+    >
+        <div style="width:100%;height:100%">
+            <a-form
+                ref="ipModal"
+                name="custom-validation"
+                :model="ipModal"
+            >
+                <a-form-item
+                label="IP"
+                name="ip"
+                :rules="[{ required: true, message: '请选择IP!' }]"
+                >
+                    <a-select
+                    v-model:value="ipModal.ip"
+                    :options="ipOptions"
+                    placeholder="请选择"
+                    ></a-select>
+                </a-form-item>
+            </a-form>
+        </div>
     </CustomModal>
 </template>
 <script>
 import CustomModal from '@/components/modal/index.vue';
 import { cloneDeep, iteratee } from 'lodash-es';
 import {
-    getEntryInfoList
+    getEntryInfoList,
+    getI18nAdress
 } from '@/http/api/workbench'
 import {
     updateTaskInfo
@@ -288,7 +316,13 @@ export default {
             filteredData:[],
             saveLoading: false,
             selectedRowKeys: [],
-            selectedRows: []
+            selectedRows: [],
+            ipSelectModal: false,
+            ipModal:{
+                ip: null
+            },
+            ipOptions: [],
+            optionFlag: 0,
         }
     },
     
@@ -368,37 +402,40 @@ export default {
                     style: {top:'30%'}
                 });
             }else{
-                Modal.confirm({
-                    title: '是否确定归档并结束任务?',
-                    icon: createVNode(ExclamationCircleOutlined),
-                    okText: '是',
-                    cancelText: '否',
-                    style: {top:'30%'},
-                    onOk: () => {
-                        this.saveLoading = false
-                        this.task.state = '6'
-                        this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
-                        updateTaskInfo(this.task).then((res) => {
-                            message.success("已归档！")
-                            this.$emit('refresh')
-                        })
-                        // 回写数据
-                        let params = {
-                            taskID: this.task.id,
-                            translateType: this.task.translateType,
-                            isTag:0,
-                            isComment:0
-                        }
-                        setInfo(params,[]).then((res) => {
+                this.optionFlag = 1
+                this.ipSelectModal = true
+                this.getIPs()
+                // Modal.confirm({
+                //     title: '是否确定归档并结束任务?',
+                //     icon: createVNode(ExclamationCircleOutlined),
+                //     okText: '是',
+                //     cancelText: '否',
+                //     style: {top:'30%'},
+                //     onOk: () => {
+                //         this.saveLoading = false
+                //         this.task.state = '6'
+                //         this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
+                //         updateTaskInfo(this.task).then((res) => {
+                //             message.success("已归档！")
+                //             this.$emit('refresh')
+                //         })
+                //         // 回写数据
+                //         let params = {
+                //             taskID: this.task.id,
+                //             translateType: this.task.translateType,
+                //             isTag:0,
+                //             isComment:0
+                //         }
+                //         setInfo(params,[]).then((res) => {
 
-                        }).catch((err) => {
+                //         }).catch((err) => {
                             
-                        })
-                    },
-                    onCancel: () => {
-                        this.saveLoading = false
-                    }
-                });
+                //         })
+                //     },
+                //     onCancel: () => {
+                //         this.saveLoading = false
+                //     }
+                // });
             }
         },
         handleClose(){
@@ -575,16 +612,85 @@ export default {
                 taskID: this.task.id,
                 translateType: this.task.translateType,
                 isTag:0,
-                isComment:0
+                isComment:0,
+                i18nUrl: this.ipModal.ip
             }
             setInfo(params,this.selectedRows).then((res) => {
                 message.success("归档成功！")
                 this.selectedRowKeys = []
                 this.selectedRows = []
+                this.ipSelectModal = false
             }).catch((err) => {
                 message.error("归档失败！")
             })
-        }
+        },
+        // 归档、归档并结束任务按钮点击事件
+        placeOnFile(){
+            if(this.selectedRows.length === 0){
+                message.info("请选择词条")
+                return
+            }
+            this.ipSelectModal = true
+            this.optionFlag = 0
+            this.getIPs()
+        },
+        ipSelectAfterClose(){
+            this.ipModal.ip === null
+        },
+        ipSelectOK(){
+            this.$refs.ipModal.validate().then(() => {
+                if(this.optionFlag === 0){
+                    // 归档
+                    this.writeBackFun()
+                }else if(this.optionFlag === 1){
+                    // 归档并结束任务
+                    this.saveLoading = false
+                    this.task.state = '6'
+                    this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
+                    updateTaskInfo(this.task).then((res) => {
+                        message.success("已归档！")
+                        this.$emit('refresh')
+                    })
+                    // 回写数据
+                    let params = {
+                        taskID: this.task.id,
+                        translateType: this.task.translateType,
+                        isTag:0,
+                        isComment:0,
+                        i18nUrl: this.ipModal.ip
+                    }
+                    setInfo(params,[]).then((res) => {
+                        this.ipSelectModal = false
+                    }).catch((err) => {
+                        
+                    })
+                }
+            }).catch(err => {
+
+            })
+            
+        },
+        ipSelectClose(){
+            this.ipSelectModal = false
+            this.saveLoading = false
+            this.ipModal.ip = null
+        },
+        // 获取i18服务器ip
+        getIPs(){
+            this.ipOptions = []
+            getI18nAdress().then((res) => {
+                res.data.list.forEach(item => {
+                    let ip = {
+                        label: item.ip,
+                        value: item.ip
+                    }
+                    if(item.state === '1'){
+                        this.ipModal.ip = item.ip
+                    }
+                    this.ipOptions.push(ip)
+                })
+            })
+        },
     }
 }
 </script>

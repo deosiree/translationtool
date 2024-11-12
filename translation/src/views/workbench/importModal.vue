@@ -1395,7 +1395,7 @@ export default {
         changeTab(activeKey){
             if(activeKey === 'unify'){
                 this.filediFileName = null
-                this.dataTypeChange()
+                // this.dataTypeChange()
                 this.getIPs()
             }else{
                 this.dataType = 'file'
@@ -1403,6 +1403,10 @@ export default {
         },
         // 数据类型选择事件
         dataTypeChange(){
+            if(this.ip === null || this.ip === undefined || this.ip === ''){
+                message.info('请选择IP！')
+                return
+            }
             this.dataSource = []
             this.allData = []
             this.pagination.current = 1
@@ -1445,7 +1449,8 @@ export default {
         // 获取ts文件
         getTsFiles(){
             let params = {
-                language: this.task.translateType
+                language: this.task.translateType,
+                i18nUrl: this.ip
             }
             getFileListByLang(params).then((res) => {
                 this.tsOptions = []
@@ -1461,7 +1466,10 @@ export default {
         // 获取辞典文件
         getDictionary(){
             // 获取已生效的辞典
-            getDictionary().then((res) => {
+            let params = {
+                i18nUrl: this.ip
+            }
+            getDictionary(params).then((res) => {
                 this.dictionaryOptions = []
                 if(res.data.list === null){
                     return
@@ -1475,7 +1483,7 @@ export default {
                 })
             })
             //  获取未生效的辞典
-            getInvalidDictionary().then((res) => {
+            getInvalidDictionary(params).then((res) => {
                 this.notEffectiveDicts = []
                 if(res.data.list === null){
                     return
@@ -1502,7 +1510,10 @@ export default {
         },
         // 获取数据库节点信息
         getAllNode(){
-            getAllNode().then((res) => {
+            let params = {
+                i18nUrl: this.ip
+            }
+            getAllNode(params).then((res) => {
                 this.treeData = []
                 res.data.list.forEach(item => {
                     let node = {
@@ -1527,7 +1538,8 @@ export default {
                 if(type === 'node'){
                     // 获取应用
                     let params = {
-                        nodeName: node.dataRef.value
+                        nodeName: node.dataRef.value,
+                        i18nUrl: this.ip
                     }
                     getAppByNode(params).then((res) => {
                         res.data.list.forEach(item => {
@@ -1555,7 +1567,8 @@ export default {
                         nodeName: node.dataRef.node,
                         appName: node.dataRef.title,
                         // modeType: node.dataRef.appId
-                        modeName: node.dataRef.modeName
+                        modeName: node.dataRef.modeName,
+                        i18nUrl: this.ip
                     }
                     getdbByApp(params).then((res) => {
                         res.data.list.forEach(item => {
@@ -1580,7 +1593,8 @@ export default {
                     let params = {
                         nodeName: node.dataRef.node,
                         appName: node.dataRef.app,
-                        dbName: node.dataRef.title
+                        dbName: node.dataRef.title,
+                        i18nUrl: this.ip
                     }
                     getTableByApp(params).then((res) => {
                         res.data.list.forEach(item => {
@@ -1618,7 +1632,8 @@ export default {
                         dbName: node.db,
                         nodeName: node.node,
                         appName: node.app,
-                        tbName: node.title
+                        tbName: node.title,
+                        i18nUrl: this.ip
                     }
                     this.fieldOptions = []
                     this.dataLibrary.field = []
@@ -1680,7 +1695,8 @@ export default {
                 this.$refs.tsFormRef.validate().then(() => {
                     let params = {
                         taskID: this.task.id,
-                        translateType: this.task.translateType
+                        translateType: this.task.translateType,
+                        i18nUrl: this.ip
                     }
                     getTsWords(params,this.tsFile.tsFileValue).then((res) => {
                         this.dataSource = res.data.list
@@ -1725,6 +1741,7 @@ export default {
                         taskID: this.task.id,
                         versionID: this.task.versionId,
                         transType : this.task.translateType, 
+                        i18nUrl: this.ip
                     }
                     importDictionaryEntry(params,this.dict.dictionaryType).then((res) => {
                         this.dataSource = res.data.list
@@ -1803,6 +1820,10 @@ export default {
                     this.importBtnLoading = false
                 })
             }else if(this.dataType === 'config'){
+                if(this.ip === null || this.ip === undefined || this.ip === ''){
+                    message.info('请选择IP！')
+                    return
+                }
                 // 配置文件数据导入
                 // this.$refs.configFormRef.validate().then(() => {
                 //     let params = {
@@ -1831,6 +1852,7 @@ export default {
                         taskID: this.task.id,
                         versionID: this.task.versionId ? this.task.versionId : "",
                         translateType : this.task.translateType, 
+                        i18nUrl: this.ip
                     }
                     getConfigEntry(params).then((res) => {
                         this.dataSource = res.data.list
@@ -1844,6 +1866,10 @@ export default {
                         message.error("数据获取失败！")
                     })
             }else if(this.dataType === 'enum'){
+                if(this.ip === null || this.ip === undefined || this.ip === ''){
+                    message.info('请选择IP！')
+                    return
+                }
                 // 枚举文件数据导入
                 // this.$refs.configFormRef.validate().then(() => {
                 //     let params = {
@@ -1873,6 +1899,7 @@ export default {
                         taskID: this.task.id,
                         versionID: this.task.versionId ? this.task.versionId : "",
                         translateType : this.task.translateType, 
+                        i18nUrl: this.ip
                     }
                     getEnumEntry(params).then((res) => {
                         this.dataSource = res.data.list
@@ -1909,7 +1936,8 @@ export default {
                 versionID: this.task.versionId ? this.task.versionId : "",
                 translateType: this.task.translateType,
                 // diFileName: this.dataLibrary.diFileName
-                diFileName: ""
+                diFileName: "",
+                i18nUrl: this.ip
             }
             let data = []
             this.dataLibrary.field.forEach(fieldId => {
@@ -1945,7 +1973,8 @@ export default {
                 translateType: this.task.translateType,
                 // diFileName: this.dataLibrary.diFileName,
                 diFileName: "",
-                maxLength: this.dataLibrary.maxLength
+                maxLength: this.dataLibrary.maxLength,
+                i18nUrl: this.ip
             }
             getAlias(params).then((res) => {
                 this.dataSource = res.data.list
@@ -1999,7 +2028,8 @@ export default {
                 versionID: this.task.versionId ? this.task.versionId : "",
                 translateType: this.task.translateType,
                 // diFileName: this.dataLibrary.diFileName
-                diFileName: ""
+                diFileName: "",
+                i18nUrl: this.ip
             }
             if(nodes.length > 0){
                 nodes.forEach(item => {
@@ -2411,16 +2441,21 @@ export default {
         },
         // 获取i18服务器ip
         getIPs(){
-            // this.ips = []
-            // getI18nAdress().then((res) => {
-            //     res.data.list.forEach(item => {
-            //         let ip = {
-            //             label: item.ip,
-            //             value: item.ip
-            //         }
-            //         this.ips.push(ip)
-            //     })
-            // })
+            this.ips = []
+            getI18nAdress().then((res) => {
+                res.data.list.forEach(item => {
+                    let ip = {
+                        label: item.ip,
+                        value: item.ip
+                    }
+                    if(item.state === '1'){
+                        this.ip = item.ip
+                    }
+                    this.ips.push(ip)
+                })
+                
+                this.getDictionary()
+            })
         },
         // ip change事件
         ipChange(value){

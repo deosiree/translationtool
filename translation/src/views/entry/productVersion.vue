@@ -363,6 +363,7 @@ export default {
             this.getProductVersion()
             this.getLanguage()
             this.getTaskList()
+            this.setTableHeight()
         },
         // 获取翻译语言
         getLanguage(){

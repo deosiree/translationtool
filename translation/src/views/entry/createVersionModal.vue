@@ -79,10 +79,11 @@
             </div>
         </div>
         <template v-slot:leftBottomBtn>
-            <a-button @click="cancelCreate">取消选择</a-button>
+            <a-button @click="cancelCreate">关闭</a-button>
             <a-button type="primary" @click="writeBackFun">回写</a-button>
             <a-button type="primary" danger @click="deleteEntrys">删除</a-button>
             <a-button type="primary" @click="exportExcel">导出Excel</a-button>
+            <a-button type="primary" @click="exportXml">导出XML</a-button>
             <a-button type="primary" @click="examine">提交审核/翻译</a-button>
         </template>
     </CustomModal>
@@ -159,6 +160,17 @@
             ref="writeBack"
             :label-col="{ span: 4 }"
             >
+                <a-form-item
+                label="IP"
+                name="ip"
+                :rules="[{ required: true, message: '请选择IP!' }]"
+                >
+                    <a-select
+                    v-model:value="writeBack.ip"
+                    :options="ipOptions"
+                    placeholder="请选择"
+                    ></a-select>
+                </a-form-item>
                 <a-form-item
                 label="回写语言"
                 name="language"
@@ -247,7 +259,8 @@ import {
 import { message, Modal } from 'ant-design-vue';
 import { defineComponent, ref, createVNode } from 'vue';
 import {
-    deleteEntryInfoByID
+    deleteEntryInfoByID,
+    getI18nAdress
 } from '@/http/api/workbench.js'
 import {
     createVersionByEntry,
@@ -278,7 +291,7 @@ export default {
         DeleteOutlined,
         QuestionCircleOutlined
     },
-    emits:['createClose','removeEntry','cancelCreate'],
+    emits:['createClose','removeEntry','cancelCreate','refresh'],
     props: {
         visible:{
             type: Boolean,
@@ -361,8 +374,10 @@ export default {
                 isComment: null,
                 fileOptions:[],
                 commentDisabled: false,
-                tagDisabled: false
-            }
+                tagDisabled: false,
+                ip: null
+            },
+            ipOptions: []
         }
     },
     
@@ -406,9 +421,9 @@ export default {
         },
         cancelCreate(){
             Modal.confirm({
-                title: '是否确认取消选择?',
+                title: '是否确认关闭?',
                 icon: createVNode(ExclamationCircleOutlined),
-                content: '确认取消后，已选择的词条将被清空',
+                content: '确认关闭后，已选择的词条将被清空',
                 okText: '是',
                 cancelText: '否',
                 style:{top:'30%'},
@@ -460,6 +475,7 @@ export default {
             this.operateVisible = true
             this.operateWidth = '500px'
             this.title = "回写"
+            this.getIPs()
         },
         // 获取该产品下的任务
         getTaskList(){
@@ -564,23 +580,28 @@ export default {
                     message.info("请选择"+this.writeBack.label+"!")
                     return
                 }
+                this.$refs.writeBack.validate().then(() => {
+                    let params = {
+                        translateType: this.writeBack.language,
+                        isTag: this.writeBack.isTag ? 1 : 0,
+                        isComment: this.writeBack.isComment ? 1 : 0,
+                        writeType: this.writeBack.type,
+                        fileName: this.writeBack.file,
+                        i18nUrl: this.writeBack.ip
+                    }
+                    // console.log(params)
+                    writeBack(params,this.dataSource).then((res) => {
+                        message.success('回写成功！')
+                        this.operateVisible = false
+                        this.$emit("createClose")
+                        this.$emit("cancelCreate")
+                    }).catch((err) => {
+                        message.error('回写失败！')
+                    })
+                }).catch(err => {
 
-                let params = {
-                    translateType: this.writeBack.language,
-                    isTag: this.writeBack.isTag ? 1 : 0,
-                    isComment: this.writeBack.isComment ? 1 : 0,
-                    writeType: this.writeBack.type,
-                    fileName: this.writeBack.file
-                }
-                // console.log(params)
-                writeBack(params,this.dataSource).then((res) => {
-                    message.success('回写成功！')
-                    this.operateVisible = false
-                    this.$emit("createClose")
-                    this.$emit("cancelCreate")
-                }).catch((err) => {
-                    message.error('回写失败！')
                 })
+                
             }
             
         },
@@ -636,6 +657,7 @@ export default {
                             message.success('已删除！')
                             this.$emit("createClose")
                             this.$emit("cancelCreate")
+                            this.$emit("refresh")
                         })
                     }
                 }
@@ -724,6 +746,52 @@ export default {
             if(this.writeBack.type === 'TS'){
                 this.getTsFile()
             }
+        },
+        // 获取i18服务器ip
+        getIPs(){
+            this.ipOptions = []
+            getI18nAdress().then((res) => {
+                res.data.list.forEach(item => {
+                    let ip = {
+                        label: item.ip,
+                        value: item.ip
+                    }
+                    if(item.state === '1'){
+                        this.writeBack.ip = item.ip
+                    }
+                    this.ipOptions.push(ip)
+                })
+            })
+        },
+        // 导出xml文件，装置的格式
+        exportXml(){
+            // 手动构建 XML 字符串
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
+            this.dataSource.forEach(item => {
+
+                let abbr = item.abbr != null ? item.abbr : ""
+                let cn_desc = item.entry != null ? item.entry : ""
+                let en_desc = item.english != null ? item.english : ""
+                let local_desc = item.entry != null ? item.entry : ""
+                let es_desc = item.spanish != null ? item.spanish : ""
+                let ru_desc = item.russian != null ? item.russian : ""
+
+                xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${en_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
+            });
+            xml += `</DICT>`;
+
+            // 导出 XML 文件
+            const blob = new Blob([xml], { type: "application/xml" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "sysdict.xml";
+
+            link.click();
+            URL.revokeObjectURL(url);
+
+            this.$emit("createClose")
+            this.$emit("cancelCreate")
         }
     }
 }
