@@ -265,16 +265,17 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         // 非综合优先级
         Queue<String> queue = new LinkedList<>();
         for (String key : ConstantInterface.translateMachine().keySet()) {
-            if (!priority.equals(key)) {
+            if (priority.equals(key)) {
                 queue.add(key);
             }
         }
         //术语库只走术语库
         if (priority.equals(ConstantInterface.SYK)) {
             queue.clear();
+            queue.add(priority);
         }
 
-        queue.add(priority);
+
 
 
         TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
