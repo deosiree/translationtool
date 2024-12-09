@@ -241,7 +241,7 @@ import {
 } from '@ant-design/icons-vue';
 import { message ,Modal} from 'ant-design-vue';
 import workbenchCommon from '@/views/workbench/common.js';
-import common from '../entry/common';
+import common from '../entry/common.js';
 import { defineComponent, ref, createVNode } from 'vue';
 export default {
     components:{
@@ -646,7 +646,7 @@ export default {
                     // 归档并结束任务
                     this.saveLoading = false
                     this.task.state = '6'
-                    this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
+                    this.task.endTime = common.getCurrentFormattedTime()
                     updateTaskInfo(this.task).then((res) => {
                         message.success("已归档！")
                         this.$emit('refresh')

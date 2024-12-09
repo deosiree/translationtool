@@ -67,6 +67,7 @@ import {
     setInfoByTask,
     setInfo
 }from '@/http/api/i18Server'
+import commen from '../../views/entry/common.js'
 export default {
     props:{
         showButton:{
@@ -190,7 +191,8 @@ export default {
                 onOk: () => {
                     let index = this.taskList.findIndex(item => item.state === this.task.state)
                     // console.log(index)
-                    let operateTime = new Date().toLocaleString().replaceAll('/','-')
+                    // let operateTime = new Date().toLocaleString().replaceAll('/','-')
+                    let operateTime = commen.getCurrentFormattedTime()
                     if(this.task.state === '1'){
                         this.task.importTime = operateTime
                     }else if(this.task.state === '2'){
@@ -258,7 +260,8 @@ export default {
                 cancelText: '否',
                 onOk: () => {
                     this.task.state = '6'
-                    this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
+                    // this.task.endTime = new Date().toLocaleString().replaceAll('/','-')
+                    this.task.endTime = commen.getCurrentFormattedTime()
                     updateTaskInfo(this.task).then((res) => {
                         message.success("已归档！")
                         this.$emit('refresh')
