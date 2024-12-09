@@ -623,10 +623,10 @@ export default {
             let data = []
             this.dataSource.forEach(item => {
                 let info = {
-                    entryId: item.id,
-                    productId: this.product.key,
-                    taskId: this.selectedTaskRows[0].id,
-                    versionId: this.selectedTaskRows[0].versionId
+                    id: item.id,
+                    productID: this.product.key,
+                    taskID: this.selectedTaskRows[0].id,
+                    versionID: this.selectedTaskRows[0].versionId
                 }
                 data.push(info)
             })
