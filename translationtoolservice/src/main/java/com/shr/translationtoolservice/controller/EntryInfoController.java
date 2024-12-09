@@ -400,7 +400,7 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("关系表新增")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<String> addProductRelation(@RequestBody List<ProductRelationEntity> relationEntity) {
+    public   HttpResponse<String> addProductRelation(@RequestBody List<EntryInfoEntity> relationEntity) {
         String relation = entryInfoService.addProductRelation(relationEntity);
 
         return checkResult(relation);

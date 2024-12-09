@@ -52,6 +52,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     String getTransByID(@Param("id")String id,@Param("transColum") String transColum);
 
     List<EntryInfoEntity> getReTransEntry(@Param("taskId")String taskID);
+
+    int updateEntryState(@Param("id")String id,@Param("entryState")int entryState);
 }
 
 

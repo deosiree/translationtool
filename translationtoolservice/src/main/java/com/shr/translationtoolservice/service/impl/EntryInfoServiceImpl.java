@@ -1147,12 +1147,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public String addProductRelation(List<ProductRelationEntity> relationEntity) {
-        for (ProductRelationEntity relationEntity1 : relationEntity) {
-            relationEntity1.setId(commonUtils.getUUID());
-            productRelationMapper.insert(relationEntity1);
-        }
+    public String addProductRelation(List<EntryInfoEntity> entryInfoEntities) {
+        for (EntryInfoEntity relationEntity : entryInfoEntities) {
+            relationEntity.setEntryState(1);
+            entryInfoMapper.updateEntryState(relationEntity.getId(),relationEntity.getEntryState());
 
+        }
         return ConstantInterface.OK_STR;
     }
 

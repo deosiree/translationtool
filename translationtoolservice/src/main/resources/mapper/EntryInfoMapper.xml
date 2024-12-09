@@ -789,4 +789,8 @@
 
 
     </select>
+    
+    <update id="updateEntryState">
+        update t_entry_info set entry_state = #{entryState,jdbcType=INTEGER} where id = #{id,jdbcType=VARCHAR}
+    </update>
 </mapper>

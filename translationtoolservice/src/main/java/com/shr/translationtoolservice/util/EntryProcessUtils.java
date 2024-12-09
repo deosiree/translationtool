@@ -3,6 +3,7 @@ package com.shr.translationtoolservice.util;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -42,7 +43,11 @@ public class EntryProcessUtils {
                     translate = entryInfoEntity.getFrench();
                     break;
             }
-            EntryInfoEntity mapValueEntry = entryEntityMap.get(entry + ConstantInterface.UNDERLINE + translate);
+            String mapKey = entry + ConstantInterface.UNDERLINE + translate;
+            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource()) &&  entryInfoEntity.getEntrySource().contains(".ts")) {
+                mapKey = mapKey + ConstantInterface.UNDERLINE  + entryInfoEntity.getEntrySource();
+            }
+            EntryInfoEntity mapValueEntry = entryEntityMap.get(mapKey);
             //判断map 是否有这个key
             if (Objects.nonNull(mapValueEntry)) {
                 entryInfoEntity.setParentID(mapValueEntry.getId());
