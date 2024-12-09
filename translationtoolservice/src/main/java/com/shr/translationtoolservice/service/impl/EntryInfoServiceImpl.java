@@ -1150,8 +1150,41 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     public String addProductRelation(List<EntryInfoEntity> entryInfoEntities) {
         for (EntryInfoEntity relationEntity : entryInfoEntities) {
             relationEntity.setEntryState(1);
-            entryInfoMapper.updateEntryState(relationEntity.getId(),relationEntity.getEntryState());
 
+
+            TranslateEntity translateEntity = new TranslateEntity();
+            String transID = commonUtils.getUUID();
+
+            //通过任务拿到语言
+            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(relationEntity.getTaskId());
+            String lang = taskInfoEntity.getTranslateType();
+           switch (lang){
+               case ConstantInterface.ENGLISH:
+                   TranslateEntity translateEntity1 = translateMapper.selectById(relationEntity.getEnTransId());
+                   BeanUtils.copyProperties(translateEntity1,translateEntity);
+                   relationEntity.setEnTransId(transID);
+                   break;
+                case ConstantInterface.RUSSIAN:
+                    BeanUtils.copyProperties(translateMapper.selectById(relationEntity.getRussian()),translateEntity);
+                    relationEntity.setRuTransId(transID);
+                    break;
+                case ConstantInterface.SPANISH:
+                    BeanUtils.copyProperties(translateMapper.selectById(relationEntity.getSpanish()),translateEntity);
+                    relationEntity.setSpaTransId(transID);
+                    break;
+                case ConstantInterface.FRENCH:
+                    BeanUtils.copyProperties(translateMapper.selectById(relationEntity.getFrench()),translateEntity);
+                    relationEntity.setFraTransId(transID);
+                    break;
+           }
+            translateEntity.setTranslateState("1");
+            translateEntity.setId(transID);
+            int insert = translateMapper.insert(translateEntity);
+            if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                return ErrorCodeList.INSERT_ERROR;
+            }
+            relationEntity.setEntryState(1);
+            entryInfoMapper.updateEntryInfo(relationEntity);
         }
         return ConstantInterface.OK_STR;
     }

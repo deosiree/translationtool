@@ -171,7 +171,7 @@ public class EntryInfoEntity implements Serializable {
      */
     @TableField(value = "en_trans_id")
     @DefaultValue("")
-    private String enTransId;
+        private String enTransId;
     @TableField(exist = false)
     @DefaultValue("")
     private String english;
