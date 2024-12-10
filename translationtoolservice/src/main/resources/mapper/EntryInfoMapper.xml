@@ -125,9 +125,6 @@
             and t2.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
         </if>
 
-        <if test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState   != ''">
-            and t3.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
-        </if>
         <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState   != ''">
             and t6.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
         </if>
@@ -138,16 +135,16 @@
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if>
 
-        <if test="entryInfoEntity.english != null ">
+        <if test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
             and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
         </if>
-        <if test="entryInfoEntity.russian != null">
+        <if test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
             and t6.translate  like CONCAT('%',#{entryInfoEntity.russian,jdbcType=VARCHAR},'%')
         </if>
-        <if test="entryInfoEntity.french != null ">
+        <if test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
             and t4.translate  like CONCAT('%',#{entryInfoEntity.french,jdbcType=VARCHAR},'%')
         </if>
-        <if test="entryInfoEntity.spanish != null ">
+        <if test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
             and t5.translate  like CONCAT('%',#{entryInfoEntity.spanish,jdbcType=VARCHAR},'%')
         </if>
 
@@ -699,6 +696,10 @@
         from t_entry_info t1 left join t_product_relation t2 on t1.id = t2.entry_id
         where t1.is_delete =0
          and t1.entry =  #{entryInfoEntity.entry,jdbcType=VARCHAR} and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
+
+        <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource.contains('.ts')">
+            and t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+        </if>
 
     </select>
 

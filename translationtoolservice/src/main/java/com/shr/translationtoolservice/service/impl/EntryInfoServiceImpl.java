@@ -104,11 +104,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         }
         processTranslationState(entryInfoEntity1);
-
-
-
+        List<EntryInfoEntity> res = new ArrayList<>();
         List<EntryInfoEntity> entryByVersion = entryInfoMapper.getEntryByVersion(entryInfoEntity1, offset, pageSize);
+        res.addAll(entryByVersion);
+        for (EntryInfoEntity entryInfoEntity : entryByVersion) {
+            TranslateEntity translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
 
+            if (Objects.nonNull(translateEntity)) {
+                entryInfoEntity.setEnglishTranslateState(translateEntity.getTranslateState());
+            }else {
+                entryInfoEntity.setEnglishTranslateState("0");
+            }
+            if (StringUtils.isNotBlank(entryInfoEntity1.getEnglishTranslateState()) && !entryInfoEntity1.getEnglishTranslateState().equals(entryInfoEntity.getEnglishTranslateState())){
+                res.remove(entryInfoEntity);
+            }
+        }
 
       /*  List<EntryVO> entryVOS = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryByVersion) {
@@ -122,7 +132,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryVO.setEntryInfoEntity(entryInfoEntity);
             entryVOS.add(entryVO);
         }*/
-        return entryByVersion;
+        return res;
     }
 
     private void processTranslationState(EntryInfoEntity entryInfoEntity) {
@@ -1150,8 +1160,20 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     public String addProductRelation(List<EntryInfoEntity> entryInfoEntities) {
         for (EntryInfoEntity relationEntity : entryInfoEntities) {
             relationEntity.setEntryState(1);
-
-
+            //插入关联表
+            ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+            productRelationEntity.setProductId(relationEntity.getProductID());
+            productRelationEntity.setEntryId(relationEntity.getId());
+            productRelationEntity.setVersionId(relationEntity.getVersionID());
+            productRelationEntity.setTaskId(relationEntity.getTaskId());
+            int sum = productRelationMapper.checkExist(productRelationEntity);
+            if (sum < 1) {
+                productRelationEntity.setId(commonUtils.getUUID());
+                int insert= productRelationMapper.insert(productRelationEntity);
+                if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                    return ErrorCodeList.INSERT_ERROR;
+                }
+            }
             TranslateEntity translateEntity = new TranslateEntity();
             String transID = commonUtils.getUUID();
 

@@ -45,4 +45,9 @@
             )
         </foreach>
     </insert>
+  <select id="checkExist"  parameterType = "com.shr.translationtoolservice.entity.ProductRelationEntity" >
+    select count(1) from t_product_relation where product_id = #{productRelationEntity.productId,jdbcType=VARCHAR}
+    and task_id = #{productRelationEntity.taskId,jdbcType=VARCHAR} and version_id = #{productRelationEntity.versionId,jdbcType=VARCHAR}
+    and entry_id = #{productRelationEntity.entryId,jdbcType=VARCHAR}
+  </select>
 </mapper>

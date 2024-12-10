@@ -202,7 +202,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        for (EntryInfoEntity entryInfoEntity : entryInfoList) {
+            for (EntryInfoEntity entryInfoEntity : entryInfoList) {
             //子不翻译
             if (StringUtils.isNotBlank(entryInfoEntity.getParentID())) {
                 continue;
@@ -605,8 +605,13 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         //翻译id 不是空  trans 不是空  update
         //翻译id 是空 trans 不是空 insert
         // 翻译id trans 都是空 跳过
-        if (StringUtils.isNotBlank(transId) && StringUtils.isNotBlank(transState)) {
-            if (StringUtils.isBlank(trans)) {
+        if (StringUtils.isNotBlank(transId) ) {
+            TranslateEntity translateEntity = translateMapper.selectById(transId);
+            if (Objects.isNull(translateEntity)) {
+                log.error("transId is null , transId : " + transId + " , entry : " + entryInfoEntity.getEntry());
+                return "";
+            }
+            if (StringUtils.isBlank(trans) ) {
                 int delete = translateMapper.deleteById(transId);
                 log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
                 return newTransID;
@@ -615,7 +620,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 if (3 == Integer.parseInt(transState)) {
                     newTransID = updateAuditTrans(entryInfoEntity, transId, type, newTransID, trans, auditSuggest, department);
                 } else {
-                    newTransID = updateTransEntity(transState, transId, auditSuggest, trans);
+                    newTransID = updateTransEntity(transState, transId, auditSuggest, trans,department);
                 }
 
             }
@@ -674,11 +679,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return newTransID;
     }
 
-    private String updateTransEntity(String transState, String transId, String auditSuggest, String trans) {
+    private String updateTransEntity(String transState, String transId, String auditSuggest, String trans,String department) {
         TranslateEntity translateEntity = new TranslateEntity();
         translateEntity.setTranslate(trans);
         translateEntity.setTranslateState(transState);
         translateEntity.setId(transId);
+        translateEntity.setVisualRange(department);
         translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
         translateEntity.setAuditSuggest(auditSuggest);
         int update = translateMapper.updateById(translateEntity);
@@ -693,10 +699,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         queryWrapper.eq("type", type);
         queryWrapper.eq("translate", trans);
         queryWrapper.eq("delete_state", 0);
+        queryWrapper.eq("visual_range", department);
         queryWrapper.eq("translate_state", 3);
+        queryWrapper.notIn("id",transId);
         // queryWrapper.eq("audit_suggest", auditSuggest);
         List<TranslateEntity> translateEntityList = translateMapper.selectList(queryWrapper);
-        if (translateEntityList.size() > 1) {
+        if (translateEntityList.size() > 0) {
             log.error(" ===== 词条更新翻译查重多于1条，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
             //更新使用时间
              TranslateEntity translateEntity = translateEntityList.get(0);
@@ -704,15 +712,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
              newTransID = translateEntity.getId();
             translateMapper.updateById(translateEntity);
             int delete = translateMapper.deleteById(transId);
+
             log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
-        } else if (translateEntityList.size() == 1) {
-            TranslateEntity translateEntity = translateEntityList.get(0);
-            translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
-            newTransID = translateEntity.getId();
-            translateMapper.updateById(translateEntity);
-            int delete = translateMapper.deleteById(transId);
-            log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
-        } else if (translateEntityList.size() < 1) {
+        }  else if (translateEntityList.size() < 1) {
 
             TranslateEntity translateEntity = new TranslateEntity();
             translateEntity.setId(transId);
@@ -731,29 +733,6 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         }
         return newTransID;
     }
-
-  /*  @Override
-    public ImportResultEntryVO checkExistEntry(List<EntryTempEntity> entryTempEntities) {
-        ImportResultEntryVO importResultEntryVO = new ImportResultEntryVO();
-        List<EntryTempEntity> existTempEntryList = new ArrayList<>();
-        List<EntryTempEntity> importTempEntryList = new ArrayList<>();
-        for (EntryTempEntity entryTempEntity : entryTempEntities){
-            if (StringUtils.isNotBlank(entryTempEntity.getAbbr())){
-                ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(entryTempEntity.getProductID());
-                List<EntryInfoEntity> entryInfoEntities  = productTableMapper.getEntryInfoByAbbr(productTableEntity.getProductTableName(),entryTempEntity);
-
-                //存在重复的abbr
-                if (CollectionUtils.isEmpty(entryInfoEntities)){
-                    existTempEntryList.add(entryTempEntity);
-                }else {
-                    importTempEntryList.add(entryTempEntity);
-                }
-            }
-        }
-        importResultEntryVO.setImportEntryList(importTempEntryList);
-        importResultEntryVO.setExistEntryList(existTempEntryList);
-        return importResultEntryVO;
-    }*/
 
 
 }

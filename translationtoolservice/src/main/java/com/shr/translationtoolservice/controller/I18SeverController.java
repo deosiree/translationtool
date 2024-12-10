@@ -1668,6 +1668,8 @@ public class I18SeverController extends BaseController {
             }
             // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
             List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+
+
             if (CollectionUtils.isEmpty(entryEntities)) {
                 //创建新翻译
                 entryInfoEntity.setIsExist(0);
