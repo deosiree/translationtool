@@ -529,28 +529,72 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
 
     //写入翻译
-    private void updateEntryInfoTranslate(String translateType, EntryInfoEntity entryInfoEntity, String department) {
+    private String updateEntryInfoTranslate(String translateType, EntryInfoEntity entryInfoEntity, String department) {
         String transId = "";
+        String finalTransId ;
         //如果有翻译 就更新翻译
         switch (translateType) {
             case ConstantInterface.ENGLISH:
                 transId = updateTrans(entryInfoEntity.getEnglishAuditSuggest(), entryInfoEntity.getEnglish(), entryInfoEntity.getEnTransId(), ConstantInterface.ENGLISH, entryInfoEntity.getEnglishTranslateState(), entryInfoEntity, department);
+                if (StringUtils.isBlank(transId)){
+                    return "";
+                }
                 entryInfoEntity.setEnTransId(transId);
-                writeI18Entry(entryInfoEntity, entryInfoEntity.getEnglish());
+
+
+                finalTransId = transId;
+                if (CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                    break;
+                }
+                entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
+                    entryInfoEntity1.setEnTransId(finalTransId);
+                });
+               // writeI18Entry(entryInfoEntity, entryInfoEntity.getEnglish());
                 break;
             case ConstantInterface.RUSSIAN:
                 transId = updateTrans(entryInfoEntity.getRussianAuditSuggest(), entryInfoEntity.getRussian(), entryInfoEntity.getRuTransId(), ConstantInterface.RUSSIAN, entryInfoEntity.getRussianTranslateState(), entryInfoEntity, department);
+                if (StringUtils.isBlank(transId)){
+                    return "";
+                }
                 entryInfoEntity.setRuTransId(transId);
+                finalTransId = transId;
+                if (CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                    break;
+                }
+                entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
+                    entryInfoEntity1.setEnTransId(finalTransId);
+                });
                 break;
             case ConstantInterface.FRENCH:
                 transId = updateTrans(entryInfoEntity.getFrenchAuditSuggest(), entryInfoEntity.getFrench(), entryInfoEntity.getFraTransId(), ConstantInterface.FRENCH, entryInfoEntity.getFrenchTranslateState(), entryInfoEntity, department);
+                if (StringUtils.isBlank(transId)){
+                    return "";
+                }
                 entryInfoEntity.setFraTransId(transId);
+                finalTransId = transId;
+                if (CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                    break;
+                }
+                entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
+                    entryInfoEntity1.setEnTransId(finalTransId);
+                });
                 break;
             case ConstantInterface.SPANISH:
                 transId = updateTrans(entryInfoEntity.getSpanishAuditSuggest(), entryInfoEntity.getSpanish(), entryInfoEntity.getSpaTransId(), ConstantInterface.SPANISH, entryInfoEntity.getSpanishTranslateState(), entryInfoEntity, department);
+                if (StringUtils.isBlank(transId)){
+                    return "";
+                }
                 entryInfoEntity.setSpaTransId(transId);
+                finalTransId = transId;
+                if (CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                    break;
+                }
+                entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
+                    entryInfoEntity1.setEnTransId(finalTransId);
+                });
                 break;
         }
+        return transId;
     }
 
     private void writeI18Entry(EntryInfoEntity entryInfoEntity, String translate) {
@@ -619,8 +663,10 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 //如果是翻译审核 校验重复翻译 ID挂载重复的
                 if (3 == Integer.parseInt(transState)) {
                     newTransID = updateAuditTrans(entryInfoEntity, transId, type, newTransID, trans, auditSuggest, department);
+                    return newTransID;
                 } else {
                     newTransID = updateTransEntity(transState, transId, auditSuggest, trans,department);
+                    return newTransID;
                 }
 
             }

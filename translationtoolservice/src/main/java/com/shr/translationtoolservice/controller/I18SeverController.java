@@ -1667,7 +1667,7 @@ public class I18SeverController extends BaseController {
                 caseExistEntry(entryInfoEntity.getChildren(), taskID);
             }
             // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-            List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+                List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
 
 
             if (CollectionUtils.isEmpty(entryEntities)) {

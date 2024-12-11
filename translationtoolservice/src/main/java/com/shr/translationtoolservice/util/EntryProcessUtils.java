@@ -44,9 +44,7 @@ public class EntryProcessUtils {
                     break;
             }
             String mapKey = entry + ConstantInterface.UNDERLINE + translate;
-            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource()) &&  entryInfoEntity.getEntrySource().contains(".ts")) {
-                mapKey = mapKey + ConstantInterface.UNDERLINE  + entryInfoEntity.getEntrySource();
-            }
+
             EntryInfoEntity mapValueEntry = entryEntityMap.get(mapKey);
             //判断map 是否有这个key
             if (Objects.nonNull(mapValueEntry)) {

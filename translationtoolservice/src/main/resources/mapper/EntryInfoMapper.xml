@@ -697,9 +697,11 @@
         where t1.is_delete =0
          and t1.entry =  #{entryInfoEntity.entry,jdbcType=VARCHAR} and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
 
-        <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource.contains('.ts')">
+        <if test="entryInfoEntity.importType == 'DB' or entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'TS' or entryInfoEntity.importType == 'ENUM'">
             and t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
         </if>
+
+
 
     </select>
 
