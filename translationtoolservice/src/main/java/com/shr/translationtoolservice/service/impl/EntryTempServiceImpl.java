@@ -656,8 +656,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 return "";
             }
             if (StringUtils.isBlank(trans) ) {
-                int delete = translateMapper.deleteById(transId);
-                log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
+               // int delete = translateMapper.deleteById(transId);
+                entryInfoEntity.setEnTransId("");
+             //  log.info("删除 （" + delete + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + ") ");
                 return newTransID;
             } else {
                 //如果是翻译审核 校验重复翻译 ID挂载重复的
