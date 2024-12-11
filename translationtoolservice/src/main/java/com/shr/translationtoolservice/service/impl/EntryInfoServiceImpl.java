@@ -1017,13 +1017,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     entryInfoEntity1.setEntryVersion(1);
                     entryInfoEntity1.setProductID(taskInfoEntity.getProductId());
                     if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())) {
+                        entryInfoEntity1.setEnglish(entryInfoEntity.getEnglish());
                         entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
                     } else if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())) {
                         entryInfoEntity1.setRuTransId(entryInfoEntity.getRuTransId());
+                        entryInfoEntity1.setRussian(entryInfoEntity.getRussian());
                     } else if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())) {
                         entryInfoEntity1.setFraTransId(entryInfoEntity.getFraTransId());
+                        entryInfoEntity1.setFrench(entryInfoEntity.getFrench());
                     } else if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())) {
                         entryInfoEntity1.setSpaTransId(entryInfoEntity.getSpaTransId());
+                        entryInfoEntity1.setSpanish(entryInfoEntity.getSpanish());
                     }
 
 

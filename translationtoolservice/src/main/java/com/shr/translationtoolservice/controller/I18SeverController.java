@@ -1717,7 +1717,9 @@ public class I18SeverController extends BaseController {
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
-                entryInfoEntity.setDiFileName("config/" + fieldInfo.getDb_name());
+                String[] split = fieldInfo.getDb_name().split("/");
+                entryInfoEntity.setDiFileName("config/" + split[split.length - 1]);
+                //entryInfoEntity.setDiFileName("config/" + fieldInfo.getDb_name().split("\\.")[0]);
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
                 entryInfoEntity.setTag(fieldInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);

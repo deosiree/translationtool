@@ -2,8 +2,10 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.DiUtils;
@@ -38,6 +40,8 @@ public class I18nServiceImpl implements I18nService {
 
     @Value("${I18server.url}")
     private String I18URL;
+    @Autowired
+    private TranslateMapper translateMapper;
 
     @Override
     public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean common,String i18nUrl) {
@@ -192,24 +196,26 @@ public class I18nServiceImpl implements I18nService {
     private String getTransByType(EntryInfoEntity entryInfoEntity, String translateType) {
         String transState = "";
         String trans = "";
+        TranslateEntity translateEntity = new TranslateEntity();
         switch (translateType) {
             case ConstantInterface.ENGLISH:
-                transState = entryInfoEntity.getEnglishTranslateState();
-                trans = entryInfoEntity.getEnglish();
+                 translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
                 break;
             case ConstantInterface.RUSSIAN:
-                transState = entryInfoEntity.getRussianTranslateState();
-                trans = entryInfoEntity.getRussian();
+                translateEntity = translateMapper.selectById(entryInfoEntity.getRuTransId());
                 break;
             case ConstantInterface.SPANISH:
-                transState = entryInfoEntity.getSpanishTranslateState();
-                trans = entryInfoEntity.getSpanish();
+                translateEntity = translateMapper.selectById(entryInfoEntity.getSpaTransId());
                 break;
             case ConstantInterface.FRENCH:
-                transState = entryInfoEntity.getFrenchTranslateState();
-                trans = entryInfoEntity.getFrench();
+                translateEntity = translateMapper.selectById(entryInfoEntity.getFraTransId());
                 break;
         }
+        if (translateEntity == null) {
+            return "";
+        }
+        transState = translateEntity.getTranslateState();
+        trans = translateEntity.getTranslate();
         if (!"3".equals(transState)) {
             return "";
         }

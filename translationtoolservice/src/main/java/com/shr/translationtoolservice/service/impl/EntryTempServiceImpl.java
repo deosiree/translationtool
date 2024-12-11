@@ -441,7 +441,13 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         //没给翻译状态直接查词条状态
         List<EntryInfoEntity> entryInfoEntities = getEntryInfo(taskID, entryState, transStates, entry);
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
-        List<EntryInfoEntity> entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+        List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
+        if (Integer.parseInt(entryState) > 1){
+            entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+        }else {
+            entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+
+        }
 
 
         return entryInfoEntityList;
@@ -752,7 +758,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         // queryWrapper.eq("audit_suggest", auditSuggest);
         List<TranslateEntity> translateEntityList = translateMapper.selectList(queryWrapper);
         if (translateEntityList.size() > 0) {
-            log.error(" ===== 词条更新翻译查重多于1条，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
+            log.error(" ===== 词条更新翻译查重多于1条，size: " + translateEntityList.size() +" ，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
             //更新使用时间
              TranslateEntity translateEntity = translateEntityList.get(0);
              translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
