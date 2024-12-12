@@ -444,6 +444,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
         if (Integer.parseInt(entryState) > 1){
             entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+            //entryInfoEntityList 的元素中没有翻译的排序在前面
+            sortEmptyTrans(entryInfoEntityList,taskEntityByTaskID.getTranslateType());
+
         }else {
             entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
 
@@ -451,6 +454,23 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
 
         return entryInfoEntityList;
+    }
+
+    private void sortEmptyTrans(List<EntryInfoEntity> entryInfoEntityList, String translateType) {
+        switch (translateType){
+            case ConstantInterface.ENGLISH:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getEnglish, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+            case ConstantInterface.RUSSIAN:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getRussian, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+            case ConstantInterface.FRENCH:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getFrench, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+            case ConstantInterface.SPANISH:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getSpanish, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+        }
     }
 
     //没给翻译状态直接查词条状态
