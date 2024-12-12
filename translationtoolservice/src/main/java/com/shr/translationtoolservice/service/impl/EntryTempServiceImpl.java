@@ -444,13 +444,13 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
         if (Integer.parseInt(entryState) > 1){
             entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
-            //entryInfoEntityList 的元素中没有翻译的排序在前面
-            sortEmptyTrans(entryInfoEntityList,taskEntityByTaskID.getTranslateType());
 
         }else {
             entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
 
         }
+        //entryInfoEntityList 的元素中没有翻译的排序在前面
+        sortEmptyTrans(entryInfoEntityList,taskEntityByTaskID.getTranslateType());
 
 
         return entryInfoEntityList;
