@@ -134,6 +134,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
 
     @Override
     public String deleteProduct(List<String> idList) {
+
+
+
         int update = productMapper.deleteList(idList);
         if (update != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;

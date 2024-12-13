@@ -78,5 +78,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
 
-    List<EntryInfoEntity>  workImportExcleTrans(MultipartFile multipartFile,  String taskID);
+    List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 }

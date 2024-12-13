@@ -33,6 +33,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
     List<TranslateEntity> getVersionSuggestTrans(@Param("entry") String entry,@Param("translateType") String translateType,@Param("visualRange")  String visualRange);
 
     TranslateEntity getRepTrans(@Param("entry")String entry,@Param("translateType") String translateType,@Param("translate") String translate,@Param("visualRange")  String visualRange);
+
+
 }
 
 

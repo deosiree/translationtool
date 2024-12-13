@@ -1513,11 +1513,60 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Override
     public List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile, String taskID) {
-        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+        try {
+            entryInfoEntities = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            sortEmptyTrans(entryInfoEntities,taskInfoEntity.getTranslateType());
+
+       /* TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+        Iterator<EntryInfoEntity> iterator = entryInfoEntities.iterator();
+        while (iterator.hasNext()) {
+            EntryInfoEntity entryEntity = iterator.next();
+            for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+                if (entryEntity.getId().equals(entryInfoEntity.getId())) {
+                    switch (taskInfoEntity.getTranslateType()) {
+                        case ConstantInterface.ENGLISH:
+                            if (StringUtils.isNotBlank(entryEntity.getEnglish())) {
+                                entryInfoEntity.setEnglish(entryEntity.getEnglish());
+                            }
+                            break;
+                        case ConstantInterface.SPANISH:
+                            if (StringUtils.isNotBlank(entryEntity.getSpanish())) {
+                                entryInfoEntity.setSpanish(entryEntity.getSpanish());
+                            }
+                            break;
+                        case ConstantInterface.RUSSIAN:
+                            if (StringUtils.isNotBlank(entryEntity.getRussian())) {
+                                entryInfoEntity.setRussian(entryEntity.getRussian());
+                            }
+                            break;
+                        case ConstantInterface.FRENCH:
+                            if (StringUtils.isNotBlank(entryEntity.getFrench())) {
+                                entryInfoEntity.setFrench(entryEntity.getFrench());
+                            }
+                            break;
+                    }
+                    break;
+                }
+            }
+        }*/
+        } catch (Exception e) {
+            log.error("导入异常 ！");
+            throw new RuntimeException(e);
+        }
+        return entryInfoEntities;
+
+
+
+       /*
         List<EntryInfoEntity> reTransEntries = entryInfoMapper.getReTransEntry(taskID);
         //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
         try {
             entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+
+
+
             if (CollectionUtils.isEmpty(entryEntitys)) {
                 return null;
             }
@@ -1571,10 +1620,25 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return entryEntitys;
+        return entryEntitys;*/
 
     }
-
+    private void sortEmptyTrans(List<EntryInfoEntity> entryInfoEntityList, String translateType) {
+        switch (translateType){
+            case ConstantInterface.ENGLISH:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getEnglish, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+            case ConstantInterface.RUSSIAN:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getRussian, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+            case ConstantInterface.FRENCH:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getFrench, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+            case ConstantInterface.SPANISH:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getSpanish, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
+        }
+    }
 
     private String getTransByType(EntryInfoEntity entryInfoEntity, String translateType) {
         String transState = "";

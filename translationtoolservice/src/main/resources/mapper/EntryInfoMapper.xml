@@ -796,4 +796,13 @@
     <update id="updateEntryState">
         update t_entry_info set entry_state = #{entryState,jdbcType=INTEGER} where id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <select id="getbppEntrys" resultMap="BaseResultMap" >
+        select <include refid="Base_Column_List"/> from t_entry_info where id in (select a1.id from (select t1.id, t4.task_id ,t1.entry as entry,t1.en_trans_id,t1.`update`,t3.visual_range,t2.department
+                                                                   from t_entry_info    t1,t_user t2 , t_translate t3  ,t_product_relation t4
+                                                                   where t1.`update` = t2.user_name  and t4.entry_id = t1.id
+                                                                     and t1.en_trans_id = t3.id
+                                                                     and t2.department != t3.visual_range ) a1)
+
+    </select>
 </mapper>

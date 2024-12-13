@@ -442,9 +442,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         List<EntryInfoEntity> entryInfoEntities = getEntryInfo(taskID, entryState, transStates, entry);
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
-        if (Integer.parseInt(entryState) > 1){
+        if ( StringUtils.isBlank(entryState) || Integer.parseInt(entryState) > 1 ) {
             entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
-
         }else {
             entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
 
@@ -527,20 +526,17 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
             updateEntryInfoTranslate(translateType, entryInfoEntity, department);
+
+            QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper();
+            queryWrapper.eq("parent_id", entryInfoEntity.getId());
+            queryWrapper.eq("is_delete", 0);
+            List<EntryInfoEntity> childList = entryInfoMapper.selectList(queryWrapper);
+
+
             if (!CollectionUtils.isEmpty(childrenInfoEntry)) {
-                for (EntryInfoEntity entryInfoEntity1 : childrenInfoEntry) {
-                    entryInfoEntity1.setEntryState(entryInfoEntity.getEntryState());
-                    if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())) {
-                        entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
-                    } else if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())) {
-                        entryInfoEntity1.setRuTransId(entryInfoEntity.getRuTransId());
-                    } else if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())) {
-                        entryInfoEntity1.setFraTransId(entryInfoEntity.getFraTransId());
-                    } else if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())) {
-                        entryInfoEntity1.setSpaTransId(entryInfoEntity.getSpaTransId());
-                    }
-                    update += entryInfoMapper.updateById(entryInfoEntity1);
-                }
+                update += syncChildrenTrans(entryInfoEntity, childrenInfoEntry);
+            }else if (!CollectionUtils.isEmpty(childList)){
+                update += syncChildrenTrans(entryInfoEntity, childList);
             }
 
 
@@ -551,6 +547,24 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             return ErrorCodeList.OPERATE_ERROR;
         }
         return ConstantInterface.OK_STR;
+    }
+
+    private int syncChildrenTrans(EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> childrenInfoEntry) {
+       int update = 0;
+        for (EntryInfoEntity entryInfoEntity1 : childrenInfoEntry) {
+            entryInfoEntity1.setEntryState(entryInfoEntity.getEntryState());
+            if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())) {
+                entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
+            } else if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())) {
+                entryInfoEntity1.setRuTransId(entryInfoEntity.getRuTransId());
+            } else if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())) {
+                entryInfoEntity1.setFraTransId(entryInfoEntity.getFraTransId());
+            } else if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())) {
+                entryInfoEntity1.setSpaTransId(entryInfoEntity.getSpaTransId());
+            }
+            update +=  entryInfoMapper.updateById(entryInfoEntity1);
+        }
+        return update;
     }
 
 
@@ -572,7 +586,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 if (CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
                     break;
                 }
-                entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
+                    entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
                     entryInfoEntity1.setEnTransId(finalTransId);
                 });
                // writeI18Entry(entryInfoEntity, entryInfoEntity.getEnglish());
@@ -639,38 +653,6 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     private String updateTrans(String auditSuggest, String trans, String transId, String type, String transState, EntryInfoEntity entryInfoEntity, String department) {
         String newTransID = "";
-        /*if (StringUtils.isBlank(transState)) {
-            transState = "1";
-        }
-        //如果是翻译审核 校验重复翻译 ID挂载重复的
-
-        if (3 == Integer.parseInt(transState) && StringUtils.isNotBlank(transId)) {
-            //无翻译直接删掉
-            if (StringUtils.isBlank(trans)) {
-                translateMapper.deleteById(transId);
-                return newTransID;
-            }
-            QueryWrapper<TranslateEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("entry", entryInfoEntity.getEntry());
-            queryWrapper.eq("type", type);
-            queryWrapper.eq("translate", trans);
-            queryWrapper.eq("delete_state", 0);
-            queryWrapper.eq("translate_state", 3);
-            List<TranslateEntity> translateEntityList = translateMapper.selectList(queryWrapper);
-            if (translateEntityList.size() > 1) {
-                log.error(" ===== 词条更新翻译查重多于1条，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
-                newTransID = translateEntityList.get(0).getId();
-                int delete = translateMapper.deleteById(transId);
-            } else if (translateEntityList.size() == 1) {
-                newTransID = translateEntityList.get(0).getId();
-
-                int delete = translateMapper.deleteById(transId);
-            }else if (translateEntityList.size() <1){
-                newTransID = transId;
-            }
-            entryInfoEntity.setVersionID("");
-            entryInfoEntity.setTaskId("");
-        }*/
         //翻译id 不是空 trans 是空 删除
         //翻译id 不是空  trans 不是空  update
         //翻译id 是空 trans 不是空 insert

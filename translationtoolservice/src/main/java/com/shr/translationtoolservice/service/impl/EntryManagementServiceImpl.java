@@ -330,6 +330,27 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String deleteEntryClassfy(List<String> idList) {
+  /*      for (String id : idList) {
+            //判断当前分类是否是产品分类
+
+            //如果type是classify,则判断是否有子分类
+
+            //如果有子分类，判断子分类是否是产品分类
+
+            //如果是产品分类则用id去任务表里查询是否有在执行的任务（）
+
+            //
+
+
+
+
+            List<EntryClassify> entryClassifies = entryClassifyMapper.getEntryClassfyByParentId(id);
+            if (!CollectionUtils.isEmpty(entryClassifies)) {
+                return ErrorCodeList.OBJECT_HAS_EXIST;
+            }
+        }
+
+*/
         int delete = entryClassifyMapper.deleteByIds(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;

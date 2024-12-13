@@ -150,10 +150,12 @@
         where delete_state = 0
         and  entry = #{entry,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
-        <if test="visualRange != null  and visualRange != ''">
-            and visual_range = #{visualRange,jdbcType=VARCHAR}
-        </if>
+
+        and visual_range = #{visualRange,jdbcType=VARCHAR}
+
         and translate_state ='3'
         and  `translate` =  #{translate,jdbcType=VARCHAR}
     </select>
+
+
 </mapper>
