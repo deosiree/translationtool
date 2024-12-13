@@ -55,7 +55,7 @@ public class I18nServiceImpl implements I18nService {
         List<EntryInfoEntity> enumEntryInfo = new ArrayList<>();
         List<EntryInfoEntity> configEntryInfo = new ArrayList<>();
        // String fileName = "";
-      Map<String,List<Map<String, String>>> tsEntryInfoMap = new HashMap<>();
+          Map<String,List<Map<String, String>>> tsEntryInfoMap = new HashMap<>();
 
         //di分组   fileName -> list
         Map<String, List<EntryInfoEntity>> diTypeMap = new HashMap<>();

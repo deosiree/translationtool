@@ -699,6 +699,7 @@
 
         <if test="entryInfoEntity.importType == 'DB' or entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'TS' or entryInfoEntity.importType == 'ENUM'">
             and t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+            and t1.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
         </if>
 
 
