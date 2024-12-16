@@ -1623,6 +1623,46 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryEntitys;*/
 
     }
+
+    @Override
+    public List<EntryInfoEntity> capitalizeWords(List<EntryInfoEntity> entryInfoEntities, String changeType,String translateType) {
+
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            if (StringUtils.isNotBlank(changeType) && changeType.equals(ConstantInterface.CAPITAL)) {
+                switch (translateType) {
+                    case ConstantInterface.ENGLISH:
+                        entryInfoEntity.setEnglish(StringUtil.capitalizeWords(entryInfoEntity.getEnglish()));
+                        break;
+                    case ConstantInterface.RUSSIAN:
+                        entryInfoEntity.setRussian(StringUtil.capitalizeWords(entryInfoEntity.getRussian()));
+                        break;
+                    case ConstantInterface.SPANISH:
+                        entryInfoEntity.setSpanish(StringUtil.capitalizeWords(entryInfoEntity.getSpanish()));
+                        break;
+                    case ConstantInterface.FRENCH:
+                        entryInfoEntity.setFrench(StringUtil.capitalizeWords(entryInfoEntity.getFrench()));
+                        break;
+                }
+            }else if (StringUtils.isNotBlank(changeType) && changeType.equals(ConstantInterface.UNCAPITAL)){
+                switch (translateType) {
+                    case ConstantInterface.ENGLISH:
+                        entryInfoEntity.setEnglish(StringUtil.uncapitalizeWords(entryInfoEntity.getEnglish()));
+                        break;
+                    case ConstantInterface.RUSSIAN:
+                        entryInfoEntity.setRussian(StringUtil.uncapitalizeWords(entryInfoEntity.getRussian()));
+                        break;
+                    case ConstantInterface.SPANISH:
+                        entryInfoEntity.setSpanish(StringUtil.uncapitalizeWords(entryInfoEntity.getSpanish()));
+                        break;
+                    case ConstantInterface.FRENCH:
+                        entryInfoEntity.setFrench(StringUtil.uncapitalizeWords(entryInfoEntity.getFrench()));
+                        break;
+                }
+            }
+        }
+        return entryInfoEntities;
+    }
+
     private void sortEmptyTrans(List<EntryInfoEntity> entryInfoEntityList, String translateType) {
         switch (translateType){
             case ConstantInterface.ENGLISH:

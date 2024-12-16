@@ -10,6 +10,7 @@ import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TI8nAddressService;
 import com.shr.translationtoolservice.util.CommonUtils;
+import com.shr.translationtoolservice.util.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,8 @@ public class WorkBenchController extends BaseController {
     private TI8nAddressService ti8nAddressService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private StringUtil stringUtil;
 
     @PostMapping("/importExcle")
     @ApiOperation("导入excle(预留)")
@@ -230,5 +233,18 @@ public class WorkBenchController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/capitalizeWords")
+    @ApiOperation("首字母转换为大写")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> capitalizeWords(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                                           @RequestParam("changeType")  String changeType,@RequestParam("translateType")  String translateType) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryInfoEntity> entryInfoEntities1 = entryInfoService.capitalizeWords(entryInfoEntities, changeType,translateType);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
+        return checkResult(responseListModel);
+    }
 
 }

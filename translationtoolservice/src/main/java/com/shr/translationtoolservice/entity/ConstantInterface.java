@@ -115,6 +115,10 @@ public class ConstantInterface {
     public static final String BAIDU_TRANSLATE_APPID = "20230705001734655";
     public static final String BAIDU_TRANSLATE_KEY = "Msyn6CIJy97uY1MXLW0c";
 
+    //大小写
+    public static final String CAPITAL = "upper";
+    public static final String UNCAPITAL = "lower";
+
     public static final String CHINESE = "中文";
     public static final String FRENCH = "法文";
     public static final String ENGLISH = "英文";
