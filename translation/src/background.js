@@ -5,6 +5,12 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
+// 新增拉起jar包
+const { exec,spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
+
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
@@ -81,6 +87,10 @@ app.on('ready', async () => {
     }
   }
   createWindow()
+
+  // 启动java服务
+  // startServer()
+  
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -97,3 +107,122 @@ if (isDevelopment) {
     })
   }
 }
+
+// 启动服务
+function startServer(){
+  //新增拉起jar包
+  checkJavaInstalled()
+    .then(() => {
+      // 如果 Java 已安装，直接运行 JAR 文件
+      runJar();
+    })
+    .catch(async (err) => {
+      console.error(err);
+
+      // 提示用户安装 Java
+      const result = await dialog.showMessageBox({
+        type: 'warning',
+        title: 'Java Not Found',
+        message: 'Java is not installed on your system. Do you want to install it?',
+        buttons: ['Yes', 'No']
+      });
+
+      if (result.response === 0) {
+        // 如果用户选择安装 Java，执行安装流程
+        try {
+          await installJava();
+          runJar();  // 安装完成后，启动 JAR 文件
+        } catch (installError) {
+          dialog.showErrorBox('Java Installation Failed', installError);
+        }
+      } else {
+        dialog.showErrorBox('Java Not Found', 'You need Java to run this application.');
+        app.quit();
+      }
+    });
+}
+
+// 检查 Java 是否已安装
+function checkJavaInstalled() {
+  return new Promise((resolve, reject) => {
+    exec('java -version', (error, stdout, stderr) => {
+      if (error) {
+        reject('Java is not installed or not in PATH');
+      } else {
+        resolve('Java is installed');
+      }
+    });
+  });
+}
+
+// 安装 Java (如果未安装)
+function installJava() {
+  return new Promise((resolve, reject) => {
+    const exeDirectory = process.resourcesPath;
+    const javaInstallerDir = path.join(exeDirectory, 'env', 'jdk');
+    let installerPath;
+
+    // 根据平台选择安装包
+    if (os.platform() === 'win32') {
+      installerPath = path.join(javaInstallerDir, 'jdk-8u152-windows-x64.exe');
+      const installDir = 'C:\\Program Files\\Java\\jdk1.8.0_291';  // 固定安装路径
+      // 执行安装命令，并指定安装目录
+      exec(`"${installerPath}" /s INSTALLDIR="${installDir}"`, (err, stdout, stderr) => {
+        if (err) {
+          return reject('Failed to install Java on Windows');
+        }
+
+        // 安装完成后设置环境变量
+        setWindowsEnvironmentVariables(installDir)
+          .then(() => {
+            resolve('Java installed and environment variables set');
+          })
+          .catch(reject);
+        });
+    } else {
+      reject('Unsupported platform for automatic Java installation');
+    }
+  });
+}
+
+let jarProcess = null;
+// 启动 JAR 包
+function runJar() {
+  const exeDirectory = process.resourcesPath;
+  const jarPath = path.join(exeDirectory, 'env','server', 'translationtoolservice-0.0.1-SNAPSHOT.jar');
+  jarProcess = spawn('java', ['-jar', jarPath]);
+  // exec(`java -jar "${jarPath}"`, (err, stdout, stderr) => {
+  //   if (err) {
+  //     console.error('Error running JAR file:', err);
+  //     return;
+  //   }
+  //   console.log('JAR output:', stdout);
+  // });
+}
+
+// 配置环境变量
+function setWindowsEnvironmentVariables(javaPath) {
+  return new Promise((resolve, reject) => {
+    // 设置 JAVA_HOME 环境变量
+    exec(`setx JAVA_HOME "${javaPath}"`, (err, stdout, stderr) => {
+      if (err) {
+        return reject('Failed to set JAVA_HOME environment variable');
+      }
+      // 更新 PATH 环境变量
+      exec(`setx PATH "%PATH%;${javaPath}\\bin"`, (err, stdout, stderr) => {
+        if (err) {
+          return reject('Failed to update PATH environment variable');
+        }
+        resolve('Environment variables set successfully');
+      });
+    });
+  });
+}
+
+// 关闭应用时确保关闭 JAR 进程
+app.on('before-quit', () => {
+  if (jarProcess) {
+    jarProcess.kill();  // 关闭 JAR 进程
+    console.log('JAR process killed');
+  }
+});

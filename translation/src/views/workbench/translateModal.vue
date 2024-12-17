@@ -23,7 +23,7 @@
                     词条：
                     <a-input
                         v-model:value="keyWords"
-                        style="width:250px"
+                        style="width:200px"
                         size="small"
                         placeholder='请输入词条搜索'
                     />
@@ -32,7 +32,7 @@
                     v-model:value="translateState"
                     allowClear
                     size="small"
-                    style="width: 250px"
+                    style="width: 200px"
                     placeholder='请选择'
                     >
                         <a-select-option value="0">待翻译</a-select-option>
@@ -53,6 +53,22 @@
                     >
                         <a-button type="primary" size="small" style="margin-left:8px">翻译导入</a-button>
                     </a-upload>
+                    <a-dropdown>
+                        <template #overlay>
+                            <a-menu @click="capitalizeWordsClick">
+                                <a-menu-item key="upper">
+                                    首字母大写
+                                </a-menu-item>
+                                <a-menu-item key="lower">
+                                    首字母小写
+                                </a-menu-item>
+                            </a-menu>
+                        </template>
+                        <a-button size="small" type="primary" style="margin-left:8px">
+                            首字母转换
+                            <DownOutlined />
+                        </a-button>
+                    </a-dropdown>
                 </div>
                 <a-table 
                 bordered
@@ -298,7 +314,8 @@ import {
     preTranslate,
     getEntryInfoList,
     updateEntryList,
-    importCommonExcle
+    importCommonExcle,
+    capitalizeWords
 } from '@/http/api/workbench'
 import {
     translate,
@@ -317,7 +334,8 @@ import {
 import {
   QuestionCircleOutlined,
   SearchOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  DownOutlined
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import workbenchCommon from '@/views/workbench/common.js';
@@ -329,7 +347,8 @@ export default {
         Modal,
         QuestionCircleOutlined,
         SearchOutlined,
-        InfoCircleOutlined
+        InfoCircleOutlined,
+        DownOutlined
     },
     emits:['handleClose','handleOK'],
     props: {
@@ -361,9 +380,15 @@ export default {
                     return text.index + 1
                 },fixed: 'left'},
                 {title: '翻译状态',dataIndex: 'state',align:'center',width:90,fixed: 'left'},
-                {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true,},
+                {title: '词条',dataIndex: 'entry',align:'center',width:200,fixed: 'left',resizable: true,
+                    sorter: (a, b) => this.dynamicSortFunction(a,b),
+                    sortDirections: ['descend', 'ascend']
+                },
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,resizable: true,index:2},
-                {title: '翻译',dataIndex: 'translate',align:'center',width:300,resizable: true},
+                {title: '翻译',dataIndex: 'translate',align:'center',width:300,resizable: true,
+                    sorter: (a, b) => this.dynamicSortFunction(a,b),
+                    sortDirections: ['descend', 'ascend'],
+                },
                 {title: 'Tag',dataIndex: 'tag',align:'center',width:150,},
                 // {title: '来源',dataIndex: 'entrySource',align:'center',width:150,resizable: true,ellipsis:true},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:100,resizable: true},
@@ -443,6 +468,18 @@ export default {
                     item.dataIndex = workbenchCommon.languageMap[this.task.translateType].code + "AuditSuggest"
                 }
             })
+            // console.log(this.columns)
+        },
+        dynamicSortFunction(a,b){
+            let trans = workbenchCommon.languageMap[this.task.translateType].code
+            if (a[trans] === null) {
+                return -1;
+            }
+            if (b[trans] === null) {
+                return 1;
+            }
+            
+            return a[trans].localeCompare(b[trans]);
         },
         init(){
             this.getTranslateEntry()
@@ -738,17 +775,17 @@ export default {
             let transIdName = workbenchCommon.languageMap[this.task.translateType].transIdName
 
             record[languageCode] = title
-            record[transIdName] = id
+            // record[transIdName] = id
 
             if(this.editableData[this.selectedRowIndex] != undefined){
                 this.editableData[this.selectedRowIndex][languageCode] = title
-                this.editableData[this.selectedRowIndex][transIdName] = id
+                // this.editableData[this.selectedRowIndex][transIdName] = id
 
                 // 如果有子词条  则写入子词条
                 if(this.editableData[this.selectedRowIndex].children && this.editableData[this.selectedRowIndex].children.length > 0){
                     this.editableData[this.selectedRowIndex].children.forEach(item => {
                         item[languageCode] = title
-                        item[transIdName] = id
+                        // item[transIdName] = id
                     })
                 }
             }
@@ -907,7 +944,23 @@ export default {
             formData.append('taskID',this.task.id)
             this.loading = true
             workImportExcleTrans(formData).then((res) => {
-                this.dataSource = res.data.list
+                // this.dataSource = res.data.list
+                let list3 = [];
+                // 先将res.data.list中id在dataSource中存在的对象添加到list3
+                res.data.list.forEach((obj2) => {
+                    let found = this.dataSource.find((obj1) => obj1.id === obj2.id);
+                    if (found) {
+                        list3.push(obj2);
+                    }
+                });
+                // 再将dataSource中id不在res.data.list中的对象添加到list3
+                this.dataSource.forEach((obj1) => {
+                    let found = res.data.list.find((obj2) => obj2.id === obj1.id);
+                    if (!found) {
+                        list3.push(obj1);
+                    }
+                });
+                this.dataSource = list3
                 this.dataSource.forEach(item => {
                     item.entryState = 3
                 })
@@ -1167,6 +1220,26 @@ export default {
             this.selectedRowKeys = []
             this.selectedRows = []
         },
+        // 首字母转换
+        capitalizeWordsClick(value){
+            if(this.selectedRows.length === 0){
+                message.info("请选择！")
+                return
+            }
+            let params = {
+                changeType: value.key,
+                translateType: this.task.translateType
+            }
+            capitalizeWords(params,this.selectedRows).then((res) => {
+                this.dataSource = this.dataSource.map(item1 => {
+                    const matchedItem2 = res.data.list.find(item2 => item2.id === item1.id);
+                    return matchedItem2 || item1;
+                });
+                this.selectedRowKeys = []
+                this.selectedRows = []
+                message.success("转换成功！")
+            })
+        }
     }
 }
 </script>

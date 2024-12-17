@@ -1149,6 +1149,7 @@ export default {
 
             this.editVisible = false
             delete this.rowClassify2Option[entry.id]
+            this.getEntryByVersion()
         },
         editClose(){
             this.editVisible = false

@@ -139,3 +139,13 @@ export function getI18nAdress() {
         method: "GET"
     });
 }
+
+// 首字母转换
+export function capitalizeWords(params,data) {
+    return request({
+        url: "/workbench/capitalizeWords",
+        method: "POST",
+        params,
+        data
+    });
+}

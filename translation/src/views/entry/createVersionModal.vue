@@ -625,8 +625,16 @@ export default {
                 let info = {
                     id: item.id,
                     productID: this.product.key,
-                    taskID: this.selectedTaskRows[0].id,
-                    versionID: this.selectedTaskRows[0].versionId
+                    taskId: this.selectedTaskRows[0].id,
+                    versionID: this.selectedTaskRows[0].versionId,
+                    enTransId: item.enTransId,
+                    english: item.english,
+                    fraTransId: item.fraTransId,
+                    french: item.french,
+                    ruTransId: item.ruTransId,
+                    russian: item.russian,
+                    spaTransId: item.spaTransId,
+                    spanish: item.spanish
                 }
                 data.push(info)
             })
