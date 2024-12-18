@@ -2037,7 +2037,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         //本地翻译 publicState：公司
         List<TranslateEntity> qtTranslates = translateMapper.getSuggestTrans(name, type, "");
-        Translate qtLocalTranslate = translateUtils.localTranslate(name, type, qtTranslates);
+        List<TranslateEntity> qtTranslates1 = new ArrayList<>();
+        for (TranslateEntity qtTranslate : qtTranslates) {
+            if (!CollectionUtils.isEmpty(qtTranslates) && !qtTranslate.getVisualRange().equals(visualRange)) {
+                qtTranslates1.add(qtTranslate);
+            }
+        }
+        Translate qtLocalTranslate = translateUtils.localTranslate(name, type, qtTranslates1);
         qtLocalTranslate.setSource("本地翻译-其他");
         translateEntityList.add(qtLocalTranslate);
         translateEntities.setTranslateEntities(translateEntityList);

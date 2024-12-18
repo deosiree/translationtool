@@ -1042,7 +1042,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
                 try {
                  trans = baiduTransUtils.translate(entry, "zh", tLanguage.getBdCode());
-                 Thread.sleep(1000);
+                // Thread.sleep(1000);
                 } catch (Exception e) {
                     log.error(" 百度翻译异常 ！ ");
                     e.printStackTrace();
