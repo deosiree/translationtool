@@ -48,6 +48,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     private EntryInfoMapper entryInfoMapper;
 
     @Autowired
+    private BaiduTransUtils baiduTransUtils;
+
+    @Autowired
     private TranslateMapper translateMapper;
 
     @Autowired
@@ -290,10 +293,16 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                 translateRes = deepLTranslateUtils.translate(entryInfoEntity.getEntry(), null, language.getDeeplCode());
             } else if (type.equals(ConstantInterface.BD)) {
                 // 百度翻译
-                LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
-                if (!Objects.isNull(translateResult)) {
-                    translateRes = translateResult.getValue();
+               // LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+                //默认主语言都是中文
+                try {
+                    translateRes = baiduTransUtils.translate(entryInfoEntity.getEntry(), "zh", language.getBdCode());
+                } catch (IOException e) {
+                    translateRes = "";
+                    e.printStackTrace();
                 }
+
+
             } else if (type.equals(ConstantInterface.SYK)) {
                 // 术语库翻译
                 translateRes = getSYKTranslate(entryInfoEntity.getEntry(), translateType,department);
@@ -334,10 +343,20 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             translates.add(deelp);
         }
         // 百度翻译
-        LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
+        /*LanguageEntity translateResult = translateUtils.getTranslateResult(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
         if (!Objects.isNull(translateResult)) {
             translates.add(translateResult.getValue());
+        }*/
+        //默认主语言都是中文
+        String trans = null;
+        try {
+            trans = baiduTransUtils.translate(entryInfoEntity.getEntry(), "zh", language.getBdCode());
+        } catch (Exception e) {
+            trans = "";
+            log.error(e.getMessage());
         }
+        translates.add(trans);
+
         // 有道翻译
         LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(entryInfoEntity.getEntry(), ConstantInterface.AUTO, language);
         if (!Objects.isNull(languageEntity)) {

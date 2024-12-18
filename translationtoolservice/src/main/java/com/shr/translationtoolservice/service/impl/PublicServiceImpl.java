@@ -7,6 +7,7 @@ import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.PublicService;
+import com.shr.translationtoolservice.util.BaiduTransUtils;
 import com.shr.translationtoolservice.util.DeepLTranslateUtils;
 import com.shr.translationtoolservice.util.TranslateUtils;
 import com.shr.translationtoolservice.util.YoudaoTrans;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -29,6 +31,9 @@ public class PublicServiceImpl implements PublicService {
 
     @Autowired
     private EntryInfoMapper entryInfoMapper;
+
+    @Autowired
+    private BaiduTransUtils baiduTransUtils;
 
     @Autowired
     private TLanguageMapper languageMapper;
@@ -129,10 +134,14 @@ public class PublicServiceImpl implements PublicService {
                     translateRes = deepLTranslateUtils.translate(text, null, target.getDeeplCode());
                 }else if (type.equals(ConstantInterface.BD)){
                     // 百度翻译
-                    LanguageEntity translateResult = translateUtils.getTranslateResult(text, ConstantInterface.AUTO, target);
-                    if (!Objects.isNull(translateResult)){
-                        translateRes = translateResult.getValue();
+                   // LanguageEntity translateResult = translateUtils.getTranslateResult(text, ConstantInterface.AUTO, target);
+                    try {
+                        translateRes= baiduTransUtils.translate(text, "zh", tLanguage.getBdCode());
+                    } catch (IOException e) {
+                        translateRes = "";
+                        e.printStackTrace();
                     }
+
                 }else if (type.equals(ConstantInterface.YD)){
                     // 有道翻译
                     LanguageEntity languageEntity = youdaoTrans.youdaoTranslate(text, ConstantInterface.AUTO, target);

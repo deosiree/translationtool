@@ -442,10 +442,6 @@ public class EntryInfoController extends BaseController {
     @Token
     public HttpResponse<String> test() {
 
-
-
-
-
         List<EntryInfoEntity> entities = entryInfoMapper.getbppEntrys();
         for (EntryInfoEntity e : entities) {
             User user = userMapper.selectByName(e.getUpdate());

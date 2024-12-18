@@ -80,6 +80,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     private ExcelUtils excelUtils;
 
     @Autowired
+    private BaiduTransUtils baiduTransUtils;
+
+    @Autowired
     private YoudaoTrans youdaoTrans;
 
 
@@ -1028,19 +1031,40 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         //ArrayList<TranslateEntity> list = new ArrayList<>();
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
 
-        try {
+
             for (TLanguage tLanguage : tLanguages) {
                 if (tLanguage.getName().equals(type)) {
                     continue;
                 }
-                languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
-                Thread.sleep(1000);
+                //languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
+                //默认主语言都是中文
+                String trans = "";
+
+                try {
+                 trans = baiduTransUtils.translate(entry, "zh", tLanguage.getBdCode());
+                 Thread.sleep(1000);
+                } catch (Exception e) {
+                    log.error(" 百度翻译异常 ！ ");
+                    e.printStackTrace();
+                }
+                LanguageEntity languageEntity = new LanguageEntity();
+                languageEntity.setValue(trans);
+                ConstantInterface.getInstance();
+                Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
+
+                languageEntity.setLanguage(languageMap.get(tLanguage.getBdCode()).toLowerCase());
+                languageEntity.setState(true);
+
+
+
+                languageEntities.add(languageEntity);
+
+
+
             }
             entryEntity.setLanguageEntities(languageEntities);
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
 
         return entryEntity;
     }
