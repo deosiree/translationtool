@@ -61,6 +61,30 @@
                 <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
                 <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
+                <a-popover
+                    trigger="click"
+                    placement="leftTop"
+                    :overlayStyle="overlayStyle"
+                >
+                    <template #content>
+                        <a-checkbox-group
+                            v-model:value="checkedColumn"
+                            @change="changeColumn"
+                        >
+                            <a-row
+                                v-for="item in checkboxList"
+                                :key="item.value"
+                            >
+                                <a-col :span="24">
+                                    <a-checkbox :value="item.value">
+                                        {{ item.label }}
+                                    </a-checkbox>
+                                </a-col>
+                            </a-row>
+                        </a-checkbox-group>
+                    </template>
+                    <a-button type="primary" size="small" style="margin-left:auto"><template #icon><SettingOutlined /></template>展示列</a-button>
+                </a-popover>
             </div>
             <a-table 
             bordered
@@ -248,6 +272,7 @@ import {
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
+    SettingOutlined
 } from '@ant-design/icons-vue';
 import key from 'keymaster'
 export default {
@@ -257,6 +282,7 @@ export default {
         SearchOutlined,
         CaretDownOutlined,
         CaretRightOutlined,
+        SettingOutlined
     },
     emits:['handleClose','handleOK'],
     props: {
@@ -294,12 +320,13 @@ export default {
                 // {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
                 {title: 'Tag',dataIndex: 'tag',align:'center',width:150,},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:200,resizable: true},
-                {title: '操作',dataIndex: 'operation',align:'center',width:100,ellipsis: true,},
+                {title: '操作',dataIndex: 'operation',align:'center',width:100,ellipsis: true,fixed: 'right'},
             ],
             dataSource:[],
             allData:[],
             pagination:{
                 pageSizeOptions:['20','50','100'],
+                showSizeChanger: true,
                 defaultPageSize:20,
                 total:0,
                 current:1,
@@ -324,7 +351,10 @@ export default {
             rejectReasonVisible: false,
             rejectReason:{
                 reason:""
-            }
+            },
+            overlayStyle: workbenchCommon.overlayStyle,
+            checkedColumn: ['abbr','tag'],
+            checkboxList: workbenchCommon.checkboxList,
         }
     },
     
@@ -859,7 +889,44 @@ export default {
         },
         rejectReasonAfterClose(){
             this.rejectReason.reason = ""
-        }
+        },
+        changeColumn(checkedValue) {
+            this.checkedColumn = checkedValue;
+            this.checkboxList.forEach((value) => {
+                let checkedIndex = this.checkedColumn.findIndex(
+                    (item) => item === value.value
+                );
+                let nowColumnIndex = this.columns.findIndex(
+                    (item) => item.dataIndex === value.value
+                );
+                if (
+                    (nowColumnIndex !== -1 && checkedIndex !== -1) ||
+                    (nowColumnIndex === -1 && checkedIndex === -1)
+                ) {
+                    return;
+                }
+                if (nowColumnIndex === -1 && checkedIndex !== -1) {
+                    let newCol = {
+                        title: value.label,
+                        dataIndex: value.value,
+                        align: "center",
+                        width: 200,
+                        resizable: true,
+                        index: value.index
+                    };
+                    if(newCol.dataIndex === 'abbr'){
+                        newCol.fixed = 'left'
+                    }
+                    this.columns.splice(-1, 0, newCol);
+                }
+                if (nowColumnIndex !== -1 && checkedIndex === -1) {
+                    this.columns.splice(nowColumnIndex, 1);
+                }
+            });
+            this.columns.sort(function(a, b){
+                return a.index - b.index
+            })
+        },
     }
 }
 </script>

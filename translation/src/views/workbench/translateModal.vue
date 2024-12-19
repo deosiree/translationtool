@@ -398,6 +398,7 @@ export default {
             editableData:{},
             pagination:{
                 pageSizeOptions:['20','50','100'],
+                showSizeChanger: true,
                 defaultPageSize:20,
                 total:0,
                 current:1,
@@ -563,7 +564,6 @@ export default {
             let params = {
                 taskID: this.task.id
             }
-
             updateEntryList(params,saveEntrys).then((res) => {
                 message.success('已保存！')
                 this.saveLoading = false
@@ -938,6 +938,7 @@ export default {
             return false
         },
         handleChange(info){
+            let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             let file = info.file
             let formData = new FormData()
             formData.append('file',file)
@@ -945,22 +946,12 @@ export default {
             this.loading = true
             workImportExcleTrans(formData).then((res) => {
                 // this.dataSource = res.data.list
-                let list3 = [];
-                // 先将res.data.list中id在dataSource中存在的对象添加到list3
-                res.data.list.forEach((obj2) => {
-                    let found = this.dataSource.find((obj1) => obj1.id === obj2.id);
-                    if (found) {
-                        list3.push(obj2);
+                this.dataSource.forEach(item1 => {
+                    const matchItem = res.data.list.find(item2 => item2.id === item1.id);
+                    if (matchItem) {
+                        item1[languageCode] = matchItem[languageCode];
                     }
                 });
-                // 再将dataSource中id不在res.data.list中的对象添加到list3
-                this.dataSource.forEach((obj1) => {
-                    let found = res.data.list.find((obj2) => obj2.id === obj1.id);
-                    if (!found) {
-                        list3.push(obj1);
-                    }
-                });
-                this.dataSource = list3
                 this.dataSource.forEach(item => {
                     item.entryState = 3
                 })

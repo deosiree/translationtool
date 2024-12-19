@@ -1255,12 +1255,12 @@ export default {
                     // filteredValue: null,
                     // filters: [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}],
                     // onFilter: (value, record) => record.englishTranslateState === value,
-                    let index = value.value
-                    if(['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(value.value)){
-                        newCol.filteredValue = null
-                        newCol.filters = [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}]
-                        newCol.onFilter = eval('(value, record) => record.'+index+' === value')
-                    }
+                    // let index = value.value
+                    // if(['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(value.value)){
+                    //     newCol.filteredValue = null
+                    //     newCol.filters = [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}]
+                    //     newCol.onFilter = eval('(value, record) => record.'+index+' === value')
+                    // }
                     this.columns.splice(-1, 0, newCol);
                 }
                 if (nowColumnIndex !== -1 && checkedIndex === -1) {

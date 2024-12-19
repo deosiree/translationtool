@@ -369,6 +369,7 @@ export default {
             editableData:{},
             pagination:{
                 pageSizeOptions:['20','50','100'],
+                showSizeChanger: true,
                 defaultPageSize:20,
                 total:0,
                 current:1,

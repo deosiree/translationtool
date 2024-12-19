@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow ,Menu,ipcMain,globalShortcut} from 'electron'
+import { app, protocol, BrowserWindow ,Menu,ipcMain,globalShortcut,dialog} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -178,7 +178,14 @@ function installJava() {
             resolve('Java installed and environment variables set');
           })
           .catch(reject);
+
+        dialog.showMessageBox({
+          type: 'info',
+          title: '提示',
+          message: 'java install success!'
         });
+      });
+        
     } else {
       reject('Unsupported platform for automatic Java installation');
     }
@@ -191,13 +198,6 @@ function runJar() {
   const exeDirectory = process.resourcesPath;
   const jarPath = path.join(exeDirectory, 'env','server', 'translationtoolservice-0.0.1-SNAPSHOT.jar');
   jarProcess = spawn('java', ['-jar', jarPath]);
-  // exec(`java -jar "${jarPath}"`, (err, stdout, stderr) => {
-  //   if (err) {
-  //     console.error('Error running JAR file:', err);
-  //     return;
-  //   }
-  //   console.log('JAR output:', stdout);
-  // });
 }
 
 // 配置环境变量
