@@ -2449,9 +2449,9 @@ export default {
                         label: item.ip,
                         value: item.ip
                     }
-                    if(item.state === '1'){
-                        this.ip = item.ip
-                    }
+                    // if(item.state === '1'){
+                    //     this.ip = item.ip
+                    // }
                     this.ips.push(ip)
                 })
                 

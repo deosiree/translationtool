@@ -62,13 +62,17 @@
                                 <a-menu-item key="lower">
                                     首字母小写
                                 </a-menu-item>
+                                <a-menu-item key="replace">
+                                    查找替换
+                                </a-menu-item>
                             </a-menu>
                         </template>
                         <a-button size="small" type="primary" style="margin-left:8px">
-                            首字母转换
+                            翻译调整
                             <DownOutlined />
                         </a-button>
                     </a-dropdown>
+                    <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="replace">替换</a-button> -->
                 </div>
                 <a-table 
                 bordered
@@ -304,6 +308,36 @@
             </a-form>
         </div>
     </Modal>
+    <Modal
+    :visible="replaceVisible" 
+    modalTitle="查找替换"
+    @handleClose="replaceClose"
+    @handleOK="replaceOK"
+    @afterClose="replaceAfterClose"
+    >
+        <div style="width:100%;height:100%">
+            <a-form
+                ref="replaceForm"
+                name="custom-validation"
+                :model="replaceModal"
+            >
+                <a-form-item
+                label="原文本"
+                name="sourceStr"
+                :rules="[{ required: true, message: '请输入原文本!' }]"
+                >
+                    <a-input v-model:value="replaceModal.sourceStr" placeholder='请输入原文本' />
+                </a-form-item>
+                <a-form-item
+                label="替换为"
+                name="replaceStr"
+                :rules="[{ required: true, message: '请输入替换文本!' }]"
+                >
+                    <a-input v-model:value="replaceModal.replaceStr" placeholder='请输入替换文本' />
+                </a-form-item>
+            </a-form>
+        </div>
+    </Modal>
 </template>
 <script>
 import Modal from '@/components/modal/index.vue';
@@ -315,7 +349,8 @@ import {
     getEntryInfoList,
     updateEntryList,
     importCommonExcle,
-    capitalizeWords
+    capitalizeWords,
+    replaceWords
 } from '@/http/api/workbench'
 import {
     translate,
@@ -437,7 +472,12 @@ export default {
             clearFilters: null,
             saveLoading: false,
             selectedRowKeys: [],
-            selectedRows: []
+            selectedRows: [],
+            replaceVisible: false,
+            replaceModal:{
+                sourceStr: null,
+                replaceStr: null
+            }
         }
     },
     
@@ -1217,20 +1257,60 @@ export default {
                 message.info("请选择！")
                 return
             }
-            let params = {
-                changeType: value.key,
-                translateType: this.task.translateType
+            if(value.key === 'upper' || value.key === 'lower'){
+                let params = {
+                    changeType: value.key,
+                    translateType: this.task.translateType
+                }
+                capitalizeWords(params,this.selectedRows).then((res) => {
+                    this.dataSource = this.dataSource.map(item1 => {
+                        const matchedItem2 = res.data.list.find(item2 => item2.id === item1.id);
+                        return matchedItem2 || item1;
+                    });
+                    this.selectedRowKeys = []
+                    this.selectedRows = []
+                    message.success("转换成功！")
+                })
+            }else if(value.key === 'replace'){
+                this.replace()
             }
-            capitalizeWords(params,this.selectedRows).then((res) => {
-                this.dataSource = this.dataSource.map(item1 => {
-                    const matchedItem2 = res.data.list.find(item2 => item2.id === item1.id);
-                    return matchedItem2 || item1;
-                });
-                this.selectedRowKeys = []
-                this.selectedRows = []
-                message.success("转换成功！")
+            
+        },
+        replace(){
+            this.replaceVisible = true
+        },
+        replaceClose(){
+            this.replaceVisible = false
+        },
+        replaceOK(){
+            this.$refs.replaceForm.validate().then(() => {
+                let params = {
+                    sourceStr: this.replaceModal.sourceStr,
+                    replaceStr: this.replaceModal.replaceStr,
+                    translateType: this.task.translateType
+                }
+                replaceWords(params,this.selectedRows).then((res) => {
+                    this.dataSource = this.dataSource.map(item1 => {
+                        const matchedItem2 = res.data.list.find(item2 => item2.id === item1.id);
+                        return matchedItem2 || item1;
+                    });
+                    message.success("替换成功！")
+                    this.replaceVisible = false
+                    this.selectedRowKeys = []
+                    this.selectedRows = []
+                })
+            }).catch((err) => {
+
             })
+            
+        },
+        replaceAfterClose(){
+            this.replaceModal = {
+                sourceStr: null,
+                replaceStr: null
+            }
         }
+
     }
 }
 </script>

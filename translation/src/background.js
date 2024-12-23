@@ -161,7 +161,7 @@ function installJava() {
     const exeDirectory = process.resourcesPath;
     const javaInstallerDir = path.join(exeDirectory, 'env', 'jdk');
     let installerPath;
-
+    showLoadingWindow()
     // 根据平台选择安装包
     if (os.platform() === 'win32') {
       installerPath = path.join(javaInstallerDir, 'jdk-8u152-windows-x64.exe');
@@ -178,7 +178,9 @@ function installJava() {
             resolve('Java installed and environment variables set');
           })
           .catch(reject);
-
+        if(loadingWindow){
+          loadingWindow.close()
+        }
         dialog.showMessageBox({
           type: 'info',
           title: '提示',
@@ -187,6 +189,9 @@ function installJava() {
       });
         
     } else {
+      if(loadingWindow){
+        loadingWindow.close()
+      }
       reject('Unsupported platform for automatic Java installation');
     }
   });
@@ -195,9 +200,15 @@ function installJava() {
 let jarProcess = null;
 // 启动 JAR 包
 function runJar() {
+
+  showLoadingWindow()
   const exeDirectory = process.resourcesPath;
   const jarPath = path.join(exeDirectory, 'env','server', 'translationtoolservice-0.0.1-SNAPSHOT.jar');
   jarProcess = spawn('java', ['-jar', jarPath]);
+
+  if(loadingWindow){
+    loadingWindow.close()
+  }
 }
 
 // 配置环境变量
@@ -226,3 +237,20 @@ app.on('before-quit', () => {
     console.log('JAR process killed');
   }
 });
+
+// 加载中动画
+let loadingWindow
+function showLoadingWindow() {
+  loadingWindow = new BrowserWindow({
+    width: 400,
+    height: 300,
+    frame: true,  
+    alwaysOnTop: true,  // 始终在最前面
+    transparent: true,  // 背景透明
+  });
+
+  const exeDirectory = process.resourcesPath;
+  const loadingPath = path.join(exeDirectory, 'env', 'loading.html');
+  loadingWindow.loadURL(loadingPath);  // 加载包含加载动画的HTML页面
+  loadingWindow.show();
+}

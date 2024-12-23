@@ -149,3 +149,13 @@ export function capitalizeWords(params,data) {
         data
     });
 }
+
+// 替换
+export function replaceWords(params,data) {
+    return request({
+        url: "/workbench/replaceWords",
+        method: "POST",
+        params,
+        data
+    });
+}
