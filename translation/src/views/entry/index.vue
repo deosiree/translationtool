@@ -272,23 +272,24 @@ export default {
                 this.currentClickProduct = newNode
                 this.getproductIsEdit(node.parentId)
             }else {
+                this.productEdit = false
                 this.currentClickProduct = node
             }
         },
         // 查询产品 用户是否可编辑
         getproductIsEdit(productId){
             if(this.$store.state.admin){
-                    this.productEdit = true
-                }else{
-                    let params = {productId:productId}
-                    getUserProduct(params).then((res) => {
-                        if(res.data && res.data.write === 1){
-                            this.productEdit = true
-                        }else{
-                            this.productEdit = false
-                        }
-                    })
-                }
+                this.productEdit = true
+            }else{
+                let params = {productId:productId}
+                getUserProduct(params).then((res) => {
+                    if(res.data && res.data.write === 1){
+                        this.productEdit = true
+                    }else{
+                        this.productEdit = false
+                    }
+                })
+            }
         },
         // 分类拖拽
         onDragEnter(info){

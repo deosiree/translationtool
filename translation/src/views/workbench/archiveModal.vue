@@ -210,7 +210,7 @@
                     <a-select
                     v-model:value="ipModal.ip"
                     :options="ipOptions"
-                    placeholder="请选择"
+                    placeholder="请选择IP"
                     ></a-select>
                 </a-form-item>
             </a-form>
@@ -685,9 +685,9 @@ export default {
                         label: item.ip,
                         value: item.ip
                     }
-                    if(item.state === '1'){
-                        this.ipModal.ip = item.ip
-                    }
+                    // if(item.state === '1'){
+                    //     this.ipModal.ip = item.ip
+                    // }
                     this.ipOptions.push(ip)
                 })
             })

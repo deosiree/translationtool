@@ -252,3 +252,21 @@ export function importDictionaryEntry(params,data){
         data
     });
 }
+
+// 批量配置文件列表
+export function getConfigList(params){
+    return request({
+        url: "/I18Sever/getConfigList",
+        method: "GET",
+        params
+    });
+}
+
+// 批量枚举文件列表
+export function getEnumList(params){
+    return request({
+        url: "/I18Sever/getEnumList",
+        method: "GET",
+        params
+    });
+}

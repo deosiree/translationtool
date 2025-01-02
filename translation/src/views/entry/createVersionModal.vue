@@ -168,7 +168,7 @@
                     <a-select
                     v-model:value="writeBack.ip"
                     :options="ipOptions"
-                    placeholder="请选择"
+                    placeholder="请选择IP"
                     ></a-select>
                 </a-form-item>
                 <a-form-item
@@ -764,9 +764,9 @@ export default {
                         label: item.ip,
                         value: item.ip
                     }
-                    if(item.state === '1'){
-                        this.writeBack.ip = item.ip
-                    }
+                    // if(item.state === '1'){
+                    //     this.writeBack.ip = item.ip
+                    // }
                     this.ipOptions.push(ip)
                 })
             })

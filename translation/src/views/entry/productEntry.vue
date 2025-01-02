@@ -560,7 +560,8 @@ import {
     updatePublicEntry,
     addSingleEntry,
     getClassfy,
-    entryImportExcle
+    entryImportExcle,
+    getEntryByClassfy
 } from "@/http/api/entryManage";
 import {
     getSecondClassify
@@ -846,7 +847,7 @@ export default {
         },
         // 获取版本词条
         getEntryByVersion(){
-
+            console.log(this.product)
             if(Object.keys(this.product).length === 0){
                 return
             }
@@ -884,12 +885,20 @@ export default {
                 data.frenchTranslateState = this.search.translateState
             }
             let params = {
+                classfyID: this.product.key,
                 pageIndex: this.pagination.current,
                 pageSize: this.pagination.pageSize,
             }
             this.loading = true
             
-            getEntryByVersion(data,params).then((res) => {
+            // getEntryByVersion(data,params).then((res) => {
+            //     this.dataSource = res.data.list
+            //     this.loading = false
+            //     this.pagination.total = res.data.totalNum
+            // }).catch((err) => {
+            //     this.loading = false
+            // })
+            getEntryByClassfy(params,data).then((res) => {
                 this.dataSource = res.data.list
                 this.loading = false
                 this.pagination.total = res.data.totalNum

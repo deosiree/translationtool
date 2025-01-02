@@ -3,6 +3,7 @@
     :modalWidth="modalWidth" 
     :visible="visible" 
     :modalTitle="modalTitle"
+    :okLoading="okLoading"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
@@ -71,7 +72,8 @@ export default {
                 {label:'配置文件',value:'config'},
                 {label:'i18n_tr',value:'tr'},
                 {label:'其他',value:'other'}
-            ]
+            ],
+            okLoading: false
         }
     },
     
@@ -91,6 +93,7 @@ export default {
             this.$emit("modalClose",false)
         },
         handleOK(){
+            this.okLoading = true
             this.$refs.dictRef.validate().then(() => {
 
                 let params = {
@@ -101,10 +104,14 @@ export default {
                     message.success("创建成功！")
                     this.$emit("modalClose",true)
                     this.$emit('modalOK')
+                    this.okLoading = false
                 }).catch((err) => {
                     message.error("创建失败！")
+                    this.okLoading = false
                 })
-            })
+            }).catch(err => {
+                this.okLoading = false
+            });
             
         },
         afterClose(){

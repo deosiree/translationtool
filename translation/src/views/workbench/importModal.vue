@@ -142,6 +142,7 @@
                                 >
                                     <a-select
                                     v-model:value="tsFile.tsFileValue"
+                                    v-model:searchValue="searchTSValue"
                                     mode="multiple"
                                     :max-tag-count="4"
                                     allowClear
@@ -149,6 +150,9 @@
                                     placeholder="请选择"
                                     size="small"
                                     :options="tsOptions"
+                                    @search="onTSSearch"
+                                    @change="onTSChange"
+                                    @blur="onTSBlur"
                                     >
                                         <template #dropdownRender="{ menuNode: menu }">
                                             <v-nodes :vnodes="menu" />
@@ -192,17 +196,26 @@
                                             </a-select> -->
                                             <a-tree-select
                                                 v-model:value="dict.dictionaryType"
+                                                v-model:searchValue="searchDicValue"
                                                 show-search
+                                                tree-checkable
                                                 style="width: 100%"
                                                 :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
                                                 placeholder="请选择"
                                                 allow-clear
                                                 multiple
                                                 :tree-data="notEffectiveDicts"
-                                                :max-tag-count="3"
+                                                :max-tag-count="2"
                                                 size="small"
                                                 tree-node-filter-prop="label"
+                                                @search="onDicSearch"
+                                                @change="onDicChange"
+                                                @blur="onDicBlur"
                                             >
+                                                <!-- <template #title="{ value: val, label }">
+                                                    <b v-if="importedDic.includes(val)" style="color: #08c">{{ label }}</b>
+                                                    <template v-else>{{ label }}</template>
+                                                </template> -->
                                             </a-tree-select>
                                         </a-form-item>
                                     </a-col>
@@ -506,8 +519,8 @@
                                 </a-row>
                             </a-form>
                         </div>
-                        <div class="dataTypeBox2" v-if="dataType === 'config' || dataType === 'enum'" ref="configRef">
-                            <!-- <a-form
+                        <div class="dataTypeBox2" v-if="dataType === 'config'" ref="configRef">
+                            <a-form
                             ref="configFormRef"
                             name="advanced_search"
                             class="ant-advanced-search-form"
@@ -515,28 +528,45 @@
                             style="width:100%"
                             >
                                 <a-form-item
-                                label="回写辞典目录"
-                                name="dict"
-                                :rules="[{ required: true, message: '请选择回写辞典!' }]"
+                                label="配置文件"
+                                name="config"
                                 >
                                     <a-select
-                                    v-model:value="configFile.dict"
+                                    v-model:value="configFile.config"
                                     allowClear
-                                    placeholder="请选择翻译数据回写辞典目录"
-                                    :options="dictionaryOptions"
+                                    placeholder="请选择配置文件(不选时表示全选)"
+                                    :options="configFile.configOptions"
                                     style="width:50%"
                                     size="small"
                                     >
                                     </a-select>
-                                    <a-tooltip placement="top">
-                                        <template #title>
-                                        <span>添加辞典</span>
-                                        </template>
-                                        <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                    </a-tooltip>
-                                    <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
                                 </a-form-item>
-                            </a-form> -->
+                            </a-form>
+                            <a-button type="primary" ghost size="small" style="margin-left:auto" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+                        </div>
+                        <div class="dataTypeBox2" v-if="dataType === 'enum'" ref="enumRef">
+                            <a-form
+                            ref="configFormRef"
+                            name="advanced_search"
+                            class="ant-advanced-search-form"
+                            :model="enumFile"
+                            style="width:100%"
+                            >
+                                <a-form-item
+                                label="枚举文件"
+                                name="enum"
+                                >
+                                    <a-select
+                                    v-model:value="enumFile.enum"
+                                    allowClear
+                                    placeholder="请选择枚举文件(不选时表示全选)"
+                                    :options="enumFile.enumOptions"
+                                    style="width:50%"
+                                    size="small"
+                                    >
+                                    </a-select>
+                                </a-form-item>
+                            </a-form>
                             <a-button type="primary" ghost size="small" style="margin-left:auto" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
                         </div>
                     </a-tab-pane>
@@ -615,6 +645,7 @@
             :expandIconColumnIndex="2"
             :row-selection="{selectedRowKeys: selectedRowKeys, 
                 onChange: onSelectChange,
+                checkStrictly: false,
                 selections:[
                     {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
@@ -895,7 +926,9 @@ import {
     getDBALLEntryByDB,
     getInvalidDictionary,
     valDictionary,
-    importDictionaryEntry
+    importDictionaryEntry,
+    getConfigList,
+    getEnumList
 } from '@/http/api/i18Server';
 import {
     insertEntry,
@@ -1017,8 +1050,12 @@ export default {
                 maxLength:null
             },
             configFile:{
-                dict:null,
-                dictOptions:[]
+                config:null,
+                configOptions:[]
+            },
+            enumFile:{
+                enum: null,
+                enumOptions:[]
             },
             
             nodeOptions:[],
@@ -1059,9 +1096,12 @@ export default {
             searchValue:"",
             notEffectiveDict: [],
             notEffectiveDicts: [],
+            importedDic:['平台/svc_sec_usermgr'],
             defaultExpandedKeys:[],
+            searchDicValue: "",
             ip:null,
-            ips:[]
+            ips:[],
+            searchTSValue: ""
         }
     },
     
@@ -1199,16 +1239,16 @@ export default {
 
             let notInterpretation = []
 
-            let insertEntrys = []
-            this.dataSource.forEach(item => {
-                if(this.selectedRowKeys.includes(item.id)){
-                    insertEntrys.push(item)
-                }
-            })
+            // let insertEntrys = []
+            // this.dataSource.forEach(item => {
+            //     if(this.selectedRowKeys.includes(item.id)){
+            //         insertEntrys.push(item)
+            //     }
+            // })
             // 保存操作 将保存所有词条(allData) 改为 保存已勾选的词条 
-            insertEntrys.forEach(item => {
+            this.selectedRows.forEach(item => {
                 if(item.parentID != '' && item.parentID != null){
-                    // 存在父id的过滤掉
+                    // 去除含有父节点的词条
                     return
                 }
                 // 一体化平台，文件导入且选择了回写词典时，修改diFileName和importType
@@ -1434,13 +1474,15 @@ export default {
                 this.filediFileName = null
                 this.getTsFiles()
             }else if(this.dataType === 'config'){
-                this.configFile.dict = null
+                this.configFile.config = null
                 this.filediFileName = null
                 // this.getDictionary()
+                this.getConfigList()
             }else if(this.dataType === 'enum'){
-                this.configFile.dict = null
+                this.enumFile.enum = null
                 this.filediFileName = null
                 // this.getDictionary()
+                this.getEnumList()
             }else if(this.dataType === 'file'){
                 this.filePath = ""
                 this.filediFileName = null
@@ -1493,7 +1535,7 @@ export default {
                     let temp = {
                         label: item.label,
                         value: item.label,
-                        disabled: true
+                        // disabled: true
                     }
                     let list = []
                     item.options.forEach(op => {
@@ -1506,7 +1548,7 @@ export default {
                     temp.children = list
                     this.notEffectiveDicts.push(temp)
                 });
-                console.log(this.notEffectiveDicts)
+                // console.log(this.notEffectiveDicts)
             })
         },
         // 获取数据库节点信息
@@ -1848,7 +1890,8 @@ export default {
                 //     this.loading = false
                 //     this.importBtnLoading = false
                 // })
-                let params = {
+                    let params = {
+                        fileName: this.configFile.config ? this.configFile.config : "",
                         diFileName: "",
                         taskID: this.task.id,
                         versionID: this.task.versionId ? this.task.versionId : "",
@@ -1866,36 +1909,15 @@ export default {
                         this.importBtnLoading = false
                         message.error("数据获取失败！")
                     })
+                    
             }else if(this.dataType === 'enum'){
                 if(this.ip === null || this.ip === undefined || this.ip === ''){
                     message.info('请选择IP！')
                     return
                 }
-                // 枚举文件数据导入
-                // this.$refs.configFormRef.validate().then(() => {
-                //     let params = {
-                //         diFileName: this.configFile.dict,
-                //         taskID: this.task.id,
-                //         versionID: this.task.versionId ? this.task.versionId : "",
-                //         translateType : this.task.translateType, 
-                //     }
-                //     getEnumEntry(params).then((res) => {
-                //         this.dataSource = res.data.list
-                //         this.sortArray(this.dataSource,'isExist')
-                //         this.allData = this.dataSource
-                //         this.loading = false
-                //         this.importBtnLoading = false
-                //     }).catch((err) => {
-                //         this.loading = false
-                //         this.importBtnLoading = false
-                //         message.error("数据获取失败！")
-                //     })
-                // }).catch((err) => {
-                //     this.loading = false
-                //     this.importBtnLoading = false
-                // })
 
-                let params = {
+                    let params = {
+                        fileName: this.enumFile.enum ? this.enumFile.enum : "",
                         diFileName: "",
                         taskID: this.task.id,
                         versionID: this.task.versionId ? this.task.versionId : "",
@@ -2455,13 +2477,72 @@ export default {
                     this.ips.push(ip)
                 })
                 
-                this.getDictionary()
+                // this.getDictionary()
             })
         },
         // ip change事件
         ipChange(value){
-            console.log(value)
             this.dataTypeChange()
+        },
+
+        // 搜索框内容变化时更新 searchDicValue
+        onDicSearch(value) {
+            this.searchDicValue = value;
+        },
+        // 选中项变化时，不清空搜索框内容
+        onDicChange(value) {
+            // console.log('Selected value:', value);
+            // 这里可以根据需要进行额外的操作，但不会清空搜索内容
+        },
+        onTSSearch(value) {
+            this.searchTSValue = value;
+        },
+        onDicBlur(){
+            this.searchDicValue = ""
+        },
+        // 选中项变化时，不清空搜索框内容
+        onTSChange(value) {
+            // console.log('Selected value:', value);
+            // 这里可以根据需要进行额外的操作，但不会清空搜索内容
+        },
+        onTSBlur(){
+            this.searchTSValue = ""
+        },
+        // 获取配置文件列表
+        getConfigList(){
+            let param = {
+                i18nUrl: this.ip
+            }
+            getConfigList(param).then((res) => {
+                this.configFile.configOptions = []
+                if(res.data){
+                    res.data.forEach(item => {
+                        let config = {
+                            value: item,
+                            label: item
+                        }
+                        this.configFile.configOptions.push(config)
+                    })
+                }
+            })
+        },
+        // 获取枚举文件列表
+        getEnumList(){
+            let param = {
+                i18nUrl: this.ip
+            }
+            getEnumList(param).then((res) => {
+                this.enumFile.enumOptions = []
+                if(res.data){
+                    res.data.forEach(item => {
+                        let enumItem = {
+                            value: item,
+                            label: item
+                        }
+                        this.enumFile.enumOptions.push(enumItem)
+                    })
+                }
+            })
         }
     }
 }

@@ -187,3 +187,13 @@ export function workImportExcleTrans(data) {
         data:data
     });
 }
+
+// 获取分类词条
+export function getEntryByClassfy(params,data) {
+    return request({
+        url: "/entryInfo/getEntryByClassfy",
+        method: "POST",
+        params,
+        data
+    });
+}
