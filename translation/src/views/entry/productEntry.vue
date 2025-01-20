@@ -734,6 +734,9 @@ export default {
             this.product = newval
             this.showOperationArea = false
             this.pagination.current = 1
+            this.selectEntry = []
+            this.selectedRowKeys = []
+            this.selectedRows = []
             this.init()
             // console.log(newval)
             let limitMap = {}
@@ -847,7 +850,6 @@ export default {
         },
         // 获取版本词条
         getEntryByVersion(){
-            console.log(this.product)
             if(Object.keys(this.product).length === 0){
                 return
             }
@@ -1355,11 +1357,28 @@ export default {
                 data.frenchTranslateState = this.search.translateState
             }
             let params = {
+                classfyID: this.product.key,
                 pageIndex: -1,
                 pageSize: -1,
             }
             this.loading = true
-            getEntryByVersion(data,params).then((res) => {
+
+            // getEntryByVersion(data,params).then((res) => {
+            //     this.selectEntry = []
+            //     this.selectedRowKeys = []
+            //     this.selectedRows = res.data.list
+            //     this.selectEntry = res.data.list
+            //     res.data.list.forEach(item => {
+            //         this.selectedRowKeys.push(item.id)
+            //     })
+            //     this.loading = false
+            //     this.selectAllLoading = false
+            // }).catch((err) => {
+            //     this.loading = false
+            //     this.selectAllLoading = false
+            // })
+
+            getEntryByClassfy(params,data).then((res) => {
                 this.selectEntry = []
                 this.selectedRowKeys = []
                 this.selectedRows = res.data.list

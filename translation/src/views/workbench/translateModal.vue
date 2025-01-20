@@ -99,7 +99,7 @@
                 >
                     <template #bodyCell="{ column, text, record }">
                         <template v-if="column.dataIndex === 'entry'">
-                            <span v-text="text.replace(/\n/g, '\\n')"></span>
+                            <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
                         </template>
                         <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                             <div>
@@ -425,7 +425,7 @@ export default {
                     sortDirections: ['descend', 'ascend'],
                 },
                 {title: 'Tag',dataIndex: 'tag',align:'center',width:150,},
-                // {title: '来源',dataIndex: 'entrySource',align:'center',width:150,resizable: true,ellipsis:true},
+                {title: 'Comment',dataIndex: 'Comment',align:'center',width:150,resizable: true,},
                 {title: '审核意见',dataIndex: 'auditSuggess',align:'center',width:100,resizable: true},
             ],
             dataSource:[],

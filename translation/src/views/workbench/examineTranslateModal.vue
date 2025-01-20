@@ -110,7 +110,7 @@
             >
                 <template #bodyCell="{ column, text, record }">
                     <template v-if="column.dataIndex === 'entry'">
-                        <span v-text="text.replace(/\n/g, '\\n')"></span>
+                        <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
                     </template>
                     <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                         <div>

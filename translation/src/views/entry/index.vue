@@ -272,7 +272,12 @@ export default {
                 this.currentClickProduct = newNode
                 this.getproductIsEdit(node.parentId)
             }else {
-                this.productEdit = false
+                if(this.$store.state.admin){
+                    this.productEdit = true
+                }else{
+                    this.productEdit = false
+                }
+                
                 this.currentClickProduct = node
             }
         },

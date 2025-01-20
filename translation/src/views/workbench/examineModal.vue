@@ -95,7 +95,7 @@
             >
                 <template #bodyCell="{ column, text, record }">
                     <template v-if="column.dataIndex === 'entry'">
-                        <span v-text="text.replace(/\n/g, '\\n')"></span>
+                        <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
                     </template>
                     <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
                         <div>
@@ -116,7 +116,7 @@
                             </template>
                         </div>
                     </template>
-                    <template v-if="['chineseInterpretation','englishInterpretation','auditSuggess','diFileName'].includes(column.dataIndex)">
+                    <template v-if="['chineseInterpretation','englishInterpretation','auditSuggess','diFileName','comment'].includes(column.dataIndex)">
                         <div>
                             <template v-if="editableData[record.id]">
                                 <a-input
@@ -456,6 +456,7 @@ export default {
                 entry.englishInterpretation =  this.editableData[key].englishInterpretation
                 entry.tag = this.editableData[key].tag
                 entry.diFileName = this.editableData[key].diFileName
+                entry.comment = this.editableData[key].comment
 
                 if(entry[languageCode] != null && entry[languageCode] != null){
                     // 翻译存在  则状态为待审核状态
@@ -643,6 +644,7 @@ export default {
             record.englishInterpretation =  this.editableData[record.id].englishInterpretation
             record.tag = this.editableData[record.id].tag
             record.diFileName = this.editableData[record.id].diFileName
+            record.comment = this.editableData[record.id].comment
 
             let languageCode = workbenchCommon.languageMap[this.task.translateType].code
             // 长度校验

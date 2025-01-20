@@ -105,7 +105,7 @@
             >
                 <template #bodyCell="{ column, record,text }">
                     <template v-if="column.dataIndex === 'entry'">
-                        <span v-text="text.replace(/\n/g, '\\n')"></span>
+                        <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
                     </template>
                     <template v-if="column.dataIndex === 'entryState'">
                         <template v-if="record.entryState === 0">

@@ -121,11 +121,12 @@ export function setInfoByTask(params){
 }
 
 // 读取配置文件中的词条
-export function getConfigEntry(params){
+export function getConfigEntry(params,data){
     return request({
         url: "/I18Sever/getConfigEntry",
-        method: "GET",
-        params
+        method: "POST",
+        params,
+        data
     });
 }
 
@@ -169,11 +170,12 @@ export function getDBALLEntryByDB(params,data){
 }
 
 // 获取枚举文件词条
-export function getEnumEntry(params){
+export function getEnumEntry(params,data){
     return request({
         url: "/I18Sever/getEnumEntry",
-        method: "GET",
-        params
+        method: "POST",
+        params,
+        data
     });
 }
 
