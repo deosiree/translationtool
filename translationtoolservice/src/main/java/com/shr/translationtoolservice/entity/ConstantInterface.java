@@ -45,7 +45,10 @@ public class ConstantInterface {
     public static final String GET_DBALLENTRYBYDB= "tdb/getDBALLEntryByDB";
 
     public static final String GET_CONGIF_ENTRY= "config/getEntry";
+    public static final String GET_CONFIG_LIST= "config/getFileList";
     public static final String GET_ENUM_ENTRY= "enum/getEntry";
+    public static final String GET_ENUM_LIST= "enum/getEnumList";
+
     public static final String CREATE_DI= "dic/createDic";
     public static final String REMOVE_DI= "dic/removeDic";
     public static final String ADD_DIC_TERM= "dic/addDicTerm";

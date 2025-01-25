@@ -18,6 +18,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 @TableName(value ="t_translate")
 @Data
 public class TranslateEntity implements Serializable {
+
+    @TableField(exist = false)
+    private String productName;
+    @TableField(exist = false)
+    private String versionName;
+    @TableField(exist = false)
+    private String taskName;
+
     /**
      * 主键
      */

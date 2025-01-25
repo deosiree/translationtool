@@ -48,6 +48,7 @@ public class TsUtils {
             }*/
             requestMap.put("source", entryInfoEntity1.getEntry());
             requestMap.put("tag", entryInfoEntity1.getTag());
+            requestMap.put("comment", entryInfoEntity1.getComment());
             if (fileName.contains("en_US")){
                 trans = entryInfoEntity1.getEnglish();
             }

@@ -334,6 +334,11 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "tag")
     private String tag;
 
+    /**
+     * comment
+     */
+    @TableField(value = "comment")
+    private String comment;
 
     /**
      * 存在情况（0否 1是） 导入时使用这个判断是否存在用

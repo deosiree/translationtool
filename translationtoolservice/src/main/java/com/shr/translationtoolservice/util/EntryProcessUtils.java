@@ -66,7 +66,8 @@ public class EntryProcessUtils {
                     }
                     break;
             }
-            String mapKey = entry + ConstantInterface.UNDERLINE + translate;
+            String mapKey = entry + ConstantInterface.UNDERLINE + translate + ConstantInterface.UNDERLINE + entryInfoEntity.getIsExist();
+
 
             EntryInfoEntity mapValueEntry = entryEntityMap.get(mapKey);
             //判断map 是否有这个key
@@ -83,7 +84,7 @@ public class EntryProcessUtils {
 
             } else {
                 entryInfoEntity.setParentID("");
-                entryEntityMap.put(entry + ConstantInterface.UNDERLINE + translate, entryInfoEntity);
+                entryEntityMap.put(mapKey, entryInfoEntity);
             }
         }
 

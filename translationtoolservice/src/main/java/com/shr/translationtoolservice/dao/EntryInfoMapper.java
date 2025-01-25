@@ -57,6 +57,15 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     List<EntryInfoEntity> getbppEntrys();
 
 
+    List<String> getUsedDicByTaskID(@Param("taskID")String taskID);
+
+    List<EntryInfoEntity> getEntryByClassfy(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
+                                            @Param("productidList")List<String> productidList,
+                                            @Param("offset") Integer offset,
+                                            @Param("limit") Integer limit);
+
+    List<EntryInfoEntity> getEntryByClassfyTotal(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
+                                                 @Param("productidList")List<String> productidList);
 }
 
 

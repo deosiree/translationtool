@@ -204,7 +204,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         String userName = JWTTokenUtils.getUserName(token);
         List<TaskInfoEntity> taskInfos = taskInfoMapper.getTaskInfoByUserName(userName, offset, pageSize, taskInfoEntity);
         for (TaskInfoEntity taskInfo : taskInfos){
-             EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
+                 EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
              if (Objects.nonNull(entryClassify)){
                  EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
                  if (Objects.nonNull(parentClassfy)){

@@ -81,7 +81,7 @@ public class DiUtils {
             log.info(" ==== 辞典 " + fileName + " 新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
 
         } catch (Exception e) {
-            log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT);
+            log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.UPDTAE_DICTIONARY + ConstantInterface.SPRIT);
             e.printStackTrace();
             return;
         }

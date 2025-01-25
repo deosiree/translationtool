@@ -44,7 +44,7 @@ public class I18nServiceImpl implements I18nService {
     private TranslateMapper translateMapper;
 
     @Override
-    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean common,String i18nUrl) {
+    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities1, String translateType,boolean tag,boolean common,String i18nUrl) {
 
         if (StringUtils.isBlank(i18nUrl)) {
             i18nUrl = I18URL;
@@ -62,8 +62,21 @@ public class I18nServiceImpl implements I18nService {
         Map<String, List<EntryInfoEntity>> dbTypeMap = new HashMap<>();
         Map<String, List<EntryInfoEntity>> configTypeMap = new HashMap<>();
         Map<String, List<EntryInfoEntity>> enumTypeMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(entryInfoEntities1)) {
+            return ConstantInterface.OK_STR;
+        }
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities1) {
+            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                entryInfoEntities.addAll(entryInfoEntity.getChildren());
+            }
+            entryInfoEntities.add(entryInfoEntity);
+        }
+
+
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             //取翻译状态为3的词条
+
             String trans = getTransByType(entryInfoEntity, translateType);
             if (StringUtils.isBlank(trans)) {
                 continue;
@@ -79,6 +92,7 @@ public class I18nServiceImpl implements I18nService {
                         tagStr =  entryInfoEntity.getTag();
                     }*/
                     requestMap.put("tag", tagStr);
+                    requestMap.put("comment", entryInfoEntity.getComment());
                     requestMap.put("translate", trans);
                     tsEntrys.add(requestMap);
                     tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),tsEntrys);
@@ -91,6 +105,7 @@ public class I18nServiceImpl implements I18nService {
                         tagStr =  entryInfoEntity.getTag();
                     }*/
                     requestMap.put("tag", tagStr);
+                    requestMap.put("comment", entryInfoEntity.getComment());
                     requestMap.put("translate", trans);
                     List<Map<String, String>> list = tsEntryInfoMap.get(entryInfoEntity.getEntrySource());
                     list.add(requestMap);

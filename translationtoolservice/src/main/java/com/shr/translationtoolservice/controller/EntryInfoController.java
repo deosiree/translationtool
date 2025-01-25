@@ -179,6 +179,24 @@ public class EntryInfoController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/getEntryByClassfy")
+    @ApiOperation("获取分类词条")
+    @CrossOrigin
+    @Token
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntity,
+                                                                              @RequestParam(value = "classfyID") String classfyID,
+                                                                              @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                              @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+
+        entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize);
+
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID));
+        return checkResult(responseListModel);
+    }
+
     @PostMapping("/addEntryByVersion")
     @ApiOperation("新增版本词条(导入)")
     @CrossOrigin
@@ -399,8 +417,8 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("关系表新增")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<String> addProductRelation(@RequestBody List<EntryInfoEntity> relationEntity) {
-        String relation = entryInfoService.addProductRelation(relationEntity);
+    public   HttpResponse<String> addProductRelation(@RequestBody List<EntryInfoEntity> relationEntity ,HttpServletRequest request) {
+        String relation = entryInfoService.addProductRelation(relationEntity,request);
 
         return checkResult(relation);
     }

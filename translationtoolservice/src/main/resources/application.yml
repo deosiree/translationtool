@@ -18,9 +18,9 @@ spring:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #url: jdbc:mysql://localhost:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false?serverTimezone=Asia/Shanghai&socketTimeout=60000
     #
-    url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    #url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
 
     username: root
     password: 123456
@@ -28,7 +28,7 @@ spring:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
 server:
-  port: 18002
+  port: 18001
 
 
 #logging:
@@ -37,13 +37,16 @@ server:
 translate:
   #  百度翻译api信息
   baidu:
-    url: https://api.fanyi.baidu.com/api/trans/vip/translate
+    #url: https://api.fanyi.baidu.com/api/trans/vip/translate
+    url: https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1
     appid: 20230705001734655
     securityKey: tGq6U8CfAaztFjBO7WT8
   #  DeepL翻译api信息
   deepl:
     url: https://api.deepl-pro.com
-    key: b253ec17-0877-4a1f-81cb-72c5f824b32c:dp
+    #我的
+    #key: b253ec17-0877-4a1f-81cb-72c5f824b32c:dp
+    key: 4595ec64-b32f-4b00-93ff-9a6351d25b88:dp
   #  有道翻译api信息
   youdao:
     url: https://openapi.youdao.com/api
@@ -87,10 +90,11 @@ log:
   level: debug
 
 I18server:
-  #url: http://10.17.70.25:18099/
+  #local
+  #url: http://localhost:18099/
   #linx
-  url: http://10.17.14.101:18099/
-  #url: http://10.16.193.63:18099/
+  url: http://10.17.14.250:18099/
+
 ConfigFile:
   zzUrl: "src/main/resources/config/zz.xlsx"
   commonUrl: "src/main/resources/config/common.xlsx"

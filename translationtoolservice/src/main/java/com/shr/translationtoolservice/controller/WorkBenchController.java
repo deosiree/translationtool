@@ -234,7 +234,7 @@ public class WorkBenchController extends BaseController {
     }
 
     @PostMapping("/capitalizeWords")
-    @ApiOperation("首字母转换为大写")
+    @ApiOperation("句首字母转换为大写")
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> capitalizeWords(@RequestBody List<EntryInfoEntity> entryInfoEntities,
@@ -246,5 +246,23 @@ public class WorkBenchController extends BaseController {
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
     }
+
+    @PostMapping("/replaceWords")
+    @ApiOperation("批量替换")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> replaceWords(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                                        @RequestParam("sourceStr")  String sourceStr,@RequestParam("replaceStr")  String replaceStr,
+                                                        @RequestParam("translateType")  String translateType) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryInfoEntity> entryInfoEntities1 = entryInfoService.replaceWords(entryInfoEntities, sourceStr,replaceStr,translateType);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
+        return checkResult(responseListModel);
+    }
+
+
+
 
 }

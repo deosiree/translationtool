@@ -14,7 +14,6 @@ import io.swagger.annotations.ApiOperation;
 
 import lombok.extern.slf4j.Slf4j;
 
-import lombok.val;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +23,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -192,6 +190,7 @@ public class I18SeverController extends BaseController {
                     String entry = jsonArray1.get(0).toString();
                     String translate = jsonArray1.getString(1);
                     String tag = jsonArray1.getString(2);
+                    String comment = jsonArray1.getString(3);
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntrySource(fileName);
@@ -202,6 +201,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setUpdateTime(date);
                     entryInfoEntity.setProductID(productId);
                     entryInfoEntity.setTag(tag);
+                    entryInfoEntity.setComment(comment);
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setImportType(ConstantInterface.TS);
                     entryInfoEntity.setWriteType(ConstantInterface.TS);
@@ -216,10 +216,10 @@ public class I18SeverController extends BaseController {
 
 
         }
-
-        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryInfoEntities, taskID);
+        caseExistEntry(list, taskID);
+        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, translateType);
+
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
@@ -324,6 +324,37 @@ public class I18SeverController extends BaseController {
         JSONArray jsonArray = new JSONArray();
         String s = "";
         ArrayList<String> list = new ArrayList<>();
+        try {
+            s = httpUtils.get(i18nUrl + ConstantInterface.DICTIONARY);
+            jsonArray = JSONArray.parseArray(s);
+            for (int i = 0; i < jsonArray.size(); i++) {
+                list.add(jsonArray.get(i).toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult(responseListModel, "请求异常！");
+        }
+        responseListModel.setList(list);
+        responseListModel.setTotalNum(list.size());
+        return checkResult(responseListModel);
+    }
+
+    @GetMapping("/getWorkDictionaryList")
+    @ApiOperation("工作台获取字典列表")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getWorkDictionaryList(@RequestParam String i18nUrl,@RequestParam String taskID) {
+
+        ResponseListModel<String> responseListModel = new ResponseListModel<>();
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
+        JSONArray jsonArray = new JSONArray();
+        String s = "";
+        ArrayList<String> list = new ArrayList<>();
+        List<String> dicList = entryInfoMapper.getUsedDicByTaskID(taskID);
+
+
         try {
             s = httpUtils.get(i18nUrl + ConstantInterface.DICTIONARY);
             jsonArray = JSONArray.parseArray(s);
@@ -641,7 +672,9 @@ public class I18SeverController extends BaseController {
             comment = false;
         }
         if (StringUtils.isNotBlank(taskID)) {
-            entryInfoEntities = entryInfoMapper.getWriteEntryByTaskID(taskID, "");
+            if (CollectionUtils.isEmpty(entryInfoEntities)) {
+                entryInfoEntities = entryInfoMapper.getWriteEntryByTaskID(taskID, "");
+            }
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
             translateType = taskInfoEntity.getTranslateType();
         }
@@ -728,9 +761,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "i18n请求异常 ！ ");
         }
-        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, transType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryInfoEntities, taskID);
+        caseExistEntry(list, taskID);
+        List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, transType);
+
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
@@ -820,9 +854,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "i18n请求异常 ！ ");
         }
+        caseExistEntry(list, taskID);
         List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, transType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryInfoEntities, taskID);
+
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
         return checkResult(responseListModel);
@@ -1099,10 +1134,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-
-        List<EntryInfoEntity> entryInfoEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
         caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryInfoEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryInfoEntities1);
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
@@ -1141,10 +1176,11 @@ public class I18SeverController extends BaseController {
             headerParameters.put("nodeName", nodeName);
             s = httpUtils.get(i18nUrl + ConstantInterface.GET_ALIAS, headerParameters);
             jsonArray = JSONArray.parseArray(s);
-            String source = nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName;
+
             for (int i = 0; i < jsonArray.size(); i++) {
+                String source = nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName;
                 TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
-                source = source + ConstantInterface.UNDERLINE + tdbTableInfo.getTableId();
+                source = source + ConstantInterface.UNDERLINE  + tdbTableInfo.getCommon();
                 diFileName = "DB_" + dbName;
                 if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
                     //将表的别名写入词条
@@ -1202,9 +1238,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
+        caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryEntities1);
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
@@ -1309,9 +1346,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
+        caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryEntities1);
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
@@ -1421,9 +1459,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
+        caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryEntities1);
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
@@ -1536,9 +1575,10 @@ public class I18SeverController extends BaseController {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
+        caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryEntities1);
         responseListModel.setTotalNum(sum);
         log.info(Integer.toString(sum) + " **** " + entryEntities1.size());
@@ -1688,13 +1728,13 @@ public class I18SeverController extends BaseController {
     }
 
 
-    @GetMapping("/getConfigEntry")
+    @PostMapping("/getConfigEntry")
     @ApiOperation("读取配置文件词条")
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> getConfigEntry(@RequestParam String versionID,
                                                           @RequestParam String taskID,
-                                                          @RequestParam String diFileName,
+                                                          @RequestBody List<String> fileNames,
                                                           @RequestParam String i18nUrl,
                                                           @RequestParam String translateType, HttpServletRequest request
     ) {
@@ -1707,11 +1747,13 @@ public class I18SeverController extends BaseController {
         if (StringUtils.isBlank(i18nUrl)) {
             i18nUrl = I18URL;
         }
-        JSONArray jsonArray = new JSONArray();
-        String s = "";
         try {
-
-            s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONGIF_ENTRY);
+            for (String fileName : fileNames){
+            JSONArray jsonArray = new JSONArray();
+            String s = "";
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("fileName", fileName);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONGIF_ENTRY,headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
@@ -1741,27 +1783,28 @@ public class I18SeverController extends BaseController {
 
 
             }
-
+        }
             log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
+        caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryEntities1);
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
     }
 
-    @GetMapping("/getEnumEntry")
+    @PostMapping("/getEnumEntry")
     @ApiOperation("读取枚举文件词条")
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> getEnumEntry(@RequestParam String versionID,
                                                         @RequestParam String taskID,
-                                                        @RequestParam String diFileName,
+                                                        @RequestBody List<String> fileNames,
                                                         @RequestParam String i18nUrl,
                                                         @RequestParam String translateType, HttpServletRequest request
     ) {
@@ -1771,14 +1814,19 @@ public class I18SeverController extends BaseController {
         String token = request.getHeader("token");
         Date date = new Date(System.currentTimeMillis());
         String userName = JWTTokenUtils.getUserName(token);
+
         if (StringUtils.isBlank(i18nUrl)) {
             i18nUrl = I18URL;
         }
-        JSONArray jsonArray = new JSONArray();
-        String s = "";
-        try {
 
-            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_ENTRY);
+
+        try {
+            for (String fileName : fileNames) {
+            JSONArray jsonArray = new JSONArray();
+            String s = "";
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("fileName", fileName);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_ENTRY, headerParameters);
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
@@ -1805,18 +1853,67 @@ public class I18SeverController extends BaseController {
 
 
             }
-
-            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
+        }
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_ENUM_ENTRY);
         } catch (Exception e) {
             e.printStackTrace();
             return checkResult(responseListModel, "请求异常！");
         }
-        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
         //查询产品表里的词条是否有重复的
-        caseExistEntry(entryEntities1, taskID);
+        caseExistEntry(entryInfoEntities, taskID);
+        List<EntryInfoEntity> entryEntities1 = buildRepeTempEntry(entryInfoEntities, translateType);
+
         responseListModel.setList(entryEntities1);
         responseListModel.setTotalNum(entryEntities1.size());
         return checkResult(responseListModel);
+    }
+
+    @GetMapping("/getEnumList")
+    @ApiOperation("读取枚举文件列表")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<JSONArray> getEnumList(@RequestParam String i18nUrl) {
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
+        JSONArray jsonArray = new JSONArray();
+        String s = "";
+        try {
+
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_LIST);
+            jsonArray = JSONArray.parseArray(s);
+
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_ENUM_LIST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult(jsonArray, "请求异常！");
+        }
+
+        return checkResult(jsonArray);
+    }
+
+    @GetMapping("/getConfigList")
+    @ApiOperation("读取配置文件列表")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<JSONArray> getConfigList(@RequestParam String i18nUrl) {
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
+        JSONArray jsonArray = new JSONArray();
+        String s = "";
+        try {
+
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONFIG_LIST);
+            jsonArray = JSONArray.parseArray(s);
+
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_CONFIG_LIST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return checkResult(jsonArray, "请求异常！");
+        }
+
+        return checkResult(jsonArray);
     }
 
 

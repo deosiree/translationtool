@@ -92,6 +92,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     @Autowired
     private DeepLTranslateUtils deepLTranslateUtils;
 
+    @Autowired
+    private LocalTimeUtils localTimeUtils;
+
     @Override
     public String insertEntry(List<EntryInfoEntity> entities) {
         int insert = 0;
@@ -284,7 +287,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         TLanguage language = languageMapper.selectLaguageByName(translateType).get(0);
         String translateRes = "";
         while (!queue.isEmpty()) {
-            if (translateRes != null && !"".equals(translateRes)) {
+            if (StringUtils.isNotBlank(translateRes)) {
                 break;
             }
             String type = queue.remove();
@@ -693,7 +696,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     newTransID = updateAuditTrans(entryInfoEntity, transId, type, newTransID, trans, auditSuggest, department);
                     return newTransID;
                 } else {
-                    newTransID = updateTransEntity(transState, transId, auditSuggest, trans,department);
+                    newTransID = updateTransEntity(entryInfoEntity,transState, transId, auditSuggest, trans,department);
                     return newTransID;
                 }
 
@@ -745,7 +748,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         translateEntity.setPublicState(0);
         translateEntity.setVisualRange(department);
         translateEntity.setDeleteState(0);
-        translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
+        translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
         translateEntity.setType(type);
         translateEntity.setEntry(entry);
         int insert = translateMapper.insert(translateEntity);
@@ -753,13 +756,14 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return newTransID;
     }
 
-    private String updateTransEntity(String transState, String transId, String auditSuggest, String trans,String department) {
+    private String updateTransEntity(EntryInfoEntity entryInfoEntity,String transState, String transId, String auditSuggest, String trans,String department) {
         TranslateEntity translateEntity = new TranslateEntity();
         translateEntity.setTranslate(trans);
+        translateEntity.setEntry(entryInfoEntity.getEntry());
         translateEntity.setTranslateState(transState);
         translateEntity.setId(transId);
         translateEntity.setVisualRange(department);
-        translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
+        translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
         translateEntity.setAuditSuggest(auditSuggest);
         int update = translateMapper.updateById(translateEntity);
         log.info("更新 （" + update + " ）条 翻译 到翻译表中, transID ( " + transId + ") 更新内容 ： trans ( " + trans + "),  transState ( " + transState + ")  ");
@@ -781,8 +785,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         if (translateEntityList.size() > 0) {
             log.error(" ===== 词条更新翻译查重多于1条，size: " + translateEntityList.size() +" ，transid : " + transId + "  ,entry : " + entryInfoEntity.getEntry() + " , trans : " + trans + " ===== ");
             //更新使用时间
-             TranslateEntity translateEntity = translateEntityList.get(0);
-             translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
+            //取最后的使用时间
+             TranslateEntity translateEntity = translateEntityList.stream().max(Comparator.comparing(TranslateEntity::getLastUseTime)).get();
+             translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
              newTransID = translateEntity.getId();
             translateMapper.updateById(translateEntity);
             int delete = translateMapper.deleteById(transId);
@@ -796,7 +801,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             translateEntity.setTranslateState("3");
             translateEntity.setPublicState(0);
             translateEntity.setVisualRange(department);
-            translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
+            translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
             translateEntity.setDeleteState(0);
             translateEntity.setType(type);
             translateEntity.setEntry(entryInfoEntity.getEntry());

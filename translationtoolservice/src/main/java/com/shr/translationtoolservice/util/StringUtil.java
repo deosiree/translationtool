@@ -18,16 +18,21 @@ public class StringUtil {
         }
         StringBuilder result = new StringBuilder();
         String[] words = str.split(" ");
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0)))
-                        .append(word.substring(1))
-                        .append(" ");
+        for (int i = 0; i < words.length; i++) {
+            if (!words[i].isEmpty()) {
+                if (i == 0) {
+                    result.append(Character.toUpperCase(words[i].charAt(0)))
+                            .append(words[i].substring(1).toLowerCase());
+                } else {
+                    result.append(" ")
+                            .append(Character.toLowerCase(words[i].charAt(0)))
+                            .append(words[i].substring(1).toLowerCase());
+                }
             } else {
-                result.append(" "); // 保留多余的空格
+                result.append(" "); // Preserve multiple spaces
             }
         }
-        return result.toString().trim(); // 去掉最后的多余空格
+        return result.toString().trim(); // Remove trailing spaces
     }
 
     /**
@@ -40,7 +45,7 @@ public class StringUtil {
             return str;
         }
         StringBuilder result = new StringBuilder();
-        String[] words = str.split(" ");
+      /*  String[] words = str.split(" ");
         for (String word : words) {
             if (!word.isEmpty()) {
                 result.append(Character.toLowerCase(word.charAt(0)))
@@ -49,6 +54,11 @@ public class StringUtil {
             } else {
                 result.append(" "); // 保留多余的空格
             }
+        }*/
+        //str首字母转换为大写
+        result.append(Character.toLowerCase(str.charAt(0)));
+        if (str.length() > 1) {
+            result.append(str.substring(1));
         }
         return result.toString().trim(); // 去掉最后的多余空格
     }

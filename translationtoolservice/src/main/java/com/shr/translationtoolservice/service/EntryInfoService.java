@@ -66,7 +66,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
-    String addProductRelation(List<EntryInfoEntity>  relationEntity);
+    String addProductRelation(List<EntryInfoEntity>  relationEntity,HttpServletRequest request);
 
     List<EntryInfoEntity> importCommonExcle(MultipartFile multipartFile, String taskID);
 
@@ -81,4 +81,10 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 
     List<EntryInfoEntity> capitalizeWords(List<EntryInfoEntity> entryInfoEntities, String changeType,String translateType);
+
+    List<EntryInfoEntity> replaceWords(List<EntryInfoEntity> entryInfoEntities, String sourceStr, String replaceStr,String translateType);
+
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize);
+
+    int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID);
 }
