@@ -88,7 +88,6 @@ import {
 } from "@/http/api/productVersion";
 import {
   getRoleUserByDepartment,
-  getDepartments
 } from "@/http/api/user";
 import {
   getLanguage
@@ -121,10 +120,10 @@ export default {
       locale: locale,
       labelCol: { style: { width: '84px' } },
       search: {
-        // 模块名/文件名+行号/问题类型/详情/日志
+        // 模块名/文件名+词条/问题类型/详情/日志
         moduleName: null,
         projectName: '',
-        col: '',
+        entry: '',
         questionType: null,
         details: '',
         logs: '',
@@ -134,10 +133,10 @@ export default {
       tableHeight: { x: '100%', y: 0 },
       loading: false,
       columns: [
-        // 模块名/文件名+行号/问题类型/详情/日志
+        // 模块名/文件名+词条/问题类型/详情/日志
         // { title: '任务状态', dataIndex: 'state', align: 'center', width: 100, fixed: 'right' },
         { title: '模块名/文件名', dataIndex: 'name', align: 'center', width: 50, fixed: 'right' },
-        { title: '行号/问题类型/详情/日志', dataIndex: 'log', align: 'center', width: 400, fixed: 'right' },
+        { title: '词条/问题类型/详情/日志', dataIndex: 'log', align: 'center', width: 400, fixed: 'right' },
       ],
       // dataSource: [],// 表格数据
       dataSource: [
@@ -217,7 +216,6 @@ export default {
       this.user = this.$store.questionType.user
       this.setTableHeight()
       this.searchTaskInfo()
-      this.getDepartments()
       this.getLanguage()
     },
     // 动态设置表格高度

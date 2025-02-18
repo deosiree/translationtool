@@ -466,6 +466,7 @@
     :visible="createVisible" 
     :dataSource="selectEntry" 
     :currentProduct="product"
+    :currentVersion="currentVersion"
     @createClose="createClose" 
     @removeEntry="removeEntry"
     @refresh="refreshTable"

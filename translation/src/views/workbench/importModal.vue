@@ -2370,7 +2370,8 @@ export default {
         templateDownload(){
             this.$refs.dictRef.validate().then(() => {
                 let params = {
-                    fileType:this.templateObj.type
+                    fileType:this.templateObj.type,
+                    translateType: this.task.translateType
                 }
                 templateFileDownload(params).then((res) => {
                     let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]

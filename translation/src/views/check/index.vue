@@ -16,13 +16,13 @@
   </div>
 </template>
 <script>
-import Code from '@/views/check/codeCheck.vue'
-import Qt from '@/views/check/qtCheck.vue'
-import File from '@/views/check/fileCheck.vue'
-import RedundantEntry from '@/views/check/redundantEntryCheck.vue'
+import Code from "@/views/check/codeCheck.vue";
+import Qt from "@/views/check/qtCheck.vue";
+import File from "@/views/check/fileCheck.vue";
+import RedundantEntry from "@/views/check/redundantEntryCheck.vue";
 
-export default ({
-  name: 'layout',
+export default {
+  name: "layout",
   components: {
     Code,
     File,
@@ -31,53 +31,62 @@ export default ({
   },
   data() {
     return {
-      activeKey: "",
+      activeKey: "code",
       menu: [
-        { name: 'code', menuName: "代码编写检查" },
-        { 
-          name: 'translation', 
+        { name: "code", menuName: "代码编写检查" },
+        {
+          name: "translation",
           menuName: "翻译产物检查",
-          activeKey: '',
+          activeKey: "file",
           children: [
-            { name: 'file', menuName: "文件校验"},
-            { name: 'redundantEntry', menuName: "冗余词条校验"}
-          ]
+            { name: "file", menuName: "文件校验" },
+            { name: "redundantEntry", menuName: "冗余词条校验" },
+          ],
         },
-        { name: 'qt', menuName: "qt机制检查" },
-      ]
+        { name: "qt", menuName: "qt机制检查" },
+      ],
     };
   },
   mounted() {
-    // this.$nextTick(() => {
-    //   // console.log(this.$store.state.tabActive)
-    //   // 页面加载完成后执行的代码
-    //   let list = this.$store.state.menu
-    //   for (var item of list) {
-    //     if (item.url === this.$route.path && item.children.length > 0) {
-    //       this.menu = item.children
-    //       // this.activeKey = this.menu[0].name
-    //     }
-    //   }
-    //   if (this.menu.length > 0) {
-    //     this.activeKey = this.$store.state.tabActive === null ? this.menu[0].name : this.$store.state.tabActive
-    //   }
-    // })
+    this.$nextTick(() => {
+      // console.log(this.$store.state.tabActive)
+      // 页面加载完成后执行的代码
+      let list = this.$store.state.menu;
+      for (var item of list) {
+        if (item.url === this.$route.path && item.children.length > 0) {
+          this.menu = item.children;
+          // this.activeKey = this.menu[0].name
+        }
+      }
+      // 检查当前组件的菜单是否有菜单项
+      if (this.menu.length > 0) {
+        // 如果 store 中的 tabActive 状态为 null，则将激活的标签页设置为菜单的第一个菜单项
+        // 否则，将激活的标签页设置为 store 中的 tabActive 状态
+        this.activeKey =
+          this.$store.state.tabActive === null
+            ? this.menu[0].name
+            : this.$store.state.tabActive;
+      }
+    });
   },
   methods: {
     changeTab(activeKey) {
       // console.log(activeKey);
-      this.$store.commit("setTabActive", activeKey)
+      // 提交 mutation 更新 store 中的 tabActive 状态
+      this.$store.commit("setTabActive", activeKey);
     },
     changeSubTab(parentName, activeKey) {
       // 找到父菜单
-      const parentMenu = this.menu.find(item => item.name === parentName);
+      const parentMenu = this.menu.find((item) => item.name === parentName);
       if (parentMenu) {
         // 设置子菜单的激活项
         parentMenu.activeKey = activeKey;
+        // 提交 mutation 更新 store 中的 tabActive 状态
+        this.changeTab(activeKey);
       }
-    }
+    },
   },
-})
+};
 </script>
 <style lang="less" scoped>
 :deep(.ant-tabs-nav) {

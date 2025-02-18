@@ -42,7 +42,7 @@
                 </template>
                 <!--Tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
-                  <span>{{ record.tag }}</span>
+                  <span class="tag">{{ record.tag }}</span>
                 </template>
                 <!-- 操作列 -->
                 <template v-if="column.dataIndex === 'operation'">
@@ -111,7 +111,7 @@ import {
 } from "@/http/api/task";
 import { getProduct } from "@/http/api/product";
 import { getVersion } from "@/http/api/productVersion";
-import { getRoleUserByDepartment, getDepartments } from "@/http/api/user";
+import { getRoleUserByDepartment } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
 import { getClassTree } from "@/http/api/entryManage";
 import { defineComponent, ref, createVNode } from "vue";
@@ -331,7 +331,6 @@ export default {
       this.user = this.$store.questionType.user;
       this.setTableHeight();
       this.searchTaskInfo();
-      this.getDepartments();
       this.getLanguage();
     },
     // 查看详情
@@ -723,6 +722,15 @@ export default {
 }
 </style>
 <style lang="less">
+.tag {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #eefffb;
+  border: 1px solid #beede5;
+  border-radius: 4px;
+  color: #77b3c9;
+}
+
 .editable-cell {
   position: relative;
 

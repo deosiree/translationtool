@@ -87,9 +87,9 @@
               :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
-                <!-- 词条状态列 -->
+                <!-- 词条状态列 （:text="record.entryState"每个都动态绑定太浪费资源了）-->
                 <template v-if="column.dataIndex === 'entryState'">
-                  <span>{{ record.entryState }}</span>
+                  <stateBadge :entry-state="record.entryState" />
                 </template>
                 <!-- 词条列 -->
                 <template v-if="column.dataIndex === 'entry'">
@@ -105,7 +105,7 @@
                 </template>
                 <!--Tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
-                  <span>{{ record.tag }}</span>
+                  <span class="tag">{{ record.tag }}</span>
                 </template>
                 <!--英文翻译列 -->
                 <template v-if="column.dataIndex === 'english'">
@@ -113,7 +113,7 @@
                 </template>
                 <!-- 英文翻译状态列 -->
                 <template v-if="column.dataIndex === 'translateState'">
-                  <span>{{ record.translateState }}</span>
+                  <stateBadge :entry-state="record.translateState" />
                 </template>
                 <!-- 辞典名称列 -->
                 <template v-if="column.dataIndex === 'dicName'">
@@ -129,7 +129,7 @@
   </div>
 </template>
 <script>
-import { message, Modal } from "ant-design-vue";
+import { message } from "ant-design-vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
@@ -137,8 +137,7 @@ import OperationArea from "@/components/operationArea/index.vue";
 import TimeLine from "@/components/timeLine/index.vue";
 import ProductModal from "@/views/task/productModal.vue";
 import VersionModal from "@/views/task/versionModal.vue";
-import commen from "@/views/entry/common.js";
-import { cloneDeep, flatMap } from "lodash-es";
+import stateBadge from "@/components/abstact/stateBadge.vue";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -146,7 +145,6 @@ import {
   SaveOutlined,
   SendOutlined,
   PlusCircleOutlined,
-  ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import {
   searchTaskInfo,
@@ -158,7 +156,7 @@ import {
 } from "@/http/api/task";
 import { getProduct } from "@/http/api/product";
 import { getVersion } from "@/http/api/productVersion";
-import { getRoleUserByDepartment, getDepartments } from "@/http/api/user";
+import { getRoleUserByDepartment } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
 import { getClassTree } from "@/http/api/entryManage";
 import { defineComponent, ref, createVNode } from "vue";
@@ -176,6 +174,7 @@ export default {
     SaveOutlined,
     SendOutlined,
     PlusCircleOutlined,
+    stateBadge,
   },
   data() {
     return {
@@ -273,24 +272,24 @@ export default {
       dataSource: [
         {
           id: 1,
-          entryState: "词条状态",
+          entryState: "已审核",
           entry: "词条",
           entryVersion: "词条版本",
           entrySource: "词条来源",
           tag: "Tag",
           english: "英文翻译",
-          translateState: "英文翻译状态",
+          translateState: "审核不通过",
           dicName: "辞典名称",
         },
         {
           id: 2,
-          entryState: "词条状态",
+          entryState: "审核不通过",
           entry: "词条",
           entryVersion: "词条版本",
           entrySource: "词条来源",
           tag: "Tag",
           english: "英文翻译",
-          translateState: "英文翻译状态",
+          translateState: "审核中",
           dicName: "辞典名称",
         },
         // ... 其他示例数据
@@ -361,7 +360,6 @@ export default {
       this.user = this.$store.questionType.user;
       this.setTableHeight();
       this.searchTaskInfo();
-      this.getDepartments();
       this.getLanguage();
     },
     // 动态设置表格高度
@@ -386,6 +384,13 @@ export default {
 
         // console.log(this.tableHeight.y)
       });
+    },
+    getStatusClass(status) {
+      return "green-status";
+      // if (status === "已审核") return "green-status";
+      // else if (status === "审核中") return "blue-status";
+      // else if (status === "审核不通过") return "red-status";
+      // else return "yellow-status";
     },
     // 获取翻译语言
     getLanguage() {
@@ -672,6 +677,15 @@ export default {
 }
 </style>
 <style lang="less">
+.tag {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #eefffb;
+  border: 1px solid #beede5;
+  border-radius: 4px;
+  color: #77b3c9;
+}
+
 .editable-cell {
   position: relative;
 
