@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
@@ -172,7 +173,7 @@ public class I18SeverController extends BaseController {
         String productId = taskInfoMapper.getTaskEntityByTaskID(taskID).getProductId();
         // String language = languageList.get(0).getName();
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-
+        List<TLanguage> tLanguages = languageMapper.selectList(new QueryWrapper<>());
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
         for (String fileName : fileNames) {
             Map<String, String> headerParameters = new HashMap<>();
@@ -193,6 +194,12 @@ public class I18SeverController extends BaseController {
                     String comment = jsonArray1.getString(3);
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
+                    //为了支持多语言，fileName截取前面一段作为entrySource  ,例：db_selector_comp_en_US.ts 截取db_selector_comp
+                    for (TLanguage tLanguage : tLanguages) {
+                        if (fileName.contains(tLanguage.getCode())) {
+                            fileName = fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
+                        }
+                    }
                     entryInfoEntity.setEntrySource(fileName);
                     entryInfoEntity.setEntryState(1);
                     entryInfoEntity.setTaskId(taskID);
@@ -302,11 +309,14 @@ public class I18SeverController extends BaseController {
                 jsonObject.put("entry", requestList);
                 jsonObject.put("test", "test6");
                 s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + ffileName, jsonObject);
+                if (StringUtils.isBlank(s) || !s.equals("true")){
+                    return checkResult("TS文件:" + ffileName +" 回写失败 !");
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return checkResult("请求异常！");
+            return checkResult("i18n服务请求异常！");
         }
         return checkResult(s);
     }
@@ -442,7 +452,7 @@ public class I18SeverController extends BaseController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return checkResult("请求异常！");
+            return checkResult("i18n服务请求异常！");
         }
 
         return checkResult(s);
@@ -453,7 +463,7 @@ public class I18SeverController extends BaseController {
     @ApiOperation("回写字典详情")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> setDictionaryInfo(@RequestBody List<String> types,@RequestParam String i18nUrl) {
+    public HttpResponse<ResponseListModel> setDictionaryInfo(@RequestBody List<String> types,@RequestParam String i18nUrl ) {
 
         ResponseListModel<String> responseListModel = new ResponseListModel<>();
         if (StringUtils.isBlank(i18nUrl)) {
@@ -467,6 +477,11 @@ public class I18SeverController extends BaseController {
                 Map<String, String> headerParameters = new HashMap<>();
                 headerParameters.put("dictionary", type);
                 s = httpUtils.post(i18nUrl + ConstantInterface.UPDTAE_DICTIONARY + "/" + type, new JSONObject());
+                log.info(" ==== 回写 ：" + i18nUrl +" 辞典 " + type  + " ==== ");
+
+                /*if (StringUtils.isBlank(s) || !s.equals("true")){
+                    return checkResult("词典:" + type +" 回写失败 !");
+                }*/
             }
 
             jsonArray = JSONArray.parseArray(s);
@@ -494,7 +509,7 @@ public class I18SeverController extends BaseController {
             }
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("dictionary", dicName);
-            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DICTIONARY, headerParameters);
+            s = httpUtils.get(i18nUrl + ConstantInterface.CREATE_DI, headerParameters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -714,6 +729,10 @@ public class I18SeverController extends BaseController {
             headerParameters.put("dictionary", type);
 
             s = httpUtils.get(i18nUrl + ConstantInterface.GET_DICTIONARY, headerParameters);
+           /* if (s.equals("501") || StringUtils.isBlank(s)){
+                ErrorCodeList.setErrorCodeList(ErrorCodeList.GET_DIC_ERROR +type);
+                return checkResult(ErrorCodeList.GET_DIC_ERROR + type);
+            }*/
             jsonArray = JSONArray.parseArray(s);
             for (int i = 0; i < jsonArray.size(); i++) {
                 DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);

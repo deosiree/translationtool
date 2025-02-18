@@ -184,15 +184,26 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public String deleteEntryInfoByID(List<String> entryIDs) {
+    public String deleteEntryInfoByID(List<String> entryIDs,String productID,String versionID) {
 
         HashMap<String, Object> map = new HashMap();
         for (String entryID : entryIDs) {
             map.put("entry_id", entryID);
+            if (StringUtils.isNotBlank(productID)) {
+                map.put("product_id", productID);
+            }
+            if (StringUtils.isNotBlank(versionID)) {
+                map.put("version_id", versionID);
+            }
         }
 
+        // 1.删除当前产品版本下的关联信息
         productRelationMapper.deleteByMap(map);
-        int delete = entryInfoMapper.deleteBatchIds(entryIDs);
+        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("entry_id", entryIDs));
+        // 2.删除完后用entryID查询关联表是否有被关联的词条，如果没有则词条表删除
+        if (CollectionUtils.isEmpty(productRelationEntities)) {
+            entryInfoMapper.deleteBatchIds(entryIDs);
+        }
         return ConstantInterface.OK_STR;
     }
 
@@ -515,7 +526,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     transState += ",'" + transState1 + "' ";
                 }
                 if (Integer.parseInt(transState1) == 0) {
-                    s = " or t2." + tLanguage.getYdCode() + "_trans_id  is null or t2.en_trans_id = ''";
+                    s = " or t2." + tLanguage.getTbCode() + "_trans_id  is null or t2.en_trans_id = ''";
                 }
             }
             if (StringUtils.isNotBlank(entry)) {
@@ -530,7 +541,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     "AuditSuggest  , t3.translate_state as " + tLanguage.getEnglish() +
                     "TranslateState ,t3.translate as " + tLanguage.getEnglish() +
                     " from  t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id left JOIN t_translate t3 ON  t2." +
-                    tLanguage.getYdCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  " + s + ") and  t1.task_id = '" + taskID + "' " + entryStateSql + entrySql;
+                    tLanguage.getTbCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  " + s + ") and  t1.task_id = '" + taskID + "' " + entryStateSql + entrySql;
 
 
             entryInfoEntities = entryInfoMapper.getTransStateEntry(sql);
@@ -556,9 +567,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
 
             if (!CollectionUtils.isEmpty(childrenInfoEntry)) {
-                update += syncChildrenTrans(entryInfoEntity, childrenInfoEntry);
+                update += syncChildrenTrans(entryInfoEntity, childrenInfoEntry,translateType);
             }else if (!CollectionUtils.isEmpty(childList)){
-                update += syncChildrenTrans(entryInfoEntity, childList);
+                update += syncChildrenTrans(entryInfoEntity, childList,translateType);
             }
 
 
@@ -571,18 +582,31 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         return ConstantInterface.OK_STR;
     }
 
-    private int syncChildrenTrans(EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> childrenInfoEntry) {
+    private int syncChildrenTrans(EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> childrenInfoEntry,String translateType) {
        int update = 0;
         for (EntryInfoEntity entryInfoEntity1 : childrenInfoEntry) {
             entryInfoEntity1.setEntryState(entryInfoEntity.getEntryState());
-            if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())) {
-                entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
-            } else if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())) {
-                entryInfoEntity1.setRuTransId(entryInfoEntity.getRuTransId());
-            } else if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())) {
-                entryInfoEntity1.setFraTransId(entryInfoEntity.getFraTransId());
-            } else if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())) {
-                entryInfoEntity1.setSpaTransId(entryInfoEntity.getSpaTransId());
+            switch (translateType){
+                case ConstantInterface.ENGLISH:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+                        entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
+                    }
+                    break;
+                case ConstantInterface.RUSSIAN:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
+                        entryInfoEntity1.setRuTransId(entryInfoEntity.getRuTransId());
+                    }
+                    break;
+                case ConstantInterface.FRENCH:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
+                        entryInfoEntity1.setFraTransId(entryInfoEntity.getFraTransId());
+                    }
+                    break;
+                case ConstantInterface.SPANISH:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
+                        entryInfoEntity1.setSpaTransId(entryInfoEntity.getSpaTransId());
+                    }
+                    break;
             }
             update +=  entryInfoMapper.updateById(entryInfoEntity1);
         }

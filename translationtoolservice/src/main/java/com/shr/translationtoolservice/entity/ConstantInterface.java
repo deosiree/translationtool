@@ -19,6 +19,9 @@ public class ConstantInterface {
 
     public static final String TOKEN = "token";
 
+
+    
+
     //i18server url
     public static final String LANGUAGE = "language";
     public static final String GET_FILE_LIST = "getFileListByLang";
@@ -88,6 +91,8 @@ public class ConstantInterface {
     public static final String ENTRY_BLANK = "词条为空";
     public static final String NOCHANGE = "词条未有变化";
     public static final String REPETITION_STR = "版本库存在重复的词条";
+
+
 
     public static final String UNTRANSLATED = "未翻译";
     public static final String TRANSLATED = "已翻译";
@@ -173,6 +178,8 @@ public class ConstantInterface {
         user_role.put("翻译员", "TRANSLATOR");
         user_role.put("开发员", "DEVELOPER");
         user_role.put("管理员", "ADMIN");
+        user_role.put("开发管理员", "DEVADMIN");
+        user_role.put("超级管理员", "SUPERADMIN");
         return user_role;
     }
 

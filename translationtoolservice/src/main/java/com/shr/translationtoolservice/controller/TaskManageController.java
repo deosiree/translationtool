@@ -29,7 +29,7 @@ import java.util.Map;
  **/
 
 @RestController
-@RequestMapping("/taskManage")
+    @RequestMapping("/taskManage")
 @Api(tags = "任务管理")
 @Slf4j
 public class TaskManageController extends BaseController {

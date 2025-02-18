@@ -2,15 +2,15 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.shr.translationtoolservice.dao.TLanguageMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
-import com.shr.translationtoolservice.entity.ConstantInterface;
-import com.shr.translationtoolservice.entity.EntryInfoEntity;
-import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.DiUtils;
 import com.shr.translationtoolservice.util.HTTPUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +42,9 @@ public class I18nServiceImpl implements I18nService {
     private String I18URL;
     @Autowired
     private TranslateMapper translateMapper;
+
+    @Autowired
+    private TLanguageMapper languageMapper;
 
     @Override
     public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities1, String translateType,boolean tag,boolean common,String i18nUrl) {
@@ -141,9 +144,18 @@ public class I18nServiceImpl implements I18nService {
         //写入i18 ts
         if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
            for (String fileName : tsEntryInfoMap.keySet()){
+               List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
+
                JSONObject jsonObject = new JSONObject();
                jsonObject.put("entry", tsEntryInfoMap.get(fileName));
+               fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
                String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
+               if (StringUtils.isBlank(s) ){
+                   return ErrorCodeList.I18N_SERVER_ERROR;
+               } else if ( !s.equals("true")){
+                   ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR +fileName);
+                   return ErrorCodeList.UPDATE_TS_ERROR +fileName;
+               }
            }
            // jsonObject.put("entry", tsEntryInfoMap);
            // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
@@ -152,7 +164,7 @@ public class I18nServiceImpl implements I18nService {
             //按照分裂写入di
             for (String di_fileName : diTypeMap.keySet()) {
                 //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common,i18nUrl);
+                return diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common,i18nUrl);
             }
 
         }

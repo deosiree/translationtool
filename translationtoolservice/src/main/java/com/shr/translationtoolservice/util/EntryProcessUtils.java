@@ -114,7 +114,11 @@ public class EntryProcessUtils {
                         parentEntry.setChildren(new ArrayList<>());
                     }
                     parentEntry.getChildren().add(entryInfoEntity);
+                    continue;
+                }else {
+                    parentEntrys.add(entryInfoEntity);
                 }
+
             }else {
                 parentEntrys.add(entryInfoEntity);
             }

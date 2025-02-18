@@ -56,6 +56,11 @@ public class TLanguage implements Serializable {
     private String xfCode;
 
     /**
+     * 表语言代码
+     */
+    private String tbCode;
+
+    /**
      * 英文全拼
      */
     private String english;

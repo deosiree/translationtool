@@ -69,6 +69,9 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     @Autowired
     private EntryClassifyMapper entryClassifyMapper;
 
+    @Autowired
+    private ProductRelationMapper productRelationMapper;
+
     @Override
     //获取任务信息
     //入参 taskInfoEntity 任务实体 ， offset 页码，pageSize 页内行数
@@ -505,10 +508,25 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         // 获取被复制的任务
         TaskInfoEntity CopiedTaks = taskInfoMapper.selectById(taskID);
         List<EntryInfoEntity> entryInfoEntities ;
-        List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(CopiedTaks.getVersionId());
         String tableName = "t_entry_info";
-        entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
-        entryTempService.insertEntry(entryInfoEntities);
+        QueryWrapper<ProductRelationEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("task_id",CopiedTaks.getId());
+        //获取被复制的任务的词条关系
+        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(queryWrapper);
+        if (CollectionUtils.isEmpty(productRelationEntities)){
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        //插入新任务的词条关系
+        for (ProductRelationEntity productRelationEntity : productRelationEntities){
+            String entryId = productRelationEntity.getEntryId();
+            ProductRelationEntity productRelationEntity1 = new ProductRelationEntity();
+            productRelationEntity1.setId(commonUtils.getUUID());
+            productRelationEntity1.setEntryId(entryId);
+            productRelationEntity1.setTaskId(newId);
+            productRelationEntity1.setVersionId(taskInfoEntity.getVersionId());
+            productRelationEntity1.setProductId(taskInfoEntity.getProductId());
+            productRelationMapper.insert(productRelationEntity1);
+        }
         return taskInfoEntity.getId();
     }
 
