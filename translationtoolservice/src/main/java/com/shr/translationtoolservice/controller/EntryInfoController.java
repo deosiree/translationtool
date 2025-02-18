@@ -1,10 +1,9 @@
 package com.shr.translationtoolservice.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
-import com.shr.translationtoolservice.dao.EntryClassifyMapper;
-import com.shr.translationtoolservice.dao.EntryMapper;
-import com.shr.translationtoolservice.dao.EntryVersionMapper;
+import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.*;
@@ -180,6 +179,24 @@ public class EntryInfoController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/getEntryByClassfy")
+    @ApiOperation("获取分类词条")
+    @CrossOrigin
+    @Token
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntity,
+                                                                              @RequestParam(value = "classfyID") String classfyID,
+                                                                              @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                                              @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+
+        entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize);
+
+        responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID));
+        return checkResult(responseListModel);
+    }
+
     @PostMapping("/addEntryByVersion")
     @ApiOperation("新增版本词条(导入)")
     @CrossOrigin
@@ -214,8 +231,8 @@ public class EntryInfoController extends BaseController {
     ) {
 
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
-        List<EntryInfoEntity> entryInfoEntities ;
-
+        //entryInfoEntities 中存在的词条 更新翻译
+        List<EntryInfoEntity> entryInfoEntities;
         entryInfoEntities = entryInfoService.workImportExcleTrans(multipartFile,taskID);
         responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
@@ -400,8 +417,8 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("关系表新增")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<String> addProductRelation(@RequestBody List<ProductRelationEntity> relationEntity) {
-        String relation = entryInfoService.addProductRelation(relationEntity);
+    public   HttpResponse<String> addProductRelation(@RequestBody List<EntryInfoEntity> relationEntity ,HttpServletRequest request) {
+        String relation = entryInfoService.addProductRelation(relationEntity,request);
 
         return checkResult(relation);
     }
@@ -427,6 +444,48 @@ public class EntryInfoController extends BaseController {
         }
 
         return checkResult(entryInfoService.setInfoByEntryList(entryInfoEntities,translateType,writeType,tag,comment,fileName,i18nUrl));
+    }
+
+    @Autowired
+    TranslateMapper translateMapper;
+    @Autowired
+    UserMapper userMapper;
+    @Autowired
+    EntryInfoMapper entryInfoMapper;
+    //编辑词条
+    @PostMapping("/test")
+    @ApiOperation("恢复匹配错部门的数据")
+    @CrossOrigin
+    @Transactional(propagation = Propagation.NESTED)
+    @Token
+    public HttpResponse<String> test() {
+
+        List<EntryInfoEntity> entities = entryInfoMapper.getbppEntrys();
+        for (EntryInfoEntity e : entities) {
+            User user = userMapper.selectByName(e.getUpdate());
+
+            String enTransId = e.getEnTransId();
+            if (StringUtils.isNotBlank(enTransId)) {
+                TranslateEntity translateEntity = translateMapper.selectById(enTransId);
+                if (translateEntity != null) {
+                    QueryWrapper<TranslateEntity> queryWrapper = new QueryWrapper<>();
+                    queryWrapper.eq("entry", translateEntity.getEntry());
+                    queryWrapper.eq("visual_range",user.getDepartment() );
+                    queryWrapper.eq("translate_state","3" );
+                    queryWrapper.eq("delete_state","0" );
+                    List<TranslateEntity> translateEntities = translateMapper.selectList(queryWrapper);
+                    if (translateEntities.size() > 0) {
+                        e.setEnTransId(translateEntities.get(0).getId());
+                    }else {
+                        e.setEnTransId("");
+                    }
+                    entryInfoMapper.updateById(e);
+                }
+            }
+        }
+
+
+        return checkResult("result");
     }
 
 }

@@ -880,6 +880,7 @@ public class ExcelUtils {
             // 获取数据对象
             Object dataObj = dataList.get(rowIndex);
             // 遍历导出字段列表
+            CellStyle cellStyle = workbook.createCellStyle();
             for (int colIndex = 0; colIndex < exportFields.size(); colIndex++) {
                 String fieldName = exportFields.get(colIndex);
 
@@ -891,7 +892,7 @@ public class ExcelUtils {
                     Object fieldValue = method.invoke(dataObj);
                     // 创建单元格并设置字段值
                     Cell dataCell = dataRow.createCell(colIndex);
-                    CellStyle cellStyle = workbook.createCellStyle();
+
                     cellStyle.setAlignment(HorizontalAlignment.CENTER);//设置水平居中
                     cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);//设置垂直居中
                     sheet.setColumnWidth(colIndex, 256 * 25 + 184);//设置宽度 这里的25对应excel中的列宽

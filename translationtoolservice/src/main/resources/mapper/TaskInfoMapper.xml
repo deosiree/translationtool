@@ -190,8 +190,8 @@
         (t1.entry_auditor = #{userName,jdbcType=VARCHAR}  )
         or (t1.developer = #{userName,jdbcType=VARCHAR} )
         or (t1.translator = #{userName,jdbcType=VARCHAR} )
-        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} ) )
-
+        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} )
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -228,7 +228,8 @@
         (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} )
         or  (t1.developer =  #{userName,jdbcType=VARCHAR}  )
          or  (t1.translator =  #{userName,jdbcType=VARCHAR}   )
-         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  )  )
+         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  )
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -257,7 +258,8 @@
         ((entry_auditor = #{userName,jdbcType=VARCHAR} )
         or (developer = #{userName,jdbcType=VARCHAR} )
         or (translator = #{userName,jdbcType=VARCHAR})
-        or (translation_auditor = #{userName,jdbcType=VARCHAR}))
+        or (translation_auditor = #{userName,jdbcType=VARCHAR})
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -290,7 +292,8 @@
         ((entry_auditor = #{userName,jdbcType=VARCHAR})
         or (developer =  #{userName,jdbcType=VARCHAR} )
         or (translator = #{userName,jdbcType=VARCHAR})
-        or (translation_auditor =  #{userName,jdbcType=VARCHAR} ))
+        or (translation_auditor =  #{userName,jdbcType=VARCHAR} )
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>

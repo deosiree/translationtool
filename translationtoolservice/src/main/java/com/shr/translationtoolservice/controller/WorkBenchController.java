@@ -10,6 +10,7 @@ import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TI8nAddressService;
 import com.shr.translationtoolservice.util.CommonUtils;
+import com.shr.translationtoolservice.util.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,8 @@ public class WorkBenchController extends BaseController {
     private TI8nAddressService ti8nAddressService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private StringUtil stringUtil;
 
     @PostMapping("/importExcle")
     @ApiOperation("导入excle(预留)")
@@ -165,7 +168,7 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("更新词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateEntryList(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, HttpServletRequest request) {
+    public HttpResponse<String> updateEntryList(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID,HttpServletRequest request) {
 
         String result = entryTempService.updateEntryList(entryInfoEntities, taskID, request);
         return checkResult(result);
@@ -185,17 +188,31 @@ public class WorkBenchController extends BaseController {
         return checkResult(responseListModel);
     }
 
-
+//
     @PostMapping("/deleteEntryInfoByID")
     @ApiOperation("删除词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> deleteEntryInfoByID(@RequestBody List<String> entryID) {
+    public HttpResponse<String> deleteEntryInfoByID(@RequestBody List<String> entryID,
+                                                    @RequestParam("productID") String productID,
+                                                    String versionID) {
+
+        String result = entryTempService.deleteEntryInfoByID(entryID,productID,versionID);
+
+        return checkResult(result);
+    }
+/*
+    @PostMapping("/deleteEntryInfoByID")
+    @ApiOperation("删除词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> deleteEntryInfoByID(@RequestBody List<String> entryID
+                                                   ) {
 
         String result = entryTempService.deleteEntryInfoByID(entryID);
 
         return checkResult(result);
-    }
+    }*/
 
     @PostMapping("/preTranslate")
     @ApiOperation("预翻译")
@@ -229,6 +246,37 @@ public class WorkBenchController extends BaseController {
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
     }
+
+    @PostMapping("/capitalizeWords")
+    @ApiOperation("句首字母转换为大写")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> capitalizeWords(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                                           @RequestParam("changeType")  String changeType,@RequestParam("translateType")  String translateType) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryInfoEntity> entryInfoEntities1 = entryInfoService.capitalizeWords(entryInfoEntities, changeType,translateType);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/replaceWords")
+    @ApiOperation("批量替换")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> replaceWords(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+                                                        @RequestParam("sourceStr")  String sourceStr,@RequestParam("replaceStr")  String replaceStr,
+                                                        @RequestParam("translateType")  String translateType) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryInfoEntity> entryInfoEntities1 = entryInfoService.replaceWords(entryInfoEntities, sourceStr,replaceStr,translateType);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
+        return checkResult(responseListModel);
+    }
+
+
 
 
 }

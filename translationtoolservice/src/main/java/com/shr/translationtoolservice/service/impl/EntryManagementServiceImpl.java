@@ -80,6 +80,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
     private ExcelUtils excelUtils;
 
     @Autowired
+    private BaiduTransUtils baiduTransUtils;
+
+    @Autowired
     private YoudaoTrans youdaoTrans;
 
 
@@ -330,6 +333,27 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String deleteEntryClassfy(List<String> idList) {
+        //List<EntryClassify> entryClassifies = entryClassifyMapper.getEntryClassfyByParentId(idList);
+       /* for (String id : idList) {
+            //判断当前分类是否是产品分类
+
+            //如果type是classify,则判断是否有子分类
+
+            //如果有子分类，判断子分类是否是产品分类
+
+            //如果是产品分类则用id去任务表里查询是否有在执行的任务（）
+
+            //如果有在执行的任务则返回错误
+
+
+
+
+
+            if (!CollectionUtils.isEmpty(entryClassifies)) {
+                return ErrorCodeList.OBJECT_HAS_EXIST;
+            }
+        }*/
+
         int delete = entryClassifyMapper.deleteByIds(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
@@ -1007,19 +1031,40 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         //ArrayList<TranslateEntity> list = new ArrayList<>();
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
 
-        try {
+
             for (TLanguage tLanguage : tLanguages) {
                 if (tLanguage.getName().equals(type)) {
                     continue;
                 }
-                languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
-                Thread.sleep(1000);
+                //languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
+                //默认主语言都是中文
+                String trans = "";
+
+                try {
+                 trans = baiduTransUtils.translate(entry, "zh", tLanguage.getBdCode());
+                // Thread.sleep(1000);
+                } catch (Exception e) {
+                    log.error(" 百度翻译异常 ！ ");
+                    e.printStackTrace();
+                }
+                LanguageEntity languageEntity = new LanguageEntity();
+                languageEntity.setValue(trans);
+                ConstantInterface.getInstance();
+                Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
+
+                languageEntity.setLanguage(languageMap.get(tLanguage.getBdCode()).toLowerCase());
+                languageEntity.setState(true);
+
+
+
+                languageEntities.add(languageEntity);
+
+
+
             }
             entryEntity.setLanguageEntities(languageEntities);
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
 
         return entryEntity;
     }

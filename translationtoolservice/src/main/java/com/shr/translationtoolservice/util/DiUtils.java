@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.shr.translationtoolservice.dao.TLanguageMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
@@ -37,7 +38,7 @@ public class DiUtils {
     private TLanguageMapper languageMapper;
 
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
-    public void writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType,boolean tag,boolean common,String i18nUrl) {
+    public String writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType,boolean tag,boolean common,String i18nUrl) {
         //获取字典所有词条，将对应词条的对应翻译插入其中 ，再全量写入
         String s = "";
         String s2 = "";
@@ -47,9 +48,13 @@ public class DiUtils {
         }
         try {
             Map<String, String> headerParameters = new HashMap<>();
-            headerParameters.put("dictionary", fileName);
-            s = httpUtils.get(i18nUrl + ConstantInterface.GET_DICTIONARY ,headerParameters);
+            headerParameters.put("name", fileName);
+            s = httpUtils.get(i18nUrl + ConstantInterface.GET_INIT_DICTIONARY ,headerParameters);
 
+            if (s.equals("501") || StringUtils.isBlank(s) || s.equals("null")){
+                ErrorCodeList.setErrorCodeList(ErrorCodeList.GET_DIC_ERROR +fileName);
+                return ErrorCodeList.GET_DIC_ERROR + fileName;
+            }
             jsonArray = JSONArray.parseArray(s);
             List<DictionaryVo> dictionaryVos = new ArrayList<>();
             constructDIVO(jsonArray, dictionaryVos);
@@ -58,12 +63,12 @@ public class DiUtils {
             int update = 0 ;
             int sum =0;
             for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-                if (!tag) {
+               /* if (!tag) {
                     entryInfoEntity.setTag("");
                 }
                 if (!common) {
                     entryInfoEntity.setEntrySource("");
-                }
+                }*/
                 update++;
                 boolean isExist = updateTransToDiVo(langCode, entryInfoEntity, translateType, dictionaryVos);
                 //如果不存在 则新增词条
@@ -74,18 +79,23 @@ public class DiUtils {
             }
             String dictionaryVosStr = JSONObject.toJSONString(dictionaryVos);
             headerParameters.put("dictionaryInfo", dictionaryVosStr);
+            headerParameters.put("dictionary", fileName);
             String req =  JSONObject.toJSONString(headerParameters);
              sum = add+update;
             //10.16.193.63:18099/dictionary/user
             s2 = httpUtils.post(i18nUrl + ConstantInterface.UPDTAE_DICTIONARY , req);
-            log.info(" ==== 辞典 " + fileName + " 新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
+            if (StringUtils.isBlank(s2) ){
+                ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_DIC_ERROR +fileName);
+                return ErrorCodeList.UPDATE_DIC_ERROR + fileName;
+            }
+            log.info(" ==== " + i18nUrl +" 辞典 " + fileName + " 新增词条 ： " + add + " **** 更新词条 ：" + update + " ****  sum is :" + sum + " ==== ");
 
         } catch (Exception e) {
-            log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.DICTIONARY + ConstantInterface.SPRIT);
+            log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.UPDTAE_DICTIONARY + ConstantInterface.SPRIT);
             e.printStackTrace();
-            return;
+            return ErrorCodeList.I18N_SERVER_ERROR;
         }
-
+        return ConstantInterface.OK_STR;
     }
 
     private void addEntryToDIVo(String langCode, EntryInfoEntity entryInfoEntity, String translateType, List<DictionaryVo> dictionaryVos) {

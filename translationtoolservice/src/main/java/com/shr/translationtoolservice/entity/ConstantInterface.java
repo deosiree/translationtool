@@ -19,6 +19,9 @@ public class ConstantInterface {
 
     public static final String TOKEN = "token";
 
+
+    
+
     //i18server url
     public static final String LANGUAGE = "language";
     public static final String GET_FILE_LIST = "getFileListByLang";
@@ -45,7 +48,10 @@ public class ConstantInterface {
     public static final String GET_DBALLENTRYBYDB= "tdb/getDBALLEntryByDB";
 
     public static final String GET_CONGIF_ENTRY= "config/getEntry";
+    public static final String GET_CONFIG_LIST= "config/getFileList";
     public static final String GET_ENUM_ENTRY= "enum/getEntry";
+    public static final String GET_ENUM_LIST= "enum/getEnumList";
+
     public static final String CREATE_DI= "dic/createDic";
     public static final String REMOVE_DI= "dic/removeDic";
     public static final String ADD_DIC_TERM= "dic/addDicTerm";
@@ -86,6 +92,8 @@ public class ConstantInterface {
     public static final String NOCHANGE = "词条未有变化";
     public static final String REPETITION_STR = "版本库存在重复的词条";
 
+
+
     public static final String UNTRANSLATED = "未翻译";
     public static final String TRANSLATED = "已翻译";
     public static final String TRANSLAT_UNAUDIT = "正在翻译";
@@ -114,6 +122,10 @@ public class ConstantInterface {
 
     public static final String BAIDU_TRANSLATE_APPID = "20230705001734655";
     public static final String BAIDU_TRANSLATE_KEY = "Msyn6CIJy97uY1MXLW0c";
+
+    //大小写
+    public static final String CAPITAL = "upper";
+    public static final String UNCAPITAL = "lower";
 
     public static final String CHINESE = "中文";
     public static final String FRENCH = "法文";
@@ -166,6 +178,8 @@ public class ConstantInterface {
         user_role.put("翻译员", "TRANSLATOR");
         user_role.put("开发员", "DEVELOPER");
         user_role.put("管理员", "ADMIN");
+        user_role.put("开发管理员", "DEVADMIN");
+        user_role.put("超级管理员", "SUPERADMIN");
         return user_role;
     }
 

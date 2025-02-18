@@ -52,6 +52,20 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     String getTransByID(@Param("id")String id,@Param("transColum") String transColum);
 
     List<EntryInfoEntity> getReTransEntry(@Param("taskId")String taskID);
+
+    int updateEntryState(@Param("id")String id,@Param("entryState")int entryState);
+    List<EntryInfoEntity> getbppEntrys();
+
+
+    List<String> getUsedDicByTaskID(@Param("taskID")String taskID);
+
+    List<EntryInfoEntity> getEntryByClassfy(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
+                                            @Param("productidList")List<String> productidList,
+                                            @Param("offset") Integer offset,
+                                            @Param("limit") Integer limit);
+
+    List<EntryInfoEntity> getEntryByClassfyTotal(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
+                                                 @Param("productidList")List<String> productidList);
 }
 
 

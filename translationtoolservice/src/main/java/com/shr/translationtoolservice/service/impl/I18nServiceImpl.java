@@ -2,13 +2,15 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.shr.translationtoolservice.entity.ConstantInterface;
-import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.dao.TLanguageMapper;
+import com.shr.translationtoolservice.dao.TranslateMapper;
+import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.DiUtils;
 import com.shr.translationtoolservice.util.HTTPUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,9 +40,14 @@ public class I18nServiceImpl implements I18nService {
 
     @Value("${I18server.url}")
     private String I18URL;
+    @Autowired
+    private TranslateMapper translateMapper;
+
+    @Autowired
+    private TLanguageMapper languageMapper;
 
     @Override
-    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType,boolean tag,boolean common,String i18nUrl) {
+    public String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities1, String translateType,boolean tag,boolean common,String i18nUrl) {
 
         if (StringUtils.isBlank(i18nUrl)) {
             i18nUrl = I18URL;
@@ -51,15 +58,28 @@ public class I18nServiceImpl implements I18nService {
         List<EntryInfoEntity> enumEntryInfo = new ArrayList<>();
         List<EntryInfoEntity> configEntryInfo = new ArrayList<>();
        // String fileName = "";
-      Map<String,List<Map<String, String>>> tsEntryInfoMap = new HashMap<>();
+          Map<String,List<Map<String, String>>> tsEntryInfoMap = new HashMap<>();
 
         //di分组   fileName -> list
         Map<String, List<EntryInfoEntity>> diTypeMap = new HashMap<>();
         Map<String, List<EntryInfoEntity>> dbTypeMap = new HashMap<>();
         Map<String, List<EntryInfoEntity>> configTypeMap = new HashMap<>();
         Map<String, List<EntryInfoEntity>> enumTypeMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(entryInfoEntities1)) {
+            return ConstantInterface.OK_STR;
+        }
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities1) {
+            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                entryInfoEntities.addAll(entryInfoEntity.getChildren());
+            }
+            entryInfoEntities.add(entryInfoEntity);
+        }
+
+
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             //取翻译状态为3的词条
+
             String trans = getTransByType(entryInfoEntity, translateType);
             if (StringUtils.isBlank(trans)) {
                 continue;
@@ -75,6 +95,7 @@ public class I18nServiceImpl implements I18nService {
                         tagStr =  entryInfoEntity.getTag();
                     }*/
                     requestMap.put("tag", tagStr);
+                    requestMap.put("comment", entryInfoEntity.getComment());
                     requestMap.put("translate", trans);
                     tsEntrys.add(requestMap);
                     tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),tsEntrys);
@@ -87,6 +108,7 @@ public class I18nServiceImpl implements I18nService {
                         tagStr =  entryInfoEntity.getTag();
                     }*/
                     requestMap.put("tag", tagStr);
+                    requestMap.put("comment", entryInfoEntity.getComment());
                     requestMap.put("translate", trans);
                     List<Map<String, String>> list = tsEntryInfoMap.get(entryInfoEntity.getEntrySource());
                     list.add(requestMap);
@@ -122,9 +144,18 @@ public class I18nServiceImpl implements I18nService {
         //写入i18 ts
         if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
            for (String fileName : tsEntryInfoMap.keySet()){
+               List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
+
                JSONObject jsonObject = new JSONObject();
                jsonObject.put("entry", tsEntryInfoMap.get(fileName));
+               fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
                String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
+               if (StringUtils.isBlank(s) ){
+                   return ErrorCodeList.I18N_SERVER_ERROR;
+               } else if ( !s.equals("true")){
+                   ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR +fileName);
+                   return ErrorCodeList.UPDATE_TS_ERROR +fileName;
+               }
            }
            // jsonObject.put("entry", tsEntryInfoMap);
            // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
@@ -133,7 +164,7 @@ public class I18nServiceImpl implements I18nService {
             //按照分裂写入di
             for (String di_fileName : diTypeMap.keySet()) {
                 //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common,i18nUrl);
+                return diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common,i18nUrl);
             }
 
         }
@@ -192,24 +223,26 @@ public class I18nServiceImpl implements I18nService {
     private String getTransByType(EntryInfoEntity entryInfoEntity, String translateType) {
         String transState = "";
         String trans = "";
+        TranslateEntity translateEntity = new TranslateEntity();
         switch (translateType) {
             case ConstantInterface.ENGLISH:
-                transState = entryInfoEntity.getEnglishTranslateState();
-                trans = entryInfoEntity.getEnglish();
+                 translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
                 break;
             case ConstantInterface.RUSSIAN:
-                transState = entryInfoEntity.getRussianTranslateState();
-                trans = entryInfoEntity.getRussian();
+                translateEntity = translateMapper.selectById(entryInfoEntity.getRuTransId());
                 break;
             case ConstantInterface.SPANISH:
-                transState = entryInfoEntity.getSpanishTranslateState();
-                trans = entryInfoEntity.getSpanish();
+                translateEntity = translateMapper.selectById(entryInfoEntity.getSpaTransId());
                 break;
             case ConstantInterface.FRENCH:
-                transState = entryInfoEntity.getFrenchTranslateState();
-                trans = entryInfoEntity.getFrench();
+                translateEntity = translateMapper.selectById(entryInfoEntity.getFraTransId());
                 break;
         }
+        if (translateEntity == null) {
+            return "";
+        }
+        transState = translateEntity.getTranslateState();
+        trans = translateEntity.getTranslate();
         if (!"3".equals(transState)) {
             return "";
         }

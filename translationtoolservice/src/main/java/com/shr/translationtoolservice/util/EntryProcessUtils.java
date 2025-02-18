@@ -1,8 +1,10 @@
 package com.shr.translationtoolservice.util;
 
+import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -19,7 +21,13 @@ import java.util.*;
 public class EntryProcessUtils {
 
 
-    public List<EntryInfoEntity> buildRepeEntry(List<EntryInfoEntity> entryInfoEntities,String translateType) {
+    private final TranslateMapper translateMapper;
+
+    public EntryProcessUtils(TranslateMapper translateMapper) {
+        this.translateMapper = translateMapper;
+    }
+
+    public List<EntryInfoEntity> buildRepeEntry(List<EntryInfoEntity> entryInfoEntities, String translateType) {
         List<EntryInfoEntity> newEntry = new ArrayList<>();
         //entry_translate,entryTempEntity
         Map<String, EntryInfoEntity> entryEntityMap = new HashMap<>();
@@ -30,19 +38,38 @@ public class EntryProcessUtils {
             //有翻译字段 直接放到map里
             switch (translateType){
                 case ConstantInterface.ENGLISH:
-                    translate = entryInfoEntity.getEnglish();
+                    if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())){
+                        translate = translateMapper.selectById(entryInfoEntity.getEnTransId()).getTranslate();
+                    }else {
+                        translate = entryInfoEntity.getEnglish();
+                    }
                     break;
                 case ConstantInterface.SPANISH:
-                    translate = entryInfoEntity.getSpanish();
+                    if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())){
+                        translate = translateMapper.selectById(entryInfoEntity.getSpaTransId()).getTranslate();
+                    }else {
+                        translate = entryInfoEntity.getSpanish();
+                    }
                     break;
                 case ConstantInterface.RUSSIAN:
-                    translate = entryInfoEntity.getRussian();
+                    if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())){
+                        translate = translateMapper.selectById(entryInfoEntity.getRuTransId()).getTranslate();
+                    }else {
+                        translate = entryInfoEntity.getRussian();
+                    }
                     break;
                 case ConstantInterface.FRENCH:
-                    translate = entryInfoEntity.getFrench();
+                    if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())){
+                        translate = translateMapper.selectById(entryInfoEntity.getFraTransId()).getTranslate();
+                    }else {
+                        translate = entryInfoEntity.getFrench();
+                    }
                     break;
             }
-            EntryInfoEntity mapValueEntry = entryEntityMap.get(entry + ConstantInterface.UNDERLINE + translate);
+            String mapKey = entry + ConstantInterface.UNDERLINE + translate + ConstantInterface.UNDERLINE + entryInfoEntity.getIsExist();
+
+
+            EntryInfoEntity mapValueEntry = entryEntityMap.get(mapKey);
             //判断map 是否有这个key
             if (Objects.nonNull(mapValueEntry)) {
                 entryInfoEntity.setParentID(mapValueEntry.getId());
@@ -57,7 +84,7 @@ public class EntryProcessUtils {
 
             } else {
                 entryInfoEntity.setParentID("");
-                entryEntityMap.put(entry + ConstantInterface.UNDERLINE + translate, entryInfoEntity);
+                entryEntityMap.put(mapKey, entryInfoEntity);
             }
         }
 
@@ -69,5 +96,33 @@ public class EntryProcessUtils {
         }
 
         return newEntry;
+    }
+
+    public List<EntryInfoEntity> findChildEntry(List<EntryInfoEntity> entryInfoEntities, String translateType) {
+        List<EntryInfoEntity> parentEntrys = new ArrayList<>();
+        Map<String, EntryInfoEntity> entryMap = new HashMap<>();
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            entryMap.put(entryInfoEntity.getId(), entryInfoEntity);
+        }
+
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            String parentId = entryInfoEntity.getParentID();
+            if (StringUtils.isNotBlank(parentId)) {
+                EntryInfoEntity parentEntry = entryMap.get(parentId);
+                if (parentEntry != null) {
+                    if (parentEntry.getChildren() == null) {
+                        parentEntry.setChildren(new ArrayList<>());
+                    }
+                    parentEntry.getChildren().add(entryInfoEntity);
+                    continue;
+                }else {
+                    parentEntrys.add(entryInfoEntity);
+                }
+
+            }else {
+                parentEntrys.add(entryInfoEntity);
+            }
+        }
+        return parentEntrys;
     }
 }

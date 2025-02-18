@@ -22,7 +22,7 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     List<EntryTempEntity> getEntryTempByTaskID(String taskID);
 
-    String deleteEntryInfoByID(List<String> entryID);
+    String deleteEntryInfoByID(List<String> entryID,String productID,String versionID);
 
     int getEntryTempByTaskIDTotal(String taskID);
 

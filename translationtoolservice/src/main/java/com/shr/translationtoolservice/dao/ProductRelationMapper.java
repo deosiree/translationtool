@@ -18,6 +18,8 @@ public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity>
     int deleteByProductIdList(@Param("idList") List<String>  idList);
 
     int insertList(@Param("productRelationEntities") List<ProductRelationEntity> productRelationEntities);
+
+    int checkExist(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
 }
 
 
