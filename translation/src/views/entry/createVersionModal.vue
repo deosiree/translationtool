@@ -302,6 +302,9 @@ export default {
         },
         currentProduct:{
             type: Object
+        },
+        currentVersion:{
+            type: Object
         }
     },
     
@@ -377,12 +380,14 @@ export default {
                 tagDisabled: false,
                 ip: null
             },
-            ipOptions: []
+            ipOptions: [],
+            productVersion:{} 
         }
     },
     
     created() {
         this.product = this.currentProduct
+        this.productVersion = this.currentVersion
     },
     mounted () {
 
@@ -402,6 +407,9 @@ export default {
     watch: {
         currentProduct(newval,oldval){
             this.product = newval
+        },
+        currentVersion(newval,oldval){
+            this.productVersion = newval
         }
     },
     methods: {
@@ -499,7 +507,7 @@ export default {
                 this.$refs.versionForm.validate().then(() => {
                     // TODO 创建版本接口
                     let params = {
-                        productID:this.product.key,
+                        productID:this.product.id,
                         versionName:this.version.versionName,
                         common:this.version.remarks
                     }
@@ -661,7 +669,12 @@ export default {
                         ids.push(item.id)
                     })
                     if(ids.length > 0){
-                        deleteEntryInfoByID(ids).then((res) => {
+                      let params  = {
+                        productID: this.product.key,
+                        versionID: this.productVersion,
+                      }
+                        // 删除词
+                        deleteEntryInfoByID(params,ids).then((res) => {
                             message.success('已删除！')
                             this.$emit("createClose")
                             this.$emit("cancelCreate")
