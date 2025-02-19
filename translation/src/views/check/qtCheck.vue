@@ -184,7 +184,6 @@ export default {
           dataIndex: "tag",
           align: "center",
           width: 150,
-          fixed: "left",
           resizable: true,
           index: 4,
         },
@@ -300,14 +299,14 @@ export default {
         translateType: [{ required: true, message: "请选择" }],
       },
       searchValue: "",
-      // pagination: {
-      //   showSizeChanger: true,
-      //   total: 0,
-      //   current: 1,
-      //   pageSize: 20,
-      //   showTotal: total => `共 ${total} 条`,
-      //   onChange: this.pageChange
-      // },
+      pagination: {
+        showSizeChanger: true,
+        total: 0,
+        current: 1,
+        pageSize: 20,
+        showTotal: total => `共 ${total} 条`,
+        onChange: this.pageChange
+      },
       pageChangeSearch: {},
     };
   },

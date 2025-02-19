@@ -65,9 +65,11 @@
               <div ref="button" v-if="true" style="margin-bottom:8px">
                 <a-button type="primary" size="small" @click="SelectTranslateType">批量选择语言</a-button>
                 <a-modal title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType" @cancel="cancelTranslateType">
-                  <a-select v-model:value="selectedLanguage" style="width: 186px" placeholder="请选择内容" :options='translateTypes'
+                  <div style="text-align: center;">
+                  <a-select v-model:value="selectedLanguage" style="width: 186px;" placeholder="请选择内容" :options='translateTypes'
                     :fieldNames="{label:'name',value:'name'}">
                   </a-select>
+                  </div>
                 </a-modal>
               </div>
             </template>

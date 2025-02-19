@@ -118,16 +118,10 @@ export default {
       currentTask: {}, // 当前任务
       options: {}, // 下拉框的选项列表
       moduleNames: [
-        // 模块名
-        { label: "1", value: "0" },
-        { label: "2", value: "1,2,3,4,5" },
-        { label: "3", value: "6" },
+        // 模块名{ label: "1", value: "0" },
       ],
       questionTypes: [
-        // 问题类型
-        { label: "1", value: "0" },
-        { label: "2", value: "1,2,3,4,5" },
-        { label: "3", value: "6" },
+        // 问题类型{ label: "1", value: "0" },
       ],
       rules: {
         name: [{ required: true, message: "请输入" }],
@@ -155,7 +149,7 @@ export default {
         _this.setTableHeight();
       };
     });
-    this.getModuleNames();
+    this.getOpitons();
   },
   unmounted() {
     //注销window.onresize事件
@@ -166,6 +160,10 @@ export default {
     init() {
       this.setTableHeight();
       this.searchCheckInfo();
+      this.getOpitons();
+    },
+    // 获取下拉框信息
+    getOpitons() {
       this.getModuleNames();
       this.getQuestionTypes();
     },
@@ -181,9 +179,11 @@ export default {
     },
     // 获取问题类型
     getQuestionTypes() {
-      getQuestionTypes().then((res) => {
-        this.questionTypes = res.data.list;
-      }).catch(({ data }) => {
+      getQuestionTypes()
+        .then((res) => {
+          this.questionTypes = res.data.list;
+        })
+        .catch(({ data }) => {
           console.error("获取问题类型失败：", data);
         });
     },
@@ -215,9 +215,6 @@ export default {
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
       event.stopPropagation();
-      // this.getModuleNames();
-      // console.log('模块：',JSON.parse(this.$data.moduleNames));
-      // console.log("问题类型：", this.$data.questionTypes);
     },
     // 动态设置表格高度
     setTableHeight() {
@@ -266,6 +263,7 @@ export default {
       return {
         onClick: (event) => {
           // this.selectedRowIndex = record.id
+          console.log();
         },
         onDblclick: (event) => {},
       };
