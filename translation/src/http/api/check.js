@@ -14,7 +14,7 @@ export function searchCheckInfo(data,params) {
 export function getModuleNames() {
   return request({
       // url:"/checkManage/getModuleNames",
-      url:"http://127.0.0.1:4523/m1/5869278-5555786-default/code",
+      url:"https://apifoxmock.com/m1/5869278-5555786-default/translate/check/code/",
       method: "POST", 
       // method: "GET",
   });
@@ -24,7 +24,7 @@ export function getModuleNames() {
 export function getQuestionTypes() {
   return request({
       // url:"/checkManage/getQuestionTypes",
-      url:"https://apifoxmock.com/m1/5869278-5555786-default/translate/check/code/2",
+      url:"https://apifoxmock.com/m1/5869278-5555786-default/translate/check/code/",
       method: "POST", 
   });
 }

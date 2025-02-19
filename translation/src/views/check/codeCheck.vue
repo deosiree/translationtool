@@ -155,6 +155,7 @@ export default {
         _this.setTableHeight();
       };
     });
+    this.getModuleNames();
   },
   unmounted() {
     //注销window.onresize事件
@@ -163,45 +164,28 @@ export default {
   methods: {
     // 初始化
     init() {
-      this.user = this.$store.questionType.user;
       this.setTableHeight();
       this.searchCheckInfo();
-      this._getModuleNames();
+      this.getModuleNames();
       this.getQuestionTypes();
     },
     // 获取模块名
-    _getModuleNames() {
-      console.log("模块名00：", this.moduleNames);
-
-      getModuleNames().then((res) => {
-          this.moduleNames = [];
-          // console.log("模块名更新时：", this.moduleNames);
-          res.data.list.forEach((item) => {
-            let d = {
-              label: item,
-              value: item,
-            };
-            this.moduleNames.push(d);
-          });
-          console.log("模块名更新后：", this.moduleNames);
+    getModuleNames() {
+      getModuleNames()
+        .then((res) => {
+          this.moduleNames = res.data.list;
         })
-        .catch(({data}) => {
+        .catch(({ data }) => {
           console.error("获取模块名失败：", data);
         });
-      console.log("模块名11：", this.moduleNames);
     },
     // 获取问题类型
     getQuestionTypes() {
       getQuestionTypes().then((res) => {
-        this.questionTypes = [];
-        res.data.list.forEach((item) => {
-          let d = {
-            label: item,
-            value: item,
-          };
-          this.questionTypes.push(d);
+        this.questionTypes = res.data.list;
+      }).catch(({ data }) => {
+          console.error("获取问题类型失败：", data);
         });
-      });
     },
     // 校验按钮点击事件
     check() {
@@ -231,7 +215,7 @@ export default {
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
       event.stopPropagation();
-      // this._getModuleNames();
+      // this.getModuleNames();
       // console.log('模块：',JSON.parse(this.$data.moduleNames));
       // console.log("问题类型：", this.$data.questionTypes);
     },
