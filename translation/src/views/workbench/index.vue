@@ -64,10 +64,17 @@
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px">
                 <a-button type="primary" size="small" @click="SelectTranslateType">批量选择语言</a-button>
-                <a-modal title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType" @cancel="cancelTranslateType">
-                  <a-select v-model:value="selectedLanguage" style="width: 186px" placeholder="请选择内容" :options='translateTypes'
+                <a-modal style="width: 320px;" class="choiceLang" centered title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType"
+                  @cancel="cancelTranslateType">
+                  <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
                     :fieldNames="{label:'name',value:'name'}">
                   </a-select>
+                  <template #footer>
+                    <div style="text-align: center;">
+                      <a-button @click="cancelTranslateType">取消</a-button>
+                      <a-button type="primary" @click="confirmTranslateType">确定</a-button>
+                    </div>
+                  </template>
                 </a-modal>
               </div>
             </template>
