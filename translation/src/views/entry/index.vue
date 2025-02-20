@@ -16,7 +16,7 @@
                 <span v-else>{{ title }}</span>
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
-                    <a-menu-item @click="importNewEntry(treeKey)">导入新词条</a-menu-item>
+                    <a-menu-item @click="update(treeKey)">导入新词条</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -39,7 +39,6 @@
 
       </a-col>
       <a-col flex="auto" class="dataBox">
-
         <div class="entryBox" v-if="isProduct">
           <a-tabs v-model:activeKey="activeKey" type="card" @change="tabChange">
             <a-tab-pane key="1" tab="词条详情">
@@ -51,11 +50,8 @@
             </a-tab-pane>
           </a-tabs>
         </div>
-        <div class="entryBox" v-else-if="isImportEntry">
-          <ImportNewEntry :boxHeight="boxHeight" :currentCommon="currentClickProduct" />
-        </div>
         <div class="entryBox" v-else>
-          <CommonEntry :boxHeight="boxHeight" :currentCommon="currentClickProduct" />
+          <CommonEntry :boxHeight="boxHeight" :currentCommon="currentClickProduct" modalTitle="更新详情" />
         </div>
         <div class="floatBtn">
           <left-outlined v-if="treeBoxOpen" @click="openOrCloseTree" title="收起树" />
@@ -64,9 +60,11 @@
       </a-col>
     </a-row>
   </div>
+  <UpdateModal ref="classifyModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
+    @classifyClose="classifyClose"  style="width:700px;"/>
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     @classifyClose="classifyClose" />
-  <ProductAuthorityNodal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
+  <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
 </template>
 <script>
 import {
@@ -74,12 +72,13 @@ import {
   LeftOutlined,
   RightOutlined,
 } from "@ant-design/icons-vue";
-import ImportNewEntry from "@/views/entry/importNewEntry.vue";
 import ProductEntry from "@/views/entry/productEntry.vue";
 import ProductVersion from "@/views/entry/productVersion.vue";
 import CommonEntry from "@/views/entry/commonEntry.vue";
 import ClassifyModal from "@/views/entry/classifyModal.vue";
-import ProductAuthorityNodal from "@/views/entry/productAuthorityModal.vue";
+import ProductAuthorityModal from "@/views/entry/productAuthorityModal.vue";
+import UpdateModal from "@/views/entry/updateModal.vue";
+
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
@@ -93,12 +92,12 @@ export default {
     SearchOutlined,
     LeftOutlined,
     RightOutlined,
-    ImportNewEntry,
     ProductEntry,
     ProductVersion,
     CommonEntry,
     ClassifyModal,
-    ProductAuthorityNodal,
+    ProductAuthorityModal,
+    UpdateModal,
   },
   data() {
     return {
@@ -108,12 +107,12 @@ export default {
       boxHeight: 0,
       keyWords: "",
       isProduct: true,
-      isImportEntry: false, // 是否展示导入新词条页面
       activeKey: "1",
       treeData: [],
       expandedKeys: [],
       selectedTreeKeys: [],
       classifyVisible: false,
+      updateVisible: false,
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -163,19 +162,23 @@ export default {
     },
     classifyClose() {
       this.classifyVisible = false;
+      this.updateVisible = false; // 关闭更新弹窗
       this.getClassTree();
       this.$refs.productEntry.refresh(this.currentClickProduct);
     },
     // 导入新词条
-    importNewEntry(treeKey) {
-      console.log("导入新词条", treeKey);
-      this.isProduct = false; // 不显示产品页面
-      this.isImportEntry = true; // 显示导入新词条页面
+    update(treeKey) {
+      console.log("更新", treeKey);
+      this.updateVisible = true; // 显示更新页面
       this.currentClass = {
         parentId: treeKey,
         title: "",
       };
-      // 具体逻辑还未写：切换编辑区为新页面，并发送http请求，得到所有新词条的任务，默认全部显示，点击任务下拉框显示单个任务
+      this.classifyModalTitle = "更新详情";
+      // 具体逻辑还未写：
+      // 1.弹窗，并发送http请求（/entryInfo/checkNewEntryByClassfy 查询分类中新增的词条
+      // 2.得到所有新词条，默认全选，可勾选不想要的，
+      // 3.点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
     },
     // 新增分类或产品
     addClassify(treeKey, type) {
@@ -191,8 +194,6 @@ export default {
         this.classifyModalTitle = "添加分类";
       } else if (type === "module") {
         this.classifyModalTitle = "添加模块";
-      } else if (type === "newEntry") {
-        this.classifyModalTitle = "导入新词条";
       }
     },
     // 编辑分类或产品
@@ -247,7 +248,6 @@ export default {
       } else {
         this.selectedTreeKeys = [e.node.key];
       }
-      // this.isImportEntry = false; // 词条分类点击事件都不可能显示导入新词条页面（注释了之后点其他的不能返回回来了）
       // 为currentClickProduct赋值，根据当前目录树传给子组件
       let node = e.node.dataRef;
       // console.log(node)
