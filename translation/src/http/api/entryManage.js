@@ -1,11 +1,12 @@
 //引入request.js文件
 import request from "../request";
- 
+
+
 // 查询分类中新增的词条
 export function getCheckNewEntryByClassfy(params) {
   return request({
       // url: "/entryInfo/checkNewEntryByClassfy",
-      url: "/clearCopy/response.json",
+      url: "https://apifoxmock.com/m1/5869278-5555786-default/newEntry",
       method: "POST", 
       params
   });

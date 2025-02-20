@@ -52,7 +52,6 @@
           </a-tabs>
         </div>
         <div class="entryBox" v-else-if="isImportEntry">
-          <!-- <h1>importEntry</h1> -->
           <ImportNewEntry :boxHeight="boxHeight" :currentCommon="currentClickProduct" />
         </div>
         <div class="entryBox" v-else>
@@ -169,9 +168,9 @@ export default {
     },
     // 导入新词条
     importNewEntry(treeKey) {
-      console.log('导入新词条', treeKey);
-      this.isProduct = false;// 不显示产品页面
-      this.isImportEntry = true;// 显示导入新词条页面
+      console.log("导入新词条", treeKey);
+      this.isProduct = false; // 不显示产品页面
+      this.isImportEntry = true; // 显示导入新词条页面
       this.currentClass = {
         parentId: treeKey,
         title: "",
@@ -240,7 +239,7 @@ export default {
       this.authorityVisible = false;
     },
 
-    // 词条分类点击事件
+    // 目录树点击事件
     clickTree(selectedKeys, e) {
       // console.log(e)
       if (e.selected) {
@@ -248,9 +247,10 @@ export default {
       } else {
         this.selectedTreeKeys = [e.node.key];
       }
+      // this.isImportEntry = false; // 词条分类点击事件都不可能显示导入新词条页面（注释了之后点其他的不能返回回来了）
+      // 为currentClickProduct赋值，根据当前目录树传给子组件
       let node = e.node.dataRef;
       // console.log(node)
-      this.isImportEntry = false;// 词条分类点击事件都不可能显示导入新词条页面
       if (node.type === "product") {
         this.isProduct = true;
         this.currentClickProduct = node;
