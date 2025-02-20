@@ -231,8 +231,8 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("模板下载")
     @CrossOrigin
     @Transactional
-    public void getTemplateFile(HttpServletResponse response, String fileType) {
-        entryTempService.getTemplateFile(response, fileType);
+    public void getTemplateFile(HttpServletResponse response, String fileType,String translateType) {
+        entryTempService.getTemplateFile(response, fileType,translateType);
     }
 
     @PostMapping("/filterSourceLanguage")

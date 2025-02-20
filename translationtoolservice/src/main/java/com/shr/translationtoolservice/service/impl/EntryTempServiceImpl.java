@@ -30,6 +30,7 @@ import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,6 +68,35 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     @Value("${ConfigFile.commonUrl}")
     private String configFileCommonUrl;
+
+    @Value("${ConfigFile.en_US.commonUrl}")
+    private String config_File_Common_EN_Url;
+    @Value("${ConfigFile.en_US.jkUrl}")
+    private String config_File_JK_EN_Url;
+    @Value("${ConfigFile.en_US.zzUrl}")
+    private String config_File_ZZ_EN_Url;
+
+    @Value("${ConfigFile.es_ES.commonUrl}")
+    private String config_File_Common_ES_Url;
+    @Value("${ConfigFile.es_ES.jkUrl}")
+    private String config_File_JK_ES_Url;
+    @Value("${ConfigFile.es_ES.zzUrl}")
+    private String config_File_ZZ_ES_Url;
+
+    @Value("${ConfigFile.fr_FR.commonUrl}")
+    private String config_File_Common_FR_Url;
+    @Value("${ConfigFile.fr_FR.jkUrl}")
+    private String config_File_JK_FR_Url;
+    @Value("${ConfigFile.fr_FR.zzUrl}")
+    private String config_File_ZZ_FR_Url;
+
+    @Value("${ConfigFile.ru_RU.commonUrl}")
+    private String config_File_Common_RU_Url;
+    @Value("${ConfigFile.ru_RU.jkUrl}")
+    private String config_File_JK_RU_Url;
+    @Value("${ConfigFile.ru_RU.zzUrl}")
+    private String config_File_ZZ_RU_Url;
+
 
     @Autowired
     private ExcelUtils excelUtils;
@@ -408,12 +438,69 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public void getTemplateFile(HttpServletResponse response, String fileType) {
+    public void getTemplateFile(HttpServletResponse response, String fileType,String translateType) {
         try {
             String fileUrl = "";
             Workbook workbook;
             String fileName = "";
-            if (fileType.equals("common")) {
+            if (StringUtils.isNotBlank(translateType)){
+                switch (translateType) {
+                    case ConstantInterface.ENGLISH:
+                        if (fileType.equals("common")) {
+                            //src/main/resources/config/en_common.xlsx
+                            fileUrl = config_File_Common_EN_Url;
+                            fileName = "通用词条英文翻译模板_common.xlsx";
+                        } else if (fileType.equals("zz")) {
+                            fileUrl = config_File_ZZ_EN_Url;
+                            fileName = "装置词条英文翻译模板_zz.xlsx";
+                        } else if (fileType.equals("jk")) {
+                            fileUrl = config_File_JK_EN_Url;
+                            fileName = "监控词条英文翻译模板_zz.xlsx";
+                        }
+                        break;
+                    case ConstantInterface.RUSSIAN:
+                        if (fileType.equals("common")) {
+                            //src/main/resources/config/en_common.xlsx
+                            fileUrl = config_File_Common_RU_Url;
+                            fileName = "通用词条俄文翻译模板_common.xlsx";
+                        } else if (fileType.equals("zz")) {
+                            fileUrl = config_File_ZZ_RU_Url;
+                            fileName = "装置词条俄文翻译模板_zz.xlsx";
+                        } else if (fileType.equals("jk")) {
+                            fileUrl = config_File_JK_RU_Url;
+                            fileName = "监控词条俄文翻译模板_zz.xlsx";
+                        }
+                        break;
+                    case ConstantInterface.FRENCH:
+                        if (fileType.equals("common")) {
+                            //src/main/resources/config/en_common.xlsx
+                            fileUrl = config_File_Common_FR_Url;
+                            fileName = "通用词条法文翻译模板_common.xlsx";
+                        } else if (fileType.equals("zz")) {
+                            fileUrl = config_File_ZZ_FR_Url;
+                            fileName = "装置词条法文翻译模板_zz.xlsx";
+                        } else if (fileType.equals("jk")) {
+                            fileUrl = config_File_JK_FR_Url;
+                            fileName = "监控词条法文翻译模板_zz.xlsx";
+                        }
+                        break;
+                    case ConstantInterface.SPANISH:
+                        if (fileType.equals("common")) {
+                            //src/main/resources/config/en_common.xlsx
+                            fileUrl = config_File_Common_ES_Url;
+                            fileName = "通用词条西文翻译模板_common.xlsx";
+                        } else if (fileType.equals("zz")) {
+                            fileUrl = config_File_ZZ_ES_Url;
+                            fileName = "装置词条西文翻译模板_zz.xlsx";
+                        } else if (fileType.equals("jk")) {
+                            fileUrl = config_File_JK_ES_Url;
+                            fileName = "监控词条西文翻译模板_zz.xlsx";
+                        }
+                }
+            }
+
+          /*  if (fileType.equals("common")) {
+                //src/main/resources/config/en_common.xlsx
                 fileUrl = configFileCommonUrl;
 
                 fileName = "通用词条翻译模板_common.xlsx";
@@ -423,12 +510,13 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             } else if (fileType.equals("jk")) {
                 fileUrl = configFilejkUrl;
                 fileName = "监控词条翻译模板_zz.xlsx";
-            }
+            }*/
             //ClassLoader classLoader = EntryTempServiceImpl.class.getClassLoader();
            // File configFile = new File(classLoader.getResource(fileUrl).getFile());
            /* if (!configFile.exists()) {
                 log.error(" 模板文件不存在 ！");
             }*/
+
             FileInputStream fileInputStream = new FileInputStream(fileUrl);
             if (fileUrl.endsWith(".xlsx")) {
                 workbook = new XSSFWorkbook(fileInputStream);
@@ -556,7 +644,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
         String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+        processEntryInfo(entryInfoEntities, translateType, department,update);
+   /*     for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
             updateEntryInfoTranslate(translateType, entryInfoEntity, department);
 
@@ -574,12 +663,62 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
 
             update += entryInfoMapper.updateById(entryInfoEntity);
-        }
-        if (update < entryInfoEntities.size()) {
+        }*/
+       /* if (update < entryInfoEntities.size()) {
             log.error(" entryInfoEntity update  error ! ");
             return ErrorCodeList.OPERATE_ERROR;
-        }
+        }*/
         return ConstantInterface.OK_STR;
+    }
+
+    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, String department,int update) {
+        int numberOfThreads = 32; // Number of threads to use
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        int chunkSize = entryInfoEntities.size() / numberOfThreads;
+        for (int i = 0; i < numberOfThreads; i++) {
+            int start = i * chunkSize;
+            int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
+            List<EntryInfoEntity> sublist = entryInfoEntities.subList(start, end);
+
+            new Thread(() -> {
+                int update1 = 0;
+                try {
+
+                    // Process the sublist
+                    for (EntryInfoEntity entryInfoEntity : sublist) {
+                        // Your processing logic here
+                        List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
+                        updateEntryInfoTranslate(translateType, entryInfoEntity, department);
+
+                        QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper();
+                        queryWrapper.eq("parent_id", entryInfoEntity.getId());
+                        queryWrapper.eq("is_delete", 0);
+                        List<EntryInfoEntity> childList = entryInfoMapper.selectList(queryWrapper);
+
+
+                        if (!CollectionUtils.isEmpty(childrenInfoEntry)) {
+                           syncChildrenTrans(entryInfoEntity, childrenInfoEntry,translateType);
+                        }else if (!CollectionUtils.isEmpty(childList)){
+                             syncChildrenTrans(entryInfoEntity, childList,translateType);
+                        }
+
+
+                       entryInfoMapper.updateById(entryInfoEntity);
+                    }
+                } finally {
+
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        try {
+            latch.await(); // Wait for all threads to finish
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private int syncChildrenTrans(EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> childrenInfoEntry,String translateType) {

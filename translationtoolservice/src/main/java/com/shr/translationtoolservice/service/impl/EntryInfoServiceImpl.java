@@ -1,5 +1,6 @@
 package com.shr.translationtoolservice.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.common.HttpResponse;
@@ -96,6 +97,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private LocalTimeUtils localTimeUtils;
+
+    @Autowired
+    private EntryUtils entryUtils;
 
     @Autowired
     private EntryVersionMapper entryVersionMapper;
@@ -1849,6 +1853,106 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }*/
 
         return res.size();
+    }
+
+    @Override
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request) {
+        //todo:
+        //1.调用i18n接口 获取ts 所有词条
+        //2.调用di接口 获取di 所有词条
+        //3.调用数据库 获取所有词条
+        //4.对比ts di 数据库 词条
+        //5.返回未使用词条
+     /*   List<EntryInfoEntity> tsEntry = tsUtils.getTsEntry(i18nUrl);
+        List<EntryInfoEntity> diEntry = diUtils.getDiEntry(i18nUrl);*/
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request) {
+        //TODO:
+        //1.获取当前分类下所有任务
+        //2.获取每个任务下所有词条
+        //2.收集当前分类下都有哪些ts
+        //3.收集当前分类下都有哪些di
+        //4.调用i18n 获取所有ts词条
+        //5.调用i18n 获取所有di词条
+        //6.合并ts 和di的词条
+        //7.对比数据库看哪些是新增的词条
+        //8.返回新增词条
+
+        String token = request.getHeader("token");
+
+        String userName = JWTTokenUtils.getUserName(token);
+        //获取当前分类下所有产品
+        List<String> productidList = new ArrayList<>();
+        getProductClassfyList(classfyID,productidList);
+        //通过关联表获取所有任务id
+        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().in("product_id", productidList));
+        Set<String> taskIDList = new HashSet<>();
+        for (ProductRelationEntity productRelationEntity : productRelationEntities) {
+            if (StringUtils.isBlank(productRelationEntity.getTaskId())){
+                //打印详细信息
+               log.warn("当前产品没有关联任务,任务id为空,产品id为:{},词条id为：{}",productRelationEntity.getProductId(),productRelationEntity.getEntryId());
+               continue;
+            }
+            taskIDList.add(productRelationEntity.getTaskId());
+        }
+        List<TaskEntryVO> taskEntryVOS = new ArrayList<>();
+        //遍历任务id 获取每个任务的词条
+        for (String taskID : taskIDList) {
+            TaskEntryVO taskEntryVO = new TaskEntryVO();
+
+            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+            List<ProductRelationEntity> productRelationEntities1 = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("task_id", taskID));
+            log.info("当前任务下的任务id为:{}",taskID);
+            String productId = productRelationEntities1.get(0).getProductId();
+            String versionId = productRelationEntities1.get(0).getVersionId();
+            //任务只对应一个产品
+            ProductEntity productEntity = productMapper.selectById(productId);
+            taskEntryVO.setTaskName(taskInfoEntity.getName());
+            taskEntryVO.setProductName(productEntity.getName());
+            taskEntryVO.setTaskID(taskID);
+            taskEntryVO.setProductID(productId);
+            taskEntryVO.setTranslateType(taskInfoEntity.getTranslateType());
+
+            List<EntryInfoEntity> entryByTaskID = entryInfoMapper.getEntryByTaskID(taskID,"t_entry_info");
+            List<String> tsEntryList = new ArrayList<>();
+            List<String> diEntryList = new ArrayList<>();
+            Set<String> tsfileSet = new HashSet<>();
+            Set<String> difileSet = new HashSet<>();
+            for (EntryInfoEntity entryInfoEntity : entryByTaskID) {
+                if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
+                    if (entryInfoEntity.getEntrySource().equals(ConstantInterface.TS)){
+                        tsEntryList.add(entryInfoEntity.getEntry());
+                        tsfileSet.add(entryInfoEntity.getEntrySource());
+                    }else if (entryInfoEntity.getEntrySource().equals(ConstantInterface.DI)){
+                        diEntryList.add(entryInfoEntity.getEntry());
+                        difileSet.add(entryInfoEntity.getEntrySource());
+                    }
+                }
+            }
+            //调用i18n接口获取ts词条
+
+            List<EntryInfoEntity> tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+            //调用i18n接口获取di词条
+            List<EntryInfoEntity> diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+            //合并ts和di词条
+            List<EntryInfoEntity> allEntry = new ArrayList<>();
+            allEntry.addAll(tsEntry);
+            allEntry.addAll(diEntry);
+            //对比数据库词条
+            ArrayList<EntryInfoEntity> newEntry = new ArrayList<>();
+            entryUtils.caseNewEntry(allEntry, taskID,newEntry);
+            List<EntryInfoEntity> entryInfoEntities = entryUtils.buildRepeTempEntry(allEntry, taskInfoEntity.getTranslateType());
+            if (CollectionUtils.isEmpty(entryInfoEntities)){
+                continue;
+            }
+            taskEntryVO.setEntities(entryInfoEntities);
+            taskEntryVOS.add(taskEntryVO);
+
+        }
+        return taskEntryVOS;
     }
 
     private void putEntryTransInfo(List<EntryInfoEntity> entryInfoEntities, String englishTranslateState, List<EntryInfoEntity> res) {

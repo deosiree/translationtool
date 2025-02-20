@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName DiUtils
@@ -36,6 +33,9 @@ public class DiUtils {
 
     @Autowired
     private TLanguageMapper languageMapper;
+
+    @Autowired
+    private CommonUtils commonUtils;
 
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
     public String writeDiEntry(List<EntryInfoEntity> entryInfoEntities, String fileName, String translateType,boolean tag,boolean common,String i18nUrl) {
@@ -144,13 +144,14 @@ public class DiUtils {
         for (DictionaryVo dictionaryVo : dictionaryVos) {
             if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
                 //是否需要tag 查询
-                if (!entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
+
+                if (StringUtils.isNotBlank(entryInfoEntity.getTag() ) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
                    continue;
                 }
 
                 //是否需要common 查询
 
-                if (!entryInfoEntity.getEntrySource().equals(dictionaryVo.getComments())) {
+                if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource() )  && !entryInfoEntity.getEntrySource().equals(dictionaryVo.getComments())) {
                     continue;
                 }
                 isExist = true;
@@ -197,5 +198,71 @@ public class DiUtils {
             DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
             dictionaryVos.add(dictionaryVo);
         }
+    }
+
+
+    public List<EntryInfoEntity> getDiEntry(String i18nUrl, Set<String> difileSet, String taskID, String userName, String productId, String versionID, String translateType) {
+
+        ArrayList<EntryInfoEntity> list = new ArrayList<>();
+        try {
+
+            for (String dic : difileSet) {
+                JSONArray jsonArray = new JSONArray();
+                Date date = new Date(System.currentTimeMillis());
+                String dicName = "";
+                Map<String, String> headerParameters = new HashMap<>();
+                if (dic.contains("平台")){
+                    dicName = dic.replaceAll("平台","pt");
+                }else if (dic.contains("监控")){
+                    dicName = dic.replaceAll("监控","jk");
+                }
+                headerParameters.put("dictionary", dicName);
+                String dicName1 = dicName.split("/")[1];
+                String s = httpUtils.get(i18nUrl + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
+                jsonArray = JSONArray.parseArray(s);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID());
+                    entryInfoEntity.setEntry(dictionaryVo.getSource());
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setTag(dictionaryVo.getTag());
+                    entryInfoEntity.setEntryLabel(dictionaryVo.getComments());
+                    entryInfoEntity.setImportType(ConstantInterface.DI);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setEntrySource(dicName);
+                    entryInfoEntity.setDiFileName("tr/" + dicName1);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntity.setIsDelete(0);
+                    entryInfoEntity.setUpdateTime(date);
+                    entryInfoEntity.setUpdate(userName);
+                    Map<String, String> map = dictionaryVo.getTranslation();
+                    if (StringUtils.isBlank(map.get(translateType))) {
+                        switch (translateType) {
+                            case ConstantInterface.ENGLISH:
+                                entryInfoEntity.setEnglish(map.get(translateType));
+                                break;
+                            case ConstantInterface.RUSSIAN:
+                                entryInfoEntity.setRussian(map.get(translateType));
+                                break;
+                            case ConstantInterface.FRENCH:
+                                entryInfoEntity.setFrench(map.get(translateType));
+                                break;
+                            case ConstantInterface.SPANISH:
+                                entryInfoEntity.setSpanish(map.get(translateType));
+                                break;
+                        }
+                    }
+                    list.add(entryInfoEntity);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return  list;
     }
 }

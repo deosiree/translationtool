@@ -193,7 +193,13 @@ public class EntryInfoController extends BaseController {
         entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize);
 
         responseListModel.setList(entryInfoEntities);
-        responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID));
+        //全选跳过汇总
+        if (pageIndex != -1 && pageSize != -1) {
+            responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID));
+        }else {
+            responseListModel.setTotalNum(entryInfoEntities.size());
+        }
+
         return checkResult(responseListModel);
     }
 
@@ -424,6 +430,29 @@ public class EntryInfoController extends BaseController {
     }
 
 
+    @PostMapping("/checkNotUseEntry")
+    @ApiOperation("校验未使用的词条")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestBody String i18nUrl ,HttpServletRequest request) {
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,request);
+        responseListModel.setList(entities);
+        responseListModel.setTotalNum(entities.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/checkNewEntryByClassfy")
+    @ApiOperation("查询分类中新增的词条")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse<ResponseListModel> checkNewEntryByClassfy(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request) {
+        ResponseListModel<TaskEntryVO> responseListModel = new ResponseListModel<>();
+        List<TaskEntryVO> taskEntryVOS = entryInfoService.checkNewEntryByClassfy(i18nUrl,classfyID,request);
+        responseListModel.setList(taskEntryVOS);
+        responseListModel.setTotalNum(taskEntryVOS.size());
+        return checkResult(responseListModel);
+    }
 
 
 

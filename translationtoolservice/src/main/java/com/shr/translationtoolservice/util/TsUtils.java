@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName TsUtils
@@ -35,6 +32,12 @@ public class TsUtils {
 
     @Autowired
     private TLanguageMapper languageMapper;
+
+    @Autowired
+    private CommonUtils commonUtils;
+
+    @Autowired
+    private EntryUtils entryUtils;
 
     //辞典更新 不需要tag 和comment 的更新和查询传入前先清空字段内容
     public String writeTSEntry(List<EntryInfoEntity> entryInfoEntities, String fileName,boolean tag,String i18nUrl,String transType){
@@ -80,5 +83,61 @@ public class TsUtils {
             return ErrorCodeList.UPDATE_TS_ERROR +fileName;
         }
         return ConstantInterface.OK_STR;
+    }
+
+    public List<EntryInfoEntity> getTsEntry(String i18nUrl, Set<String> fileNameSet,
+                                            String taskID,String userName,String productId,String versionID,String translateType){
+        List<TLanguage> tLanguages = languageMapper.selectList(new QueryWrapper<>());
+        ArrayList<EntryInfoEntity> list = new ArrayList<>();
+        Date date = new Date(System.currentTimeMillis());
+        for (String fileName : fileNameSet) {
+            Map<String, String> headerParameters = new HashMap<>();
+            headerParameters.put("fileName", fileName);
+
+            JSONArray jsonArray = new JSONArray();
+            String s = "";
+
+            try {
+                s = httpUtils.get(i18nUrl + ConstantInterface.GET_WORDS, headerParameters);
+
+                jsonArray = JSONArray.parseArray(s);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JSONArray jsonArray1 = JSONArray.parseArray(jsonArray.get(i).toString());
+                    String entry = jsonArray1.get(0).toString();
+                    String translate = jsonArray1.getString(1);
+                    String tag = jsonArray1.getString(2);
+                    String comment = jsonArray1.getString(3);
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID());
+                    //为了支持多语言，fileName截取前面一段作为entrySource  ,例：db_selector_comp_en_US.ts 截取db_selector_comp
+                    for (TLanguage tLanguage : tLanguages) {
+                        if (fileName.contains(tLanguage.getCode())) {
+                            fileName = fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
+                        }
+                    }
+                    entryInfoEntity.setEntrySource(fileName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setEntry(entry);
+                    entryInfoEntity.setUpdate(userName);
+                    entryInfoEntity.setUpdateTime(date);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntity.setTag(tag);
+                    entryInfoEntity.setComment(comment);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setImportType(ConstantInterface.TS);
+                    entryInfoEntity.setWriteType(ConstantInterface.TS);
+                    entryInfoEntity.setIsDelete(0);
+                    entryUtils.createNewTrans(entryInfoEntity, translateType, translate);
+                    list.add(entryInfoEntity);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
+
+
+        }
+        return list;
     }
 }
