@@ -28,7 +28,7 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     List<EntryInfoEntity> preTranslate(HttpServletRequest request, List<EntryInfoEntity> entryInfoEntities,String taskID,String priority);
 
-    void getTemplateFile(HttpServletResponse response,String fileType       );
+    void getTemplateFile(HttpServletResponse response,String fileType ,String translateType);
 
     List<EntryInfoEntity> getEntryInfoList(String taskID,String entryState, List<String> transStates,String entry);
 

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @ClassName I18nServiceImpl
@@ -76,8 +77,10 @@ public class I18nServiceImpl implements I18nService {
             entryInfoEntities.add(entryInfoEntity);
         }
 
+        //开线程
+        processEntryInfo(entryInfoEntities, translateType, tag, common, tsEntryInfoMap, diTypeMap);
 
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+        /*for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             //取翻译状态为3的词条
 
             String trans = getTransByType(entryInfoEntity, translateType);
@@ -91,9 +94,9 @@ public class I18nServiceImpl implements I18nService {
                     Map<String, String> requestMap  = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
                     String tagStr =  entryInfoEntity.getTag();
-                   /* if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
+                   *//* if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
                         tagStr =  entryInfoEntity.getTag();
-                    }*/
+                    }*//*
                     requestMap.put("tag", tagStr);
                     requestMap.put("comment", entryInfoEntity.getComment());
                     requestMap.put("translate", trans);
@@ -104,9 +107,9 @@ public class I18nServiceImpl implements I18nService {
                     Map<String, String> requestMap = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
                     String tagStr =  entryInfoEntity.getTag();
-                    /*if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
+                    *//*if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
                         tagStr =  entryInfoEntity.getTag();
-                    }*/
+                    }*//*
                     requestMap.put("tag", tagStr);
                     requestMap.put("comment", entryInfoEntity.getComment());
                     requestMap.put("translate", trans);
@@ -140,37 +143,134 @@ public class I18nServiceImpl implements I18nService {
                     }
                 }
             }
-        }
-        //写入i18 ts
-        if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
-           for (String fileName : tsEntryInfoMap.keySet()){
-               List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
+        }*/
+            //写入i18 ts
+            if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
+                for (String fileName : tsEntryInfoMap.keySet()) {
+                    List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
 
-               JSONObject jsonObject = new JSONObject();
-               jsonObject.put("entry", tsEntryInfoMap.get(fileName));
-               fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
-               String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
-               if (StringUtils.isBlank(s) ){
-                   return ErrorCodeList.I18N_SERVER_ERROR;
-               } else if ( !s.equals("true")){
-                   ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR +fileName);
-                   return ErrorCodeList.UPDATE_TS_ERROR +fileName;
-               }
-           }
-           // jsonObject.put("entry", tsEntryInfoMap);
-           // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
-        }
-        if (!CollectionUtils.isEmpty(diTypeMap)) {
-            //按照分裂写入di
-            for (String di_fileName : diTypeMap.keySet()) {
-                //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                return diUtils.writeDiEntry(diTypeMap.get(di_fileName),di_fileName,translateType,tag,common,i18nUrl);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("entry", tsEntryInfoMap.get(fileName));
+                    fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
+                    String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
+                    if (StringUtils.isBlank(s)) {
+                        return ErrorCodeList.I18N_SERVER_ERROR + fileName;
+                    } else if (!s.equals("true")) {
+                        ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR + fileName);
+                        return ErrorCodeList.UPDATE_TS_ERROR + fileName;
+                    }
+                }
+                // jsonObject.put("entry", tsEntryInfoMap);
+                // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
             }
+            if (!CollectionUtils.isEmpty(diTypeMap)) {
+                //按照分裂写入di
+                for (String di_fileName : diTypeMap.keySet()) {
+                    //writeDiWords(di_fileName, translateType, dbEntrInfo);
+                    return diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
+                }
 
-        }
+            }
 
 
         return ConstantInterface.OK_STR;
+    }
+
+    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, boolean tag, boolean common, Map<String, List<Map<String, String>>> tsEntryInfoMap, Map<String, List<EntryInfoEntity>> diTypeMap) {
+        int numberOfThreads = 32; // Number of threads to use
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        int chunkSize = entryInfoEntities.size() / numberOfThreads;
+        for (int i = 0; i < numberOfThreads; i++) {
+            int start = i * chunkSize;
+            int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
+            List<EntryInfoEntity> sublist = entryInfoEntities.subList(start, end);
+
+            new Thread(() -> {
+                try {
+                    // Process the sublist
+                    for (EntryInfoEntity entryInfoEntity : sublist) {
+                        // Your processing logic here
+                        //取翻译状态为3的词条
+
+                        String trans = getTransByType(entryInfoEntity, translateType);
+                        if (StringUtils.isBlank(trans)) {
+                            continue;
+                        }
+                        if ("TS".equals(entryInfoEntity.getWriteType())) {
+                            if (CollectionUtils.isEmpty(tsEntryInfoMap.get(entryInfoEntity.getEntrySource()))){
+                                List<Map<String, String>> tsEntrys = new ArrayList<>();
+                                //遍历单词
+                                Map<String, String> requestMap  = new HashMap<>();
+                                requestMap.put("source", entryInfoEntity.getEntry());
+                                String tagStr =  entryInfoEntity.getTag();
+                   /* if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
+                        tagStr =  entryInfoEntity.getTag();
+                    }*/
+                                requestMap.put("tag", tagStr);
+                                requestMap.put("comment", entryInfoEntity.getComment());
+                                requestMap.put("translate", trans);
+                                tsEntrys.add(requestMap);
+                                tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),tsEntrys);
+                            }else {
+                                //遍历单词
+                                Map<String, String> requestMap = new HashMap<>();
+                                requestMap.put("source", entryInfoEntity.getEntry());
+                                String tagStr =  entryInfoEntity.getTag();
+                    /*if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
+                        tagStr =  entryInfoEntity.getTag();
+                    }*/
+                                requestMap.put("tag", tagStr);
+                                requestMap.put("comment", entryInfoEntity.getComment());
+                                requestMap.put("translate", trans);
+                                List<Map<String, String>> list = tsEntryInfoMap.get(entryInfoEntity.getEntrySource());
+                                list.add(requestMap);
+                            }
+
+                        } else if ("DI".equals(entryInfoEntity.getWriteType())) {
+                            //di 来源处理
+                            List<EntryInfoEntity> entities;
+                            if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getDiFileName()))) {
+                                entities = new ArrayList<>();
+                                entities.add(entryInfoEntity);
+                                diTypeMap.put(entryInfoEntity.getDiFileName(), entities);
+                            } else {
+                                entities = diTypeMap.get(entryInfoEntity.getDiFileName());
+                                for (EntryInfoEntity entryInfoEntity1 : entities){
+                                    if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
+                                        if (tag){
+                                            if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag())){
+                                                continue;
+                                            }else {
+                                                entities.add(entryInfoEntity);
+                                                break;
+                                            }
+                                        }
+                                    }else {
+                                        entities.add(entryInfoEntity);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        try {
+            latch.await(); // Wait for all threads to finish
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+
+
+
+
+
     }
 
     @Override
