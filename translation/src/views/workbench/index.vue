@@ -66,11 +66,15 @@
                 <a-button type="primary" size="small" @click="SelectTranslateType">批量选择语言</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
-                  <div style="text-align: center;">
-                    <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
-                      :fieldNames="{label:'name',value:'name'}">
-                    </a-select>
-                  </div>
+                  <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
+                    :fieldNames="{label:'name',value:'name'}">
+                  </a-select>
+                  <template #footer>
+                    <div style="text-align: center;">
+                      <a-button @click="cancelTranslateType">取消</a-button>
+                      <a-button type="primary" @click="confirmTranslateType">确定</a-button>
+                    </div>
+                  </template>
                 </a-modal>
               </div>
             </template>
@@ -644,13 +648,6 @@ export default {
   width: 100%;
   height: 100%;
   padding: 16px;
-}
-.choiceLang ::v-deep .ant-modal-footer {
-  text-align: center!important
-  // button {
-  //   display: inline-block;
-  //   margin: 0 5px; /* 可选，添加按钮之间的间距 */
-  // }
 }
 .ant-row {
   height: 100%;
