@@ -1,6 +1,16 @@
 //引入request.js文件
 import request from "../request";
  
+// 查询分类中新增的词条
+export function getCheckNewEntryByClassfy(params) {
+  return request({
+      // url: "/entryInfo/checkNewEntryByClassfy",
+      url: "/clearCopy/response.json",
+      method: "POST", 
+      params
+  });
+}
+
 // 查询分类树
 export function getClassTree(params) {
     return request({
