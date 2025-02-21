@@ -96,13 +96,14 @@ export function updateEntryList(params, data) {
 }
 
 // 删除词条
-export function deleteEntryInfoByID(params,data) {
-  return request({
-    url: "/workbench/deleteEntryInfoByID",
-    method: "POST",
-    params,
-    data
-  });
+export function deleteEntryInfoByID(params, data) {
+    return request({
+        url: "/workbench/deleteEntryInfoByID",
+        method: "POST", 
+        params,
+        data
+    });
+
 }
 
 // 过滤语言
