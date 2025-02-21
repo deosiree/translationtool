@@ -16,7 +16,7 @@
                 <span v-else>{{ title }}</span>
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
-                    <a-menu-item @click="update(treeKey)">导入新词条</a-menu-item>
+                    <a-menu-item @click="update(treeKey)">更新</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -168,7 +168,7 @@ export default {
       this.getClassTree();
       this.$refs.productEntry.refresh(this.currentClickProduct);
     },
-    // 导入新词条
+    // 更新
     update(treeKey) {
       console.log("更新", treeKey);
       this.currentClass = {
@@ -184,33 +184,39 @@ export default {
       this.updateVisible = true; // 显示更新页面
     },
     getUpdateEntry() {
-      console.log("xxx");
+      // 接口参数待写
       let params = {};
       let data = {};
       getUpdateEntryByClassfy(params, data).then((res) => {
-        console.log("拿到更新数据", res.data.list);
         this.updateEntries = res.data.list;
-
         // 都放到.then内，可以确保updateEntries有值
-        // 初始化一个空数组用于存储处理后的数据
+
         let lists = [];
-        // 遍历 this.updateEntries 数组
-        this.updateEntries.forEach(({ entrySource, entry }) => {
-          // 如果 entry 数组存在元素
-          if (entry && entry.length > 0) {
-            entry.forEach((entryValue) => {
-              // 创建一个新对象，包含词条来源和词条
-              const item = {
-                entrySource,
-                entry: entryValue,
-              };
-              // 将新对象添加到 data 数组中
-              lists.push(item);
-            });
-          }
+        // 一个词条来源为一行，对应可能有多个词条
+        this.updateEntries.forEach(({ entrySource, entries }) => {
+          // 改！！！！！！！！！！！！
+          console.log("词条", entries);
+
+          entriesString = entries.join('\n');
+          console.log("词条str", entriesString);
+
+          lists.push({ entrySource, entriesString });
+          console.log("词条", entriesString);
         });
+
+        // // 一个词条为一行
+        // this.updateEntries.forEach(({ entrySource, entries }) => {
+        //   if (entries && entries.length > 0) {
+        //     entries.forEach((entryValue) => {
+        //       const item = {
+        //         entrySource,
+        //         entries: entryValue,
+        //       };
+        //       lists.push(item);
+        //     });
+        //   }
+        // });
         this.updateEntries_nom = lists;
-        console.log("处理后的数据", this.updateEntries_nom);
       });
     },
     // 新增分类或产品

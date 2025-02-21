@@ -1,10 +1,11 @@
 <template>
-  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose"
-    @click="getUpdateEntry">
+  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle"
+    :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
+    :row-key="record => record.id" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @click="getUpdateEntry">
     <div class="content">
       <div class="table">
         <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="secondClassifyTable"
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="updateTable"
           bordered>
         </a-table>
       </div>
@@ -46,8 +47,15 @@ export default {
           align: "center",
           width: 100,
         },
-        { title: "词条", dataIndex: "entry", align: "center", width: 400 },
+        {
+          title: "词条",
+          dataIndex: "entries",
+          align: "center",
+          width: 400,
+        },
       ],
+      selectedRows: [],
+      selectedRowKeys: [],
     };
   },
   mounted() {
@@ -80,6 +88,38 @@ export default {
       this.updateEntries.title = "";
       this.updateEntries.maxByte = "";
       this.$refs.formRef.clearValidate();
+    },
+    // 表格复选框选择事件
+    onSelectChange(selectedRowKeys, selectedRows) {
+      this.selectedRowKeys = selectedRowKeys;
+      this.selectedRows = selectedRows;
+    },
+    // 表格复选框点击事件
+    onSelect(record, selected) {
+      if (this.createVersionFlag) {
+        // 创建版本时使用
+        if (selected) {
+          this.selectEntry.push(record);
+        } else {
+          this.selectEntry = this.selectEntry.filter((item) => {
+            return item.id !== record.id;
+          });
+        }
+      }
+    },
+    // 表格全选/反选框点击事件
+    onSelectAll(selected, selectedRows, changeRows) {
+      if (this.createVersionFlag) {
+        if (selected) {
+          this.selectEntry = this.selectEntry.concat(changeRows);
+        } else {
+          changeRows.forEach((item) => {
+            this.selectEntry = this.selectEntry.filter((entry) => {
+              return entry !== item;
+            });
+          });
+        }
+      }
     },
   },
 };
