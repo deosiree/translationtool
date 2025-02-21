@@ -60,8 +60,8 @@
       </a-col>
     </a-row>
   </div>
-  <UpdateModal ref="classifyModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
-    @classifyClose="classifyClose"  style="width:700px;"/>
+  <UpdateModal ref="classifyModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateEntries="updateEntries"
+    :dataSource="updateEntries_nom" @classifyClose="classifyClose" style="width:700px;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
@@ -83,7 +83,7 @@ import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
   deleteEntryClassfy,
-  updateEntryClassfy,
+  getUpdateEntryByClassfy,
 } from "@/http/api/entryManage";
 import { deleteProduct, getUserProduct } from "@/http/api/product";
 import { message } from "ant-design-vue";
@@ -113,6 +113,8 @@ export default {
       selectedTreeKeys: [],
       classifyVisible: false,
       updateVisible: false,
+      updateEntries: [],
+      updateEntries_nom: [],
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -169,7 +171,6 @@ export default {
     // 导入新词条
     update(treeKey) {
       console.log("更新", treeKey);
-      this.updateVisible = true; // 显示更新页面
       this.currentClass = {
         parentId: treeKey,
         title: "",
@@ -179,6 +180,38 @@ export default {
       // 1.弹窗，并发送http请求（/entryInfo/checkNewEntryByClassfy 查询分类中新增的词条
       // 2.得到所有新词条，默认全选，可勾选不想要的，
       // 3.点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
+      this.getUpdateEntry();
+      this.updateVisible = true; // 显示更新页面
+    },
+    getUpdateEntry() {
+      console.log("xxx");
+      let params = {};
+      let data = {};
+      getUpdateEntryByClassfy(params, data).then((res) => {
+        console.log("拿到更新数据", res.data.list);
+        this.updateEntries = res.data.list;
+
+        // 都放到.then内，可以确保updateEntries有值
+        // 初始化一个空数组用于存储处理后的数据
+        let lists = [];
+        // 遍历 this.updateEntries 数组
+        this.updateEntries.forEach(({ entrySource, entry }) => {
+          // 如果 entry 数组存在元素
+          if (entry && entry.length > 0) {
+            entry.forEach((entryValue) => {
+              // 创建一个新对象，包含词条来源和词条
+              const item = {
+                entrySource,
+                entry: entryValue,
+              };
+              // 将新对象添加到 data 数组中
+              lists.push(item);
+            });
+          }
+        });
+        this.updateEntries_nom = lists;
+        console.log("处理后的数据", this.updateEntries_nom);
+      });
     },
     // 新增分类或产品
     addClassify(treeKey, type) {

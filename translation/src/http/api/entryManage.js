@@ -2,13 +2,14 @@
 import request from "../request";
 
 
-// 查询分类中新增的词条
-export function getCheckNewEntryByClassfy(params) {
+// 查询分类中的更新词条
+export function getUpdateEntryByClassfy(params, data) {
   return request({
       // url: "/entryInfo/checkNewEntryByClassfy",
-      url: "https://apifoxmock.com/m1/5869278-5555786-default/newEntry",
+      url: "https://apifoxmock.com/m1/5869278-5555786-default/updateEntry",
       method: "POST", 
-      params
+      params,
+      data
   });
 }
 
