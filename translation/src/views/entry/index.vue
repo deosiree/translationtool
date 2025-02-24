@@ -60,8 +60,8 @@
       </a-col>
     </a-row>
   </div>
-  <UpdateModal ref="classifyModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateEntries="updateEntries"
-    :dataSource="updateEntries_nom" @classifyClose="classifyClose" style="width:700px;" />
+  <UpdateModal ref="classifyModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :dataSource="updateEntries"
+    @classifyClose="classifyClose" style="width:700px;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
@@ -114,7 +114,6 @@ export default {
       classifyVisible: false,
       updateVisible: false,
       updateEntries: [],
-      updateEntries_nom: [],
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -170,38 +169,31 @@ export default {
     },
     // 更新
     update(treeKey) {
-      console.log("更新", treeKey);
+      // console.log("更新", treeKey);
       this.currentClass = {
         parentId: treeKey,
         title: "",
       };
       this.classifyModalTitle = "更新详情";
-      // 具体逻辑还未写：
-      // 1.弹窗，并发送http请求（/entryInfo/checkNewEntryByClassfy 查询分类中新增的词条
-      // 2.得到所有新词条，默认全选，可勾选不想要的，
-      // 3.点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
-      this.getUpdateEntry();
-      this.updateVisible = true; // 显示更新页面
-    },
-    getUpdateEntry() {
-      // 接口参数待写
+      // 弹窗，并发送http请求 // 接口参数待写
       let params = {};
       let data = {};
       getUpdateEntryByClassfy(params, data).then((res) => {
-        this.updateEntries = res.data.list;
         // 都放到.then内，可以确保updateEntries有值
-
         let lists = [];
-        // 一个词条来源为一行，对应可能有多个词条
-        this.updateEntries.forEach(({ entrySource, entries }) => {
-          // 改！！！！！！！！！！！！
-          console.log("词条", entries);
+        res.data.list.forEach(({ entrySource, entries }) => {
+          let entriesList = [];
+          // let entriesString = "";// 一个词条来源为一行，对应可能有多个词条（string格式）
+          for (let i = 0; i < entries.length; i++) {
+            // entriesString += entries[i];
+            // entriesString += entries[i] + "\n";
+            entriesList.push(entries[i]);
+          }
+          // console.log("词条str", entriesString);
+          // console.log("词条list", entriesList);
 
-          entriesString = entries.join('\n');
-          console.log("词条str", entriesString);
-
-          lists.push({ entrySource, entriesString });
-          console.log("词条", entriesString);
+          lists.push({ entrySource, entriesList });
+          // lists.push({ entrySource, entriesString });
         });
 
         // // 一个词条为一行
@@ -216,9 +208,12 @@ export default {
         //     });
         //   }
         // });
-        this.updateEntries_nom = lists;
+        this.updateEntries = lists;
       });
+
+      this.updateVisible = true; // 显示弹窗
     },
+
     // 新增分类或产品
     addClassify(treeKey, type) {
       this.currentClass = {

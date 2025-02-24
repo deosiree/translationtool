@@ -1,12 +1,21 @@
 <template>
-  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle"
-    :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-    :row-key="record => record.id" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @click="getUpdateEntry">
+  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle" :row-key="record => record.id" @handleClose="handleClose"
+    @handleOK="handleOK" @afterClose="afterClose">
     <div class="content">
       <div class="table">
         <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="updateTable"
-          bordered>
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+          :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
+          :row-key="record => record.id" ref="updateTable" bordered>
+          <!-- 表格单元格模板 -->
+          <template #bodyCell="{ column, record }">
+            <!-- 词性来源列 -->
+            <template v-if="column.dataIndex === 'entriesList'">
+              <div v-for="(item, index) in record.entriesList" :key="index" style="display: flex; gap: 100px;">
+                <span class="entries">{{ item }}</span>
+              </div>
+            </template>
+          </template>
         </a-table>
       </div>
     </div>
@@ -14,9 +23,6 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
-import { addEntryClassfy, updateEntryClassfy } from "@/http/api/entryManage";
-import { addProduct, updateProduct } from "@/http/api/product";
-import { getUpdateEntryByClassfy } from "@/http/api/entryManage";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 export default {
@@ -33,8 +39,9 @@ export default {
     modalTitle: {
       type: String,
     },
-    updateEntries: [],
-    dataSource: [],
+    dataSource: {
+      type: Array,
+    },
   },
   data() {
     return {
@@ -49,7 +56,7 @@ export default {
         },
         {
           title: "词条",
-          dataIndex: "entries",
+          dataIndex: "entriesList",
           align: "center",
           width: 400,
         },
@@ -59,34 +66,34 @@ export default {
     };
   },
   mounted() {
-    // this.$emit("updateEntries");
+  },
+  watch: {
+    dataSource: {
+      immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
+      handler(newDataSource) {
+        this.selectedRowKeys = newDataSource.map((record) => record.id); // 设置默认全选
+      },
+    },
   },
   methods: {
     handleClose() {
       this.$emit("classifyClose");
     },
     handleOK() {
-      // 具体逻辑还未写：
-      // 1.弹窗，并发送http请求（/entryInfo/checkNewEntryByClassfy 查询分类中新增的词条
-      // 2.得到所有新词条，默认全选，可勾选不想要的，
-      // 3.点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
+      // 点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
       let params = {};
       let data = {
-        // id: this.entries.key,
-        // name: this.entries.title,
-        // parentId: this.entries.parentId,
+        taskID: this.task.id
       };
-      // getUpdateEntryByClassfy(params, data).then((res) => {
-      //   console.log("getUpdateEntryByClassfy", res);
-      //   message.success("更新成功！");
-      //   this.$emit("classifyClose");
-      //   this.dataSource = res.data.list;
-      // });
+      insertEntry(params, data).then((res) => {
+        console.log("insertEntry", res);
+        message.success("更新成功！");
+        this.$emit("classifyClose");
+        this.dataSource = [];
+      });
       this.$emit("classifyClose");
     },
     afterClose() {
-      this.updateEntries.title = "";
-      this.updateEntries.maxByte = "";
       this.$refs.formRef.clearValidate();
     },
     // 表格复选框选择事件
@@ -127,6 +134,15 @@ export default {
 <style scoped>
 :deep(.ant-form-item-label) {
   width: 85px;
+}
+.entries {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #eefffb;
+  border: 1px solid #beede5;
+  border-radius: 4px;
+  color: #77b3c9;
+  margin-bottom: 2px;
 }
 .content {
   width: 100%;
