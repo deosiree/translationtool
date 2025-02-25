@@ -59,7 +59,7 @@
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
+              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 词条状态列 -->
@@ -105,10 +105,9 @@
 <script>
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
-import stateBadge from "@/components/abstact/stateBadge.vue";
+import stateBadge from "@/components/stateBadge/index.vue";
 import { getLanguage } from "@/http/api/translate";
 import { getSecondClassify } from "@/http/api/secondClassify";
-import { getEntryByVersion } from "@/http/api/entry";
 import { message, Modal } from "ant-design-vue";
 
 export default {
@@ -479,16 +478,6 @@ export default {
         }
       }
       return className;
-    },
-    // 添加表格行点击事件（暂时无用
-    customRow(record, index) {
-      return {
-        onClick: (event) => {
-          // this.selectedRowIndex = record.id
-          console.log();
-        },
-        onDblclick: (event) => {},
-      };
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {

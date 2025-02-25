@@ -29,7 +29,7 @@
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
+              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 词条列 -->
@@ -61,7 +61,7 @@
     <a-form ref="tableDetailFormRef" :model="detailDataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
       <a-table bordered class="ant-table-striped" :columns="detailColumns" :data-source="detailDataSource"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-        :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
+        :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
         <!-- 表格单元格模板 -->
         <template #bodyCell="{ column, record }">
           <!--tsFile列 -->
@@ -113,6 +113,9 @@ import { getProduct } from "@/http/api/product";
 import { getVersion } from "@/http/api/productVersion";
 import { getRoleUserByDepartment } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
+import {
+  searchCheckInfo,
+} from "@/http/api/check";
 import { getClassTree } from "@/http/api/entryManage";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -132,10 +135,6 @@ export default {
   },
   data() {
     return {
-      user: {
-        userName: "",
-        department: "",
-      },
       locale: locale,
       labelCol: { style: { width: "84px" } },
       search: {
@@ -327,9 +326,8 @@ export default {
   methods: {
     // 初始化
     init() {
-      this.user = this.$store.questionType.user;
       this.setTableHeight();
-      this.searchTaskInfo();
+      this.searchCheckInfo();
       this.getLanguage();
     },
     // 查看详情
@@ -446,7 +444,7 @@ export default {
     // 校验按钮点击事件
     check() {
       this.pageChangeSearch = this.search;
-      this.searchTaskInfo();
+      this.searchCheckInfo();
     },
     // 获取校验信息
     searchCheckInfo() {

@@ -6,7 +6,7 @@
         <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-          :row-key="record => record.id" ref="updateTable" bordered>
+          :row-key="record => record.entrySource" ref="updateTable" bordered :pagination='pagination'>
           <!-- 表格单元格模板 -->
           <template #bodyCell="{ column, record }">
             <!-- 词性来源列 -->
@@ -63,15 +63,24 @@ export default {
       ],
       selectedRows: [],
       selectedRowKeys: [],
+      pagination: {
+        showSizeChanger: true,
+        total: 0,
+        current: 1,
+        pageSize: 20,
+        showTotal: (total) => `共 ${total} 条`,
+        onChange: this.pageChange,
+      },
     };
   },
-  mounted() {
-  },
+  mounted() {},
   watch: {
     dataSource: {
       immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
       handler(newDataSource) {
-        this.selectedRowKeys = newDataSource.map((record) => record.id); // 设置默认全选
+        // 设置默认全选
+        this.selectedRowKeys = newDataSource.map((record) => record.entrySource);
+        this.selectedRows = newDataSource.map((record) => record);
       },
     },
   },
@@ -83,7 +92,7 @@ export default {
       // 点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
       let params = {};
       let data = {
-        taskID: this.task.id
+        taskID: this.task.id,
       };
       insertEntry(params, data).then((res) => {
         console.log("insertEntry", res);
@@ -94,7 +103,7 @@ export default {
       this.$emit("classifyClose");
     },
     afterClose() {
-      this.$refs.formRef.clearValidate();
+      // this.$refs.formRef.clearValidate();
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
@@ -102,31 +111,33 @@ export default {
       this.selectedRows = selectedRows;
     },
     // 表格复选框点击事件
-    onSelect(record, selected) {
-      if (this.createVersionFlag) {
-        // 创建版本时使用
-        if (selected) {
-          this.selectEntry.push(record);
-        } else {
-          this.selectEntry = this.selectEntry.filter((item) => {
-            return item.id !== record.id;
-          });
-        }
+    onSelect(record, selected) {// record是被点击的行数据，selected是是否被选中
+      if (selected) {
+        this.selectedRows.push(record);
+      } else {
+        this.selectedRows = this.selectedRows.filter((item) => {
+          return item.entrySource !== record.entrySource;
+        });
       }
     },
     // 表格全选/反选框点击事件
-    onSelectAll(selected, selectedRows, changeRows) {
-      if (this.createVersionFlag) {
-        if (selected) {
-          this.selectEntry = this.selectEntry.concat(changeRows);
-        } else {
-          changeRows.forEach((item) => {
-            this.selectEntry = this.selectEntry.filter((entry) => {
-              return entry !== item;
-            });
+    onSelectAll(selected, changeRows) {
+      if (selected) {
+        this.selectedRows = this.selectedRows.concat(changeRows);
+      } else {
+        changeRows.forEach((item) => {
+          this.selectedRows = this.selectedRows.filter((entry) => {
+            return entry !== item;
           });
-        }
+        });
       }
+    },
+    // 分页切换
+    pageChange(page, pageSize) {
+      this.pagination.current = page;
+      this.pagination.pageSize = pageSize;
+
+      this.getTaskByCondition(this.pageChangeSearch);
     },
   },
 };

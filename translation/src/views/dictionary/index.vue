@@ -430,14 +430,6 @@ export default {
             }
             this.queryDictronary()
         },
-        // 添加表格行点击事件
-        customRow(record, index){
-            return {
-                onDblclick: (event) => {
-                    
-                }
-            }
-        },
         // 获取辞典内容
         queryDictronary(){
             // console.log(this.selectedTreeKeys)

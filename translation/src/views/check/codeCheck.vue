@@ -30,7 +30,7 @@
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
+              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 模块名称列 -->
@@ -257,16 +257,6 @@ export default {
         }
       }
       return className;
-    },
-    // 添加表格行点击事件（暂时无用
-    customRow(record, index) {
-      return {
-        onClick: (event) => {
-          // this.selectedRowIndex = record.id
-          console.log();
-        },
-        onDblclick: (event) => {},
-      };
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {

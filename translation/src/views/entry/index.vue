@@ -209,9 +209,8 @@ export default {
         //   }
         // });
         this.updateEntries = lists;
+        this.updateVisible = true; // 显示弹窗
       });
-
-      this.updateVisible = true; // 显示弹窗
     },
 
     // 新增分类或产品
