@@ -292,7 +292,7 @@ import {
     updateEntryTemp,
     getEntryInfoList,
     updateEntryList,
-    deleteEntryInfoByID
+    deleteEntryInfoByTaskID,
 } from '@/http/api/workbench'
 import {
     CheckOutlined,
@@ -769,7 +769,7 @@ export default {
                             })
                         }
                     })
-                    deleteEntryInfoByID(deleteIds).then((res) => {
+                    deleteEntryInfoByTaskID({taskID:this.task.id}, deleteIds).then((res) => {
                         message.success('删除成功！')
                         this.getTaskEntry()
                     }).catch((err) => {
