@@ -28,9 +28,9 @@
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
-              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.name" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
+              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.name"
+              :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 模块名称列 -->
@@ -88,14 +88,14 @@ export default {
           title: "文件名",
           dataIndex: "name",
           align: "center",
-          width: 50,
+          width: 100,
           fixed: "right",
         },
         {
           title: "函数名",
           dataIndex: "log",
           align: "center",
-          width: 400,
+          width: 200,
           fixed: "right",
         },
       ],
