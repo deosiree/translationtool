@@ -29,8 +29,8 @@
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
-              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
+              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.name" :pagination='pagination'
+              :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 模块名称列 -->
@@ -126,7 +126,6 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      pageChangeSearch: {},
     };
   },
   mounted() {
@@ -194,7 +193,7 @@ export default {
           this.loading = false;
           console.log("获得数据！", res);
           this.dataSource = res.data.list;
-          // this.pagination.total = res.data.totalNum;
+          this.pagination.total = res.data.totalNum;
         })
         .catch((err) => {
           this.loading = false;
@@ -255,8 +254,6 @@ export default {
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
-
-      // this.searchTaskByCondition(this.pageChangeSearch);
     },
   },
 };

@@ -136,8 +136,6 @@ export default {
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
-
-      this.getTaskByCondition(this.pageChangeSearch);
     },
   },
 };
