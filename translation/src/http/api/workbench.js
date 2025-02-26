@@ -106,6 +106,17 @@ export function deleteEntryInfoByID(params, data) {
 
 }
 
+// 删除任务中的词条
+export function deleteEntryInfoByTaskID(params, data) {
+  return request({
+      url: "/workbench/deleteEntryInfoByTaskID",
+      method: "POST", 
+      params,
+      data
+  });
+
+}
+
 // 过滤语言
 export function filterSourceLanguage(params, data) {
   return request({
