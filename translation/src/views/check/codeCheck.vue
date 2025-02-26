@@ -39,7 +39,10 @@
                 </template>
                 <!-- 日志列 -->
                 <template v-if="column.dataIndex === 'log'">
-                  <span>{{ record.log }}</span>
+                  <!-- <span>{{ record.log }}</span> -->
+                  <div v-for="(item, index) in record.methods" :key="index" style="display: flex; gap: 100px;">
+                    <span class="log">{{ item }}</span>
+                  </div>
                 </template>
               </template>
             </a-table>
@@ -68,11 +71,11 @@ export default {
     return {
       labelCol: { style: { width: "84px" } },
       search: {
-        // 模块名/文件名+行号/问题类型/详情/日志
-        moduleName: null,
+        // (v2)文件名+函数名;（v1）模块名/文件名+行号/问题类型/详情/日志
+        moduleName: null, // 必须
+        questionType: null, // 必须
         projectName: "",
         col: "",
-        questionType: null,
         details: "",
         logs: "",
       },
@@ -81,36 +84,22 @@ export default {
       tableHeight: { x: "100%", y: 0 },
       loading: false,
       columns: [
-        // 模块名/文件名+行号/问题类型/详情/日志
         {
-          title: "模块名/文件名",
+          title: "文件名",
           dataIndex: "name",
           align: "center",
           width: 50,
           fixed: "right",
         },
         {
-          title: "行号/问题类型/详情/日志",
+          title: "函数名",
           dataIndex: "log",
           align: "center",
           width: 400,
           fixed: "right",
         },
       ],
-      // dataSource: [],// 表格数据
-      dataSource: [
-        {
-          id: 1,
-          name: "模块1",
-          log: "日志1",
-        },
-        {
-          id: 2,
-          name: "模块2",
-          log: "日志2",
-        },
-        // ... 其他示例数据
-      ],
+      dataSource: [], // 表格数据
       editableData: {}, // 可编辑数据
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项(暂时无用，若有创建删除时，则有用)
@@ -159,13 +148,14 @@ export default {
     // 初始化
     init() {
       this.setTableHeight();
-      this.searchCheckInfo();
       this.getOpitons();
     },
     // 获取下拉框信息
     getOpitons() {
-      this.getModuleNames();
-      this.getQuestionTypes();
+      this.$nextTick(() => {
+        this.getModuleNames();
+        this.getQuestionTypes();
+      });
     },
     // 获取模块名
     getModuleNames() {
@@ -194,19 +184,17 @@ export default {
     },
     // 获取校验信息
     searchCheckInfo() {
-      this.searchCheckByCondition(this.search);
-    },
-    searchCheckByCondition(data) {
       this.loading = true;
       let params = {
-        pageIndex: this.pagination.current,
-        pageSize: this.pagination.pageSize,
+        moduleName: this.search.moduleName,
+        questionType: this.search.questionType,
       };
-      searchCheckInfo(data, params)
+      searchCheckInfo(params)
         .then((res) => {
-          // this.dataSource = res.data.list
           this.loading = false;
-          this.pagination.total = res.data.totalNum;
+          console.log("获得数据！", res);
+          this.dataSource = res.data.list;
+          // this.pagination.total = res.data.totalNum;
         })
         .catch((err) => {
           this.loading = false;
@@ -268,7 +256,7 @@ export default {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
 
-      this.searchTaskByCondition(this.pageChangeSearch);
+      // this.searchTaskByCondition(this.pageChangeSearch);
     },
   },
 };
@@ -278,6 +266,15 @@ export default {
   width: 100%;
   height: 100%;
   // border: 1px solid red;
+}
+.log {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #eefffb;
+  border: 1px solid #beede5;
+  border-radius: 4px;
+  color: #77b3c9;
+  margin-bottom: 2px;
 }
 </style>
 <style lang="less">
