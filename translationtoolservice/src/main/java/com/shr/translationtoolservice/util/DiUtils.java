@@ -63,14 +63,15 @@ public class DiUtils {
             int update = 0 ;
             int sum =0;
             for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-               /* if (!tag) {
+                //枚举tag 不需要回写！！！ tr的tag 需要回写
+                if (!tag) {
                     entryInfoEntity.setTag("");
                 }
                 if (!common) {
-                    entryInfoEntity.setEntrySource("");
-                }*/
+                    entryInfoEntity.setComment("");
+                }
                 update++;
-                boolean isExist = updateTransToDiVo(langCode, entryInfoEntity, translateType, dictionaryVos);
+                boolean isExist = updateTransToDiVo(tag,common,langCode, entryInfoEntity, translateType, dictionaryVos);
                 //如果不存在 则新增词条
                 if (!isExist) {
                     add ++;
@@ -101,7 +102,7 @@ public class DiUtils {
     private void addEntryToDIVo(String langCode, EntryInfoEntity entryInfoEntity, String translateType, List<DictionaryVo> dictionaryVos) {
         DictionaryVo dictionaryVo = new DictionaryVo();
         dictionaryVo.setSource(entryInfoEntity.getEntry());
-        dictionaryVo.setComments(entryInfoEntity.getEntrySource());
+        dictionaryVo.setComments(entryInfoEntity.getComment());
 
         dictionaryVo.setTag(entryInfoEntity.getTag());
 
@@ -138,21 +139,38 @@ public class DiUtils {
         dictionaryVos.add(dictionaryVo);
     }
 
-    private boolean updateTransToDiVo(String langCode, EntryInfoEntity entryInfoEntity, String translateType, List<DictionaryVo> dictionaryVos) {
+    private boolean updateTransToDiVo(boolean tag,boolean common,String langCode, EntryInfoEntity entryInfoEntity, String translateType, List<DictionaryVo> dictionaryVos) {
         boolean isExist = false;
 
         for (DictionaryVo dictionaryVo : dictionaryVos) {
             if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
                 //是否需要tag 查询
-
-                if (StringUtils.isNotBlank(entryInfoEntity.getTag() ) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
-                   continue;
+                if (tag){
+                    if (StringUtils.isNotBlank(entryInfoEntity.getTag() ) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
+                        continue;
+                    }else if (StringUtils.isBlank(entryInfoEntity.getTag()) && StringUtils.isBlank(dictionaryVo.getTag())){
+                        continue;
+                    }
+                }else {
+                    //不需要tag 的时候 如果辞典里存在tag 但是不存在空tag的词条，则是不匹配的
+                    if (StringUtils.isBlank(entryInfoEntity.getTag() )  && StringUtils.isNotBlank(dictionaryVo.getTag())) {
+                        continue;
+                    }
                 }
 
-                //是否需要common 查询
 
-                if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource() )  && !entryInfoEntity.getEntrySource().equals(dictionaryVo.getComments())) {
-                    continue;
+                //是否需要common 查询
+                if (common){
+                    if (StringUtils.isNotBlank(entryInfoEntity.getComment() ) && !entryInfoEntity.getTag().equals(dictionaryVo.getComments())) {
+                        continue;
+                    }else if (StringUtils.isBlank(entryInfoEntity.getComment()) && StringUtils.isBlank(dictionaryVo.getComments())){
+                        continue;
+                    }
+                }else {
+                    //不需要tag 的时候 如果辞典里存在tag 但是不存在空tag的词条，则是不匹配的
+                    if (StringUtils.isBlank(entryInfoEntity.getComment() )  && StringUtils.isNotBlank(dictionaryVo.getComments())) {
+                        continue;
+                    }
                 }
                 isExist = true;
 
@@ -201,10 +219,10 @@ public class DiUtils {
     }
 
 
-    public List<EntryInfoEntity> getDiEntry(String i18nUrl, Set<String> difileSet, String taskID, String userName, String productId, String versionID, String translateType) {
+    public List<EntryInfoEntity> getDiEntry(String i18nUrl, Set<String> difileSet, String taskID, String userName, String productId, String versionID, String translateType) throws Exception {
 
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
-        try {
+
 
             for (String dic : difileSet) {
                 JSONArray jsonArray = new JSONArray();
@@ -259,10 +277,7 @@ public class DiUtils {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
 
-        }
         return  list;
     }
 }

@@ -167,7 +167,10 @@ public class I18nServiceImpl implements I18nService {
                 //按照分裂写入di
                 for (String di_fileName : diTypeMap.keySet()) {
                     //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                    return diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
+                     String res = diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
+                    if (!res.equals(ConstantInterface.OK_STR)) {
+                        return res;
+                    }
                 }
 
             }

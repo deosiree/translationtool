@@ -34,5 +34,7 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     String updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
 
+    String deleteEntryInfoByTaskID(List<String> entryID, String taskID);
+
     //  ImportResultEntryVO checkExistEntry(List<EntryTempEntity> entryTempEntities);
 }

@@ -8,7 +8,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -91,4 +94,10 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request);
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
+
+    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request);
+
+    void doWeight();
+
+    List<TaskEntryVO> updateEntryByEntrySource(String i18nUrl, Map<String, Set<String>> sourceMap,String classfyID,HttpServletRequest request);
 }
