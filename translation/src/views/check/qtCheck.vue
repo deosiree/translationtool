@@ -57,14 +57,14 @@
     </DataBox>
   </div>
   <!-- 详情弹框(?修改a-modal的大小，参考之前工作台的) -->
-  <qtCheckDetail :visible="detailModalVisible" title="关联信息" @cancel="handleCancel" @ok="handleOk"></qtCheckDetail>
+  <QTCheckDetail ref="qtCheckDetail" :visible="detailModalVisible" :dataSource="detailDataSource" @detailClose="detailClose"></QTCheckDetail>
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
-import {qtCheckDetail} from "@/views/check/qtCheckDetail.vue";
+import QTCheckDetail from "@/views/check/qtCheckDetail.vue";
 import commen from "@/views/entry/common.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
@@ -75,6 +75,7 @@ export default {
   components: {
     SearchBox,
     DataBox,
+    QTCheckDetail,
   },
   data() {
     return {
@@ -436,12 +437,9 @@ export default {
       if (id == 3) return 3;
     },
     // 关闭详情弹框
-    handleCancel() {
-      this.detailModalVisible = false;
-    },
-    // 确认详情弹框
-    handleOk() {
-      this.detailModalVisible = false;
+    detailClose() {
+      // console.log("详情数据",this.detailDataSource);
+      this.detailModalVisible = false; // 关闭弹窗，具体点击确认/取消的操作都在组件中写，这里只是传递关闭弹窗的信息
     },
     clickInput(event) {
       event.stopPropagation();
