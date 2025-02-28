@@ -1,0 +1,66 @@
+[
+    {
+        "comments": "",
+        "source": "现场[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]进程[{}({})]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]数据库[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]目录[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}/s，预计还剩 {}{} 资源枯竭，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

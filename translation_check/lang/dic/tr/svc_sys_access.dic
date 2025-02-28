@@ -1,0 +1,210 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输",
+        "tag": "",
+        "translation": {
+            "en_US": "Network file transmission service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统信息访问",
+        "tag": "",
+        "translation": {
+            "en_US": "System information access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输",
+        "tag": "",
+        "translation": {
+            "en_US": "Network message transmission service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "异常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Quit unexpectedly"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点{}的启动配置文件与值班节点{}不一致",
+        "tag": "",
+        "translation": {
+            "en_US": "The startup configuration file of node {} is inconsistent with the on-duty node {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "一致性处理失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Consistency processing failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Exit normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅事件SVC_SYNC_WRITE_EVENT失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe to event SVC_SYNC_WRITE_EVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点{}不是审计节点, 但sysops的应用模块为空, 未配置, 无法部署模块",
+        "tag": "",
+        "translation": {
+            "en_US": "Node {} is not an audit node, but the Sysops app module is empty, not configured, and the module cannot be deployed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建环境失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to create environment"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加消息监听失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to add message listener"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统启动配置文件md5:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "System startup configuration file md5:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据文件:{}生成md5失败:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "According to the file:{} generate md5 failed:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知用户",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown user"
+        }
+    },
+    {
+        "comments": "",
+        "source": "处理超时应答错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle timeout response errors:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行一致性处理错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Execution consistency processing error: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未处理的报文类型 [{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Unprocessed message type [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主节点执行主备同步时触发一致性--放弃一致性处理!",
+        "tag": "",
+        "translation": {
+            "en_US": " Consistency is triggered when the master node performs master-backup synchronization--give up consistency processing!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "转发任务到新主节点[{}],错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Forwarding tasks to the new master node [{}], error: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "处理主备间同步错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle synchronization errors between master and backup: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "处理同步写请求错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Error handling synchronous write request: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行其它请求任务[{}]错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Executing other requested tasks [{}] Error: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅跨现场配置同步事件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe to cross-site configuration synchronization events"
+        }
+    }
+]

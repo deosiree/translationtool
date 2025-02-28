@@ -1,0 +1,298 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "角色多分配",
+        "tag": "",
+        "translation": {
+            "en_US": "Multiple role assignments"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统外节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Node outside the system"
+        }
+    },
+    {
+        "comments": "",
+        "source": "次要",
+        "tag": "",
+        "translation": {
+            "en_US": "Secondary"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Node Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in secinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in secinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是",
+        "tag": "",
+        "translation": {
+            "en_US": "Yes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Ukey",
+        "tag": "",
+        "translation": {
+            "en_US": "Ukey"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码+Ukey",
+        "tag": "",
+        "translation": {
+            "en_US": "Password+Ukey"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码",
+        "tag": "",
+        "translation": {
+            "en_US": "Password"
+        }
+    },
+    {
+        "comments": "",
+        "source": "指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "Fingerprint"
+        }
+    },
+    {
+        "comments": "",
+        "source": "管理员",
+        "tag": "",
+        "translation": {
+            "en_US": "Admin"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录认证方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Login auth method"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作员",
+        "tag": "",
+        "translation": {
+            "en_US": "operator"
+        }
+    },
+    {
+        "comments": "",
+        "source": "否",
+        "tag": "",
+        "translation": {
+            "en_US": "No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能项多分配",
+        "tag": "",
+        "translation": {
+            "en_US": "Multiple assignment of function items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "黑名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Blacklist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户认证信息类型",
+        "tag": "",
+        "translation": {
+            "en_US": "User authentication info type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "激活状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Activation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码+指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "Password+Fingerprint"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计日志级别",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit log level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能项二次验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Secondary verification of functional items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "一般",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "白名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Whitelist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告知",
+        "tag": "",
+        "translation": {
+            "en_US": "Inform"
+        }
+    },
+    {
+        "comments": "",
+        "source": "secinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "secinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计员",
+        "tag": "",
+        "translation": {
+            "en_US": "Auditor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "角色类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Role Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重要",
+        "tag": "",
+        "translation": {
+            "en_US": "Importance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点校验方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Node verification method"
+        }
+    },
+    {
+        "comments": "",
+        "source": "信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Message"
+        }
+    },
+    {
+        "comments": "",
+        "source": "警告",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "紧急",
+        "tag": "",
+        "translation": {
+            "en_US": "Exigency"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统节点",
+        "tag": "",
+        "translation": {
+            "en_US": "System Node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未登录角色",
+        "tag": "",
+        "translation": {
+            "en_US": "Unlogged role"
+        }
+    }
+]

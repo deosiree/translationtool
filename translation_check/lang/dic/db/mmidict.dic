@@ -1,0 +1,1266 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类型值",
+        "tag": "",
+        "translation": {
+            "en_US": "Type value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "列数",
+        "tag": "",
+        "translation": {
+            "en_US": "Columns count"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模板库定义表",
+        "tag": "",
+        "translation": {
+            "en_US": "Template database definition table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最新版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "Latest version No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据表类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data table type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象属性",
+        "tag": "",
+        "translation": {
+            "en_US": "Object attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模板应用定义表",
+        "tag": "",
+        "translation": {
+            "en_US": "Template application definition table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属画面类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策值3",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision value 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于父对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Belong to parent"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名称",
+        "tag": "",
+        "translation": {
+            "en_US": "App Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录类别",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory category"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Table name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策集合名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision set name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含曲线组对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains curve group objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Modification time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory alias"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用功能类型",
+        "tag": "",
+        "translation": {
+            "en_US": "App function type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否可见",
+        "tag": "",
+        "translation": {
+            "en_US": "Visible or not"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策因子名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision factor name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含曲线组目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains the curve group directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Database name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含曲线组版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Included curve group version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否正在修改",
+        "tag": "",
+        "translation": {
+            "en_US": "Being modified"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印分",
+        "tag": "",
+        "translation": {
+            "en_US": "Print score"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面展示子目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains a screen display subdirectory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否填库",
+        "tag": "",
+        "translation": {
+            "en_US": "Fill or not"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用类别",
+        "tag": "",
+        "translation": {
+            "en_US": "App category"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户标识",
+        "tag": "",
+        "translation": {
+            "en_US": "User ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否启用",
+        "tag": "",
+        "translation": {
+            "en_US": "Enabled"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用切换定义表",
+        "tag": "",
+        "translation": {
+            "en_US": "Apply the switch definition table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于多对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Belong to multiple objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "电压等级颜色值",
+        "tag": "",
+        "translation": {
+            "en_US": "Voltage level color value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策表达式名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision expression name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "扩展数据源动态库路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Extend the data source dynamic database path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Included picture object"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模板应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Template application name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时表ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Real-time table ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "曲线组对象表",
+        "tag": "",
+        "translation": {
+            "en_US": "Curve group object table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否web发布",
+        "tag": "",
+        "translation": {
+            "en_US": "Web publish"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否自动缩放",
+        "tag": "",
+        "translation": {
+            "en_US": "Auto scale or not"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen directory included"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用属性",
+        "tag": "",
+        "translation": {
+            "en_US": "App attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用扩展数据源参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Alternative extended data source params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含模板库定义表",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains the template database definition table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表版本表",
+        "tag": "",
+        "translation": {
+            "en_US": "Report version table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含图元对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains primitive objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "收藏夹表",
+        "tag": "",
+        "translation": {
+            "en_US": "Favorites list"
+        }
+    },
+    {
+        "comments": "",
+        "source": "层ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Layer ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库名",
+        "tag": "",
+        "translation": {
+            "en_US": "Database name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联多对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Link multiple objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "扩展数据源类名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Extend the data source class name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "责任区号",
+        "tag": "",
+        "translation": {
+            "en_US": "AOR code"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否自适应区域",
+        "tag": "",
+        "translation": {
+            "en_US": "Whether to adapt to the region"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模板库名",
+        "tag": "",
+        "translation": {
+            "en_US": "Template database name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策集合",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision set"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否有效",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "馈线名",
+        "tag": "",
+        "translation": {
+            "en_US": "Feeder name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含图元目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains primitives directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含报表对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Contain report object"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策值2",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision value 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面类型配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen type config table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录属性",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用扩展数据源参数2",
+        "tag": "",
+        "translation": {
+            "en_US": "Alternative extended data source param 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次生成时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last generated time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图元类型表",
+        "tag": "",
+        "translation": {
+            "en_US": "Table of graphic types"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面应用配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains the screen application configuration table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "曲线组目录表",
+        "tag": "",
+        "translation": {
+            "en_US": "Curve group directory table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据表名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Table name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模板库ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Template database ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时域ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Real-time domain ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面应用配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen application configuration table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含曲线组子目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains a curve group subdirectory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史字段名称",
+        "tag": "",
+        "translation": {
+            "en_US": "History field name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图元所属类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Type of an icon"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类型描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Type description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据源类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data source type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含决策因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Inclusion decision factor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "刷新周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Refresh cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含报表版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Included report version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含层切换定义表",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains the layer switch definition table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面展示目录表",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen display table of contents"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面对象表",
+        "tag": "",
+        "translation": {
+            "en_US": "Picture object list"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最近打开表",
+        "tag": "",
+        "translation": {
+            "en_US": "Recently-opened table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类型名",
+        "tag": "",
+        "translation": {
+            "en_US": "Type name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印日",
+        "tag": "",
+        "translation": {
+            "en_US": "Print date"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面类型名",
+        "tag": "",
+        "translation": {
+            "en_US": "Picture type name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策因子路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision factor path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含决策应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Included decision App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表目录表",
+        "tag": "",
+        "translation": {
+            "en_US": "Report catalog table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用功能名",
+        "tag": "",
+        "translation": {
+            "en_US": "App function name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于父目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Parent directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "层名",
+        "tag": "",
+        "translation": {
+            "en_US": "Layer name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否自动生成间隔",
+        "tag": "",
+        "translation": {
+            "en_US": "Whether to automatically generate intervals"
+        }
+    },
+    {
+        "comments": "",
+        "source": "定义类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Define type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面类型值",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen type value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据表配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Data Config Table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用功能配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "App function config table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面版本表",
+        "tag": "",
+        "translation": {
+            "en_US": "Picture version table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字段名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Field name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用分支名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Apply branch name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模板应用ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Template App ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含报表子目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Included report subdirectories"
+        }
+    },
+    {
+        "comments": "",
+        "source": "快捷键",
+        "tag": "",
+        "translation": {
+            "en_US": "Shortcut Key"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表对象表",
+        "tag": "",
+        "translation": {
+            "en_US": "Report object table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策值",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "厂站名",
+        "tag": "",
+        "translation": {
+            "en_US": "Station name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Included screen version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面展示目录分组表",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen display directory grouping table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "DictGraphDirDisplay与DictGraphItem的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "DictGraphDirDisplay_DictGraphItem_LinkedTable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "电压等级描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Voltage level description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Print type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图元目录表",
+        "tag": "",
+        "translation": {
+            "en_US": "Graphics directory table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图元对象表",
+        "tag": "",
+        "translation": {
+            "en_US": "Table of graphic objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面目录表",
+        "tag": "",
+        "translation": {
+            "en_US": "Picture catalog"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含决策表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Included decision expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面展示目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Included screen display directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据块插件路径配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Data block plugin path configuration table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "馈线站名",
+        "tag": "",
+        "translation": {
+            "en_US": "Feeder station name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动画面表",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup screen table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "电压等级数值",
+        "tag": "",
+        "translation": {
+            "en_US": "Voltage level value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "曲线组版本表",
+        "tag": "",
+        "translation": {
+            "en_US": "Curve group version table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策类别",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision factor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策因子类别",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision factor category"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含报表目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Contain report catalog"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面快捷键表",
+        "tag": "",
+        "translation": {
+            "en_US": "Screen shortcut key table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图类型表",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph type table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Database ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "行数",
+        "tag": "",
+        "translation": {
+            "en_US": "Rows count"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插件路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Plug-in path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "电压等级配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Voltage level config table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史表名称",
+        "tag": "",
+        "translation": {
+            "en_US": "History table name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含画面子目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains a list of face drawings"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形应用分支表",
+        "tag": "",
+        "translation": {
+            "en_US": "Graphic app branch table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "层切换定义表",
+        "tag": "",
+        "translation": {
+            "en_US": "Layer switch definition table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印时",
+        "tag": "",
+        "translation": {
+            "en_US": "print time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于展示父目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Belongs to the display parent directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "App name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点名",
+        "tag": "",
+        "translation": {
+            "en_US": "Node name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Alias"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "version No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类别",
+        "tag": "",
+        "translation": {
+            "en_US": "Category"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备注",
+        "tag": "",
+        "translation": {
+            "en_US": "Remark"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用ID",
+        "tag": "",
+        "translation": {
+            "en_US": "App ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "决策包",
+        "tag": "",
+        "translation": {
+            "en_US": "Decision package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置包",
+        "tag": "",
+        "translation": {
+            "en_US": "Configuration package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "在线管理包",
+        "tag": "",
+        "translation": {
+            "en_US": "Online management package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字典包",
+        "tag": "",
+        "translation": {
+            "en_US": "Dictionary package"
+        }
+    }
+]

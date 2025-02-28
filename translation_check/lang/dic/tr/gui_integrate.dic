@@ -1,0 +1,1010 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库维护",
+        "tag": "",
+        "translation": {
+            "en_US": "Database Maintenance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库迁移",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB migration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "研发参数配置",
+        "tag": "",
+        "translation": {
+            "en_US": "R&D Params Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库校验",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB verification"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储对象信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage Object"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场转发",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "个人信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Personal Info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基本参数信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic Params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视",
+        "tag": "",
+        "translation": {
+            "en_US": "Monitor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计模型配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical Model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "软件功能",
+        "tag": "",
+        "translation": {
+            "en_US": "Functions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样存储状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample Storage"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计存储状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical Storage"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件模型信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储对象配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage Object"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理",
+        "tag": "",
+        "translation": {
+            "en_US": "File Management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样模型信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample Model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件存储状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Storage"
+        }
+    },
+    {
+        "comments": "",
+        "source": "加密算法",
+        "tag": "",
+        "translation": {
+            "en_US": "Encryption"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件组配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Group"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警处理",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm Handle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基本参数配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync Local File"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用部署",
+        "tag": "",
+        "translation": {
+            "en_US": "App Deploy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据查询",
+        "tag": "",
+        "translation": {
+            "en_US": "Data Query"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库发布",
+        "tag": "",
+        "translation": {
+            "en_US": "Publish TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证发布",
+        "tag": "",
+        "translation": {
+            "en_US": "Publish"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Params Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync historical data"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全白名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Whitelist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发布",
+        "tag": "",
+        "translation": {
+            "en_US": "Publish"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "",
+        "translation": {
+            "en_US": "User Management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算管理",
+        "tag": "",
+        "translation": {
+            "en_US": "General computing management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主备文件同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync Files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统运行",
+        "tag": "",
+        "translation": {
+            "en_US": "System operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统部署配置",
+        "tag": "",
+        "translation": {
+            "en_US": "System Deploy Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全密码",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Code"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site synchronization"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "刷新",
+        "tag": "",
+        "translation": {
+            "en_US": "Refresh"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Manage Strategy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理集成",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr Integration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全信息管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Files status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算查询",
+        "tag": "",
+        "translation": {
+            "en_US": "Query"
+        }
+    },
+    {
+        "comments": "",
+        "source": "防火墙",
+        "tag": "",
+        "translation": {
+            "en_US": "Firewall"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行及操作日志",
+        "tag": "",
+        "translation": {
+            "en_US": "Logs"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Login Info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Data"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource Monitor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统内部配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Internal Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统运行管理",
+        "tag": "",
+        "translation": {
+            "en_US": "System Operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统工程部署",
+        "tag": "",
+        "translation": {
+            "en_US": "System Deploy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算",
+        "tag": "",
+        "translation": {
+            "en_US": "General Compute"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警项",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm Items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Folder Cleanup"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日志分析、崩溃报告、内部数据调试",
+        "tag": "",
+        "translation": {
+            "en_US": "Log analysis, crash reporting, internal data debugging"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据配置及运行管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data configuration and operation management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算配置及运行管理",
+        "tag": "",
+        "translation": {
+            "en_US": "General computing configuration and operation management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统内部参数配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Config system internal params "
+        }
+    },
+    {
+        "comments": "",
+        "source": "管理所有配置文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Manage all configuration files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询系统审计信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Query System Audit nfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置文件管理",
+        "tag": "",
+        "translation": {
+            "en_US": "File Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开发辅助",
+        "tag": "",
+        "translation": {
+            "en_US": "Dev Assistance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设计数据库结构",
+        "tag": "",
+        "translation": {
+            "en_US": "Design DB structure"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络环境检测",
+        "tag": "",
+        "translation": {
+            "en_US": "Net Detection"
+        }
+    },
+    {
+        "comments": "",
+        "source": "调试中心",
+        "tag": "",
+        "translation": {
+            "en_US": "Debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理工具集成",
+        "tag": "",
+        "translation": {
+            "en_US": "Management tools integration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时告警工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Realtime Alarm Tool"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库通用编辑",
+        "tag": "",
+        "translation": {
+            "en_US": "Edit TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理配置及运行管理",
+        "tag": "",
+        "translation": {
+            "en_US": "File management configuration and operation management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限配置管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Permission Management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行中心",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库辅助工具",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB Assistance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "管理中心",
+        "tag": "",
+        "translation": {
+            "en_US": "Management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台模型",
+        "tag": "",
+        "translation": {
+            "en_US": "Platform Model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库校验、迁移、发布",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB verification, migration, publish"
+        }
+    },
+    {
+        "comments": "",
+        "source": "管理系统备份恢复",
+        "tag": "",
+        "translation": {
+            "en_US": "System backup and recovery"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据统计分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Data Statistical Analysis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统工程部署配置",
+        "tag": "",
+        "translation": {
+            "en_US": "System engineering deployment configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "程序调试分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Debug Analysis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置用户访问权限",
+        "tag": "",
+        "translation": {
+            "en_US": "Config User Permission"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形维护",
+        "tag": "",
+        "translation": {
+            "en_US": "Graphics"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形化监控",
+        "tag": "",
+        "translation": {
+            "en_US": "Graphical monitoring"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史事项查询",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Items Query"
+        }
+    },
+    {
+        "comments": "",
+        "source": "枚举配置管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Enum Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置参数、查询状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Set parameters and query status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统运行状态管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Running status management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形设计",
+        "tag": "",
+        "translation": {
+            "en_US": "Graphic Designer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统监控",
+        "tag": "",
+        "translation": {
+            "en_US": "System Monitor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源状态监视管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource status monitoring and management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置所有枚举信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Config all enumeration info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络调试、诊断和分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Network debugging, diagnosis and analysis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络调试分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Net Debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Audit Analysis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Data Analysis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分析设计",
+        "tag": "",
+        "translation": {
+            "en_US": "Analytical Design"
+        }
+    },
+    {
+        "comments": "",
+        "source": "检测系统网络环境",
+        "tag": "",
+        "translation": {
+            "en_US": "Detection system network environment"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库设计",
+        "tag": "",
+        "translation": {
+            "en_US": " DB Designer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计分析配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical analysis configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开发调试",
+        "tag": "",
+        "translation": {
+            "en_US": "Dev and Debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工程调试",
+        "tag": "",
+        "translation": {
+            "en_US": "Engineer Debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用模型",
+        "tag": "",
+        "translation": {
+            "en_US": "App Model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护中心",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Security"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形组态设计",
+        "tag": "",
+        "translation": {
+            "en_US": "Graphical layout designer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库编辑",
+        "tag": "",
+        "translation": {
+            "en_US": "Edit TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统备份恢复",
+        "tag": "",
+        "translation": {
+            "en_US": "System Backup"
+        }
+    },
+    {
+        "comments": "",
+        "source": "综合分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Analysis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时调度",
+        "tag": "",
+        "translation": {
+            "en_US": "Scheduling"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库装库",
+        "tag": "",
+        "translation": {
+            "en_US": "Load TDB"
+        }
+    }
+]

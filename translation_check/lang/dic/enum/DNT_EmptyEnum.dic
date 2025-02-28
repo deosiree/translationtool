@@ -1,0 +1,26 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用作样例的空枚举，勿动",
+        "tag": "",
+        "translation": {
+            "en_US": "Empty enumeration used as an example, do not change"
+        }
+    },
+    {
+        "comments": "",
+        "source": "DO_NOT_TOUCH_EmptyEnum",
+        "tag": "",
+        "translation": {
+            "en_US": "DO_NOT_TOUCH_EmptyEnum"
+        }
+    }
+]

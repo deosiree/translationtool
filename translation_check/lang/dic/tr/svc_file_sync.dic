@@ -1,0 +1,226 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前磁盘占用率为",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage is"
+        }
+    },
+    {
+        "comments": "",
+        "source": "个文件已被清理，合计清理大小是",
+        "tag": "",
+        "translation": {
+            "en_US": "Files have been cleaned up, the total cleanup size is"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前磁盘占用率是",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage is"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止自动清理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop automatic cleanup:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前磁盘占用率仍然超过最大占用率。",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage still exceeds the maximum usage."
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始自动清理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Start automatic cleanup:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅事件号",
+        "tag": "",
+        "translation": {
+            "en_US": "Subscribed event ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常运行中",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地创建目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "New local directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "successfully."
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delet files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地重命名文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Local renamed files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "失败。",
+        "tag": "",
+        "translation": {
+            "en_US": "failed."
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地删除文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete local files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地下载文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Local download files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，文件目录：",
+        "tag": "",
+        "translation": {
+            "en_US": ", file directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件最后修改时间：",
+        "tag": "",
+        "translation": {
+            "en_US": "Last modified:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地重命名目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Rename local directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件路径：",
+        "tag": "",
+        "translation": {
+            "en_US": "File path:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除结果：",
+        "tag": "",
+        "translation": {
+            "en_US": "Deletion results:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，文件版本：",
+        "tag": "",
+        "translation": {
+            "en_US": ", file version:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地移动目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Local mobile directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名：",
+        "tag": "",
+        "translation": {
+            "en_US": "File name:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件大小：",
+        "tag": "",
+        "translation": {
+            "en_US": "File size:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地移动文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Local mobile files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地删除目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete local directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Network registration failed"
+        }
+    }
+]

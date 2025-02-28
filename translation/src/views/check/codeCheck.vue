@@ -14,6 +14,9 @@
               @click="clickInput">
             </a-select>
           </a-form-item>
+          <a-form-item label="校验路径" name="checkURL">
+            <a-input v-model:value="search.checkURL" style="width: 186px" placeholder="请输入校验目录路径" size="small"></a-input>
+          </a-form-item>
         </a-form>
       </template>
       <!-- 操作按钮模板 -->
@@ -61,6 +64,7 @@ import {
   getModuleNames,
   getQuestionTypes,
 } from "@/http/api/check";
+import { message } from 'ant-design-vue';
 export default {
   components: {
     SearchBox,
@@ -74,6 +78,7 @@ export default {
         // (v2)文件名+函数名;（v1）模块名/文件名+行号/问题类型/详情/日志
         moduleName: null, // 必须
         questionType: null, // 必须
+        checkURL: null, // 非必须
         projectName: "",
         col: "",
         details: "",
@@ -184,18 +189,16 @@ export default {
     // 获取校验信息
     searchCheckInfo() {
       this.loading = true;
-      let params = {
-        moduleName: this.search.moduleName,
-        questionType: this.search.questionType,
-      };
-      searchCheckInfo(params)
+      let params = this.search;
+      let path = "code";
+      searchCheckInfo(params,path)
         .then((res) => {
-          this.loading = false;
-          console.log("获得数据！", res);
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
+          this.loading = false;
         })
         .catch((err) => {
+          message.error("校验目录路径错误！");
           this.loading = false;
         });
     },

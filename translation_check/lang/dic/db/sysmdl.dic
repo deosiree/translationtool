@@ -1,0 +1,1554 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用库配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App database configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Run status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件子系统配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Subsystem Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak3",
+        "tag": "",
+        "translation": {
+            "en_US": "bak3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Network  status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大重启次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum of restarts"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType7",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目的现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Destination site name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否正在操作",
+        "tag": "",
+        "translation": {
+            "en_US": "In operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak6",
+        "tag": "",
+        "translation": {
+            "en_US": "bak6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType1",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "固定标识",
+        "tag": "",
+        "translation": {
+            "en_US": "Fixed ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属应用模型",
+        "tag": "",
+        "translation": {
+            "en_US": "App model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType2",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app9",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent nodeapp_app9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册名",
+        "tag": "",
+        "translation": {
+            "en_US": "Network registration name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm times"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak7",
+        "tag": "",
+        "translation": {
+            "en_US": "bak7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用",
+        "tag": "",
+        "translation": {
+            "en_US": "App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件子系统定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event subsystem definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType8",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属应用集合",
+        "tag": "",
+        "translation": {
+            "en_US": "Associated app set"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak2",
+        "tag": "",
+        "translation": {
+            "en_US": "bak2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用模块配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Module"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak8",
+        "tag": "",
+        "translation": {
+            "en_US": "bak8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否本现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Local site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否存在维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB exists"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发事件",
+        "tag": "",
+        "translation": {
+            "en_US": "On-site forwarded events"
+        }
+    },
+    {
+        "comments": "",
+        "source": "心跳",
+        "tag": "",
+        "translation": {
+            "en_US": "heartbeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用实时库配置",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用是否正在操作",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether the maintenance application is in operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType3",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "命令行参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Cmd params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak1",
+        "tag": "",
+        "translation": {
+            "en_US": "bak1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance app running status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班时运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Run in duty mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用集合",
+        "tag": "",
+        "translation": {
+            "en_US": "App set"
+        }
+    },
+    {
+        "comments": "",
+        "source": "程序路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Program path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak4",
+        "tag": "",
+        "translation": {
+            "en_US": "See 4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "汇报启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Report startup success"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Full app name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Config Info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app8",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application _app8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是第三方",
+        "tag": "",
+        "translation": {
+            "en_US": "Is third party"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件功能项定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event function definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app1",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app0",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务提供者",
+        "tag": "",
+        "translation": {
+            "en_US": "Service provider"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统类型",
+        "tag": "",
+        "translation": {
+            "en_US": "System type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件功能项",
+        "tag": "",
+        "translation": {
+            "en_US": "Event function item"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库定义",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak5",
+        "tag": "",
+        "translation": {
+            "en_US": "bak5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Service  Process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库值班节点",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB duty node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理可值班",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr available on duty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连通状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Connected status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType4",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件操作项定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event action item definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据冻结时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze timestamp"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启用故障恢复",
+        "tag": "",
+        "translation": {
+            "en_US": "Enable fault recovery"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程号",
+        "tag": "",
+        "translation": {
+            "en_US": "Process No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app9",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local field application _app9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Node App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "version No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用故障时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance app fault time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前重启次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Current restart times"
+        }
+    },
+    {
+        "comments": "",
+        "source": "累计重启次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Cumulative restart times"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Application Definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值",
+        "tag": "",
+        "translation": {
+            "en_US": "value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app5",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Duty node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障进程数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of fault processes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动稳定时间[s]",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup stability time [s]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发信息",
+        "tag": "",
+        "translation": {
+            "en_US": "On-site forwarding info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app7",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local field application _app7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工具进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Tool process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Duty priority"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AppColl与AppDef的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "AppColl_AppDef_LinkTable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点虚拟/交换机ip2",
+        "tag": "",
+        "translation": {
+            "en_US": "Node virtual/switch ip2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动次序",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup sequence"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用启动时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance app startup time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak9",
+        "tag": "",
+        "translation": {
+            "en_US": "bak9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Process type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件操作项配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event action Item Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType5",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "固定id",
+        "tag": "",
+        "translation": {
+            "en_US": "Fixed ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType0",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app2",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护实时库",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance  TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "健康状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Health  status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app4",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application _app4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次响应时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last response time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType6",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否维护进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场心跳",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site heartbeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app6",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用部署",
+        "tag": "",
+        "translation": {
+            "en_US": "App deploy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "状态描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Status description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动稳定时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup stability time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属应用定义",
+        "tag": "",
+        "translation": {
+            "en_US": "App definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app1",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application _app1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统核心进程",
+        "tag": "",
+        "translation": {
+            "en_US": "System core process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统",
+        "tag": "",
+        "translation": {
+            "en_US": "System"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用是否启动完成",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether the maintenance application has been started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Associated Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字节顺序",
+        "tag": "",
+        "translation": {
+            "en_US": "Byte order"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件功能项配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event function item config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用模块",
+        "tag": "",
+        "translation": {
+            "en_US": "App module"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否随应用扩展",
+        "tag": "",
+        "translation": {
+            "en_US": "Extend with App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否为目的现场节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Destination site node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络组名",
+        "tag": "",
+        "translation": {
+            "en_US": "Network group name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Node status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务功能项",
+        "tag": "",
+        "translation": {
+            "en_US": "Service function item"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络最大缓存消息个数",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum number of network cache messages"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联的节点",
+        "tag": "",
+        "translation": {
+            "en_US": " Linked node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所在应用模块",
+        "tag": "",
+        "translation": {
+            "en_US": "App module"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Site Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件组配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Group"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库正在装库标志",
+        "tag": "",
+        "translation": {
+            "en_US": "Loading Database Flag"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模式版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Schema version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基础应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Base app name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用库",
+        "tag": "",
+        "translation": {
+            "en_US": "App database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库装库",
+        "tag": "",
+        "translation": {
+            "en_US": "Load RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "禁用进程数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of disabled processes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发代理节点IP",
+        "tag": "",
+        "translation": {
+            "en_US": "Onsite forwarding proxy node IP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用进程",
+        "tag": "",
+        "translation": {
+            "en_US": "App process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app4",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通讯端口",
+        "tag": "",
+        "translation": {
+            "en_US": "Communication port"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启用音响",
+        "tag": "",
+        "translation": {
+            "en_US": "Enable Audio"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance SP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app8",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "扩展应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Extended app"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发节点IP",
+        "tag": "",
+        "translation": {
+            "en_US": "IP address of the onsite forwarding node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件项定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event item definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理主节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr duty node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属事件组",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Group"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日志等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Log level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app3",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application _app3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用时运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Run in standby mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app7",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重启策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Restart strategy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AppModule与ProcDef的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "AppModule_ProcDef_LinkTable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Source field name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点虚拟/交换机ip1",
+        "tag": "",
+        "translation": {
+            "en_US": "Node virtual/switch ip1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app0",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local field application _app0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app6",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application_app6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Settings"
+        }
+    },
+    {
+        "comments": "",
+        "source": "态定义",
+        "tag": "",
+        "translation": {
+            "en_US": "State Definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local applications"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次心跳时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last heartbeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件项配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Item"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType9",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site _siteType9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用进程配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "态",
+        "tag": "",
+        "translation": {
+            "en_US": "Mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用描述",
+        "tag": "",
+        "translation": {
+            "en_US": "App description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "扩展实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "Extended instance number"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Include Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app5",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application_app5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AppModule与AppTdbDef的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "AppModule_AppTdbDef_LinkTable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app3",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local application _app3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app2",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the dependent local site application _app2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用类型",
+        "tag": "",
+        "translation": {
+            "en_US": "App type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用故障时退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Exit on app fault"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障时退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Exit on fault"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Report startup success",
+        "tag": "",
+        "translation": {
+            "en_US": "Report startup success"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不检查进程心跳",
+        "tag": "",
+        "translation": {
+            "en_US": "Do not check process heartbeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行部署包",
+        "tag": "",
+        "translation": {
+            "en_US": "Run deployment package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台配置包",
+        "tag": "",
+        "translation": {
+            "en_US": "Platform configuration package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统定义包",
+        "tag": "",
+        "translation": {
+            "en_US": "System definition package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "在线时运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Online running"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步源现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync source site"
+        }
+    }
+]

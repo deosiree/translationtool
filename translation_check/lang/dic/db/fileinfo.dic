@@ -1,0 +1,1338 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名称",
+        "tag": "",
+        "translation": {
+            "en_US": "File Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "请求时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Request time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "超期清理时间限制(天)",
+        "tag": "",
+        "translation": {
+            "en_US": "Overdue cleaning time limit (days)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "序号",
+        "tag": "",
+        "translation": {
+            "en_US": "No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目的节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Destination node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Source site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名",
+        "tag": "",
+        "translation": {
+            "en_US": "Rename"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性",
+        "tag": "",
+        "translation": {
+            "en_US": "App extension attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备注信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Remarks"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数值",
+        "tag": "",
+        "translation": {
+            "en_US": "Params value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名",
+        "tag": "",
+        "translation": {
+            "en_US": "Filename"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目的现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Destination site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_锁定描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Apply extended_Lock description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MD5码",
+        "tag": "",
+        "translation": {
+            "en_US": "MD5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation Path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本冻结备注",
+        "tag": "",
+        "translation": {
+            "en_US": "Version freeze notes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains file info table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_子数量",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Number of subfiles"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联同步策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Link sync strategy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作登记表",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation Registration Form"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Modification Time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory info_Description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用14",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Backup 14"
+        }
+    },
+    {
+        "comments": "",
+        "source": "递归文件数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of recursive files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息_描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info_description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info Table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步结束时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync end time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否可改名",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Renameable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否可删除",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Deleteable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否超时清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Clean up after timeout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用11",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Backup 11"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_子数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Number of Sub-items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用路径参数1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup path param 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Included file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "子数量限制",
+        "tag": "",
+        "translation": {
+            "en_US": "Sub-number limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否清理版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Clean up the version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否版本托管",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Whether version is managed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "顺序号",
+        "tag": "",
+        "translation": {
+            "en_US": "S/N"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Modification Time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于对比文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Belong to comparison file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步请求目的节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync request destination node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_描述",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录属性",
+        "tag": "",
+        "translation": {
+            "en_US": "Include directory attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步项",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Params description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本编号",
+        "tag": "",
+        "translation": {
+            "en_US": "Version No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用15",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Backup 15"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含全局参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains global params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步成功数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of successful synchronizations"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于对比目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Comparison directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info Table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_是否是显示版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "App extended_Display version management files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用15",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Backup 15"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步操作数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync operations numbers"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_磁盘位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Disk location"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync strategy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件位置",
+        "tag": "",
+        "translation": {
+            "en_US": "File Location"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否自动同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Auto sync"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用12",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Backup 12"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联目录配置信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Link directory configuration info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录用户权限配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory User Permission Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_大小",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Size"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Belongs to the params configuration directory tree"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Node Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否自动判断压缩",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Whether to automatically determine compression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储空间限制（M）",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage space limit (M)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步失败数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of synchronization failures"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联参数配置目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Link params configuration directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录用户权限配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains directory user permission configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本组合表",
+        "tag": "",
+        "translation": {
+            "en_US": "File version combination table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本附加信息",
+        "tag": "",
+        "translation": {
+            "en_US": "File version additional info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录属性配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory attributes configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_进程名",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_RegName"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含同步项",
+        "tag": "",
+        "translation": {
+            "en_US": "Include Sync Items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名或应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Username or App name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用13",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Backup 13"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Creation Time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Synchronization results"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains directory info table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于目录信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory info table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Link params configuration directory tree"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Include directories"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否对工程人员只读",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Read-only for engineers"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_锁定标识",
+        "tag": "",
+        "translation": {
+            "en_US": "App extended_Lock flag"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于目录权限视图",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory permission view"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用14",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Backup 14"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用16",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Backup 16"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用11",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Backup 11"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否超时清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Clean up when timeout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步请求源节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync request source node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于参数配置目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Params configuration directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用路径参数2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Params configuration directory tree"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Operational version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步统计信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync statistics"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数关键字",
+        "tag": "",
+        "translation": {
+            "en_US": "Params keywords"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用16",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Backup 16"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件组合表",
+        "tag": "",
+        "translation": {
+            "en_US": "File combination table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "手动同步数据登记表",
+        "tag": "",
+        "translation": {
+            "en_US": "Manual sync data registration table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含对比文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains comparison files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否自动判断压缩",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Automatically determine compression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件版本附加信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains additional info about the file version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_线程ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_thread ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含对比版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains comparison version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否可移动",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Movable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件版本冻结表",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains file version freeze table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录组合表",
+        "tag": "",
+        "translation": {
+            "en_US": "Catalog Combination Table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于节点配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Node configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_虚拟链路号",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender network info_Virtual link No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本冻结表",
+        "tag": "",
+        "translation": {
+            "en_US": "File Version Freeze Table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用12",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Backup 12"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否自动同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Auto sync"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对比结果类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Comparison result type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory location"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否对比内容升版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attributes_Compare content and upgrade version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否可删除",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Deleteable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否版本托管",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Version host"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用13",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Backup 13"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_磁盘位置",
+        "tag": "",
+        "translation": {
+            "en_US": "File info_Disk location"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息_是否是显示版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info_Display version management file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "File info_Creation time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains params configuration directory tree"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否对工程人员只读",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Read-only for engineers"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否清理版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Clean up version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_节点名",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_Node name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_Site name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_添加后缀",
+        "tag": "",
+        "translation": {
+            "en_US": "Apply extended_Add suffix"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否可改名",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Renameable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息_添加后缀",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info_Add suffix"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全局参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Global params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_大小",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Size"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本清理数量限制",
+        "tag": "",
+        "translation": {
+            "en_US": "Version cleanup quantity limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结果类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Reslut type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步开始时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync start time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否可移动",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Removable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于同步登记信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync registration info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "越限类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Limit type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录用户权限视图",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory User Permissions View"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否对比内容升版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid ID_Compare content and upgrade versions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息",
+        "tag": "",
+        "translation": {
+            "en_US": "File info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Version location"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "version No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "视图名称",
+        "tag": "",
+        "translation": {
+            "en_US": "View name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": "unit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最新版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "Latest version No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点名",
+        "tag": "",
+        "translation": {
+            "en_US": "Node name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "自动清理扫描周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Automatic cleaning scan cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理目录",
+        "tag": "",
+        "translation": {
+            "en_US": "File management directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地运行数据包",
+        "tag": "",
+        "translation": {
+            "en_US": "Local run package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数配置包",
+        "tag": "",
+        "translation": {
+            "en_US": "Parameter configuration package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步运行数据包",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync run data package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件索引包",
+        "tag": "",
+        "translation": {
+            "en_US": "Local file index package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对比结果数据包",
+        "tag": "",
+        "translation": {
+            "en_US": "Comparison result package"
+        }
+    }
+]

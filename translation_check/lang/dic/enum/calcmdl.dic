@@ -1,0 +1,282 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平方根",
+        "tag": "",
+        "translation": {
+            "en_US": "Sqrt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差Ms",
+        "tag": "",
+        "translation": {
+            "en_US": "DeltaMs"
+        }
+    },
+    {
+        "comments": "",
+        "source": "5秒",
+        "tag": "",
+        "translation": {
+            "en_US": "5 s"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正弦",
+        "tag": "",
+        "translation": {
+            "en_US": "Sine"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对值",
+        "tag": "",
+        "translation": {
+            "en_US": "ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1分钟",
+        "tag": "",
+        "translation": {
+            "en_US": "1 minute"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "Min"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全或",
+        "tag": "",
+        "translation": {
+            "en_US": "OR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "余弦",
+        "tag": "",
+        "translation": {
+            "en_US": "Cosine"
+        }
+    },
+    {
+        "comments": "",
+        "source": "求和",
+        "tag": "",
+        "translation": {
+            "en_US": "Sum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差s",
+        "tag": "",
+        "translation": {
+            "en_US": "DeltaS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "calcmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "calcmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连库模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Link library mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正切",
+        "tag": "",
+        "translation": {
+            "en_US": "Tangent"
+        }
+    },
+    {
+        "comments": "",
+        "source": "10秒",
+        "tag": "",
+        "translation": {
+            "en_US": "10 s"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全与",
+        "tag": "",
+        "translation": {
+            "en_US": "AND"
+        }
+    },
+    {
+        "comments": "",
+        "source": "立方根",
+        "tag": "",
+        "translation": {
+            "en_US": "Cbrt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "触发计算",
+        "tag": "",
+        "translation": {
+            "en_US": "Trigger calculation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "Max"
+        }
+    },
+    {
+        "comments": "",
+        "source": "幂",
+        "tag": "",
+        "translation": {
+            "en_US": "Power"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期计算",
+        "tag": "",
+        "translation": {
+            "en_US": "Cycle Calculation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute task type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "快捷函数",
+        "tag": "",
+        "translation": {
+            "en_US": "Quick Functions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平均值",
+        "tag": "",
+        "translation": {
+            "en_US": "Avg"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点事故总(0分1合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-point accidents total (0 Open, 1 Close)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点遥信全或(0分1合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-point telesignal OR (1 Open 2 Close)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点事故总(1分2合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Dual-point accident total (1 Open 2 Close)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点遥信全与(0分1合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-point telesignal AND (1 Open 2 Close)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "第一条",
+        "tag": "",
+        "translation": {
+            "en_US": "First"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点遥信全与(1分2合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Two-point telesignal AND (1 Open 2 Close)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点遥信全或(1分2合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Dual-point telesignal OR (1 Open 2 Close)"
+        }
+    }
+]

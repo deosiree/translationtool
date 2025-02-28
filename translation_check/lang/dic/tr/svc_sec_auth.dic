@@ -1,0 +1,42 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Restart"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Exit normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup failed"
+        }
+    }
+]

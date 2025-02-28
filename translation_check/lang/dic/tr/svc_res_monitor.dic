@@ -1,0 +1,362 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]进程[{}({})]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] Process [{} ({})]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] "
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}/s，预计还剩 {}{} 资源枯竭，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Resource warning, resource growth rate: {:.3f} {}/s, estimated remaining {} {} resource depletion, resource warning value: {} {}, warning calculation time [{}-{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]数据库[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] Database [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "{} resource warning, resource growth rate: {:.3f} {}, resource warning value: {} {}, warning calculation time [{}-{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Site [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Threshold alarm, current value: {:.3f}{}, alarm threshold: {}{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]目录[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": " Node [{}] Directory [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场发包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site packet sending rate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存值",
+        "tag": "",
+        "translation": {
+            "en_US": "Memory value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘读速率",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk read rate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络发包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Network packet rate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场接收流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site receiving traffic "
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络发送流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Network send traffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场发送流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site sending traffic "
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接数",
+        "tag": "",
+        "translation": {
+            "en_US": "Connect count"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络收包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Network packet receiving rate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场收包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site packet receiving rate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络接收流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Network receive traffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄数",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle Count"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CPU利用率",
+        "tag": "",
+        "translation": {
+            "en_US": "CPU utilization"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘写速率",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk write rate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收网络流量值",
+        "tag": "",
+        "translation": {
+            "en_US": "Receive network traffic value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送网络流量值",
+        "tag": "",
+        "translation": {
+            "en_US": "Send network traffic value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘值",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 启动成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_res_monitor started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 正常退出。",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_res_monitor exited normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_res_monitor started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_res_monitor exits normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delet files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始自动清理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Start automatic cleanup:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "个文件已被清理，合计清理大小是",
+        "tag": "",
+        "translation": {
+            "en_US": "Files have been cleaned up, the total cleanup size is"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件路径：",
+        "tag": "",
+        "translation": {
+            "en_US": "File path:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止自动清理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop automatic cleanup:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除结果：",
+        "tag": "",
+        "translation": {
+            "en_US": "Deletion results:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名：",
+        "tag": "",
+        "translation": {
+            "en_US": "File name:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件最后修改时间：",
+        "tag": "",
+        "translation": {
+            "en_US": "Last modified:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件大小：",
+        "tag": "",
+        "translation": {
+            "en_US": "File size:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "失败。",
+        "tag": "",
+        "translation": {
+            "en_US": "failed."
+        }
+    },
+    {
+        "comments": "",
+        "source": "成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "successfully."
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前磁盘占用率是",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage is"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前磁盘占用率为",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage is"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前磁盘占用率仍然超过最大占用率。",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage still exceeds the maximum usage."
+        }
+    },
+    {
+        "comments": "",
+        "source": "%，超过最大占用率",
+        "tag": "",
+        "translation": {
+            "en_US": "%, exceeds the maximum occupancy rate"
+        }
+    }
+]

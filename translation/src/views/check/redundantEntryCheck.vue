@@ -43,7 +43,7 @@
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:label>
         产品版本： <a-select v-model:value="currentVersion" allowClear style="width: 150px" placeholder="请选择版本" :options='productVersions'
-          :fieldNames="{label:'name',value:'id'}" size="small" @click="changeVersion">
+          :fieldNames="{label:'name',value:'id'}" size="small" @click="clickInput">
         </a-select>
       </template>
       <template v-slot:operate>
@@ -57,7 +57,7 @@
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '230px'}"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
               :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
@@ -82,11 +82,11 @@
                 <template v-if="column.dataIndex === 'tag'">
                   <span class="tag">{{ record.tag }}</span>
                 </template>
-                <!--英文翻译列 -->
+                <!--翻译列 -->
                 <template v-if="column.dataIndex === 'english'">
                   <span>{{ record.english }}</span>
                 </template>
-                <!-- 英文翻译状态列 -->
+                <!-- 翻译状态列 -->
                 <template v-if="column.dataIndex === 'translateState'">
                   <stateBadge :entry-state="record.translateState" />
                 </template>
@@ -108,6 +108,7 @@ import DataBox from "@/components/dataBox/index.vue";
 import stateBadge from "@/components/stateBadge/index.vue";
 import { getLanguage } from "@/http/api/translate";
 import { getSecondClassify } from "@/http/api/secondClassify";
+import { searchCheckInfo } from "@/http/api/check";
 import { message, Modal } from "ant-design-vue";
 
 export default {
@@ -168,15 +169,15 @@ export default {
           index: 1,
         },
         {
-          title: "英文翻译",
-          dataIndex: "english",
+          title: "翻译",
+          dataIndex: "translate",
           align: "center",
           width: 180,
           resizable: true,
           index: 10,
         }, // 只是英文的翻译吗？为何不是对应语言的翻译{{translateType}}
         {
-          title: "英文翻译状态",
+          title: "翻译状态",
           dataIndex: "translateState",
           align: "center",
           width: 180,
@@ -192,32 +193,7 @@ export default {
           index: 19,
         },
       ],
-      // dataSource: [],// 表格数据
-      dataSource: [
-        {
-          id: 1,
-          entryState: "已审核",
-          entry: "词条",
-          entryVersion: "词条版本",
-          entrySource: "词条来源",
-          tag: "Tag",
-          english: "英文翻译",
-          translateState: "审核不通过",
-          dicName: "辞典名称",
-        },
-        {
-          id: 2,
-          entryState: "审核不通过",
-          entry: "词条",
-          entryVersion: "词条版本",
-          entrySource: "词条来源",
-          tag: "Tag",
-          english: "英文翻译",
-          translateState: "审核中",
-          dicName: "辞典名称",
-        },
-        // ... 其他示例数据
-      ],
+      dataSource: [],// 表格数据
       entryStates: [
         { label: "新建", value: "0" },
         { label: "审核中", value: "1" },
@@ -273,69 +249,28 @@ export default {
     // 初始化
     init() {
       this.setTableHeight();
-      // this.searchTaskInfo();
       this.getOpitons();
     },
-    // 删除按钮要用的？没细看
-    deleteEntry() {
-      if (this.selectedRowKeys.length === 0) {
-        return;
-      }
-      Modal.confirm({
-        title: "是否确定删除?",
-        icon: createVNode(ExclamationCircleOutlined),
-        okText: "是",
-        cancelText: "否",
-        style: { top: "30%" },
-        onOk: () => {
-          let version = this.productVersions.find(
-            (item) => item.id === this.currentVersion
-          );
-          let params = {
-            tableName: version.tableName,
-          };
-          deleteEntryInfo(this.selectedRowKeys, params).then((res) => {
-            message.success("删除成功！");
-            this.getEntryByVersion();
-            this.selectedRowKeys = [];
-            this.selectedRows = [];
-          });
-        },
-      });
-    },
-
-    changeVersion(version) {
-      if (version === undefined) {
-        this.currentVersion = null;
-      } else {
-        this.currentVersion = version;
-      }
-      this.pagination.current = 1;
-      // 查询版本词条
-      this.getEntryByVersion();
-    },
-    // 校验按钮点击事件(待)
+    // 校验按钮点击事件
     check() {
       this.pageChangeSearch = this.search;
-      this.searchTaskInfo();
+      this.searchCheckInfo();
     },
-    // 获取校验信息（待）
+    // 获取校验信息
     searchCheckInfo() {
-      this.searchCheckByCondition(this.search);
-    },
-    searchCheckByCondition(data) {
       this.loading = true;
-      let params = {
-        pageIndex: this.pagination.current,
-        pageSize: this.pagination.pageSize,
-      };
-      searchCheckInfo(data, params)
+      let params = this.search;
+      let path = "redundantEntry";
+      searchCheckInfo(params, path)
         .then((res) => {
-          // this.dataSource = res.data.list
-          this.loading = false;
+          this.dataSource = res.data.list;
+          console.log("冗余信息",this.dataSource);
           this.pagination.total = res.data.totalNum;
+          this.loading = false;
         })
         .catch((err) => {
+          message.info(err.message);
+          message.error(err);
           this.loading = false;
         });
     },
@@ -343,73 +278,7 @@ export default {
     getOpitons() {
       this.getLanguage();
       this.getSecondClassify();
-    },
-    // 获取产品版本
-    getEntryByVersion() {
-      // console.log("翻译结果：", this.search.translate);
-      // console.log("翻译状态：", this.search.translateState);
-      // console.log("翻译语言：", this.search.translateType);
-      if (
-        (this.search.translate != "" || this.search.translateState != null) &&
-        this.search.translateType === null
-      ) {
-        message.info("请选择翻译语言！");
-        return;
-      }
-
-      // let data = {
-      //   entry: this.search.entry,
-      //   entryState: this.search.entryState,
-      //   tag: this.search.tag,
-      //   entrySource: this.search.entrySource,
-      //   translateType: this.search.translateType,
-      //   translateState: this.search.translateState,
-      //   translate: this.search.translate,
-      // };
-      // if (this.currentVersion === null) {
-      //   data.productID =
-      //     this.product.type === "module"
-      //       ? this.product.parentId
-      //       : this.product.key;
-      // } else {
-      //   data.versionID = this.currentVersion;
-      // }
-      // if (this.search.language === "英文") {
-      //   data.english = this.search.translate;
-      //   data.englishTranslateState = this.search.translateState;
-      // } else if (this.search.language === "俄文") {
-      //   data.russian = this.search.translate;
-      //   data.russianTranslateState = this.search.translateState;
-      // } else if (this.search.language === "西文") {
-      //   data.spanish = this.search.translate;
-      //   data.spanishTranslateState = this.search.translateState;
-      // } else if (this.search.language === "法文") {
-      //   data.french = this.search.translate;
-      //   data.frenchTranslateState = this.search.translateState;
-      // }
-      // let params = {
-      //   classfyID: this.product.key,
-      //   pageIndex: this.pagination.current,
-      //   pageSize: this.pagination.pageSize,
-      // };
-      // this.loading = true;
-
-      // // getEntryByVersion(data,params).then((res) => {
-      // //     this.dataSource = res.data.list
-      // //     this.loading = false
-      // //     this.pagination.total = res.data.totalNum
-      // // }).catch((err) => {
-      // //     this.loading = false
-      // // })
-      // getEntryByClassfy(params, data)
-      //   .then((res) => {
-      //     this.dataSource = res.data.list;
-      //     this.loading = false;
-      //     this.pagination.total = res.data.totalNum;
-      //   })
-      //   .catch((err) => {
-      //     this.loading = false;
-      //   });
+      this.getProductVersions();
     },
     // 获取翻译语言
     getLanguage() {
@@ -423,6 +292,13 @@ export default {
       let data = {};
       getSecondClassify(data).then((res) => {
         this.classify2Option = res.data.list;
+      });
+    },
+    // 获取产品版本(?为啥是产品版本，要求的入参也对不上)
+    getProductVersions() {
+      let data = {};
+      getSecondClassify(data).then((res) => {
+        this.productVersions = res.data.list;
       });
     },
     // 表单单元格的点击事件

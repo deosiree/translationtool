@@ -1,0 +1,346 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in hismdl",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in hismdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字符串",
+        "tag": "",
+        "translation": {
+            "en_US": "string"
+        }
+    },
+    {
+        "comments": "",
+        "source": "布尔",
+        "tag": "",
+        "translation": {
+            "en_US": "Boolean"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Time difference (s)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4",
+        "tag": "",
+        "translation": {
+            "en_US": "4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分钟",
+        "tag": "",
+        "translation": {
+            "en_US": "min"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8",
+        "tag": "",
+        "translation": {
+            "en_US": "8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差（ms）",
+        "tag": "",
+        "translation": {
+            "en_US": "Time difference (ms)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "8-byte unsigned integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单精度浮点数",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-precision floating point numbers"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "1-byte unsigned integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Time Unit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "旬",
+        "tag": "",
+        "translation": {
+            "en_US": "Ten-day period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双精度浮点数",
+        "tag": "",
+        "translation": {
+            "en_US": "Double-precision floating point number"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳（ms）",
+        "tag": "",
+        "translation": {
+            "en_US": "Timestamp (ms)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Timestamp (s)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2",
+        "tag": "",
+        "translation": {
+            "en_US": "2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "1-byte signed integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "8-byte signed integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "天",
+        "tag": "",
+        "translation": {
+            "en_US": "day"
+        }
+    },
+    {
+        "comments": "",
+        "source": "空值",
+        "tag": "",
+        "translation": {
+            "en_US": "Empty value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "2-byte unsigned integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳",
+        "tag": "",
+        "translation": {
+            "en_US": "Timestamp"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据来源",
+        "tag": "",
+        "translation": {
+            "en_US": "Data sources"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "2-byte signed integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "月",
+        "tag": "",
+        "translation": {
+            "en_US": "month"
+        }
+    },
+    {
+        "comments": "",
+        "source": "hismdl",
+        "tag": "",
+        "translation": {
+            "en_US": "hismdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1",
+        "tag": "",
+        "translation": {
+            "en_US": "1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Object data"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周",
+        "tag": "",
+        "translation": {
+            "en_US": "weeks"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日期（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Date (s)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "4-byte unsigned integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "季",
+        "tag": "",
+        "translation": {
+            "en_US": "season"
+        }
+    },
+    {
+        "comments": "",
+        "source": "普通OID",
+        "tag": "",
+        "translation": {
+            "en_US": "General OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Object timestamp"
+        }
+    },
+    {
+        "comments": "",
+        "source": "小时",
+        "tag": "",
+        "translation": {
+            "en_US": "hrs"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "4-byte signed integer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "256",
+        "tag": "",
+        "translation": {
+            "en_US": "256"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "年",
+        "tag": "",
+        "translation": {
+            "en_US": "years"
+        }
+    }
+]

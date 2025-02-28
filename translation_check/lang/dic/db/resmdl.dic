@@ -1,0 +1,442 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的文件系统资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Contains the file system resource object"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource object ownership"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件系统资源",
+        "tag": "",
+        "translation": {
+            "en_US": "File system resource"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否默认值",
+        "tag": "",
+        "translation": {
+            "en_US": "Default"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样值",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上一次告警时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last alarm time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "App name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联预警计算周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked early warning calculation period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上一次预警时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last warning time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Database resource"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled data"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IP地址",
+        "tag": "",
+        "translation": {
+            "en_US": "IP address"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否绝对路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Absolute path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Node resource"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的数据库资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Database resource objects included"
+        }
+    },
+    {
+        "comments": "",
+        "source": "路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联写历史周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Link  history period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "New time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Onsite resources"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册名",
+        "tag": "",
+        "translation": {
+            "en_US": "Network registration name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联预警值",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked warning value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属的节点资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Node resource object ownership"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Database type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Params data"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属的现场资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Associated field resource object"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Local site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库目录路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Database directory path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的采样数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample data included"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值",
+        "tag": "",
+        "translation": {
+            "en_US": "value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联告警间隔周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked alarm interval"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程号",
+        "tag": "",
+        "translation": {
+            "en_US": "Process No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": "unit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联是否采样",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled link"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的进程资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Process resource object included"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Node Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联采样周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked sampled period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Process status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值占比",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum proportion"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的节点资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Node resource object included"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联告警阈值",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked alarm threshold"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Process resource"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联模型检查周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked model check cycles"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件系统资源定义",
+        "tag": "",
+        "translation": {
+            "en_US": "File system resource definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样值占比",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled value ratio"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "Max"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联资源配额",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked resource quota"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源管理包",
+        "tag": "",
+        "translation": {
+            "en_US": "System resource management package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源定义包",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource definition package"
+        }
+    }
+]

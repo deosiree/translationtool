@@ -1,0 +1,306 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "越权访问",
+        "tag": "",
+        "translation": {
+            "en_US": "Unauthorized access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据交互",
+        "tag": "",
+        "translation": {
+            "en_US": "Data Interaction"
+        }
+    },
+    {
+        "comments": "",
+        "source": "电源异常",
+        "tag": "",
+        "translation": {
+            "en_US": "Power supply abnormality"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Login Failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "攻击告警",
+        "tag": "",
+        "translation": {
+            "en_US": "Attack alarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "iaspalarm",
+        "tag": "",
+        "translation": {
+            "en_US": "iaspalarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间和日期修改",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify time and date"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据恢复",
+        "tag": "",
+        "translation": {
+            "en_US": "Data recovery"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete Configuration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接超时",
+        "tag": "",
+        "translation": {
+            "en_US": "Connection timeout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接异常",
+        "tag": "",
+        "translation": {
+            "en_US": "Connection abnormality"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CPU使用越限",
+        "tag": "",
+        "translation": {
+            "en_US": "CPU usage exceeds limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用接入",
+        "tag": "",
+        "translation": {
+            "en_US": "App Access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除用户",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete User"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户注销",
+        "tag": "",
+        "translation": {
+            "en_US": "User Logout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他资源告警",
+        "tag": "",
+        "translation": {
+            "en_US": "Other resources alarms"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增配置",
+        "tag": "",
+        "translation": {
+            "en_US": "New Configurations"
+        }
+    },
+    {
+        "comments": "",
+        "source": "流量使用越限",
+        "tag": "",
+        "translation": {
+            "en_US": "Data usage exceeds limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限修改",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify permission"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据备份",
+        "tag": "",
+        "translation": {
+            "en_US": "Data backup"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘使用越限",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk usage exceeds limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in iaspalarm",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in iaspalarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄使用越限",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle usage exceeds limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录接入异常",
+        "tag": "",
+        "translation": {
+            "en_US": "Login access exception"
+        }
+    },
+    {
+        "comments": "",
+        "source": "遥控",
+        "tag": "",
+        "translation": {
+            "en_US": "Remote control"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改用户信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify User Information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码重置",
+        "tag": "",
+        "translation": {
+            "en_US": "Password Reset"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计记录访问",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit log access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存使用越限",
+        "tag": "",
+        "translation": {
+            "en_US": "Memory usage exceeds limit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程异常",
+        "tag": "",
+        "translation": {
+            "en_US": "Process abnormality"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增用户",
+        "tag": "",
+        "translation": {
+            "en_US": "New User"
+        }
+    },
+    {
+        "comments": "",
+        "source": "遥调",
+        "tag": "",
+        "translation": {
+            "en_US": "Remote control"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录成功",
+        "tag": "",
+        "translation": {
+            "en_US": " login successful"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间异常",
+        "tag": "",
+        "translation": {
+            "en_US": "Time anomaly"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不符合安全策略的访问",
+        "tag": "",
+        "translation": {
+            "en_US": "Access that does not comply with security policies"
+        }
+    }
+]

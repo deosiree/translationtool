@@ -1,0 +1,818 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain length"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_链接类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Db info_Link type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Table info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute task type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "写库标志",
+        "tag": "",
+        "translation": {
+            "en_US": "Write DB flag"
+        }
+    },
+    {
+        "comments": "",
+        "source": "整型值",
+        "tag": "",
+        "translation": {
+            "en_US": "Integer value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算模板信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked computing template info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_Domain type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain length"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Field length"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务周期时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculating task cycle time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "延时秒数",
+        "tag": "",
+        "translation": {
+            "en_US": "Delay seconds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无符号整型值",
+        "tag": "",
+        "translation": {
+            "en_US": "Unsigned integer value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute group config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含计算因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Included computation factor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain Id"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下次执行时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Next execution time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Domain description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次执行时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last execution time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info_Database name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息_表ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Table Info_Table ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息_表名",
+        "tag": "",
+        "translation": {
+            "en_US": "Table info_Table name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_ Domain name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Value info_Domain name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子对象模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute the factor object template"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain desc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于计算结果模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Belongs to calculation result template"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息_对象路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info_Object path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息_对象条件字符串",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info_Object condition string"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_Domain desc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算周期秒数",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation cycle seconds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info_App name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain Id"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain desc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字符串值",
+        "tag": "",
+        "translation": {
+            "en_US": "String value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用计算",
+        "tag": "",
+        "translation": {
+            "en_US": "App Compute"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "作为计算因子",
+        "tag": "",
+        "translation": {
+            "en_US": "As a calculation factor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "编号",
+        "tag": "",
+        "translation": {
+            "en_US": "ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象搜索模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Object search mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Belong to the calculation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "条件模板串",
+        "tag": "",
+        "translation": {
+            "en_US": "Conditional template string"
+        }
+    },
+    {
+        "comments": "",
+        "source": "浮点值",
+        "tag": "",
+        "translation": {
+            "en_US": "Floating point value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否有效",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不需要解析",
+        "tag": "",
+        "translation": {
+            "en_US": "No parsing required"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统一计算周期（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Unified Computing Cycle (s)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Domain type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息_表描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Table info_Table desc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_链接类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info_Link type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag field info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info_Instance No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bool值",
+        "tag": "",
+        "translation": {
+            "en_US": "Boolean value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Included calculation results"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info_Instance No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全局配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Global configuration table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含计算因子对象模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Included templates for calculating factor objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非目标模板关联表",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-target template linked table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Database Info_App name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于计算结果分组",
+        "tag": "",
+        "translation": {
+            "en_US": "Belongs to the calculation result group"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "Database info_Database name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "批量同步结果最大缓存",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum cache of batch sync results"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式模板串",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression template string"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Task name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算结果模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation result template"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_Domain Id"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息_对象OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info_Object OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked result"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算标志",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation flag"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联结果层级",
+        "tag": "",
+        "translation": {
+            "en_US": "Linking result levels"
+        }
+    },
+    {
+        "comments": "",
+        "source": "批量同步结果最大时间(s)",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum time for batch sync results (s)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Domain Id"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多因子处理模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Multifactor processing mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_Domain length"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked computing config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation result"
+        }
+    },
+    {
+        "comments": "",
+        "source": "入口函数",
+        "tag": "",
+        "translation": {
+            "en_US": "Entry function"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算线程数",
+        "tag": "",
+        "translation": {
+            "en_US": "Count threads"
+        }
+    },
+    {
+        "comments": "",
+        "source": "来源计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Source calculation result"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印日志",
+        "tag": "",
+        "translation": {
+            "en_US": "Print log"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算配置模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked computing configuration template"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印计算过程",
+        "tag": "",
+        "translation": {
+            "en_US": "Print calculation procedure"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全局包",
+        "tag": "",
+        "translation": {
+            "en_US": "Global package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算包",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation package"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算模板包",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation template package"
+        }
+    }
+]

@@ -1,0 +1,490 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库：{}校验成功",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB: {} verification succeeds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "校验维护库实体",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify the MTDB entity"
+        }
+    },
+    {
+        "comments": "",
+        "source": "校验维护库：{}...",
+        "tag": "",
+        "translation": {
+            "en_US": "Check MTDB: {}..."
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}.{}.{}应用验证通过！",
+        "tag": "",
+        "translation": {
+            "en_US": "{}.{}.{} Application verification passed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库：{}和维护服务不在同一节点",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB: {} and maintenance services are not on the same node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取{}状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get {} status!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接维护库{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to MTDB {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行",
+        "tag": "",
+        "translation": {
+            "en_US": "carry out"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Authentication failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "恢复",
+        "tag": "",
+        "translation": {
+            "en_US": "Recover"
+        }
+    },
+    {
+        "comments": "",
+        "source": ">>>>>>>>>>>>>停止相关维护库写",
+        "tag": "",
+        "translation": {
+            "en_US": ">>>>>>>>>>>> Stop writing related MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "【{}.{}.{}】应用的【{}】库",
+        "tag": "",
+        "translation": {
+            "en_US": "【{}.{}.{}】APP in【{}】"
+        }
+    },
+    {
+        "comments": "",
+        "source": "准备",
+        "tag": "",
+        "translation": {
+            "en_US": "Prepare"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点{} 的{}状态不正常，不处理",
+        "tag": "",
+        "translation": {
+            "en_US": "Node {}  {} is abnormal and will not be processed."
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{}/{}]获取锁成功",
+        "tag": "",
+        "translation": {
+            "en_US": "[{}/{}] Obtain lock successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库【{}】本地未映射！",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB [{}] is not mapped locally!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{}/{}]解锁成功",
+        "tag": "",
+        "translation": {
+            "en_US": "[{}/{}] Unlocked successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多线程并行上传失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Multi-threaded parallel upload failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "把本机{}目录的维护库的装库文件夹（.load），传到{}节点的{}目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Transfer the loading folder (.load) of the MTDB in the {} directory of the local machine to the the {} node's directory {} "
+        }
+    },
+    {
+        "comments": "",
+        "source": "[成功]收到{}节点{}进程的发布返回报文:类型={},消息={},状态={},进度={}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Success] Received publishing return message from {}node{} process: type={}, message={}, status={}, progress={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传成功：本地路径 = {},远端路径 = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Upload successfully: local path = {}, remote path = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "【上个装库任务还未完成！】上次收到类型【{}】与这次收到类型【{}】不符合放弃执行",
+        "tag": "",
+        "translation": {
+            "en_US": "[The last loading database task has not been completed yet! 】The last received type [{}] does not match the current received type [{}] and the execution is abandoned."
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接运行库{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to RTDB {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "请求维护服务端{}{}写失败",
+        "tag": "",
+        "translation": {
+            "en_US": " Request to maintaince server {}{} failed to write"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询节点{}应用{}运行库状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query node {} application {} runtime status!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取本应用有哪些需要发布的数据库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failure to get what databases need to be published for this application"
+        }
+    },
+    {
+        "comments": "",
+        "source": ">>>>>>>>>>>>>>连接各个维护库停止写操作然后校验库、上传文件",
+        "tag": "",
+        "translation": {
+            "en_US": ">>>>>>>>>>>>>>Connect each MTDB to stop writing operations, then verify the database and upload files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询部署了本应用的节点失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the node where this application is deployed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "加载动态库 {} 失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to load dynamic database {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ftp登录节点失败，返回码 = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP login node failed, return code = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "更新{}的装库字段数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Update the loading field data of {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有新的服务{}在装库{}中启动！",
+        "tag": "",
+        "translation": {
+            "en_US": "There is a new service {} being started in the installation library {}!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to link {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": ">>>>>>>>>>>>>>校验节点应用状态",
+        "tag": "",
+        "translation": {
+            "en_US": ">>>>>>>>>>>>>>Verify node application status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "恢复相关维护库写失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to restore the relevant MTDB write!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上个准备任务还在执行，等待中止后，请稍后再试！",
+        "tag": "",
+        "translation": {
+            "en_US": "The last preparation task is still being executed. Please try again later after waiting for the abort!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止相关维护库写失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop writing related MTDB!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步运行库【{}】装库数据失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync RTDB [{}] failed to load database data!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无正常库在线!",
+        "tag": "",
+        "translation": {
+            "en_US": "No normal database online!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}.{}.{}应用装库成功！",
+        "tag": "",
+        "translation": {
+            "en_US": "{}.{}.{} Application database loaded successfully!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{}/{}]获取锁失败###被节点{}的进程{}占用",
+        "tag": "",
+        "translation": {
+            "en_US": "[{}/{}] Failed to acquire lock###Occupied by process {} of node {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传失败：本地路径 = {},远端路径 = {},返回码 = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Upload failed: local path = {}, remote path = {}, return code = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}多线程并行上传成功!",
+        "tag": "",
+        "translation": {
+            "en_US": "{} multi-threaded parallel upload successfully!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取{}文件信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain {} file information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{}/{}]解锁失败",
+        "tag": "",
+        "translation": {
+            "en_US": "[{}/{}] unlock failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库准备中止！",
+        "tag": "",
+        "translation": {
+            "en_US": "Loading database preparation is aborted!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点{} 的应用状态不正常",
+        "tag": "",
+        "translation": {
+            "en_US": "The application status of node {} is abnormal."
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}.{}.{}应用装库准备完成！",
+        "tag": "",
+        "translation": {
+            "en_US": "{}.{}.{}The application database is ready to be loaded!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[失败]收到{}节点{}进程的发布返回报文:类型={},消息={},状态={},进度={}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Failure] Received publishing return message from {} node {} process: type={}, message={}, status={}, progress={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库：{}校验失败！{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintaining the library: {} checksum failure! {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "请求数据库运行库进行装库准备...",
+        "tag": "",
+        "translation": {
+            "en_US": "Request the database runtime library to prepare for installation..."
+        }
+    },
+    {
+        "comments": "",
+        "source": "需要处理节点{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Node needs to be processed {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "动态库文件{}不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "Dynamic database file {} does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接各个实时库更新装库数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Connect to various TDB to update database loading data"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取维护库【{}】装库数据失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain MTDB [{}] loading data!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库过程{}超时",
+        "tag": "",
+        "translation": {
+            "en_US": "Databse loading process {} timed out"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[过程]收到{}节点{}进程的发布返回报文:类型={},消息={},状态={},进度={}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Process] Received a publishing return message from {}node{} process: type={}, message={}, status={}, progress={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化sysinfo库接口失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize sysinfo database interface"
+        }
+    },
+    {
+        "comments": "",
+        "source": "调用动态库验证函数 procDBVerify 失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to call dynamic database verification function procDBVerify"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop"
+        }
+    }
+]

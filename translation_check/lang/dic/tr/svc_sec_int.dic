@@ -1,0 +1,26 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性检查发现异常修改用户信息, 用户id: ",
+        "tag": "",
+        "translation": {
+            "en_US": "Integrity check found abnormal modification of user information, user id:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "started successfully"
+        }
+    }
+]

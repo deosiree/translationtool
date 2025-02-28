@@ -1,0 +1,34 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工程配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Project Config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "调试配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Debug Config"
+        }
+    }
+]

@@ -1,0 +1,34 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_calc_general启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_calc_general started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_calc_general初始化失败退出",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_calc_general initialization failed and exited"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_calc_general正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_calc_general exits normally"
+        }
+    }
+]

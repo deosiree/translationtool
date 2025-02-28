@@ -1,0 +1,146 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库准备开始：新库映射+新库校验",
+        "tag": "",
+        "translation": {
+            "en_US": "Preparing to load the library: new library mapping + new library verification"
+        }
+    },
+    {
+        "comments": "",
+        "source": "超时进程{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Timeout process {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正在装库准备...",
+        "tag": "",
+        "translation": {
+            "en_US": "It's being loaded and ready for..."
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库执行开始：装库切换+装库清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Load library execution starts: load library switch + load library cleaning"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正在装库执行...",
+        "tag": "",
+        "translation": {
+            "en_US": "Loading warehouse execution..."
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行其它请求任务[{}]{}错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Execute other requested tasks [{}] {} Error:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "处理同步写请求错误{}:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle synchronous write request error {}:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未处理的报文类型 [{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Unprocessed message type [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询节点[{}]失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Querying node [{}] failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行装库准备错误:{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Error when executing loading database preparation: {}{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "转发任务到新主节点[{}],错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Forwarding tasks to the new master node [{}], error: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行装库递交错误:{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Error when executing database loading submission: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行装库取消错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Execution of loading database cancellation error: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "处理超时应答错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle timeout response errors:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行一致性处理错误:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Execution consistency processing error: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "处理主备间同步错误{}:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle synchronization errors between master and backup {}:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取库指针失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain database pointer"
+        }
+    }
+]

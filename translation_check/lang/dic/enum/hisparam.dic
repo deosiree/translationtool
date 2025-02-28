@@ -1,0 +1,98 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in hisparam",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in hisparam"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Time Unit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "旬",
+        "tag": "",
+        "translation": {
+            "en_US": "Ten-day period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分钟",
+        "tag": "",
+        "translation": {
+            "en_US": "min"
+        }
+    },
+    {
+        "comments": "",
+        "source": "季",
+        "tag": "",
+        "translation": {
+            "en_US": "season"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周",
+        "tag": "",
+        "translation": {
+            "en_US": "weeks"
+        }
+    },
+    {
+        "comments": "",
+        "source": "小时",
+        "tag": "",
+        "translation": {
+            "en_US": "hrs"
+        }
+    },
+    {
+        "comments": "",
+        "source": "月",
+        "tag": "",
+        "translation": {
+            "en_US": "month"
+        }
+    },
+    {
+        "comments": "",
+        "source": "hisparam",
+        "tag": "",
+        "translation": {
+            "en_US": "hisparam"
+        }
+    },
+    {
+        "comments": "",
+        "source": "天",
+        "tag": "",
+        "translation": {
+            "en_US": "day"
+        }
+    },
+    {
+        "comments": "",
+        "source": "年",
+        "tag": "",
+        "translation": {
+            "en_US": "years"
+        }
+    }
+]

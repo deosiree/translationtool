@@ -1,0 +1,1658 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取本进程环境实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the process environment instance."
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}下的服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the service process under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始执行切换, {}, 是否主动切换:{}, 是否需要回应:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start switching, {}, whether to switch actively: {}, whether to respond: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}, 分别为:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "{}, respectively: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动节点应用:{} {} {}下的服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the service process under nodeapp: {} {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止服务进程:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop the service process:{} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用:{} {}启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance App: {} {} startup failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程 {} 正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Process {} exited normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to start {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止{}下的服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop the service process under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通知进程{}退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Notify the process {} \nto exit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通知进程 {} {} 退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Notify process {} {} to exit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "禁用",
+        "tag": "",
+        "translation": {
+            "en_US": "Disable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取本地库访问实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain local database access instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所有网络组均离线, 准备初始化{}",
+        "tag": "",
+        "translation": {
+            "en_US": "All network groups are offline, ready to initialize {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止普通进程失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop normal process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换执行成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Switch execution successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点[{}]准备作为sysmgr值班节点启动",
+        "tag": "",
+        "translation": {
+            "en_US": "This node [{}] is ready to start as a Sysmgr duty node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换结束",
+        "tag": "",
+        "translation": {
+            "en_US": "Switching completed"
+        }
+    },
+    {
+        "comments": "",
+        "source": ", 依赖的本现场应用:{}",
+        "tag": "",
+        "translation": {
+            "en_US": ", Depends of local site app:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "读取配置文件 {} 异常: {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Read configuration file {} Exception: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地系统运维应用启动失败, 准备再次启动",
+        "tag": "",
+        "translation": {
+            "en_US": "The local Sysops App failed to start, and is ready to start again"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Nodeapp {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "{} failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "已有sysmgr值班节点[{}], 本节点[{}]不可值班, 准备作为在线节点启动",
+        "tag": "",
+        "translation": {
+            "en_US": "There is already a sysmgr on-duty node [{}], this node [{}] cannot be on-duty, and is ready to be started as an online node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地系统运维应用状态{}异常, 准备再次启动",
+        "tag": "",
+        "translation": {
+            "en_US": "The local Sysops App status {} is abnormal, and is ready to start again"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送应用[{}]值班切换通知",
+        "tag": "",
+        "translation": {
+            "en_US": "Send App [{}] duty switching notification"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有异常需处理, 禁止启动",
+        "tag": "",
+        "translation": {
+            "en_US": "There is an exception that needs to be handled, so startup is prohibited"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程[{} {} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Service Process [{} {} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置文件{}中系统管理可值班节点sysmgrDutyNodes为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The system management duty nodes sysmgrDutyNodes in the configuration file {} are empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取网络注册名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain network regName"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保存核心进程注册名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to save the core process registration name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "缺少网络组{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Missing network group {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止网络失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop network failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止{}下的维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop the MTDB under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}的状态为{}",
+        "tag": "",
+        "translation": {
+            "en_US": "The status of {} is {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点系统正在启动",
+        "tag": "",
+        "translation": {
+            "en_US": "This node system is starting"
+        }
+    },
+    {
+        "comments": "",
+        "source": ", 内容:{}",
+        "tag": "",
+        "translation": {
+            "en_US": ", content: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止维护库:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop MTDB: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计节点有误, 限制数量1-2个, 当前{}个",
+        "tag": "",
+        "translation": {
+            "en_US": "The audit node is incorrect, the number is limited to 1-2, currently number is {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点系统正在退出",
+        "tag": "",
+        "translation": {
+            "en_US": "This node system is exiting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换执行失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Switch execution failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分发切换任务失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Distributing switching tasks failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动节点应用[{} {} {}]下的服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the service process under the node App [{} {} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintain App [{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统运维接口初始化失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysops  interface initialization failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统开始退出",
+        "tag": "",
+        "translation": {
+            "en_US": "The system starts to exit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点[{}]不可值班，继续等待",
+        "tag": "",
+        "translation": {
+            "en_US": "This node [{}] is not on duty, continue waiting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置文件{}中netFtpServerNum值不可为0",
+        "tag": "",
+        "translation": {
+            "en_US": "The netFtpServerNum value in the configuration file {} cannot be 0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换开始",
+        "tag": "",
+        "translation": {
+            "en_US": "Start to switch "
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止普通实时库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop normal TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询{}启动进度失败, 重新发启动请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query {} startup progress, resend the startup request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 未正常退出, 强制停止",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Unable to exit normally, forced to stop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询系统运维应用启动进度失败, 需要重新发启动请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the startup progress of the Sysops App. You need to resend the startup request."
+        }
+    },
+    {
+        "comments": "",
+        "source": "禁用{}",
+        "tag": "",
+        "translation": {
+            "en_US": " Disable {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}下的维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the MTDB under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打开配置文件:{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Open configuration file: {} failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "收到停止命令, 停止系统",
+        "tag": "",
+        "translation": {
+            "en_US": "Received a stop command, stopped the system"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[状态接收] 收到进程{} {}信息, 状态{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Status Received] Received process {} {} information, status {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用[{} {} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Nodeapp [{} {} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有准备值班的节点[{}]正在启动，本节点[{}]等待",
+        "tag": "",
+        "translation": {
+            "en_US": "The node [{}] that is ready to take over is starting up. This node [{}] is waiting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}从值班切备用",
+        "tag": "",
+        "translation": {
+            "en_US": "{} switched from on-duty to standby"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用:{} {}启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance App: {} {} start successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Exec_Failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送应用:{}值班切换通知",
+        "tag": "",
+        "translation": {
+            "en_US": "Send App: {} duty switching notification"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[状态接收] 收到进程{} {} [{}]信号, 状态:{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Status Received] Received process {} {} [{}] signal, status: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取数据库本地连接池实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the database local connection pool instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "{} startup failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}恢复成值班状态",
+        "tag": "",
+        "translation": {
+            "en_US": "{} restore to duty status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止所有工具进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop all tool processes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工具进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Tool process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "记录本节点系统管理核心进程状态失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Record the status of the core process of the system management of this node failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Nodeapp [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统开始启动",
+        "tag": "",
+        "translation": {
+            "en_US": "The system is starting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取sysmdl本地访问实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain Sysmdl local access instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}启动后长时间未响应, 强制停止",
+        "tag": "",
+        "translation": {
+            "en_US": "{} After starting, it did not respond for a long time, so it was forced to stop."
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}从备用切值班",
+        "tag": "",
+        "translation": {
+            "en_US": "{} switch from standby to duty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}退出, 清除心跳信息",
+        "tag": "",
+        "translation": {
+            "en_US": "{} exit, clear heartbeat info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动进程:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the process:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统停止",
+        "tag": "",
+        "translation": {
+            "en_US": "System Stop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Service process: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}启动成功, pid {}",
+        "tag": "",
+        "translation": {
+            "en_US": "{} started successfully, pid {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所有工具进程",
+        "tag": "",
+        "translation": {
+            "en_US": "All tool processes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程:{} {} {}状态异常, ipc组中存活, 但NetMsg.getProcStatus查询不到信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Process: {} {} {} The status is abnormal. It survives in the ipc group, but NetMsg.getProcStatus cannot find any info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取网络库访问实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain network database access instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动系统管理核心进程失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to start Sysmgr core process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用部署:{} {}的维护节点:{}无效",
+        "tag": "",
+        "translation": {
+            "en_US": "App deployment: {}  maintenance node of {}: {} is invalid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置文件{}中netGlobalConfig不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "netGlobalConfig does not exist in the configuration file {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Normal exit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本进程缓存实例初始化失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize the cache instance of this process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}超过最长响应时间: {} 秒",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup {} exceeded maximum response time: {} seconds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动维护库:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start MTDB: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}正在启动",
+        "tag": "",
+        "translation": {
+            "en_US": "{} is starting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送应用:{}值班备用切换通知",
+        "tag": "",
+        "translation": {
+            "en_US": "Send app: {} duty standby switch notification"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}下的运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the RTDB under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用:{} {} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Nodeapp: {} {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程[{} {} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process [{} {} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}故障",
+        "tag": "",
+        "translation": {
+            "en_US": "{} fault"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有网络组{}在线, 不初始化{}",
+        "tag": "",
+        "translation": {
+            "en_US": "There is a network group {} online, not initialized {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送应用[{} {}]值班切换通知事件,{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Send app [{} {}] duty switching notification event, {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Execute successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有高优先级的节点[{}]正在启动，本节点[{}]等待",
+        "tag": "",
+        "translation": {
+            "en_US": "A high priority node [{}] is starting, this node [{}] is waiting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取sysmdl网络访问实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain Sysmdl network access instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程 {} {} 未正常退出, 强制停止",
+        "tag": "",
+        "translation": {
+            "en_US": "Process {} {} did not exit normally, force stop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化系统信息库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询本地系统运维应用失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the local Sysops App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置文件{}中现场名siteName未配置",
+        "tag": "",
+        "translation": {
+            "en_US": "The site name siteName is not configured in the configuration file {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止{}下的运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop the RTDB under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库[{} {} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB [{} {} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止access失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地系统运维应用启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "The local Sysops app was started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通知进程 {} 退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Notify the process {} to quit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}超过最长等待时间: {} 秒",
+        "tag": "",
+        "translation": {
+            "en_US": "Starting {} exceeded the maximum waiting time: {} seconds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止网络服务失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop network service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process:{} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}依赖的应用未启动",
+        "tag": "",
+        "translation": {
+            "en_US": "{} the dependent app is not started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止sysmdl失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop Sysmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置文件{}中系统名sysName未配置",
+        "tag": "",
+        "translation": {
+            "en_US": "The system name sysName is not configured in the configuration file {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询{} {}启动进度失败, 重新发启动请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Query {} {} startup progress failed, resend the startup request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}依赖的本现场的{}已被去除",
+        "tag": "",
+        "translation": {
+            "en_US": "{} depends on  {} of this site has been removed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止维护进程:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop maintenance process:{} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止运行库:{} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop the RTDB: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统启动完成",
+        "tag": "",
+        "translation": {
+            "en_US": "System startup completed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "{} started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务id[{}] 等待进程响应超时, 还未回复的进程:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Task id [{}] waiting for process response timeout, process that has not responded yet: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动运行库:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start the RTDB: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sysmdl本地访问实例获取失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain Sysmdl local access instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始执行, {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start execution, {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止{}下的维护进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop the maintenance process under {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}切故障",
+        "tag": "",
+        "translation": {
+            "en_US": "{} switch fault"
+        }
+    },
+    {
+        "comments": "",
+        "source": "检查统运维应用启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether Sysops app is started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点系统启动完成",
+        "tag": "",
+        "translation": {
+            "en_US": "The node system startup is complete"
+        }
+    },
+    {
+        "comments": "",
+        "source": "检查网络组是否启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether the network group fails to start"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}设故障",
+        "tag": "",
+        "translation": {
+            "en_US": "{} set fault"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动{}_{}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to start {}_{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Network registration failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用:{} {} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintaince Apps:{} {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": ", 依赖的本节点应用:{}",
+        "tag": "",
+        "translation": {
+            "en_US": ",dependency on this node App:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询{} {}停止进度失败, 重新发停止请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Query {} {} Stop progress failed, resend stop request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维接口初始化失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation and maintenance interface initialization failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库[{} {} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB [{} {} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 无值班节点, 不可启动",
+        "tag": "",
+        "translation": {
+            "en_US": "{} has no on-duty node, cannot be started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班节点启动前已经在线的节点:",
+        "tag": "",
+        "translation": {
+            "en_US": "Nodes that are already online before the duty node starts:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "已有sysmgr值班节点[{}], 本节点[{}]准备作为备用节点启动",
+        "tag": "",
+        "translation": {
+            "en_US": "There is already a sysmgr on-duty node [{}], this node [{}] is ready to start as a standby node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用[{} {}]值班切换需要等待的进程:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "App [{} {}] The process that needs to be waited for on-duty switching: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}依赖的本节点的{}已被去除",
+        "tag": "",
+        "translation": {
+            "en_US": "The {} of this node that {} depends on has been removed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置sysmdl库中系统管理值班节点失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set the system management duty node in the Sysmdl database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 已有值班节点 {}, 可以启动",
+        "tag": "",
+        "translation": {
+            "en_US": "{} already has the duty node {}, which can be started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动系统运维应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Start Sysops App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Process [{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node App [{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用[{} {}]启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance App [{} {}] failed to start"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "{} exits normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "检查系统运维应用启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Check Sysops App startup"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}未正常退出, 强制停止",
+        "tag": "",
+        "translation": {
+            "en_US": "{} failed to exit normally, forced to stop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用[{} {}]启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance App [{} {}] started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用",
+        "tag": "",
+        "translation": {
+            "en_US": "App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Nodeapp"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询{}下的运行库启动进度失败, 重新发启动请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the runtime startup progress under {}, resend the startup request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}下的实时库[{}]不可值班, 且当前无值班, 暂不启动",
+        "tag": "",
+        "translation": {
+            "en_US": "The TDB [{}] under {} cannot be on duty, and there is no one on duty at present, so it will not be started for the time being"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}解裂",
+        "tag": "",
+        "translation": {
+            "en_US": "{} split"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}已有值班节点{}, 可以启动",
+        "tag": "",
+        "translation": {
+            "en_US": "{} has a duty node {}, which can be started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}无值班节点且不可值班, 不可启动运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "There is no on-duty node in {}  and it cannot be on-duty, so the RTDB cannot be started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}无值班节点且不可值班, 不可启动",
+        "tag": "",
+        "translation": {
+            "en_US": "There is no on-duty node in {} and it cannot be on-duty, so it cannot be started"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设待启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Set to start"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Other processes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止其他进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop other processes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB [{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Service process[{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB [{}{}] "
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程[{} {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process[{} {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库[{} {}]停止",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB [{}{}] stopped"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库[{} {}]停止",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB [{} {}] stopped"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程[{} {}]停止",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process [{} {}] stopped"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程[{} {}]停止",
+        "tag": "",
+        "translation": {
+            "en_US": "Service process [{} {}] stopped"
+        }
+    },
+    {
+        "comments": "",
+        "source": "读取license失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to read license"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单机场景网络组:{}, 不是core",
+        "tag": "",
+        "translation": {
+            "en_US": "Standalone scenario network group:{}, not core"
+        }
+    },
+    {
+        "comments": "",
+        "source": "写入license失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to write licence"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止工具进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop tool process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单机场景网络组:{}, 数量不为1",
+        "tag": "",
+        "translation": {
+            "en_US": "Standalone scenario network group:{}, number can not  be 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证license失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to validate licence"
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收端进程[{} {}]离线",
+        "tag": "",
+        "translation": {
+            "en_US": "The receiving process [{} {}] is offline"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询{}的可值班应用失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the available applications for {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询{}之外的可值班应用失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query available applications outside of {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} pid[{}] {}秒无心跳可能僵死, 准备强制停止",
+        "tag": "",
+        "translation": {
+            "en_US": "{} pid [{}] has no heartbeat for {} seconds, may be dead, prepare to force stop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Service  process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault exit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正在启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Is starting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Query error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup success"
+        }
+    },
+    {
+        "comments": "",
+        "source": "子任务超时",
+        "tag": "",
+        "translation": {
+            "en_US": "Subtask timeout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "异常运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Abnormal operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[状态接收] 收到进程{} {}信息, 内容:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Status Receive] Received process {} {} message, content: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "放弃子任务",
+        "tag": "",
+        "translation": {
+            "en_US": "Abandon subtask"
+        }
+    }
+]

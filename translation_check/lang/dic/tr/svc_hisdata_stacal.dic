@@ -1,0 +1,58 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询当前节点值班状态失败，请检查配置！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the current node duty status, please check the configuration!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新初始化hismdl_p_database首地址失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reinitialize the hismdl_p_database first address"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前应用切换数据库连接失败，可能因为没有创建连接池，请检查",
+        "tag": "",
+        "translation": {
+            "en_US": "The current application failed to switch database connection, probably because the connection pool was not created. Please check"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "{} started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅切换通知失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Subscription switch notification failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "{} exits normally"
+        }
+    }
+]

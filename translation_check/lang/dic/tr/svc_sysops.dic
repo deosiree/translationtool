@@ -1,0 +1,26 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_sysops 正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_sysops exits normally"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_sysops 启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_sysops started successfully"
+        }
+    }
+]

@@ -1,0 +1,290 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "User"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，UKey初始化失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, UKey initialization failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，未进行初始化设置！！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, no initialization Settings!!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 已登录，登录失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logged in, login failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 密码重置失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Password reset failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，双因子校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, double factor check failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码已使用过，请勿重复使用！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Password has been used, do not reuse! user"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，密码已失效！！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, password is invalid!!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，密码复杂度较低！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failure, password complexity is low!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出成功！",
+        "tag": "",
+        "translation": {
+            "en_US": "logout successful！"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，双因子校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Log out failed, double factor check failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "login successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Log out failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录成功！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login successful!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 身份认证失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Authentication failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名或密码错误！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Incorrect username or password! user"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，未进行初始化设置！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, no initialization Settings!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，已被锁定！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, locked!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，已被锁定！！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, locked!!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，用户认证信息错误！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, user authentication information is incorrect!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录信息生成失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to generate login information!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户注销",
+        "tag": "",
+        "translation": {
+            "en_US": "User logout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码复杂度不够！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "The password complexity is not enough! user"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，指纹校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, fingerprint verification failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码重置",
+        "tag": "",
+        "translation": {
+            "en_US": "Password Reset"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码生成失败！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Password generation failed! user"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，APP不允许多次登录！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, APP does not allow multiple logins!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，指纹仪初始化失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, fingerprint device initialization failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，UKey校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failure, UKey verification failure!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，用户未录入指纹！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, user did not enter fingerprint!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，密码已失效！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, password is invalid!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 密码重置成功！",
+        "tag": "",
+        "translation": {
+            "en_US": "Password reset successfully!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，密码复杂度较低！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, password complexity is low!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败。",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed."
+        }
+    }
+]

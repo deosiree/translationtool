@@ -1,0 +1,970 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无法连接数据库",
+        "tag": "",
+        "translation": {
+            "en_US": "Unable to connect to database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件有版本被冻结，无法删除",
+        "tag": "",
+        "translation": {
+            "en_US": "The file has a frozen version and cannot be deleted"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件冻结信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain file freeze info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录存在被锁定文件，请先处理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "There are locked files in the directory. Please process the files first."
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前文件在无版本管理文件夹下，不可进行显式版本上传",
+        "tag": "",
+        "translation": {
+            "en_US": "The current file is in a folder without version management, and explicit version upload is not possible"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件不是版本托管文件",
+        "tag": "",
+        "translation": {
+            "en_US": "The file is not a version managed file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain file info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件未纳入版本管理，无法进行版本冻结。请使用锁定功能，或配置版本管理目录。",
+        "tag": "",
+        "translation": {
+            "en_US": "The file is not included in the version management and cannot be frozen. Please use the lock function or configure the version management directory."
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前目录存在子目录，请先处理子目录",
+        "tag": "",
+        "translation": {
+            "en_US": "The current directory has subdirectories. Please process the subdirectories first."
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件被锁定，无法删除",
+        "tag": "",
+        "translation": {
+            "en_US": "The file is locked and cannot be deleted"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件信息失败，文件管理信息库中无此文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain file information. The file does not exist in the file management information database."
+        }
+    },
+    {
+        "comments": "",
+        "source": "未找到当前目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Current directory not found:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录存在被冻结文件，请先处理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "There are frozen files in the directory. Please process the files first."
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "File version does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未初始化网络访问接口",
+        "tag": "",
+        "translation": {
+            "en_US": "Network access interface not initialized"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下标越界",
+        "tag": "",
+        "translation": {
+            "en_US": "Subscript out of bounds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登记操作记录表失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register the operation record sheet"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FTP上传文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP file upload failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "空指针",
+        "tag": "",
+        "translation": {
+            "en_US": "Null Pointer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无操作权限",
+        "tag": "",
+        "translation": {
+            "en_US": "No operation permission"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务器忙碌工作模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Server busy working mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通知服务上传文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Notification service file upload failure"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解包失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Unpacking failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FTP下载文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP file download failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件读取错误",
+        "tag": "",
+        "translation": {
+            "en_US": "File read error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无效的参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to create directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "压缩打包目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to compress the package directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询目录结构失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query directory structure"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移除文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to remove the file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询打包目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the packaging directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件写入错误",
+        "tag": "",
+        "translation": {
+            "en_US": "File write error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to upload file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件服务无响应",
+        "tag": "",
+        "translation": {
+            "en_US": "File service not responding"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件未找到",
+        "tag": "",
+        "translation": {
+            "en_US": "File not found"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock file operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无效的返回值",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid return value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to freeze file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名文件描述失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename file description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename the file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册事件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Registration event failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务器请求下载文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Server request to download file failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to lock file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得文件信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain file information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "File does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未初始化FTP文件传输访问接口",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP file transfer access interface is not initialized"
+        }
+    },
+    {
+        "comments": "",
+        "source": "链接不支持上传",
+        "tag": "",
+        "translation": {
+            "en_US": "Link does not support upload"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得文件版本列表失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the file version list"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下载打包目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to download package directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The directory creation operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移除目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to remove directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件权限不足",
+        "tag": "",
+        "translation": {
+            "en_US": "Insufficient file permissions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下载打包目标文件格式不正确",
+        "tag": "",
+        "translation": {
+            "en_US": "The format of the downloaded package target file is incorrect"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Move file operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件（版本）操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze file (version) operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未发现可用的数据库连接",
+        "tag": "",
+        "translation": {
+            "en_US": "No available database connection found"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得目录信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain directory information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to sync files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Synchronization operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统模块异常",
+        "tag": "",
+        "translation": {
+            "en_US": "System module abnormality"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点列表为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The node list is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传超时",
+        "tag": "",
+        "translation": {
+            "en_US": "Upload timeout"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传到远端注册节点失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to upload to remote registered node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "]，不处理本次删除",
+        "tag": "",
+        "translation": {
+            "en_US": "], do not process this deletion"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打开本节点文件管理数据库失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to open the file management database of this node!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化全局配置参数失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize global configuration parameters!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常运行中",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册目录配置修改事件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register directory configuration modification event"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点文件管理数据库非本地方式打开",
+        "tag": "",
+        "translation": {
+            "en_US": "This node's file management database is opened in a non-local way"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本已存在，请在主备同步中判断",
+        "tag": "",
+        "translation": {
+            "en_US": "The file version already exists, please check in the master-backup synchronization"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册跨现场操作事件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register cross-site operation event"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统一接口实例化失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get unified interface instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统信息库中获得本现场名失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the local site name from the system info database!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发出删除文件命令时的版本号[",
+        "tag": "",
+        "translation": {
+            "en_US": "The version number when the command to delete the file was issued ["
+        }
+    },
+    {
+        "comments": "",
+        "source": "客户端监听启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Client monitoring startup failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "]低于当前版本号[",
+        "tag": "",
+        "translation": {
+            "en_US": "] is lower than the current version["
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录大小越限：",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory size exceeds limit:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录子目录/文件数量越限：",
+        "tag": "",
+        "translation": {
+            "en_US": "The number of directory subdirectories/files exceeds the limit:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前时间：",
+        "tag": "",
+        "translation": {
+            "en_US": ". Current time:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "为",
+        "tag": "",
+        "translation": {
+            "en_US": "to"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解锁文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Unlock files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Move files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本数量越限：",
+        "tag": "",
+        "translation": {
+            "en_US": "The number of file versions exceeds the limit:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，限制版本数量：",
+        "tag": "",
+        "translation": {
+            "en_US": ", limit the number of versions:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改文件描述：",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify description:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收手动同步文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Receive manual sync file:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前版本数量：",
+        "tag": "",
+        "translation": {
+            "en_US": ". Current version count:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，限制数量：",
+        "tag": "",
+        "translation": {
+            "en_US": ", limit counts:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前大小：",
+        "tag": "",
+        "translation": {
+            "en_US": ". Current size:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，版本号：",
+        "tag": "",
+        "translation": {
+            "en_US": ", version No.:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "到",
+        "tag": "",
+        "translation": {
+            "en_US": "to"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "New directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发起手动同步文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Initiate manual file synchronization:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，版本：",
+        "tag": "",
+        "translation": {
+            "en_US": ",version:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，限制大小：",
+        "tag": "",
+        "translation": {
+            "en_US": ", limit the size:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本越限，清理文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "The file version exceeds the limit, clean up the file:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delet files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Upload file:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件版本：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete file version:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重命名文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Rename files:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件版本：",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze file version:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解压目录临时文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Unzip temporary files in the directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Move to directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件服务启动。从配置文件中初始化目录配置！",
+        "tag": "",
+        "translation": {
+            "en_US": "File service started. Initializing directory configuration from configuration files!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，限制时间：",
+        "tag": "",
+        "translation": {
+            "en_US": ", limit time:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重命名目录：",
+        "tag": "",
+        "translation": {
+            "en_US": "Rename directory:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前数量：",
+        "tag": "",
+        "translation": {
+            "en_US": ". Current quantity:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件时间越限：",
+        "tag": "",
+        "translation": {
+            "en_US": "Time limit exceeded:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解冻文件版本：",
+        "tag": "",
+        "translation": {
+            "en_US": "Unzip file version:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Network registration failed"
+        }
+    }
+]

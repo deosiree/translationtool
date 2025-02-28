@@ -1,0 +1,226 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点名",
+        "tag": "",
+        "translation": {
+            "en_US": "Node name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak1",
+        "tag": "",
+        "translation": {
+            "en_US": "bak1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm object "
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警对象oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm object Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak2",
+        "tag": "",
+        "translation": {
+            "en_US": "bak2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否确认",
+        "tag": "",
+        "translation": {
+            "en_US": "Confirm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak3",
+        "tag": "",
+        "translation": {
+            "en_US": "bak3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警项描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm item description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警项",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm items"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Site name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "确认人",
+        "tag": "",
+        "translation": {
+            "en_US": "Checker"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak5",
+        "tag": "",
+        "translation": {
+            "en_US": "bak5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "确认时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Confirmation time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak6",
+        "tag": "",
+        "translation": {
+            "en_US": "bak6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak4",
+        "tag": "",
+        "translation": {
+            "en_US": "bak4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警表",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm tables"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警内容",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm content"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警项oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm item Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否不转应用",
+        "tag": "",
+        "translation": {
+            "en_US": "No transfer App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名",
+        "tag": "",
+        "translation": {
+            "en_US": "Username"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主键",
+        "tag": "",
+        "translation": {
+            "en_US": "Primary key"
+        }
+    },
+    {
+        "comments": "",
+        "source": "定义包",
+        "tag": "",
+        "translation": {
+            "en_US": "Definition package"
+        }
+    }
+]

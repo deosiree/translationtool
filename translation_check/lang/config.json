@@ -1,0 +1,32 @@
+{
+"globalsettings": {
+  "currentLanguage": "zh_CN",
+  "enable": true,
+  "enableTranslation": true,
+  "currentCodec": "utf-8",
+  "translateLanguage": "en_US",
+  "rootDir": "",
+  "qmDir": "",
+  "graphDir":"",
+  "configDir":"",
+  "commonQm": ["",""],
+  "configVersion": "1.0"
+},
+"nodesettings": [
+  {
+    "nodeName": "scada1",
+    "useDefaultLang": false,
+    "enableI18n": true,
+    "enableTranslation": true,
+    "nodeLanguage": "zh_CN",
+    "nodeTranslateLang": "en_US"
+  }
+],
+"applicationsettings": [
+  {
+    "applcationName":"graph",
+    "qmList": ["graph","lang"],
+    "lanQmList": {"zh_CN":["abb","ffdd"],"en_US":["dd","dd"]}
+  }
+]
+}

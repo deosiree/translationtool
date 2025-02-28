@@ -1,0 +1,194 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库准备成功!",
+        "tag": "",
+        "translation": {
+            "en_US": "Ready for loading!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库执行成功!{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Library loading executed successfully! {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "超时进程：【{}/{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "Timeout process: [{}/{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动{}到{}失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move {} to {}!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新库校验中止！",
+        "tag": "",
+        "translation": {
+            "en_US": "New library check aborted!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名{}到{}失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Renaming {} to {} failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主本与副本增删版本不一致！主本【{}】副本【{}】，需要一致性处理！",
+        "tag": "",
+        "translation": {
+            "en_US": "The added and deleted versions of the master copy and the copy are inconsistent! The master copy [{}] and copy [{}] need to be processed consistently!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知请求！",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown request!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取库环境失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get library environment!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新库校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "New library calibration failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新库映射失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "New library mapping failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件{}不存在!",
+        "tag": "",
+        "translation": {
+            "en_US": "Local file {} does not exist!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主本与副本更新版本不一致！主本【{}】副本【{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "The updated versions of the main copy and the copy are inconsistent! Master【{}】Copy【{}】"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加装库连接失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to add a mount library connection!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取新库指针失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get new library pointer!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主本与副本更新版本不一致!累计相差【{}】，需要一致性处理！",
+        "tag": "",
+        "translation": {
+            "en_US": "The updated versions of the master copy and the copy are inconsistent! The cumulative difference is [{}], and consistency processing is required!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "主本与副本关系版本不一致！主本【{}】副本【{}】，需要一致性处理！",
+        "tag": "",
+        "translation": {
+            "en_US": "The master version and the copy version are inconsistent! The master copy [{}] and copy [{}] need to be processed consistently!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报文编号【{}】，主本与副本关系版本不一致！主本【{}】副本【{}】，需要一致性处理！",
+        "tag": "",
+        "translation": {
+            "en_US": "Message No. [{}], the master and replica versions are inconsistent! Master [{}] replica [{}], consistency processing is required!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报文编号【{}】，主本与副本更新版本不一致!累计相差【{}】，需要一致性处理！",
+        "tag": "",
+        "translation": {
+            "en_US": "Message No.  [{}], the update version of the master and the copy is inconsistent! The cumulative difference is [{}], and consistency processing is required!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报文编号【{}】，主本与副本增删版本不一致！主本【{}】副本【{}】，需要一致性处理！",
+        "tag": "",
+        "translation": {
+            "en_US": "Message No. [{}], the master and replica versions are inconsistent! Master [{}] replica [{}], consistency processing is required!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报文编号【{}】，主本与副本更新版本不一致！主本【{}】副本【{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "Message No. [{}], the update version of the master and the copy is inconsistent! Master [{}] Copy [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 节点 {} 进程，报文类型 = 【{}.{}】，报文编号 = 【{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "Node {} Process {}, Message type = [{}.{}], Message number = [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "【事件】{} 节点 {} 进程，报文类型 = 【{}.{}】，报文编号 = 【{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "【Event】Node {} Process {}, Message type = 【{}.{}】, Message number = 【{}】"
+        }
+    }
+]

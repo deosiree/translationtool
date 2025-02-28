@@ -1,0 +1,858 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据字典更新错误, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Data dictionary update error, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往hismdl.N下的插入采样存储表失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to Insert into the sampling storage table under hismdl.N, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入新的采样存储表成功：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Insert a new sampling storage table successfully: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的事件存储表失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the event storage table under hismdl.0, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询表[{}]的属性失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the properties of table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证采样实时表[{}]报错, error = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify sampling real-time table [{}] error, error = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证统计计算模型",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify statistical computational models"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据字典插入错误, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Data dictionary insertion error, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取所有字典信息为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Get all dictionary information is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的事件存储列失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the event storage column under hismdl.0, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "更新旧的字典失败, 名称={}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to update old dictionary, name={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往hismdl.N下的插入统计任务失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert statistics task in hismdl.N, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的采样存储表失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the sampling storage table in hismdl.0, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往hismdl.N下的插入事件存储列失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert event storage column under hismdl.N, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "将N字典的isCheck置为false失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set isCheck of N dictionary to false, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取所有字典信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain all dictionary information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往hismdl.N下的插入事件存储表失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert event storage table under hismdl.N, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证表{}的采样存储列",
+        "tag": "",
+        "translation": {
+            "en_US": "Start validating the sample storage columns of table {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除字典[{}]下的统计任务失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete the statistics task under dictionary [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往hismdl.N下的插入采样存储列失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert the sampling storage column under hismdl.N, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置统计模型[{}]与统计公式[{}]的ref关系失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set the ref relationship between statistical model [{}] and statistical formula [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证事件存储表[{}]的事件存储列",
+        "tag": "",
+        "translation": {
+            "en_US": "Start to verify the event storage columns of the event storage table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的统计模型失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the statistical model under hismdl.0, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证表[{}]的数据字典成功, hisDir.oid = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify the data dictionary of table [{}] successfully, hisDir.oid = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询字典[{}]下的存储对象数量失败, objectTotal = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the number of objects stored in the dictionary [{}], objectTotal = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[{}_{}]下的表[{}]的存储点是否存在失败,ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Under [{}_{}],failed to query whether the storage point of table [{}]  exists, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证表[{}]的数据字典失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verify the data dictionary of table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "清空字典[{}]下的采样模型失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to clear the sampling model under dictionary [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "hisdata验证完成",
+        "tag": "",
+        "translation": {
+            "en_US": "hisdata verification completed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证[{}_{}]完成",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify [{}_{}] completed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Start to verify[{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证hisdata_hisparam_0完成",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify hisdata_hisparam_0 completed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除字典[{}]失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete dictionary [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的采样存储表为空, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Query the sampling storage table under hismdl.0 and it is empty, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证事件存储： {} -- 表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verifying event storage: {} -- Table name: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的统计任务失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the statistics task under hismdl.0, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入新的事件存储表失败：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert new event storage table:{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证表[{}]成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify table [{}] successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除字典[{}]成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete dictionary [{}] successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证统计计算模型失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verify statistical calculation model"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的事件存储表为空, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Query the event storage table under hismdl.0 and it is empty, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往采样存储表[{}]中新增存储列成功, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Add the storage column to the sampling storage table [{}] successfully, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取hismdl.0下的所有字典失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain all dictionaries in hismdl.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[{}_{}]下的表[{}]的数据量失败,ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the data volume of table [{}] in [{}_{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "清空字典[{}]下的事件模型失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to clear the event model under dictionary [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证实时表[{}]的字典信息报错, error = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify dictionary information of real-time table [{}] error, error = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接[{}_{}]维护库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the [{}_{}] MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证统计计算模型成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify the statistical calculation model successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始插入sysmgr-iaspalarm的AlarmInfo表",
+        "tag": "",
+        "translation": {
+            "en_US": "Start inserting into the AlarmInfo table of sysmgr-iaspalarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除无用字典结果失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete unused dictionary results, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建字典信息失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to construct dictionary information, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证表[{}]的采样存储列报错, error = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify that the sampling storage column of table [{}]  error, error = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{}-{}]下有[{}]个存储点不存在，开始删除",
+        "tag": "",
+        "translation": {
+            "en_US": "In [{}-{}] , [{}] storage points  do not exist, start deleting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询实时库[{}_{}]下的所有表信息失败或者为空,ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Querying all table information under the TDB [{}_{}] failed or was empty, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "清空字典[{}]下的统计任务失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to clear the statistics task in dictionary [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "hisdata.run.0下无数据，清空本实例下的字典数据",
+        "tag": "",
+        "translation": {
+            "en_US": "There is no data in hisdata.run.0, clear the dictionary data in this instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取需要验证的应用库为空，验证终止",
+        "tag": "",
+        "translation": {
+            "en_US": "The application library that needs to be verified is empty, and the verification is stopped."
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步字典信息[{}]成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync dictionary information [{}] successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置统计任务[{}]与数据时段[{}]的ref关系失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set the ref relationship between statistical task [{}] and data period [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证实时表[{}]的字典信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verifying dictionary information of real-time table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往采样存储表[{}]中清空原有存储列失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to clear the original storage column in the sampling storage table [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件存储列数量为[{}]，超出上限[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "The number of event storage columns is [{}], which exceeds the upper limit [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证采样实时表[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Start validating the sampling real-time table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保持原有字典, 名称={}",
+        "tag": "",
+        "translation": {
+            "en_US": "Keep the original dictionary, name={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往统计任务[{}]里插入统计对象失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert statistical object into statistical task [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表[{}]不存历史！",
+        "tag": "",
+        "translation": {
+            "en_US": "Table [{}] does not store history!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置统计任务[{}]与统计执行周期[{}]的ref关系失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set the ref relationship between statistics task [{}] and statistics execution cycle [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取字典总数失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the total number of dictionaries"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增字典插入成功, 名称={}",
+        "tag": "",
+        "translation": {
+            "en_US": "New dictionary inserted successfully, name={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取hismdl.0下的字典总数失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the total number of dictionaries under hismdl.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取hismdl.{}下的所有字典失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain all dictionaries in hismdl.{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证存储对象[{}]失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verify storage object [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "更新旧的字典成功, 名称={}",
+        "tag": "",
+        "translation": {
+            "en_US": "Update old dictionary successfully, name={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证事件存储表[{}]的事件存储列失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verify event storage columns of event storage table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询字典[{}]下的统计任务总数失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the total number of statistical tasks in dictionary [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接[{}_{}]实时库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the [{}_{}] TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建所有前导任务 error, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Build all predecessor tasks error, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入新的采样存储表失败：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to insert new sampling storage table: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取需要验证的应用库失败，验证失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the application library that needs verification. Verification failed."
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入新的事件存储表成功：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Insert into the new event storage table successfully: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "往采样存储表[{}]中新增存储列失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to add a storage column to the sampling storage table [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证实时表[{}]的字典信息完成",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify dictionary information of real-time table [{}] completed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步[{}]字典失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to sync [{}] dictionary"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证存储对象[{}]成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify storage object [{}] successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证表[{}_{}_{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verifying table [{}_{}_{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证表[{}]失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verity table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.N下的统计任务失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the statistics task under hismdl.N, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置统计任务[{}]与工作时间[{}]的ref关系失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set the ref relationship between statistical task [{}] and working time [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始生成所有任务状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Start generating all task statuses"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证采样存储表[{}]的采样存储列失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verify the sampling storage column of the sampling storage table [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取[{}_{}]的实时库的连接失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the connection to the TDB of [{}_{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证hisparam",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verifying hisparam"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证所有统计任务失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to verify all statistics tasks"
+        }
+    },
+    {
+        "comments": "",
+        "source": "生成所有任务状态成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Generate all task status successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始连接[{}_{}]库",
+        "tag": "",
+        "translation": {
+            "en_US": "Start connecting to the [{}_{}] library"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证事件实时表[{}]报错, error = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify event real-time table [{}] error, error = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询hismdl.0下的采样存储列失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the sampling storage column under hismdl.0, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[{}_{}]下的表[{}]的数据失败,ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "In [{}_{}], failed to query the data of table [{}] , ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取hismdl.{}下的字典总数失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the total number of dictionaries under hismdl.{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入sysmgr-iaspalarm的AlarmInfo表完成",
+        "tag": "",
+        "translation": {
+            "en_US": "Insertion into the AlarmInfo table of sysmgr-iaspalarm is complete"
+        }
+    },
+    {
+        "comments": "",
+        "source": "清理所有前导任务失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to clean up all predecessor tasks"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置统计任务[{}]与统计数据周期[{}]的ref关系失败, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to set the ref relationship between statistics task [{}] and statistics data period [{}], ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "生成所有任务状态失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to generate all task status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "清空字典[{}]下的统计任务成功, ret = {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Clear the statistics task under dictionary [{}] successfully, ret = {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Object timestamp"
+        }
+    }
+]

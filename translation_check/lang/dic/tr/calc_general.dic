@@ -1,0 +1,674 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}] 域ID:{} 获取字段信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor [{}] Field ID: {} Failed to obtain field information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}],连库类型为{},非有效类型 0=运行库 1=逻辑库",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}], link database type is {}, non-valid type 0 = RTDB 1 = MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}],连库类型为{},非有效类型 0=运行库 1=逻辑库",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor table [{}], linked database type is {}, non-valid type 0 = RTDB 1 = logic database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "逻辑库",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]包含的表达式[{}]不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The expression [{}] contained in the calculation target [{}] does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]包含的表达式 \\\"{}\\\" 解析失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The expression \\\"{}\\\" contained in the calculation target [{}] failed to parse"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}]应用名为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation group configuration table [{}] App name is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}] 计算类型:{} 非有效类型 0=周期计算 1=触发计算",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation target [{}] Calculation type: {} Invalid type 0 = Periodic calculation 1 = Trigger calculation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证计算目标有效性-----",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verifying the validity of the calculation target-----"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}],数据库名为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}], database name is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}] 应用名:{} 数据库名:{} 连库类型:{} 失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor table [{}] App name: {} Database name: {} Link database type: {} Failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] 应用名:{} 数据库名:{} 连库类型:{} 失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}] App name: {} Database name: {} Link database type: {} Failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证计算任务模式-----",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verification calculation task mode-----"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}]中因子名称为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The factor name in the calculation factor table [{}] is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}] 对象:{} 重复",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate target[{}] object:{} repeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] appName:{} dbName:{} 连库类型:{} 失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}] appName:{} dbName:{} Connection database type:{} Failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标成环[{}] 环:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate the target ring [{}] Ring: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}] 数据库名为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor table [{}] database name is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证{}下计算库calcmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verification {} under the calculation database calcmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] 应用名:{} 数据库名:{}  标志字段ID:{} 不属于表ID:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}] App name: {} Database name: {} Flag field ID: {} Does not belong to the table ID: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证公式组完整性(合法/因子匹配)",
+        "tag": "",
+        "translation": {
+            "en_US": "Start verifying the integrity of the formula group (legality/factor matching)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}] 域ID:{} 不属于对象ID:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor [{}] Field ID: {} Does not belong to object ID: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]包含的表达式 \\\"{}\\\" 中因子[{}]未使用",
+        "tag": "",
+        "translation": {
+            "en_US": "The factor [{}] in the expression \\\"{}\\\" contained in the calculation target [{}] is not used"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]包含计算表达式表[{{}]中表达式字段为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation expression table [{{}], but the expression field is empty."
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始插入验证包-----",
+        "tag": "",
+        "translation": {
+            "en_US": "Start inserting verification package-----"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] 值字段ID:{} 不属于表ID:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}] Value field ID: {} does not belong to table ID: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}] 对象:{} 不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation target [{}] object: {} does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}] 应用名为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor table [{}] App name is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] 表ID:{} 获取表信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}] Table ID: {} Failed to obtain table information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]和所属计算目标分组中[{}]的表ID:[{}]不一致",
+        "tag": "",
+        "translation": {
+            "en_US": "The table ID: [{}] of the compute target [{}] and the compute target group [{}] to which it belongs is inconsistent"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始分析计算目标执行顺序-----",
+        "tag": "",
+        "translation": {
+            "en_US": "Start analyzing and calculating the target execution order-----"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}] 计算类型:周期计算 计算周期时间为0",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation target [{}] Calculation type: Periodic calculation Calculation cycle time is 0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] 应用名:{} 数据库名:{}  时间字段ID:{} 不属于表ID:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group configuration table [{}] App name: {} Database name: {} Time field ID: {} Does not belong to the table ID: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标分组表[{}] 和 [{}] 应用名:{} 数据库名:{} 表ID:{} 值ID:{} 重复",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculated target grouping tables [{}] and [{}] App name: {} Database name: {} Table ID: {} Value ID: {} Repeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始验证计算因子有效性-----",
+        "tag": "",
+        "translation": {
+            "en_US": "Start to verify the validity of calculation factors-----"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置表[{}] 值字段ID:{} 获取字段信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate group configuration table [{}] Value field ID: {} Failed to obtain field information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]包含的表达式 \\\"{}\\\" 中因子[{}]不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The factor [{}] in the expression \\\"{}\\\" contained in the calculation target [{}] does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}] 对象:{} 不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor [{}] object: {} does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标组重复",
+        "tag": "",
+        "translation": {
+            "en_US": "Duplicate target group"
+        }
+    },
+    {
+        "comments": "",
+        "source": "因子不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "Factor does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "公式解析错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Formula parsing error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字段ID不正确",
+        "tag": "",
+        "translation": {
+            "en_US": "Incorrect field ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "公式不能为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The formula cannot be empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "OID不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "OID does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标组重复",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate target group duplication"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名不能为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The application name cannot be empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "因子未使用",
+        "tag": "",
+        "translation": {
+            "en_US": "Factor not used"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置关系错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Error in setting relationship"
+        }
+    },
+    {
+        "comments": "",
+        "source": "更新计算结果编号错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Update calculation result number error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打开数据库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to open database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标重复",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate target repeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}] 对象:{} 不存在已删除",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation target [{}] object: {} does not exist and has been deleted"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "Object does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表ID无效",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid table ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标重复",
+        "tag": "",
+        "translation": {
+            "en_US": "Target duplicate"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库打开失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to open the database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "公式成环",
+        "tag": "",
+        "translation": {
+            "en_US": "Formula loop"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字段ID无效",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid field ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "因子名不能为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Factor name cannot be empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库名不能为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The database name cannot be empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表ID不正确",
+        "tag": "",
+        "translation": {
+            "en_US": "Incorrect table ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}] 对象:{} 重复，已删除",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute target [{}] object :{} duplicate, deleted"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}]中因子对象[{}]数据库名为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation factor table [{}] contains a factor object [{}], and the database name is empty."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]包含的表达式 \\\"{}\\\" 解析失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation object [{}], and the expression \"{}\" failed to parse."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}] 中因子对象[{}] 不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation factor [{}] contains the factor object [{}],but the factor object does not exist."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]表和域不一致",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] which includes the calculation object [{}], Table and field are inconsistent"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子表[{}]中因子对象[{}]应用名为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation factor table [{}] which includes the factor object [{}] inside has an empty application name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]重复，已删除",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] which includes the calculation object [{}] is repeated and has been deleted."
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用[{}],库[{}],对象[{}],路径[{}],字段[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Application[{}], Library[{}], Object[{}], Path[{}], Field[{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]计算类型:周期计算 计算周期时间为0",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation object [{}] with a calculation type of: periodic calculation. The calculation period time is 0."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}]中因子对象[{}]获取字段信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain field information for the calculation factor [{}] which includes the factor object [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}] 不存在已删除",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] which includes the calculation object [{}], Does not exist and has be deleted"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]包含的表达式 \\\"{}\\\" 中因子[{}]未使用",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation object [{}], and the expression \\\"{}\\\" contains a factor [{}] that is not used."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]包含计算表达式表[{}]中表达式字段为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] which includes calculation object [{}] contains the calculation expression table [{}], and the expression field is empty."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}]中因子对象[{}]连库类型为{},非有效类型 0=运行库 1=逻辑库",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation factor [{}] contains a factor object [{}] with a database connection type of {}, which is an invalid type. 0 = RDB, 1 = MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}]中因子对象[{}]的因子名称为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation factor [{}] contains a factor object [{}], and the factor name is empty."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]中包含的表达式[{}]不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation object [{}], which includes the expression [{}] that does not exist."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]计算类型:{} 非有效类型 0=周期计算 1=触发计算",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] which includes the calculation object [{}], Calculation type: {} Invalid type 0 = Periodic calculation 1 = Trigger calculation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]包含的表达式 \\\"{}\\\" 中因子[{}]不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation object [{}], and the expression \"{}\" contains a factor [{}] that does not exist."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算目标[{}]中计算对象[{}]包含的表达式[{}]不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The calculation target [{}] contains the calculation object [{}], and the expression [{}] does not exist."
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}]中因子对象[{}] 连库类型:{} 连库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate factor [{}] in factor object [{}] Linking library type: {} Linking library failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子[{}]因子对象[{}],表和域不匹配",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate factor [{}] factor object [{}], table and field do not match"
+        }
+    }
+]

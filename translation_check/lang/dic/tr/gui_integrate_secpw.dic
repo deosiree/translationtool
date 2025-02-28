@@ -1,0 +1,26 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重复行",
+        "tag": "",
+        "translation": {
+            "en_US": "Duplicate row"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不允许存在相同类型的记录",
+        "tag": "",
+        "translation": {
+            "en_US": "Records of the same type are not allowed"
+        }
+    }
+]

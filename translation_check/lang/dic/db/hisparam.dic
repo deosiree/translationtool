@@ -1,0 +1,386 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作日时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Working day time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含工作日时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Included working days"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属数据时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description of the owning data period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于工作日描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Day description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期数目",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of cycles"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数4",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Data period description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Working hours"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数1",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数2",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "失效时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Expiration time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计间隔ms",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical interval ms"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效时间",
+        "tag": "",
+        "translation": {
+            "en_US": "onset of action"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含日时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Included day time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数3",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Daytime description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "默认采样范围",
+        "tag": "",
+        "translation": {
+            "en_US": "Default sampling range"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计所有采样点",
+        "tag": "",
+        "translation": {
+            "en_US": "Count all sampling points"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Data period time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Cycle time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作日描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Workday description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样并发线程数",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampling concurrent threads"
+        }
+    },
+    {
+        "comments": "",
+        "source": "编号",
+        "tag": "",
+        "translation": {
+            "en_US": "ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "滞后时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Lag time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起始时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Start time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Day time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否使用别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Use alias"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含数据时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Included data period time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结束时间",
+        "tag": "",
+        "translation": {
+            "en_US": "End time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属日时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description of the owning day period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库类型",
+        "tag": "",
+        "translation": {
+            "en_US": "History database type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算间隔ms",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation interval ms"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否记录OID修改历史",
+        "tag": "",
+        "translation": {
+            "en_US": "Record the Oid modification history"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Cycle Unit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计公式",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical formula"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数3",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基本参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "默认采样周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Default sampling period"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression"
+        }
+    },
+    {
+        "comments": "",
+        "source": "别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Alias"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基本参数包",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic parameter package"
+        }
+    }
+]

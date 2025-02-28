@@ -1,0 +1,1658 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无效的参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid params"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数无效",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid parameter"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数verName[",
+        "tag": "",
+        "translation": {
+            "en_US": "Parameters verName["
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件不存在，无法上传",
+        "tag": "",
+        "translation": {
+            "en_US": "The file does not exist and cannot be uploaded"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取网络实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain network instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 检查当前文件是否有版本管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether the current file has version management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅下载状态事件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe to download status events"
+        }
+    },
+    {
+        "comments": "",
+        "source": "]无效：",
+        "tag": "",
+        "translation": {
+            "en_US": "]invalid:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送消息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to send message"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通知解包失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Unpack Failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无法创建空文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Unable to create empty file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接数据库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无法上传软连接，请上传文件实体",
+        "tag": "",
+        "translation": {
+            "en_US": "Unable to upload soft link, please upload the file entity"
+        }
+    },
+    {
+        "comments": "",
+        "source": "getObjectNum 获取目录数量失败",
+        "tag": "",
+        "translation": {
+            "en_US": "getObjectNum failed to obtain the number of directories"
+        }
+    },
+    {
+        "comments": "",
+        "source": "getAllObjects 获取目录信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "getAllObjects failed to obtain directory information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前文件夹不是版本托管文件夹，无法进行带版本的上传",
+        "tag": "",
+        "translation": {
+            "en_US": "The current folder is not a version managed folder, and cannot be uploaded with version"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to upload file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询打包目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the packaging directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "File does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册事件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Registration event failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解包失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Unpacking failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下载打包目标文件格式不正确",
+        "tag": "",
+        "translation": {
+            "en_US": "The format of the downloaded package target file is incorrect"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FTP上传文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP file upload failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未发现可用的数据库连接",
+        "tag": "",
+        "translation": {
+            "en_US": "No available database connection found"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "链接不支持上传",
+        "tag": "",
+        "translation": {
+            "en_US": "Link does not support upload"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下标越界",
+        "tag": "",
+        "translation": {
+            "en_US": "Subscript out of bounds"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移除文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to remove the file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "压缩打包目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to compress the package directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "File version does not exist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock file operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The directory creation operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得目录信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain directory information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to upload file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件读取错误",
+        "tag": "",
+        "translation": {
+            "en_US": "File read error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to freeze file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未初始化FTP文件传输访问接口",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP file transfer access interface is not initialized"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to sync files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通知服务上传文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Notification service file upload failure"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未初始化网络访问接口",
+        "tag": "",
+        "translation": {
+            "en_US": "Network access interface not initialized"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下载打包目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to download package directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件服务无响应",
+        "tag": "",
+        "translation": {
+            "en_US": "File service not responding"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to create directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename the file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件权限不足",
+        "tag": "",
+        "translation": {
+            "en_US": "Insufficient file permissions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件写入错误",
+        "tag": "",
+        "translation": {
+            "en_US": "File write error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Synchronization operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Move file operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名文件描述失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename file description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FTP下载文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "FTP file download failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登记操作记录表失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register the operation record sheet"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无效的返回值",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid return value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件（版本）操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze file (version) operation failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得文件信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain file information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得文件版本列表失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the file version list"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询目录结构失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query directory structure"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to lock file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务器请求下载文件失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Server request to download file failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无操作权限",
+        "tag": "",
+        "translation": {
+            "en_US": "No operation permission"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移除目录操作失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to remove directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件未找到",
+        "tag": "",
+        "translation": {
+            "en_US": "File not found"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务器忙碌工作模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Server busy working mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "空指针",
+        "tag": "",
+        "translation": {
+            "en_US": "Null Pointer"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync files"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取节点列表为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Get the node list is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统模块未就绪",
+        "tag": "",
+        "translation": {
+            "en_US": "System module not ready"
+        }
+    },
+    {
+        "comments": "",
+        "source": "等待全节点完成上传超时",
+        "tag": "",
+        "translation": {
+            "en_US": "Timeout waiting for full node to complete upload"
+        }
+    },
+    {
+        "comments": "",
+        "source": "相同路径的实际目录已存在，为避免托管状态变化，不插入配置",
+        "tag": "",
+        "translation": {
+            "en_US": "The actual directory with the same path already exists. To avoid changes in the managed state, the configuration is not inserted."
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取系统管理实例失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the Sysmgr instance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名不能为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory name cannot be empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "相同路径的实际目录已存在，为避免托管状态变化，不重命名配置:",
+        "tag": "",
+        "translation": {
+            "en_US": "The actual directory with the same path already exists, to avoid changes in the managed state, the configuration is not renamed:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新配置与原配置的版本托管形式不同，不允许修改",
+        "tag": "",
+        "translation": {
+            "en_US": "The new configuration is hosted in a different format than the original configuration, and modification is not allowed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "相同路径的实际目录已存在，为避免托管状态变化，不删除配置",
+        "tag": "",
+        "translation": {
+            "en_US": "The actual directory with the same path already exists. To avoid changes in the managed state, the configuration is not deleted."
+        }
+    },
+    {
+        "comments": "",
+        "source": "新名称目录配置已存在，不允许修改",
+        "tag": "",
+        "translation": {
+            "en_US": "The new name directory configuration already exists and cannot be modified"
+        }
+    },
+    {
+        "comments": "",
+        "source": "的fileinfo库失败，无法完成检查",
+        "tag": "",
+        "translation": {
+            "en_US": "The fileinfo DB failed and could not complete the check"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Connected nodes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取不了父目录OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Unable to obtain parent directory OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取当前配置目录所在路径失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the path of the current configuration directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取不了目录配置OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Unable to obtain directory configuration OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前目录没有配置属性",
+        "tag": "",
+        "translation": {
+            "en_US": "The current directory has no configuration attributes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，父目录 OID：",
+        "tag": "",
+        "translation": {
+            "en_US": ", parent directory OID:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，是否不自动下载：",
+        "tag": "",
+        "translation": {
+            "en_US": ", whether to not automatically download:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置新增:",
+        "tag": "",
+        "translation": {
+            "en_US": "New configuration:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置修改:",
+        "tag": "",
+        "translation": {
+            "en_US": "Configuration modifiy:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名：",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory name:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置删除:",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete configuration:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，是否可改名：",
+        "tag": "",
+        "translation": {
+            "en_US": ", renameable:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，启用清理过期数据：",
+        "tag": "",
+        "translation": {
+            "en_US": ", enable cleaning of expired data:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败:",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup failure:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，超期清理时间限制(天)：",
+        "tag": "",
+        "translation": {
+            "en_US": ", expired cleanup time limit (days):"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，版本清理数量限制：",
+        "tag": "",
+        "translation": {
+            "en_US": ", version cleanup quantity limit:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件配置修改，修改参数：",
+        "tag": "",
+        "translation": {
+            "en_US": "File configuration modification, modify params:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常运行中",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal operation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，启用版本数量限制：",
+        "tag": "",
+        "translation": {
+            "en_US": ", enable version quantity limit:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，启用版本管理：",
+        "tag": "",
+        "translation": {
+            "en_US": ", enable version management:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，是否可删除：",
+        "tag": "",
+        "translation": {
+            "en_US": ", deletedable:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件配置修改，重命名：",
+        "tag": "",
+        "translation": {
+            "en_US": "File configuration modification, rename:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取网络注册名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain network regName"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件夹失败，非空文件夹！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete folder, non-empty folder!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源文件夹不存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "The source folder does not exist!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本号不能为负数",
+        "tag": "",
+        "translation": {
+            "en_US": "File version numbers cannot be negative"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件重命名失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件夹失败，不是文件夹！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete folder, not a folder!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件不存在，无法重命名！",
+        "tag": "",
+        "translation": {
+            "en_US": "The file does not exist and cannot be renamed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "父目录无法创建！",
+        "tag": "",
+        "translation": {
+            "en_US": "The parent directory could not be created!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件夹不存在，无法重命名！",
+        "tag": "",
+        "translation": {
+            "en_US": "The folder does not exist and cannot be renamed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名只能为数字",
+        "tag": "",
+        "translation": {
+            "en_US": "The file name can only be numbers"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名称包含非法字符：",
+        "tag": "",
+        "translation": {
+            "en_US": "The file name contains illegal characters:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "原文件路径不是文件！：",
+        "tag": "",
+        "translation": {
+            "en_US": "The original file path is not a file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源文件不存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "The source file does not exist!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标文件夹已存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "The destination folder already exists!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新文件名已存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "New file name already exists!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "复制文件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to copy file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件夹移动失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move folder!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名不能为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The file name cannot be empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名称为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The file name is empty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前指定节点无可用文件管理服务：",
+        "tag": "",
+        "translation": {
+            "en_US": "The specified node currently has no available file management service:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件夹失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete folder!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标文件已存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "The target file already exists!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前指定节点无可用数据库：",
+        "tag": "",
+        "translation": {
+            "en_US": "The specified node currently has no available database:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前现场无可用文件管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "There is currently no file management service available on site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本号超出范围：",
+        "tag": "",
+        "translation": {
+            "en_US": "File version number out of range:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重命名文件夹失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to rename folder!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本号必须为数字：",
+        "tag": "",
+        "translation": {
+            "en_US": "The file version number must be a number:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件移动失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to move files!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to create directory!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新文件夹名已存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "New folder name already exists!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息解析失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "File information parsing failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "该路径不是文件！",
+        "tag": "",
+        "translation": {
+            "en_US": "The path is not a file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "找不到指定版本号！",
+        "tag": "",
+        "translation": {
+            "en_US": "The specified version number could not be found!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件不存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "The file does not exist!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "该路径不是显式版本文件！",
+        "tag": "",
+        "translation": {
+            "en_US": "The path is not an explicit version file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前版本号不可为0",
+        "tag": "",
+        "translation": {
+            "en_US": "The current version number cannot be 0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本号无效：",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid version No.:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件复制失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "File copy failed!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标位置父目录无法创建！",
+        "tag": "",
+        "translation": {
+            "en_US": "The target location parent directory cannot be created!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数错误！",
+        "tag": "",
+        "translation": {
+            "en_US": "Params error!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标位置不是文件！",
+        "tag": "",
+        "translation": {
+            "en_US": "Destination is not a file!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录现场无文件管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Login to on-site file management service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，无法移动目录",
+        "tag": "",
+        "translation": {
+            "en_US": ", unable to move directory"
+        }
+    },
+    {
+        "comments": "",
+        "source": "，无法移动文件",
+        "tag": "",
+        "translation": {
+            "en_US": ", unable to move file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件夹不存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "The folder does not exist!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取目录信息失败：无具体信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get catalogue information: no specific information"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件夹信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get folder information!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标目录不存在！",
+        "tag": "",
+        "translation": {
+            "en_US": "Target directory does not exist!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标目录不是目录！",
+        "tag": "",
+        "translation": {
+            "en_US": "The target directory is not a directory!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取根目录信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get root directory information!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get file information!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作成功:",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation successful:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作失败:",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation failed:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取同步进程注册名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the synchronization regName"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启用版本管理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Enable version management:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络模块未就绪",
+        "tag": "",
+        "translation": {
+            "en_US": "Network module not ready"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete file response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Create directory response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名目录响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Change directory response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件信息响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Retrieve file information response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下载文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Download file request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock file request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "申请版本号请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Request for version No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行上传文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Execute file upload response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete file request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除目录响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete directory response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Move file response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件列表请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Request to obtain file list"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock file response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改文件名请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Change file name request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Upload file response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打包目录请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Package directory request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件信息请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Obtain file information request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除目录请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete directory request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解包目录请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Unpack directory request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下载文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Download file response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解包目录响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Unpack directory response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知命令",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown command"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件版本响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete file version response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打包目录响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Package directory response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得目录树请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Obtain directory tree request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件版本请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze file version request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "冻结文件版本响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze file version response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "申请版本号响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Request version number response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获得目录树响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Obtain directory tree response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Move directory request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改文件描述响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify file description response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync file request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Move file request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改文件描述请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Request to modify file description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行上传文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Execute file upload request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步文件响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Synchronize file response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取文件列表响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Retrieve file list response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "改名目录请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Change directory request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改文件名响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Change file name response"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上传文件请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Upload file request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件版本请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete file version request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知命令类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown command type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建目录请求",
+        "tag": "",
+        "translation": {
+            "en_US": "Create directory request"
+        }
+    },
+    {
+        "comments": "",
+        "source": "移动目录响应",
+        "tag": "",
+        "translation": {
+            "en_US": "Move directory response"
+        }
+    }
+]

@@ -1,0 +1,530 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "普通进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Regular Process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始值",
+        "tag": "",
+        "translation": {
+            "en_US": "Initial value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "info",
+        "tag": "",
+        "translation": {
+            "en_US": "info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关键进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Key Process"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对等现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Peer-to-peer site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨反向隔离装置",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-reverse isolation device"
+        }
+    },
+    {
+        "comments": "",
+        "source": "离线",
+        "tag": "",
+        "translation": {
+            "en_US": "Offline"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库类型",
+        "tag": "",
+        "translation": {
+            "en_US": "History database type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sysmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "sysmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Is starting"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内网现场",
+        "tag": "",
+        "translation": {
+            "en_US": "intranet site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他现场1",
+        "tag": "",
+        "translation": {
+            "en_US": "Other site 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连通",
+        "tag": "",
+        "translation": {
+            "en_US": "Connectivity"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未连通",
+        "tag": "",
+        "translation": {
+            "en_US": "unconnected"
+        }
+    },
+    {
+        "comments": "",
+        "source": "debug",
+        "tag": "",
+        "translation": {
+            "en_US": "debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连上B网",
+        "tag": "",
+        "translation": {
+            "en_US": "Connect to B network"
+        }
+    },
+    {
+        "comments": "",
+        "source": "待启动",
+        "tag": "",
+        "translation": {
+            "en_US": "To be start"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中等优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Medium priority"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最低优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Lowest priority"
+        }
+    },
+    {
+        "comments": "",
+        "source": "禁用",
+        "tag": "",
+        "translation": {
+            "en_US": "Disable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB running status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AB网均未连上",
+        "tag": "",
+        "translation": {
+            "en_US": "Neither A nor B Network Is Connected"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库",
+        "tag": "",
+        "translation": {
+            "en_US": "Timing database"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连上A网",
+        "tag": "",
+        "translation": {
+            "en_US": "Connect to network A"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日志等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Log level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用值班优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Node application duty priority"
+        }
+    },
+    {
+        "comments": "",
+        "source": "error",
+        "tag": "",
+        "translation": {
+            "en_US": "error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正在运行",
+        "tag": "",
+        "translation": {
+            "en_US": "running"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用进程类型",
+        "tag": "",
+        "translation": {
+            "en_US": "App process type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "外网现场2",
+        "tag": "",
+        "translation": {
+            "en_US": "Extranet site 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不在运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Not running"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点网络查询超时或者跨现场代理服务掉线导致无法查询",
+        "tag": "",
+        "translation": {
+            "en_US": "The node network query timed out or the cross-site proxy service was offline, resulting in a failure to query."
+        }
+    },
+    {
+        "comments": "",
+        "source": "状态未知",
+        "tag": "",
+        "translation": {
+            "en_US": "Status unknown"
+        }
+    },
+    {
+        "comments": "",
+        "source": "warn",
+        "tag": "",
+        "translation": {
+            "en_US": "warn"
+        }
+    },
+    {
+        "comments": "",
+        "source": "fatal",
+        "tag": "",
+        "translation": {
+            "en_US": "fatal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离装置",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-forward isolation device"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连上AB网",
+        "tag": "",
+        "translation": {
+            "en_US": "Connected to the AB network"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Node running status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发类型，源现场到目的现场的关系",
+        "tag": "",
+        "translation": {
+            "en_US": "Site forwarding type, the relationship between the source site and the destination site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "外网现场1",
+        "tag": "",
+        "translation": {
+            "en_US": "Extranet site 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班",
+        "tag": "",
+        "translation": {
+            "en_US": "On Duty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "影响应用状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Impact on application status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场连通状态",
+        "tag": "",
+        "translation": {
+            "en_US": "On-site connectivity status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Site Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "次高优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Next highest priority"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场代理节点网络状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site proxy node network state"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in sysmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in sysmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他现场2",
+        "tag": "",
+        "translation": {
+            "en_US": "Other sites 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "App runing status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不可值班",
+        "tag": "",
+        "translation": {
+            "en_US": "Not on duty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最高优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Highest priority"
+        }
+    },
+    {
+        "comments": "",
+        "source": "在线",
+        "tag": "",
+        "translation": {
+            "en_US": "online"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不影响应用状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Does not affect application status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他现场 node表中 网络运行状态，借用bak1字段",
+        "tag": "",
+        "translation": {
+            "en_US": "Other site node table network operation status, borrowing bak1 field"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Process running status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "读写分离",
+        "tag": "",
+        "translation": {
+            "en_US": "Read-write separation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库类型",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "普通类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Common type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他现场 node表中 网络运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Other on-site node table network operation status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "待合并",
+        "tag": "",
+        "translation": {
+            "en_US": "To be merged"
+        }
+    },
+    {
+        "comments": "",
+        "source": "外网现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Extranet site"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解裂退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Split exit"
+        }
+    }
+]

@@ -14,6 +14,9 @@
               @click="clickInput">
             </a-select>
           </a-form-item>
+          <a-form-item label="校验路径" name="checkURL">
+            <a-input v-model:value="search.checkURL" style="width: 186px" placeholder="请输入校验目录路径" size="small"></a-input>
+          </a-form-item>
         </a-form>
       </template>
       <!-- 操作按钮模板 -->
@@ -29,7 +32,7 @@
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
               :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
@@ -76,10 +79,11 @@ export default {
       labelCol: { style: { width: "84px" } },
       search: {
         // 模块名/文件名+词条/问题类型/详情/日志
-        moduleName: null,
+        moduleName: null, // 必须
+        questionType: null, // 必须
+        checkURL: null, // 非必须
         projectName: "",
-        entry: "",
-        questionType: null,
+        col: "",
         details: "",
         logs: "",
       },
@@ -232,21 +236,21 @@ export default {
     },
     // 获取校验信息
     searchCheckInfo() {
-      this.searchCheckByCondition(this.search);
-    },
-    searchCheckByCondition(data) {
       this.loading = true;
       let params = {
-        pageIndex: this.pagination.current,
-        pageSize: this.pagination.pageSize,
+        moduleName: this.search.moduleName,
+        questionType: this.search.questionType,
+        checkURL: this.search.checkURL,
       };
-      searchCheckInfo(data, params)
+      let path = "file";
+      searchCheckInfo(params,path)
         .then((res) => {
-          // this.dataSource = res.data.list
-          this.loading = false;
+          this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
+          this.loading = false;
         })
         .catch((err) => {
+          message.error("校验目录路径错误！");
           this.loading = false;
         });
     },
@@ -412,7 +416,7 @@ export default {
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
     },
-        // 设置表格每一行的class
+    // 设置表格每一行的class
     getRowClassName(record, index) {
       let className = null;
       if (index % 2 === 1) {

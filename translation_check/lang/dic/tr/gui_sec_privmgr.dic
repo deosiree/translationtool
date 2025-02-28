@@ -1,0 +1,234 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "增加责任区 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Add area of responsibility"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解锁用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Unlock a user"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 用户信息成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "user information succeefully."
+        }
+    },
+    {
+        "comments": "",
+        "source": " 成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "successfully."
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改责任区 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Modified area of responsibility"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Edit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除责任区 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete area of responsibility"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "New user"
+        }
+    },
+    {
+        "comments": "",
+        "source": "批量新增责任区成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "Succeeded in adding responsibility areas in batches."
+        }
+    },
+    {
+        "comments": "",
+        "source": " 信息成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "The message succeeded."
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改节点 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify Node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "增加角色 ",
+        "tag": "",
+        "translation": {
+            "en_US": "New Role"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重置 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Reset"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改角色 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify Role"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete User"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限管理工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Permission Management"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增子功能项 ",
+        "tag": "",
+        "translation": {
+            "en_US": "New sub-functions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除角色 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete Role"
+        }
+    },
+    {
+        "comments": "",
+        "source": "从系统信息库同步节点信息。",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync node information from the system information base."
+        }
+    },
+    {
+        "comments": "",
+        "source": " 用户密码成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "The user password is successful."
+        }
+    },
+    {
+        "comments": "",
+        "source": "批量增加角色成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "Succeeded in adding roles in batches."
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增工具 ",
+        "tag": "",
+        "translation": {
+            "en_US": "New Tools"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新增功能项 ",
+        "tag": "",
+        "translation": {
+            "en_US": "New Functions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "批量新增用户成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "Adding users in batches succeeded."
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "User"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Login successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限管理配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Rights Management Configuration"
+        }
+    }
+]
