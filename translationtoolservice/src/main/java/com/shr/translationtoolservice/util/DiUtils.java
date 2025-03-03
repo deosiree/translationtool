@@ -146,9 +146,8 @@ public class DiUtils {
             if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
                 //是否需要tag 查询
                 if (tag){
-                    if (StringUtils.isNotBlank(entryInfoEntity.getTag() ) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
-                        continue;
-                    }else if (StringUtils.isBlank(entryInfoEntity.getTag()) && StringUtils.isBlank(dictionaryVo.getTag())){
+                    if ((StringUtils.isNotBlank(entryInfoEntity.getTag()) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) ||
+                            (StringUtils.isBlank(entryInfoEntity.getTag()) && StringUtils.isNotBlank(dictionaryVo.getTag()))) {
                         continue;
                     }
                 }else {
@@ -224,7 +223,7 @@ public class DiUtils {
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
 
 
-            for (String dic : difileSet) {
+                for (String dic : difileSet) {
                 JSONArray jsonArray = new JSONArray();
                 Date date = new Date(System.currentTimeMillis());
                 String dicName = "";
@@ -233,6 +232,8 @@ public class DiUtils {
                     dicName = dic.replaceAll("平台","pt");
                 }else if (dic.contains("监控")){
                     dicName = dic.replaceAll("监控","jk");
+                }else {
+                    dicName = dic;
                 }
                 headerParameters.put("dictionary", dicName);
                 String dicName1 = dicName.split("/")[1];

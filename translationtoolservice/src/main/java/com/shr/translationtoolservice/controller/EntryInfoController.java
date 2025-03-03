@@ -471,15 +471,14 @@ public class EntryInfoController extends BaseController {
         return checkResult(responseListModel);
     }
 
-    @PostMapping("/updateEntryByEntrySource")
-    @ApiOperation("查询来源中新增的词条")
+    @PostMapping("/updateEntryByClassfy")
+    @ApiOperation("更新来源中新增的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse< ResponseListModel> updateEntryByEntrySource(@RequestBody Map<String, Set<String>> sourceMap ,@RequestParam String classfyID,@RequestParam String i18nUrl ,HttpServletRequest request) {
-        ResponseListModel<TaskEntryVO> responseListModel = new ResponseListModel<>();
-       List<TaskEntryVO> result  = entryInfoService.updateEntryByEntrySource(i18nUrl,sourceMap,classfyID,request);
-        responseListModel.setList(result);
-        return checkResult(responseListModel);
+    public   HttpResponse< String> updateEntryByClassfy(@RequestBody List<SourceEntryVO> sourceEntryVOS ) {
+
+       String result  = entryInfoService.updateEntryByEntrySource(sourceEntryVOS);
+        return checkResult(result);
     }
 
     @PostMapping("/doWeight")

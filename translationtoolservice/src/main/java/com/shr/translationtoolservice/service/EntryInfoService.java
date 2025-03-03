@@ -99,5 +99,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     void doWeight();
 
-    List<TaskEntryVO> updateEntryByEntrySource(String i18nUrl, Map<String, Set<String>> sourceMap,String classfyID,HttpServletRequest request);
+    String updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS);
 }

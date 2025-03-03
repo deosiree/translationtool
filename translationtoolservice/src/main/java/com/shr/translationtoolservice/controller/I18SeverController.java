@@ -750,6 +750,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setEntrySource(type);
                 entryInfoEntity.setDiFileName(type);
                 entryInfoEntity.setProductID(productId);
+                entryInfoEntity.setTag(dictionaryVo.getTag());
                 entryInfoEntity.setIsDelete(0);
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
