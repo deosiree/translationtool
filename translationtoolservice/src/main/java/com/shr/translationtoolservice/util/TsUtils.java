@@ -10,6 +10,8 @@ import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.TLanguage;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import org.junit.platform.commons.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ import java.util.*;
  **/
 @Component
 public class TsUtils {
+    private static final Logger log = LoggerFactory.getLogger(TsUtils.class);
     @Autowired
     private HTTPUtils httpUtils;
 
@@ -86,18 +89,25 @@ public class TsUtils {
     }
 
     public List<EntryInfoEntity> getTsEntry(String i18nUrl, Set<String> fileNameSet,
-                                            String taskID,String userName,String productId,String versionID,String translateType){
+                                            String taskID,String userName,String productId,String versionID,String translateType) throws Exception {
         List<TLanguage> tLanguages = languageMapper.selectList(new QueryWrapper<>());
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
+
         Date date = new Date(System.currentTimeMillis());
         for (String fileName : fileNameSet) {
+            String entrySource = fileName;
+            for (TLanguage tLanguage : tLanguages) {
+                if (translateType.equals(tLanguage.getName())) {
+                    fileName =fileName + "_" + tLanguage.getCode() + ".ts";
+                }
+            }
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("fileName", fileName);
 
             JSONArray jsonArray = new JSONArray();
             String s = "";
 
-            try {
+
                 s = httpUtils.get(i18nUrl + ConstantInterface.GET_WORDS, headerParameters);
 
                 jsonArray = JSONArray.parseArray(s);
@@ -110,12 +120,8 @@ public class TsUtils {
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     //为了支持多语言，fileName截取前面一段作为entrySource  ,例：db_selector_comp_en_US.ts 截取db_selector_comp
-                    for (TLanguage tLanguage : tLanguages) {
-                        if (fileName.contains(tLanguage.getCode())) {
-                            fileName = fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
-                        }
-                    }
-                    entryInfoEntity.setEntrySource(fileName);
+
+                    entryInfoEntity.setEntrySource(entrySource);
                     entryInfoEntity.setEntryState(1);
                     entryInfoEntity.setTaskId(taskID);
                     entryInfoEntity.setEntry(entry);
@@ -131,10 +137,7 @@ public class TsUtils {
                     entryUtils.createNewTrans(entryInfoEntity, translateType, translate);
                     list.add(entryInfoEntity);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
 
-            }
 
 
         }

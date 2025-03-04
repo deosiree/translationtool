@@ -24,6 +24,13 @@
         </foreach>
         );
     </delete>
+    <delete id="deleteByEntryID">
+        delete from t_product_relation where entry_id in(
+        <foreach collection="entryID" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
 
     <insert id="insertList">
         insert into t_product_relation
@@ -50,4 +57,11 @@
     and task_id = #{productRelationEntity.taskId,jdbcType=VARCHAR} and version_id = #{productRelationEntity.versionId,jdbcType=VARCHAR}
     and entry_id = #{productRelationEntity.entryId,jdbcType=VARCHAR}
   </select>
+    <delete id="deleteByVersionID">
+        delete from t_product_relation where version_id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
 </mapper>

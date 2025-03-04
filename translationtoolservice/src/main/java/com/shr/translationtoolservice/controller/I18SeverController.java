@@ -750,6 +750,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setEntrySource(type);
                 entryInfoEntity.setDiFileName(type);
                 entryInfoEntity.setProductID(productId);
+                entryInfoEntity.setTag(dictionaryVo.getTag());
                 entryInfoEntity.setIsDelete(0);
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
@@ -1786,7 +1787,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setDiFileName("config/" + replace);
                 //entryInfoEntity.setDiFileName("config/" + fieldInfo.getDb_name().split("\\.")[0]);
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
-                entryInfoEntity.setTag(fieldInfo.getCommon());
+               // entryInfoEntity.setTag(fieldInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
                 entryInfoEntity.setUpdateTime(date);
@@ -1856,7 +1857,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
                 entryInfoEntity.setDiFileName("enum/" + fieldInfo.getDb_name());
                 entryInfoEntity.setEntrySource(fieldInfo.getCommon());
-                entryInfoEntity.setTag(fieldInfo.getCommon());
+                //entryInfoEntity.setTag(fieldInfo.getCommon());
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);

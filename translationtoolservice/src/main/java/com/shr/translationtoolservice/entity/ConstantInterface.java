@@ -245,6 +245,15 @@ public class ConstantInterface {
         entryName.put("ruCharLength", "俄文术语字符数");
         entryName.put("spaCharLength", "西文术语字符数");
         entryName.put("fraCharLength", "法文术语字符数");
+
+        entryName.put("enTransId", "英文翻译id");
+        entryName.put("ruTransId", "俄文翻译id");
+        entryName.put("spaTransId", "西文翻译id");
+        entryName.put("fraTransId", "法文翻译id");
+        entryName.put("importType", "导入类型");
+        entryName.put("writeType", "回写类型");
+        entryName.put("diFileName", "DI文件名");
+        entryName.put("comment", "comment");
         return entryName;
     }
 
@@ -289,6 +298,14 @@ public class ConstantInterface {
         entryName.put("西文术语字符数", "spaCharLength");
         entryName.put("法文术语字符数", "fraCharLength");
         entryName.put("tag", "tag");
+        entryName.put("英文翻译id", "enTransId");
+        entryName.put("俄文翻译id", "ruTransId");
+        entryName.put("西文翻译id", "spaTransId");
+        entryName.put("法文翻译id", "fraTransId");
+        entryName.put("导入类型", "importType");
+        entryName.put("回写类型", "writeType");
+        entryName.put("DI文件名", "diFileName");
+        entryName.put("comment", "comment");
         return entryName;
     }
 

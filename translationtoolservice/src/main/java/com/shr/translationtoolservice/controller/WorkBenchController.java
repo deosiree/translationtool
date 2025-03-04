@@ -201,6 +201,18 @@ public class WorkBenchController extends BaseController {
 
         return checkResult(result);
     }
+
+    @PostMapping("/deleteEntryInfoByTaskID")
+    @ApiOperation("删除任务中的词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> deleteEntryInfoByTaskID(@RequestBody List<String> entryID,
+                                                    @RequestParam("taskID") String taskID) {
+
+        String result = entryTempService.deleteEntryInfoByTaskID(entryID,taskID);
+
+        return checkResult(result);
+    }
 /*
     @PostMapping("/deleteEntryInfoByID")
     @ApiOperation("删除词条")

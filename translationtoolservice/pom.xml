@@ -16,6 +16,12 @@
     <properties>
         <java.version>1.8</java.version>
     </properties>
+    <licenses>
+        <license>
+            <name>Apache License Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
     <dependencies>
         <dependency>
             <groupId>org.languagetool</groupId>
@@ -23,6 +29,11 @@
             <version>6.3</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.hankcs</groupId>
+            <artifactId>hanlp</artifactId>
+            <version>portable-1.8.6</version>
+        </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
@@ -257,6 +268,14 @@
             <id>aliyunmaven</id>
             <name>阿里云公共仓库</name>
             <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
     <build>

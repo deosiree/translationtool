@@ -23,8 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @ClassName EntryInfoController
@@ -403,7 +402,7 @@ public class EntryInfoController extends BaseController {
     @Transactional
     public void entryExportByCondition(@RequestBody ExcelExportVO excelExportVO,
                                        HttpServletResponse response,  String taskID) {
-        entryInfoService.entryExportByCondition(excelExportVO,response,taskID);
+        entryInfoService.   entryExportByCondition(excelExportVO,response,taskID);
     }
 
     @PostMapping("/getClassfy")
@@ -449,10 +448,49 @@ public class EntryInfoController extends BaseController {
     public   HttpResponse<ResponseListModel> checkNewEntryByClassfy(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request) {
         ResponseListModel<TaskEntryVO> responseListModel = new ResponseListModel<>();
         List<TaskEntryVO> taskEntryVOS = entryInfoService.checkNewEntryByClassfy(i18nUrl,classfyID,request);
+        if (null == taskEntryVOS){
+            return checkResult(null,"i18n 服务异常 ！");
+        }
         responseListModel.setList(taskEntryVOS);
         responseListModel.setTotalNum(taskEntryVOS.size());
         return checkResult(responseListModel);
     }
+
+    @PostMapping("/getEntrysourceListByClassfy")
+    @ApiOperation("查询分类中新增的词条来源")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse< ResponseListModel<SourceEntryVO>> getEntrysourceListByClassfy(@RequestParam String classfyID,@RequestParam String i18nUrl,HttpServletRequest request) {
+        ResponseListModel<SourceEntryVO> responseListModel = new ResponseListModel<>();
+        List<SourceEntryVO> sourceEntryVOS = entryInfoService.getEntrysourceListByClassfy(classfyID, i18nUrl,request);
+        if (null == sourceEntryVOS){
+            return checkResult(null,"i18n 服务异常 ！");
+        }
+        responseListModel.setList(sourceEntryVOS);
+        responseListModel.setTotalNum(sourceEntryVOS.size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/updateEntryByClassfy")
+    @ApiOperation("更新来源中新增的词条")
+    @CrossOrigin
+    @Transactional
+    public   HttpResponse< String> updateEntryByClassfy(@RequestBody List<SourceEntryVO> sourceEntryVOS ) {
+
+       String result  = entryInfoService.updateEntryByEntrySource(sourceEntryVOS);
+        return checkResult(result);
+    }
+
+    @PostMapping("/doWeight")
+    @ApiOperation("去除重复的词条")
+    @CrossOrigin
+    @Transactional
+    public   void doWeight() {
+
+       entryInfoService.doWeight();
+
+    }
+
 
 
 

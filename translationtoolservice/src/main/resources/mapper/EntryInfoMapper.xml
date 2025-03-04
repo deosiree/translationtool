@@ -64,7 +64,8 @@
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,
         fra_trans_id,spa_trans_id,is_public,
-        is_delete,import_type,write_type,entry_version_type,parent_id,di_file_name,classfy1,classfy2,comment
+        is_delete,import_type,write_type,entry_version_type,parent_id,
+        di_file_name,classfy1,classfy2,comment
     </sql>
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
@@ -74,7 +75,8 @@
         t2.part_of_speech,t2.classify_id,t2.remark,
         t2.task_id,t2.en_trans_id,t2.ru_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,t2.comment,
-        t2.is_delete,t2.import_type,t2.write_type,t2.entry_version_type,t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2
+        t2.is_delete,t2.import_type,t2.write_type,t2.entry_version_type,
+        t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
         select distinct<include refid="Base_t2_Column_List"/>,
@@ -311,6 +313,7 @@
         <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
         </if>
+
         order by t2.tag
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}

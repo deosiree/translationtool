@@ -9,6 +9,7 @@ import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.DiUtils;
 import com.shr.translationtoolservice.util.HTTPUtils;
+import com.shr.translationtoolservice.util.TsUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
@@ -35,6 +36,8 @@ public class I18nServiceImpl implements I18nService {
 
     @Autowired
     private DiUtils diUtils;
+    @Autowired
+    private TsUtils tsUtils;
 
     @Autowired
     private HTTPUtils httpUtils;
@@ -148,7 +151,7 @@ public class I18nServiceImpl implements I18nService {
             if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
                 for (String fileName : tsEntryInfoMap.keySet()) {
                     List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
-
+                    //tsUtils.writeTSEntry(entryInfoEntities, fileName, tag,i18nUrl,translateType);
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("entry", tsEntryInfoMap.get(fileName));
                     fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
@@ -167,7 +170,10 @@ public class I18nServiceImpl implements I18nService {
                 //按照分裂写入di
                 for (String di_fileName : diTypeMap.keySet()) {
                     //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                    return diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
+                     String res = diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
+                    if (!res.equals(ConstantInterface.OK_STR)) {
+                        return res;
+                    }
                 }
 
             }

@@ -236,7 +236,24 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         }
         return ConstantInterface.OK_STR;
     }
+    @Override
+    public String deleteEntryInfoByTaskID(List<String> entryIDs,String taskID) {
 
+        HashMap<String, Object> map = new HashMap();
+        for (String entryID : entryIDs) {
+            map.put("entry_id", entryID);
+            map.put("task_id", taskID);
+        }
+
+        // 1.删除当前产品版本下的关联信息
+        productRelationMapper.deleteByMap(map);
+        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("entry_id", entryIDs));
+        // 2.删除完后用entryID查询关联表是否有被关联的词条，如果没有则词条表删除
+        if (CollectionUtils.isEmpty(productRelationEntities)) {
+            entryInfoMapper.deleteBatchIds(entryIDs);
+        }
+        return ConstantInterface.OK_STR;
+    }
     @Override
     public int getEntryTempByTaskIDTotal(String taskID) {
 
@@ -295,6 +312,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     entryInfoEntities.add(entryInfoEntity);
                     break;
             }
+            //entryInfoEntities 中的元素没有翻译的排序在前面
+            sortEmptyTrans(entryInfoEntities,translateType);
 
 
         }
