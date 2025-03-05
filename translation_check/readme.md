@@ -16,6 +16,9 @@
 
 python 3.11.2
 
+# add
+utils/similarity.py
+
 # 离线安装
 
 安装包暂时存入项目`根目录/Cache`下

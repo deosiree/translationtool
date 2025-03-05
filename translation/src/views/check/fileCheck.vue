@@ -21,7 +21,7 @@
       </template>
       <!-- 操作按钮模板 -->
       <template v-slot:operate>
-        <a-button size="middle" class="whitelistBtn" @click="check">白名单</a-button>
+        <a-button type="primary" size="middle" class="resetBtn" @click="check">白名单</a-button>
         <a-button type="primary" size="middle" class="checkBtn" @click="check">校验</a-button>
       </template>
     </SearchBox>
@@ -507,9 +507,6 @@ export default {
 }
 </style>
 <style lang="less">
-.whitelistBtn {
-  width: 200px;
-}
 .editable-cell {
   position: relative;
 
