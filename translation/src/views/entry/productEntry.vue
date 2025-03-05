@@ -794,7 +794,7 @@ export default {
       }
       let params = {
         classfyID: this.product.key,
-        translateType:this.search.translateType,
+        translateType:this.search.language,
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
@@ -1298,6 +1298,7 @@ export default {
       }
       let params = {
         classfyID: this.product.key,
+        translateType:this.search.language,
         pageIndex: -1,
         pageSize: -1,
       };

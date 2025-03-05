@@ -684,7 +684,7 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
-          console.log("已选词条", this.dataSource);
+          // console.log("已选词条", this.dataSource);
           const seen = {};
           this.dataSource.forEach((item) => {
             const key = `${item.productID}-${item.versionID}`;

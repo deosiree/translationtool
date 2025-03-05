@@ -1,8 +1,8 @@
 <template>
   <!-- <a-spin :spinning="visible"> -->
-  <Modal :modalWidth="modalWidth" :visible="visible" :updateClassfyID="updateClassfyID" :modalTitle="modalTitle" @handleClose="handleClose"
-    @handleOK="handleOK">
-    <div class="content">
+  <Modal ref="updateBox" :modalWidth="modalWidth" :visible="visible" :updateClassfyID="updateClassfyID" :modalTitle="modalTitle"
+    @handleClose="handleClose" @handleOK="handleOK">
+    <div class="content" v-if="!taskVisible">
       <div class="table">
         <a-form ref="i18nURL" name="custom-validation">
           <a-form-item label="IP" name="ip">
@@ -12,9 +12,15 @@
         <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-          :row-key="record => record.sourceFile" ref="updateTable" bordered :pagination='pagination'>
+          :row-key="record => record.sourceFile" ref="updateTable" bordered :pagination='pagination' :loading="loading">
         </a-table>
       </div>
+    </div>
+    <div class="content" v-if="taskVisible">
+      <a-table class="ant-table-striped" :columns="taskColumns" :dataSource="taskSource" :scroll="{x:'100%' , y: '280px'}"
+        :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.sourceFile" ref="updateTaskTable"
+        bordered :pagination='pagination'>
+      </a-table>
     </div>
   </Modal>
   <!-- </a-spin> -->
@@ -50,7 +56,7 @@ export default {
     return {
       labelCol: { style: { width: "80px" } },
       modalWidth: "400px",
-      i18nURL: "",
+      i18nURL: null,
       ipOptions: [], // ip下拉选项
       columns: [
         {
@@ -73,6 +79,24 @@ export default {
       dataSource: [], // 展示的数据
       selectedRowKeys: [],
       selectedRows: [],
+      taskVisible: false,
+      taskColumns: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: "10%",
+        },
+        ,
+        {
+          title: "更新的任务",
+          dataIndex: "task",
+          align: "center",
+          width: "90%",
+        },
+      ],
+      taskSource: [],
+      loading: false,
       pagination: {
         showSizeChanger: true,
         total: 0,
@@ -87,6 +111,13 @@ export default {
     this.getIPs();
   },
   methods: {
+    init() {
+      this.updateEntries = {};
+      this.dataSource = [];
+      this.i18nURL = null;
+      this.taskSource = [];
+      this.taskVisible = false;
+    },
     // 获取i18服务器ip
     getIPs() {
       this.ipOptions = [];
@@ -102,6 +133,7 @@ export default {
     },
     // 更新窗口（i18nURL改变时触发）
     handleUpdate() {
+      this.loading = true; //开始加载
       // console.log("classfyID", this.updateClassfyID);// 传自父组件的treeKey
       // console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
       // 弹窗，并发送http请求(查询来源中新增的词条
@@ -138,38 +170,51 @@ export default {
           // console.log("selectedRows", this.selectedRows);
         }
         this.dataSource = this.selectedRows;
+        this.loading = false; //结束加载
       });
     },
     handleClose() {
+      this.init();
       this.$emit("updateClose");
     },
     handleOK() {
-      // 点击确认就发送http请求，更新词条
-      const data = [];
-      this.updateEntries.forEach((item) => {
-        // console.log("item", item);
-        const res = {
-          type: "",
-          sourceFileAndEntryVO: [],
-        };
-        let resFlag = false; // 标记是否已经添加过
-        res.type = item.type;
-        // console.log("item.sourceFileAndEntryVO", Object.values(item.sourceFileAndEntryVO)[0].sourceFile);
-        Object.values(item.sourceFileAndEntryVO).forEach((file) => {
-          if (this.selectedRowKeys.includes(file.sourceFile)) {
-            res.sourceFileAndEntryVO.push(file);
-            resFlag = true;
-          }
+      if (!this.taskVisible) {
+        // 点击确认就发送http请求，更新词条
+        const data = [];
+        this.updateEntries.forEach((item) => {
+          // console.log("item", item);
+          const res = {
+            type: "",
+            sourceFileAndEntryVO: [],
+          };
+          let resFlag = false; // 标记是否已经添加过
+          res.type = item.type;
+          // console.log("item.sourceFileAndEntryVO", Object.values(item.sourceFileAndEntryVO)[0].sourceFile);
+          Object.values(item.sourceFileAndEntryVO).forEach((file) => {
+            if (this.selectedRowKeys.includes(file.sourceFile)) {
+              res.sourceFileAndEntryVO.push(file);
+              resFlag = true;
+            }
+          });
+          if (resFlag) data.push(res);
         });
-        if (resFlag) data.push(res);
-      });
-      // console.log("data", data);
-      updateEntryByClassfy(data).then((res) => {
-        // console.log("updateEntryByClassfy", res);
-        message.success("更新成功！");
-        this.dataSource = [];
+        console.log("data", data);
+        updateEntryByClassfy(data).then((res) => {
+          console.log("updateEntryByClassfy", res);
+          message.success("更新成功！");
+          this.dataSource = [];
+          // this.$emit("updateClose");// 关闭弹窗
+          this.taskSource = Object.values(res.data.list).map((item, index) => ({
+            index: index + 1,
+            task: item,
+          }));
+          console.log("taskSource", this.taskSource);
+          this.taskVisible = true; // 先弹出其他弹窗
+        });
+      } else {
+        this.init();
         this.$emit("updateClose");
-      });
+      }
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
