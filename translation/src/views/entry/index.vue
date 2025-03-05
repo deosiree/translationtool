@@ -60,8 +60,8 @@
       </a-col>
     </a-row>
   </div>
-  <UpdateModal ref="classifyModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :dataSource="updateEntries"
-    @classifyClose="classifyClose" style="width:700px;" />
+  <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID" @updateClose="updateClose"
+    style="width:700px;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
@@ -84,6 +84,8 @@ import {
   getClassTree,
   deleteEntryClassfy,
   getUpdateEntryByClassfy,
+  updateEntryByEntrySource,
+  getEntrysourceListByClassfy,
 } from "@/http/api/entryManage";
 import { deleteProduct, getUserProduct } from "@/http/api/product";
 import { message } from "ant-design-vue";
@@ -113,7 +115,7 @@ export default {
       selectedTreeKeys: [],
       classifyVisible: false,
       updateVisible: false,
-      updateEntries: [],
+      updateClassfyID: "",// 传参给子组件，让子组件调用http请求
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -163,56 +165,18 @@ export default {
     },
     classifyClose() {
       this.classifyVisible = false;
-      this.updateVisible = false; // 关闭更新弹窗
       this.getClassTree();
       this.$refs.productEntry.refresh(this.currentClickProduct);
     },
+    updateClose() {
+      this.updateVisible = false;
+    },
     // 更新
     update(treeKey) {
-      // console.log("更新", treeKey);
-      this.currentClass = {
-        parentId: treeKey,
-        title: "",
-      };
       this.classifyModalTitle = "更新详情";
-      // 弹窗，并发送http请求 // 接口参数待写
-      let params = {};
-      let data = {};
-      getUpdateEntryByClassfy(params, data).then((res) => {
-        // 都放到.then内，可以确保updateEntries有值
-        let lists = [];
-        res.data.list.forEach(({ entrySource, entries }) => {
-          let entriesList = [];
-          // let entriesString = "";// 一个词条来源为一行，对应可能有多个词条（string格式）
-          for (let i = 0; i < entries.length; i++) {
-            // entriesString += entries[i];
-            // entriesString += entries[i] + "\n";
-            entriesList.push(entries[i]);
-          }
-          // console.log("词条str", entriesString);
-          // console.log("词条list", entriesList);
-
-          lists.push({ entrySource, entriesList });
-          // lists.push({ entrySource, entriesString });
-        });
-
-        // // 一个词条为一行
-        // this.updateEntries.forEach(({ entrySource, entries }) => {
-        //   if (entries && entries.length > 0) {
-        //     entries.forEach((entryValue) => {
-        //       const item = {
-        //         entrySource,
-        //         entries: entryValue,
-        //       };
-        //       lists.push(item);
-        //     });
-        //   }
-        // });
-        this.updateEntries = lists;
-        this.updateVisible = true; // 显示弹窗
-      });
+      this.updateClassfyID = treeKey;// treeKey就是classfyID  有些是数字 有些是uuid
+      this.updateVisible = true; // 显示弹窗
     },
-
     // 新增分类或产品
     addClassify(treeKey, type) {
       this.currentClass = {

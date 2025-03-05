@@ -1,35 +1,38 @@
 <template>
-  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle" :row-key="record => record.id" @handleClose="handleClose"
-    @handleOK="handleOK" @afterClose="afterClose">
+  <!-- <a-spin :spinning="visible"> -->
+  <Modal :modalWidth="modalWidth" :visible="visible" :updateClassfyID="updateClassfyID" :modalTitle="modalTitle" @handleClose="handleClose"
+    @handleOK="handleOK">
     <div class="content">
       <div class="table">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
+        <a-form ref="i18nURL" name="custom-validation">
+          <a-form-item label="IP" name="ip">
+            <a-select v-model:value="i18nURL" :options="ipOptions" placeholder="请选择IP" @change="handleUpdate"></a-select>
+          </a-form-item>
+        </a-form>
+        <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-          :row-key="record => record.entrySource" ref="updateTable" bordered :pagination='pagination'>
-          <!-- 表格单元格模板 -->
-          <template #bodyCell="{ column, record }">
-            <!-- 词性来源列 -->
-            <template v-if="column.dataIndex === 'entriesList'">
-              <div v-for="(item, index) in record.entriesList" :key="index" style="display: flex; gap: 100px;">
-                <span class="entries">{{ item }}</span>
-              </div>
-            </template>
-          </template>
+          :row-key="record => record.sourceFile" ref="updateTable" bordered :pagination='pagination'>
         </a-table>
       </div>
     </div>
   </Modal>
+  <!-- </a-spin> -->
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
 import { message } from "ant-design-vue";
+import { getI18nAdress } from "@/http/api/workbench";
+import {
+  updateEntryByClassfy,
+  getEntrysourceListByClassfy,
+} from "@/http/api/entryManage";
 import { v4 as uuidv4 } from "uuid";
 export default {
   components: {
     Modal,
   },
-  emits: ["classifyClose"],
+  emits: ["updateClose"],
   props: {
     // 传递来的数据放这儿，不能再在data中定义了
     visible: {
@@ -39,30 +42,37 @@ export default {
     modalTitle: {
       type: String,
     },
-    dataSource: {
-      type: Array,
+    updateClassfyID: {
+      type: String,
     },
   },
   data() {
     return {
       labelCol: { style: { width: "80px" } },
       modalWidth: "400px",
+      i18nURL: "",
+      ipOptions: [], // ip下拉选项
       columns: [
         {
           title: "词条来源",
-          dataIndex: "entrySource",
-          align: "center",
-          width: 100,
-        },
-        {
-          title: "词条",
-          dataIndex: "entriesList",
+          dataIndex: "sourceFile",
           align: "center",
           width: 400,
         },
+        {
+          title: "来源类型",
+          dataIndex: "sourceType",
+          align: "center",
+          width: 100,
+        },
       ],
-      selectedRows: [],
+      updateEntries: {
+        // 发给我的原始数据
+        type: Array,
+      },
+      dataSource: [], // 展示的数据
       selectedRowKeys: [],
+      selectedRows: [],
       pagination: {
         showSizeChanger: true,
         total: 0,
@@ -73,37 +83,93 @@ export default {
       },
     };
   },
-  mounted() {},
-  watch: {
-    dataSource: {
-      immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
-      handler(newDataSource) {
-        // 设置默认全选
-        this.selectedRowKeys = newDataSource.map((record) => record.entrySource);
-        this.selectedRows = newDataSource.map((record) => record);
-      },
-    },
+  mounted() {
+    this.getIPs();
   },
   methods: {
+    // 获取i18服务器ip
+    getIPs() {
+      this.ipOptions = [];
+      getI18nAdress().then((res) => {
+        res.data.list.forEach((item) => {
+          let ip = {
+            label: item.ip,
+            value: item.ip,
+          };
+          this.ipOptions.push(ip);
+        });
+      });
+    },
+    // 更新窗口（i18nURL改变时触发）
+    handleUpdate() {
+      // console.log("classfyID", this.updateClassfyID);// 传自父组件的treeKey
+      // console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
+      // 弹窗，并发送http请求(查询来源中新增的词条
+      getEntrysourceListByClassfy({
+        // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
+        // i18nUrl: "http://10.17.43.20:18099/",
+        classfyID: this.updateClassfyID,
+        i18nUrl: this.i18nURL,
+      }).then((res) => {
+        // 都放到.then内，可以确保执行顺序
+        // console.log("查询来源中新增的词条", res.data.list);
+        // 设置默认全选
+        this.updateEntries = Object.values(res.data.list);
+        // console.log("newDataSource", this.updateEntries);
+        this.dataSource = [];
+        this.selectedRows = [];
+        this.selectedRowKeys = [];
+        if (this.updateEntries.length != 0) {
+          this.updateEntries.forEach((item) => {
+            const EntryVO = Object.values(item.sourceFileAndEntryVO);
+            const sourceType = item.type;
+            if (EntryVO.length != 0) {
+              EntryVO.forEach((item) => {
+                this.selectedRowKeys.push(item.sourceFile);
+                this.selectedRows.push({
+                  sourceFile: item.sourceFile,
+                  sourceType: sourceType,
+                  // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
+                });
+              });
+            }
+          });
+          // console.log("selectedRowKeys", this.selectedRowKeys);
+          // console.log("selectedRows", this.selectedRows);
+        }
+        this.dataSource = this.selectedRows;
+      });
+    },
     handleClose() {
-      this.$emit("classifyClose");
+      this.$emit("updateClose");
     },
     handleOK() {
-      // 点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
-      let params = {};
-      let data = {
-        taskID: this.task.id,
-      };
-      insertEntry(params, data).then((res) => {
-        console.log("insertEntry", res);
-        message.success("更新成功！");
-        this.$emit("classifyClose");
-        this.dataSource = [];
+      // 点击确认就发送http请求，更新词条
+      const data = [];
+      this.updateEntries.forEach((item) => {
+        // console.log("item", item);
+        const res = {
+          type: "",
+          sourceFileAndEntryVO: [],
+        };
+        let resFlag = false; // 标记是否已经添加过
+        res.type = item.type;
+        // console.log("item.sourceFileAndEntryVO", Object.values(item.sourceFileAndEntryVO)[0].sourceFile);
+        Object.values(item.sourceFileAndEntryVO).forEach((file) => {
+          if (this.selectedRowKeys.includes(file.sourceFile)) {
+            res.sourceFileAndEntryVO.push(file);
+            resFlag = true;
+          }
+        });
+        if (resFlag) data.push(res);
       });
-      this.$emit("classifyClose");
-    },
-    afterClose() {
-      // this.$refs.formRef.clearValidate();
+      // console.log("data", data);
+      updateEntryByClassfy(data).then((res) => {
+        // console.log("updateEntryByClassfy", res);
+        message.success("更新成功！");
+        this.dataSource = [];
+        this.$emit("updateClose");
+      });
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
@@ -111,12 +177,13 @@ export default {
       this.selectedRows = selectedRows;
     },
     // 表格复选框点击事件
-    onSelect(record, selected) {// record是被点击的行数据，selected是是否被选中
+    onSelect(record, selected) {
+      // record是被点击的行数据，selected是是否被选中
       if (selected) {
         this.selectedRows.push(record);
       } else {
         this.selectedRows = this.selectedRows.filter((item) => {
-          return item.entrySource !== record.entrySource;
+          return item !== record;
         });
       }
     },

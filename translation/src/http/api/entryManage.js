@@ -1,12 +1,40 @@
 //引入request.js文件
 import request from "../request";
 
+// 查询分类中新增的词条来源
+export function getEntrysourceListByClassfy(params) {
+  return request({
+      url: "/entryInfo/getEntrysourceListByClassfy",
+      // url: "https://apifoxmock.com/m1/5916202-5603218-default/entryInfo/getEntrysourceListByClassfy/",
+      method: "POST", 
+      params,
+  });
+}
 
-// 查询分类中的更新词条
+// 更新来源中新增的词条来源
+export function updateEntryByClassfy(data) {
+  return request({
+      url: "/entryInfo/updateEntryByClassfy",
+      // url: "https://apifoxmock.com/m1/5916202-5603218-default/entryInfo/updateEntryByClassfy",
+      method: "POST", 
+      data,
+  });
+}
+
+// 查询来源中新增的词条
+export function updateEntryByEntrySource(params) {
+  return request({
+      url: "/entryInfo/updateEntryByEntrySource",
+      method: "POST", 
+      params,
+  });
+}
+
+// 查询分类中的更新词条(mock,待删除)
 export function getUpdateEntryByClassfy(params, data) {
   return request({
-      // url: "/entryInfo/checkNewEntryByClassfy",
-      url: "https://apifoxmock.com/m1/5869278-5555786-default/updateEntry",
+      url: "/entryInfo/checkNewEntryByClassfy",
+      // url: "https://apifoxmock.com/m1/5869278-5555786-default/updateEntry",
       method: "POST", 
       params,
       data
