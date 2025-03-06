@@ -45,7 +45,7 @@
                 onChange: onSelectChange,
                 checkStrictly: false,
                 selections:[
-                    {key:'selectAll',text:'全部选择2',onSelect:selectAllEntry},
+                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                 ]
             }" :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"

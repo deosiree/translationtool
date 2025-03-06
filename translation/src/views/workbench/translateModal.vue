@@ -52,7 +52,7 @@
           @resizeColumn="handleResizeColumn" :row-selection="{selectedRowKeys: selectedRowKeys, 
                     onChange: onSelectChange,
                     selections:[
-                        {key:'selectAll',text:'全部选择5',onSelect:selectAllEntry},
+                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                         {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                     ]
                 }" :customRow="customRow">

@@ -48,7 +48,7 @@
                 selectedRows: selectedRows,
                 onChange: onSelectChange,
                 selections:[
-                    {key:'selectAll',text:'全部选择1',onSelect:selectAllEntry},
+                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                 ]
             }" ref="archiveTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
