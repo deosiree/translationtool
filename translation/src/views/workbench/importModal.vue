@@ -418,7 +418,7 @@
                 onChange: onSelectChange,
                 checkStrictly: false,
                 selections:[
-                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                    {key:'selectAll',text:'全部选择4',onSelect:selectAllEntry},
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                 ]
             }" ref="workTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
@@ -1234,11 +1234,13 @@ export default {
             }
           });
           if (deleteID.length > 0) {
-            deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then((res) => {
-              message.success(`已删除！`); // 最后一列的词条状态
-              this.selectedRowKeys = [];
-              this.selectedRows = [];
-            });
+            deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then(
+              (res) => {
+                message.success(`已删除！`); // 最后一列的词条状态
+                this.selectedRowKeys = [];
+                this.selectedRows = [];
+              }
+            );
           } else {
             message.success("已删除！"); // 看最后一列的词条状态：未审核
             this.selectedRowKeys = [];
@@ -2301,18 +2303,23 @@ export default {
     selectAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      let dataToSelect;
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        this.filteredData.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
+        // 确保 filteredData 是最新的筛选结果
+        dataToSelect = this.dataSource.filter((item) => {
+          const isExistMatch =!this.filters.isExist || this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =!this.filters.entrySource || item.entrySource.includes(this.filters.entrySource);
+          return isExistMatch && entrySourceMatch;
         });
       } else {
-        this.dataSource.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
-        });
+        dataToSelect = this.dataSource;
       }
+      dataToSelect.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+      });
     },
+
     clearAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];

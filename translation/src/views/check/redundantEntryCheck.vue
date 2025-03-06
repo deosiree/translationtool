@@ -59,7 +59,7 @@
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '230px'}"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
+              :loading="loading" :rowClassName="getRowClassName" ref="redundantEntryCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 词条状态列 -->
@@ -80,7 +80,11 @@
                 </template>
                 <!--Tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
-                  <span class="tag">{{ record.tag }}</span>
+                  <span>
+                    <a-tag color="cyan" class="tag-content">
+                      <span>{{ record.tag }}</span>
+                    </a-tag>
+                  </span>
                 </template>
                 <!--翻译列 -->
                 <template v-if="column.dataIndex === 'english'">
@@ -135,6 +139,7 @@ export default {
           dataIndex: "entryState",
           align: "center",
           width: 130,
+          resizable: true,
           index: 0.1,
         },
         {
@@ -150,6 +155,7 @@ export default {
           dataIndex: "entryVersion",
           align: "center",
           width: 130,
+          resizable: true,
           index: 6,
         },
         {
@@ -193,7 +199,7 @@ export default {
           index: 19,
         },
       ],
-      dataSource: [],// 表格数据
+      dataSource: [], // 表格数据
       entryStates: [
         { label: "新建", value: "0" },
         { label: "审核中", value: "1" },
@@ -215,7 +221,6 @@ export default {
       dataHeight: 400,
       tableHeight: { x: "100%", y: 0 },
       loading: false,
-      editableData: {}, // 可编辑数据
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项
       selectedRowIndex: null, // 表格选中项
@@ -264,7 +269,7 @@ export default {
       searchCheckInfo(params, path)
         .then((res) => {
           this.dataSource = res.data.list;
-          console.log("冗余信息",this.dataSource);
+          console.log("冗余信息", this.dataSource);
           this.pagination.total = res.data.totalNum;
           this.loading = false;
         })
@@ -304,21 +309,6 @@ export default {
     // 表单单元格的点击事件
     clickInput(event) {
       event.stopPropagation();
-    },
-    // 设置表格每一行的class
-    getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
     },
     // 动态设置表格高度
     setTableHeight() {
@@ -378,13 +368,18 @@ export default {
 }
 </style>
 <style lang="less">
-.tag {
-  font-size: 12px;
-  padding: 4px 8px;
-  background-color: #eefffb;
-  border: 1px solid #beede5;
-  border-radius: 4px;
-  color: #77b3c9;
+::v-deep .tag-content {
+  max-width: 90%;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    // max-width: none; /* 悬浮时取消最大宽度限制 */
+    // overflow: visible;
+    white-space: normal;
+  }
 }
 
 .editable-cell {

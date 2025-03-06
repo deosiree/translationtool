@@ -5,13 +5,13 @@
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
           <a-form-item label="词条" name="entry">
-            <a-input v-model:value="search.entry" style="width: 186px" placeholder="请输入内容" size="small"></a-input>
+            <a-input v-model:value="search.entry" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="所属类" name="category">
-            <a-input v-model:value="search.category" style="width: 186px" placeholder="请输入内容" size="small"></a-input>
+            <a-input v-model:value="search.category" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="Tag" name="tag">
-            <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small"></a-input>
+            <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
         </a-form>
       </template>
@@ -29,7 +29,7 @@
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
+              :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 词条列 -->
@@ -42,34 +42,34 @@
                 </template>
                 <!--Tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
-                  <span class="tag">{{ record.tag }}</span>
+                  <span>
+                    <a-tag color="cyan" class="tag-content">
+                      <span>{{ record.tag }}</span>
+                    </a-tag>
+                  </span>
                 </template>
                 <!-- 操作列 -->
                 <template v-if="column.dataIndex === 'operation'">
-                  <a-button type="primary" size="small" @click="showDetail(record.detailDataSource)">详情({{showDetailNum(record.detailDataSource)}})</a-button>
+                  <a-button type="primary" size="small"
+                    @click="showDetail(record.detailDataSource)">详情({{showDetailNum(record.detailDataSource)}})</a-button>
                 </template>
               </template>
             </a-table>
           </a-form>
-
         </div>
       </template>
     </DataBox>
   </div>
-  <!-- 详情弹框(?修改a-modal的大小，参考之前工作台的) -->
   <QTCheckDetail ref="qtCheckDetail" :visible="detailModalVisible" :dataSource="detailDataSource" @detailClose="detailClose"></QTCheckDetail>
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
-import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import QTCheckDetail from "@/views/check/qtCheckDetail.vue";
 import commen from "@/views/entry/common.js";
 import { cloneDeep, flatMap } from "lodash-es";
-import {
-  searchCheckInfo,
-} from "@/http/api/check";
+import { searchCheckInfo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -79,7 +79,6 @@ export default {
   },
   data() {
     return {
-      locale: locale,
       labelCol: { style: { width: "84px" } },
       search: {
         entry: "",
@@ -103,15 +102,14 @@ export default {
           title: "序号",
           dataIndex: "id",
           align: "center",
-          width: 50,
-          resizable: true,
-          index: 1,
+          width: "5%",
+          index: 0.1,
         },
         {
           title: "词条",
           dataIndex: "entry",
           align: "center",
-          width: 160,
+          width: "30%",
           resizable: true,
           index: 2,
         },
@@ -119,14 +117,15 @@ export default {
           title: "所属类",
           dataIndex: "category",
           align: "center",
-          width: 130,
+          width: "20%",
+          resizable: true,
           index: 3,
         },
         {
           title: "Tag",
           dataIndex: "tag",
           align: "center",
-          width: 150,
+          width: "30%",
           resizable: true,
           index: 4,
         },
@@ -134,14 +133,14 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 150,
+          width: "15%",
           fixed: "right",
           index: 100,
         },
       ],
       // dataSource: [],// 表格数据
       dataSource: [
-                {
+        {
           id: 1,
           entry: "词条",
           category: "Offline",
@@ -162,7 +161,7 @@ export default {
           tag: "Tag",
           operation: "详情",
         },
-                {
+        {
           id: 1,
           entry: "词条",
           category: "Offline",
@@ -183,7 +182,7 @@ export default {
           tag: "Tag",
           operation: "详情",
         },
-                {
+        {
           id: 1,
           entry: "词条",
           category: "Offline",
@@ -204,7 +203,7 @@ export default {
           tag: "Tag",
           operation: "详情",
         },
-                {
+        {
           id: 1,
           entry: "词条",
           category: "Offline",
@@ -311,8 +310,8 @@ export default {
         total: 0,
         current: 1,
         pageSize: 20,
-        showTotal: total => `共 ${total} 条`,
-        onChange: this.pageChange
+        showTotal: (total) => `共 ${total} 条`,
+        onChange: this.pageChange,
       },
       pageChangeSearch: {},
     };
@@ -426,8 +425,7 @@ export default {
       // this.detailModalVisible = true;
       // 获取详情数据
       // return this.getDetailCount(id);
-      if(res)
-        return res.data.totalNum;
+      if (res) return res.data.totalNum;
       return 0;
     },
     getDetailCount(id) {
@@ -441,24 +439,9 @@ export default {
       // console.log("详情数据",this.detailDataSource);
       this.detailModalVisible = false; // 关闭弹窗，具体点击确认/取消的操作都在组件中写，这里只是传递关闭弹窗的信息
     },
+    // 动态设置表格高度
     clickInput(event) {
       event.stopPropagation();
-    },
-
-    // 设置表格每一行的class
-    getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
     },
     // 动态设置表格高度
     setTableHeight() {
@@ -485,7 +468,23 @@ export default {
     },
     // 表格列可伸缩
     handleResizeColumn: (w, col) => {
+      console.log('触发时机:', new Date().toISOString(), '新宽度:', w, '旧宽度:', col.width);
       col.width = w;
+    },
+    // 设置表格每一行的class
+    getRowClassName(record, index) {
+      let className = null;
+      if (index % 2 === 1) {
+        className = "table-striped";
+        if (this.selectedRowIndex === record.id) {
+          className = className + " highlighted-row";
+        }
+      } else {
+        if (this.selectedRowIndex === record.id) {
+          className = "highlighted-row";
+        }
+      }
+      return className;
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
@@ -510,13 +509,18 @@ export default {
 }
 </style>
 <style lang="less">
-.tag {
-  font-size: 12px;
-  padding: 4px 8px;
-  background-color: #eefffb;
-  border: 1px solid #beede5;
-  border-radius: 4px;
-  color: #77b3c9;
+::v-deep .tag-content {
+  max-width: 90%;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    // max-width: none; /* 悬浮时取消最大宽度限制 */
+    // overflow: visible;
+    white-space: normal;
+  }
 }
 
 .editable-cell {
