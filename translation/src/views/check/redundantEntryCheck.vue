@@ -9,25 +9,25 @@
           </a-form-item>
           <a-form-item label="词条状态" name="state">
             <a-select v-model:value="search.entryState" style="width: 186px" placeholder="请选择" size="small" :options='entryStates'
-              @click="clickInput"></a-select>
+              @click="clickInput" allowClear></a-select>
           </a-form-item>
           <a-form-item label="Tag" name="tag">
             <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="二级分类" name="classfy2">
             <a-select v-model:value="search.classfy2" style="width: 186px" placeholder="请选择" size="small" :fieldNames="{label:'name',value:'name'}"
-              :options='classify2Option' @click="clickInput"></a-select>
+              :options='classify2Option' @click="clickInput" allowClear></a-select>
           </a-form-item>
           <a-form-item label="词条来源" name="entrySource">
             <a-input v-model:value="search.entrySource" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="翻译语言" name="translateType">
             <a-select v-model:value="search.translateType" style="width: 186px" placeholder="请选择" size="small"
-              :fieldNames="{label:'name',value:'name'}" :options='translateTypes' @click="clickInput"></a-select>
+              :fieldNames="{label:'name',value:'name'}" :options='translateTypes' @click="clickInput" allowClear></a-select>
           </a-form-item>
           <a-form-item label="翻译状态" name="translateState">
             <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择" :options='translateStates' size="small"
-              @click="clickInput"></a-select>
+              @click="clickInput" allowClear></a-select>
           </a-form-item>
           <a-form-item label="翻译结果" name="translate">
             <a-input v-model:value="search.translate" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
@@ -107,6 +107,7 @@
   </div>
 </template>
 <script>
+import '@/assets/style/common.less'
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import stateBadge from "@/components/stateBadge/index.vue";
@@ -368,20 +369,6 @@ export default {
 }
 </style>
 <style lang="less">
-::v-deep .tag-content {
-  max-width: 90%;
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &:hover {
-    // max-width: none; /* 悬浮时取消最大宽度限制 */
-    // overflow: visible;
-    white-space: normal;
-  }
-}
-
 .editable-cell {
   position: relative;
 

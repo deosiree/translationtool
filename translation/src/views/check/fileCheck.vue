@@ -6,12 +6,12 @@
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
           <a-form-item label="模块名称" name="moduleName">
             <a-select v-model:value="search.moduleName" style="width: 186px" placeholder="请选择模块名称" :options='moduleNames' size="small"
-              @click="clickInput">
+              @click="clickInput" allowClear>
             </a-select>
           </a-form-item>
           <a-form-item label="问题类型" name="questionType">
             <a-select v-model:value="search.questionType" style="width: 186px" placeholder="请选择问题类型" :options='questionTypes' size="small"
-              @click="clickInput">
+              @click="clickInput" allowClear>
             </a-select>
           </a-form-item>
           <a-form-item label="校验路径" name="checkURL">

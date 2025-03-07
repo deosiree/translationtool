@@ -15,7 +15,7 @@
                             <a-input v-model:value="search.abbr" placeholder="请输入内容"></a-input>
                         </a-form-item> -->
             <a-form-item label="词条状态" name="state">
-              <a-select v-model:value="search.entryState" placeholder="请选择">
+              <a-select v-model:value="search.entryState" placeholder="请选择" allowClear>
                 <a-select-option value="0">新建</a-select-option>
                 <a-select-option value="1">审核中</a-select-option>
                 <a-select-option value="2">审核不通过</a-select-option>
@@ -27,7 +27,7 @@
             </a-form-item>
             <a-form-item label="二级分类" name="classfy2">
               <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
-              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'>
+              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option' allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="词条来源" name="entrySource">
@@ -36,11 +36,11 @@
           </a-row>
           <a-row style="width:100%;margin-top:8px">
             <a-form-item label="翻译语言" name="language">
-              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'>
+              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes' allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="翻译状态" name="translateState">
-              <a-select v-model:value="search.translateState" placeholder="请选择" :options='translateStates'>
+              <a-select v-model:value="search.translateState" placeholder="请选择" :options='translateStates' allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="翻译结果" name="translate">
@@ -60,8 +60,8 @@
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:label>
-        产品版本： <a-select v-model:value="currentVersion" allowClear style="width: 150px" placeholder="请选择版本" :options='productVersions'
-          :fieldNames="{label:'name',value:'id'}" size="small" @change="changeVersion">
+        产品版本： <a-select v-model:value="currentVersion" style="width: 150px" placeholder="请选择版本" :options='productVersions'
+          :fieldNames="{label:'name',value:'id'}" size="small" @change="changeVersion" allowClear>
         </a-select>
       </template>
       <template v-slot:operate>
@@ -159,7 +159,7 @@
                   <div>
                     <template v-if="editableData[record.id]">
                       <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                        :fieldNames="{label:'title',value:'title'}" :options='classify1Option' @change="getRowClassify2Option(record)">
+                        :fieldNames="{label:'title',value:'title'}" :options='classify1Option' @change="getRowClassify2Option(record)" allowClear>
                       </a-select>
                     </template>
                     <template v-else>
@@ -171,7 +171,7 @@
                   <div>
                     <template v-if="editableData[record.id]">
                       <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                        :fieldNames="{label:'name',value:'name'}" :options='rowClassify2Option[record.id]'>
+                        :fieldNames="{label:'name',value:'name'}" :options='rowClassify2Option[record.id]' allowClear>
                       </a-select>
                     </template>
                     <template v-else>
@@ -358,7 +358,7 @@
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="importModal">
         <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}">
+          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}" allowClear>
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
@@ -372,6 +372,7 @@
   </CustomModal>
 </template>
 <script>
+import '@/assets/style/common.less'
 import CustomModal from "@/components/modal/index.vue";
 import tableParam from "./tableParam.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
@@ -1666,20 +1667,6 @@ export default {
 @import url("@/assets/style/common.less");
 </style>
 <style scoped lang="less">
-::v-deep .tag-content {
-  max-width: 90%;
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &:hover {
-    // max-width: none; /* 悬浮时取消最大宽度限制 */
-    // overflow: visible;
-    white-space: normal;
-  }
-}
-
 .productEntryBox {
   padding: 0px 16px 16px 16px;
   width: 100%;

@@ -6,7 +6,7 @@
       <div class="table">
         <a-form ref="i18nURL" name="custom-validation">
           <a-form-item label="IP" name="ip">
-            <a-select v-model:value="i18nURL" :options="ipOptions" placeholder="请选择IP" @change="handleUpdate"></a-select>
+            <a-select v-model:value="i18nURL" :options="ipOptions" placeholder="请选择IP" @change="handleUpdate" allowClear></a-select>
           </a-form-item>
         </a-form>
         <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
@@ -142,36 +142,47 @@ export default {
         // i18nUrl: "http://10.17.43.20:18099/",
         classfyID: this.updateClassfyID,
         i18nUrl: this.i18nURL,
-      }).then((res) => {
-        // 都放到.then内，可以确保执行顺序
-        // console.log("查询来源中新增的词条", res.data.list);
-        // 设置默认全选
-        this.updateEntries = Object.values(res.data.list);
-        // console.log("newDataSource", this.updateEntries);
-        this.dataSource = [];
-        this.selectedRows = [];
-        this.selectedRowKeys = [];
-        if (this.updateEntries.length != 0) {
-          this.updateEntries.forEach((item) => {
-            const EntryVO = Object.values(item.sourceFileAndEntryVO);
-            const sourceType = item.type;
-            if (EntryVO.length != 0) {
-              EntryVO.forEach((item) => {
-                this.selectedRowKeys.push(item.sourceFile);
-                this.selectedRows.push({
-                  sourceFile: item.sourceFile,
-                  sourceType: sourceType,
-                  // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
+      })
+        .then((res) => {
+          // 都放到.then内，可以确保执行顺序
+          // console.log("查询来源中新增的词条", res.data.list);
+          // 设置默认全选
+          this.updateEntries = Object.values(res.data.list);
+          // console.log("newDataSource", this.updateEntries);
+          this.dataSource = [];
+          this.selectedRows = [];
+          this.selectedRowKeys = [];
+          if (this.updateEntries.length != 0) {
+            this.updateEntries.forEach((item) => {
+              const EntryVO = Object.values(item.sourceFileAndEntryVO);
+              const sourceType = item.type;
+              if (EntryVO.length != 0) {
+                EntryVO.forEach((item) => {
+                  this.selectedRowKeys.push(item.sourceFile);
+                  this.selectedRows.push({
+                    sourceFile: item.sourceFile,
+                    sourceType: sourceType,
+                    // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
+                  });
                 });
-              });
-            }
-          });
-          // console.log("selectedRowKeys", this.selectedRowKeys);
-          // console.log("selectedRows", this.selectedRows);
-        }
-        this.dataSource = this.selectedRows;
-        this.loading = false; //结束加载
-      });
+              }
+            });
+            // console.log("selectedRowKeys", this.selectedRowKeys);
+            // console.log("selectedRows", this.selectedRows);
+          }
+          this.dataSource = this.selectedRows;
+        })
+        .catch((error) => {
+          console.log("error", error);
+          if (error.status==200) {
+            message.error(`请求失败: ${error.data.operationObject}`);
+          }else{
+            message.error(`请求失败，状态码: ${error.data.operationObject}`);
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     handleClose() {
       this.init();

@@ -32,6 +32,7 @@
                         placeholder="请选择内容"
                         :options='translateTypes'
                         :fieldNames="{label:'name',value:'name'}"
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>

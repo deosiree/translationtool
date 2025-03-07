@@ -67,7 +67,7 @@
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
                   <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
-                    :fieldNames="{label:'name',value:'name'}">
+                    :fieldNames="{label:'name',value:'name'}" allowClear>
                   </a-select>
                   <template #footer>
                     <div style="text-align: center;">
@@ -180,6 +180,7 @@ export default {
       toDoNum: 0,
       finishNum: 0,
       labelCol: { style: { width: "84px" } },
+      lastSearch: {},
       search: {
         name: "",
         productName: "",
@@ -515,6 +516,7 @@ export default {
     },
     getTaskByCondition(data) {
       this.loading = true;
+      this.checkSearchChange();
       let params = {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
@@ -532,10 +534,11 @@ export default {
             // this.selectedRowIndex = null
             // this.showOperationArea = false
             // this.setTableHeight()
-            this.loading = false;
           })
           .catch((err) => {
             message.error("数据获取失败！");
+          })
+          .finally(() => {
             this.loading = false;
           });
       } else if (this.activeCard === 2) {
@@ -543,12 +546,28 @@ export default {
         getFinishTaskInfo(params, data)
           .then((res) => {
             this.dataSource = res.data.list;
-            this.loading = false;
           })
           .catch((err) => {
             message.error("数据获取失败！");
+          })
+          .finally(() => {
             this.loading = false;
           });
+      }
+    },
+    checkSearchChange() {
+      // 检测查询条件是否发生变化
+      let isChanged = false;
+      for (let key in this.search) {
+        if (this.search[key] !== this.lastSearch[key]) {
+          isChanged = true;
+          // console.log(`查询条件${key}发生变化:`, this.search[key], this.lastSearch[key]);
+          break;
+        }
+      }
+      if (isChanged) {
+        this.pagination.current = 1; // 查询条件变化，分页重置
+        this.lastSearch = { ...this.search }; // 保存查询条件
       }
     },
     handleResizeColumn: (w, col) => {

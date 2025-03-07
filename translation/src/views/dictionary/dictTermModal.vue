@@ -32,6 +32,7 @@
                     :options='translateTypes'
                     :fieldNames="{label:'name',value:'code'}"
                     @change="tranlateChange"
+                    allowClear
                     >
                     </a-select>
                 </a-form-item>

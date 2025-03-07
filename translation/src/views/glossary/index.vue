@@ -31,6 +31,7 @@
                         placeholder="请选择翻译类型"
                         :options='translateTypes'
                         :fieldNames="{label:'name',value:'name'}"
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>
@@ -43,6 +44,7 @@
                         style="width: 186px"
                         placeholder="请选择翻译状态"
                         :options='translateStates'
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>
@@ -55,6 +57,7 @@
                         style="width: 186px"
                         placeholder="请选择可见范围"
                         :options='visualRanges'
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>

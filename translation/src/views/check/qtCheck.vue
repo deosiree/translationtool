@@ -31,7 +31,7 @@
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
               :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
-              <template #bodyCell="{ column, record }">
+              <template #bodyCell="{ column, text, record }">
                 <!-- 词条列 -->
                 <template v-if="column.dataIndex === 'entry'">
                   <span>{{ record.entry }}</span>
@@ -44,7 +44,7 @@
                 <template v-if="column.dataIndex === 'tag'">
                   <span>
                     <a-tag color="cyan" class="tag-content">
-                      <span>{{ record.tag }}</span>
+                      <span>{{ text }}</span>
                     </a-tag>
                   </span>
                 </template>
@@ -63,6 +63,7 @@
   <QTCheckDetail ref="qtCheckDetail" :visible="detailModalVisible" :dataSource="detailDataSource" @detailClose="detailClose"></QTCheckDetail>
 </template>
 <script>
+import "@/assets/style/common.less";
 import { message, Modal } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
@@ -102,14 +103,14 @@ export default {
           title: "序号",
           dataIndex: "id",
           align: "center",
-          width: "5%",
+          width: 50,
           index: 0.1,
         },
         {
           title: "词条",
           dataIndex: "entry",
           align: "center",
-          width: "30%",
+          width: 300,
           resizable: true,
           index: 2,
         },
@@ -117,7 +118,7 @@ export default {
           title: "所属类",
           dataIndex: "category",
           align: "center",
-          width: "20%",
+          width: 100,
           resizable: true,
           index: 3,
         },
@@ -125,7 +126,7 @@ export default {
           title: "Tag",
           dataIndex: "tag",
           align: "center",
-          width: "30%",
+          width: 200,
           resizable: true,
           index: 4,
         },
@@ -133,7 +134,7 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: "15%",
+          width: 150,
           fixed: "right",
           index: 100,
         },
@@ -144,105 +145,70 @@ export default {
           id: 1,
           entry: "词条",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tag1111111111111111111111111111111111111111111111111111",
           operation: "详情",
         },
         {
           id: 2,
           entry: "词条2",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tag22222222222222222222222222222222222222222222222222222222222222",
           operation: "详情",
         },
         {
           id: 3,
           entry: "词条3",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tagvsfvsefsefsfsefesfsefiefieshfiwefwnfiwnfiwnfownefowenfowenf",
           operation: "详情",
         },
         {
-          id: 1,
+          id: 4,
           entry: "词条",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tageeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           operation: "详情",
         },
         {
-          id: 2,
+          id: 5,
           entry: "词条2",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tagfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           operation: "详情",
         },
         {
-          id: 3,
+          id: 6,
           entry: "词条3",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tag4444444444444444444444444444444444444444444444444444444444444444444",
           operation: "详情",
         },
         {
-          id: 1,
+          id: 7,
           entry: "词条",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tagbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           operation: "详情",
         },
         {
-          id: 2,
+          id: 8,
           entry: "词条2",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tagkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
           operation: "详情",
         },
         {
-          id: 3,
+          id: 9,
           entry: "词条3",
           category: "Offline",
-          tag: "Tag",
+          tag: "Tag99999999999999999999999999999999999999999999999999999999999999999999999999999999",
           operation: "详情",
         },
         {
-          id: 1,
+          id: 10,
           entry: "词条",
           category: "Offline",
-          tag: "Tag",
-          operation: "详情",
-        },
-        {
-          id: 2,
-          entry: "词条2",
-          category: "Offline",
-          tag: "Tag",
-          operation: "详情",
-        },
-        {
-          id: 3,
-          entry: "词条3",
-          category: "Offline",
-          tag: "Tag",
-          operation: "详情",
-        },
-        {
-          id: 1,
-          entry: "词条",
-          category: "Offline",
-          tag: "Tag",
-          operation: "详情",
-        },
-        {
-          id: 2,
-          entry: "词条2",
-          category: "Offline",
-          tag: "Tag",
-          operation: "详情",
-        },
-        {
-          id: 3,
-          entry: "词条3",
-          category: "Offline",
-          tag: "Tag",
+          tag: "Tag0000000000000000000000000000000000000000000000000000000000000000000000000",
           operation: "详情",
         },
         // ... 其他示例数据
@@ -468,7 +434,7 @@ export default {
     },
     // 表格列可伸缩
     handleResizeColumn: (w, col) => {
-      console.log('触发时机:', new Date().toISOString(), '新宽度:', w, '旧宽度:', col.width);
+      // console.log('触发时机:', new Date().toISOString(), '新宽度:', w, '旧宽度:', col.width);
       col.width = w;
     },
     // 设置表格每一行的class
@@ -509,20 +475,6 @@ export default {
 }
 </style>
 <style lang="less">
-::v-deep .tag-content {
-  max-width: 90%;
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &:hover {
-    // max-width: none; /* 悬浮时取消最大宽度限制 */
-    // overflow: visible;
-    white-space: normal;
-  }
-}
-
 .editable-cell {
   position: relative;
 

@@ -30,6 +30,7 @@
                     placeholder="请选择"
                     :options='typeList'
                     style="width:100%"
+                    allowClear
                     >
                     </a-select>
                 </a-form-item>
