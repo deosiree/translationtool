@@ -236,11 +236,18 @@ public class DiUtils {
                     dicName = dic;
                 }
                 headerParameters.put("dictionary", dicName);
-                String dicName1 = dicName.split("/")[1];
+                String dicName1 =dicName;
+                log.info("getDiEntry: " + i18nUrl + ConstantInterface.IMPORT_DICTIONARY + " fileName : " + dicName);
+                if (dicName.contains("/")){
+                    dicName1 = dicName.split("/")[1];
+                }
                 String s = httpUtils.get(i18nUrl + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
                 jsonArray = JSONArray.parseArray(s);
                 for (int i = 0; i < jsonArray.size(); i++) {
                     DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
+                    if (Objects.isNull(dictionaryVo.getTranslation())) {
+                        continue;
+                    }
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     entryInfoEntity.setEntry(dictionaryVo.getSource());

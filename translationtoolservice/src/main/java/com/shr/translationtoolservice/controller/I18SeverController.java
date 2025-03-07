@@ -681,10 +681,10 @@ public class I18SeverController extends BaseController {
         boolean tag = true;
         boolean comment = true;
         if (isTag == 0) {
-            tag = false;
+            tag = true;
         }
         if (isComment == 0) {
-            comment = false;
+            comment = true;
         }
         if (StringUtils.isNotBlank(taskID)) {
             if (CollectionUtils.isEmpty(entryInfoEntities)) {
@@ -872,7 +872,7 @@ public class I18SeverController extends BaseController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return checkResult(responseListModel, "i18n请求异常 ！ ");
+            return checkResult(null, "i18n请求异常 ！ ");
         }
         caseExistEntry(list, taskID);
         List<EntryInfoEntity> entryInfoEntities = buildRepeTempEntry(list, transType);
