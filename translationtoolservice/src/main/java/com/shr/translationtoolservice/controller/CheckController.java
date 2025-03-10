@@ -61,12 +61,12 @@ public class CheckController  extends BaseController{
         }
     }
 
-    @GetMapping("/searchCheckInfo")
+    @PostMapping("/searchCheckInfo")
     @ApiOperation("根据模块名称和问题名称进⾏校验")
     @CrossOrigin
     @Transactional
-    public HttpResponse<Map<String, Object>> searchCheckInfo( @RequestParam String url, @RequestParam String checkUrl ) {
-        JsonObject res = checkService.searchCheckInfo(url,checkUrl);
+    public HttpResponse<Map<String, Object>> searchCheckInfo( @RequestParam String url, @RequestParam String checkUrl,@RequestBody String params) {
+        JsonObject res = checkService.searchCheckInfo(url,checkUrl,params);
         if (!Objects.isNull(res)) {
             Gson gson = new Gson();
             Map<String, Object> resMap = gson.fromJson(res, Map.class);
