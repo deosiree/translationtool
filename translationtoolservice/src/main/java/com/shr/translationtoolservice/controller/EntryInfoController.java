@@ -184,17 +184,20 @@ public class EntryInfoController extends BaseController {
     @Token
     public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntity,
                                                                               @RequestParam(value = "classfyID") String classfyID,
+                                                                                 String translateType,
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
 
-        entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize);
+        entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
+
+
 
         responseListModel.setList(entryInfoEntities);
         //全选跳过汇总
         if (pageIndex != -1 && pageSize != -1) {
-            responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID));
+            responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID,translateType));
         }else {
             responseListModel.setTotalNum(entryInfoEntities.size());
         }
@@ -433,9 +436,9 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestBody String i18nUrl ,HttpServletRequest request) {
+    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request,@RequestBody Map<String,List<String>> soucreMap) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,request);
+        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,soucreMap);
         responseListModel.setList(entities);
         responseListModel.setTotalNum(entities.size());
         return checkResult(responseListModel);
@@ -475,10 +478,15 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("更新来源中新增的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse< String> updateEntryByClassfy(@RequestBody List<SourceEntryVO> sourceEntryVOS ) {
-
-       String result  = entryInfoService.updateEntryByEntrySource(sourceEntryVOS);
-        return checkResult(result);
+    public   HttpResponse< ResponseListModel<String>> updateEntryByClassfy(@RequestBody List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request ) {
+        ResponseListModel<String> responseListModel = new ResponseListModel<>();
+        List<String> result  = entryInfoService.updateEntryByEntrySource(sourceEntryVOS,request);
+        if (null == result){
+            return checkResult(null,"i18n 服务异常 ！");
+        }
+        responseListModel.setList(result);
+        responseListModel.setTotalNum(result.size());
+        return checkResult(responseListModel);
     }
 
     @PostMapping("/doWeight")

@@ -87,11 +87,11 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> replaceWords(List<EntryInfoEntity> entryInfoEntities, String sourceStr, String replaceStr,String translateType);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType);
 
-    int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID);
+    int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request);
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request,Map<String,List<String>> soucreMap);
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
 
@@ -99,5 +99,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     void doWeight();
 
-    String updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS);
+    List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 }

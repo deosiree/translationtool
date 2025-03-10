@@ -318,4 +318,12 @@
      select   <include refid="Base_Column_List"/>
       from t_task_info where id =  #{taskID}
     </select>
+    <select id="getTaskByIDList" resultType="com.shr.translationtoolservice.entity.TaskInfoEntity">
+        select   <include refid="Base_Column_List"/>
+        from t_task_info where id  in (
+        <foreach collection="taskIdList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
 </mapper>

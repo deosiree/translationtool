@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @Entity com.shr.translationtoolservice.entity.EntryInfoEntity
@@ -66,6 +67,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<EntryInfoEntity> getEntryByClassfyTotal(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
                                                  @Param("productidList")List<String> productidList);
+
+    List<EntryInfoEntity> getEntryByIDs(@Param("idList") Set<String> entryIdList);
 }
 
 

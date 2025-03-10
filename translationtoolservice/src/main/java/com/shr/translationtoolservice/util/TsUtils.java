@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -92,7 +93,9 @@ public class TsUtils {
                                             String taskID,String userName,String productId,String versionID,String translateType) throws Exception {
         List<TLanguage> tLanguages = languageMapper.selectList(new QueryWrapper<>());
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
-
+        if (CollectionUtils.isEmpty(fileNameSet)) {
+            return list;
+        }
         Date date = new Date(System.currentTimeMillis());
         for (String fileName : fileNameSet) {
             String entrySource = fileName;
@@ -107,19 +110,23 @@ public class TsUtils {
             JSONArray jsonArray = new JSONArray();
             String s = "";
 
-
+                log.info("getTsEntry: " + i18nUrl + ConstantInterface.GET_WORDS + " fileName : " + fileName);
                 s = httpUtils.get(i18nUrl + ConstantInterface.GET_WORDS, headerParameters);
 
                 jsonArray = JSONArray.parseArray(s);
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONArray jsonArray1 = JSONArray.parseArray(jsonArray.get(i).toString());
                     String entry = jsonArray1.get(0).toString();
+                    if (entry.length() > 1024) {
+                       continue;
+                    }
                     String translate = jsonArray1.getString(1);
                     String tag = jsonArray1.getString(2);
                     String comment = jsonArray1.getString(3);
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
                     //为了支持多语言，fileName截取前面一段作为entrySource  ,例：db_selector_comp_en_US.ts 截取db_selector_comp
+
 
                     entryInfoEntity.setEntrySource(entrySource);
                     entryInfoEntity.setEntryState(1);
