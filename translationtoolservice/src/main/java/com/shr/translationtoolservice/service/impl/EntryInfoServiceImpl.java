@@ -1929,8 +1929,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         List<EntryInfoEntity> res = new ArrayList<>();
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        if ("0".equals(entryInfoEntity.getEnglishTranslateState())
-                || "0".equals(entryInfoEntity.getRussianTranslateState()) || "0".equals(entryInfoEntity.getSpanishTranslateState()) || "0".equals(entryInfoEntity.getFrenchTranslateState())){
+        if (StringUtils.isNotBlank(entryInfoEntity.getEnglishTranslateState())
+                || StringUtils.isNotBlank(entryInfoEntity.getRussianTranslateState())
+                || StringUtils.isNotBlank(entryInfoEntity.getSpanishTranslateState())
+                || StringUtils.isNotBlank(entryInfoEntity.getFrenchTranslateState())){
              entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,-1,-1);
         }else {
            entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,offset,pageSize);
