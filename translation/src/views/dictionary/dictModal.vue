@@ -3,6 +3,7 @@
     :modalWidth="modalWidth" 
     :visible="visible" 
     :modalTitle="modalTitle"
+    :okLoading="okLoading"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
@@ -54,7 +55,8 @@ export default {
             type:String,
             default:"新增辞典"
         },
-        currentDict:{}
+        currentDict:{},
+        currentIP:null
     },
     data() {
         return{
@@ -70,7 +72,8 @@ export default {
                 {label:'配置文件',value:'config'},
                 {label:'i18n_tr',value:'tr'},
                 {label:'其他',value:'other'}
-            ]
+            ],
+            okLoading: false
         }
     },
     
@@ -90,19 +93,25 @@ export default {
             this.$emit("modalClose",false)
         },
         handleOK(){
+            this.okLoading = true
             this.$refs.dictRef.validate().then(() => {
 
                 let params = {
-                    dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name
+                    dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name,
+                    i18nUrl: this.currentIP
                 }
                 createDic(params).then((res) => {
                     message.success("创建成功！")
                     this.$emit("modalClose",true)
                     this.$emit('modalOK')
+                    this.okLoading = false
                 }).catch((err) => {
                     message.error("创建失败！")
+                    this.okLoading = false
                 })
-            })
+            }).catch(err => {
+                this.okLoading = false
+            });
             
         },
         afterClose(){

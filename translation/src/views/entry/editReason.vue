@@ -2,6 +2,7 @@
     <Modal
     :visible="visible" 
     :modalTitle="modalTitle"
+    :okLoading="okLoading"
     @handleClose="handleClose"
     @handleOK="handleOK"
     @afterClose="afterClose"
@@ -64,7 +65,8 @@ export default {
                 french: {idName:'fraTransId',chinese:'法文'},
                 spanish: {idName:'spaTransId',chinese:'西文'},
                 russian: {idName:'ruTransId',chinese:'俄文'},
-            }
+            },
+            okLoading: false
         }
     },
     
@@ -83,6 +85,7 @@ export default {
     methods: {
        
         handleOK(){
+            this.okLoading = true
             this.$refs.formRef.validate().then(() => {
                 // console.log(this.editEntry)
                 let params = {
@@ -94,6 +97,7 @@ export default {
                         this.$emit("editOk",entry)
                         message.success('已保存！')
                     })
+                    this.okLoading = false
                 })
                 
                 
@@ -171,6 +175,7 @@ export default {
                 // message.success("编辑成功！")
             }).catch(err => {
                 // console.log('error', err);
+                this.okLoading = false
             });
             
         },

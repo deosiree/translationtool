@@ -191,7 +191,7 @@
                                                 @click="clickInput"
                                                 @change="changeProduct(record)"
                                             >
-                                                <template #title="{ title }">
+                                                <!-- <template #title="{ title }">
                                                     <template
                                                         v-for="(fragment, i) in title
                                                             .toString()
@@ -206,7 +206,7 @@
                                                         </span>
                                                         <template v-else>{{ fragment }}</template>
                                                         </template>
-                                                </template>
+                                                </template> -->
                                             </a-tree-select>
                                             <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)"/>
                                         </a-form-item>
@@ -400,6 +400,7 @@ import OperationArea from '@/components/operationArea/index.vue'
 import TimeLine from '@/components/timeLine/index.vue'
 import ProductModal from '@/views/task/productModal.vue'
 import VersionModal from '@/views/task/versionModal.vue'
+import commen from '@/views/entry/common.js'
 import { cloneDeep, flatMap } from 'lodash-es';
 import {
   PlusOutlined,
@@ -1123,7 +1124,7 @@ export default {
                 copyTask.state = '0'
                 copyTask.name = copyTask.name+'(复制)'
                 copyTask.deliveryTime = null
-                copyTask.createTime = new Date().toLocaleString().replaceAll('/','-')
+                copyTask.createTime = commen.getCurrentFormattedTime()
                 copyTask.endTime = null
                 this.dataSource.unshift(copyTask)      
                 this.options[id] = {

@@ -61,17 +61,20 @@ public class CheckServiceImpl implements CheckService {
     }
 
     @Override
-    public JsonObject searchCheckInfo(String i18nUrl, String checkUrl) {
+    public JsonObject searchCheckInfo(String i18nUrl, String checkUrl,String params) {
         //通过调用10.17.14.115:18001/checkManage/getQuestionTypes接口获取数据
         String s = "";
-        JsonObject dataObject ;
+        JsonObject jsonObject;
         try {
-            s = httpUtils.get(i18nUrl + "checkManage/searchCheckInfo/" + checkUrl);
+            // s = httpUtils.get(i18nUrl + "checkManage/searchCheckInfo/" + checkUrl);
+            String address = i18nUrl + "/checkManage/searchCheckInfo/" + checkUrl;
+            // String body = 
+            s = httpUtils.proxyHttpRequest(address,"POST",null,params);
             //JSONObject jsonObject = new JSONObject();
 
-            JsonObject jsonObject = JsonParser.parseString(s).getAsJsonObject();
+            jsonObject = JsonParser.parseString(s).getAsJsonObject();
             // 提取 "data" 部分
-            dataObject = jsonObject.getAsJsonObject("data");
+            // dataObject = jsonObject.getAsJsonObject("data");
 
 
 
@@ -79,6 +82,6 @@ public class CheckServiceImpl implements CheckService {
             return null;
         }
 
-        return dataObject;
+        return jsonObject;
     }
 }

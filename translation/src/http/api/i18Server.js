@@ -20,10 +20,11 @@ export function getTsWords(params,data) {
 }
 
 //获取辞典列表
-export function getDictionary() {
+export function getDictionary(params) {
     return request({
         url: "/I18Sever/getDictionary",
-        method: "GET"
+        method: "GET",
+        params
     });
 }
 
@@ -37,10 +38,11 @@ export function getDictionaryEntry(params) {
 }
 
 //获取数据库节点信息
-export function getAllNode() {
+export function getAllNode(params) {
     return request({
         url: "/I18Sever/getAllNode",
-        method: "GET"
+        method: "GET",
+        params
     });
 }
 
@@ -119,11 +121,12 @@ export function setInfoByTask(params){
 }
 
 // 读取配置文件中的词条
-export function getConfigEntry(params){
+export function getConfigEntry(params,data){
     return request({
         url: "/I18Sever/getConfigEntry",
-        method: "GET",
-        params
+        method: "POST",
+        params,
+        data
     });
 }
 
@@ -167,11 +170,12 @@ export function getDBALLEntryByDB(params,data){
 }
 
 // 获取枚举文件词条
-export function getEnumEntry(params){
+export function getEnumEntry(params,data){
     return request({
         url: "/I18Sever/getEnumEntry",
-        method: "GET",
-        params
+        method: "POST",
+        params,
+        data
     });
 }
 
@@ -204,28 +208,31 @@ export function removeDicTerms(params,data){
 }
 
 // 新增辞典数据
-export function addDicTerm(params){
+export function addDicTerm(params,data){
     return request({
         url: "/I18Sever/addDicTerm",
-        method: "GET",
-        params
+        method: "POST",
+        params,
+        data
     });
 }
 
 // 编辑辞典数据
-export function updateDicTrans(params){
+export function updateDicTrans(params,data){
     return request({
         url: "/I18Sever/updateDicTrans",
-        method: "GET",
-        params
+        method: "POST",
+        params,
+        data
     });
 }
 
 // 获取全部辞典
-export function getInvalidDictionary(){
+export function getInvalidDictionary(params){
     return request({
         url: "/I18Sever/getInvalidDictionary",
-        method: "GET"
+        method: "GET",
+        params
     });
 }
 
@@ -245,5 +252,23 @@ export function importDictionaryEntry(params,data){
         method: "POST",
         params,
         data
+    });
+}
+
+// 批量配置文件列表
+export function getConfigList(params){
+    return request({
+        url: "/I18Sever/getConfigList",
+        method: "GET",
+        params
+    });
+}
+
+// 批量枚举文件列表
+export function getEnumList(params){
+    return request({
+        url: "/I18Sever/getEnumList",
+        method: "GET",
+        params
     });
 }

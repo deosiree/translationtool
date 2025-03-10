@@ -13,7 +13,8 @@ export default{
         {label: "一级分类",value: "classfy1",index:8},
         {label: "二级分类",value: "classfy2",index:9},
         {label: "词条来源",value: "entrySource",index:10},
-        {label: "回写辞典",value: "diFileName",index:11}
+        {label: "回写辞典",value: "diFileName",index:11},
+        {label: "Comment",value: "comment",index:11}
     ],
     checkedColumn: ["abbr", "englishInterpretation","chineseInterpretation"],
     overlayStyle:{

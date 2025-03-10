@@ -12,7 +12,15 @@ module.exports = defineConfig({
   },
   pluginOptions:{
     electronBuilder:{
-      nodeIntegration:true
+      nodeIntegration:true,
+      builderOptions: {
+        extraResources: [
+          {
+            from: 'env',                // 源文件夹（相对于项目根目录）
+            to: 'env',        // 目标文件夹（相对于打包后的应用的资源目录）
+          }
+        ],
+      }
     }
   },
   configureWebpack: {
