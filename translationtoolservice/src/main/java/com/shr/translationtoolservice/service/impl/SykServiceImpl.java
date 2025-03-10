@@ -5,6 +5,7 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 @Service
 public class SykServiceImpl implements SykService {
@@ -95,7 +99,10 @@ public class SykServiceImpl implements SykService {
                     SykEntryVO sykEntryVO = new SykEntryVO();
                     ProductEntity productEntity = productMapper.selectById(productRelationEntity.getProductId());
                     sykEntryVO.setProductName(productEntity.getName());
-                    sykEntryVO.setVersionName(versionMapper.selectById(productRelationEntity.getVersionId()).getName());
+                    if (StringUtils.isNotBlank(productRelationEntity.getVersionId())) {
+                        sykEntryVO.setVersionName(versionMapper.selectById(productRelationEntity.getVersionId()).getName());
+                    }
+
                     sykEntryVO.setTaskName(taskInfoMapper.selectById(productRelationEntity.getTaskId()).getName());
                     sykEntryVO.setId(entity.getId());
                     sykEntryVO.setEntry(translate.getEntry());
@@ -118,5 +125,60 @@ public class SykServiceImpl implements SykService {
 
         }
         return sykEntryVOS;
+    }
+
+    @Override
+    public List<TranslateEntity> getSykNotUsed() {
+        List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0));
+        List<EntryInfoEntity> entities = entryInfoMapper.selectList(new QueryWrapper<EntryInfoEntity>().eq("is_delete", 0));
+        processTranslateEntity(translateEntityList,entities);
+
+        return translateEntityList.stream().filter(translateEntity -> translateEntity.getDeleteState() == 1).collect(Collectors.toList());
+    }
+
+    private void processTranslateEntity(List<TranslateEntity> translateEntityList,List<EntryInfoEntity> entities) {
+        int numberOfThreads = 32; // Number of threads to use
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        int chunkSize = translateEntityList.size() / numberOfThreads;
+        for (int i = 0; i < numberOfThreads; i++) {
+            int start = i * chunkSize;
+            int end = (i == numberOfThreads - 1) ? translateEntityList.size() : (i + 1) * chunkSize;
+            List<TranslateEntity> sublist = translateEntityList.subList(start, end);
+
+            new Thread(() -> {
+                try {
+                    for (TranslateEntity translateEntity : sublist) {
+                        //开始全删
+                        translateEntity.setDeleteState(1);
+
+                        if (CollectionUtils.isEmpty(entities)) {
+                            continue;
+                        }
+
+                        for (EntryInfoEntity entity : entities) {
+                            //如果有一个词条使用了翻译 则不删除
+                            if (translateEntity.getId().equals(entity.getEnTransId())
+                                    || translateEntity.getId().equals(entity.getFraTransId())
+                                    || translateEntity.getId().equals(entity.getSpaTransId())
+                                    || translateEntity.getId().equals(entity.getRuTransId())) {
+                                translateEntity.setDeleteState(0);
+                                break;
+                            }
+                        }
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        try {
+            latch.await(); // Wait for all threads to finish
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+
     }
 }
