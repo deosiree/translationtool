@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
@@ -2017,7 +2018,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request) {
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap) {
         //todo:
         //1.调用i18n接口 获取ts 所有词条
         //2.调用di接口 获取di 所有词条
@@ -2026,9 +2027,337 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //5.返回未使用词条
 
 
+
+        List<String> productidList = new ArrayList<>();
+        getProductClassfyList(classfyID,productidList);
+        //通过关联表获取所有任务id
+        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().in("product_id", productidList));
+        Set<String> entryIdList = new HashSet<>();
+
+        for (ProductRelationEntity productRelationEntity : productRelationEntities) {
+            if (StringUtils.isBlank(productRelationEntity.getTaskId())){
+                //打印详细信息
+                log.warn("当前产品没有关联任务,任务id为空,产品id为:{},词条id为：{}",productRelationEntity.getProductId(),productRelationEntity.getEntryId());
+                continue;
+            }
+            entryIdList.add(productRelationEntity.getEntryId());
+        }
+        List<EntryInfoEntity> entities = entryInfoMapper.getEntryByIDs(entryIdList);
+        //按照导入类型分类
+        Map<String, List<EntryInfoEntity>> entryMap = new HashMap<>();
+        for (EntryInfoEntity entity : entities) {
+            if (StringUtils.isNotBlank(entity.getImportType())){
+                if (entryMap.containsKey(entity.getImportType())){
+                    entryMap.get(entity.getImportType()).add(entity);
+                }else {
+                    List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+                    entryInfoEntities.add(entity);
+                    entryMap.put(entity.getImportType(),entryInfoEntities);
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(entryMap)){
+            return new ArrayList<>();
+        }
+
+        //查询ts 冗余词条
+        List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),soucreMap.get(ConstantInterface.TS));
+        //查询di 冗余词条
+        List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),soucreMap.get(ConstantInterface.DI));
+        //查询 元数据 冗余词条 暂不开放
+       // List<EntryInfoEntity> dbnoUsedEntrys = getDBNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DB),soucreMap.get(ConstantInterface.DB));
+        //查询 枚举 冗余词条
+        List<EntryInfoEntity> enumnoUsedEntrys =  getENUMNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.ENUM),soucreMap.get(ConstantInterface.ENUM));
+        //查询 配置文件 冗余词条
+        List<EntryInfoEntity> confignoUsedEntrys =  getCONFIGNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.CONFIG),soucreMap.get(ConstantInterface.CONFIG));
+        List<EntryInfoEntity> allEntrys = new ArrayList<>();
+        allEntrys.addAll(tsnoUsedEntrys);
+        allEntrys.addAll(dinoUsedEntrys);
+        allEntrys.addAll(enumnoUsedEntrys);
+        allEntrys.addAll(confignoUsedEntrys);
+
+        //合并返回
+
+
+
      /*   List<EntryInfoEntity> tsEntry = tsUtils.getTsEntry(i18nUrl);
         List<EntryInfoEntity> diEntry = diUtils.getDiEntry(i18nUrl);*/
-        return Collections.emptyList();
+        return allEntrys;
+    }
+
+    private List<EntryInfoEntity> getCONFIGNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> configList) {
+        List<EntryInfoEntity> dbSourceEntrys = new ArrayList<>();
+        Set<String> fileSet = new HashSet<>();
+        if ( CollectionUtils.isEmpty(entryInfoEntities)){
+            return new ArrayList<>();
+        }
+        if (CollectionUtils.isEmpty(configList)){
+            configList = new ArrayList<>();
+        }
+        //去除白名单中的词条
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.CONFIG) && !configList.contains(entryInfoEntity.getEntrySource())){
+                    dbSourceEntrys.add(entryInfoEntity);
+                    fileSet.add(entryInfoEntity.getEntrySource());
+                }
+            }
+        }
+        //查找i18n 词条
+        List<EntryInfoEntity> configEntry = new ArrayList<>();
+        try {
+            configEntry = i18nService.getCONFIGEntryBySource(i18nUrl,fileSet, "", "", "", "", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        //对比数据库词条，冗余的词条存起来
+        List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
+        for (EntryInfoEntity dbEntryEntity : dbSourceEntrys) {
+            if (StringUtils.isBlank(dbEntryEntity.getComment())){
+                dbEntryEntity.setComment("");
+            }
+            if (StringUtils.isBlank(dbEntryEntity.getTag())){
+                dbEntryEntity.setTag("");
+            }
+            for (EntryInfoEntity entryInfoEntity : configEntry) {
+                if (StringUtils.isBlank(entryInfoEntity.getComment())){
+                    entryInfoEntity.setComment("");
+                }
+                if (StringUtils.isBlank(entryInfoEntity.getTag())){
+                    entryInfoEntity.setTag("");
+                }
+                if (entryInfoEntity.getEntry().equals(dbEntryEntity.getEntry())
+                        && entryInfoEntity.getTag().equals(dbEntryEntity.getTag())
+                        && entryInfoEntity.getComment().equals(dbEntryEntity.getComment())
+                        && entryInfoEntity.getEntrySource().equals(dbEntryEntity.getEntrySource())){
+                    continue;
+                }
+                noUsedEntrys.add(dbEntryEntity);
+            }
+        }
+        return noUsedEntrys;
+
+    }
+
+    private List<EntryInfoEntity> getENUMNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> enumList) {
+        List<EntryInfoEntity> dbSourceEntrys = new ArrayList<>();
+        Set<String> fileSet = new HashSet<>();
+        if ( CollectionUtils.isEmpty(entryInfoEntities)){
+            return new ArrayList<>();
+        }
+        if (CollectionUtils.isEmpty(enumList)){
+            enumList = new ArrayList<>();
+        }
+        //去除白名单中的词条
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.ENUM) && !enumList.contains(entryInfoEntity.getEntrySource())){
+                    dbSourceEntrys.add(entryInfoEntity);
+                    fileSet.add(entryInfoEntity.getEntrySource());
+                }
+            }
+        }
+        //查找i18n 词条
+        List<EntryInfoEntity> enumEntry = new ArrayList<>();
+        try {
+            enumEntry = i18nService.getENUMEntryBySource(i18nUrl,fileSet, "", "", "", "", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        //对比数据库词条，冗余的词条存起来
+        List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
+        for (EntryInfoEntity dbEntryEntity : dbSourceEntrys) {
+
+            if (StringUtils.isBlank(dbEntryEntity.getTag())){
+                dbEntryEntity.setTag("");
+            }
+            if (StringUtils.isBlank(dbEntryEntity.getComment())){
+                dbEntryEntity.setComment("");
+            }
+            for (EntryInfoEntity entryInfoEntity : enumEntry) {
+                if (StringUtils.isBlank(entryInfoEntity.getComment())){
+                    entryInfoEntity.setComment("");
+                }
+                if (StringUtils.isBlank(entryInfoEntity.getTag())){
+                    entryInfoEntity.setTag("");
+                }
+                if (entryInfoEntity.getEntry().equals(dbEntryEntity.getEntry())
+                        && entryInfoEntity.getTag().equals(dbEntryEntity.getTag())
+                        && entryInfoEntity.getComment().equals(dbEntryEntity.getComment())
+                        && entryInfoEntity.getEntrySource().equals(dbEntryEntity.getEntrySource())){
+                    continue;
+                }
+                noUsedEntrys.add(dbEntryEntity);
+            }
+        }
+        return noUsedEntrys;
+
+
+    }
+
+    private List<EntryInfoEntity> getDBNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> dbList) {
+        List<EntryInfoEntity> dbSourceEntrys = new ArrayList<>();
+        Set<String> fileSet = new HashSet<>();
+        //去除白名单中的词条
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.DB) && !dbList.contains(entryInfoEntity.getEntrySource())){
+                    dbSourceEntrys.add(entryInfoEntity);
+                    fileSet.add(entryInfoEntity.getEntrySource());
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(fileSet)){
+            return new ArrayList<>();
+        }
+
+        //查找i18n 词条
+        List<EntryInfoEntity> dbEntry = new ArrayList<>();
+        try {
+            dbEntry = i18nService.getDBEntryBySource(i18nUrl,fileSet, "", "", "", "", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        //对比数据库词条，冗余的词条存起来
+        List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
+        for (EntryInfoEntity dbEntryEntity : dbSourceEntrys) {
+            for (EntryInfoEntity entryInfoEntity : dbEntry) {
+                if (entryInfoEntity.getEntry().equals(dbEntryEntity.getEntry())
+                        && entryInfoEntity.getTag().equals(dbEntryEntity.getTag())
+                        && entryInfoEntity.getComment().equals(dbEntryEntity.getComment())
+                        && entryInfoEntity.getEntrySource().equals(dbEntryEntity.getEntrySource())){
+                    continue;
+                }
+                noUsedEntrys.add(dbEntryEntity);
+            }
+        }
+        return noUsedEntrys;
+    }
+
+    private List<EntryInfoEntity> getDINoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> diList) {
+        List<EntryInfoEntity> diSourceEntrys = new ArrayList<>();
+        Set<String> fileSet = new HashSet<>();
+        if ( CollectionUtils.isEmpty(entryInfoEntities)){
+           return new ArrayList<>();
+        }
+        if (CollectionUtils.isEmpty(diList)){
+            diList = new ArrayList<>();
+        }
+        //去除白名单中的词条
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.DI) && !diList.contains(entryInfoEntity.getEntrySource())){
+                    diSourceEntrys.add(entryInfoEntity);
+                    fileSet.add(entryInfoEntity.getEntrySource());
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(fileSet)){
+            return new ArrayList<>();
+        }
+
+        //查找i18n 词条
+        List<EntryInfoEntity> diEntry = new ArrayList<>();
+        try {
+            diEntry = diUtils.getDiEntry(i18nUrl,fileSet, "", "", "", "", "");
+        } catch (Exception e) {
+          e.printStackTrace();
+            return null;
+        }
+
+        //对比数据库词条，冗余的词条存起来
+        List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
+
+        for (EntryInfoEntity diEntryEntity : diSourceEntrys) {
+            for (EntryInfoEntity entryInfoEntity : diEntry) {
+                if (StringUtils.isBlank(entryInfoEntity.getComment())){
+                    entryInfoEntity.setComment("");
+                }
+                if (StringUtils.isBlank(entryInfoEntity.getTag())){
+                    entryInfoEntity.setTag("");
+                }
+                if (StringUtils.isBlank(diEntryEntity.getTag())){
+                    diEntryEntity.setTag("");
+                }
+                if (StringUtils.isBlank(diEntryEntity.getComment())){
+                    diEntryEntity.setComment("");
+                }
+                if (diEntryEntity.getEntry().equals(entryInfoEntity.getEntry())
+                        && diEntryEntity.getTag().equals(entryInfoEntity.getTag())
+                        && diEntryEntity.getComment().equals(entryInfoEntity.getComment())
+                        && diEntryEntity.getEntrySource().equals(entryInfoEntity.getEntrySource())){
+                    continue;
+                }
+                noUsedEntrys.add(diEntryEntity);
+            }
+        }
+        return noUsedEntrys;
+    }
+
+    private List<EntryInfoEntity> getTSNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities,  List<String> tsList) {
+        List<EntryInfoEntity> tsSourceEntrys = new ArrayList<>();
+        Set<String> fileSet = new HashSet<>();
+        if ( CollectionUtils.isEmpty(entryInfoEntities)){
+            return new ArrayList<>();
+        }
+        if (CollectionUtils.isEmpty(tsList)){
+            tsList = new ArrayList<>();
+        }
+        //去除白名单中的词条
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.TS) && !tsList.contains(entryInfoEntity.getEntrySource())){
+                    tsSourceEntrys.add(entryInfoEntity);
+                    fileSet.add(entryInfoEntity.getEntrySource());
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(fileSet)){
+            return new ArrayList<>();
+        }
+
+        //查找i18n 词条
+        List<EntryInfoEntity> i18ntsEntry = new ArrayList<>();
+        try {
+            i18ntsEntry = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        //对比数据库词条，冗余的词条存起来
+        List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
+        for (EntryInfoEntity tsEntryEntity : tsSourceEntrys) {
+            for (EntryInfoEntity entryInfoEntity : i18ntsEntry) {
+                if (StringUtils.isBlank(entryInfoEntity.getComment())){
+                    entryInfoEntity.setComment("");
+                }
+                if (StringUtils.isBlank(entryInfoEntity.getTag())){
+                    entryInfoEntity.setTag("");
+                }
+                if (StringUtils.isBlank(tsEntryEntity.getTag())){
+                    tsEntryEntity.setTag("");
+                }
+                if (StringUtils.isBlank(tsEntryEntity.getComment())){
+                    tsEntryEntity.setComment("");
+                }
+                if (entryInfoEntity.getEntry().equals(tsEntryEntity.getEntry())
+                        && entryInfoEntity.getTag().equals(tsEntryEntity.getTag())
+                        && entryInfoEntity.getComment().equals(tsEntryEntity.getComment())
+                        && entryInfoEntity.getEntrySource().equals(tsEntryEntity.getEntrySource())){
+                    continue;
+                }
+                noUsedEntrys.add(tsEntryEntity);
+            }
+        }
+
+
+        return noUsedEntrys;
     }
 
     @Override
@@ -2160,6 +2489,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<TaskEntryVO> taskEntryVOS = new ArrayList<>();
         Set<String> allTSfileSet = new HashSet<>();
         Set<String> allDIfileSet = new HashSet<>();
+        Set<String> allENUMfileSet = new HashSet<>();
+        Set<String> allCONFIGfileSet = new HashSet<>();
+        Set<String> allDBfileSet = new HashSet<>();
 
         //遍历任务id 获取每个任务的词条
         for (String taskID : taskIDList) {
@@ -2181,28 +2513,52 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<EntryInfoEntity> entryByTaskID = entryInfoMapper.getEntryByTaskID(taskID,"t_entry_info");
             List<String> tsEntryList = new ArrayList<>();
             List<String> diEntryList = new ArrayList<>();
+            List<String> enumEntryList = new ArrayList<>();
+            List<String> configEntryList = new ArrayList<>();
+            List<String> dbEntryList = new ArrayList<>();
             Set<String> tsfileSet = new HashSet<>();
             Set<String> difileSet = new HashSet<>();
+            Set<String> enumfileSet = new HashSet<>();
+            Set<String> configfileSet = new HashSet<>();
+            Set<String> dbfileSet = new HashSet<>();
             for (EntryInfoEntity entryInfoEntity : entryByTaskID) {
-                if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
-                    if (entryInfoEntity.getImportType().equals(ConstantInterface.TS)){
+                if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())) {
+                    if (entryInfoEntity.getImportType().equals(ConstantInterface.TS)) {
                         tsEntryList.add(entryInfoEntity.getEntry());
                         tsfileSet.add(entryInfoEntity.getEntrySource());
-                    }else if (entryInfoEntity.getImportType().equals(ConstantInterface.DI)){
+                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.DI)) {
                         diEntryList.add(entryInfoEntity.getEntry());
                         difileSet.add(entryInfoEntity.getEntrySource());
+                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.ENUM)) {
+                        enumEntryList.add(entryInfoEntity.getEntry());
+                        enumfileSet.add(entryInfoEntity.getEntrySource());
+                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.CONFIG)) {
+                        configEntryList.add(entryInfoEntity.getEntry());
+                        configfileSet.add(entryInfoEntity.getEntrySource());
+                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.DB)) {
+                        dbEntryList.add(entryInfoEntity.getEntry());
+                        dbfileSet.add(entryInfoEntity.getEntrySource());
                     }
                 }
             }
             //调用i18n接口获取ts词条
             allTSfileSet.addAll(tsfileSet);
             allDIfileSet.addAll(difileSet);
+            allENUMfileSet.addAll(enumfileSet);
+            allCONFIGfileSet.addAll(configfileSet);
+            allDBfileSet.addAll(dbfileSet);
 
             List<EntryInfoEntity> tsEntry = new ArrayList<>();
             List<EntryInfoEntity> diEntry = new ArrayList<>();
+            List<EntryInfoEntity> enumEntry = new ArrayList<>();
+            List<EntryInfoEntity> configEntry = new ArrayList<>();
+            List<EntryInfoEntity> dbEntry = new ArrayList<>();
             try {
                 tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error(e.getMessage());
@@ -2210,8 +2566,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             //合并ts和di词条
             List<EntryInfoEntity> allEntry = new ArrayList<>();
+            allEntry.addAll(enumEntry);
             allEntry.addAll(tsEntry);
             allEntry.addAll(diEntry);
+            allEntry.addAll(configEntry);
             //对比数据库词条
             ArrayList<EntryInfoEntity> newEntry = new ArrayList<>();
             entryUtils.caseNewEntry(allEntry, taskID,newEntry);
@@ -2228,6 +2586,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<SourceEntryVO> sourceList = new ArrayList<>();
         List<SourceFileAndEntryVO> sourceTSFileAndEntryVOS = reduceSourceFileAndEntryVO(allTSfileSet, taskEntryVOS);
         List<SourceFileAndEntryVO> sourceDIFileAndEntryVOS = reduceSourceFileAndEntryVO(allDIfileSet, taskEntryVOS);
+        List<SourceFileAndEntryVO> sourceENUMFileAndEntryVOS = reduceSourceFileAndEntryVO(allENUMfileSet, taskEntryVOS);
+        List<SourceFileAndEntryVO> sourceCONFIGFileAndEntryVOS = reduceSourceFileAndEntryVO(allCONFIGfileSet, taskEntryVOS);
+        List<SourceFileAndEntryVO> sourceDBFileAndEntryVOS = reduceSourceFileAndEntryVO(allDBfileSet, taskEntryVOS);
+
         if (!CollectionUtils.isEmpty(sourceTSFileAndEntryVOS)){
             SourceEntryVO sourceEntryVO = new SourceEntryVO();
             sourceEntryVO.setType(ConstantInterface.TS);
@@ -2240,6 +2602,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             sourceEntryVO.setSourceFileAndEntryVO(sourceDIFileAndEntryVOS);
             sourceList.add(sourceEntryVO);
         }
+        if (!CollectionUtils.isEmpty(sourceENUMFileAndEntryVOS)){
+            SourceEntryVO sourceEntryVO = new SourceEntryVO();
+            sourceEntryVO.setType(ConstantInterface.ENUM);
+            sourceEntryVO.setSourceFileAndEntryVO(sourceENUMFileAndEntryVOS);
+            sourceList.add(sourceEntryVO);
+        }
+        if (!CollectionUtils.isEmpty(sourceCONFIGFileAndEntryVOS)){
+            SourceEntryVO sourceEntryVO = new SourceEntryVO();
+            sourceEntryVO.setType(ConstantInterface.CONFIG);
+            sourceEntryVO.setSourceFileAndEntryVO(sourceCONFIGFileAndEntryVOS);
+            sourceList.add(sourceEntryVO);
+        }
+
 
         return sourceList;
     }
@@ -2345,8 +2720,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<String> taskNames = new ArrayList<>();
         List<TaskInfoEntity> taskInfoEntities = taskInfoMapper.getTaskByIDList(taskIdList);
         for (TaskInfoEntity taskInfoEntity : taskInfoEntities) {
+            //已归档的任务跳过
             if (taskInfoEntity.getState().equals("6")){
-                taskInfoEntity.setState("5");
+               continue;
             }
             if (0 == taskInfoEntity.getIsDelete()){
                 taskInfoMapper.updateById(taskInfoEntity);

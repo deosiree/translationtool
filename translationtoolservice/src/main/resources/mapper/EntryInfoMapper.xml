@@ -1001,5 +1001,9 @@
                             where t1.id = t2.entry_id and t1.is_delete = 0 and import_type = 'DI' and task_id = #{taskID,jdbcType=VARCHAR} group by entry_source
 
     </select>
+    <select id="getEntryByIDs" resultMap="BaseResultMap" >
+        select <include refid="Base_Column_List"/> from t_entry_info where id in ( <foreach collection="idList" item="id" separator="," >#{id}</foreach>)
+
+    </select>
 
 </mapper>

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -92,7 +93,9 @@ public class TsUtils {
                                             String taskID,String userName,String productId,String versionID,String translateType) throws Exception {
         List<TLanguage> tLanguages = languageMapper.selectList(new QueryWrapper<>());
         ArrayList<EntryInfoEntity> list = new ArrayList<>();
-
+        if (CollectionUtils.isEmpty(fileNameSet)) {
+            return list;
+        }
         Date date = new Date(System.currentTimeMillis());
         for (String fileName : fileNameSet) {
             String entrySource = fileName;

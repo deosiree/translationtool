@@ -6,10 +6,10 @@ import com.shr.translationtoolservice.dao.TLanguageMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
+import com.shr.translationtoolservice.entity.vo.TDBFieldInfo;
+import com.shr.translationtoolservice.entity.vo.TDBTableInfo;
 import com.shr.translationtoolservice.service.I18nService;
-import com.shr.translationtoolservice.util.DiUtils;
-import com.shr.translationtoolservice.util.HTTPUtils;
-import com.shr.translationtoolservice.util.TsUtils;
+import com.shr.translationtoolservice.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
@@ -18,10 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -46,6 +43,8 @@ public class I18nServiceImpl implements I18nService {
     private String I18URL;
     @Autowired
     private TranslateMapper translateMapper;
+    @Autowired
+    private CommonUtils commonUtils;
 
     @Autowired
     private TLanguageMapper languageMapper;
@@ -323,6 +322,197 @@ public class I18nServiceImpl implements I18nService {
             return list;
         }
         return list;
+    }
+
+    @Override
+    public List<EntryInfoEntity> getDBEntryBySource(String i18nUrl, Set<String> dbSet, String taskID, String userName, String productId, String versionID, String translateType) {
+        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        Date date = new Date(System.currentTimeMillis());
+        for (String dbSec : dbSet) {
+            String[] split = dbSec.split(ConstantInterface.UNDERLINE);
+            if (split.length != 4) {
+                continue;
+            }
+            String nodeName = dbSec.split(ConstantInterface.UNDERLINE)[0];
+            String appName = dbSec.split(ConstantInterface.UNDERLINE)[1];
+            String dbName = dbSec.split(ConstantInterface.UNDERLINE)[2];
+            String tbName = dbSec.split(ConstantInterface.UNDERLINE)[3];
+            if (StringUtils.isBlank(i18nUrl)) {
+                i18nUrl = I18URL;
+            }
+            JSONArray jsonArray = new JSONArray();
+            String s = "";
+            try {
+                Map<String, String> headerParameters = new HashMap<>();
+                headerParameters.put("dbName", dbName);
+                headerParameters.put("appName", appName);
+                headerParameters.put("nodeName", nodeName);
+                s = httpUtils.get(i18nUrl + ConstantInterface.GET_ALIAS, headerParameters);
+                jsonArray = JSONArray.parseArray(s);
+
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    String source = nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName;
+                    TDBTableInfo tdbTableInfo = JSONArray.parseObject(jsonArray.getString(i), TDBTableInfo.class);
+                    source = source + ConstantInterface.UNDERLINE  + tdbTableInfo.getCommon();
+                    if (StringUtils.isNotBlank(tdbTableInfo.getAliasName())) {
+                        //将表的别名写入词条
+                        EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                        entryInfoEntity.setId(commonUtils.getUUID());
+                        entryInfoEntity.setEntry(tdbTableInfo.getAliasName());
+                        entryInfoEntity.setDiFileName("db/" + dbName);
+                        entryInfoEntity.setEntrySource(source);
+                        //  entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                        entryInfoEntity.setEntryState(1);
+                        entryInfoEntity.setVersionID(versionID);
+                        entryInfoEntity.setTaskId(taskID);
+                        entryInfoEntity.setIsDelete(0);
+                        entryInfoEntity.setImportType(ConstantInterface.DB);
+                        entryInfoEntity.setWriteType(ConstantInterface.DI);
+                        entryInfoEntity.setProductID(productId);
+                        entryInfoEntities.add(entryInfoEntity);
+                    }
+
+
+                    //写表下的别名
+                    List<TDBFieldInfo> fields = tdbTableInfo.getFields();
+                    for (TDBFieldInfo fieldInfo : fields) {
+                        if (StringUtils.isBlank(fieldInfo.getAliasName())) {
+                            continue;
+                        }
+                        EntryInfoEntity fieldEntry = new EntryInfoEntity();
+                        fieldEntry.setId(commonUtils.getUUID());
+                        fieldEntry.setEntry(fieldInfo.getAliasName());
+                        fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+                        fieldEntry.setEntryState(1);
+                        fieldEntry.setDiFileName("db/" + dbName);
+                        fieldEntry.setEntrySource(source + "_" + tdbTableInfo.getTableName());
+                        fieldEntry.setIsDelete(0);
+                        fieldEntry.setUpdateTime(date);
+                        fieldEntry.setUpdate(userName);
+                        fieldEntry.setProductID(productId);
+                        fieldEntry.setImportType(ConstantInterface.DB);
+                        fieldEntry.setWriteType(ConstantInterface.DI);
+                        entryInfoEntities.add(fieldEntry);
+                    }
+                }
+
+                log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+
+           // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+            //entryInfoEntities.addAll(entryInfoMapper.getDBEntryBySource(i18nUrl, dbName, taskID, userName, productId, versionID, translateType));
+        }
+
+        return entryInfoEntities;
+       // fieldEntry.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tdbTableInfo.getTableName());
+    }
+
+    @Override
+    public List<EntryInfoEntity> getENUMEntryBySource(String i18nUrl, Set<String> fileSet,  String taskID, String userName, String productId, String versionID, String translateType) throws Exception {
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+
+        Date date = new Date(System.currentTimeMillis());
+
+
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
+
+            for (String fileName : fileSet) {
+                if (fileName.contains("/")){
+                    fileName = fileName.split("/")[1];
+                }
+                JSONArray jsonArray = new JSONArray();
+                String s = "";
+                Map<String, String> headerParameters = new HashMap<>();
+                headerParameters.put("fileName", fileName);
+                s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_ENTRY, headerParameters);
+                jsonArray = JSONArray.parseArray(s);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
+
+                    //将表的别名写入词条
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID());
+                    entryInfoEntity.setEntry(fieldInfo.getFieldName());
+                    entryInfoEntity.setDiFileName("enum/" + fieldInfo.getDb_name());
+                    entryInfoEntity.setEntrySource(fieldInfo.getCommon());
+                    //entryInfoEntity.setTag(fieldInfo.getCommon());
+                    entryInfoEntity.setUpdateTime(date);
+                    entryInfoEntity.setUpdate(userName);
+                    // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setImportType(ConstantInterface.ENUM);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntity.setIsDelete(0);
+                    entryInfoEntities.add(entryInfoEntity);
+
+
+                }
+            }
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_ENUM_ENTRY);
+
+        return entryInfoEntities;
+    }
+
+    @Override
+    public List<EntryInfoEntity> getCONFIGEntryBySource(String i18nUrl, Set<String> configfileSet, String taskID, String userName, String productId, String versionID, String translateType) throws Exception {
+
+        ArrayList<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+
+        Date date = new Date(System.currentTimeMillis());
+
+        if (StringUtils.isBlank(i18nUrl)) {
+            i18nUrl = I18URL;
+        }
+
+            for (String fileName : configfileSet){
+                JSONArray jsonArray = new JSONArray();
+                String s = "";
+                Map<String, String> headerParameters = new HashMap<>();
+                headerParameters.put("fileName", fileName);
+                s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONGIF_ENTRY,headerParameters);
+                jsonArray = JSONArray.parseArray(s);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    TDBFieldInfo fieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
+
+                    //将表的别名写入词条
+                    EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                    entryInfoEntity.setId(commonUtils.getUUID());
+                    entryInfoEntity.setEntry(fieldInfo.getFieldName());
+                    //String[] split = fieldInfo.getDb_name().split("/");
+                    String replace = fieldInfo.getDb_name().replace("/", "_");
+                    entryInfoEntity.setDiFileName("config/" + replace);
+                    //entryInfoEntity.setDiFileName("config/" + fieldInfo.getDb_name().split("\\.")[0]);
+                    entryInfoEntity.setEntrySource(fieldInfo.getCommon());
+                    // entryInfoEntity.setTag(fieldInfo.getCommon());
+                    // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
+                    entryInfoEntity.setEntryState(1);
+                    entryInfoEntity.setUpdateTime(date);
+                    entryInfoEntity.setUpdate(userName);
+                    entryInfoEntity.setVersionID(versionID);
+                    entryInfoEntity.setTaskId(taskID);
+                    entryInfoEntity.setIsDelete(0);
+
+                    entryInfoEntity.setImportType(ConstantInterface.CONFIG);
+                    entryInfoEntity.setWriteType(ConstantInterface.DI);
+                    entryInfoEntity.setProductID(productId);
+                    entryInfoEntities.add(entryInfoEntity);
+
+
+                }
+            }
+            log.info(" start send http request : " + i18nUrl + ConstantInterface.GET_APP_BYNODE);
+
+
+
+        return entryInfoEntities;
     }
 
 

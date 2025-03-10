@@ -436,9 +436,9 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestBody String i18nUrl ,HttpServletRequest request) {
+    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request,@RequestBody Map<String,List<String>> soucreMap) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,request);
+        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,soucreMap);
         responseListModel.setList(entities);
         responseListModel.setTotalNum(entities.size());
         return checkResult(responseListModel);

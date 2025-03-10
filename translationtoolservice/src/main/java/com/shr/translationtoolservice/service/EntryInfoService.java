@@ -91,7 +91,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request);
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request,Map<String,List<String>> soucreMap);
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
 
