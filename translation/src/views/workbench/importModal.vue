@@ -34,7 +34,7 @@
                   </a-radio-group>
                 </a-form-item>
                 <a-form-item label="IP">
-                  <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP"></a-select>
+                  <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
                 </a-form-item>
               </a-form>
               <!-- 数据类型：
@@ -488,7 +488,7 @@
               <template v-else>
                 <!-- {{ text }} -->
                 <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan">
+                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
                   </a-tag>
                 </span>
@@ -590,7 +590,7 @@
     <div class="condent">
       <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
         <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
-          <a-select v-model:value="templateObj.type" placeholder="请选择">
+          <a-select v-model:value="templateObj.type" placeholder="请选择" allowClear>
             <a-select-option value="zz">装置</a-select-option>
             <a-select-option value="common">通用</a-select-option>
             <a-select-option value="jk">监控</a-select-option>
@@ -601,6 +601,7 @@
   </CustomModal>
 </template>
 <script>
+import '@/assets/style/common.less'
 import CustomModal from "@/components/modal/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
 import { add, cloneDeep, iteratee } from "lodash-es";
@@ -1234,11 +1235,13 @@ export default {
             }
           });
           if (deleteID.length > 0) {
-            deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then((res) => {
-              message.success(`已删除！`); // 最后一列的词条状态
-              this.selectedRowKeys = [];
-              this.selectedRows = [];
-            });
+            deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then(
+              (res) => {
+                message.success(`已删除！`); // 最后一列的词条状态
+                this.selectedRowKeys = [];
+                this.selectedRows = [];
+              }
+            );
           } else {
             message.success("已删除！"); // 看最后一列的词条状态：未审核
             this.selectedRowKeys = [];
@@ -2301,18 +2304,23 @@ export default {
     selectAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      let dataToSelect;
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        this.filteredData.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
+        // 确保 filteredData 是最新的筛选结果
+        dataToSelect = this.dataSource.filter((item) => {
+          const isExistMatch =!this.filters.isExist || this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =!this.filters.entrySource || item.entrySource.includes(this.filters.entrySource);
+          return isExistMatch && entrySourceMatch;
         });
       } else {
-        this.dataSource.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
-        });
+        dataToSelect = this.dataSource;
       }
+      dataToSelect.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+      });
     },
+
     clearAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];

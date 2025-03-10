@@ -1015,17 +1015,21 @@ export default {
     selectAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      let dataToSelect;
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        this.filteredData.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
+        // 确保 filteredData 是最新的筛选结果
+        dataToSelect = this.dataSource.filter((item) => {
+          const isExistMatch =!this.filters.isExist || this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =!this.filters.entrySource || item.entrySource.includes(this.filters.entrySource);
+          return isExistMatch && entrySourceMatch;
         });
       } else {
-        this.dataSource.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
-        });
+        dataToSelect = this.dataSource;
       }
+      dataToSelect.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+      });
     },
     clearAllEntry() {
       this.selectedRowKeys = [];
