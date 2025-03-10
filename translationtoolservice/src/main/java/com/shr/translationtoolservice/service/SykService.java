@@ -14,4 +14,6 @@ public interface SykService {
     String updateSykEntry(List<TranslateEntity> translates);
 
     List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates);
+
+    List<TranslateEntity> getSykNotUsed();
 }

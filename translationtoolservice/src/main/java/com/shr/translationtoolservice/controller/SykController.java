@@ -56,6 +56,18 @@ public class SykController extends BaseController{
         return checkResult(responseListModel);
     }
 
+    @GetMapping("/getSykNotUsed")
+    @ApiOperation("获取术语库未使用的翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getSykNotUsed() {
+        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel();
+        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed();
+        responseListModel.setList(translateEntityList);
+        responseListModel.setTotalNum(translateEntityList.size());
+        return checkResult(responseListModel);
+    }
+
     @PostMapping("/updateSykEntry")
     @ApiOperation("更新术语库")
     @CrossOrigin
