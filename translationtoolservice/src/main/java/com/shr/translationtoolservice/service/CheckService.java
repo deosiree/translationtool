@@ -7,5 +7,5 @@ public interface CheckService {
 
     JsonObject getModuleNames(String url);
 
-    JsonObject searchCheckInfo(String url,String checkUrl);
+    JsonObject searchCheckInfo(String url,String checkUrl,String params);
 }
