@@ -9,7 +9,7 @@ export function searchCheckInfo(params, data, lastRequestId) { //参数为键值
     params,
     data,
   };
-  console.log("3.请求配置", {params, data});
+  // console.log("3.请求配置", {params, data});
   const req = request(config);
   if (lastRequestId) {// 如果需要取消请求就会有上次请求的id属性lastRequestId，则可以取消上次的请求
     cancelRequest(lastRequestId);

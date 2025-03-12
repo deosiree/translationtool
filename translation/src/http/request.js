@@ -20,15 +20,15 @@ const controllers = {};
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // console.log("4.请求的配置:", config.params.requestId);
-    if (config.params.requestId) {// 只有提供了requestId的请求才可以取消
-      console.log("5.请求的ID:", config.params.requestId);
-      console.log("6.存储前的请求list:", controllers);
+    // console.log("4.请求的配置:", Object(config.params));
+    if (Object(config.params)['requestId']) {// 只有提供了requestId的请求才可以取消
+      // console.log("5.请求的ID:", config.params.requestId);
+      // console.log("6.存储前的请求list:", controllers);
       // 创建一个新的 AbortController 实例
       const controller = new AbortController();
       // 将 AbortController 实例存储到 controllers 对象中
       controllers[config.params.requestId] = controller;
-      console.log("7.存储后的请求list:", controllers);
+      // console.log("7.存储后的请求list:", controllers);
       // 将 signal 配置到请求中
       config.signal = controller.signal;
     }
@@ -89,10 +89,10 @@ service.interceptors.response.use(
 
 // 导出一个取消指定请求的函数
 export const cancelRequest = (requestId) => {
-  console.log("8.取消请求", requestId, controllers);
+  // console.log("8.取消请求", requestId, controllers);
   if (controllers[requestId]) {
     controllers[requestId].abort();
-    console.log(`9.请求 ${requestId} 已取消`);
+    // console.log(`9.请求 ${requestId} 已取消`);
     delete controllers[requestId];
   }
 };
@@ -101,7 +101,7 @@ export const cancelRequest = (requestId) => {
 export const cancelAllRequests = () => {
   Object.keys(controllers).forEach(requestId => {
     controllers[requestId].abort();
-    console.log(`请求 ${requestId} 已取消`);
+    // console.log(`请求 ${requestId} 已取消`);
     delete controllers[requestId];
   });
 };
