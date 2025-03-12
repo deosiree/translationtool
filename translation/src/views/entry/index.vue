@@ -253,7 +253,7 @@ export default {
 
     // 目录树点击事件
     clickTree(selectedKeys, e) {
-      console.log("触发点击事件", selectedKeys);
+      // console.log("触发点击事件", selectedKeys);
       if (e.selected) {
         this.selectedTreeKeys = selectedKeys;
       } else {
