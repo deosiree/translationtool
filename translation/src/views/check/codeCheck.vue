@@ -254,12 +254,12 @@ export default {
       };
       let data = { checkURL: this.search.checkURL };
       let lastRequestId = this.requestId;// 获取上一次的请求对象requestId
-      console.log("1.params_data", params, data);
+      // console.log("1.params_data", params, data);
 
       this.loading = true;
 
       this.requestId = params.requestId;// 保存当前请求对象的requestId
-      console.log("2.保存请求对象的requestId", this.requestId);
+      // console.log("2.保存请求对象的requestId", this.requestId);
       searchCheckInfo(params, data, lastRequestId)
         .then((res) => {
           if (res.data.code == 200) {
@@ -277,17 +277,17 @@ export default {
                 });
               });
             });
-            console.log("校验成功", tempData);
+            // console.log("校验成功", tempData);
             this.dataSource = tempData;
             this.pagination.total = this.dataSource.length;
           } else {
-            console.log("校验失败", res.data.message);
+            // console.log("校验失败", res.data.message);
             message.error(res.data.message);
           }
         })
         .catch((err) => {
           if (err.name == "AbortError") {
-            console.log(`10.请求已取消!questionType:${this.search.questionType}`);
+            // console.log(`10.请求已取消!questionType:${this.search.questionType}`);
             message.error("请求已取消");
             }
           else message.error("请求出错", err);
