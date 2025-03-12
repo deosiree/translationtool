@@ -4,18 +4,23 @@
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-form-item label="模块名称" name="moduleName">
-            <a-select v-model:value="search.moduleName" style="width: 186px" placeholder="请选择模块名称" :options='moduleNames' size="small"
-              @click="clickInput" allowClear>
+          <a-form-item label="i18n" name="i18n">
+            <a-select v-model:value="search.i18n" style="width: 186px" placeholder="请选择i18n" :options='i18nURLs' size="small" @click="clickInput"
+              @change="oni18nChange" allowClear>
             </a-select>
           </a-form-item>
+          <!-- <a-form-item label="模块名称" name="moduleName">
+            <a-select v-model:value="search.moduleName" style="width: 186px" placeholder="请选择模块名称" :options='moduleNames' size="small"
+              @click="getModuleNames" allowClear>
+            </a-select>
+          </a-form-item> -->
           <a-form-item label="问题类型" name="questionType">
             <a-select v-model:value="search.questionType" style="width: 186px" placeholder="请选择问题类型" :options='questionTypes' size="small"
-              @click="clickInput" allowClear>
+              @click="getQuestionTypes" allowClear>
             </a-select>
           </a-form-item>
           <a-form-item label="校验路径" name="checkURL">
-            <a-input v-model:value="search.checkURL" style="width: 186px" placeholder="请输入校验目录路径" size="small"></a-input>
+            <a-input v-model:value="search.checkURL" style="width: 286px" placeholder="校验目录下的所有文件，请输入" size="small"></a-input>
           </a-form-item>
         </a-form>
       </template>
@@ -32,7 +37,6 @@
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
-              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.name"
               :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
@@ -41,10 +45,10 @@
                   <span>{{ record.name }}</span>
                 </template>
                 <!-- 日志列 -->
-                <template v-if="column.dataIndex === 'log'">
-                  <!-- <span>{{ record.log }}</span> -->
+                <template v-if="column.dataIndex === 'value'">
+                  <!-- <span>{{ record.value }}</span> -->
                   <div v-for="(item, index) in record.methods" :key="index" style="display: flex; gap: 100px;">
-                    <span class="log">{{ item }}</span>
+                    <span class="value">{{ item }}</span>
                   </div>
                 </template>
               </template>
@@ -64,7 +68,7 @@ import {
   getModuleNames,
   getQuestionTypes,
 } from "@/http/api/check";
-import { message } from 'ant-design-vue';
+import { message } from "ant-design-vue";
 export default {
   components: {
     SearchBox,
@@ -76,6 +80,8 @@ export default {
       labelCol: { style: { width: "84px" } },
       search: {
         // (v2)文件名+函数名;（v1）模块名/文件名+行号/问题类型/详情/日志
+        fonction: "code",
+        i18n: null, // 必须
         moduleName: null, // 必须
         questionType: null, // 必须
         checkURL: null, // 非必须
@@ -90,6 +96,15 @@ export default {
       loading: false,
       columns: [
         {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 20,
+          customRender: (text, record, index, column) => {
+            return text.index + 1;
+          },
+        },
+        {
           title: "文件名",
           dataIndex: "name",
           align: "center",
@@ -98,25 +113,27 @@ export default {
         },
         {
           title: "函数名",
-          dataIndex: "log",
+          dataIndex: "value",
           align: "center",
-          width: 200,
+          width: 400,
           fixed: "right",
         },
       ],
       dataSource: [], // 表格数据
-      editableData: {}, // 可编辑数据
-      selectedRowKeys: [], // 表格选中项
-      selectedRows: [], // 表格选中项(暂时无用，若有创建删除时，则有用)
       selectedRowIndex: null, // 表格选中项
-      currentTask: {}, // 当前任务
-      options: {}, // 下拉框的选项列表
+      i18nURLs: [
+        {
+          label: "http://10.17.14.115:18001",
+          value: "http://10.17.14.115:18001",
+        },
+      ],
       moduleNames: [
         // 模块名{ label: "1", value: "0" },
       ],
       questionTypes: [
         // 问题类型{ label: "1", value: "0" },
       ],
+      requestId: null, // 存储校验按钮的http请求
       rules: {
         name: [{ required: true, message: "请输入" }],
         productName: [{ required: true, message: "请选择" }],
@@ -142,7 +159,6 @@ export default {
         _this.setTableHeight();
       };
     });
-    this.getOpitons();
   },
   unmounted() {
     //注销window.onresize事件
@@ -152,7 +168,13 @@ export default {
     // 初始化
     init() {
       this.setTableHeight();
-      this.getOpitons();
+      // this.getOpitons();
+    },
+    oni18nChange() {
+      // 可选：清空搜索表单中的模块名称和问题类型
+      this.search.moduleName = null;
+      this.search.questionType = null;
+      // if (this.search.i18n != null) this.getOpitons();// 不需要，让问题类型下拉框点击了再自动获取，否则重复
     },
     // 获取下拉框信息
     getOpitons() {
@@ -163,42 +185,115 @@ export default {
     },
     // 获取模块名
     getModuleNames() {
-      getModuleNames()
+      if (this.search.i18n == null) {
+        // 不选就是默认全搜索
+        message.error("请选择校验目录路径！");
+        return;
+      }
+      getModuleNames({ url: this.search.i18n })
         .then((res) => {
-          this.moduleNames = res.data.list;
+          this.moduleNames = [];
+          res.data.list.forEach((element) => {
+            this.moduleNames.push({
+              label: element,
+              value: element,
+            });
+          });
+          // console.log("getModuleNames", this.moduleNames);
         })
-        .catch(({ data }) => {
-          console.error("获取模块名失败：", data);
+        .catch(({ error }) => {
+          console.error("获取模块名失败：", error);
         });
     },
     // 获取问题类型
     getQuestionTypes() {
-      getQuestionTypes()
+      if (this.search.i18n == null) {
+        // 不选就是默认全搜索
+        message.error("请选择i18n路径！");
+        return;
+      }
+      getQuestionTypes({ url: this.search.i18n })
         .then((res) => {
-          this.questionTypes = res.data.list;
+          this.questionTypes = [];
+          res.data.list.forEach((element) => {
+            this.questionTypes.push({
+              label: element,
+              value: element,
+            });
+          });
+          // console.log("getQuestionTypes", this.questionTypes);
         })
-        .catch(({ data }) => {
-          console.error("获取问题类型失败：", data);
+        .catch(({ error }) => {
+          console.error("获取问题类型失败：", error);
         });
     },
     // 校验按钮点击事件
     check() {
+      this.dataSource = []; // 清空数据
       this.pageChangeSearch = this.search;
       this.searchCheckInfo();
     },
     // 获取校验信息
     searchCheckInfo() {
+      if (this.search.i18n == null) {
+        message.error("请选择i18n路径！");
+        return;
+      }
+      if (this.search.questionType == null) {
+        message.error("请选择问题类型！");
+        return;
+      }
+      let params = {
+        fonction: this.search.fonction,
+        i18n: this.search.i18n,
+        questionType: this.search.questionType,
+        // requestId: `${Date.now().toString(16)}-${Math.random()
+        //   .toString(16)
+        //   .substr(2, 10)}`, // 使用 Date.now() 和随机数生成简单的时间戳 UUID
+        requestId:`${this.search.questionType}-${Date.now().toString(16)}`,
+      };
+      let data = { checkURL: this.search.checkURL };
+      let lastRequestId = this.requestId;// 获取上一次的请求对象requestId
+      console.log("1.params_data", params, data);
+
       this.loading = true;
-      let params = this.search;
-      let path = "code";
-      searchCheckInfo(params,path)
+
+      this.requestId = params.requestId;// 保存当前请求对象的requestId
+      console.log("2.保存请求对象的requestId", this.requestId);
+      searchCheckInfo(params, data, lastRequestId)
         .then((res) => {
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
-          this.loading = false;
+          if (res.data.code == 200) {
+            message.success(
+              `校验成功！总共校验了${res.data.data.totalNum}个文件`
+            );
+            let tempData = [];
+            Object.values(res.data.data.list).forEach((item) => {
+              // console.log("item", item);
+              const file = item.file;
+              item.value.forEach((value) => {
+                tempData.push({
+                  name: file,
+                  value: value,
+                });
+              });
+            });
+            console.log("校验成功", tempData);
+            this.dataSource = tempData;
+            this.pagination.total = this.dataSource.length;
+          } else {
+            console.log("校验失败", res.data.message);
+            message.error(res.data.message);
+          }
         })
         .catch((err) => {
-          message.error("校验目录路径错误！");
+          if (err.name == "AbortError") {
+            console.log(`10.请求已取消!questionType:${this.search.questionType}`);
+            message.error("请求已取消");
+            }
+          else message.error("请求出错", err);
+        })
+        .finally(() => {
+          this.requestId = null; // 清空请求对象
           this.loading = false;
         });
     },
@@ -248,11 +343,6 @@ export default {
       }
       return className;
     },
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows; // 暂时无用，若有创建删除时，则有用
-    },
     // 分页切换
     pageChange(page, pageSize) {
       this.pagination.current = page;
@@ -267,7 +357,7 @@ export default {
   height: 100%;
   // border: 1px solid red;
 }
-.log {
+.value {
   font-size: 12px;
   padding: 4px 8px;
   background-color: #eefffb;

@@ -1,25 +1,25 @@
 <template>
   <!-- <a-spin :spinning="visible"> -->
-  <Modal ref="updateBox" :modalWidth="modalWidth" :visible="visible" :updateClassfyID="updateClassfyID" :modalTitle="modalTitle"
+  <Modal ref="redundantBox" :modalWidth="modalWidth" :visible="visible" :redundantClassfyID="redundantClassfyID" :modalTitle="modalTitle"
     @handleClose="handleClose" @handleOK="handleOK">
     <div class="content" v-if="!taskVisible">
       <div class="table">
         <a-form ref="i18nURL" name="custom-validation">
           <a-form-item label="IP" name="ip">
-            <a-select v-model:value="i18nURL" :options="ipOptions" placeholder="请选择IP" @change="handleUpdate" allowClear></a-select>
+            <a-select v-model:value="i18nURL" :options="ipOptions" placeholder="请选择IP" @change="handleredundant" allowClear></a-select>
           </a-form-item>
         </a-form>
         <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-          :row-key="record => record.sourceFile" ref="updateTable" bordered :pagination='pagination' :loading="loading">
+          :row-key="record => record.sourceFile" ref="redundantTable" bordered :pagination='pagination' :loading="loading">
         </a-table>
       </div>
     </div>
     <div class="content" v-if="taskVisible">
       <a-table class="ant-table-striped" :columns="taskColumns" :dataSource="taskSource" :scroll="{x:'100%' , y: '280px'}"
-        :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.sourceFile" ref="updateTaskTable"
-        bordered :pagination='pagination'>
+        :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.sourceFile"
+        ref="redundantTaskTable" bordered :pagination='pagination'>
       </a-table>
     </div>
   </Modal>
@@ -30,7 +30,7 @@ import Modal from "@/components/modal/index.vue";
 import { message } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import {
-  updateEntryByClassfy,
+  // redundantEntryByClassfy,
   getEntrysourceListByClassfy,
 } from "@/http/api/entryManage";
 import { v4 as uuidv4 } from "uuid";
@@ -38,7 +38,7 @@ export default {
   components: {
     Modal,
   },
-  emits: ["updateClose"],
+  emits: ["redundantClose"],
   props: {
     // 传递来的数据放这儿，不能再在data中定义了
     visible: {
@@ -48,7 +48,7 @@ export default {
     modalTitle: {
       type: String,
     },
-    updateClassfyID: {
+    redundantClassfyID: {
       type: String,
     },
   },
@@ -72,7 +72,7 @@ export default {
           width: 100,
         },
       ],
-      updateEntries: {
+      redundantEntries: {
         // 发给我的原始数据
         type: Array,
       },
@@ -112,7 +112,7 @@ export default {
   },
   methods: {
     init() {
-      this.updateEntries = {};
+      this.redundantEntries = {};
       this.dataSource = [];
       this.i18nURL = null;
       this.taskSource = [];
@@ -132,100 +132,65 @@ export default {
       });
     },
     // 更新窗口（i18nURL改变时触发）
-    handleUpdate() {
-      this.loading = true; //开始加载
-      // console.log("classfyID", this.updateClassfyID);// 传自父组件的treeKey
-      // console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
-      // 弹窗，并发送http请求(查询来源中新增的词条
-      getEntrysourceListByClassfy({
-        // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
-        // i18nUrl: "http://10.17.43.20:18099/",
-        classfyID: this.updateClassfyID,
-        i18nUrl: this.i18nURL,
-      })
-        .then((res) => {
-          // 都放到.then内，可以确保执行顺序
-          // console.log("查询来源中新增的词条", res.data.list);
-          // 设置默认全选
-          this.updateEntries = Object.values(res.data.list);
-          // console.log("newDataSource", this.updateEntries);
-          this.dataSource = [];
-          this.selectedRows = [];
-          this.selectedRowKeys = [];
-          if (this.updateEntries.length != 0) {
-            this.updateEntries.forEach((item) => {
-              const EntryVO = Object.values(item.sourceFileAndEntryVO);
-              const sourceType = item.type;
-              if (EntryVO.length != 0) {
-                EntryVO.forEach((item) => {
-                  this.selectedRowKeys.push(item.sourceFile);
-                  this.selectedRows.push({
-                    sourceFile: item.sourceFile,
-                    sourceType: sourceType,
-                    // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
-                  });
-                });
-              }
-            });
-            // console.log("selectedRowKeys", this.selectedRowKeys);
-            // console.log("selectedRows", this.selectedRows);
-          }
-          this.dataSource = this.selectedRows;
-        })
-        .catch((error) => {
-          // console.log("error", error);
-          if (error.status==200) {
-            message.error(`请求失败: ${error.data.operationObject}`);
-          }else{
-            message.error(`请求失败，状态码: ${error.data.operationObject}`);
-          }
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+    handleredundant() {
+      // this.loading = true; //开始加载
+      // // console.log("classfyID", this.redundantClassfyID);// 传自父组件的treeKey
+      // // console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
+      // // 弹窗，并发送http请求(查询来源中新增的词条
+      // getEntrysourceListByClassfy({
+      //   // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
+      //   // i18nUrl: "http://10.17.43.20:18099/",
+      //   classfyID: this.redundantClassfyID,
+      //   i18nUrl: this.i18nURL,
+      // })
+      //   .then((res) => {
+      //     // 都放到.then内，可以确保执行顺序
+      //     // console.log("查询来源中新增的词条", res.data.list);
+      //     // 设置默认全选
+      //     this.redundantEntries = Object.values(res.data.list);
+      //     // console.log("newDataSource", this.redundantEntries);
+      //     this.dataSource = [];
+      //     this.selectedRows = [];
+      //     this.selectedRowKeys = [];
+      //     if (this.redundantEntries.length != 0) {
+      //       this.redundantEntries.forEach((item) => {
+      //         const EntryVO = Object.values(item.sourceFileAndEntryVO);
+      //         const sourceType = item.type;
+      //         if (EntryVO.length != 0) {
+      //           EntryVO.forEach((item) => {
+      //             this.selectedRowKeys.push(item.sourceFile);
+      //             this.selectedRows.push({
+      //               sourceFile: item.sourceFile,
+      //               sourceType: sourceType,
+      //               // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
+      //             });
+      //           });
+      //         }
+      //       });
+      //       // console.log("selectedRowKeys", this.selectedRowKeys);
+      //       // console.log("selectedRows", this.selectedRows);
+      //     }
+      //     this.dataSource = this.selectedRows;
+      //   })
+      //   .catch((error) => {
+      //     // console.log("error", error);
+      //     if (error.status==200) {
+      //       message.error(`请求失败: ${error.data.operationObject}`);
+      //     }else{
+      //       message.error(`请求失败，状态码: ${error.data.operationObject}`);
+      //     }
+      //   })
+      //   .finally(() => {
+      //     this.loading = false;
+      //   });
     },
     handleClose() {
       this.init();
-      this.$emit("updateClose");
+      this.$emit("redundantClose");
     },
     handleOK() {
-      if (!this.taskVisible) {
-        // 点击确认就发送http请求，更新词条
-        const data = [];
-        this.updateEntries.forEach((item) => {
-          // console.log("item", item);
-          const res = {
-            type: "",
-            sourceFileAndEntryVO: [],
-          };
-          let resFlag = false; // 标记是否已经添加过
-          res.type = item.type;
-          // console.log("item.sourceFileAndEntryVO", Object.values(item.sourceFileAndEntryVO)[0].sourceFile);
-          Object.values(item.sourceFileAndEntryVO).forEach((file) => {
-            if (this.selectedRowKeys.includes(file.sourceFile)) {
-              res.sourceFileAndEntryVO.push(file);
-              resFlag = true;
-            }
-          });
-          if (resFlag) data.push(res);
-        });
-        // console.log("data", data);
-        updateEntryByClassfy(data).then((res) => {
-          // console.log("updateEntryByClassfy", res);
-          message.success("更新成功！");
-          this.dataSource = [];
-          // this.$emit("updateClose");// 关闭弹窗
-          this.taskSource = Object.values(res.data.list).map((item, index) => ({
-            index: index + 1,
-            task: item,
-          }));
-          // console.log("taskSource", this.taskSource);
-          this.taskVisible = true; // 先弹出其他弹窗
-        });
-      } else {
-        this.init();
-        this.$emit("updateClose");
-      }
+      this.init();
+      this.$emit("redundantClose");
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {

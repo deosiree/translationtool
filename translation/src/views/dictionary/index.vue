@@ -123,7 +123,7 @@
     @modalClose="dictTermClose" />
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
@@ -340,37 +340,61 @@ export default {
       //     {key:'user17',title:'user'},
       //     {key:'user18',title:'user'},
       //     ]
+
+      // this.dicts.forEach((item) => {
+      //   if (item.title.includes("/")) {
+      //     let paras = item.title.split("/");
+      //     let parentTitle = this.dictTypes.find(
+      //       (type) => type.value === paras[0]
+      //     ).label;
+      //     let childTitle = paras[1];
+      //     let parent = tree.find((t) => t.title === parentTitle);
+      //     if (!parent) {
+      //       parent = {
+      //         title: parentTitle,
+      //         key: paras[0],
+      //         selectable: false,
+      //         children: [],
+      //       };
+      //       tree.push(parent);
+      //     }
+      //     parent.children.push({ title: childTitle, key: item.key });
+      //   } else {
+      //     let parent = tree.find((t) => t.title === "其他");
+      //     if (!parent) {
+      //       parent = {
+      //         title: "其他",
+      //         key: "other",
+      //         selectable: false,
+      //         children: [],
+      //       };
+      //       tree.push(parent);
+      //     }
+      //     parent.children.push({ title: item.title, key: item.key });
+      //   }
+      // });
+
       this.dicts.forEach((item) => {
-        if (item.title.includes("/")) {
-          let paras = item.title.split("/");
-          let parentTitle = this.dictTypes.find(
-            (type) => type.value === paras[0]
-          ).label;
-          let childTitle = paras[1];
-          let parent = tree.find((t) => t.title === parentTitle);
-          if (!parent) {
-            parent = {
-              title: parentTitle,
-              key: paras[0],
-              selectable: false,
+        const paras = item.title.split("/"); // 根据“/”分割每一级的key
+        const parasLen = paras.length; // 获取key的长度
+        let currentLevel = tree;
+
+        paras.forEach((para, level) => {
+          const type = this.dictTypes.find((type) => type.value === para);
+          const title = type ? type.label : para;
+
+          let node = currentLevel.find((t) => t.title === title);
+          if (!node) {
+            node = {
+              title: title,
+              key: paras.slice(0, level + 1).join("/"),
+              selectable: (level+1) < parasLen ? false : true, //不能选中
               children: [],
             };
-            tree.push(parent);
+            currentLevel.push(node);
           }
-          parent.children.push({ title: childTitle, key: item.key });
-        } else {
-          let parent = tree.find((t) => t.title === "其他");
-          if (!parent) {
-            parent = {
-              title: "其他",
-              key: "other",
-              selectable: false,
-              children: [],
-            };
-            tree.push(parent);
-          }
-          parent.children.push({ title: item.title, key: item.key });
-        }
+          currentLevel = node.children;
+        });
       });
       this.dicts = tree;
     },
@@ -385,7 +409,6 @@ export default {
     },
     // 获取辞典内容
     queryDictronary() {
-      // console.log(this.selectedTreeKeys)
       if (this.selectedTreeKeys.length === 0) {
         return;
       }

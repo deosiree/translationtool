@@ -442,6 +442,7 @@ export default {
       });
     },
     clickCard(index) {
+      if (index !== this.activeCard) this.pagination.current = 1; // 查询条件变化，分页重置
       this.activeCard = index;
       if (index === 1) {
         this.tableTitle = "待办事项列表";
@@ -546,6 +547,7 @@ export default {
         getFinishTaskInfo(params, data)
           .then((res) => {
             this.dataSource = res.data.list;
+            this.pagination.total = res.data.totalNum;
           })
           .catch((err) => {
             message.error("数据获取失败！");
@@ -647,6 +649,7 @@ export default {
         creator: "",
       };
       this.pageChangeSearch = this.search;
+      // console.log("分页更新", this.pageChangeSearch);
       this.getTask();
     },
     // 分页切换

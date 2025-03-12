@@ -156,7 +156,7 @@ export default {
   created() {},
   mounted() {
     this.dataSource = this.currentData;
-    console.log(this.dataSource);
+    // console.log(this.dataSource);
   },
   watch: {
     currentProduct(newval, oldval) {

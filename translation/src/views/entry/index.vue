@@ -9,7 +9,7 @@
         </a-input>
         <div class="productTree">
           <a-tree v-if="treeBoxOpen" show-icon v-model:expandedKeys="expandedKeys" :defaultExpandAll="true" :selectedKeys="selectedTreeKeys"
-            :tree-data="treeData" @select="clickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop">
+            :tree-data="treeData" @select="clickTree" @rightClick="rightClickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop">
             <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
               <a-dropdown :trigger="['contextmenu']">
                 <span v-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
@@ -17,6 +17,7 @@
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
                     <a-menu-item @click="update(treeKey)">更新</a-menu-item>
+                    <a-menu-item @click="redundantCheck(treeKey)">冗余校验</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -60,8 +61,10 @@
       </a-col>
     </a-row>
   </div>
-  <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID" @updateClose="updateClose"
-    style="width:700px;" />
+  <RedundantModal ref="redundantModal" :visible="redundantVisible" :modalTitle="classifyModalTitle" :redundantClassfyID="redundantClassfyID"
+    @redundantClose="redundantClose" style="width:700px;" />
+  <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
+    @updateClose="updateClose" style="width:700px;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
@@ -78,7 +81,7 @@ import CommonEntry from "@/views/entry/commonEntry.vue";
 import ClassifyModal from "@/views/entry/classifyModal.vue";
 import ProductAuthorityModal from "@/views/entry/productAuthorityModal.vue";
 import UpdateModal from "@/views/entry/updateModal.vue";
-
+import RedundantModal from "@/views/entry/redundantModal.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
@@ -100,6 +103,7 @@ export default {
     ClassifyModal,
     ProductAuthorityModal,
     UpdateModal,
+    RedundantModal,
   },
   data() {
     return {
@@ -115,7 +119,9 @@ export default {
       selectedTreeKeys: [],
       classifyVisible: false,
       updateVisible: false,
-      updateClassfyID: "",// 传参给子组件，让子组件调用http请求
+      updateClassfyID: "", // 传参给子组件，让子组件调用http请求
+      redundantVisible: false,
+      redundantClassfyID: "",
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -171,11 +177,19 @@ export default {
     updateClose() {
       this.updateVisible = false;
     },
+    redundantClose() {
+      this.redundantVisible = false;
+    },
     // 更新
     update(treeKey) {
       this.classifyModalTitle = "更新详情";
-      this.updateClassfyID = treeKey;// treeKey就是classfyID  有些是数字 有些是uuid
+      this.updateClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
       this.updateVisible = true; // 显示弹窗
+    },
+    redundantCheck(treeKey) {
+      this.classifyModalTitle = "冗余校验";
+      this.redundantClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
+      this.redundantVisible = true; // 显示弹窗
     },
     // 新增分类或产品
     addClassify(treeKey, type) {
@@ -239,7 +253,7 @@ export default {
 
     // 目录树点击事件
     clickTree(selectedKeys, e) {
-      // console.log(e)
+      console.log("触发点击事件", selectedKeys);
       if (e.selected) {
         this.selectedTreeKeys = selectedKeys;
       } else {
@@ -271,6 +285,13 @@ export default {
 
         this.currentClickProduct = node;
       }
+    },
+    // 目录树右击事件
+    rightClickTree(e) {
+      // console.log("触发右击事件", e);
+      const treeKey = e.node.dataRef.key;
+      // console.log("classfyID",treeKey);
+      this.selectedTreeKeys = [treeKey];
     },
     // 查询产品 用户是否可编辑
     getproductIsEdit(productId) {
