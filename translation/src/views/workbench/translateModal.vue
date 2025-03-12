@@ -79,7 +79,7 @@
             <template v-if="column.dataIndex === 'tag'">
               <div>
                 <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan">
+                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
                   </a-tag>
                 </span>
@@ -201,7 +201,7 @@
     <div style="width:100%;height:100%">
       <a-form ref="formRef" name="custom-validation" autocomplete='off' :label-col="labelCol" :model="preTran">
         <a-form-item label="优先级" name="priority" :rules="[{ required: true, message: '请选择优先级!' }]">
-          <a-select v-model:value="preTran.priority" placeholder="请选择">
+          <a-select v-model:value="preTran.priority" placeholder="请选择" allowClear>
             <a-select-option value="shuyuku">术语库</a-select-option>
             <a-select-option value="deepl">DeepL翻译</a-select-option>
             <a-select-option value="youdao">有道翻译</a-select-option>
@@ -227,7 +227,7 @@
       <a-form ref="exportForm" name="custom-validation" :model="exportModal">
         <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
           <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
-            placeholder="请选择"></a-select>
+            placeholder="请选择" allowClear></a-select>
         </a-form-item>
       </a-form>
     </div>
@@ -246,6 +246,7 @@
   </Modal>
 </template>
 <script>
+import '@/assets/style/common.less'
 import Modal from "@/components/modal/index.vue";
 import { cloneDeep } from "lodash-es";
 import {

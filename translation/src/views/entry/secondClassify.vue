@@ -26,6 +26,7 @@
                     :fieldNames="{label:'title',value:'key'}"
                     :options='classfy1Option'
                     @select="classify1Select"
+                    allowClear
                     >
                     </a-select>
                 </a-form-item>

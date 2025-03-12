@@ -126,7 +126,7 @@
     <div style="width:100%;height:100%">
       <a-form ref="ipModal" name="custom-validation" :model="ipModal">
         <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
-          <a-select v-model:value="ipModal.ip" :options="ipOptions" placeholder="请选择IP"></a-select>
+          <a-select v-model:value="ipModal.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
         </a-form-item>
       </a-form>
     </div>

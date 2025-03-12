@@ -1,79 +1,111 @@
 .editable-row-operations button {
-    margin-right: 8px;
+  margin-right: 8px;
 }
-.ant-table-wrapper{
-    width: 100%;
-    // position: absolute;
+
+.ant-table-wrapper {
+  width: 100%;
+  // position: absolute;
 }
-.ant-btn-background-ghost span{
-    font-size: 12px;
+
+.ant-btn-background-ghost span {
+  font-size: 12px;
 }
+
 .ant-table-striped .table-striped td {
   background-color: #fafafa;
 }
+
 .ant-table-striped .ant-table-cell {
-  padding: 10px!important;
+  padding: 10px !important;
 }
+
 // 表格滚动条样式
-&::-webkit-scrollbar {//整体样式
-    width: 5px;
-    height: 5px;
+&::-webkit-scrollbar {
+  //整体样式
+  width: 5px;
+  height: 5px;
 }
-&::-webkit-scrollbar-thumb {//滑动滑块条样式
-    border-radius: 4px;
-    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-    // background: #00aaff;
-    background: #f9f9f9;
+
+&::-webkit-scrollbar-thumb {
+  //滑动滑块条样式
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  // background: #00aaff;
+  background: #f9f9f9;
 }
-&::-webkit-scrollbar-track {//轨道的样式
-    -webkit-box-shadow: 0;
-    border-radius: 0;
-    background: #fafafa;
+
+&::-webkit-scrollbar-track {
+  //轨道的样式
+  -webkit-box-shadow: 0;
+  border-radius: 0;
+  background: #fafafa;
 }
-.ant-modal-content{
-    border-radius: 8px;
+
+.ant-modal-content {
+  border-radius: 8px;
 }
 
 .highlighted-row>td {
-    border-top: 1px solid #369FFF !important;
-    border-bottom: 1px solid #369FFF !important;
-  }
-   
-  .highlighted-row>td:first-child {
-    border-left: 1px solid #369FFF !important;
-  }
-  .highlighted-row>td:first-child::before {
-      content: url('/src/assets/icon/caret-right-small.png');
-      position: absolute;
-      left: 0%;
-  }
-  .highlighted-row>td:last-child {
-    border-right: 1px solid #369FFF !important;
-  }
+  border-top: 1px solid #369FFF !important;
+  border-bottom: 1px solid #369FFF !important;
+}
 
-  .resetBtn{
-    background:#36BF7D;
-    border-color:#36BF7D
-  }
-  .resetBtn:hover{
-    background:#36BF7D;
-    border-color:#36BF7D
-  }
-  .resetBtn:focus{
-    background:#36BF7D;
-    border-color:#36BF7D
-  }
+.highlighted-row>td:first-child {
+  border-left: 1px solid #369FFF !important;
+}
 
-  .yellowBtn{
-    background:#FBB31F;
-    border-color:#FBB31F
-  }
-  .yellowBtn:hover{
-    background:#FBB31F;
-    border-color:#FBB31F
-  }
-  .yellowBtn:focus{
-    background:#FBB31F;
-    border-color:#FBB31F
-  }
+.highlighted-row>td:first-child::before {
+  content: url('/src/assets/icon/caret-right-small.png');
+  position: absolute;
+  left: 0%;
+}
 
+.highlighted-row>td:last-child {
+  border-right: 1px solid #369FFF !important;
+}
+
+.resetBtn {
+  background: #36BF7D;
+  border-color: #36BF7D
+}
+
+.resetBtn:hover {
+  background: #36BF7D;
+  border-color: #36BF7D
+}
+
+.resetBtn:focus {
+  background: #36BF7D;
+  border-color: #36BF7D
+}
+
+.yellowBtn {
+  background: #FBB31F;
+  border-color: #FBB31F
+}
+
+.yellowBtn:hover {
+  background: #FBB31F;
+  border-color: #FBB31F
+}
+
+.yellowBtn:focus {
+  background: #FBB31F;
+  border-color: #FBB31F
+}
+
+.tag-content {
+  // tag标签显示的样式（超出容器90%的会缩略，悬浮会换行显示，拖拽表格也可以显示完全）
+  max-width: 90%;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    // max-width: none; /* 悬浮时取消最大宽度限制 */
+    // overflow: visible;
+    white-space: normal;
+    // color:red;// test样式是否全局套上
+  }
+}

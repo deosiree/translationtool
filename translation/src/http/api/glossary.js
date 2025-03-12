@@ -26,3 +26,11 @@ export function getSykEntryRelation(data) {
         data
     });
 }
+
+export function getSykNotUsed() {
+  return request({
+      url: "/Syk/getSykNotUsed/",
+      // url: "https://apifoxmock.com/m1/5916202-5603218-default/Syk/getSykNotUsed/",
+      method: "GET", 
+  });
+}

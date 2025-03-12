@@ -23,6 +23,7 @@
                     v-model:value="dict.type"
                     :options="dictTypes"
                     placeholder="请选择"
+                    allowClear
                     ></a-select>
                 </a-form-item>
                 <a-form-item label="辞典名称" name="name"

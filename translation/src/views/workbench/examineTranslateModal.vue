@@ -98,7 +98,7 @@
           <template v-if="column.dataIndex === 'tag'">
             <div>
               <span>
-                <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan">
+                <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                   {{tag}}
                 </a-tag>
               </span>
@@ -174,6 +174,7 @@
   </Modal>
 </template>
 <script>
+import '@/assets/style/common.less'
 import Modal from "@/components/modal/index.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {

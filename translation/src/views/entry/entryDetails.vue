@@ -86,6 +86,7 @@
                     placeholder="请选择词性备注"
                     size="small"
                     :options="partSpeechs"
+                    allowClear
                     >
                     </a-select>
                 </a-form-item>
@@ -113,6 +114,7 @@
                     v-model:value="record.version"
                     placeholder="请选择版本"
                     size="small"
+                    allowClear
                     >
                         <template v-for="(item,index) in versions" :key="index">
                             <a-select-option :value="item.name">{{item.name}}</a-select-option>
@@ -138,6 +140,7 @@
                         placeholder="请选择标签"
                         :options='tags'
                         size="small"
+                        allowClear
                         >
                         </a-select>
                 </a-form-item>
@@ -151,6 +154,7 @@
                     disabled
                     size="small"
                     :options="stateOption"
+                    allowClear
                     >
                     </a-select>
                 </a-form-item>

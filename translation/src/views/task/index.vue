@@ -26,6 +26,7 @@
                         placeholder="请选择执行部门"
                         :options='departments'
                         size="small"
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>
@@ -70,6 +71,7 @@
                         :options='translateTypes'
                         :fieldNames="{label:'name',value:'name'}"
                         size="small"
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>
@@ -83,6 +85,7 @@
                         placeholder="请选择任务状态"
                         :options='states'
                         size="small"
+                        allowClear
                         >
                         </a-select>
                     </a-form-item>
@@ -251,6 +254,7 @@
                                         placeholder="请选择"
                                         :options='options[record.id]["developers"]'
                                         @click="clickInput"
+                                        allowClear
                                         >
                                         </a-select>
                                     </template>
@@ -266,6 +270,7 @@
                                         placeholder="请选择"
                                         :options='options[record.id]["entryAuditors"]'
                                         @click="clickInput"
+                                        allowClear
                                         >
                                         </a-select>
                                     </template>
@@ -281,6 +286,7 @@
                                         placeholder="请选择"
                                         :options='options[record.id]["translators"]'
                                         @click="clickInput"
+                                        allowClear
                                         >
                                         </a-select>
                                     </template>
@@ -296,6 +302,7 @@
                                         placeholder="请选择"
                                         :options='options[record.id]["translatorAuditors"]'
                                         @click="clickInput"
+                                        allowClear
                                         >
                                         </a-select>
                                     </template>
@@ -313,6 +320,7 @@
                                             :options='translateTypes'
                                             :fieldNames="{label:'name',value:'name'}"
                                             @click="clickInput"
+                                            allowClear
                                             >
                                             </a-select>
                                         </a-form-item>

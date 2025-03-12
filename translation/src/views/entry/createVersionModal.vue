@@ -73,6 +73,7 @@
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
     @afterClose="afterOperateClose">
     <div style="width:100%;height:100%">
+
       <a-form v-if="title === '创建版本'" :model="version" autocomplete="off" ref="versionForm" :label-col="{ span: 6 }">
         <a-form-item label="产品版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
           <a-input v-model:value="version.versionName" placeholder="请输入版本名称"></a-input>
@@ -84,7 +85,7 @@
       <a-form v-if="title === '导出'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
         <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
           <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
-            placeholder="请选择"></a-select>
+            placeholder="请选择" allowClear></a-select>
         </a-form-item>
       </a-form>
       <div class="table" v-if="title === '选择任务'">
@@ -92,47 +93,48 @@
           :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="taskTable" bordered>
         </a-table>
-
       </div>
-      <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
-        <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
-          <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP"></a-select>
-        </a-form-item>
-        <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择导出字段!' }]">
-          <a-select v-model:value="writeBack.language" placeholder="请选择" @change="languageChange">
-            <a-select-option value="英文">英文</a-select-option>
-            <a-select-option value="俄文">俄文</a-select-option>
-            <a-select-option value="西文">西文</a-select-option>
-            <a-select-option value="法文">法文</a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="回写类型" name="type">
-          <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
-            <a-radio value="DEFAUT">默认 </a-radio>
-            <a-radio value="TS">TS文件</a-radio>
-            <a-radio value="DI">辞典</a-radio>
-          </a-radio-group>
-          <a-tooltip placement="top">
-            <template #title>
-              <span>默认：按词条来源回写；TS文件：写入到ts文件；辞典：写入到辞典</span>
-            </template>
-            <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-          </a-tooltip>
-        </a-form-item>
-        <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
-          <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择"></a-select>
-        </a-form-item>
-        <a-form-item label=" " :colon="false">
-          <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
-          <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
-          <a-tooltip placement="top">
-            <template #title>
-              <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
-            </template>
-            <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-          </a-tooltip>
-        </a-form-item>
-        <!-- <a-form-item
+      <!-- 添加加载动画 -->
+      <a-spin :spinning="writeBackLoading">
+        <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
+          <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
+            <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
+          </a-form-item>
+          <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择导出字段!' }]">
+            <a-select v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
+              <a-select-option value="英文">英文</a-select-option>
+              <a-select-option value="俄文">俄文</a-select-option>
+              <a-select-option value="西文">西文</a-select-option>
+              <a-select-option value="法文">法文</a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="回写类型" name="type">
+            <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
+              <a-radio value="DEFAUT">默认 </a-radio>
+              <a-radio value="TS">TS文件</a-radio>
+              <a-radio value="DI">辞典</a-radio>
+            </a-radio-group>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>默认：按词条来源回写；TS文件：写入到ts文件；辞典：写入到辞典</span>
+              </template>
+              <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
+            </a-tooltip>
+          </a-form-item>
+          <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
+            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择" allowClear></a-select>
+          </a-form-item>
+          <a-form-item label=" " :colon="false">
+            <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
+            <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
+              </template>
+              <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
+            </a-tooltip>
+          </a-form-item>
+          <!-- <a-form-item
                 label="回写Tag"
                 name="isTag"
                 >
@@ -145,10 +147,11 @@
                     <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
                 </a-form-item> -->
 
-      </a-form>
+        </a-form>
+      </a-spin>
     </div>
-
   </CustomModal>
+
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
@@ -407,6 +410,7 @@ export default {
         tagDisabled: false,
         ip: null,
       },
+      writeBackLoading: false,
       ipOptions: [],
     };
   },
@@ -430,7 +434,7 @@ export default {
   watch: {
     currentProduct(newval, oldval) {
       this.product = newval;
-    }
+    },
   },
   methods: {
     handleClose() {
@@ -618,7 +622,14 @@ export default {
               fileName: this.writeBack.file,
               i18nUrl: this.writeBack.ip,
             };
-            // console.log(params)
+            this.writeBackLoading = true;
+            // console.log("开始loading");
+            // setTimeout(() => {
+            //   console.log(params);
+            //   this.writeBackLoading = false;
+            //   console.log("结束loading");
+            //   message.success("回写成功！");
+            // }, 3000);
             writeBack(params, this.dataSource)
               .then((res) => {
                 message.success("回写成功！");
@@ -628,6 +639,10 @@ export default {
               })
               .catch((err) => {
                 message.error("回写失败！");
+              })
+              .finally(() => {
+                this.writeBackLoading = false;
+                this.loading = false;
               });
           })
           .catch((err) => {});

@@ -12,7 +12,7 @@
         词条：
         <a-textarea v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' :auto-size="{ minRows: 1 }" />
         <span style="margin-left:10px">词条状态：</span>
-        <a-select v-model:value="entryState" size="small" style="width: 300px">
+        <a-select v-model:value="entryState" size="small" style="width: 300px" allowClear>
           <a-select-option value="1">待审核</a-select-option>
           <a-select-option value="2">审核不通过</a-select-option>
           <a-select-option value="3">审核通过</a-select-option>
@@ -94,7 +94,7 @@
               <template v-else>
                 <!-- {{ text }} -->
                 <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan">
+                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
                   </a-tag>
                 </span>
@@ -200,6 +200,7 @@
   </CustomModal>
 </template>
 <script>
+import '@/assets/style/common.less'
 import CustomModal from "@/components/modal/index.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
