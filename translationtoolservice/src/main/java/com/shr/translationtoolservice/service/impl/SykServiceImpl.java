@@ -9,15 +9,22 @@ import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 @Service
 public class SykServiceImpl implements SykService {
@@ -46,11 +53,64 @@ public class SykServiceImpl implements SykService {
 
     @Override
     public String updateSykEntry(List<TranslateEntity> translates) {
-        int a = translateMapper.updateTranslation(translates);
-        if (a == translates.size()) {
-            return "success";
+        /*根据translates的个数来确定是单线程执行 */
+        int taskStrategyLimit = 30;
+        int translatesTotalCount = translates.size();
+
+        if(translatesTotalCount < taskStrategyLimit){
+            // 同步完成
+            int a = translateMapper.updateTranslation(translates);
+            if (a == translatesTotalCount) {
+                return "success";
+            }
+            return "";
+        }else{
+            int batchSize = taskStrategyLimit;
+            List<Future<Integer>> futureList = new LinkedList<>();
+            for(int i = 0; i < translatesTotalCount ; i += batchSize ){
+                Future<Integer> future = updateTranslationInternal(
+                    translates.subList(i, i + batchSize > translatesTotalCount ? translatesTotalCount : i + batchSize)
+                );
+                futureList.add(future);
+                
+            }
+            int updateTotalCount = 0;
+            do {
+                Iterator<Future<Integer>> iterator = futureList.iterator();
+                while (iterator.hasNext()) {
+                    Future<Integer> nextFuture = iterator.next();
+                    if(nextFuture.isDone()){
+                        try {
+                            updateTotalCount += nextFuture.get();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }finally{
+                            iterator.remove();
+                        }
+                    }
+                }    
+                            
+            } while (!futureList.isEmpty());
+
+            return updateTotalCount == translatesTotalCount ? "success" : "";
+            
         }
-        return "";
+
+        
+    }
+
+    @Async("TranslateMapperExecutor")
+    private Future<Integer> updateTranslationInternal(List<TranslateEntity> translates){
+        return new FutureTask<>(new Callable<Integer>() {
+
+            @Override
+            public Integer call() throws Exception {
+                // TODO Auto-generated method stub
+                int updateCount = translateMapper.updateTranslation(translates);
+                return updateCount;
+            }
+            
+        });
     }
 
     @Override
