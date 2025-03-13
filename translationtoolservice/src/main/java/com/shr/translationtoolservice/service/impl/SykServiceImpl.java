@@ -5,6 +5,7 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -128,8 +130,11 @@ public class SykServiceImpl implements SykService {
     }
 
     @Override
-    public List<TranslateEntity> getSykNotUsed() {
-        List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0));
+    public List<TranslateEntity> getSykNotUsed(HttpServletRequest request) {
+        String token = request.getHeader("token");
+        String department = JWTTokenUtils.getDepartment(token);
+        String userName = JWTTokenUtils.getUserName(token);
+        List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0).eq("visual_range", department));
         List<EntryInfoEntity> entities = entryInfoMapper.selectList(new QueryWrapper<EntryInfoEntity>().eq("is_delete", 0));
         processTranslateEntity(translateEntityList,entities);
 

@@ -5,6 +5,7 @@ import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface SykService {
@@ -15,5 +16,5 @@ public interface SykService {
 
     List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates);
 
-    List<TranslateEntity> getSykNotUsed();
+    List<TranslateEntity> getSykNotUsed(HttpServletRequest request);
 }
