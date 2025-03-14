@@ -36,8 +36,8 @@
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
-              :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination='pagination'
+              :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 模块名称列 -->
@@ -69,6 +69,13 @@ import {
   getQuestionTypes,
 } from "@/http/api/check";
 import { message } from "ant-design-vue";
+import {
+  clickInput,
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+  pageChange,
+} from "@/utils/tableUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,
@@ -99,9 +106,14 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 20,
+          width: 60,
+          index: 0.1,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
         },
         {
@@ -250,22 +262,22 @@ export default {
         // requestId: `${Date.now().toString(16)}-${Math.random()
         //   .toString(16)
         //   .substr(2, 10)}`, // 使用 Date.now() 和随机数生成简单的时间戳 UUID
-        requestId:`${this.search.questionType}-${Date.now().toString(16)}`,
+        requestId: `${this.search.questionType}-${Date.now().toString(16)}`,
       };
       let data = { checkURL: this.search.checkURL };
-      let lastRequestId = this.requestId;// 获取上一次的请求对象requestId
+      let lastRequestId = this.requestId; // 获取上一次的请求对象requestId
       // console.log("1.params_data", params, data);
 
       this.loading = true;
 
-      this.requestId = params.requestId;// 保存当前请求对象的requestId
+      this.requestId = params.requestId; // 保存当前请求对象的requestId
       // console.log("2.保存请求对象的requestId", this.requestId);
       searchCheckInfo(params, data, lastRequestId)
         .then((res) => {
           if (res.data.code == 200) {
-            message.success(
-              `校验成功！总共校验了${res.data.data.totalNum}个文件`
-            );
+            // message.success(
+            //   `校验成功！总共校验了${res.data.data.totalNum}个文件`
+            // );
             let tempData = [];
             Object.values(res.data.data.list).forEach((item) => {
               // console.log("item", item);
@@ -289,8 +301,7 @@ export default {
           if (err.name == "AbortError") {
             // console.log(`10.请求已取消!questionType:${this.search.questionType}`);
             message.error("请求已取消");
-            }
-          else message.error("请求出错", err);
+          } else message.error("请求出错", err);
         })
         .finally(() => {
           this.requestId = null; // 清空请求对象
@@ -299,54 +310,24 @@ export default {
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
-      event.stopPropagation();
+      clickInput(this, event);
     },
     // 动态设置表格高度
     setTableHeight() {
-      this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
-      });
+      setTableHeight(this);
     },
     // 表格列可伸缩
     handleResizeColumn: (w, col) => {
-      col.width = w;
+      return handleResizeColumn(w, col);
     },
     // 设置表格每一行的class
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
     // 分页切换
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
+      // 传入 searchCheckInfo 作为查询接口的回调函数
+      pageChange(this, page, pageSize, this.searchCheckInfo);
     },
   },
 };

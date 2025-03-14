@@ -35,7 +35,7 @@
 <script>
 import Modal from "@/components/modal/index.vue";
 import { message } from "ant-design-vue";
-import { getSykNotUsed,updateSykEntry } from "@/http/api/glossary";
+import { getSykNotUsed, updateSykEntry } from "@/http/api/glossary";
 import { v4 as uuidv4 } from "uuid";
 export default {
   components: {
@@ -194,13 +194,13 @@ export default {
       }
       this.loading = true;
       // console.log("selectedRows", this.selectedRows);
-      const deletedatas=[];
+      const deletedatas = [];
       this.selectedRows.forEach((item) => {
-        const data = {...item};
+        const data = { ...item };
         data.deleteState = 100;
         deletedatas.push(data);
       });
-      // console.log("deletedatas", deletedatas);
+      console.log("deletedatas", deletedatas);
       setTimeout(() => {
         this.loading = false;
         message.success(`术语删除成功！一共${deletedatas.length}条`);
@@ -227,6 +227,8 @@ export default {
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
+      console.log("选择事件selectedRows", this.selectedRows);
+      console.log("选择事件selectedRowKeys", this.selectedRowKeys);
     },
     // 表格复选框点击事件
     onSelect(record, selected) {
@@ -241,15 +243,39 @@ export default {
     },
     // 表格全选/反选框点击事件
     onSelectAll(selected, changeRows) {
-      if (selected) {
-        this.selectedRows = this.selectedRows.concat(changeRows);
-      } else {
-        changeRows.forEach((item) => {
-          this.selectedRows = this.selectedRows.filter((entry) => {
-            return entry !== item;
-          });
-        });
-      }
+      console.log("进入全选事件");
+      this.loading = true;
+      new Promise((resolve) => {
+        setTimeout(() => {
+          if (selected) {
+            // 直接赋值，确保 selectedRows 包含所有数据
+            // this.selectedRows = [...changeRows];
+            this.selectedRows = this.selectedRows.concat(changeRows);
+          } else {
+            changeRows.forEach((item) => {
+              this.selectedRows = this.selectedRows.filter((entry) => {
+                return entry !== item;
+              });
+            });
+          }
+          resolve();
+        }, 0);
+      }).then(() => {
+        this.loading = false;
+        console.log("全选selectedRows", this.selectedRows);
+        console.log(
+          "全选selectedRowKeys，后面会调用选择事件补齐keys",
+          this.selectedRowKeys
+        );
+      });
+      // new Promise((resolve) => {
+      //   setTimeout(() => {
+      //     console.log("loading效果");
+      //     resolve();
+      //   }, 3000);
+      // }).then(() => {
+      //   this.loading = false;
+      // });
     },
     // 分页切换
     pageChange(page, pageSize) {
