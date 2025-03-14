@@ -2500,6 +2500,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             TaskEntryVO taskEntryVO = new TaskEntryVO();
 
             TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
+            if ("6".equals(taskInfoEntity.getState())){
+                continue;
+            }
             List<ProductRelationEntity> productRelationEntities1 = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("task_id", taskID));
             log.info("当前任务下的任务id为:{}",taskID);
             String productId = productRelationEntities1.get(0).getProductId();
