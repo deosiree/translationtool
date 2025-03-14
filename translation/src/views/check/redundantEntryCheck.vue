@@ -8,8 +8,8 @@
             <a-input v-model:value="search.entry" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="词条状态" name="state">
-            <a-select v-model:value="search.entryState" style="width: 186px" placeholder="请选择" size="small" :options='entryStates'
-              @click="clickInput" allowClear></a-select>
+            <a-select v-model:value="search.entryState" style="width: 186px" placeholder="请选择" size="small" :options='entryStates' @click="clickInput"
+              allowClear></a-select>
           </a-form-item>
           <a-form-item label="Tag" name="tag">
             <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
@@ -57,7 +57,7 @@
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '230px'}"
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
               :loading="loading" :rowClassName="getRowClassName" ref="redundantEntryCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
@@ -107,15 +107,21 @@
   </div>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import stateBadge from "@/components/stateBadge/index.vue";
 import { getLanguage } from "@/http/api/translate";
 import { getSecondClassify } from "@/http/api/secondClassify";
-import { searchCheckInfo } from "@/http/api/check";
+import { mockSearchCheckInfo } from "@/http/api/check";
 import { message, Modal } from "ant-design-vue";
-
+import {
+  clickInput,
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+  pageChange,
+} from "@/utils/tableUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,
@@ -237,6 +243,7 @@ export default {
     };
   },
   mounted() {
+    console.log("冗余词条校验页面挂载了");
     let _this = this;
     this.$nextTick(() => {
       this.init();
@@ -246,39 +253,18 @@ export default {
       };
     });
     this.getOpitons();
+    this.searchCheckInfo(); // mock
   },
   unmounted() {
     //注销window.onresize事件
     window.onresize = null;
+    console.log("冗余词条校验页面卸载了");
   },
   methods: {
     // 初始化
     init() {
       this.setTableHeight();
-      this.getOpitons();
-    },
-    // 校验按钮点击事件
-    check() {
-      this.pageChangeSearch = this.search;
-      this.searchCheckInfo();
-    },
-    // 获取校验信息
-    searchCheckInfo() {
-      this.loading = true;
-      let params = this.search;
-      let path = "redundantEntry";
-      searchCheckInfo(params, path)
-        .then((res) => {
-          this.dataSource = res.data.list;
-          console.log("冗余信息", this.dataSource);
-          this.pagination.total = res.data.totalNum;
-          this.loading = false;
-        })
-        .catch((err) => {
-          message.info(err.message);
-          message.error(err);
-          this.loading = false;
-        });
+      // this.getOpitons();
     },
     // 获取下拉框信息
     getOpitons() {
@@ -307,56 +293,70 @@ export default {
         this.productVersions = res.data.list;
       });
     },
-    // 表单单元格的点击事件
-    clickInput(event) {
-      event.stopPropagation();
+    // 校验按钮点击事件
+    check() {
+      this.dataSource = []; // 清空数据
+      this.pageChangeSearch = this.search;
+      this.searchCheckInfo();
     },
-    // 动态设置表格高度
-    setTableHeight() {
-      this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        this.dataHeight = box - searchHeight;
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-      });
-    },
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
-    // 设置表格每一行的class
-    getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
+    // 获取校验信息
+    searchCheckInfo() {
+      this.loading = true;
+      let params = this.search;
+      let path = "redundantEntry";
+      mockSearchCheckInfo(params, path)
+        .then((res) => {
+          this.dataSource = res.data.list;
+          console.log("冗余信息", this.dataSource);
+          this.pagination.total = this.dataSource.length;
+        })
+        .catch((err) => {
+          message.info(err.message);
+          message.error(err);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
+      console.log("选择事件xxx", selectedRowKeys, selectedRows);
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
+      console.log("选择事件", this.selectedRowKeys, this.selectedRows);
+    },
+    // 表格全选/反选框点击事件
+    onSelectAll(selected) {
+      // 全部选择（不是当前页全部选择）
+      if (selected) {
+        this.selectedRows = [...this.dataSource];
+        this.selectedRowKeys = this.dataSource.map((item) => item.id);
+      } else {
+        this.selectedRows = [];
+        this.selectedRowKeys = [];
+      }
+      console.log("全选事件", this.selectedRowKeys, this.selectedRows);
+    },
+    // 阻止事件冒泡，防止事件传播到父元素
+    clickInput(event) {
+      clickInput(this, event);
+    },
+    // 动态设置表格高度
+    setTableHeight() {
+      setTableHeight(this,24); // 调用工具函数
+    },
+    // 表格列可伸缩
+    handleResizeColumn(w, col) {
+      return handleResizeColumn(w, col); // 调用工具函数
+    },
+    // 设置表格每一行的 class
+    getRowClassName(record, index) {
+      return getRowClassName(record, index, this.selectedRowIndex); // 调用工具函数
     },
     // 分页切换
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-
-      this.searchTaskByCondition(this.pageChangeSearch);
+      // 传入 searchCheckInfo 作为查询接口的回调函数
+      pageChange(this, page, pageSize, this.searchCheckInfo);
     },
   },
 };
