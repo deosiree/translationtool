@@ -27,7 +27,7 @@
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
               :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
@@ -70,8 +70,16 @@ import DataBox from "@/components/dataBox/index.vue";
 import QTCheckDetail from "@/views/check/qtCheckDetail.vue";
 import commen from "@/views/entry/common.js";
 import { cloneDeep, flatMap } from "lodash-es";
-import { searchCheckInfo } from "@/http/api/check";
+import { mockSearchCheckInfo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
+import {
+  clickInput,
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+  pageChange,
+} from "@/utils/tableUtils"; // 引入工具函数
+
 export default {
   components: {
     SearchBox,
@@ -101,10 +109,17 @@ export default {
       columns: [
         {
           title: "序号",
-          dataIndex: "id",
+          dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 60,
           index: 0.1,
+          customRender: (text, record, index, column) => {
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
+          },
         },
         {
           title: "词条",
@@ -142,70 +157,60 @@ export default {
       // dataSource: [],// 表格数据
       dataSource: [
         {
-          id: 1,
           entry: "词条",
           category: "Offline",
           tag: "Tag1111111111111111111111111111111111111111111111111111",
           operation: "详情",
         },
         {
-          id: 2,
           entry: "词条2",
           category: "Offline",
           tag: "Tag22222222222222222222222222222222222222222222222222222222222222",
           operation: "详情",
         },
         {
-          id: 3,
           entry: "词条3",
           category: "Offline",
           tag: "Tagvsfvsefsefsfsefesfsefiefieshfiwefwnfiwnfiwnfownefowenfowenf",
           operation: "详情",
         },
         {
-          id: 4,
           entry: "词条",
           category: "Offline",
           tag: "Tageeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           operation: "详情",
         },
         {
-          id: 5,
           entry: "词条2",
           category: "Offline",
           tag: "Tagfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           operation: "详情",
         },
         {
-          id: 6,
           entry: "词条3",
           category: "Offline",
           tag: "Tag4444444444444444444444444444444444444444444444444444444444444444444",
           operation: "详情",
         },
         {
-          id: 7,
           entry: "词条",
           category: "Offline",
           tag: "Tagbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           operation: "详情",
         },
         {
-          id: 8,
           entry: "词条2",
           category: "Offline",
           tag: "Tagkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
           operation: "详情",
         },
         {
-          id: 9,
           entry: "词条3",
           category: "Offline",
           tag: "Tag99999999999999999999999999999999999999999999999999999999999999999999999999999999",
           operation: "详情",
         },
         {
-          id: 10,
           entry: "词条",
           category: "Offline",
           tag: "Tag0000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -213,60 +218,7 @@ export default {
         },
         // ... 其他示例数据
       ],
-      // 详情数据
-      detailColumns: [
-        {
-          id: 1,
-          title: "序号",
-          dataIndex: "id",
-          align: "center",
-        },
-        {
-          id: 2,
-          title: "ts文件",
-          dataIndex: "tsFile",
-          align: "center",
-        },
-        {
-          id: 3,
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-        },
-        {
-          id: 4,
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-        },
-      ],
-      detailDataSource: [
-        {
-          linkID: 1,
-          tsFile: "tsFile1",
-          entry: "中文",
-          translate: "Chinese",
-        },
-        {
-          linkID: 2,
-          tsFile: "tsFile2",
-          entry: "英文",
-          translate: "English",
-        },
-        {
-          linkID: 2,
-          tsFile: "tsFile3",
-          entry: "学习",
-          translate: "Study",
-        },
-        {
-          linkID: 3,
-          tsFile: "tsFile3",
-          entry: "学习",
-          translate: "Study",
-        },
-        // ... 其他示例数据
-      ],
+      detailDataSource: [],
       detailModalVisible: false, // 详情弹窗
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项
@@ -291,6 +243,7 @@ export default {
         _this.setTableHeight();
       };
     });
+    this.searchCheckInfo(); // mock
   },
   unmounted() {
     //注销window.onresize事件
@@ -303,6 +256,7 @@ export default {
     },
     // 校验按钮点击事件
     check() {
+      this.dataSource = []; // 清空数据
       this.pageChangeSearch = this.search;
       this.searchCheckInfo();
     },
@@ -311,7 +265,7 @@ export default {
       this.loading = true;
       let params = this.search;
       let path = "qt";
-      searchCheckInfo(params, path)
+      mockSearchCheckInfo(params, path)
         .then((res) => {
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
@@ -405,64 +359,31 @@ export default {
       // console.log("详情数据",this.detailDataSource);
       this.detailModalVisible = false; // 关闭弹窗，具体点击确认/取消的操作都在组件中写，这里只是传递关闭弹窗的信息
     },
-    // 动态设置表格高度
-    clickInput(event) {
-      event.stopPropagation();
-    },
-    // 动态设置表格高度
-    setTableHeight() {
-      this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
-      });
-    },
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      // console.log('触发时机:', new Date().toISOString(), '新宽度:', w, '旧宽度:', col.width);
-      col.width = w;
-    },
-    // 设置表格每一行的class
-    getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
-    },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
     },
+    // 阻止事件冒泡，防止事件传播到父元素
+    clickInput(event) {
+      clickInput(this, event);
+    },
+    // 动态设置表格高度
+    setTableHeight() {
+      setTableHeight(this); // 调用工具函数
+    },
+    // 表格列可伸缩
+    handleResizeColumn(w, col) {
+      return handleResizeColumn(w, col); // 调用工具函数
+    },
+    // 设置表格每一行的 class
+    getRowClassName(record, index) {
+      return getRowClassName(record, index, this.selectedRowIndex); // 调用工具函数
+    },
     // 分页切换
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-
-      this.searchTaskByCondition(this.pageChangeSearch);
+      // 传入 searchCheckInfo 作为查询接口的回调函数
+      pageChange(this, page, pageSize, this.searchCheckInfo);
     },
   },
 };

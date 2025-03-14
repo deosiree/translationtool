@@ -3,7 +3,7 @@
   <a-modal :visible="visible" title="关联信息2" @cancel="handleClose" @ok="handleOK" style="width:70%">
     <div class="table">
       <a-form ref="tableDetailFormRef" :model="dataSource" :wrapper-col="{ span: 0 }">
-        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
+        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
           :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
           :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
           <!-- 表格单元格模板 -->
@@ -51,11 +51,14 @@ export default {
       loading: false,
       columns: [
         {
-          id: 1,
           title: "序号",
-          dataIndex: "id",
+          dataIndex: "index",
           align: "center",
           width: 50,
+          index:0.1,
+          customRender: (text, record, index, column) => {
+            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+          },
         },
         {
           id: 2,

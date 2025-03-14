@@ -17,9 +17,9 @@
 </template>
 <script>
 import Code from "@/views/check/codeCheck.vue";
-import Qt from "@/views/check/qtCheck.vue";
 import File from "@/views/check/fileCheck.vue";
 import RedundantEntry from "@/views/check/redundantEntryCheck.vue";
+import Qt from "@/views/check/qtCheck.vue";
 
 export default {
   name: "layout",
@@ -51,15 +51,25 @@ export default {
     this.$nextTick(() => {
       // console.log(this.$store.state.tabActive)
       // 页面加载完成后执行的代码
-      let list = this.$store.state.menu;
-      for (var item of list) {
-        if (item.url === this.$route.path && item.children.length > 0) {
-          this.menu = item.children;
-          // this.activeKey = this.menu[0].name
-        }
+
+      while (0) {
+        // let list = this.$store.state.menu;
+        // console.log("拿到store中存储的menu", list);
+        // console.log("此时的this.menu", this.menu);// 没用，那是写到后端数据库的路由，这个页面根本进这个循环没意义
+        // for (var item of list) {
+        //   if (item.url === this.$route.path && item.children.length > 0) {
+        //     this.menu = item.children;
+        //     this.activeKey = this.menu[0].name;
+        //     console.log("拿到store中存储的当前页面的menu", this.menu);
+        //     console.log("拿到store中存储的当前页面的activeKey", this.activeKey);
+        //   }
+        // }
       }
+
+      console.log("1.当前组件的数据：", this);
       // 检查当前组件的菜单是否有菜单项
       if (this.menu.length > 0) {
+        console.log("2.当前组件的菜单有菜单项", this.menu);
         // 如果 store 中的 tabActive 状态为 null，则将激活的标签页设置为菜单的第一个菜单项
         // 否则，将激活的标签页设置为 store 中的 tabActive 状态
         this.activeKey =
@@ -67,22 +77,35 @@ export default {
             ? this.menu[0].name
             : this.$store.state.tabActive;
       }
+      console.log("3.当前激活的标签页：", this.activeKey);
     });
   },
   methods: {
     changeTab(activeKey) {
-      // console.log(activeKey);
+      console.log("6.更新前菜单的激活项：", activeKey);
       // 提交 mutation 更新 store 中的 tabActive 状态
       this.$store.commit("setTabActive", activeKey);
+      console.log("7.更新后菜单的激活项", this.$store.state.tabActive);
     },
     changeSubTab(parentName, activeKey) {
+      console.log("进入子菜单的changeTab方法", parentName, activeKey);
       // 找到父菜单
       const parentMenu = this.menu.find((item) => item.name === parentName);
-      if (parentMenu) {
+      if (parentMenu.children) {
+        console.log("4.有子菜单", parentMenu);
         // 设置子菜单的激活项
         parentMenu.activeKey = activeKey;
+        console.log("5.设置子菜单的激活项", parentMenu.activeKey);
         // 提交 mutation 更新 store 中的 tabActive 状态
-        this.changeTab(activeKey);
+        console.log("6.更新前菜单的激活项：", activeKey);
+        this.$store.commit("setTabActive", activeKey);
+        console.log("7.更新后菜单的激活项", this.$store.state.tabActive);
+      } else {
+        console.log("4.没有子菜单");
+        console.log("6.更新前菜单的激活项：", activeKey);
+        // 提交 mutation 更新 store 中的 tabActive 状态
+        this.$store.commit("setTabActive", fullActiveKey);
+        console.log("7.更新后菜单的激活项", this.$store.state.tabActive);
       }
     },
   },

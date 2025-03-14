@@ -1,0 +1,87 @@
+/**
+ * 表单单元格的点击事件处理函数
+ * @param {VueInstance} vm - Vue 实例
+ * @param {Event} event - 点击事件对象
+ */
+export function clickInput(vm, event) {
+  event.stopPropagation();
+  // // 这里可以添加更多的交互逻辑，例如聚焦输入框、记录点击信息等
+  // const inputElement = event.target;
+  // inputElement.focus();
+  // const inputName = inputElement.name;
+  // console.log(`点击了输入框: ${inputName}`);
+}
+
+/**
+ * 动态设置表格高度
+ * @param {VueInstance} vm - Vue 实例
+ * @param {number} buttonHeightBias - 按钮高度的偏移量，默认值为 8
+ * @param {number} tableHeightBias - 表格高度的偏移量，默认值为 150
+ */
+export function setTableHeight(vm, buttonHeightBias = 8, tableHeightBias = 150) {
+  vm.$nextTick(() => {
+    // 设置列表父元素高度
+    let box = vm.$refs.box.offsetHeight;
+    let searchHeight = vm.$refs.search.$el.offsetHeight;
+    try {
+      let operationAreaHeight = vm.$refs.operationArea.$el.offsetHeight;
+      vm.dataHeight = box - searchHeight - operationAreaHeight;
+    } catch (error) {
+      vm.dataHeight = box - searchHeight;
+    }
+
+    // 设置表格高度
+    let buttonHeight = 0;
+    try {
+      buttonHeight = vm.$refs.button.offsetHeight + buttonHeightBias;
+    } catch (error) { }
+    vm.tableHeight.y = vm.dataHeight - buttonHeight - tableHeightBias;
+
+    // console.log(vm.tableHeight.y)
+  });
+}
+
+/**
+ * 表格列可伸缩
+ * @param {number} w - 新的列宽度
+ * @param {object} col - 列对象
+ */
+export function handleResizeColumn(w, col) {
+  col.width = w;
+}
+
+/**
+ * 设置表格每一行的 class
+ * @param {object} record - 行数据记录
+ * @param {number} index - 行索引
+ * @param {number} selectedRowIndex - 选中行的索引
+ * @returns {string} - 行的 class 名称
+ */
+export function getRowClassName(record, index, selectedRowIndex) {
+  let className = null;
+  if (index % 2 === 1) {
+    className = "table-striped";
+    if (selectedRowIndex === record.id) {
+      className = className + " highlighted-row";
+    }
+  } else {
+    if (selectedRowIndex === record.id) {
+      className = "highlighted-row";
+    }
+  }
+  return className;
+}
+
+/**
+ * 分页切换函数
+ * @param {VueInstance} vm - Vue 实例
+ * @param {number} page - 当前页码
+ * @param {number} pageSize - 每页显示数量
+ * @param {function} fetchData - 数据查询回调函数
+ */
+export function pageChange(vm, page, pageSize, fetchData) {
+  vm.pagination.current = page;
+  vm.pagination.pageSize = pageSize;
+  // 调用传入的查询接口函数
+  fetchData();
+}

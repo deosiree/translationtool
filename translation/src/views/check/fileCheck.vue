@@ -4,18 +4,23 @@
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-form-item label="模块名称" name="moduleName">
-            <a-select v-model:value="search.moduleName" style="width: 186px" placeholder="请选择模块名称" :options='moduleNames' size="small"
-              @click="clickInput" allowClear>
+          <a-form-item label="i18n" name="i18n">
+            <a-select v-model:value="search.i18n" style="width: 186px" placeholder="请选择i18n" :options='i18nURLs' size="small" @click="clickInput"
+              @change="oni18nChange" allowClear>
             </a-select>
           </a-form-item>
+          <!-- <a-form-item label="模块名称" name="moduleName">
+            <a-select v-model:value="search.moduleName" style="width: 186px" placeholder="请选择模块名称" :options='moduleNames' size="small"
+              @click="getModuleNames" allowClear>
+            </a-select>
+          </a-form-item> -->
           <a-form-item label="问题类型" name="questionType">
             <a-select v-model:value="search.questionType" style="width: 186px" placeholder="请选择问题类型" :options='questionTypes' size="small"
-              @click="clickInput" allowClear>
+              @click="getQuestionTypes" allowClear>
             </a-select>
           </a-form-item>
           <a-form-item label="校验路径" name="checkURL">
-            <a-input v-model:value="search.checkURL" style="width: 186px" placeholder="请输入校验目录路径" size="small"></a-input>
+            <a-input v-model:value="search.checkURL" style="width: 286px" placeholder="校验目录下的所有文件，请输入" size="small"></a-input>
           </a-form-item>
         </a-form>
       </template>
@@ -30,11 +35,11 @@
       <!-- 数据展示模板 -->
       <template v-slot:data>
         <div style="width:100%;position: absolute;">
-          <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
+          <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }">
             <!-- 表格组件 -->
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}"
+            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
+              :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
                 <!-- 模块名称列 -->
@@ -55,15 +60,21 @@
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
-import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import { getClassTree } from "@/http/api/entryManage";
 import {
-  searchCheckInfo,
+  mockSearchCheckInfo,
   getModuleNames,
   getQuestionTypes,
 } from "@/http/api/check";
+import {
+  clickInput,
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+  pageChange,
+} from "@/utils/tableUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,
@@ -71,14 +82,10 @@ export default {
   },
   data() {
     return {
-      user: {
-        userName: "",
-        department: "",
-      },
-      locale: locale,
-      labelCol: { style: { width: "84px" } },
       search: {
-        // 模块名/文件名+词条/问题类型/详情/日志
+        // (v2)文件名+函数名;（v1）模块名/文件名+行号/问题类型/详情/日志
+        fonction: "code",
+        i18n: null, // 必须
         moduleName: null, // 必须
         questionType: null, // 必须
         checkURL: null, // 非必须
@@ -87,10 +94,6 @@ export default {
         details: "",
         logs: "",
       },
-      tableTitle: "校验日志",
-      dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
-      loading: false,
       columns: [
         // 模块名/文件名+词条/问题类型/详情/日志
         // { title: '任务状态', dataIndex: 'state', align: 'center', width: 100, fixed: 'right' },
@@ -98,56 +101,39 @@ export default {
           title: "模块名/文件名",
           dataIndex: "name",
           align: "center",
-          width: 50,
-          fixed: "right",
+          width: 150,
+          // fixed: "right",
+          resizable: true,
+          index: 1,
         },
         {
           title: "词条/问题类型/详情/日志",
-          dataIndex: "log",
+          dataIndex: "value",
           align: "center",
           width: 400,
-          fixed: "right",
+          // fixed: "right",
+          resizable: true,
+          index: 2,
         },
       ],
-      // dataSource: [],// 表格数据
-      dataSource: [
+      dataSource: [], // 表格数据
+      i18nURLs: [
         {
-          id: 1,
-          name: "模块1",
-          log: "日志1",
+          label: "http://10.17.14.115:18001",
+          value: "http://10.17.14.115:18001",
         },
-        {
-          id: 2,
-          name: "模块2",
-          log: "日志2",
-        },
-        // ... 其他示例数据
       ],
-
-      editableData: {}, // 可编辑数据
-      selectedRowKeys: [], // 表格选中项
-      selectedRows: [], // 表格选中项
-      selectedRowIndex: null, // 表格选中项
-      currentTask: {}, // 当前任务
-      options: {}, // 任务详情
-      timer: null, // 定时器
-      departments: [], // 部门
-      copyVisible: false, // 复制任务弹窗
-      copyNumber: 1, // 复制数量
       moduleNames: [],
       questionTypes: [],
       translateTypes: [], // 翻译语言
-      addProductVisible: false, //   添加产品弹窗
-      addProductTask: "",
-      addVersionVisible: false,
-      copyTaskEntry: {},
-      rules: {
-        name: [{ required: true, message: "请输入" }],
-        productName: [{ required: true, message: "请选择" }],
-        versionName: [{ required: true, message: "请选择" }],
-        translateType: [{ required: true, message: "请选择" }],
-      },
-      searchValue: "",
+      labelCol: { style: { width: "84px" } },
+      tableTitle: "校验日志",
+      dataHeight: 400,
+      tableHeight: { x: "100%", y: 0 },
+      loading: false,
+      selectedRowKeys: [], // 表格选中项
+      selectedRows: [], // 表格选中项
+      selectedRowIndex: null, // 表格选中项
       pagination: {
         showSizeChanger: true,
         total: 0,
@@ -160,6 +146,7 @@ export default {
     };
   },
   mounted() {
+    console.log("文件校验页面挂载了");
     let _this = this;
     this.$nextTick(() => {
       this.init();
@@ -168,18 +155,20 @@ export default {
         _this.setTableHeight();
       };
     });
-    this.getOpitons();
+    // this.getOpitons();
+    this.searchCheckInfo(); // mock
   },
   unmounted() {
     //注销window.onresize事件
     window.onresize = null;
+    console.log("文件校验页面卸载了");
   },
   methods: {
     // 初始化
     init() {
       this.setTableHeight();
-      this.searchCheckInfo();
-      this.getOpitons();
+      // this.searchCheckInfo();
+      // this.getOpitons();
     },
     // 获取下拉框信息
     getOpitons() {
@@ -188,54 +177,70 @@ export default {
     },
     // 获取模块名
     getModuleNames() {
-      getModuleNames()
+      if (this.search.i18n == null) {
+        // 不选就是默认全搜索
+        message.error("请选择校验目录路径！");
+        return;
+      }
+      getModuleNames({ url: this.search.i18n })
         .then((res) => {
-          this.moduleNames = res.data.list;
+          this.moduleNames = [];
+          res.data.list.forEach((element) => {
+            this.moduleNames.push({
+              label: element,
+              value: element,
+            });
+          });
+          // console.log("getModuleNames", this.moduleNames);
         })
-        .catch(({ data }) => {
-          console.error("获取模块名失败：", data);
+        .catch(({ error }) => {
+          console.error("获取模块名失败：", error);
         });
     },
     // 获取问题类型
     getQuestionTypes() {
-      getQuestionTypes()
+      if (this.search.i18n == null) {
+        // 不选就是默认全搜索
+        message.error("请选择i18n路径！");
+        return;
+      }
+      getQuestionTypes({ url: this.search.i18n })
         .then((res) => {
-          this.questionTypes = res.data.list;
+          this.questionTypes = [];
+          res.data.list.forEach((element) => {
+            this.questionTypes.push({
+              label: element,
+              value: element,
+            });
+          });
+          // console.log("getQuestionTypes", this.questionTypes);
         })
-        .catch(({ data }) => {
-          console.error("获取问题类型失败：", data);
+        .catch(({ error }) => {
+          console.error("获取问题类型失败：", error);
         });
     },
-    // 动态设置表格高度
-    setTableHeight() {
-      this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
-      });
+    oni18nChange() {
+      // 可选：清空搜索表单中的模块名称和问题类型
+      this.search.moduleName = null;
+      this.search.questionType = null;
+      // if (this.search.i18n != null) this.getOpitons();// 不需要，让问题类型下拉框点击了再自动获取，否则重复
     },
     // 校验按钮点击事件
     check() {
+      this.dataSource = []; // 清空数据
       this.pageChangeSearch = this.search;
       this.searchCheckInfo();
     },
     // 获取校验信息
     searchCheckInfo() {
+      // if (this.search.i18n == null) {
+      //   message.error("请选择i18n路径！");
+      //   return;
+      // }
+      // if (this.search.questionType == null) {
+      //   message.error("请选择问题类型！");
+      //   return;
+      // }
       this.loading = true;
       let params = {
         moduleName: this.search.moduleName,
@@ -243,258 +248,56 @@ export default {
         checkURL: this.search.checkURL,
       };
       let path = "file";
-      searchCheckInfo(params,path)
+      mockSearchCheckInfo(params, path)
         .then((res) => {
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
-          this.loading = false;
+          let tempData = [];
+          Object.values(res.data.list).forEach((item) => {
+            // console.log("item", item);
+            const file = item.name;
+            item.methods.forEach((method) => {
+              // console.log(method);
+              tempData.push({
+                name: file,
+                value: method,
+              });
+            });
+          });
+          // console.log("校验成功", tempData);
+          this.dataSource = tempData;
+          this.pagination.total = this.dataSource.totalNum;
         })
         .catch((err) => {
           message.error("校验目录路径错误！");
+        })
+        .finally(() => {
           this.loading = false;
         });
-    },
-    clickInput(event) {
-      event.stopPropagation();
-    },
-
-    checkTask(id) {
-      //1、开发员和词条审核员必须成对出现
-      //2、翻译员和翻译审核员必须成对出现
-      //3、(开发员、词条审核员) 和 (翻译员、翻译审核员) 必须出现一对
-      let newTask = this.editableData[id];
-      if (
-        !this.isEmptyString(newTask.developer) &&
-        this.isEmptyString(newTask.entryAuditor)
-      ) {
-        message.info("请选择词条审核员！");
-        return false;
-      }
-      if (
-        !this.isEmptyString(newTask.entryAuditor) &&
-        this.isEmptyString(newTask.developer)
-      ) {
-        message.info("请选择开发员！");
-        return false;
-      }
-      if (
-        !this.isEmptyString(newTask.translator) &&
-        this.isEmptyString(newTask.translationAuditor)
-      ) {
-        message.info("请选择翻译审核员！");
-        return false;
-      }
-      if (
-        !this.isEmptyString(newTask.translationAuditor) &&
-        this.isEmptyString(newTask.translator)
-      ) {
-        message.info("请选择翻译员！");
-        return false;
-      }
-      if (
-        this.isEmptyString(newTask.translationAuditor) &&
-        this.isEmptyString(newTask.translator) &&
-        this.isEmptyString(newTask.developer) &&
-        this.isEmptyString(newTask.entryAuditor)
-      ) {
-        message.info("请选择操作人员！");
-        return false;
-      }
-      return true;
-    },
-    isEmptyString(value) {
-      return value === null || value === "" || value === undefined;
-    },
-    // 获取可编辑行下拉菜单的选项
-    getOptions(record) {
-      let products = [];
-      let versions = [];
-      let op = {
-        products: products,
-        versions: versions,
-      };
-      this.options[record.id] = op;
-      // console.log(this.options[record.id])
-      // 获取部门产品列表
-      // let product = {
-      //     // department: record.department
-      //     department: this.user.department
-      // }
-      // getProduct(product).then((res) => {
-
-      //     this.options[record.id].products = res.data.list
-      // })
-      let product = {
-        department: "",
-        className: record.department,
-      };
-      getClassTree(product).then((res) => {
-        this.options[record.id].products = res.data.list;
-        // console.log(this.options[record.id].products)
-        this.options[record.id].products = this.dealData(
-          this.options[record.id].products
-        );
-      });
-      // 获取产品版本列表
-      if (record.productId != null) {
-        let version = {
-          productId: record.productId,
-        };
-        getVersion(version).then((res) => {
-          res.data.list.forEach((item) => {
-            let v = {
-              label: item.name,
-              value: item.id,
-            };
-            this.options[record.id].versions.push(v);
-          });
-        });
-      }
-      // 获取部门下的 开发员、词条审核员、翻译员、翻译审核员
-      let params = {
-        department: record.department,
-      };
-      getRoleUserByDepartment(params).then((res) => {
-        let data = res.data;
-        if (data.DEVELOPER) {
-          let developer = [];
-          data.DEVELOPER.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            developer.push(op);
-          });
-          developer.push({ label: "无", value: "" });
-          this.options[record.id].developers = developer;
-        }
-        if (data.ENTRY_AUDITOR) {
-          let auditor = [];
-          data.ENTRY_AUDITOR.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            auditor.push(op);
-          });
-          auditor.push({ label: "无", value: "" });
-          this.options[record.id].entryAuditors = auditor;
-        }
-        if (data.TRANSLATOR) {
-          let translateor = [];
-          data.TRANSLATOR.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            translateor.push(op);
-          });
-          translateor.push({ label: "无", value: "" });
-          this.options[record.id].translators = translateor;
-        }
-        if (data.TRANSLATE_AUDITOR) {
-          let translateAuditor = [];
-          data.TRANSLATE_AUDITOR.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            translateAuditor.push(op);
-          });
-          translateAuditor.push({ label: "无", value: "" });
-          this.options[record.id].translatorAuditors = translateAuditor;
-        }
-      });
-      // console.log(this.options)
-    },
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      col.width = w;
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
     },
-    // 设置表格每一行的class
+    // 阻止事件冒泡，防止事件传播到父元素
+    clickInput(event) {
+      clickInput(this, event);
+    },
+    // 动态设置表格高度
+    setTableHeight() {
+      setTableHeight(this); // 调用工具函数
+    },
+    // 表格列可伸缩
+    handleResizeColumn(w, col) {
+      return handleResizeColumn(w, col); // 调用工具函数
+    },
+    // 设置表格每一行的 class
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
-    },
-    // 添加产品
-    addProduct(record) {
-      // message.info("添加产品！")
-      this.addProductTask = this.editableData[record.id];
-      this.addProductTask.allProducts = this.options[record.id].products;
-      this.addProductVisible = true;
-    },
-    addProductOk(record) {
-      this.addProductVisible = false;
-      this.getOptions(record);
-    },
-    addProductClose() {
-      this.addProductVisible = false;
-    },
-    // 添加版本
-    addVersion(record) {
-      let productId = this.editableData[record.id].productId;
-      if (productId === null || productId === "" || productId === undefined) {
-        message.info("请先选择产品！");
-        return;
-      }
-      this.addProductTask = this.editableData[record.id];
-      this.addProductTask.allVersions = this.options[record.id].versions;
-      this.addVersionVisible = true;
-    },
-    addVersionOk(record) {
-      this.addVersionVisible = false;
-      this.getOptions(record);
-    },
-    addVersionClose() {
-      this.addVersionVisible = false;
-    },
-    // 获取当前时间
-    getCurrentDate() {
-      // 创建一个新的Date对象
-      var currentTime = new Date();
-
-      // 格式化为指定的日期字符串
-      var formattedTime = `${currentTime.getFullYear()}-${(
-        currentTime.getMonth() + 1
-      )
-        .toString()
-        .padStart(2, "0")}-${currentTime
-        .getDate()
-        .toString()
-        .padStart(2, "0")} ${currentTime
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:${currentTime
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${currentTime
-        .getSeconds()
-        .toString()
-        .padStart(2, "0")}`;
-
-      return formattedTime;
+      return getRowClassName(record, index, this.selectedRowIndex); // 调用工具函数
     },
     // 分页切换
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-
-      this.searchTaskByCondition(this.pageChangeSearch);
+      // 传入 searchCheckInfo 作为查询接口的回调函数
+      pageChange(this, page, pageSize, this.searchCheckInfo);
     },
   },
 };
