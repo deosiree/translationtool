@@ -1,9 +1,9 @@
 <template>
   <div style="width: 100%; height: 100%; padding: 8px 24px 24px 24px">
-    <a-tabs v-model:activeKey="activeKey" ref="tab" @change="changeTab">
+    <a-tabs v-model:activeKey="activeKey" ref="tab" @change="changeTab($event)">
       <a-tab-pane v-for='(item) in menu' :key="item.name" :tab="item.menuName">
         <Code v-if="item.name === 'code'" />
-        <a-tabs v-if="item.name === 'translation' &&item.children" v-model:activeKey="item.activeKey" @change="changeSubTab(item.name, $event)">
+        <a-tabs v-if="item.name === 'translation' &&item.children" v-model:activeKey="item.activeKey" @change="changeTab(item.name, $event)">
           <a-tab-pane v-for='(subItem) in item.children' :key="subItem.name" :tab="subItem.menuName">
             <!-- 根据子菜单的 name 渲染对应的组件 -->
             <File v-if="subItem.name === 'file'" />
@@ -17,9 +17,9 @@
 </template>
 <script>
 import Code from "@/views/check/codeCheck.vue";
-import Qt from "@/views/check/qtCheck.vue";
 import File from "@/views/check/fileCheck.vue";
 import RedundantEntry from "@/views/check/redundantEntryCheck.vue";
+import Qt from "@/views/check/qtCheck.vue";
 
 export default {
   name: "layout",
@@ -49,41 +49,45 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      // console.log(this.$store.state.tabActive)
-      // 页面加载完成后执行的代码
       let list = this.$store.state.menu;
-      for (var item of list) {
+      for (let item of list) {
         if (item.url === this.$route.path && item.children.length > 0) {
           this.menu = item.children;
-          // this.activeKey = this.menu[0].name
         }
       }
-      // 检查当前组件的菜单是否有菜单项
-      if (this.menu.length > 0) {
-        // 如果 store 中的 tabActive 状态为 null，则将激活的标签页设置为菜单的第一个菜单项
-        // 否则，将激活的标签页设置为 store 中的 tabActive 状态
-        this.activeKey =
-          this.$store.state.tabActive === null
-            ? this.menu[0].name
-            : this.$store.state.tabActive;
+      // 从 store 中获取 tabActive 状态
+      const tabActive = this.$store.state.tabActive;
+      if (tabActive) {
+        const [parentName, childName] = tabActive.split("/"); // 解析完整的 activeKey 来设置子菜单的 activeKey
+        this.changeTab(parentName, childName);
+      } else {
+        this.changeTab(this.menu[0].name); // 如果 store 中没有 tabActive 状态，设置默认激活项
       }
     });
   },
   methods: {
-    changeTab(activeKey) {
-      // console.log(activeKey);
-      // 提交 mutation 更新 store 中的 tabActive 状态
-      this.$store.commit("setTabActive", activeKey);
-    },
-    changeSubTab(parentName, activeKey) {
-      // 找到父菜单
+    changeTab(parentName, activeKey = null) {
+      this.activeKey = parentName; // 更新父菜单的 activeKey
       const parentMenu = this.menu.find((item) => item.name === parentName);
-      if (parentMenu) {
-        // 设置子菜单的激活项
-        parentMenu.activeKey = activeKey;
-        // 提交 mutation 更新 store 中的 tabActive 状态
-        this.changeTab(activeKey);
+      let fullActiveKey = "";
+      if (parentMenu.children) {
+        // 如果有子菜单
+        let childActiveKey = "";
+        if (!activeKey) {
+          // 如果默认使用子菜单的激活项
+          childActiveKey = parentMenu.children[0].name;
+        } else {
+          // 如果使用传入的激活项
+          childActiveKey = activeKey;
+        }
+        parentMenu.activeKey = childActiveKey; // 更新子菜单的 activeKey
+        fullActiveKey = `${parentName}/${childActiveKey}`;
+      } else {
+        // 如果没有子菜单
+        fullActiveKey = parentName;
       }
+      // 提交 mutation 更新 store 中的 tabActive 状态(要以“父亲/儿子”的格式进行激活项的存储，方便后续的路由跳转)
+      this.$store.commit("setTabActive", fullActiveKey);
     },
   },
 };

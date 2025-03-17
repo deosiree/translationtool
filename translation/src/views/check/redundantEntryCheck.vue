@@ -243,7 +243,6 @@ export default {
     };
   },
   mounted() {
-    console.log("冗余词条校验页面挂载了");
     let _this = this;
     this.$nextTick(() => {
       this.init();
@@ -258,7 +257,6 @@ export default {
   unmounted() {
     //注销window.onresize事件
     window.onresize = null;
-    console.log("冗余词条校验页面卸载了");
   },
   methods: {
     // 初始化
@@ -307,7 +305,7 @@ export default {
       mockSearchCheckInfo(params, path)
         .then((res) => {
           this.dataSource = res.data.list;
-          console.log("冗余信息", this.dataSource);
+          // console.log("冗余信息", this.dataSource);
           this.pagination.total = this.dataSource.length;
         })
         .catch((err) => {
@@ -320,10 +318,10 @@ export default {
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
-      console.log("选择事件xxx", selectedRowKeys, selectedRows);
+      // console.log("选择事件xxx", selectedRowKeys, selectedRows);
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
-      console.log("选择事件", this.selectedRowKeys, this.selectedRows);
+      // console.log("选择事件", this.selectedRowKeys, this.selectedRows);
     },
     // 表格全选/反选框点击事件
     onSelectAll(selected) {
@@ -335,7 +333,7 @@ export default {
         this.selectedRows = [];
         this.selectedRowKeys = [];
       }
-      console.log("全选事件", this.selectedRowKeys, this.selectedRows);
+      // console.log("全选事件", this.selectedRowKeys, this.selectedRows);
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {

@@ -146,7 +146,6 @@ export default {
     };
   },
   mounted() {
-    console.log("文件校验页面挂载了");
     let _this = this;
     this.$nextTick(() => {
       this.init();
@@ -161,7 +160,6 @@ export default {
   unmounted() {
     //注销window.onresize事件
     window.onresize = null;
-    console.log("文件校验页面卸载了");
   },
   methods: {
     // 初始化
@@ -194,7 +192,7 @@ export default {
           // console.log("getModuleNames", this.moduleNames);
         })
         .catch(({ error }) => {
-          console.error("获取模块名失败：", error);
+          message.error("获取模块名失败：", error);
         });
     },
     // 获取问题类型
@@ -216,7 +214,7 @@ export default {
           // console.log("getQuestionTypes", this.questionTypes);
         })
         .catch(({ error }) => {
-          console.error("获取问题类型失败：", error);
+          message.error("获取问题类型失败：", error);
         });
     },
     oni18nChange() {
