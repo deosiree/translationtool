@@ -642,6 +642,7 @@ export default {
     },
     //新增
     handleAdd() {
+      this.pagination.current = 1;// 重置分页
       const newData = {
         id: `new${this.dataSource.length + 1}`,
         name: "",

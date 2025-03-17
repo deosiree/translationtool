@@ -1,9 +1,9 @@
 <template>
   <div style="width: 100%; height: 100%; padding: 8px 24px 24px 24px">
-    <a-tabs v-model:activeKey="activeKey" ref="tab" @change="changeTab">
+    <a-tabs v-model:activeKey="activeKey" ref="tab" @change="changeTab($event)">
       <a-tab-pane v-for='(item) in menu' :key="item.name" :tab="item.menuName">
         <Code v-if="item.name === 'code'" />
-        <a-tabs v-if="item.name === 'translation' &&item.children" v-model:activeKey="item.activeKey" @change="changeSubTab(item.name, $event)">
+        <a-tabs v-if="item.name === 'translation' &&item.children" v-model:activeKey="item.activeKey" @change="changeTab(item.name, $event)">
           <a-tab-pane v-for='(subItem) in item.children' :key="subItem.name" :tab="subItem.menuName">
             <!-- 根据子菜单的 name 渲染对应的组件 -->
             <File v-if="subItem.name === 'file'" />
@@ -49,64 +49,45 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      // console.log(this.$store.state.tabActive)
-      // 页面加载完成后执行的代码
-
-      while (0) {
-        // let list = this.$store.state.menu;
-        // console.log("拿到store中存储的menu", list);
-        // console.log("此时的this.menu", this.menu);// 没用，那是写到后端数据库的路由，这个页面根本进这个循环没意义
-        // for (var item of list) {
-        //   if (item.url === this.$route.path && item.children.length > 0) {
-        //     this.menu = item.children;
-        //     this.activeKey = this.menu[0].name;
-        //     console.log("拿到store中存储的当前页面的menu", this.menu);
-        //     console.log("拿到store中存储的当前页面的activeKey", this.activeKey);
-        //   }
-        // }
+      let list = this.$store.state.menu;
+      for (let item of list) {
+        if (item.url === this.$route.path && item.children.length > 0) {
+          this.menu = item.children;
+        }
       }
-
-      console.log("1.当前组件的数据：", this);
-      // 检查当前组件的菜单是否有菜单项
-      if (this.menu.length > 0) {
-        console.log("2.当前组件的菜单有菜单项", this.menu);
-        // 如果 store 中的 tabActive 状态为 null，则将激活的标签页设置为菜单的第一个菜单项
-        // 否则，将激活的标签页设置为 store 中的 tabActive 状态
-        this.activeKey =
-          this.$store.state.tabActive === null
-            ? this.menu[0].name
-            : this.$store.state.tabActive;
+      // 从 store 中获取 tabActive 状态
+      const tabActive = this.$store.state.tabActive;
+      if (tabActive) {
+        const [parentName, childName] = tabActive.split("/"); // 解析完整的 activeKey 来设置子菜单的 activeKey
+        this.changeTab(parentName, childName);
+      } else {
+        this.changeTab(this.menu[0].name); // 如果 store 中没有 tabActive 状态，设置默认激活项
       }
-      console.log("3.当前激活的标签页：", this.activeKey);
     });
   },
   methods: {
-    changeTab(activeKey) {
-      console.log("6.更新前菜单的激活项：", activeKey);
-      // 提交 mutation 更新 store 中的 tabActive 状态
-      this.$store.commit("setTabActive", activeKey);
-      console.log("7.更新后菜单的激活项", this.$store.state.tabActive);
-    },
-    changeSubTab(parentName, activeKey) {
-      console.log("进入子菜单的changeTab方法", parentName, activeKey);
-      // 找到父菜单
+    changeTab(parentName, activeKey = null) {
+      this.activeKey = parentName; // 更新父菜单的 activeKey
       const parentMenu = this.menu.find((item) => item.name === parentName);
+      let fullActiveKey = "";
       if (parentMenu.children) {
-        console.log("4.有子菜单", parentMenu);
-        // 设置子菜单的激活项
-        parentMenu.activeKey = activeKey;
-        console.log("5.设置子菜单的激活项", parentMenu.activeKey);
-        // 提交 mutation 更新 store 中的 tabActive 状态
-        console.log("6.更新前菜单的激活项：", activeKey);
-        this.$store.commit("setTabActive", activeKey);
-        console.log("7.更新后菜单的激活项", this.$store.state.tabActive);
+        // 如果有子菜单
+        let childActiveKey = "";
+        if (!activeKey) {
+          // 如果默认使用子菜单的激活项
+          childActiveKey = parentMenu.children[0].name;
+        } else {
+          // 如果使用传入的激活项
+          childActiveKey = activeKey;
+        }
+        parentMenu.activeKey = childActiveKey; // 更新子菜单的 activeKey
+        fullActiveKey = `${parentName}/${childActiveKey}`;
       } else {
-        console.log("4.没有子菜单");
-        console.log("6.更新前菜单的激活项：", activeKey);
-        // 提交 mutation 更新 store 中的 tabActive 状态
-        this.$store.commit("setTabActive", fullActiveKey);
-        console.log("7.更新后菜单的激活项", this.$store.state.tabActive);
+        // 如果没有子菜单
+        fullActiveKey = parentName;
       }
+      // 提交 mutation 更新 store 中的 tabActive 状态(要以“父亲/儿子”的格式进行激活项的存储，方便后续的路由跳转)
+      this.$store.commit("setTabActive", fullActiveKey);
     },
   },
 };
