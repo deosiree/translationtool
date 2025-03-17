@@ -7,6 +7,8 @@ import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.util.analyze.impl.BaiduTranslateAnalyzer.BaiduTranslateAnalyzeSample;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -78,11 +81,24 @@ public class SykController extends BaseController{
     }
 
     @PostMapping("/checkSykEntry")
-    @ApiOperation("检查翻译")
+    @ApiOperation("检查术语库翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> checkSykEntry(@RequestBody List<TranslateEntity> translates) {
+    public HttpResponse<List<TranslateEntity>> checkSykEntry(@RequestBody TranslateEntity translatesTemplate) {
+        
+        List<TranslateEntity> problemEntities = sykService.checkSykEntryByTemplate(translatesTemplate);
+        return checkResult(problemEntities);
 
-        return checkResult(sykService.updateSykEntry(translates));
+    }
+
+    @PostMapping("checkSykEntryBeforeSave")
+    @ApiOperation("检查预翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<List<TranslateEntity>> checkSykEntryBeforeSave(@RequestBody List<TranslateEntity> translateEntities){
+
+        List<TranslateEntity> problemEntities = sykService.checkSykEntryOnList(translateEntities);
+        return checkResult(problemEntities);
+
     }
 }

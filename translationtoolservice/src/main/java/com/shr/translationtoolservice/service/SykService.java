@@ -1,7 +1,6 @@
 package com.shr.translationtoolservice.service;
 
-import com.shr.translationtoolservice.entity.ResponseListModel;
-import com.shr.translationtoolservice.entity.Translate;
+
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 
@@ -16,4 +15,8 @@ public interface SykService {
     List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates);
 
     List<TranslateEntity> getSykNotUsed();
+
+    List<TranslateEntity> checkSykEntryByTemplate(TranslateEntity translateEntityTemplate);
+
+    List<TranslateEntity> checkSykEntryOnList(List<TranslateEntity> translateEntities);
 }
