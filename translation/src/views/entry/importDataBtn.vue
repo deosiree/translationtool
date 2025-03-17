@@ -58,7 +58,7 @@ export default {
             dataSource:[],
             columns: [
                 {title: "序号",dataIndex: 'index',align:'center',width:70,customRender: (text, record, index, column) => {
-                    return text.index + 1
+                    return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
                 },fixed: 'left'},
                 {title: '版本',dataIndex: 'version',align:'center',width:150,fixed: 'left'},
                 {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,fixed: 'left'},

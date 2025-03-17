@@ -195,6 +195,9 @@
         </a-spin>
       </div>
     </div>
+    <template #leftBottomBtn>
+      <a-button type="primary" size="middle" class="yellowBtn" @click="checkSykEntry">校验</a-button>
+    </template>
   </Modal>
   <Modal :visible="selectVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="selectHandleClose" @handleOK="selectHandleOK"
     @afterClose="selectAfterClose">
@@ -246,7 +249,7 @@
   </Modal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
 import { cloneDeep } from "lodash-es";
 import {
@@ -317,7 +320,7 @@ export default {
           align: "center",
           width: 50,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
           },
           fixed: "left",
         },
