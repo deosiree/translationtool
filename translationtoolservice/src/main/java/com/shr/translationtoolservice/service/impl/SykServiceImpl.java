@@ -8,6 +8,8 @@ import com.shr.translationtoolservice.service.SykService;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
 import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
+import com.shr.translationtoolservice.util.AsyncUtils;
+
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+
 
 @Service
 public class SykServiceImpl implements SykService {
@@ -43,6 +47,8 @@ public class SykServiceImpl implements SykService {
 
     @Autowired
     private DefaultTranslateAnalyzer translateAnalyzer;
+    
+    private AsyncUtils asyncUtils;
 
 
     @Override
@@ -53,12 +59,40 @@ public class SykServiceImpl implements SykService {
 
     @Override
     public String updateSykEntry(List<TranslateEntity> translates) {
-        int a = translateMapper.updateTranslation(translates);
-        if (a == translates.size()) {
-            return "success";
+        /*根据translates的个数来确定是单线程执行 */
+        int taskStrategyLimit = 20;
+        int translatesTotalCount = translates.size();
+
+        if(translatesTotalCount < taskStrategyLimit){
+            // 同步完成
+            int a = translateMapper.updateTranslation(translates);
+            if (a == translatesTotalCount) {
+                return "success";
+            }
+            return "";
+        }else{
+            int batchSize = translatesTotalCount / taskStrategyLimit + translatesTotalCount % taskStrategyLimit;
+            List<Future<Integer>> futureList = new LinkedList<>();
+            for(int i = 0; i < translatesTotalCount ; i += batchSize ){
+                List<TranslateEntity> subList = translates.subList(i, i + batchSize > translatesTotalCount ? translatesTotalCount : i + batchSize);
+                Future<Integer> future = asyncUtils.asyncCompute(translateMapper, "updateTranslation", List.class, subList);
+                futureList.add(future);
+                
+            }
+            List<Integer> resultList = asyncUtils.waitForCompleted(futureList);
+            
+            int updateTotalCount = 0;
+            for(Integer value : resultList){
+                updateTotalCount += value;
+            }
+
+            return updateTotalCount == translatesTotalCount ? "success" : "";
+            
         }
-        return "";
+
+        
     }
+
 
     @Override
     public List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates) {
