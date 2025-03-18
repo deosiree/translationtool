@@ -6,6 +6,8 @@ import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
+import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +18,8 @@ import org.springframework.util.CollectionUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,9 @@ public class SykServiceImpl implements SykService {
     private EntryInfoMapper entryInfoMapper;
     @Autowired
     private EntryClassifyMapper entryClassifyMapper;
+
+    @Autowired
+    private DefaultTranslateAnalyzer translateAnalyzer;
 
 
     @Override
@@ -186,4 +191,38 @@ public class SykServiceImpl implements SykService {
 
 
     }
+
+
+    @Override
+    public List<TranslateEntity> checkSykEntryByTemplate(TranslateEntity translateEntityTemplate){
+        List<TranslateEntity> trans = translateMapper.getTrans(translateEntityTemplate,-1,-1);
+        return checkSykEntryOnList(trans);
+    }
+
+    /**
+     * 占位符，{:d}, %1--->% 1校验检测
+     * 
+     * @return
+     */
+    public List<TranslateEntity> checkSykEntryOnList(List<TranslateEntity> translateEntities){
+
+        List<TranslateEntity> problemEntities = new LinkedList<>();
+
+        for(TranslateEntity translateEntity: translateEntities){
+            String textToTranslate = translateEntity.getEntry();
+            String translate = translateEntity.getTranslate();
+            AnalyzeSample sample = translateAnalyzer.analyze(translateAnalyzer.prepare(textToTranslate, translate));
+            if(!sample.isBad()){
+                continue;
+            }else{
+                problemEntities.add(translateEntity);
+            }
+        }
+        
+        return problemEntities;
+
+    }
+
 }
+
+
