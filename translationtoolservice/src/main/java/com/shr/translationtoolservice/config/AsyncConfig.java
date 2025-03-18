@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
-@EnableAsync
 public class AsyncConfig {
     
 
@@ -14,7 +13,7 @@ public class AsyncConfig {
      * TranslateMapper使用用来进行增删改查操作
      * @return
      */
-    @Bean("TranslateMapperExecutor")
+    @Bean(name = "TranslateMapperExecutor")
     ThreadPoolTaskExecutor translateMapperExecutor(){
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setCorePoolSize(5);

@@ -5,11 +5,18 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.util.AsyncUtils;
+
+import lombok.val;
+
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import java.util.concurrent.Future;
@@ -22,9 +29,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
 import java.util.Iterator;
 import java.util.LinkedList;
+
 
 @Service
 public class SykServiceImpl implements SykService {
@@ -44,6 +56,9 @@ public class SykServiceImpl implements SykService {
     @Autowired
     private EntryClassifyMapper entryClassifyMapper;
 
+    @Autowired
+    private AsyncUtils asyncUtils;
+
 
     @Override
     public List<TranslateEntity> getSykEntry(TranslateEntity translate, Integer pageIndex, Integer pageSize) {
@@ -54,7 +69,7 @@ public class SykServiceImpl implements SykService {
     @Override
     public String updateSykEntry(List<TranslateEntity> translates) {
         /*根据translates的个数来确定是单线程执行 */
-        int taskStrategyLimit = 30;
+        int taskStrategyLimit = 20;
         int translatesTotalCount = translates.size();
 
         if(translatesTotalCount < taskStrategyLimit){
@@ -65,32 +80,20 @@ public class SykServiceImpl implements SykService {
             }
             return "";
         }else{
-            int batchSize = taskStrategyLimit;
+            int batchSize = translatesTotalCount / taskStrategyLimit + translatesTotalCount % taskStrategyLimit;
             List<Future<Integer>> futureList = new LinkedList<>();
             for(int i = 0; i < translatesTotalCount ; i += batchSize ){
-                Future<Integer> future = updateTranslationInternal(
-                    translates.subList(i, i + batchSize > translatesTotalCount ? translatesTotalCount : i + batchSize)
-                );
+                List<TranslateEntity> subList = translates.subList(i, i + batchSize > translatesTotalCount ? translatesTotalCount : i + batchSize);
+                Future<Integer> future = asyncUtils.asyncCompute(translateMapper, "updateTranslation", List.class, subList);
                 futureList.add(future);
                 
             }
+            List<Integer> resultList = asyncUtils.waitForCompleted(futureList);
+            
             int updateTotalCount = 0;
-            do {
-                Iterator<Future<Integer>> iterator = futureList.iterator();
-                while (iterator.hasNext()) {
-                    Future<Integer> nextFuture = iterator.next();
-                    if(nextFuture.isDone()){
-                        try {
-                            updateTotalCount += nextFuture.get();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }finally{
-                            iterator.remove();
-                        }
-                    }
-                }    
-                            
-            } while (!futureList.isEmpty());
+            for(Integer value : resultList){
+                updateTotalCount += value;
+            }
 
             return updateTotalCount == translatesTotalCount ? "success" : "";
             
@@ -99,19 +102,6 @@ public class SykServiceImpl implements SykService {
         
     }
 
-    @Async("TranslateMapperExecutor")
-    private Future<Integer> updateTranslationInternal(List<TranslateEntity> translates){
-        return new FutureTask<>(new Callable<Integer>() {
-
-            @Override
-            public Integer call() throws Exception {
-                // TODO Auto-generated method stub
-                int updateCount = translateMapper.updateTranslation(translates);
-                return updateCount;
-            }
-            
-        });
-    }
 
     @Override
     public List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates) {
