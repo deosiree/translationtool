@@ -25,6 +25,7 @@
         </a-form>
       </template>
       <template v-slot:operate>
+        <a-button type="primary" size="middle" class="yellowBtn" @click="showFormatCheck">格式校验</a-button>
         <a-button type="primary" size="middle" class="yellowBtn" @click="showNotused">空挂术语</a-button>
         <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
         <a-button type="primary" size="middle" @click="getSykEntry">查询</a-button>
@@ -80,6 +81,7 @@
   </div>
   <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
   <NotUsedModal ref="notUsedModal" :modalTitle="notUsedTitle" :visible="notUsedVisible" @notUsedClose="notUsedClose" style="width:90%;" />
+  <FormatCheckModal ref="formatCheckModal" :modalTitle="formatCheckTitle" :visible="formatCheckVisible" @formatCheckClose="formatCheckClose" style="width:90%;" />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -89,6 +91,7 @@ import DataBox from "@/components/dataBox/index.vue";
 import commen from "@/views/entry/common.js";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import NotUsedModal from "@/views/glossary/notUsedModal.vue";
+import FormatCheckModal from "@/views/glossary/formatCheckModal.vue";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,
@@ -113,6 +116,7 @@ export default {
     DataBox,
     RelationModal,
     NotUsedModal,
+    FormatCheckModal,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -155,7 +159,7 @@ export default {
           align: "center",
           width: 50,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
           },
           fixed: "left",
         },
@@ -251,6 +255,8 @@ export default {
       relationData: [],
       notUsedVisible: false,
       notUsedTitle: "未使用的翻译",
+      formatCheckVisible: false,
+      formatCheckTitle: "格式校验",
     };
   },
   mounted() {
@@ -370,6 +376,13 @@ export default {
     },
     notUsedClose() {
       this.notUsedVisible = false;
+    },
+    showFormatCheck() {
+     this.formatCheckVisible = true;
+     this.$refs.formatCheckModal.checkSykEntry();
+    },
+    formatCheckClose() {
+      this.formatCheckVisible = false;
     },
     // 重置
     reset() {

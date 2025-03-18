@@ -92,7 +92,7 @@ export default {
           align: "center",
           width: 60,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
           },
         },
         { title: "词条", dataIndex: "source", align: "center", width: 200 },

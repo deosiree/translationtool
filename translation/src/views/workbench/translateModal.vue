@@ -246,7 +246,7 @@
   </Modal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
 import { cloneDeep } from "lodash-es";
 import {
@@ -266,6 +266,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
+import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import {
   QuestionCircleOutlined,
   SearchOutlined,
@@ -317,7 +318,11 @@ export default {
           align: "center",
           width: 50,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
         },
@@ -416,6 +421,7 @@ export default {
       saveLoading: false,
       selectedRowKeys: [],
       selectedRows: [],
+      redHighlightIds: [],
       replaceVisible: false,
       replaceModal: {
         sourceStr: null,
@@ -433,6 +439,10 @@ export default {
     currentTask(newval, oldval) {
       this.task = newval;
       this.setTranslateColumn();
+    },
+    redHighlightIds(newval, oldval) {
+      // 强制更新表格，触发 customRow 重新渲染样式
+      this.$forceUpdate();
     },
   },
   methods: {
@@ -541,6 +551,7 @@ export default {
         return;
       }
       this.saveLoading = true;
+      this.loading = true;
       let languageCode =
         workbenchCommon.languageMap[this.task.translateType].code;
       let transIdName =
@@ -575,22 +586,53 @@ export default {
         // 存在超长翻译
         message.warn("存在超长翻译，请检查！");
         this.saveLoading = false;
+        this.loading = false;
         return;
       }
-      let params = {
-        taskID: this.task.id,
-      };
-      updateEntryList(params, saveEntrys)
+      const datas = [];
+      Object.values(saveEntrys).forEach((item) => {
+        // if (!item[languageCode] || !item.entry)
+        //   this.redHighlightIds.push(item.id);
+        // else
+        datas.push({
+          id: item.id, // 必须要的(确定身份)
+          entry: item.entry, // 必须要的
+          translate: item[languageCode], // 必须要的
+        });
+      });
+      checkSykEntryBeforeSave(datas)
         .then((res) => {
-          message.success("已保存！");
-          this.saveLoading = false;
-          this.getTranslateEntry();
-          this.selectedRowKeys = [];
-          this.selectedRows = [];
+          // 更新 redHighlightIds 数组
+          this.redHighlightIds = this.redHighlightIds.concat(
+            res.data.map((item) => item.id)
+          );
+          // 过滤掉异常数据
+          saveEntrys = saveEntrys.filter(
+            (item) => !this.redHighlightIds.includes(item.id)
+          );
+          // message.warn(
+          //   `校验结束，共有${this.redHighlightIds.length}条翻译异常`,
+          //   10
+          // );
+          let params = {
+            taskID: this.task.id,
+          };
+          updateEntryList(params, saveEntrys)
+            .then((res) => {
+              message.success("已保存！");
+              this.getTranslateEntry();
+              this.selectedRowKeys = [];
+              this.selectedRows = [];
+            })
+            .catch((err) => {
+              message.error("保存失败！");
+            });
         })
         .catch((err) => {
+          message.error("校验失败！", err);
+        })
+        .finally(() => {
           this.saveLoading = false;
-          message.error("保存失败！");
         });
     },
     handleClose() {
@@ -642,6 +684,10 @@ export default {
             return;
           }
           this.edit(record);
+        },
+        style: {
+          // 标红的那一行的<tr></tr>，文字颜色变红
+          color: this.redHighlightIds.includes(record.id) ? "red" : "inherit",
         },
       };
     },

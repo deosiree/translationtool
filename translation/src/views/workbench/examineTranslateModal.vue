@@ -174,7 +174,7 @@
   </Modal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
@@ -236,7 +236,11 @@ export default {
           dataIndex: "index",
           width: 70,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -385,6 +389,7 @@ export default {
       this.initShortcutKeys();
     },
     handleOK() {
+      this.loading = true;
       this.saveLoading = true;
       let languageCode =
         workbenchCommon.languageMap[this.task.translateType].code;
@@ -425,14 +430,22 @@ export default {
           .then((res) => {
             message.success("已保存！");
             this.getTaskEntry();
-            this.saveLoading = false;
           })
           .catch((err) => {
             message.error("保存失败！");
+          })
+          .finally(() => {
             this.saveLoading = false;
+            this.loading = false;
+            // console.log("剩余待处理数据的数量：", this.dataSource.length-updateArr.length);
+            if (this.dataSource.length == updateArr.length) {
+              // 如果没有待处理的数据就自动关闭弹窗
+              this.handleClose();
+            }
           });
       } else {
         this.saveLoading = false;
+        this.loading = false;
       }
     },
     handleClose() {

@@ -1,5 +1,23 @@
 //引入request.js文件
 import request from "../request";
+
+// 检查术语库翻译
+export function checkSykEntry(data) {
+  return request({
+      url: "/Syk/checkSykEntry",
+      method: "POST", 
+      data
+  });
+}
+
+// 检查预翻译
+export function checkSykEntryBeforeSave(data) {
+  return request({
+      url: "/Syk/checkSykEntryBeforeSave",
+      method: "POST", 
+      data
+  });
+}
  
 // 查询分类树
 export function getSykEntry(params,data) {

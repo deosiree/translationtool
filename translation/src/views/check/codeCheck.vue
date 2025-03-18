@@ -39,10 +39,18 @@
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination='pagination'
               :loading="loading" :rowClassName="getRowClassName" ref="codeCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
-              <template #bodyCell="{ column, record }">
+              <template #bodyCell="{ column, record, text }">
                 <!-- 模块名称列 -->
                 <template v-if="column.dataIndex === 'name'">
                   <span>{{ record.name }}</span>
+                </template>
+                <!-- dic文件列 -->
+                <template v-if="column.dataIndex === 'dicFile'">
+                  <span>{{ record.dicFile }}</span>
+                </template>
+                <!-- 资源文件列 -->
+                <template v-if="column.dataIndex === 'sourceFile'">
+                  <span>{{ text }}</span>
                 </template>
                 <!-- 日志列 -->
                 <template v-if="column.dataIndex === 'value'">
@@ -124,7 +132,72 @@ export default {
           fixed: "right",
         },
         {
-          title: "函数名",
+          title: "日志",
+          dataIndex: "value",
+          align: "center",
+          width: 400,
+          fixed: "right",
+        },
+      ],
+      columns_nom: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 60,
+          index: 0.1,
+          customRender: (text, record, index, column) => {
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
+          },
+        },
+        {
+          title: "文件名",
+          dataIndex: "name",
+          align: "center",
+          width: 100,
+          fixed: "right",
+        },
+        {
+          title: "日志",
+          dataIndex: "value",
+          align: "center",
+          width: 400,
+          fixed: "right",
+        },
+      ],
+      columns_i18n_tr: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 60,
+          index: 0.1,
+          customRender: (text, record, index, column) => {
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
+          },
+        },
+        {
+          title: "dic文件",
+          dataIndex: "dicFile",
+          align: "center",
+          width: 100,
+        },
+        {
+          title: "资源文件",
+          dataIndex: "sourceFile",
+          align: "center",
+          width: 100,
+        },
+        {
+          title: "日志",
           dataIndex: "value",
           align: "center",
           width: 400,
@@ -255,6 +328,9 @@ export default {
         message.error("请选择问题类型！");
         return;
       }
+      if (this.search.questionType == "i18n_tr")
+        this.columns = this.columns_i18n_tr;
+      else this.columns = this.columns_nom;
       let params = {
         fonction: this.search.fonction,
         i18n: this.search.i18n,
@@ -274,17 +350,18 @@ export default {
       // console.log("2.保存请求对象的requestId", this.requestId);
       searchCheckInfo(params, data, lastRequestId)
         .then((res) => {
-          if (res.data.code == 200) {
+          if (res.data.code != 205) {
             // message.success(
             //   `校验成功！总共校验了${res.data.data.totalNum}个文件`
             // );
             let tempData = [];
             Object.values(res.data.data.list).forEach((item) => {
               // console.log("item", item);
-              const file = item.file;
               item.value.forEach((value) => {
                 tempData.push({
-                  name: file,
+                  name: item.file,
+                  dicFile: item.dicFile,
+                  sourceFile: item.sourceFile,
                   value: value,
                 });
               });
