@@ -10,6 +10,9 @@ import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
 import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.AsyncUtils;
 
+import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
+import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,7 +268,12 @@ public class SykServiceImpl implements SykService {
     @Override
     public List<TranslateEntity> checkSykEntryByTemplate(TranslateEntity translateEntityTemplate){
         List<TranslateEntity> trans = translateMapper.getTrans(translateEntityTemplate,-1,-1);
-        return checkSykEntryOnList(trans);
+        List<TranslateEntity> problemEntities = checkSykEntryOnList(trans);
+        for(TranslateEntity translateEntity : problemEntities){
+            List<EntryInfoEntity> entryByTranslateIDs = entryInfoMapper.getEntryInfoUsingTranslate(translateEntity);
+            translateEntity.setNotUsedByEntryInfo(entryByTranslateIDs.isEmpty());
+        }
+        return problemEntities;
     }
 
     /**

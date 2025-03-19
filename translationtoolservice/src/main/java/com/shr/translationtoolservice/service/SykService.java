@@ -28,5 +28,6 @@ public interface SykService {
     List<TranslateEntity> checkSykEntryByTemplate(TranslateEntity translateEntityTemplate);
 
     List<TranslateEntity> checkSykEntryOnList(List<TranslateEntity> translateEntities);
+    
     List<TranslateEntity> getSykNotUsed(TranslateEntity translateEntity,String token);
 }

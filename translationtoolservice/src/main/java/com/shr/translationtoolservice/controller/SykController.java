@@ -5,6 +5,8 @@ import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.service.impl.SykServiceImpl;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -119,7 +121,7 @@ public class SykController extends BaseController{
 
     }
 
-    @PostMapping("checkSykEntryBeforeSave")
+    @PostMapping("/checkSykEntryBeforeSave")
     @ApiOperation("检查预翻译")
     @CrossOrigin
     @Transactional
