@@ -347,7 +347,7 @@ export default {
           this.editVisible = false; // 成功才关闭弹窗
         })
         .catch((err) => {
-          message.error("保存失败！");
+          message.error("服务异常，保存失败！");
         })
         .finally(() => {
           this.okLoading = false;
