@@ -7,6 +7,7 @@ import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
 import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
 import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -133,8 +135,17 @@ public class SykServiceImpl implements SykService {
     }
 
     @Override
-    public List<TranslateEntity> getSykNotUsed() {
-        List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0));
+    public List<TranslateEntity> getSykNotUsed(TranslateEntity translateTemplate,String token) {
+        // String token = request.getHeader("token");
+        // String department = JWTTokenUtils.getDepartment(token);
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = translateTemplate.getVisualRange();
+        if(department == null || department.equals("")){
+            // 没有提供查询的部门则查本部门的
+            translateTemplate.setVisualRange(JWTTokenUtils.getDepartment(token));
+        }
+        List<TranslateEntity> translateEntityList = getSykEntry(translateTemplate, -1, -1);
+        // List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0).eq("visual_range", department));
         List<EntryInfoEntity> entities = entryInfoMapper.selectList(new QueryWrapper<EntryInfoEntity>().eq("is_delete", 0));
         processTranslateEntity(translateEntityList,entities);
 

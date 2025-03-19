@@ -16,8 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+<<<<<<< HEAD
 import java.io.IOException;
+=======
+import javax.servlet.http.HttpServletRequest;
+>>>>>>> getSykNotUsed
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -63,9 +68,10 @@ public class SykController extends BaseController{
     @ApiOperation("获取术语库未使用的翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getSykNotUsed() {
-        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel();
-        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed();
+    public HttpResponse<ResponseListModel<TranslateEntity>> getSykNotUsed(@RequestBody TranslateEntity translateTemplate,@RequestHeader Map<String,String> header) {
+        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
+
+        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,header.get("token"));
         responseListModel.setList(translateEntityList);
         responseListModel.setTotalNum(translateEntityList.size());
         return checkResult(responseListModel);
