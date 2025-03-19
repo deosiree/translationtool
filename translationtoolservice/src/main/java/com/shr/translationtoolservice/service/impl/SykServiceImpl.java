@@ -130,11 +130,17 @@ public class SykServiceImpl implements SykService {
     }
 
     @Override
-    public List<TranslateEntity> getSykNotUsed(HttpServletRequest request) {
-        String token = request.getHeader("token");
-        String department = JWTTokenUtils.getDepartment(token);
+    public List<TranslateEntity> getSykNotUsed(TranslateEntity translateTemplate,String token) {
+        // String token = request.getHeader("token");
+        // String department = JWTTokenUtils.getDepartment(token);
         String userName = JWTTokenUtils.getUserName(token);
-        List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0).eq("visual_range", department));
+        String department = translateTemplate.getVisualRange();
+        if(department == null || department.equals("")){
+            // 没有提供查询的部门则查本部门的
+            translateTemplate.setVisualRange(JWTTokenUtils.getDepartment(token));
+        }
+        List<TranslateEntity> translateEntityList = getSykEntry(translateTemplate, -1, -1);
+        // List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0).eq("visual_range", department));
         List<EntryInfoEntity> entities = entryInfoMapper.selectList(new QueryWrapper<EntryInfoEntity>().eq("is_delete", 0));
         processTranslateEntity(translateEntityList,entities);
 
