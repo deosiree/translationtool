@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -93,11 +94,14 @@ public class SykController extends BaseController{
     @ApiOperation("删除术语库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<List<TranslateEntity>> deleteSykEntry(@RequestBody List<TranslateEntity> translates){
+    public HttpResponse<ResponseListModel<String>> deleteSykEntry(@RequestBody List<TranslateEntity> translates){
 
         try {
+            ResponseListModel<String> model = new ResponseListModel<>();
             List<TranslateEntity> failedTranslates = sykService.deleteSykEntry(translates);
-            return ok(failedTranslates);
+            model.setList(failedTranslates.stream().map(TranslateEntity::getId).collect(Collectors.toList()));
+            model.setTotalNum(failedTranslates.size());
+            return ok(model);
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
