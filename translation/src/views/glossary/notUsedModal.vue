@@ -23,6 +23,9 @@
               </template>
             </template>
             <template v-if="column.dataIndex === 'translateState'">
+              <template v-if="record[column.dataIndex]==undefined||record[column.dataIndex]==null">
+                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">无翻译状态</span>
+              </template>
               <template v-if="record[column.dataIndex] === '0'">
                 <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
               </template>
@@ -79,10 +82,10 @@ export default {
           width: 100,
         },
         {
-          title: "上次使用时间",
-          dataIndex: "lastUseTime",
+          title: "翻译",
+          dataIndex: "translate",
           align: "center",
-          width: 200,
+          width: 100,
         },
         {
           title: "翻译类型",
@@ -90,18 +93,17 @@ export default {
           align: "center",
           width: 100,
         },
+        // {
+        //   title: "翻译状态",
+        //   dataIndex: "translateState",
+        //   align: "center",
+        //   width: 100,
+        // },// 有的翻译状态不正常，不知道咋处理，感觉也不是很有必要展示的，注掉了
         {
-          title: "翻译",
-          dataIndex: "translate",
+          title: "上次使用时间",
+          dataIndex: "lastUseTime",
           align: "center",
-          width: 100,
-        },
-
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 100,
+          width: 200,
         },
         {
           title: "翻译字符数",
@@ -109,7 +111,6 @@ export default {
           align: "center",
           width: 100,
         },
-
         {
           title: "可见范围",
           dataIndex: "visualRange",
@@ -134,7 +135,6 @@ export default {
           align: "center",
           width: 100,
         },
-
         {
           title: "审核意见",
           dataIndex: "auditSuggest",
@@ -160,13 +160,8 @@ export default {
     };
   },
   mounted() {
-    this.init();
   },
   methods: {
-    init() {
-      this.dataSource = [];
-      this.getSykNotUsed();
-    },
     // 更新窗口
     getSykNotUsed() {
       this.loading = true; //开始加载
@@ -184,9 +179,9 @@ export default {
               this.selectedRows.push({ ...item });
               this.selectedRowKeys.push(item.id);
             });
-            // console.log("selectedRowKeys", this.selectedRowKeys);
-            // console.log("selectedRows", this.selectedRows);
           }
+          // console.log("selectedRowKeys", this.selectedRowKeys);
+          // console.log("selectedRows", this.selectedRows);
           this.dataSource = this.selectedRows;
         })
         .catch((error) => {
@@ -211,25 +206,26 @@ export default {
       const deletedatas = [];
       this.selectedRows.forEach((item) => {
         const data = { ...item };
-        data.deleteState = 100;
+        data.deleteState = 1;
         deletedatas.push(data);
       });
-      console.log("deletedatas", deletedatas);
-      setTimeout(() => {
-        this.loading = false;
-        message.success(`术语删除成功！一共${deletedatas.length}条`);
-        this.init();
-      }, 3000);
-      // updateSykEntry(deletedatas)
-      //   .then((res) => {
-      //     message.success(`术语删除成功！一共${deletedatas.length}条`);
-      //     this.init();
-      //   })
-      //   .catch((err) => {
-      //     message.error("术语删除失败！");
-      //   }).finally(() => {
-      //     this.loading = false;
-      //   });
+      // console.log("deletedatas", deletedatas);
+      // setTimeout(() => {
+      //   this.loading = false;
+      //   message.success(`术语删除成功！一共${deletedatas.length}条`);
+      //   this.getSykNotUsed();
+      // }, 3000);
+      updateSykEntry(deletedatas)
+        .then((res) => {
+          message.success(`术语删除成功！一共${deletedatas.length}条`);
+          this.getSykNotUsed();
+        })
+        .catch((err) => {
+          message.error("术语删除失败！");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     handleClose() {
       this.$emit("notUsedClose");

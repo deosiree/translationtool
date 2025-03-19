@@ -81,7 +81,8 @@
   </div>
   <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
   <NotUsedModal ref="notUsedModal" :modalTitle="notUsedTitle" :visible="notUsedVisible" @notUsedClose="notUsedClose" style="width:90%;" />
-  <FormatCheckModal ref="formatCheckModal" :modalTitle="formatCheckTitle" :visible="formatCheckVisible" @formatCheckClose="formatCheckClose" style="width:90%;" />
+  <FormatCheckModal ref="formatCheckModal" :modalTitle="formatCheckTitle" :visible="formatCheckVisible" @formatCheckClose="formatCheckClose"
+    style="width:90%;" />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -159,7 +160,11 @@ export default {
           align: "center",
           width: 50,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
         },
@@ -373,13 +378,14 @@ export default {
     // 空挂术语展示
     showNotused() {
       this.notUsedVisible = true;
+      this.$refs.notUsedModal.getSykNotUsed();
     },
     notUsedClose() {
       this.notUsedVisible = false;
     },
     showFormatCheck() {
-     this.formatCheckVisible = true;
-     this.$refs.formatCheckModal.checkSykEntry();
+      this.formatCheckVisible = true;
+      this.$refs.formatCheckModal.checkSykEntry();
     },
     formatCheckClose() {
       this.formatCheckVisible = false;

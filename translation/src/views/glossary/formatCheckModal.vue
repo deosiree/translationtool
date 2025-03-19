@@ -4,9 +4,8 @@
     <div class="content">
       <div class="table">
         <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
-          :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-          :row-key="record => record.id" ref="formatCheckTable" bordered :pagination='pagination' :loading="loading" :customRow="customRow">
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="formatCheckTable"
+          bordered :pagination='pagination' :loading="loading" :customRow="customRow">
           <template #bodyCell="{ column, record, text }">
             <template v-if="['deleteState','publicState'].includes(column.dataIndex)">
               <template v-if="text === 0 || text === '0'">
@@ -70,7 +69,7 @@
         </a-table>
       </div>
     </div>
-    <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
+    <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" :okLoading="okLoading" />
   </Modal>
   <!-- </a-spin> -->
 </template>
@@ -78,7 +77,7 @@
 import Modal from "@/components/modal/index.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import { message } from "ant-design-vue";
-import { checkSykEntry } from "@/http/api/glossary";
+import { checkSykEntry, updateSykEntry } from "@/http/api/glossary";
 import common from "@/views/workbench/common.js";
 import { cloneDeep, iteratee } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
@@ -105,7 +104,22 @@ export default {
       labelCol: { style: { width: "80px" } },
       modalWidth: "400px",
       loading: false,
+      okLoading: false,
       columns: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 50,
+          index: 0.1,
+          customRender: (text, record, index, column) => {
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
+          },
+        },
         {
           title: "词条",
           dataIndex: "entry",
@@ -176,7 +190,7 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 150,
+          width: 140,
           fixed: "right",
           // index: 100,
         },
@@ -190,9 +204,6 @@ export default {
       editableData: {}, // 编辑的数据
       editVisible: false,
       editEntry: [],
-      selectedRowKeys: [],
-      selectedRows: [],
-      selectedRowIndex: null,
       currentEntry: {},
       pagination: {
         showSizeChanger: true,
@@ -204,14 +215,8 @@ export default {
       },
     };
   },
-  mounted() {
-    this.init();
-  },
+  mounted() {},
   methods: {
-    init() {
-      this.dataSource = [];
-      // this.checkSykEntry();
-    },
     // 更新窗口
     checkSykEntry() {
       this.loading = true; //开始加载
@@ -238,8 +243,6 @@ export default {
       // setTimeout(() => {
       //   this.loading = false; //结束加载
       //   this.dataSource = [];
-      //   this.selectedRows = [];
-      //   this.selectedRowKeys = [];
       // }, 3000);
       checkSykEntry(data)
         .then((res) => {
@@ -247,15 +250,11 @@ export default {
           // 设置默认全选
           const formatCheckEntries = Object.values(res.data);
           this.dataSource = [];
-          this.selectedRows = [];
-          this.selectedRowKeys = [];
           if (formatCheckEntries.length != 0) {
             formatCheckEntries.forEach((item) => {
-              this.selectedRows.push({ ...item });
-              this.selectedRowKeys.push(item.id);
+              this.dataSource.push({ ...item });
             });
           }
-          this.dataSource = this.selectedRows;
         })
         .catch((error) => {
           message.warn("error", error);
@@ -283,11 +282,6 @@ export default {
           this.editableData[record.id] = cloneDeep(
             this.dataSource.filter((item) => record.id === item.id)[0]
           ); // 深拷贝当前行数据
-          console.log(
-            "editableData",
-            this.editableData,
-            common.languageMap[record.type].code
-          );
           // 设置校验规则
           this.rules[record.id] = {
             entry: [
@@ -307,104 +301,61 @@ export default {
         },
       };
     },
-    // 操作编辑数据-保存
+    // 操作编辑数据-保存按钮（表单校验）
     save(id) {
-      let flagArr = ["entry", "translate"];
+      let flagArr = ["entry", "translate"]; // 确定需要校验的字段
       let list = [];
       this.columns.forEach((column) => {
+        // 遍历表格列并获取表单引用
         if (flagArr.includes(column.dataIndex)) {
-          // 动态获取表单引用并调用 validate 方法进行验证（ a-form 组件提供的表单验证函数）
-          // 将验证结果的 Promise 对象添加到 list 数组中
-          list.push(
-            eval(
-              "this.$refs.form" + id.replaceAll("-", "") + column.dataIndex
-            ).validate()
-          );
+          // 动态获取表单引用并调用 validate 方法进行验证
+          const validateRls =
+            this.$refs[
+              `form${id.replaceAll("-", "")}${column.dataIndex}`
+            ].validate();
+          list.push(validateRls); // 将验证结果的 Promise 对象添加到 list 数组中
         }
       });
-      Promise.all(list)
+      Promise.all(list) // 只有当所有校验都成功时，才会进入 then 回调
         .then(() => {
           // 校验成功
-          this.editEntry = [this.editableData[id]];
-          this.editVisible = true;
-          console.log("校验成功", list, this.editEntry);
+          this.editEntry = [this.editableData[id]]; // 将当前编辑的数据赋值给 this.editEntry
+          this.editVisible = true; // 编辑框弹窗(提交更新的接口在弹窗的确定按钮上，分离了表单校验和数据保存的逻辑)
+          // console.log("校验成功", list, this.editEntry);
         })
         .catch((err) => {});
     },
-    // 操作编辑数据-取消
+    // 操作编辑数据-取消按钮
     cancel(id) {
       delete this.editableData[id];
       delete this.rules[id];
     },
-    // 编辑框-确定
+    // 编辑框-确定（数据保存）
     editOk(entry) {
+      this.okLoading = true;
       delete this.editableData[entry.id];
       delete this.rules[entry.id];
       let index = this.dataSource.findIndex((item) => item.id === entry.id);
       this.dataSource.splice(index, 1);
       this.dataSource.splice(index, 0, entry);
-      setTimeout(() => {
-        message.warn("此处应使用接口更新到术语库");
-      }, 3000);
-      this.editVisible = false;
+      // setTimeout(() => {
+      //   console.log("此处应使用接口更新到术语库", [entry]);
+      // }, 3000);
+      updateSykEntry([entry])
+        .then((res) => {
+          this.checkSykEntry();
+          this.editVisible = false; // 成功才关闭弹窗
+        })
+        .catch((err) => {
+          message.error("服务异常，保存失败！");
+        })
+        .finally(() => {
+          this.okLoading = false;
+        });
     },
     // 编辑框-取消
     editClose() {
       this.editVisible = false;
-    },
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
-      console.log("选择事件selectedRows", this.selectedRows);
-      console.log("选择事件selectedRowKeys", this.selectedRowKeys);
-    },
-    // 表格复选框点击事件
-    onSelect(record, selected) {
-      // record是被点击的行数据，selected是是否被选中
-      if (selected) {
-        this.selectedRows.push(record);
-      } else {
-        this.selectedRows = this.selectedRows.filter((item) => {
-          return item !== record;
-        });
-      }
-    },
-    // 表格全选/反选框点击事件
-    onSelectAll(selected, changeRows) {
-      console.log("进入全选事件");
-      this.loading = true;
-      new Promise((resolve) => {
-        setTimeout(() => {
-          if (selected) {
-            // 直接赋值，确保 selectedRows 包含所有数据
-            // this.selectedRows = [...changeRows];
-            this.selectedRows = this.selectedRows.concat(changeRows);
-          } else {
-            changeRows.forEach((item) => {
-              this.selectedRows = this.selectedRows.filter((entry) => {
-                return entry !== item;
-              });
-            });
-          }
-          resolve();
-        }, 0);
-      }).then(() => {
-        this.loading = false;
-        console.log("全选selectedRows", this.selectedRows);
-        console.log(
-          "全选selectedRowKeys，后面会调用选择事件补齐keys",
-          this.selectedRowKeys
-        );
-      });
-      // new Promise((resolve) => {
-      //   setTimeout(() => {
-      //     console.log("loading效果");
-      //     resolve();
-      //   }, 3000);
-      // }).then(() => {
-      //   this.loading = false;
-      // });
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
