@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -73,23 +74,15 @@ public class SykController extends BaseController{
     @ApiOperation("更新术语库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
+    public HttpResponse<List<TranslateEntity>> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
         try {
-            return checkResult(sykService.updateSykEntry(translates));    
+            List<TranslateEntity> failedTranslates = sykService.updateSykEntry(translates);
+            return ok(failedTranslates);
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
-            return checkResult(ErrorCodeList.UPDATE_ERROR);
+            return error(null, e.getMessage());
         }
-        
     }
 
-    @PostMapping("/checkSykEntry")
-    @ApiOperation("检查翻译")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<String> checkSykEntry(@RequestBody List<TranslateEntity> translates) {
-
-        return checkResult(sykService.updateSykEntry(translates));
-    }
 }

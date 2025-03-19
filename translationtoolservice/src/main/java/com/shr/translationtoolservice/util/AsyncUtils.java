@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class AsyncUtils {
@@ -61,25 +63,26 @@ public class AsyncUtils {
 
     }
 
-    public <T> List<T> waitForCompleted(List<Future<T>> futureList){
+    public <T> List<Future<T>> waitForCompleted(List<Future<T>> futureList){
         return waitForCompleted(futureList, null);
     }
     
 
     
-    public <T> List<T> waitForCompleted(List<Future<T>> futureList,List<Exception> exceptions){
+    public <T> List<Future<T>> waitForCompleted(List<Future<T>> futureList,Map<Future<T>,Exception> exceptions){
 
-        List<T> resultList = new ArrayList<>();
+        List<Future<T>> resultList = new LinkedList<>();
         do {
             Iterator<Future<T>> iterator = futureList.iterator();
             while (iterator.hasNext()) {
                 Future<T> nextFuture = iterator.next();
                 if(nextFuture.isDone()){
                     try {
-                        resultList.add(nextFuture.get());
+                        nextFuture.get();   // 测试是否存在异常 
+                        resultList.add(nextFuture);
                     } catch (Exception e) {
                         if(exceptions != null){
-                            exceptions.add(e);
+                            exceptions.put(nextFuture, e);
                         }else{
                             e.printStackTrace();
                         }
