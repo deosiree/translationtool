@@ -26,6 +26,8 @@ public class AsyncUtils {
     @Resource(name = "TranslateMapperExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
+    public static final int UPDATE_TRANSLATE_LIMIT = 30;    // 当更新t_translate库时，需要更新t_translate记录的个数超过该值，转为异步实现
+
     public static class AsyncEntity<T>{
 
         List<T> resultList;

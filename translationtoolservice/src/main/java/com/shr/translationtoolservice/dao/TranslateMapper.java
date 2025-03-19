@@ -18,6 +18,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
 
     int getPublicEntryTotal(@Param("translateEntity")TranslateEntity translateEntity);
 
+    int deleteById(@Param("translateEntity") TranslateEntity translateEntity);
+
     int deleteByIds(@Param("idList") List<String> idList);
 
     TranslateEntity selectPublicByEntry(TranslateEntity translateEntity);

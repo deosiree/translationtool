@@ -89,6 +89,23 @@ public class SykController extends BaseController{
         }
     }
 
+    @PostMapping("/deleteSykEntry")
+    @ApiOperation("删除术语库")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<List<TranslateEntity>> deleteSykEntry(@RequestBody List<TranslateEntity> translates){
+
+        try {
+            List<TranslateEntity> failedTranslates = sykService.deleteSykEntry(translates);
+            return ok(failedTranslates);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            return error(null, e.getMessage());
+        }
+    }
+
+
     @PostMapping("/checkSykEntry")
     @ApiOperation("检查术语库翻译")
     @CrossOrigin

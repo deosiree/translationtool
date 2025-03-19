@@ -11,6 +11,8 @@ public interface SykService {
 
     List<TranslateEntity> getSykEntry(TranslateEntity translate, Integer pageIndex, Integer pageSize);
 
+    List<TranslateEntity> deleteSykEntry(List<TranslateEntity> translateEntity) throws Exception;
+
     /**
      * 
      * @param translates

@@ -115,6 +115,12 @@
         </if>
 
     </select>
+
+    <update id = "deleteById">
+        update t_translate set delete_state = 1 where id = #{translateEntity.id,jdbcType=VARCHAR}
+    </update>
+
+
     <update id="deleteByIds">
         update t_translate set delete_state = 1 where id in(
         <foreach collection="idList" item="id" index="index" separator=",">

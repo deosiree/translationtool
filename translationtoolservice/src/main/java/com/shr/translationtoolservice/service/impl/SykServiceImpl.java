@@ -55,6 +55,7 @@ public class SykServiceImpl implements SykService {
     @Autowired
     private DefaultTranslateAnalyzer translateAnalyzer;
     
+    @Autowired
     private AsyncUtils asyncUtils;
 
 
@@ -283,6 +284,55 @@ public class SykServiceImpl implements SykService {
         
         return problemEntities;
 
+    }
+
+    @Override
+    public List<TranslateEntity> deleteSykEntry(List<TranslateEntity> translateEntities) throws Exception {
+        // TODO Auto-generated method stub
+        int deleteCounts = translateEntities.size();
+        List<TranslateEntity> failedTranslateEntity = new LinkedList<>();
+        if(deleteCounts < AsyncUtils.UPDATE_TRANSLATE_LIMIT){
+            for(TranslateEntity translateEntity : translateEntities){
+                boolean isSuccess = false;
+                try {
+                    int updateCount = translateMapper.deleteById(translateEntity);   
+                    isSuccess = updateCount > 0;
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    isSuccess = false;
+                }
+                if(!isSuccess){
+                    failedTranslateEntity.add(translateEntity);
+                }
+            }
+
+        }else{
+            Map<Future<Integer>,TranslateEntity> futureMap = new HashMap<>();
+            for(TranslateEntity translateEntity : translateEntities){
+                Future<Integer> future = asyncUtils.asyncCompute(translateMapper, "deleteById", TranslateEntity.class, translateEntity);
+                futureMap.put(future, translateEntity);
+            }
+            Map<Future<Integer>,Exception> exceptionsMap = new HashMap<>();
+            List<Future<Integer>> resultList = asyncUtils.waitForCompleted(new LinkedList<>(futureMap.keySet()),exceptionsMap);
+
+            for(Future<Integer> future : resultList){
+                int deleteCount = future.get();
+                if(deleteCount <= 0){
+                    failedTranslateEntity.add(futureMap.get(future));
+                }
+            }
+            if(!exceptionsMap.isEmpty()){
+                
+                for(Entry<Future<Integer>,Exception> entry : exceptionsMap.entrySet()){
+                    Exception error = entry.getValue() ;
+                    error.printStackTrace();
+                    failedTranslateEntity.add(futureMap.get(entry.getKey()));
+                }
+
+            }
+        }
+        return failedTranslateEntity;
     }
 
 }
