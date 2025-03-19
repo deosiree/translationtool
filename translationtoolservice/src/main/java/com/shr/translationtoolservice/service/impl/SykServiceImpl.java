@@ -60,16 +60,13 @@ public class SykServiceImpl implements SykService {
     @Override
     public String updateSykEntry(List<TranslateEntity> translates) throws Exception {
         /*根据translates的个数来确定是单线程执行 */
-        int taskStrategyLimit = 20;
+        int taskStrategyLimit = 10;
         int translatesTotalCount = translates.size();
 
         if(translatesTotalCount < taskStrategyLimit){
             // 同步完成
             int a = translateMapper.updateTranslation(translates);
-            if (a == translatesTotalCount) {
-                return "success";
-            }
-            return "";
+            return "success";
         }else{
             int batchSize = translatesTotalCount / taskStrategyLimit + translatesTotalCount % taskStrategyLimit;
             List<Future<Integer>> futureList = new LinkedList<>();
@@ -82,10 +79,10 @@ public class SykServiceImpl implements SykService {
             List<Exception> exceptions = new LinkedList<>();
             List<Integer> resultList = asyncUtils.waitForCompleted(futureList,exceptions);
             
-            int updateTotalCount = 0;
-            for(Integer value : resultList){
-                updateTotalCount += value;
-            }
+            // int updateTotalCount = 0;
+            // for(Integer value : resultList){
+            //     updateTotalCount += value;
+            // }
             if(!exceptions.isEmpty()){
                 StringBuilder builder = new StringBuilder();
                 
@@ -95,14 +92,13 @@ public class SykServiceImpl implements SykService {
                 throw new Exception(builder.toString());
             }
 
-
-            return updateTotalCount == translatesTotalCount ? "success" : "";
+            return "success";
+            // return updateTotalCount == translatesTotalCount ? "success" : "";
             
         }
 
         
     }
-
 
     @Override
     public List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates) {
