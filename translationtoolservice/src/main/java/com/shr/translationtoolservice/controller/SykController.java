@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.EntryLabel;
+import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
@@ -73,8 +74,14 @@ public class SykController extends BaseController{
     @CrossOrigin
     @Transactional
     public HttpResponse<String> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
-
-        return checkResult(sykService.updateSykEntry(translates));
+        try {
+            return checkResult(sykService.updateSykEntry(translates));    
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            return checkResult(ErrorCodeList.UPDATE_ERROR);
+        }
+        
     }
 
     @PostMapping("/checkSykEntry")
