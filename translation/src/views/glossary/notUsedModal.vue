@@ -52,7 +52,7 @@
 <script>
 import Modal from "@/components/modal/index.vue";
 import { message } from "ant-design-vue";
-import { getSykNotUsed, updateSykEntry } from "@/http/api/glossary";
+import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
 import { v4 as uuidv4 } from "uuid";
 export default {
   components: {
@@ -159,8 +159,7 @@ export default {
       },
     };
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     // 更新窗口
     getSykNotUsed() {
@@ -176,13 +175,14 @@ export default {
           this.selectedRowKeys = [];
           if (this.notUsedEntries.length != 0) {
             this.notUsedEntries.forEach((item) => {
-              this.selectedRows.push({ ...item });
-              this.selectedRowKeys.push(item.id);
+              this.dataSource.push({ ...item });
+              // this.selectedRows.push({ ...item });
+              // this.selectedRowKeys.push(item.id);
             });
           }
-          // console.log("selectedRowKeys", this.selectedRowKeys);
-          // console.log("selectedRows", this.selectedRows);
-          this.dataSource = this.selectedRows;
+          // // console.log("selectedRowKeys", this.selectedRowKeys);
+          // // console.log("selectedRows", this.selectedRows);
+          // this.dataSource = this.selectedRows;
         })
         .catch((error) => {
           // console.log("error", error);
@@ -210,20 +210,50 @@ export default {
         deletedatas.push(data);
       });
       // console.log("deletedatas", deletedatas);
+      const deleteLen = deletedatas.length;
       // setTimeout(() => {
       //   this.loading = false;
       //   message.success(`术语删除成功！一共${deletedatas.length}条`);
       //   this.getSykNotUsed();
       // }, 3000);
-      updateSykEntry(deletedatas)
+      deleteSykEntry(deletedatas)
         .then((res) => {
-          message.success(`术语删除成功！一共${deletedatas.length}条`);
-          this.getSykNotUsed();
+          getSykNotUsed()
+            .then((res) => {
+              // 设置默认全选
+              this.notUsedEntries = Object.values(res.data.list);
+              this.dataSource = [];
+              this.selectedRows = [];
+              this.selectedRowKeys = [];
+              if (this.notUsedEntries.length != 0) {
+                this.notUsedEntries.forEach((item) => {
+                  this.selectedRows.push({ ...item });
+                  this.selectedRowKeys.push(item.id);
+                });
+              }
+              this.dataSource = this.selectedRows;
+            })
+            .catch((error) => {
+              if (error.status == 200) {
+                message.error(`请求失败: ${error.data.operationObject}`);
+              } else {
+                message.error(
+                  `请求失败，状态码: ${error.data.operationObject}`
+                );
+              }
+            })
+            .finally(() => {
+              if (res.data.totalNum) {
+                message.warn(
+                  `部分术语已删除，有${res.data.totalNum}条删除失败!`
+                );
+                console.log("删除失败的词条", res.data.list);
+              } else message.success(`术语全部删除成功！一共${deleteLen}条`);
+              this.loading = false;
+            });
         })
         .catch((err) => {
           message.error("术语删除失败！");
-        })
-        .finally(() => {
           this.loading = false;
         });
     },
