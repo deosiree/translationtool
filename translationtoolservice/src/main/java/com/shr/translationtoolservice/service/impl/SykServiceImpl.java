@@ -75,7 +75,7 @@ public class SykServiceImpl implements SykService {
                 } catch (Exception e) {
                     // TODO: handle exception
                     e.printStackTrace();
-                    isSuccess = true;
+                    isSuccess = false;
                 }
                 if(!isSuccess){
                     failedTranslates.add(translateEntity);
