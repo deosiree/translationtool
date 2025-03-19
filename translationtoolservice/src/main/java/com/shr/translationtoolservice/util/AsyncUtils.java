@@ -78,7 +78,7 @@ public class AsyncUtils {
                     try {
                         resultList.add(nextFuture.get());
                     } catch (Exception e) {
-                        if(exceptions == null){
+                        if(exceptions != null){
                             exceptions.add(e);
                         }else{
                             e.printStackTrace();
