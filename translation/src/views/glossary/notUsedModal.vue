@@ -4,9 +4,13 @@
     <div class="content">
       <div class="table">
         <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
-          :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-          :row-key="record => record.id" ref="notUsedTable" bordered :pagination='pagination' :loading="loading">
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-selection="{selectedRowKeys: selectedRowKeys, 
+                    onChange: onSelectChange,
+                    selections:[
+                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                    ]
+                }" :row-key="record => record.id" ref="notUsedTable" bordered :pagination='pagination' :loading="loading">
           <template #bodyCell="{ column, text }">
             <template v-if="['deleteState','publicState'].includes(column.dataIndex)">
               <template v-if="text === 0 || text === '0'">
@@ -54,6 +58,7 @@ import Modal from "@/components/modal/index.vue";
 import { message } from "ant-design-vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
 import { v4 as uuidv4 } from "uuid";
+import {onSelectChange, selectAllEntry, clearAllEntry, pageChange} from "@/utils/tableUtils";
 export default {
   components: {
     Modal,
@@ -196,6 +201,7 @@ export default {
           this.loading = false;
         });
     },
+    // 删除词条
     deleteSykEntry() {
       if (this.selectedRowKeys.length == 0) {
         message.warning("请选择要删除的词条");
@@ -265,62 +271,19 @@ export default {
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
-      console.log("选择事件selectedRows", this.selectedRows);
-      console.log("选择事件selectedRowKeys", this.selectedRowKeys);
+      onSelectChange(this, selectedRowKeys, selectedRows);
     },
-    // 表格复选框点击事件
-    onSelect(record, selected) {
-      // record是被点击的行数据，selected是是否被选中
-      if (selected) {
-        this.selectedRows.push(record);
-      } else {
-        this.selectedRows = this.selectedRows.filter((item) => {
-          return item !== record;
-        });
-      }
+    // 表格复选框全选事件
+    selectAllEntry() {
+      selectAllEntry(this);
     },
-    // 表格全选/反选框点击事件
-    onSelectAll(selected, changeRows) {
-      console.log("进入全选事件");
-      this.loading = true;
-      new Promise((resolve) => {
-        setTimeout(() => {
-          if (selected) {
-            // 直接赋值，确保 selectedRows 包含所有数据
-            // this.selectedRows = [...changeRows];
-            this.selectedRows = this.selectedRows.concat(changeRows);
-          } else {
-            changeRows.forEach((item) => {
-              this.selectedRows = this.selectedRows.filter((entry) => {
-                return entry !== item;
-              });
-            });
-          }
-          resolve();
-        }, 0);
-      }).then(() => {
-        this.loading = false;
-        console.log("全选selectedRows", this.selectedRows);
-        console.log(
-          "全选selectedRowKeys，后面会调用选择事件补齐keys",
-          this.selectedRowKeys
-        );
-      });
-      // new Promise((resolve) => {
-      //   setTimeout(() => {
-      //     console.log("loading效果");
-      //     resolve();
-      //   }, 3000);
-      // }).then(() => {
-      //   this.loading = false;
-      // });
+    // 表格复选框全不选事件
+    clearAllEntry() {
+      clearAllEntry(this);
     },
     // 分页切换
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
+      pageChange(this, page, pageSize);
     },
   },
 };

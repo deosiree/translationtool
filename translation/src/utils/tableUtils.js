@@ -85,7 +85,9 @@ export function pageChange(vm, page, pageSize, fetchData) {
   vm.pagination.current = page;
   vm.pagination.pageSize = pageSize;
   // 调用传入的查询接口函数
-  fetchData();
+  if (typeof fetchData === 'function') {// 有可能不传，就是null
+    fetchData();
+  }
 }
 
 /**
@@ -147,4 +149,57 @@ export function vilidFildLength(limitMap, record, language) {
     // 如果输入数据的长度未超过最大长度，则验证通过
     return Promise.resolve();
   };
+}
+
+/**
+ * 表格复选框选择事件处理函数
+ * @param {VueInstance} vm - Vue 实例
+ * @param {Array} selectedRowKeys - 当前选中行的键数组
+ * @param {Array} selectedRows - 当前选中行的数据数组
+ */
+export function onSelectChange(vm, selectedRowKeys, selectedRows) {
+  vm.selectedRowKeys = selectedRowKeys;// 将当前选中行的键数组赋值给 Vue 实例中的 selectedRowKeys
+  vm.selectedRows = selectedRows;// 将当前选中行的数据数组赋值给 Vue 实例中的 selectedRows
+}
+
+/**
+ * 表格复选框全选事件处理函数
+ * @param {VueInstance} vm - Vue 实例
+ */
+export function selectAllEntry(vm) {
+  vm.selectedRowKeys = [];
+  vm.selectedRows = [];
+  let dataToSelect;
+  // 检查是否存在筛选条件
+  if (vm.filters && (vm.filters.isExist || vm.filters.entrySource)) {
+    // 若存在筛选条件，根据筛选条件过滤数据源
+    dataToSelect = vm.dataSource.filter((item) => {
+      // 检查 isExist 字段是否匹配筛选条件
+      const isExistMatch =
+        !vm.filters.isExist ||
+        vm.filters.isExist.includes(item.isExist);
+      // 检查 entrySource 字段是否匹配筛选条件
+      const entrySourceMatch =
+        !vm.filters.entrySource ||
+        item.entrySource.includes(vm.filters.entrySource);
+      // 只有当两个条件都匹配时，才将该项加入待选择数据
+      return isExistMatch && entrySourceMatch;
+    });
+  } else {
+    // 若不存在筛选条件，直接使用数据源
+    dataToSelect = vm.dataSource;
+  }
+  dataToSelect.forEach((item) => {
+    vm.selectedRowKeys.push(item.id);
+    vm.selectedRows.push(item);
+  });
+}
+
+/**
+ * 表格复选框反选事件处理函数
+ * @param {VueInstance} vm - Vue 实例
+ */
+export function clearAllEntry(vm) {
+  vm.selectedRowKeys = [];
+  vm.selectedRows = [];
 }
