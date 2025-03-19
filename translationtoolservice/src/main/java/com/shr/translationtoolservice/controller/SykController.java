@@ -1,13 +1,11 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.entity.EntryLabel;
 import com.shr.translationtoolservice.entity.ResponseListModel;
-import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
-import com.shr.translationtoolservice.util.analyze.impl.BaiduTranslateAnalyzer.BaiduTranslateAnalyzeSample;
+import com.shr.translationtoolservice.service.impl.SykServiceImpl;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,11 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-<<<<<<< HEAD
-import java.io.IOException;
-=======
-import javax.servlet.http.HttpServletRequest;
->>>>>>> getSykNotUsed
 import java.util.List;
 import java.util.Map;
 
@@ -97,7 +90,7 @@ public class SykController extends BaseController{
 
     }
 
-    @PostMapping("checkSykEntryBeforeSave")
+    @PostMapping("/checkSykEntryBeforeSave")
     @ApiOperation("检查预翻译")
     @CrossOrigin
     @Transactional

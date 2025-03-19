@@ -1006,4 +1006,12 @@
 
     </select>
 
+    <select id="getEntryInfoUsingTranslate" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from t_entry_info where 
+        en_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+        or ru_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+        or spa_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+        or fra_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+    </select>
+
 </mapper>

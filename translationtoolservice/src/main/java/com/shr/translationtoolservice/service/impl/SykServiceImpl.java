@@ -202,7 +202,12 @@ public class SykServiceImpl implements SykService {
     @Override
     public List<TranslateEntity> checkSykEntryByTemplate(TranslateEntity translateEntityTemplate){
         List<TranslateEntity> trans = translateMapper.getTrans(translateEntityTemplate,-1,-1);
-        return checkSykEntryOnList(trans);
+        List<TranslateEntity> problemEntities = checkSykEntryOnList(trans);
+        for(TranslateEntity translateEntity : problemEntities){
+            List<EntryInfoEntity> entryByTranslateIDs = entryInfoMapper.getEntryInfoUsingTranslate(translateEntity);
+            translateEntity.setNotUsedByEntryInfo(entryByTranslateIDs.isEmpty());
+        }
+        return problemEntities;
     }
 
     /**
