@@ -29,6 +29,16 @@ export function getSykEntry(params,data) {
     });
 }
 
+// 删除术语库翻译
+export function deleteSykEntry(data) {
+  return request({
+      url: "/Syk/deleteSykEntry",
+      method: "POST", 
+      data
+  });
+}
+
+// 更新术语库翻译
 export function updateSykEntry(data) {
     return request({
         url: "/Syk/updateSykEntry",
