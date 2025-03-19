@@ -11,7 +11,13 @@ public interface SykService {
 
     List<TranslateEntity> getSykEntry(TranslateEntity translate, Integer pageIndex, Integer pageSize);
 
-    String updateSykEntry(List<TranslateEntity> translates) throws Exception;
+    /**
+     * 
+     * @param translates
+     * @return  更新失败的翻译记录
+     * @throws Exception
+     */
+    List<TranslateEntity> updateSykEntry(List<TranslateEntity> translates) throws Exception;
 
     List<SykEntryVO> getSykEntryRelation(List<TranslateEntity> translates);
 

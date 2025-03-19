@@ -136,6 +136,10 @@
         </foreach>
     </update>
 
+    <update id="updateEntity">
+        update t_translate set translate = #{translateEntity.translate,jdbcType=VARCHAR} where id = #{translateEntity.id,jdbcType=VARCHAR}
+    </update>
+
     <select id="selectRepByEntryTemp" resultMap="BaseResultMap">
         select   <include refid="Base_Column_List"/>
         from t_translate

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -77,15 +78,15 @@ public class SykController extends BaseController{
     @ApiOperation("更新术语库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
+    public HttpResponse<List<TranslateEntity>> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
         try {
-            return checkResult(sykService.updateSykEntry(translates));    
+            List<TranslateEntity> failedTranslates = sykService.updateSykEntry(translates);
+            return ok(failedTranslates);
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
-            return checkResult(ErrorCodeList.UPDATE_ERROR);
+            return error(null, e.getMessage());
         }
-        
     }
 
     @PostMapping("/checkSykEntry")

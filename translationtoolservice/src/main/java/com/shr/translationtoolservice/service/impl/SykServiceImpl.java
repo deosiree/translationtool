@@ -21,6 +21,13 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -58,46 +65,61 @@ public class SykServiceImpl implements SykService {
     }
 
     @Override
-    public String updateSykEntry(List<TranslateEntity> translates) throws Exception {
+    public List<TranslateEntity> updateSykEntry(List<TranslateEntity> translates) throws Exception {
         /*根据translates的个数来确定是单线程执行 */
-        int taskStrategyLimit = 10;
+        int taskStrategyLimit = 1;
         int translatesTotalCount = translates.size();
+        List<TranslateEntity> failedTranslateEntities = batchUpdate(translates,translatesTotalCount > taskStrategyLimit);
+        return failedTranslateEntities;
 
-        if(translatesTotalCount < taskStrategyLimit){
-            // 同步完成
-            int a = translateMapper.updateTranslation(translates);
-            return "success";
-        }else{
-            int batchSize = translatesTotalCount / taskStrategyLimit + translatesTotalCount % taskStrategyLimit;
-            List<Future<Integer>> futureList = new LinkedList<>();
-            for(int i = 0; i < translatesTotalCount ; i += batchSize ){
-                List<TranslateEntity> subList = translates.subList(i, i + batchSize > translatesTotalCount ? translatesTotalCount : i + batchSize);
-                Future<Integer> future = asyncUtils.asyncCompute(translateMapper, "updateTranslation", List.class, subList);
-                futureList.add(future);
-                
-            }
-            List<Exception> exceptions = new LinkedList<>();
-            List<Integer> resultList = asyncUtils.waitForCompleted(futureList,exceptions);
-            
-            // int updateTotalCount = 0;
-            // for(Integer value : resultList){
-            //     updateTotalCount += value;
-            // }
-            if(!exceptions.isEmpty()){
-                StringBuilder builder = new StringBuilder();
-                
-                for(Exception exception : exceptions){
-                    builder.append("Exception: " + exception.getMessage());
+    }
+
+    public List<TranslateEntity> batchUpdate(List<TranslateEntity> translates,boolean isAsync) throws Exception{
+
+        List<TranslateEntity> failedTranslates = new LinkedList<>();    // 没有找到对应id的翻译记录
+        if(!isAsync){
+            for(TranslateEntity translateEntity : translates){  
+                boolean isSuccess = false;
+                try {
+                    isSuccess = translateMapper.updateEntity(translateEntity) > 0; // 只要有对应id的记录，就是true
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    isSuccess = true;
                 }
-                throw new Exception(builder.toString());
+                if(!isSuccess){
+                    failedTranslates.add(translateEntity);
+                }  
             }
+        }else{
 
-            return "success";
-            // return updateTotalCount == translatesTotalCount ? "success" : "";
-            
+            Map<Future<Integer>,TranslateEntity> futureMap = new HashMap<>();
+            for(TranslateEntity translateEntity : translates){
+                Future<Integer> future = asyncUtils.asyncCompute(translateMapper, "updateEntity", TranslateEntity.class, translateEntity);
+                // futureList.add(future);
+                futureMap.put(future, translateEntity);
+            }
+            Map<Future<Integer>,Exception> exceptionsMap = new HashMap<>();
+            List<Future<Integer>> resultList = asyncUtils.waitForCompleted(new LinkedList<>(futureMap.keySet()),exceptionsMap);
+
+            for(Future<Integer> future : resultList){
+                int updateCount = future.get();
+                if(updateCount <= 0){
+                    failedTranslates.add(futureMap.get(future));
+                }
+            }
+            if(!exceptionsMap.isEmpty()){
+                
+                for(Entry<Future<Integer>,Exception> entry : exceptionsMap.entrySet()){
+                    Exception error = entry.getValue() ;
+                    error.printStackTrace();
+                    failedTranslates.add(futureMap.get(entry.getKey()));
+                }
+
+            }
         }
 
-        
+        return failedTranslates;
     }
 
     @Override
