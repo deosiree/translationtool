@@ -1,15 +1,10 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.entity.EntryLabel;
-import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.ResponseListModel;
-import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
-import com.shr.translationtoolservice.util.analyze.impl.BaiduTranslateAnalyzer.BaiduTranslateAnalyzeSample;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,10 +72,13 @@ public class SykController extends BaseController{
     @ApiOperation("更新术语库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<List<TranslateEntity>> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
+    public HttpResponse<ResponseListModel<String>> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
         try {
+            ResponseListModel<String> responseListModel = new ResponseListModel<>();
             List<TranslateEntity> failedTranslates = sykService.updateSykEntry(translates);
-            return ok(failedTranslates);
+            responseListModel.setList(failedTranslates.stream().map(TranslateEntity::getId).collect(Collectors.toList()));
+            responseListModel.setTotalNum(failedTranslates.size());
+            return ok(responseListModel);
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
