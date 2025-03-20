@@ -19,7 +19,7 @@ export function checkSykEntryBeforeSave(data) {
   });
 }
  
-// 查询分类树
+// 获取术语库
 export function getSykEntry(params,data) {
     return request({
         url: "/Syk/getSykEntry",
@@ -47,6 +47,7 @@ export function updateSykEntry(data) {
     });
 }
 
+// 获取术语库词条关联信息
 export function getSykEntryRelation(data) {
     return request({
         url: "/Syk/getSykEntryRelation",
