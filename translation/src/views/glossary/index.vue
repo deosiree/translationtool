@@ -110,6 +110,8 @@ import {
   updateSykEntry,
   getSykEntryRelation,
 } from "@/http/api/glossary";
+import {reset} from "@/utils/btnUtils";
+
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -390,17 +392,9 @@ export default {
     formatCheckClose() {
       this.formatCheckVisible = false;
     },
-    // 重置
+    // 重置（查询条件）
     reset() {
-      this.search = {
-        entry: "",
-        translate: null,
-        translateState: null,
-        type: null,
-        state: null,
-        visualRange: null,
-      };
-      this.getSykEntry();
+      reset(this,this.getSykEntry);
     },
     // 分页切换
     pageChange(page, pageSize) {
