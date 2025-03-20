@@ -620,12 +620,47 @@ export default {
           updateEntryList(params, saveEntrys)
             .then((res) => {
               message.success("已保存！");
-              this.getTranslateEntry();
-              this.selectedRowKeys = [];
-              this.selectedRows = [];
+              let params = {
+                taskID: this.task.id,
+                entryState: "3",
+                entry: this.keyWords,
+              };
+              this.loading = true;
+              let languageCode =
+                workbenchCommon.languageMap[this.task.translateType].code;
+              let data =
+                this.translateState === null ||
+                this.translateState === undefined
+                  ? ["0", "2"]
+                  : [this.translateState];
+              getEntryInfoList(params, data).then((res) => {
+                this.dataSource = res.data.list;
+                if (this.dataSource.length > 0) {
+                  this.selectedRowIndex = this.dataSource[0].id;
+                  this.assistedTranslation(this.dataSource[0]);
+                }
+                this.dataSource.forEach((item) => {
+                  if (
+                    item[languageCode + "TranslateState"] === null ||
+                    item[languageCode + "TranslateState"] === ""
+                  ) {
+                    item[languageCode + "TranslateState"] = "0";
+                  }
+                });
+                console.log("重新查询的结果", this.dataSource);
+                if (this.dataSource.length == 0) {
+                  // 如果没有待处理的数据就自动关闭弹窗
+                  this.handleClose();
+                }
+              });
             })
             .catch((err) => {
               message.error("保存失败！");
+              console.log("err", err);
+            })
+            .finally(() => {
+              this.saveLoading = false;
+              this.loading = false;
             });
         })
         .catch((err) => {
@@ -633,6 +668,7 @@ export default {
         })
         .finally(() => {
           this.saveLoading = false;
+          this.loading = false;
         });
     },
     handleClose() {
