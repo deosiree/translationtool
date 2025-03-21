@@ -58,14 +58,14 @@ public class SykController extends BaseController{
         return checkResult(responseListModel);
     }
 
-    @GetMapping("/getSykNotUsed")
+    @PostMapping("/getSykNotUsed")
     @ApiOperation("获取术语库未使用的翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel<TranslateEntity>> getSykNotUsed(@RequestBody TranslateEntity translateTemplate,@RequestHeader Map<String,String> header) {
+    public HttpResponse<ResponseListModel<TranslateEntity>> getSykNotUsed(@RequestBody TranslateEntity translateTemplate,HttpServletRequest request) {
         ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
 
-        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,header.get("token"));
+        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,request.getHeader("token"));
         responseListModel.setList(translateEntityList);
         responseListModel.setTotalNum(translateEntityList.size());
         return checkResult(responseListModel);
