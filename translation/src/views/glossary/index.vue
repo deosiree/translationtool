@@ -22,21 +22,52 @@
             <a-select v-model:value="search.visualRange" style="width: 186px" placeholder="请选择可见范围" :options='visualRanges' allowClear>
             </a-select>
           </a-form-item>
+          <a-form-item label="校验类型" name="searchType">
+            <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型" :options='searchTypes' allowClear>
+            </a-select>
+          </a-form-item>
         </a-form>
       </template>
       <template v-slot:operate>
-        <a-button type="primary" size="middle" class="yellowBtn" @click="showFormatCheck">格式校验</a-button>
-        <a-button type="primary" size="middle" class="yellowBtn" @click="showNotused">空挂术语</a-button>
         <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-        <a-button type="primary" size="middle" @click="getSykEntry">查询</a-button>
+        <a-button type="primary" size="middle" @click="getSearch">查询</a-button>
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
+      <template v-slot:operate>
+        <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
+          <a-button type="primary" size="middle" @click="batchSelectOpen" v-if="!batchSelectFlag&&!isGetSykEntry">批量选择</a-button>
+
+          <a-button type="primary" size="middle" @click="batchSelectAll" v-if="batchSelectFlag" :loading="loading">选择全部</a-button>
+          <a-button type="primary" size="middle" @click="batchSelectCancel" class="yellowBtn" v-if="batchSelectFlag">取消选择</a-button>
+          <a-badge :count="selectEntry.length" :overflow-count="99" v-if="batchSelectFlag">
+            <a-button type="primary" size="middle" class="resetBtn" @click="viewSelectEntry">已选词条</a-button>
+          </a-badge>
+
+          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+            <template #content>
+              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+                <a-row v-for="item in checkboxList" :key="item.value">
+                  <a-col :span="24">
+                    <a-checkbox :value="item.value">
+                      {{ item.label }}
+                    </a-checkbox>
+                  </a-col>
+                </a-row>
+              </a-checkbox-group>
+            </template>
+            <a-button type="primary" size="middle"><template #icon>
+                <SettingOutlined />
+              </template>展示列</a-button>
+          </a-popover>
+        </div>
+      </template>
       <template v-slot:data>
         <div style="width:100%;position: absolute;">
           <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
             :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="glossaryTable"
-            @resizeColumn="handleResizeColumn" :customRow="customRow">
+            @resizeColumn="handleResizeColumn" :customRow="customRow"
+            :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll} : null">
             <template #bodyCell="{ column, record,text}">
               <template v-if="column.dataIndex === 'translate'">
                 <div>
@@ -80,9 +111,8 @@
     </DataBox>
   </div>
   <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
-  <NotUsedModal ref="notUsedModal" :modalTitle="notUsedTitle" :visible="notUsedVisible" @notUsedClose="notUsedClose" style="width:90%;" />
-  <FormatCheckModal ref="formatCheckModal" :modalTitle="formatCheckTitle" :visible="formatCheckVisible" @formatCheckClose="formatCheckClose"
-    style="width:90%;" />
+  <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" :columns="columns" @batchSelectClose="batchSelectClose"
+    @removeEntry="removeEntry" @batchSelectCancel="batchSelectCancel" @refresh="refreshTable" />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -91,8 +121,10 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import commen from "@/views/entry/common.js";
 import RelationModal from "@/views/glossary/relationModal.vue";
-import NotUsedModal from "@/views/glossary/notUsedModal.vue";
-import FormatCheckModal from "@/views/glossary/formatCheckModal.vue";
+import BatchSelectModal from "@/views/glossary/batchSelectModal.vue";
+import { updateUserPartiality } from "@/http/api/userPartiality";
+import tableParam from "@/views/glossary/tableParam.js";
+
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,
@@ -102,30 +134,42 @@ import {
   SendOutlined,
   PlusCircleOutlined,
   ExclamationCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons-vue";
 
 import { getLanguage } from "@/http/api/translate";
 import {
   getSykEntry,
+  getSykNotUsed,
+  checkSykEntry,
   updateSykEntry,
   getSykEntryRelation,
 } from "@/http/api/glossary";
-import {reset} from "@/utils/btnUtils";
-
+import { reset, getSearch } from "@/utils/btnUtils";
+import {
+  onSelectChange,
+  onSelect,
+  onSelectAll,
+  pageChange,
+  clickInput,
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+} from "@/utils/tableUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
     SearchBox,
     DataBox,
     RelationModal,
-    NotUsedModal,
-    FormatCheckModal,
+    BatchSelectModal,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
     SaveOutlined,
     SendOutlined,
     PlusCircleOutlined,
+    SettingOutlined,
   },
   data() {
     return {
@@ -138,6 +182,7 @@ export default {
         type: null,
         state: null,
         visualRange: null,
+        searchType: null,
       },
       translateStates: [
         { label: "未翻译", value: "0" },
@@ -151,6 +196,11 @@ export default {
         { label: "装置开发部", value: "装置开发部" },
         { label: "柔性输电系统部", value: "柔性输电系统部" },
       ],
+      searchTypes: [
+        { label: "格式校验", value: "checkSykEntry" },
+        { label: "空挂术语", value: "getSykNotUsed" },
+        { label: "条件查询", value: "getSykEntry" },
+      ],
       tableTitle: "术语列表",
       dataHeight: 400,
       tableHeight: { x: "100%", y: 0 },
@@ -160,7 +210,7 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 80,
           customRender: (text, record, index, column) => {
             return (
               text.index +
@@ -169,6 +219,7 @@ export default {
             );
           },
           fixed: "left",
+          index: 0.1,
         },
         {
           title: "词条",
@@ -177,6 +228,7 @@ export default {
           width: 150,
           fixed: "left",
           resizable: true,
+          index: 1,
         },
         {
           title: "翻译",
@@ -184,6 +236,7 @@ export default {
           align: "center",
           width: 150,
           resizable: true,
+          index: 2,
         },
         {
           title: "翻译类型",
@@ -191,6 +244,7 @@ export default {
           align: "center",
           width: 230,
           resizable: true,
+          index: 3,
         },
         {
           title: "翻译状态",
@@ -198,36 +252,42 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
+          index: 4,
         },
         {
           title: "翻译字符数",
           dataIndex: "charLength",
           align: "center",
           width: 150,
+          index: 5,
         },
         {
           title: "可见范围",
           dataIndex: "visualRange",
           align: "center",
           width: 150,
+          index: 6,
         },
         {
           title: "词条审核员",
           dataIndex: "entryAuditor",
           align: "center",
           width: 150,
+          index: 7,
         },
         {
           title: "公开状态",
           dataIndex: "publicState",
           align: "center",
           width: 150,
+          index: 8,
         },
         {
           title: "最大限制长度",
           dataIndex: "maxLength",
           align: "center",
           width: 150,
+          index: 9,
         },
         {
           title: "审核意见",
@@ -236,17 +296,28 @@ export default {
           width: 230,
           ellipsis: true,
           resizable: true,
+          index: 10,
         },
-        { title: "备注", dataIndex: "remark", align: "center", width: 200 },
+        {
+          title: "备注",
+          dataIndex: "remark",
+          align: "center",
+          width: 200,
+          index: 11,
+        },
         {
           title: "操作",
           dataIndex: "operation",
           align: "center",
           width: 150,
           fixed: "right",
+          index: 12,
         },
       ],
       dataSource: [],
+      selectedRowKeys: [],
+      selectedRows: [],
+      selectEntry: [], // 已存词条，很重要，用于批量选择
       editableData: {},
       translateTypes: [],
       pagination: {
@@ -260,10 +331,12 @@ export default {
       },
       relationVisible: false,
       relationData: [],
-      notUsedVisible: false,
-      notUsedTitle: "未使用的翻译",
-      formatCheckVisible: false,
-      formatCheckTitle: "格式校验",
+      overlayStyle: tableParam.overlayStyle, // 展示列相关
+      checkboxList: tableParam.checkboxList,
+      checkedColumn: tableParam.checkedColumn,
+      batchSelectFlag: false, // 批量选择的显示（全选/反选）
+      isGetSykEntry: true,
+      batchSelectVisible: false,
     };
   },
   mounted() {
@@ -280,34 +353,158 @@ export default {
     //注销window.onresize事件
     window.onresize = null;
   },
+  watch: {
+    "search.searchType": {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && newVal !== "getSykEntry") {
+          this.isGetSykEntry = false;
+        } else {
+          this.isGetSykEntry = true;
+        }
+      },
+    },
+  },
   methods: {
     // 初始化
     init() {
       this.setTableHeight();
       this.getLanguage();
-      this.getSykEntry();
+      // this.getSearch();// 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
     },
-    // 动态设置表格高度
-    setTableHeight() {
-      this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight - 30;
-        } catch (error) {
-          this.dataHeight = box - searchHeight - 30;
-        }
+    // 选择全部词条
+    batchSelectAll() {
+      console.log("选择全部", this);
+      if (Object.keys(this.dataSource).length === 0) {
+        return;
+      }
+      // if (this.search.searchType) // 条件查询的全部选择功能待添加
+      this.loading = true;
+      this.selectEntry = [];
+      this.selectedRowKeys = [];
+      this.selectedRows = this.dataSource;
+      this.selectEntry = this.dataSource;
+      this.dataSource.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+      });
+      this.loading = false;
+      this.loading = false;
+      // // 入参+请求体
+      // let params = {
+      //   params: {
+      //     pageIndex: this.pagination.current,
+      //     pageSize: this.pagination.pageSize,
+      //   },
+      //   data: this.search,
+      // };
+      // getEntryByClassfy(params, data)
+      //   .then((res) => {
+      //     this.selectEntry = [];
+      //     this.selectedRowKeys = [];
+      //     this.selectedRows = res.data.list;
+      //     this.selectEntry = res.data.list;
+      //     res.data.list.forEach((item) => {
+      //       this.selectedRowKeys.push(item.id);
+      //     });
+      //     this.loading = false;
+      //     this.loading = false;
+      //   })
+      //   .catch((err) => {
+      //     this.loading = false;
+      //     this.loading = false;
+      //   });
+    },
+    // 已选词条按钮点击事件
+    viewSelectEntry() {
+      this.batchSelectVisible = true;
+    },
 
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
+    // 弹窗相关
+    // 打开已选词条弹窗
+    batchSelectOpen() {
+      this.batchSelectFlag = true;
+      this.selectEntry = [];
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+    },
+    // 关闭已选词条弹窗
+    batchSelectClose() {
+      this.batchSelectVisible = false;
+      // this.getProductVersion();
+    },
+    // 移除已选择词条
+    removeEntry(record) {
+      // console.log("移除", record);
+      this.selectEntry = this.selectEntry.filter((item) => {
+        return item.id != record.id;
+      });
+      this.selectedRowKeys = this.selectedRowKeys.filter((item) => {
+        return item.id != record.id;
+      });
+      this.selectedRows = this.selectedRows.filter((item) => {
+        return item.id != record.id;
       });
     },
+    // 取消已选词条的选择
+    batchSelectCancel() {
+      this.selectEntry = [];
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.batchSelectFlag = false;
+      this.batchSelectVisible = false;
+      // this.getSearch();// 有的接口太慢了，先不刷新
+    },
+    // 刷新数据（删除后进行刷新，数据应该更新了）
+    refreshTable() {
+      this.getSearch();
+    },
+
+    // 展示列切换
+    changeColumn(checkedValue) {
+      this.checkedColumn = checkedValue;
+      this.checkboxList.forEach((value) => {
+        let checkedIndex = this.checkedColumn.findIndex(
+          (item) => item === value.value
+        );
+        let nowColumnIndex = this.columns.findIndex(
+          (item) => item.dataIndex === value.value
+        );
+        if (
+          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
+          (nowColumnIndex === -1 && checkedIndex === -1)
+        ) {
+          return;
+        }
+        if (nowColumnIndex === -1 && checkedIndex !== -1) {
+          let newCol = {
+            title: value.label,
+            dataIndex: value.value,
+            align: "center",
+            width: 100,
+            resizable: true,
+            index: value.index,
+          };
+          this.columns.splice(-1, 0, newCol);
+        }
+        if (nowColumnIndex !== -1 && checkedIndex === -1) {
+          this.columns.splice(nowColumnIndex, 1);
+        }
+      });
+      this.columns.sort(function (a, b) {
+        return a.index - b.index;
+      });
+
+      // 记录
+      let data = {
+        displayColumn: checkedValue.join(","),
+      };
+      this.recordPartiality(data);
+    },
+    // 记录用户偏好
+    recordPartiality(data) {
+      updateUserPartiality(data).then((res) => {});
+    },
+
     // 获取翻译语言
     getLanguage() {
       let data = {};
@@ -315,29 +512,88 @@ export default {
         this.translateTypes = res.data.list;
       });
     },
-    getSykEntry() {
-      this.loading = true;
+    // 查询按钮点击事件
+    getSearch() {
+      this.dataSource = [];
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
+      // 入参+请求体
       let params = {
-        pageIndex: this.pagination.current,
-        pageSize: this.pagination.pageSize,
+        params: {
+          pageIndex: this.pagination.current,
+          pageSize: this.pagination.pageSize,
+        },
+        data: this.search,
       };
-      getSykEntry(params, this.search)
-        .then((res) => {
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
-          this.loading = false;
-          this.getSykEntryRelationCount();
-        })
-        .catch((err) => {
-          this.loading = false;
-        });
+      // 接口方法集合
+      const apiFunctions = {
+        getSykEntry: this.getSykEntry,
+        getSykNotUsed: this.getSykNotUsed,
+        checkSykEntry: this.checkSykEntry,
+      };
+      // 选项赋值
+      let option = "";
+      if (!this.search.searchType) {
+        option = "getSykEntry"; // 默认选项
+      } else {
+        option = this.search.searchType;
+      }
+      // 调用getSearch方法
+      getSearch(this, params, option, apiFunctions);
     },
+    // 条件查询
+    getSykEntry(params, data) {
+      return getSykEntry(params, data).then((res) => {
+        this.dataSource = res.data.list;
+        this.pagination.total = res.data.totalNum;
+        for (let item of this.dataSource) {
+          if (!item.type) item.type = "英文";// 后端BUG，type字段为空
+          getSykEntryRelation([item]).then((res) => {
+            item["relationCount"] = res.data.list.length;
+            item["reslations"] = res.data.list;
+          });
+        }
+      });
+    },
+    // 空挂术语查询
+    getSykNotUsed(params, data) {
+      return getSykNotUsed(params, data).then((res) => {
+        this.dataSource = res.data.list;
+        this.pagination.total = res.data.totalNum;
+        for (let item of this.dataSource) {
+          if (!item.type) item.type = "英文";// 后端BUG，type字段为空
+          // 空挂术语的详情都是0
+          item["relationCount"] = 0;
+          item["reslations"] = [];
+        }
+      });
+    },
+    // 格式校验查询
+    checkSykEntry(params, data) {
+      return checkSykEntry(params, data).then((res) => {
+        this.dataSource = res.data;
+        this.pagination.total = this.dataSource.length;
+        for (let item of this.dataSource) {
+          if (!item.type) item.type = "英文";// 后端BUG，type字段为空
+          if (item.notUsedByEntryInfo) {
+            item["relationCount"] = 0;
+            item["reslations"] = [];
+          } else {
+            getSykEntryRelation([item]).then((res) => {
+              item["relationCount"] = res.data.list.length;
+              item["reslations"] = res.data.list;
+            });
+          }
+        }
+      });
+    },
+    // 保存
     save(id) {
       updateSykEntry([this.editableData[id]])
         .then((res) => {
           message.success("编辑成功！");
           delete this.editableData[id];
-          this.getSykEntry();
+          this.getSearch();
         })
         .catch((err) => {
           message.error("编辑失败！");
@@ -347,22 +603,18 @@ export default {
     cancel(id) {
       delete this.editableData[id];
     },
-    getSykEntryRelationCount() {
-      for (let item of this.dataSource) {
-        getSykEntryRelation([item]).then((res) => {
-          item["relationCount"] = res.data.list.length;
-          item["reslations"] = res.data.list;
-        });
-      }
-    },
+
+    // 查看详情
     viewRelation(record) {
       this.relationData = record.reslations;
       // console.log(this.relationData);
       this.relationVisible = true;
     },
+    // 关闭详情
     relationClose() {
       this.relationVisible = false;
     },
+
     // 添加表格行点击事件
     customRow(record, index) {
       return {
@@ -377,52 +629,52 @@ export default {
         },
       };
     },
-    // 空挂术语展示
-    showNotused() {
-      this.notUsedVisible = true;
-      this.$refs.notUsedModal.getSykNotUsed();
-    },
-    notUsedClose() {
-      this.notUsedVisible = false;
-    },
-    showFormatCheck() {
-      this.formatCheckVisible = true;
-      this.$refs.formatCheckModal.checkSykEntry();
-    },
-    formatCheckClose() {
-      this.formatCheckVisible = false;
-    },
+
     // 重置（查询条件）
     reset() {
-      reset(this,this.getSykEntry);
+      reset(this, this.getSearch);
+    },
+    // 阻止事件冒泡，防止事件传播到父元素
+    clickInput(event) {
+      clickInput(this, event);
+    },
+    // 动态设置表格高度
+    setTableHeight() {
+      setTableHeight(this, 8, 150, 30); // 调用工具函数
+    },
+    // 表格列可伸缩
+    handleResizeColumn(w, col) {
+      return handleResizeColumn(w, col); // 调用工具函数
+    },
+    // 设置表格每一行的 class
+    getRowClassName(record, index) {
+      return getRowClassName(record, index, this.selectedRowIndex); // 调用工具函数
+    },
+    // 复选框选择事件
+    onSelectChange(selectedRowKeys, selectedRows) {
+      onSelectChange(this, selectedRowKeys, selectedRows);
+    },
+    // 复选框点击事件
+    onSelect(record, selected) {
+      onSelect(this, record, selected, this.batchSelectFlag);
+    },
+    // 复选框当前页全选/反选框点击事件
+    onSelectAll(selected, selectedRows, changeRows) {
+      onSelectAll(
+        this,
+        selected,
+        selectedRows,
+        changeRows,
+        this.batchSelectFlag
+      );
     },
     // 分页切换
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      this.getSykEntry();
-    },
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
-    // 设置表格每一行的class
-    getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
-    },
-    clickInput(event) {
-      event.stopPropagation();
+      if (this.isGetSykEntry)
+      // if (!this.search.searchType || this.search.searchType == "getSykEntry")
+        pageChange(this, page, pageSize, this.getSearch);
+      // 需要回调查询接口，否则一次查询出所有数据，对前端压力太大了，所以每次分页查询只查询当前页的数据
+      else pageChange(this, page, pageSize); // 不能回调查询接口，否则若使用了全选功能的话，切换到下一页全选又没了
     },
   },
 };

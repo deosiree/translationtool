@@ -1,0 +1,39 @@
+export default {
+  checkboxList: [
+    { label: "词条", value: "entry", index: 1 },
+    { label: "翻译", value: "translate", index: 2 },
+    { label: "翻译类型", value: "type", index: 3 },
+    { label: "翻译状态", value: "translateState", index: 4 },
+    { label: "翻译字符数", value: "charLength", index: 5 },
+    { label: "可见范围", value: "visualRange", index: 6 },
+    { label: "词条审核员", value: "entryAuditor", index: 7 },
+    { label: "公开状态", value: "publicState", index: 8 },
+    { label: "最大限制长度", value: "maxLength", index: 9 },
+    { label: "审核意见", value: "auditSuggest", index: 10 },
+    { label: "备注", value: "remark", index: 11 },
+  ],
+  checkedColumn: [
+    "entry",
+    "translate",
+    "type",
+    "translateState",
+    "charLength",
+    "visualRange",
+    "entryAuditor",
+    "publicState",
+    "maxLength",
+    "auditSuggest",
+    "remark",
+  ],
+  inputColumn: [],
+  translateColumn: [],
+  overlayStyle: {
+    maxHeight: '300px',
+    overflowY: 'scroll',
+    backgroundColor: '#fff',
+    backgroundClip: 'padding-box',
+    borderRadius: '2px',
+    boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
+  },
+  exportFields: []
+}
