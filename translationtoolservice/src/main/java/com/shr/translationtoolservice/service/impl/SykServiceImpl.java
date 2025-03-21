@@ -144,7 +144,7 @@ public class SykServiceImpl implements SykService {
                     queryWrapper.eq("fr_trans_id", id);
                     break;
                 case ConstantInterface.SPANISH:
-                    queryWrapper.eq("es_trans_id", id);
+                    queryWrapper.eq("spa_trans_id", id);
                     break;
                 case ConstantInterface.RUSSIAN:
                     queryWrapper.eq("ru_trans_id", id);
