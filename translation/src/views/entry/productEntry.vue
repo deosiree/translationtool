@@ -27,7 +27,8 @@
             </a-form-item>
             <a-form-item label="二级分类" name="classfy2">
               <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
-              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option' allowClear>
+              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'
+                allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="词条来源" name="entrySource">
@@ -36,7 +37,8 @@
           </a-row>
           <a-row style="width:100%;margin-top:8px">
             <a-form-item label="翻译语言" name="language">
-              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes' allowClear>
+              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
+                allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="翻译状态" name="translateState">
@@ -358,7 +360,8 @@
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="importModal">
         <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}" allowClear>
+          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
+            allowClear>
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
@@ -372,7 +375,7 @@
   </CustomModal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import tableParam from "./tableParam.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
@@ -416,6 +419,12 @@ import {
   InfoCircleOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
+import {
+  onSelectChange,
+  onSelect,
+  onSelectAll,
+  pageChange,
+} from "@/utils/tableUtils";
 export default {
   components: {
     CustomModal,
@@ -485,7 +494,11 @@ export default {
           align: "center",
           width: 50,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -795,7 +808,7 @@ export default {
       }
       let params = {
         classfyID: this.product.key,
-        translateType:this.search.language,
+        translateType: this.search.language,
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
@@ -1106,11 +1119,6 @@ export default {
     editClose() {
       this.editVisible = false;
     },
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
-    },
 
     // 表格列可伸缩
     handleResizeColumn: (w, col) => {
@@ -1251,13 +1259,13 @@ export default {
     // 移除已选择词条
     removeEntry(record) {
       this.selectEntry = this.selectEntry.filter((item) => {
-        return item != record;
+        return item.id != record.id;
       });
       this.selectedRowKeys = this.selectedRowKeys.filter((item) => {
-        return item != record.id;
+        return item.id != record.id;
       });
       this.selectedRows = this.selectedRows.filter((item) => {
-        return item != record;
+        return item.id != record.id;
       });
     },
     // 选择全部词条
@@ -1299,12 +1307,11 @@ export default {
       }
       let params = {
         classfyID: this.product.key,
-        translateType:this.search.language,
+        translateType: this.search.language,
         pageIndex: -1,
         pageSize: -1,
       };
       this.loading = true;
-
       // getEntryByVersion(data,params).then((res) => {
       //     this.selectEntry = []
       //     this.selectedRowKeys = []
@@ -1319,7 +1326,6 @@ export default {
       //     this.loading = false
       //     this.selectAllLoading = false
       // })
-
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectEntry = [];
@@ -1345,33 +1351,6 @@ export default {
       this.createVersionFlag = false;
       this.createVisible = false;
       this.batchSelectFlag = false;
-    },
-    // 表格复选框点击事件
-    onSelect(record, selected) {
-      if (this.createVersionFlag) {
-        // 创建版本时使用
-        if (selected) {
-          this.selectEntry.push(record);
-        } else {
-          this.selectEntry = this.selectEntry.filter((item) => {
-            return item.id !== record.id;
-          });
-        }
-      }
-    },
-    // 表格全选/反选框点击事件
-    onSelectAll(selected, selectedRows, changeRows) {
-      if (this.createVersionFlag) {
-        if (selected) {
-          this.selectEntry = this.selectEntry.concat(changeRows);
-        } else {
-          changeRows.forEach((item) => {
-            this.selectEntry = this.selectEntry.filter((entry) => {
-              return entry !== item;
-            });
-          });
-        }
-      }
     },
     //新增词条
     addEntry() {
@@ -1458,19 +1437,6 @@ export default {
       this.dataSource.splice(index + 1, 0, copyEntry);
       this.editableData[copyEntry.id] = copyEntry;
       this.getRowClassify2Option(copyEntry);
-    },
-    // 分页切换
-    pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      this.getEntryByVersion();
-
-      // 分页后  保留之前勾选的词条
-      this.selectedRows = this.selectEntry;
-      this.selectEntry.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-      });
-      this.selectedRowKeys = Array.from(new Set(this.selectedRowKeys));
     },
     // 二级分类管理
     setSecondClassify() {
@@ -1565,7 +1531,6 @@ export default {
     importEntry() {
       this.importVisible = true;
     },
-
     importClose() {
       this.importVisible = false;
     },
@@ -1597,7 +1562,6 @@ export default {
       this.fileList = [];
       this.$refs.formRef.clearValidate();
     },
-
     // 导入词条
     beforeUpload(file, fileList) {
       // console.log("before");
@@ -1659,6 +1623,28 @@ export default {
       let b = new Set(nums2);
       let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
       return arr;
+    },
+    // 复选框选择事件
+    onSelectChange(selectedRowKeys, selectedRows) {
+      onSelectChange(this, selectedRowKeys, selectedRows);
+    },
+    // 复选框点击事件
+    onSelect(record, selected) {
+      onSelect(this, record, selected, this.createVersionFlag);
+    },
+    // 复选框当前页全选/反选框点击事件
+    onSelectAll(selected, selectedRows, changeRows) {
+      onSelectAll(
+        this,
+        selected,
+        selectedRows,
+        changeRows,
+        this.createVersionFlag
+      );
+    },
+    // 分页切换
+    pageChange(page, pageSize) {
+      pageChange(this, page, pageSize, this.getEntryByVersion);
     },
   },
 };

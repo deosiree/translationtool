@@ -183,6 +183,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
+import { pageChange } from "@/utils/tableUtils";
 export default {
   components: {
     CustomModal,
@@ -217,7 +218,11 @@ export default {
           align: "center",
           width: 60,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
         },
@@ -308,7 +313,10 @@ export default {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
         total: 0,
+        current: 1,
+        pageSize: 20,
         showTotal: (total) => `共 ${total} 条`,
+        onChange: this.pageChange,
       },
       title: "",
       operateVisible: false,
@@ -517,6 +525,7 @@ export default {
       };
       searchTaskInfo(data, params).then((res) => {
         this.taskDataSource = res.data.list;
+        this.pagination.total = res.data.totalNum;
       });
     },
     operateClose() {
@@ -857,6 +866,10 @@ export default {
 
       this.$emit("createClose");
       this.$emit("cancelCreate");
+    },
+    // 分页切换
+    pageChange(page, pageSize) {
+      pageChange(this, page, pageSize);
     },
   },
 };
