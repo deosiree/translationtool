@@ -1552,6 +1552,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 return null;
             }
             for (EntryInfoEntity entryInfoEntity1 : entryEntitys) {
+                if (entryInfoEntity1.getEntry().equals("字节顺序")){
+                    System.out.println("字节顺序");
+                }
                 String trans = "";
                 switch (transType) {
                     case ConstantInterface.ENGLISH:
@@ -1571,22 +1574,28 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 //获取原词条翻译id 对比翻译结果是否有变化 如果没变化 则不改变
                 //有变化 在翻译新增翻译 实体
                 EntryInfoEntity originalEntry = entryInfoMapper.selectById(entryInfoEntity1.getId());
+                if (Objects.isNull(originalEntry)){
+                    continue;
+                }
                 List<TranslateEntity> repTrans = translateMapper.getRepTrans(entryInfoEntity1.getEntry(), transType, trans, department);
                 TranslateEntity translateEntity;
+                boolean isExist = false;
                 if (!CollectionUtils.isEmpty(repTrans)){
                     //translateEntity使用repTrans中lastUseTime最近的
                     translateEntity = repTrans.stream().max(Comparator.comparing(TranslateEntity::getLastUseTime)).get();
-
+                    isExist = true;
                 } else {
                     translateEntity = new TranslateEntity();
                     translateEntity.setId(commonUtils.getUUID());
                     translateEntity.setEntry(entryInfoEntity1.getEntry());
+                    translateEntity.setType(transType);
                     translateEntity.setTranslate(trans);
                     translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
                     translateEntity.setTranslateState("1");
                     translateEntity.setDeleteState(0);
                     translateEntity.setVisualRange(department);
                     translateEntity.setPublicState(0);
+                    isExist = false;
                 }
 
                 switch (transType) {
@@ -1596,33 +1605,45 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         }
                         if (StringUtils.isBlank(originalEntry.getEnTransId())) {
                             entryInfoEntity1.setEnTransId(translateEntity.getId());
-                            translateMapper.insert(translateEntity);
                             entryInfoMapper.updateById(entryInfoEntity1);
+                            if (isExist){
+                                break;
+                            }
+                            translateMapper.insert(translateEntity);
                             break;
                         }
                         TranslateEntity originEnTrans = translateMapper.selectById(originalEntry.getEnTransId());
                         if (Objects.isNull(originEnTrans) || !entryInfoEntity1.getEnglish().equals(originEnTrans.getTranslate())) {
                             entryInfoEntity1.setEnTransId(translateEntity.getId());
-                            translateMapper.insert(translateEntity);
                             entryInfoMapper.updateById(entryInfoEntity1);
+                            if (isExist){
+                                break;
+                            }
+                            translateMapper.insert(translateEntity);
                             break;
                         }
                         break;
                     case ConstantInterface.SPANISH:
-                        if (StringUtils.isBlank(entryInfoEntity1.getSpanish())){
+                        if (StringUtils.isBlank(entryInfoEntity1.getSpanish()) ){
                             break;
                         }
                         if (StringUtils.isBlank(originalEntry.getSpaTransId())) {
                             entryInfoEntity1.setSpaTransId(translateEntity.getId());
-                            translateMapper.insert(translateEntity);
                             entryInfoMapper.updateById(entryInfoEntity1);
+                            if (isExist){
+                                break;
+                            }
+                            translateMapper.insert(translateEntity);
                             continue;
                         }
                         TranslateEntity originSpaTrans = translateMapper.selectById(originalEntry.getSpaTransId());
                         if (Objects.isNull(originSpaTrans) || !entryInfoEntity1.getSpanish().equals(originSpaTrans.getTranslate())) {
                             entryInfoEntity1.setSpaTransId(translateEntity.getId());
-                            translateMapper.insert(translateEntity);
                             entryInfoMapper.updateById(entryInfoEntity1);
+                            if (isExist){
+                                break;
+                            }
+                            translateMapper.insert(translateEntity);
                             break;
                         }
                         break;
@@ -1632,15 +1653,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         }
                         if (StringUtils.isBlank(originalEntry.getRuTransId())) {
                             entryInfoEntity1.setRuTransId(translateEntity.getId());
+                            if (isExist){
+                                break;
+                            }
                             translateMapper.insert(translateEntity);
-                            entryInfoMapper.updateById(entryInfoEntity1);
                             break;
                         }
                         TranslateEntity originRuTrans = translateMapper.selectById(originalEntry.getRuTransId());
                         if (Objects.isNull(originRuTrans) ||!entryInfoEntity1.getRussian().equals(originRuTrans.getTranslate())) {
                             entryInfoEntity1.setRuTransId(translateEntity.getId());
+                            if (isExist){
+                                break;
+                            }
                             translateMapper.insert(translateEntity);
-                            entryInfoMapper.updateById(entryInfoEntity1);
                             break;
                         }
                         break;
@@ -1650,15 +1675,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         }
                         if (StringUtils.isBlank(originalEntry.getFraTransId())) {
                             entryInfoEntity1.setFraTransId(translateEntity.getId());
+                            if (isExist){
+                                break;
+                            }
                             translateMapper.insert(translateEntity);
-                            entryInfoMapper.updateById(entryInfoEntity1);
                             break;
                         }
                         TranslateEntity originFraTrans = translateMapper.selectById(originalEntry.getFraTransId());
                         if (Objects.isNull(originFraTrans) || !entryInfoEntity1.getFrench().equals(originFraTrans.getTranslate())) {
                             entryInfoEntity1.setFraTransId(translateEntity.getId());
+                            if (isExist){
+                                break;
+                            }
                             translateMapper.insert(translateEntity);
-                            entryInfoMapper.updateById(entryInfoEntity1);
                             break;
                         }
                         break;
