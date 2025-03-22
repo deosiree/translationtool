@@ -2,8 +2,11 @@ package com.shr.translationtoolservice.entity.vo;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.shr.translationtoolservice.entity.EntryInfoEntity;
 
 import lombok.Data;
 
@@ -32,7 +35,13 @@ public class TsVo {
     public boolean isEqualsNotConsiderTrans(TsVo tsVo){
         return isEquals(entry,tsVo.getEntry()) && isEquals(tag, tsVo.getTag()) && isEquals(comment, tsVo.getComment());
     }
-    
-    
 
+    @Data
+    public static class TsEntryInfoVo{
+
+        private List<EntryInfoEntity> entryInfoEntities;
+
+        private TsVo tsVo;
+
+    }
 }
