@@ -1012,6 +1012,33 @@
         or ru_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or spa_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or fra_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+        
+    <select id="getEntryByImportTypeUsingTranslate" resultType = "com.shr.translationtoolservice.entity.vo.TsVo">
+    SELECT info.entry,info.comment,info.tag,trans.translate 
+    FROM t_translate as trans INNER JOIN t_entry_info as info on trans.id = info.en_trans_id 
+    or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
+    WHERE
+        info.import_type = #{entryInfoEntity.importType,jdbcType=VARCHAR}
+    and
+        info.is_delete = #{entryInfoEntity.isDelete,jdbcType=INTEGER}
+    
+    ORDER BY info.entry,info.comment,info.tag,trans.translate
+    
+    </select>
+
+    <select id="getEntryByTsVo" resultMap="BaseResultMap">
+        select info.* from t_entry_info as info INNER JOIN
+        t_translate as trans on trans.id = info.en_trans_id 
+        or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
+        where 
+            info.entry = #{tsVo.entry,jdbcType=VARCHAR}
+        and 
+            info.comment = #{tsVo.comment,jdbcType=VARCHAR}
+        and 
+            info.tag = #{tsVo.tag,jdbcType=VARCHAR}
+        and 
+            trans.translate = #{tsVo.translate,jdbcType=VARCHAR}
+        <!-- </if> -->
     </select>
 
 </mapper>

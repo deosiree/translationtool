@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.vo.TsVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -72,6 +73,10 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     List<EntryInfoEntity> getEntryByIDs(@Param("idList") Set<String> entryIdList);
 
     List<EntryInfoEntity> getEntryInfoUsingTranslate(@Param("translateEntity") TranslateEntity translateEntity);
+    
+    List<EntryInfoEntity> getEntryByTsVo(@Param("tsVo") TsVo tsVo);
+
+    List<TsVo> getEntryByImportTypeUsingTranslate(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
 }
 
 

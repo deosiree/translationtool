@@ -100,4 +100,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     void doWeight();
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
+
+    List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
 }

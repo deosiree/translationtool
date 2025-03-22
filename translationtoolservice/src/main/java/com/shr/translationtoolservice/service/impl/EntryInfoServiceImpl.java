@@ -3345,6 +3345,16 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
+    @Override
+    public List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList) {
+        // TODO Auto-generated method stub
+        List<EntryInfoEntity> entityList = new LinkedList<>();
+        for(TsVo tsVo : tsVoList){
+            entityList.addAll(entryInfoMapper.getEntryByTsVo(tsVo));
+        }
+        return entityList;
+    }
+
 
 }
 
