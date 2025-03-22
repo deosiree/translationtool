@@ -1012,7 +1012,8 @@
         or ru_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or spa_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or fra_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
-        
+    </select>
+
     <select id="getEntryByImportTypeUsingTranslate" resultType = "com.shr.translationtoolservice.entity.vo.TsVo">
     SELECT info.entry,info.comment,info.tag,trans.translate 
     FROM t_translate as trans INNER JOIN t_entry_info as info on trans.id = info.en_trans_id 
@@ -1038,7 +1039,7 @@
             info.tag = #{tsVo.tag,jdbcType=VARCHAR}
         and 
             trans.translate = #{tsVo.translate,jdbcType=VARCHAR}
-        <!-- </if> -->
+        
     </select>
 
 </mapper>
