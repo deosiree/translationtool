@@ -8,6 +8,7 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
+import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
@@ -3346,11 +3347,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList) {
+    public List<TsEntryInfoVo> getEntryInfoByTsVo(List<TsVo> tsVoList) {
         // TODO Auto-generated method stub
-        List<EntryInfoEntity> entityList = new LinkedList<>();
+        List<TsEntryInfoVo> entityList = new LinkedList<>();
         for(TsVo tsVo : tsVoList){
-            entityList.addAll(entryInfoMapper.getEntryByTsVo(tsVo));
+            List<EntryInfoEntity> entryByTsVo = entryInfoMapper.getEntryByTsVo(tsVo);
+            TsEntryInfoVo tsEntryInfoVo = new TsEntryInfoVo();
+            tsEntryInfoVo.setTsVo(tsVo);
+            tsEntryInfoVo.setEntryInfoEntities(entryByTsVo);
+            entityList.add(tsEntryInfoVo);
         }
         return entityList;
     }

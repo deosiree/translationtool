@@ -4,6 +4,8 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.*;
+import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -101,5 +103,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
+    List<TsEntryInfoVo> getEntryInfoByTsVo(List<TsVo> tsVoList);
 }
