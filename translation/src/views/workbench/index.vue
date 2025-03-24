@@ -332,14 +332,12 @@ export default {
     // 点击 confirm确认 按钮后会发生下面的操作（弹窗）
     async confirmTranslateType() {
       if (!this.selectedLanguage) {
-        // 未选择语言,就会弹窗结束，不会进入下面的try-catch
+        // 未选择语言
         message.warning("请选择一种语言");
         return;
       }
 
-      // 选择了语言，所以
-      // 单条更新任务，批量循环调用（在处理多个任务更新时，每次只对一条任务进行更新操作，然后通过循环的方式依次处理所有需要更新的任务。
-      let tasks = [];
+      // 单条更新任务，批量循环调用
       for (const task of this.selectedRows) {
         // console.log("当前任务", task);
         if (task.translateType != this.selectedLanguage) {
@@ -355,11 +353,11 @@ export default {
             `任务 ${task.id} 已为${task.translateType}，无需翻译。`
           );
         }
-        tasks.push(task);
       }
 
       // 更新完成后刷新任务列表
-      this.selectedRows = tasks;
+      this.selectedRows = [];
+      this.selectedRowKeys =[];
 
       this.translateTypeVisible = false; // 关闭弹窗
     },
