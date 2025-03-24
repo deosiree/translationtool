@@ -73,7 +73,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<EntryInfoEntity> getEntryByTsVo(@Param("tsVo") TsVo tsVo);
 
-    List<TsVo> getEntryByImportTypeUsingTranslate(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+    List<TsVo> getEntryByImportTypeUsingTranslate(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity,@Param("department") String department);
 }
 
 

@@ -1014,7 +1014,9 @@
         info.import_type = #{entryInfoEntity.importType,jdbcType=VARCHAR}
     and
         info.is_delete = #{entryInfoEntity.isDelete,jdbcType=INTEGER}
-    
+    <if test = "department != null and department != ''">
+        and trans.visual_range = #{department,jdbcType =VARCHAR}
+    </if>
     ORDER BY info.entry,info.comment,info.tag,trans.translate
     
     </select>
