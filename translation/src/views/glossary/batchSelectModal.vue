@@ -3,8 +3,8 @@
     <div class="table">
       <div>已选词条：</div>
       <a-config-provider :locale="locale">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}" :pagination="pagination"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
+        <a-table class="ant-table-striped" :columns="localColumns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}"
+          :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
           <template #bodyCell="{ column, record, text }">
             <template v-if="column.dataIndex === 'translateState'">
               <template v-if="text === '0'">
@@ -72,9 +72,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    columns: {
-      type: Array,
-    },
     dataSource: {
       type: Array,
     },
@@ -83,7 +80,115 @@ export default {
     return {
       locale: zh_CN,
       modalWidth: "60%",
-      localColumns: [...this.columns], // 创建 columns 的副本
+      localColumns: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 80,
+          customRender: (text, record, index, column) => {
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
+          },
+          fixed: "left",
+          index: 0.1,
+        },
+        {
+          title: "词条",
+          dataIndex: "entry",
+          align: "center",
+          width: 150,
+          fixed: "left",
+          resizable: true,
+          index: 1,
+        },
+        {
+          title: "翻译",
+          dataIndex: "translate",
+          align: "center",
+          width: 150,
+          resizable: true,
+          index: 2,
+        },
+        {
+          title: "翻译类型",
+          dataIndex: "type",
+          align: "center",
+          width: 230,
+          resizable: true,
+          index: 3,
+        },
+        {
+          title: "翻译状态",
+          dataIndex: "translateState",
+          align: "center",
+          width: 180,
+          resizable: true,
+          index: 4,
+        },
+        {
+          title: "翻译字符数",
+          dataIndex: "charLength",
+          align: "center",
+          width: 150,
+          index: 5,
+        },
+        {
+          title: "可见范围",
+          dataIndex: "visualRange",
+          align: "center",
+          width: 150,
+          index: 6,
+        },
+        {
+          title: "词条审核员",
+          dataIndex: "entryAuditor",
+          align: "center",
+          width: 150,
+          index: 7,
+        },
+        {
+          title: "公开状态",
+          dataIndex: "publicState",
+          align: "center",
+          width: 150,
+          index: 8,
+        },
+        {
+          title: "最大限制长度",
+          dataIndex: "maxLength",
+          align: "center",
+          width: 150,
+          index: 9,
+        },
+        {
+          title: "审核意见",
+          dataIndex: "auditSuggest",
+          align: "center",
+          width: 230,
+          ellipsis: true,
+          resizable: true,
+          index: 10,
+        },
+        {
+          title: "备注",
+          dataIndex: "remark",
+          align: "center",
+          width: 200,
+          index: 11,
+        },
+        {
+          title: "操作",
+          dataIndex: "operation",
+          align: "center",
+          width: 150,
+          fixed: "right",
+          index: 12,
+        },
+      ],
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -95,17 +200,6 @@ export default {
       },
     };
   },
-  // watch: {
-  //   columns: {
-  //     deep: true,
-  //     handler(newColumns) {
-  //       this.localColumns = [...newColumns]; // 当 props 变化时更新副本
-  //       this.localColumns.forEach((column) => {
-  //         column.width = 100;
-  //       });
-  //     },
-  //   },
-  // },
   methods: {
     // 移除某条已选词条（每行最右边的按钮
     remove(record) {
@@ -113,10 +207,12 @@ export default {
     },
     // 取消按钮
     handleClose() {
+      this.pagination.current = 1; // 重置页码
       this.$emit("batchSelectClose");
     },
     // 确定按钮
     handleOK() {
+      this.pagination.current = 1; // 重置页码
       this.$emit("batchSelectClose");
     },
     // 关闭按钮（移除所有已选词条）
@@ -129,6 +225,7 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
+          this.pagination.current = 1; // 重置页码
           this.$emit("batchSelectCancel");
         },
       });
@@ -147,6 +244,8 @@ export default {
             .then((res) => {
               message.success("删除成功!");
               // console.log("删除成功", res);
+              this.pagination.current = 1; // 重置页码
+
               this.$emit("batchSelectCancel");
             })
             .catch((err) => {

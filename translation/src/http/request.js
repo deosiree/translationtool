@@ -79,7 +79,7 @@ service.interceptors.response.use(
   },
   error => {
     if (axios.isCancel(error)) {
-      console.log("请求已取消:", error.message);
+      // console.log("请求已取消:", error.message);
     } else {
       // 对响应错误做点什么
       return Promise.reject(error);

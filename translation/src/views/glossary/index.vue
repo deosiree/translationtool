@@ -38,9 +38,9 @@
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
           <a-button type="primary" size="middle" @click="batchSelectOpen" v-if="!batchSelectFlag&&!isGetSykEntry">批量选择</a-button>
 
-          <a-button type="primary" size="middle" @click="batchSelectAll" v-if="batchSelectFlag" :loading="loading">选择全部</a-button>
-          <a-button type="primary" size="middle" @click="batchSelectCancel" class="yellowBtn" v-if="batchSelectFlag">取消选择</a-button>
-          <a-badge :count="selectEntry.length" :overflow-count="99" v-if="batchSelectFlag">
+          <a-button type="primary" size="middle" @click="batchSelectAll" v-if="batchSelectFlag&&!isGetSykEntry" :loading="loading">选择全部</a-button>
+          <a-button type="primary" size="middle" @click="batchSelectCancel" class="yellowBtn" v-if="batchSelectFlag&&!isGetSykEntry">取消选择</a-button>
+          <a-badge :count="selectEntry.length" :overflow-count="99" v-if="batchSelectFlag&&!isGetSykEntry">
             <a-button type="primary" size="middle" class="resetBtn" @click="viewSelectEntry">已选词条</a-button>
           </a-badge>
 
@@ -111,8 +111,8 @@
     </DataBox>
   </div>
   <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
-  <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" :columns="columns" @batchSelectClose="batchSelectClose"
-    @removeEntry="removeEntry" @batchSelectCancel="batchSelectCancel" @refresh="refreshTable" />
+  <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" @batchSelectClose="batchSelectClose" @removeEntry="removeEntry"
+    @batchSelectCancel="batchSelectCancel" @refresh="refreshTable" />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -184,6 +184,7 @@ export default {
         visualRange: null,
         searchType: null,
       },
+      lastSearch: {}, // 存储上一次的查询条件
       translateStates: [
         { label: "未翻译", value: "0" },
         { label: "待审核", value: "1" },
@@ -337,6 +338,7 @@ export default {
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
       batchSelectVisible: false,
+      requestId: null, // 存储校验按钮的http请求
     };
   },
   mounted() {
@@ -370,53 +372,85 @@ export default {
     init() {
       this.setTableHeight();
       this.getLanguage();
-      // this.getSearch();// 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
+      this.getSearch(); // 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
     },
     // 选择全部词条
     batchSelectAll() {
-      console.log("选择全部", this);
       if (Object.keys(this.dataSource).length === 0) {
         return;
       }
-      // if (this.search.searchType) // 条件查询的全部选择功能待添加
       this.loading = true;
       this.selectEntry = [];
+      this.selectedRows = [];
       this.selectedRowKeys = [];
-      this.selectedRows = this.dataSource;
-      this.selectEntry = this.dataSource;
-      this.dataSource.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-      });
-      this.loading = false;
-      this.loading = false;
-      // // 入参+请求体
-      // let params = {
-      //   params: {
-      //     pageIndex: this.pagination.current,
-      //     pageSize: this.pagination.pageSize,
-      //   },
-      //   data: this.search,
-      // };
-      // getEntryByClassfy(params, data)
-      //   .then((res) => {
-      //     this.selectEntry = [];
-      //     this.selectedRowKeys = [];
-      //     this.selectedRows = res.data.list;
-      //     this.selectEntry = res.data.list;
-      //     res.data.list.forEach((item) => {
-      //       this.selectedRowKeys.push(item.id);
+      if (!this.isGetSykEntry) {
+        // 条件查询的全部选择功能待添加
+        this.selectedRows = this.dataSource;
+        this.selectEntry = this.dataSource;
+        this.dataSource.forEach((item) => {
+          this.selectedRowKeys.push(item.id);
+        });
+      }
+      // else if (this.isGetSykEntry) {
+      //   console.log("进入条件查询的全部选择");
+      //   this.pagination.current = 1; // 重置页码
+      //   let currentEntryIndex = 1; // 当前已选择的词条索引
+      //   // 入参+请求体
+      //   let pageIndex = 1;
+      //   while (currentEntryIndex <= this.pagination.total) {
+      //     console.log(
+      //       `选择到第${pageIndex}页：
+      //       ${currentEntryIndex}~${
+      //         currentEntryIndex + this.pagination.pageSize - 1
+      //       }`
+      //     );
+      //     getSykEntry(
+      //       {
+      //         pageIndex: pageIndex++,
+      //         pageSize: this.pagination.pageSize,
+      //       },
+      //       this.search
+      //     ).then((res) => {
+      //       console.log(`条件查询第${pageIndex - 1}页`, res.data.list);
+      //       this.selectedRows = this.selectedRows.concat(res.data.list);
+      //       this.selectEntry = this.selectedRows;
+      //       res.data.list.forEach((item) => {
+      //         this.selectedRowKeys.push(item.id);
+      //       });
+      //       console.log(
+      //         "pageIndex - 1 == 1?",
+      //         pageIndex - 1 == 1,
+      //         pageIndex - 1
+      //       );
+      //       if (pageIndex - 1 == 1) {
+      //         for (let item of res.data.list) {
+      //           if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
+      //           getSykEntryRelation([item]).then((resRelation) => {
+      //             item["relationCount"] = resRelation.data.list.length;
+      //             item["reslations"] = resRelation.data.list;
+      //             console.log("item", item);
+      //           });
+      //         }
+      //       }
+      //       console.log("全部选择的行", this.selectedRows);
       //     });
-      //     this.loading = false;
-      //     this.loading = false;
-      //   })
-      //   .catch((err) => {
-      //     this.loading = false;
-      //     this.loading = false;
-      //   });
+      //     currentEntryIndex += this.pagination.pageSize;
+      //   }
+      // }
+      this.loading = false;
     },
     // 已选词条按钮点击事件
     viewSelectEntry() {
       this.batchSelectVisible = true;
+      // console.log(
+      //   "比较两次选择",
+      //   this.lastSearch,
+      //   this.search,
+      //   JSON.stringify(this.search) !== JSON.stringify(this.lastSearch)
+      // );
+      if (JSON.stringify(this.search) !== JSON.stringify(this.lastSearch)){// 如果搜索条件有变化，重新选择
+        this.batchSelectOpen();
+      }
     },
 
     // 弹窗相关
@@ -514,23 +548,13 @@ export default {
     },
     // 查询按钮点击事件
     getSearch() {
+      this.batchSelectFlag = false;
+      this.pagination.current = 1;
       this.dataSource = [];
       this.selectedRows = [];
       this.selectedRowKeys = [];
-      // 入参+请求体
-      let params = {
-        params: {
-          pageIndex: this.pagination.current,
-          pageSize: this.pagination.pageSize,
-        },
-        data: this.search,
-      };
-      // 接口方法集合
-      const apiFunctions = {
-        getSykEntry: this.getSykEntry,
-        getSykNotUsed: this.getSykNotUsed,
-        checkSykEntry: this.checkSykEntry,
-      };
+      this.selectEntry = [];
+      this.lastSearch = {...this.search}; // 记录上次查询条件
       // 选项赋值
       let option = "";
       if (!this.search.searchType) {
@@ -538,16 +562,40 @@ export default {
       } else {
         option = this.search.searchType;
       }
+      // 接口方法集合
+      const apiFunctions = {
+        getSykEntry: this.getSykEntry,
+        getSykNotUsed: this.getSykNotUsed,
+        checkSykEntry: this.checkSykEntry,
+      };
+      // 入参+请求体
+      this.search.type = this.search.translateType;
+      let params = {
+        params: {
+          pageIndex: this.pagination.current,
+          pageSize: this.pagination.pageSize,
+          requestId: `${option}-${Date.now().toString(16)}`,
+        },
+        data: this.search,
+        lastRequestId: this.requestId, // 获取上一次的请求对象requestId
+      };
+      this.requestId = params.params.requestId; // 保存当前请求对象的requestId
+      // console.log(`上次id:${params.lastRequestId};当前id:${this.requestId}`);
+
       // 调用getSearch方法
       getSearch(this, params, option, apiFunctions);
+      // this.requestId = null;
     },
     // 条件查询
-    getSykEntry(params, data) {
-      return getSykEntry(params, data).then((res) => {
+    getSykEntry(params, data, lastRequestId) {
+      return getSykEntry(params, data, lastRequestId).then((res) => {
+        if (!res) {
+          return;
+        }
         this.dataSource = res.data.list;
         this.pagination.total = res.data.totalNum;
         for (let item of this.dataSource) {
-          if (!item.type) item.type = "英文";// 后端BUG，type字段为空
+          if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           getSykEntryRelation([item]).then((res) => {
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
@@ -556,12 +604,15 @@ export default {
       });
     },
     // 空挂术语查询
-    getSykNotUsed(params, data) {
-      return getSykNotUsed(params, data).then((res) => {
+    getSykNotUsed(params, data, lastRequestId) {
+      return getSykNotUsed(params, data, lastRequestId).then((res) => {
+        if (!res) {
+          return;
+        }
         this.dataSource = res.data.list;
         this.pagination.total = res.data.totalNum;
         for (let item of this.dataSource) {
-          if (!item.type) item.type = "英文";// 后端BUG，type字段为空
+          if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           // 空挂术语的详情都是0
           item["relationCount"] = 0;
           item["reslations"] = [];
@@ -569,12 +620,15 @@ export default {
       });
     },
     // 格式校验查询
-    checkSykEntry(params, data) {
-      return checkSykEntry(params, data).then((res) => {
+    checkSykEntry(params, data, lastRequestId) {
+      return checkSykEntry(params, data, lastRequestId).then((res) => {
+        if (!res) {
+          return;
+        }
         this.dataSource = res.data;
         this.pagination.total = this.dataSource.length;
         for (let item of this.dataSource) {
-          if (!item.type) item.type = "英文";// 后端BUG，type字段为空
+          if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           if (item.notUsedByEntryInfo) {
             item["relationCount"] = 0;
             item["reslations"] = [];
@@ -671,7 +725,7 @@ export default {
     // 分页切换
     pageChange(page, pageSize) {
       if (this.isGetSykEntry)
-      // if (!this.search.searchType || this.search.searchType == "getSykEntry")
+        // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
       // 需要回调查询接口，否则一次查询出所有数据，对前端压力太大了，所以每次分页查询只查询当前页的数据
       else pageChange(this, page, pageSize); // 不能回调查询接口，否则若使用了全选功能的话，切换到下一页全选又没了
