@@ -98,10 +98,10 @@ public class CheckServiceImpl implements CheckService {
     }
     
     @Override
-    public List<TsVo> getTsEntryWithProblem(EntryInfoEntity entryInfoEntityTemplate) {
+    public List<TsVo> getTsEntryWithProblem(EntryInfoEntity entryInfoEntityTemplate,String department) {
         
         entryInfoEntityTemplate.setImportType("TS");
-        List<TsVo> entryUsingTranslate = entryInfoMapper.getEntryByImportTypeUsingTranslate(entryInfoEntityTemplate);
+        List<TsVo> entryUsingTranslate = entryInfoMapper.getEntryByImportTypeUsingTranslate(entryInfoEntityTemplate,department);
         int totalCount = entryUsingTranslate.size();
         List<TsVo> entryFiltered = new LinkedList<>();
         if(totalCount <= 0){
