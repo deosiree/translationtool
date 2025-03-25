@@ -1,9 +1,12 @@
 package com.shr.translationtoolservice.config;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 public class AsyncConfig {
@@ -14,11 +17,9 @@ public class AsyncConfig {
      * @return
      */
     @Bean(name = "TranslateMapperExecutor")
-    ThreadPoolTaskExecutor translateMapperExecutor(){
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setCorePoolSize(5);
-        threadPoolTaskExecutor.setMaxPoolSize(10);
-        threadPoolTaskExecutor.setQueueCapacity(15);
+    ThreadPoolExecutor translateMapperExecutor(){
+        LinkedBlockingQueue<Runnable> linkedBlockingQueue = new LinkedBlockingQueue<>();
+        ThreadPoolExecutor threadPoolTaskExecutor = new ThreadPoolExecutor(30,60,120,TimeUnit.SECONDS,linkedBlockingQueue);
         return threadPoolTaskExecutor;
     }
 

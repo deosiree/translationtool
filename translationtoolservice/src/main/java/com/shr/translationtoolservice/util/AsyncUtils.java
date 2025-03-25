@@ -1,21 +1,14 @@
 package com.shr.translationtoolservice.util;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-
-import com.shr.translationtoolservice.entity.TranslateEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -24,9 +17,9 @@ import java.util.Map;
 public class AsyncUtils {
 
     @Resource(name = "TranslateMapperExecutor")
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    private ThreadPoolExecutor translateMapperExecutor;
 
-    public static final int UPDATE_TRANSLATE_LIMIT = 30;    // 当更新t_translate库时，需要更新t_translate记录的个数超过该值，转为异步实现
+    public static final int UPDATE_TRANSLATE_LIMIT = 100;    // 当更新t_translate库时，需要更新t_translate记录的个数超过该值，转为异步实现
 
     public static class AsyncEntity<T>{
 
@@ -61,7 +54,7 @@ public class AsyncUtils {
                 return (T) results;
             }
         };
-        return threadPoolTaskExecutor.submit(callable);
+        return translateMapperExecutor.submit(callable);
 
     }
 
