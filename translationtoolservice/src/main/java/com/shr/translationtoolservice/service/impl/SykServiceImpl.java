@@ -68,9 +68,9 @@ public class SykServiceImpl implements SykService {
     @Override
     public List<TranslateEntity> updateSykEntry(List<TranslateEntity> translates) throws Exception {
         /*根据translates的个数来确定是单线程执行 */
-        int taskStrategyLimit = 1;
+        // int taskStrategyLimit = 1;
         int translatesTotalCount = translates.size();
-        List<TranslateEntity> failedTranslateEntities = batchUpdate(translates,translatesTotalCount > taskStrategyLimit);
+        List<TranslateEntity> failedTranslateEntities = batchUpdate(translates,translatesTotalCount > AsyncUtils.UPDATE_TRANSLATE_LIMIT);
         return failedTranslateEntities;
 
     }
