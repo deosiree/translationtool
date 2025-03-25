@@ -2,23 +2,19 @@
   <!-- 详情弹框(?修改a-modal的大小，参考之前工作台的) -->
   <a-modal :visible="visible" title="关联信息2" @cancel="handleClose" @ok="handleOK" style="width:70%">
     <div class="table">
-      <a-form ref="tableDetailFormRef" :model="dataSource" :wrapper-col="{ span: 0 }">
+      <a-form ref="tableRelationFormRef" :model="dataSource" :wrapper-col="{ span: 0 }">
         <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
           :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
           :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
           <!-- 表格单元格模板 -->
-          <template #bodyCell="{ column, record }">
-            <!--tsFile列 -->
-            <template v-if="column.dataIndex === 'tsFile'">
-              <span>{{ record.tsFile }}</span>
-            </template>
-            <!--词条列 -->
-            <template v-if="column.dataIndex === 'entry'">
-              <span>{{ record.entry }}</span>
-            </template>
-            <!--翻译列 -->
-            <template v-if="column.dataIndex === 'translate'">
-              <span>{{ record.translate }}</span>
+          <template #bodyCell="{ column, text }">
+            <!--Tag列 -->
+            <template v-if="column.dataIndex === 'tag'">
+              <span>
+                <a-tag color="cyan" class="tag-content">
+                  <span>{{ text }}</span>
+                </a-tag>
+              </span>
             </template>
           </template>
         </a-table>
@@ -33,7 +29,7 @@ import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import { cloneDeep, flatMap } from "lodash-es";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
-  emits: ["detailClose"],
+  emits: ["relationClose"],
   props: {
     // 传递来的数据放这儿，不能再在data中定义了
     visible: {
@@ -48,40 +44,97 @@ export default {
     return {
       locale: locale,
       labelCol: { style: { width: "84px" } },
+      tableHeight: { x: "100%", y: 0 },
       loading: false,
+      // columns: [
+      //   {
+      //     title: "序号",
+      //     dataIndex: "index",
+      //     align: "center",
+      //     width: 50,
+      //     index:0.1,
+      //     customRender: (text, record, index, column) => {
+      //       return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+      //     },
+      //   },
+      //   {
+      //     id: 2,
+      //     title: "ts文件",
+      //     dataIndex: "tsFile",
+      //     align: "center",
+      //     width: 100,
+
+      //   },
+      //   {
+      //     id: 3,
+      //     title: "词条",
+      //     dataIndex: "entry",
+      //     align: "center",
+      //     width: 300,
+
+      //   },
+      //   {
+      //     id: 4,
+      //     title: "翻译",
+      //     dataIndex: "translate",
+      //     align: "center",
+      //     width: 300,
+      //   },
+      // ],
       columns: [
         {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
-          index:0.1,
+          width: 60,
+          index: 0.1,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
         },
         {
-          id: 2,
-          title: "ts文件",
-          dataIndex: "tsFile",
-          align: "center",
-          width: 100,
-
-        },
-        {
-          id: 3,
           title: "词条",
           dataIndex: "entry",
           align: "center",
           width: 300,
-
+          resizable: true,
+          index: 2,
+        },
+        // {
+        //   title: "所属类",
+        //   dataIndex: "category",
+        //   align: "center",
+        //   width: 100,
+        //   resizable: true,
+        //   index: 3,
+        // },
+        {
+          title: "来源",
+          dataIndex: "comment",
+          align: "center",
+          width: 100,
+          resizable: true,
+          index: 3,
         },
         {
-          id: 4,
+          title: "Tag",
+          dataIndex: "tag",
+          align: "center",
+          width: 200,
+          resizable: true,
+          index: 4,
+        },
+        {
           title: "翻译",
           dataIndex: "translate",
           align: "center",
-          width: 300,
+          width: 200,
+          resizable: true,
+          index: 5,
         },
       ],
       selectedRowKeys: [], // 表格选中项
@@ -102,17 +155,16 @@ export default {
     dataSource: {
       immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
       handler(newDataSource) {
+        console.log("收到数据", newDataSource);
         // 设置默认全选
-        this.selectedRowKeys = newDataSource.map(
-          (record) => record.id
-        );
+        this.selectedRowKeys = newDataSource.map((record) => record.id);
         this.selectedRows = newDataSource.map((record) => record);
       },
     },
   },
   methods: {
     handleClose() {
-      this.$emit("detailClose");
+      this.$emit("relationClose");
     },
     handleOK() {
       // // 点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
@@ -126,7 +178,7 @@ export default {
       //   this.$emit("classifyClose");
       //   this.dataSource = [];
       // });
-      this.$emit("detailClose");
+      this.$emit("relationClose");
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {

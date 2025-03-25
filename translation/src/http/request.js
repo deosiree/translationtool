@@ -11,7 +11,8 @@ const service = axios.create({
   headers: { //请求头
     // 'Content-Type': 'application/json;charset=UTF-8',
   },
-  settimeout: 180000,//超时时间
+  settimeout: 360000,//超时时间
+  // settimeout: 180000,//超时时间
 });
 
 // 定义一个存储所有 AbortController 实例的对象
@@ -79,7 +80,7 @@ service.interceptors.response.use(
   },
   error => {
     if (axios.isCancel(error)) {
-      console.log("请求已取消:", error.message);
+      // console.log("请求已取消:", error.message);
     } else {
       // 对响应错误做点什么
       return Promise.reject(error);

@@ -1,4 +1,39 @@
 import common from "@/views/workbench/common.js";
+import { cancelRequest, cancelAllRequests } from "@/http/request";
+const requestDelId = [];// 存储删除请求的id，用于保留loading状态
+
+
+/**
+ * 查询
+ * 查询按钮共用多个接口，并维护loading状态
+ * @param {Object} vm - Vue 实例，用于控制 loading 状态
+ * @param {Object} params - 包含请求参数和数据的对象，结构为 { params: {...}, data: {...} }
+ * @param {string} option - 用户选择的按钮名称，用于匹配 API 函数
+ * @param {Object} apiFunctions - 包含按钮名称和对应 API 接口函数的对象，默认值为 { "按钮名称": "接口函数" }
+ */
+export function getSearch(vm, params, option, apiFunctions = { "按钮名称": "接口函数" }) {
+  vm.loading = true; // 开始请求前设置 loading 为 true
+
+  Object.entries(apiFunctions).forEach(([key, value]) => {
+    if (option == key) {
+      if (params.lastRequestId) {// 如果需要取消请求就会有上次请求的id属性lastRequestId，则可以取消上次的请求
+        requestDelId.push(params.lastRequestId);
+        cancelRequest(params.lastRequestId);
+      }
+      value(params.params, params.data).then((response) => {// 调用接口函数
+        if (!requestDelId.includes(params.params.requestId)) {
+          vm.loading = false;
+          // console.log(`${key}请求完了,${params.params.requestId}`);
+        }
+        else {
+          // console.log(`${key}请求被取消了,${params.params.requestId}`);
+          requestDelId.splice(requestDelId.indexOf(params.params.requestId), 1); // 已经用过了保存loading状态的作用
+        }
+      }
+      );
+    }
+  });
+}
 
 /**
  * 验证输入字段长度的函数，返回一个验证器函数，用于表单验证规则
