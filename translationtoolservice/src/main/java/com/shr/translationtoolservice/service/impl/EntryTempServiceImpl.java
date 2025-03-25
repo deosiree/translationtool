@@ -933,7 +933,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
         translateEntity.setType(type);
         translateEntity.setEntry(entry);
-        int insert = translateMapper.insert(translateEntity);
+        // int insert = translateMapper.insert(translateEntity);
+        int insert = translateMapper.insertTranslate(translateEntity);
         log.info("新增 （" + insert + " ）条 翻译 到翻译表中, transID ( " + newTransID + ") 更新内容 ： trans ( " + trans + "),  transState ( " + transState + ")  ");
         return newTransID;
     }

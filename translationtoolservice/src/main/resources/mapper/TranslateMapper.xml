@@ -196,5 +196,43 @@
         and  `translate` =  #{translate,jdbcType=VARCHAR}
     </select>
 
+    <insert id="insertTranslate" parameterType="com.shr.translationtoolservice.entity.TranslateEntity">
+        insert into t_translate
+    (
+    id,
+    entry,
+    `translate`,
+    `unique`,
+    remark,
+    `type`,
+    visual_range,
+    public_state,
+    delete_state,
+    version_id,
+    translate_state,
+    audit_suggest,
+    max_length,
+    char_length,
+    last_use_time)
+        values
+            (
+    #{translateEntity.id,jdbcType=VARCHAR},
+    #{translateEntity.entry,jdbcType=VARCHAR},
+    #{translateEntity.translate,jdbcType=VARCHAR},
+    #{translateEntity.unique,jdbcType=VARCHAR},
+    #{translateEntity.remark,jdbcType=VARCHAR},
+    #{translateEntity.type,jdbcType=VARCHAR},
+    #{translateEntity.visualRange,jdbcType=VARCHAR},
+    #{translateEntity.publicState,jdbcType=INTEGER},
+    #{translateEntity.deleteState,jdbcType=INTEGER},
+    #{translateEntity.versionID,jdbcType=VARCHAR},
+    #{translateEntity.translateState,jdbcType=INTEGER},
+    #{translateEntity.auditSuggest,jdbcType=VARCHAR},
+    #{translateEntity.maxLength,jdbcType=INTEGER},
+    #{translateEntity.charLength,jdbcType=INTEGER},
+   NOW()
+    )
+
+    </insert>
 
 </mapper>
