@@ -4,7 +4,7 @@
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-form-item label="词条" name="entry">
+          <!-- <a-form-item label="词条" name="entry">
             <a-input v-model:value="search.entry" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="所属类" name="category">
@@ -12,6 +12,11 @@
           </a-form-item>
           <a-form-item label="Tag" name="tag">
             <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
+          </a-form-item> -->
+          <a-form-item label="删除状态" name="isDelete">
+            <a-select v-model:value="search.isDelete" style="width: 186px" placeholder="请选择删除状态" :options='isDeletes' size="small" @click="clickInput"
+              allowClear>
+            </a-select>
           </a-form-item>
         </a-form>
       </template>
@@ -32,14 +37,6 @@
               :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, text, record }">
-                <!-- 词条列 -->
-                <template v-if="column.dataIndex === 'entry'">
-                  <span>{{ record.entry }}</span>
-                </template>
-                <!-- 所属类列 -->
-                <template v-if="column.dataIndex === 'category'">
-                  <span>{{ record.category }}</span>
-                </template>
                 <!--Tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
                   <span>
@@ -50,8 +47,9 @@
                 </template>
                 <!-- 操作列 -->
                 <template v-if="column.dataIndex === 'operation'">
-                  <a-button type="primary" size="small"
-                    @click="showDetail(record.detailDataSource)">详情({{showDetailNum(record.detailDataSource)}})</a-button>
+                  <!-- <a-button type="primary" size="small"
+                    @click="showDetail(record.relationData)">详情({{showDetailNum(record.relationData)}})</a-button> -->
+                  <a-button type="primary" ghost size="small" @click.stop="viewRelation(record)">详情({{record.relationCount}})</a-button>
                 </template>
               </template>
             </a-table>
@@ -60,17 +58,17 @@
       </template>
     </DataBox>
   </div>
-  <QTCheckDetail ref="qtCheckDetail" :visible="detailModalVisible" :dataSource="detailDataSource" @detailClose="detailClose"></QTCheckDetail>
+  <QtCheckRelation ref="qtCheckRelation" :visible="relationVisible" :dataSource="relationData" @relationClose="relationClose"></QtCheckRelation>
 </template>
 <script>
 import "@/assets/style/common.less";
 import { message, Modal } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
-import QTCheckDetail from "@/views/check/qtCheckDetail.vue";
+import QtCheckRelation from "@/views/check/qtCheckRelation.vue";
 import commen from "@/views/entry/common.js";
 import { cloneDeep, flatMap } from "lodash-es";
-import { mockSearchCheckInfo } from "@/http/api/check";
+import { getTsProblems, getEntryByTsVo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
 import {
   clickInput,
@@ -84,11 +82,15 @@ export default {
   components: {
     SearchBox,
     DataBox,
-    QTCheckDetail,
+    QtCheckRelation,
   },
   data() {
     return {
       labelCol: { style: { width: "84px" } },
+      tableTitle: "术语列表",
+      dataHeight: 400,
+      tableHeight: { x: "100%", y: 0 },
+      loading: false,
       search: {
         entry: "",
         abbr: "",
@@ -101,11 +103,9 @@ export default {
         language: null,
         translateState: null,
         translate: "",
+        isDelete: 0,
+        importType: "TS",
       },
-      tableTitle: "术语列表",
-      dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
-      loading: false,
       columns: [
         {
           title: "序号",
@@ -129,9 +129,17 @@ export default {
           resizable: true,
           index: 2,
         },
+        // {
+        //   title: "所属类",
+        //   dataIndex: "category",
+        //   align: "center",
+        //   width: 100,
+        //   resizable: true,
+        //   index: 3,
+        // },
         {
-          title: "所属类",
-          dataIndex: "category",
+          title: "来源",
+          dataIndex: "comment",
           align: "center",
           width: 100,
           resizable: true,
@@ -146,6 +154,14 @@ export default {
           index: 4,
         },
         {
+          title: "翻译",
+          dataIndex: "translate",
+          align: "center",
+          width: 200,
+          resizable: true,
+          index: 5,
+        },
+        {
           title: "操作",
           dataIndex: "operation",
           align: "center",
@@ -153,6 +169,10 @@ export default {
           fixed: "right",
           index: 100,
         },
+      ],
+      isDeletes: [
+        { label: "已删除", value: 1 },
+        { label: "待删除", value: 0 },
       ],
       // dataSource: [],// 表格数据
       dataSource: [
@@ -218,8 +238,8 @@ export default {
         },
         // ... 其他示例数据
       ],
-      detailDataSource: [],
-      detailModalVisible: false, // 详情弹窗
+      relationData: [],
+      relationVisible: false, // 详情弹窗
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项
       selectedRowIndex: null, // 表格选中项
@@ -263,102 +283,41 @@ export default {
     // 获取校验信息
     searchCheckInfo() {
       this.loading = true;
-      let params = this.search;
-      let path = "qt";
-      mockSearchCheckInfo(params, path)
+      getTsProblems(null, this.search)
         .then((res) => {
+          // console.log("校验成功！！", res);
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
-          this.loading = false;
+          for (let item of this.dataSource) {
+            // console.log("item", item);
+            getEntryByTsVo([item]).then((res) => {
+              console.log("详情：",res);
+              item["relationCount"] = res.data.list[0].entryInfoEntities.length;
+              item["reslations"] = res.data.list[0].entryInfoEntities;
+              // console.log("item", item);
+            });
+          }
         })
         .catch((err) => {
           message.info(err.message);
           message.error(err);
+        })
+        .finally(() => {
           this.loading = false;
         });
     },
 
     // 查看详情
-    showDetail(res) {
-      this.detailModalVisible = true;
-      // 获取详情数据
-      // this.detailDataSource = this.getDetailData(id);
-      this.detailDataSource = res.data.list;
+    viewRelation(record) {
+      this.relationData = record.reslations;
+      console.log(this.relationData);
+      this.relationVisible = true;
     },
-    // 获取详情数据
-    getDetailData(id) {
-      // 假设从后端获取数据
-      if (id == 1)
-        return [
-          {
-            id: 1,
-            tsFile: "ts1.json",
-            entry: "词条1",
-            translate: "翻译1",
-          },
-        ];
-      if (id == 2)
-        return [
-          {
-            id: 1,
-            tsFile: "qqqn",
-            entry: "词条1",
-            translate: "翻译1",
-          },
-          {
-            id: 2,
-            tsFile: "tsxxx",
-            entry: "sfse词条1",
-            translate: "sefesf翻译1",
-          },
-          {
-            id: 3,
-            tsFile: "555",
-            entry: "11111词条1",
-            translate: "111翻译1",
-          },
-        ];
-      if (id == 3)
-        return [
-          {
-            id: 1,
-            tsFile: "ts1.json",
-            entry: "词条1",
-            translate: "翻译1",
-          },
-          {
-            id: 2,
-            tsFile: "ts1esfe.json",
-            entry: "sfse词条1",
-            translate: "sefesf翻译1",
-          },
-          {
-            id: 3,
-            tsFile: "txxxxs1.json",
-            entry: "11111词条1",
-            translate: "111翻译1",
-          },
-        ];
+    // 关闭详情
+    relationClose() {
+      this.relationVisible = false;
     },
-    // 获取详情数量
-    showDetailNum(res) {
-      // this.detailModalVisible = true;
-      // 获取详情数据
-      // return this.getDetailCount(id);
-      if (res) return res.data.totalNum;
-      return 0;
-    },
-    getDetailCount(id) {
-      // 假设从后端获取词条的数量
-      if (id === 1) return 1;
-      if (id == 2) return 2;
-      if (id == 3) return 3;
-    },
-    // 关闭详情弹框
-    detailClose() {
-      // console.log("详情数据",this.detailDataSource);
-      this.detailModalVisible = false; // 关闭弹窗，具体点击确认/取消的操作都在组件中写，这里只是传递关闭弹窗的信息
-    },
+
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys;

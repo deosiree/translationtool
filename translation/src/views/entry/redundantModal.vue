@@ -31,7 +31,7 @@ import { message } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import {
   // redundantEntryByClassfy,
-  getEntrysourceListByClassfy,
+  checkNotUseEntry,
 } from "@/http/api/entryManage";
 import { v4 as uuidv4 } from "uuid";
 export default {
@@ -131,58 +131,58 @@ export default {
         });
       });
     },
-    // 更新窗口（i18nURL改变时触发）
+    // 打开冗余窗口（i18nURL改变时触发）
     handleredundant() {
-      // this.loading = true; //开始加载
-      // // console.log("classfyID", this.redundantClassfyID);// 传自父组件的treeKey
-      // // console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
-      // // 弹窗，并发送http请求(查询来源中新增的词条
-      // getEntrysourceListByClassfy({
-      //   // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
-      //   // i18nUrl: "http://10.17.43.20:18099/",
-      //   classfyID: this.redundantClassfyID,
-      //   i18nUrl: this.i18nURL,
-      // })
-      //   .then((res) => {
-      //     // 都放到.then内，可以确保执行顺序
-      //     // console.log("查询来源中新增的词条", res.data.list);
-      //     // 设置默认全选
-      //     this.redundantEntries = Object.values(res.data.list);
-      //     // console.log("newDataSource", this.redundantEntries);
-      //     this.dataSource = [];
-      //     this.selectedRows = [];
-      //     this.selectedRowKeys = [];
-      //     if (this.redundantEntries.length != 0) {
-      //       this.redundantEntries.forEach((item) => {
-      //         const EntryVO = Object.values(item.sourceFileAndEntryVO);
-      //         const sourceType = item.type;
-      //         if (EntryVO.length != 0) {
-      //           EntryVO.forEach((item) => {
-      //             this.selectedRowKeys.push(item.sourceFile);
-      //             this.selectedRows.push({
-      //               sourceFile: item.sourceFile,
-      //               sourceType: sourceType,
-      //               // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
-      //             });
-      //           });
-      //         }
-      //       });
-      //       // console.log("selectedRowKeys", this.selectedRowKeys);
-      //       // console.log("selectedRows", this.selectedRows);
-      //     }
-      //     this.dataSource = this.selectedRows;
-      //   })
-      //   .catch((error) => {
-      //     // console.log("error", error);
-      //     if (error.status==200) {
-      //       message.error(`请求失败: ${error.data.operationObject}`);
-      //     }else{
-      //       message.error(`请求失败，状态码: ${error.data.operationObject}`);
-      //     }
-      //   })
-      //   .finally(() => {
-      //     this.loading = false;
-      //   });
+      this.loading = true; //开始加载
+      console.log("classfyID", this.redundantClassfyID);// 传自父组件的treeKey
+      console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
+      // 弹窗，并发送http请求(查询来源中新增的词条
+      checkNotUseEntry({
+        // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
+        // i18nUrl: "http://10.17.43.20:18099/",
+        classfyID: this.redundantClassfyID,
+        i18nUrl: this.i18nURL,
+      })
+        .then((res) => {
+          // 都放到.then内，可以确保执行顺序
+          console.log("查询来源中新增的词条", res.data.list);
+          // 设置默认全选
+          this.redundantEntries = Object.values(res.data.list);
+          console.log("newDataSource", this.redundantEntries);
+          this.dataSource = [];
+          this.selectedRows = [];
+          this.selectedRowKeys = [];
+          if (this.redundantEntries.length != 0) {
+            this.redundantEntries.forEach((item) => {
+              const EntryVO = Object.values(item.sourceFileAndEntryVO);
+              const sourceType = item.type;
+              if (EntryVO.length != 0) {
+                EntryVO.forEach((item) => {
+                  this.selectedRowKeys.push(item.sourceFile);
+                  this.selectedRows.push({
+                    sourceFile: item.sourceFile,
+                    sourceType: sourceType,
+                    // sourceFileAndEntryVO: item, // 返回的值，不用于展示，用于提交
+                  });
+                });
+              }
+            });
+            // console.log("selectedRowKeys", this.selectedRowKeys);
+            // console.log("selectedRows", this.selectedRows);
+          }
+          this.dataSource = this.selectedRows;
+        })
+        .catch((error) => {
+          // console.log("error", error);
+          if (error.status==200) {
+            message.error(`请求失败: ${error.data.operationObject}`);
+          }else{
+            message.error(`请求失败，状态码: ${error.data.operationObject}`);
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     handleClose() {
       this.init();

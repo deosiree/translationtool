@@ -3,8 +3,8 @@
     <div class="table">
       <div>已选词条：</div>
       <a-config-provider :locale="locale">
-        <a-table class="ant-table-striped" :columns="localColumns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}"
-          :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
+        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}" :pagination="pagination"
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
           <template #bodyCell="{ column, record, text }">
             <template v-if="column.dataIndex === 'translateState'">
               <template v-if="text === '0'">
@@ -45,12 +45,13 @@
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="batchSelectCancel">关闭</a-button>
-      <a-button type="primary" danger @click="deleteSykEntry">删除</a-button>
+      <DeleteButton :dataSource="dataSource" :deleteApi="deleteSykEntry"></DeleteButton>
     </template>
   </CustomModal>
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import DeleteButton from "@/components/Button/deleteButton.vue";
 import zh_CN from "ant-design-vue/es/locale/zh_CN";
 import {
   ExclamationCircleOutlined,
@@ -63,132 +64,44 @@ import { pageChange } from "@/utils/tableUtils";
 export default {
   components: {
     CustomModal,
+    DeleteButton,
     ExclamationCircleOutlined,
     DeleteOutlined,
   },
-  emits: ["batchSelectClose", "removeEntry", "batchSelectCancel", "refresh"],
+  emits: [
+    "batchSelectClose",
+    "batchSelectCancel",
+    "refresh",
+    "update:dataSource", // 添加 update:dataSource 事件
+    "update:selectedRowKeys", // 添加 update:selectedRowKeys 事件
+    "update:selectedRows", // 添加 update:selectedRows 事件
+  ],
   props: {
     visible: {
       type: Boolean,
       default: false,
     },
+    columns: {
+      type: Array,
+      default: () => [],
+    },
     dataSource: {
       type: Array,
+      default: () => [],
+    },
+    selectedRows: {
+      type: Array,
+      default: () => [],
+    },
+    selectedRowKeys: {
+      type: Array,
+      default: () => [],
     },
   },
   data() {
     return {
       locale: zh_CN,
       modalWidth: "60%",
-      localColumns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 80,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0.1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 150,
-          fixed: "left",
-          resizable: true,
-          index: 1,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
-          title: "翻译类型",
-          dataIndex: "type",
-          align: "center",
-          width: 230,
-          resizable: true,
-          index: 3,
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 4,
-        },
-        {
-          title: "翻译字符数",
-          dataIndex: "charLength",
-          align: "center",
-          width: 150,
-          index: 5,
-        },
-        {
-          title: "可见范围",
-          dataIndex: "visualRange",
-          align: "center",
-          width: 150,
-          index: 6,
-        },
-        {
-          title: "词条审核员",
-          dataIndex: "entryAuditor",
-          align: "center",
-          width: 150,
-          index: 7,
-        },
-        {
-          title: "公开状态",
-          dataIndex: "publicState",
-          align: "center",
-          width: 150,
-          index: 8,
-        },
-        {
-          title: "最大限制长度",
-          dataIndex: "maxLength",
-          align: "center",
-          width: 150,
-          index: 9,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "auditSuggest",
-          align: "center",
-          width: 230,
-          ellipsis: true,
-          resizable: true,
-          index: 10,
-        },
-        {
-          title: "备注",
-          dataIndex: "remark",
-          align: "center",
-          width: 200,
-          index: 11,
-        },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          align: "center",
-          width: 150,
-          fixed: "right",
-          index: 12,
-        },
-      ],
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -203,7 +116,18 @@ export default {
   methods: {
     // 移除某条已选词条（每行最右边的按钮
     remove(record) {
-      this.$emit("removeEntry", record);
+      const newDataSource = this.dataSource.filter((item) => {
+        return item.id != record.id;
+      });
+      const newSelectedRowKeys = this.selectedRowKeys.filter((item) => {
+        return item.id != record.id;
+      });
+      const newSelectedRows = this.selectedRows.filter((item) => {
+        return item.id != record.id;
+      });
+      this.$emit("update:dataSource", newDataSource); // 重新更新dataSource，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+      this.$emit("update:selectedRowKeys", newSelectedRowKeys); // 重新更新selectedRowKeys，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+      this.$emit("update:selectedRows", newSelectedRows); // 重新更新selectedRows，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
     },
     // 取消按钮
     handleClose() {
@@ -232,31 +156,22 @@ export default {
     },
     // 删除按钮（删除所有所选术语）
     deleteSykEntry() {
-      Modal.confirm({
-        title: "是否确定删除?",
-        icon: createVNode(ExclamationCircleOutlined),
-        okText: "是",
-        cancelText: "否",
-        style: { top: "30%" },
-        onOk: () => {
-          // console.log("已选词条", this.dataSource);
-          deleteSykEntry(this.dataSource)
-            .then((res) => {
-              message.success("删除成功!");
-              // console.log("删除成功", res);
-              this.pagination.current = 1; // 重置页码
+      deleteSykEntry(this.dataSource)
+        .then((res) => {
+          message.success("删除成功!");
+          // console.log("删除成功", res);
+          this.pagination.current = 1; // 重置页码
 
-              this.$emit("batchSelectCancel");
-            })
-            .catch((err) => {
-              message.error("删除失败！");
-              // console.log("术语删除失败！", err);
-            })
-            .finally(() => {
-              this.$emit("refresh");
-            });
-        },
-      });
+          this.$emit("batchSelectCancel");
+        })
+        .catch((err) => {
+          message.error("删除失败！");
+          // console.log("术语删除失败！", err);
+        })
+        .finally(() => {
+          this.$emit("refresh");// 让父组件执行refresh函数
+          // console.log("刷新");
+        });
     },
 
     // 分页切换

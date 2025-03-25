@@ -23,6 +23,32 @@ export function mockSearchCheckInfo(params, path, lastRequestId) { //参数为�
   return req;
 }
 
+// 展示 词条,所属类,tag,点击详情展示 对应ts文件,翻译
+export function getEntryByTsVo(data) { //参数为键值对用params  对象用data
+  const config = {
+    url: "/checkManage/getEntryByTsVo",
+    method: "POST",
+    data,
+  };
+  return request(config);
+}
+
+// 查询校验列表
+export function getTsProblems(params, data, lastRequestId) { //参数为键值对用params  对象用data
+  const config = {
+    url: "/checkManage/tsProblems",
+    method: "POST",
+    params,
+    data,
+  };
+  // console.log("3.请求配置", {params, data});
+  const req = request(config);
+  if (lastRequestId) {// 如果需要取消请求就会有上次请求的id属性lastRequestId，则可以取消上次的请求
+    cancelRequest(lastRequestId);
+  }
+  return req;
+}
+
 // 查询校验列表
 export function searchCheckInfo(params, data, lastRequestId) { //参数为键值对用params  对象用data
   const config = {

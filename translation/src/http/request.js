@@ -11,7 +11,8 @@ const service = axios.create({
   headers: { //请求头
     // 'Content-Type': 'application/json;charset=UTF-8',
   },
-  settimeout: 180000,//超时时间
+  settimeout: 360000,//超时时间
+  // settimeout: 180000,//超时时间
 });
 
 // 定义一个存储所有 AbortController 实例的对象

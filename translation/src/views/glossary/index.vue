@@ -29,20 +29,16 @@
         </a-form>
       </template>
       <template v-slot:operate>
-        <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-        <a-button type="primary" size="middle" @click="getSearch">查询</a-button>
+        <ResetButton :size="'middle'" :search="search" :currentPage="pagination.current" @resetData="onResetData" />
+        <a-button type="primary" size="middle" @click="getSearchClick">查询</a-button>
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-          <a-button type="primary" size="middle" @click="batchSelectOpen" v-if="!batchSelectFlag&&!isGetSykEntry">批量选择</a-button>
-
-          <a-button type="primary" size="middle" @click="batchSelectAll" v-if="batchSelectFlag&&!isGetSykEntry" :loading="loading">选择全部</a-button>
-          <a-button type="primary" size="middle" @click="batchSelectCancel" class="yellowBtn" v-if="batchSelectFlag&&!isGetSykEntry">取消选择</a-button>
-          <a-badge :count="selectEntry.length" :overflow-count="99" v-if="batchSelectFlag&&!isGetSykEntry">
-            <a-button type="primary" size="middle" class="resetBtn" @click="viewSelectEntry">已选词条</a-button>
-          </a-badge>
+          <BatchSelectButton v-if="!isGetSykEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
+            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry" v-model:selectedRows="selectedRows"
+            v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag" v-model:batchSelectVisible="batchSelectVisible" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -111,17 +107,16 @@
     </DataBox>
   </div>
   <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
-  <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" @batchSelectClose="batchSelectClose" @removeEntry="removeEntry"
-    @batchSelectCancel="batchSelectCancel" @refresh="refreshTable" />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
+import ResetButton from "@/components/Button/resetButton.vue";
+import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
 import commen from "@/views/entry/common.js";
 import RelationModal from "@/views/glossary/relationModal.vue";
-import BatchSelectModal from "@/views/glossary/batchSelectModal.vue";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import tableParam from "@/views/glossary/tableParam.js";
 
@@ -145,7 +140,7 @@ import {
   updateSykEntry,
   getSykEntryRelation,
 } from "@/http/api/glossary";
-import { reset, getSearch } from "@/utils/btnUtils";
+import { getSearch } from "@/utils/tableUtils";
 import {
   onSelectChange,
   onSelect,
@@ -161,8 +156,9 @@ export default {
   components: {
     SearchBox,
     DataBox,
+    ResetButton,
+    BatchSelectButton,
     RelationModal,
-    BatchSelectModal,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -338,6 +334,11 @@ export default {
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
       batchSelectVisible: false,
+      apiFunctions: {
+        getSykEntry: this.getSykEntry,
+        getSykNotUsed: this.getSykNotUsed,
+        checkSykEntry: this.checkSykEntry,
+      },
       requestId: null, // 存储校验按钮的http请求
     };
   },
@@ -372,125 +373,7 @@ export default {
     init() {
       this.setTableHeight();
       this.getLanguage();
-      this.getSearch(); // 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
-    },
-    // 选择全部词条
-    batchSelectAll() {
-      if (Object.keys(this.dataSource).length === 0) {
-        return;
-      }
-      this.loading = true;
-      this.selectEntry = [];
-      this.selectedRows = [];
-      this.selectedRowKeys = [];
-      if (!this.isGetSykEntry) {
-        // 条件查询的全部选择功能待添加
-        this.selectedRows = this.dataSource;
-        this.selectEntry = this.dataSource;
-        this.dataSource.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-        });
-      }
-      // else if (this.isGetSykEntry) {
-      //   console.log("进入条件查询的全部选择");
-      //   this.pagination.current = 1; // 重置页码
-      //   let currentEntryIndex = 1; // 当前已选择的词条索引
-      //   // 入参+请求体
-      //   let pageIndex = 1;
-      //   while (currentEntryIndex <= this.pagination.total) {
-      //     console.log(
-      //       `选择到第${pageIndex}页：
-      //       ${currentEntryIndex}~${
-      //         currentEntryIndex + this.pagination.pageSize - 1
-      //       }`
-      //     );
-      //     getSykEntry(
-      //       {
-      //         pageIndex: pageIndex++,
-      //         pageSize: this.pagination.pageSize,
-      //       },
-      //       this.search
-      //     ).then((res) => {
-      //       console.log(`条件查询第${pageIndex - 1}页`, res.data.list);
-      //       this.selectedRows = this.selectedRows.concat(res.data.list);
-      //       this.selectEntry = this.selectedRows;
-      //       res.data.list.forEach((item) => {
-      //         this.selectedRowKeys.push(item.id);
-      //       });
-      //       console.log(
-      //         "pageIndex - 1 == 1?",
-      //         pageIndex - 1 == 1,
-      //         pageIndex - 1
-      //       );
-      //       if (pageIndex - 1 == 1) {
-      //         for (let item of res.data.list) {
-      //           if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
-      //           getSykEntryRelation([item]).then((resRelation) => {
-      //             item["relationCount"] = resRelation.data.list.length;
-      //             item["reslations"] = resRelation.data.list;
-      //             console.log("item", item);
-      //           });
-      //         }
-      //       }
-      //       console.log("全部选择的行", this.selectedRows);
-      //     });
-      //     currentEntryIndex += this.pagination.pageSize;
-      //   }
-      // }
-      this.loading = false;
-    },
-    // 已选词条按钮点击事件
-    viewSelectEntry() {
-      this.batchSelectVisible = true;
-      // console.log(
-      //   "比较两次选择",
-      //   this.lastSearch,
-      //   this.search,
-      //   JSON.stringify(this.search) !== JSON.stringify(this.lastSearch)
-      // );
-      if (JSON.stringify(this.search) !== JSON.stringify(this.lastSearch)){// 如果搜索条件有变化，重新选择
-        this.batchSelectOpen();
-      }
-    },
-
-    // 弹窗相关
-    // 打开已选词条弹窗
-    batchSelectOpen() {
-      this.batchSelectFlag = true;
-      this.selectEntry = [];
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-    },
-    // 关闭已选词条弹窗
-    batchSelectClose() {
-      this.batchSelectVisible = false;
-      // this.getProductVersion();
-    },
-    // 移除已选择词条
-    removeEntry(record) {
-      // console.log("移除", record);
-      this.selectEntry = this.selectEntry.filter((item) => {
-        return item.id != record.id;
-      });
-      this.selectedRowKeys = this.selectedRowKeys.filter((item) => {
-        return item.id != record.id;
-      });
-      this.selectedRows = this.selectedRows.filter((item) => {
-        return item.id != record.id;
-      });
-    },
-    // 取消已选词条的选择
-    batchSelectCancel() {
-      this.selectEntry = [];
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      this.batchSelectFlag = false;
-      this.batchSelectVisible = false;
-      // this.getSearch();// 有的接口太慢了，先不刷新
-    },
-    // 刷新数据（删除后进行刷新，数据应该更新了）
-    refreshTable() {
-      this.getSearch();
+      this.getSearchClick(); // 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
     },
 
     // 展示列切换
@@ -547,14 +430,23 @@ export default {
       });
     },
     // 查询按钮点击事件
-    getSearch() {
+    getSearchClick() {
       this.batchSelectFlag = false;
       this.pagination.current = 1;
+      this.getSearch();
+    },
+    // 查询事件
+    getSearch() {
       this.dataSource = [];
       this.selectedRows = [];
       this.selectedRowKeys = [];
       this.selectEntry = [];
-      this.lastSearch = {...this.search}; // 记录上次查询条件
+      // 接口方法集合
+      const apiFunctions = {
+        getSykEntry: this.getSykEntry,
+        getSykNotUsed: this.getSykNotUsed,
+        checkSykEntry: this.checkSykEntry,
+      };
       // 选项赋值
       let option = "";
       if (!this.search.searchType) {
@@ -562,12 +454,12 @@ export default {
       } else {
         option = this.search.searchType;
       }
-      // 接口方法集合
-      const apiFunctions = {
-        getSykEntry: this.getSykEntry,
-        getSykNotUsed: this.getSykNotUsed,
-        checkSykEntry: this.checkSykEntry,
-      };
+      // 记录上次查询条件
+      const currentSearch = { ...this.search };
+      currentSearch.searchType = option;
+      // console.log("当前查询条件：", currentSearch);
+      this.lastSearch = currentSearch; 
+
       // 入参+请求体
       this.search.type = this.search.translateType;
       let params = {
@@ -584,7 +476,6 @@ export default {
 
       // 调用getSearch方法
       getSearch(this, params, option, apiFunctions);
-      // this.requestId = null;
     },
     // 条件查询
     getSykEntry(params, data, lastRequestId) {
@@ -684,9 +575,10 @@ export default {
       };
     },
 
-    // 重置（查询条件）
-    reset() {
-      reset(this, this.getSearch);
+    // 重置
+    onResetData(newSearch, newPage) {
+      this.search = newSearch;
+      this.pagination.current = newPage;
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
@@ -724,6 +616,7 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
+      console.log("pageChange", page, pageSize);
       if (this.isGetSykEntry)
         // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
