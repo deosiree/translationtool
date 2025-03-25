@@ -344,13 +344,13 @@ export default {
           task.translateType = this.selectedLanguage;
           // console.log("修改语言后的当前任务", task);
           updateTaskInfo(task).then((res) => {
-            // console.log(`任务 ${task.id} 已翻译为${task.translateType}！`);
-            message.success(`任务 ${task.id} 已翻译为${task.translateType}！`);
+            // console.log(`“${task.name}”的翻译语种已更改为${task.translateType}！`);
+            message.success(`“${task.name}”的翻译语种已更改为${task.translateType}！`);
           });
         } else {
-          // console.log(`任务 ${task.id} 已为${task.translateType}，无需翻译。`);
+          // console.log(` “${task.name}”的翻译语种已为${task.translateType}，无需更改。`);
           message.success(
-            `任务 ${task.id} 已为${task.translateType}，无需翻译。`
+            `“${task.name}”的翻译语种已为${task.translateType}，无需更改。`
           );
         }
       }
