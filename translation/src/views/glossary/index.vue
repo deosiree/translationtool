@@ -37,8 +37,9 @@
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
           <BatchSelectButton v-if="!isGetSykEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
-            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry" v-model:selectedRows="selectedRows"
-            v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag" v-model:batchSelectVisible="batchSelectVisible" />
+            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
+            v-model:selectedRows="selectedRows" v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag"
+            v-model:batchSelectVisible="batchSelectVisible" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -251,13 +252,13 @@ export default {
           resizable: true,
           index: 4,
         },
-        {
-          title: "翻译字符数",
-          dataIndex: "charLength",
-          align: "center",
-          width: 150,
-          index: 5,
-        },
+        // {
+        //   title: "翻译字符数",
+        //   dataIndex: "charLength",
+        //   align: "center",
+        //   width: 150,
+        //   index: 5,
+        // },
         {
           title: "可见范围",
           dataIndex: "visualRange",
@@ -272,36 +273,36 @@ export default {
           width: 150,
           index: 7,
         },
-        {
-          title: "公开状态",
-          dataIndex: "publicState",
-          align: "center",
-          width: 150,
-          index: 8,
-        },
-        {
-          title: "最大限制长度",
-          dataIndex: "maxLength",
-          align: "center",
-          width: 150,
-          index: 9,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "auditSuggest",
-          align: "center",
-          width: 230,
-          ellipsis: true,
-          resizable: true,
-          index: 10,
-        },
-        {
-          title: "备注",
-          dataIndex: "remark",
-          align: "center",
-          width: 200,
-          index: 11,
-        },
+        // {
+        //   title: "公开状态",
+        //   dataIndex: "publicState",
+        //   align: "center",
+        //   width: 150,
+        //   index: 8,
+        // },
+        // {
+        //   title: "最大限制长度",
+        //   dataIndex: "maxLength",
+        //   align: "center",
+        //   width: 150,
+        //   index: 9,
+        // },
+        // {
+        //   title: "审核意见",
+        //   dataIndex: "auditSuggest",
+        //   align: "center",
+        //   width: 230,
+        //   ellipsis: true,
+        //   resizable: true,
+        //   index: 10,
+        // },
+        // {
+        //   title: "备注",
+        //   dataIndex: "remark",
+        //   align: "center",
+        //   width: 200,
+        //   index: 11,
+        // },
         {
           title: "操作",
           dataIndex: "operation",
@@ -346,6 +347,15 @@ export default {
     let _this = this;
     this.$nextTick(() => {
       this.init();
+      // 读取本地存储的用户偏好
+      const storedPreferences = localStorage.getItem(
+        "glossaryColumnPreferences"
+      );
+      if (storedPreferences) {
+        const preferences = JSON.parse(storedPreferences);
+        this.checkedColumn = preferences.displayColumn.split(",");
+        this.changeColumn(this.checkedColumn);
+      }
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -415,11 +425,8 @@ export default {
       let data = {
         displayColumn: checkedValue.join(","),
       };
-      this.recordPartiality(data);
-    },
-    // 记录用户偏好
-    recordPartiality(data) {
-      updateUserPartiality(data).then((res) => {});
+      // this.recordPartiality(data);
+      localStorage.setItem('glossaryColumnPreferences', JSON.stringify(data)); // localStorage存储用户偏好
     },
 
     // 获取翻译语言
@@ -458,7 +465,7 @@ export default {
       const currentSearch = { ...this.search };
       currentSearch.searchType = option;
       // console.log("当前查询条件：", currentSearch);
-      this.lastSearch = currentSearch; 
+      this.lastSearch = currentSearch;
 
       // 入参+请求体
       this.search.type = this.search.translateType;

@@ -63,7 +63,7 @@
           <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px">
-                <a-button type="primary" size="small" @click="SelectTranslateType">批量选择语言</a-button>
+                <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
                   <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
@@ -320,7 +320,7 @@ export default {
         this.translateTypes = res.data.list;
       });
     },
-    // 批量选择语言
+    // 更改翻译语种
     SelectTranslateType() {
       if (this.selectedRows.length === 0) {
         message.warning("请至少选择一条任务");
