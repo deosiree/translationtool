@@ -37,8 +37,9 @@
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
           <BatchSelectButton v-if="!isGetSykEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
-            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry" v-model:selectedRows="selectedRows"
-            v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag" v-model:batchSelectVisible="batchSelectVisible" />
+            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
+            v-model:selectedRows="selectedRows" v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag"
+            v-model:batchSelectVisible="batchSelectVisible" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -346,6 +347,15 @@ export default {
     let _this = this;
     this.$nextTick(() => {
       this.init();
+      // 读取本地存储的用户偏好
+      const storedPreferences = localStorage.getItem(
+        "glossaryColumnPreferences"
+      );
+      if (storedPreferences) {
+        const preferences = JSON.parse(storedPreferences);
+        this.checkedColumn = preferences.displayColumn.split(",");
+        this.changeColumn(this.checkedColumn);
+      }
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -415,11 +425,8 @@ export default {
       let data = {
         displayColumn: checkedValue.join(","),
       };
-      this.recordPartiality(data);
-    },
-    // 记录用户偏好
-    recordPartiality(data) {
-      updateUserPartiality(data).then((res) => {});
+      // this.recordPartiality(data);
+      localStorage.setItem('glossaryColumnPreferences', JSON.stringify(data)); // localStorage存储用户偏好
     },
 
     // 获取翻译语言
@@ -458,7 +465,7 @@ export default {
       const currentSearch = { ...this.search };
       currentSearch.searchType = option;
       // console.log("当前查询条件：", currentSearch);
-      this.lastSearch = currentSearch; 
+      this.lastSearch = currentSearch;
 
       // 入参+请求体
       this.search.type = this.search.translateType;

@@ -702,19 +702,20 @@ export default {
       this.$nextTick(() => {
         // 设置列表父元素高度
         let searchHeight = this.$refs.search.$el.offsetHeight;
+        const len = 84;
         try {
           let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = this.box - searchHeight - operationAreaHeight - 104;
+          this.dataHeight = this.box - searchHeight - operationAreaHeight - len;
         } catch (error) {
-          this.dataHeight = this.box - searchHeight - 104;
+          this.dataHeight = this.box - searchHeight - len;
         }
 
         // 设置表格高度
         let buttonHeight = 0;
         try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
+          buttonHeight = this.$refs.button.offsetHeight - 8;
         } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 110 - 40;
+        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
       });
     },
     // 设置表格每一行的class
@@ -1649,10 +1650,10 @@ export default {
   },
 };
 </script>
-<style lang="less">
-@import url("@/assets/style/common.less");
-</style>
 <style scoped lang="less">
+:deep(.ant-table-striped .ant-table-cell) {
+  padding: 2px !important;
+}
 .productEntryBox {
   padding: 0px 16px 16px 16px;
   width: 100%;
