@@ -374,7 +374,7 @@
             and t2.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
         </if>
 
-        <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState   != ''">
+        <!-- <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState   != ''">
             and t6.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState   != ''">
@@ -382,7 +382,7 @@
         </if>
         <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState   != ''">
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
-        </if>
+        </if> -->
 
         <if test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
             and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
