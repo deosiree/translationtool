@@ -32,6 +32,8 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -2020,16 +2022,64 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap) {
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request,
+            Map<String, List<String>> sourceMap) {
+        // TODO Auto-generated method stub
+        return checkNotUseEntry(i18nUrl, request, sourceMap,new HashMap<>());
+    }
+
+    @Override
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,HttpServletRequest request,Map<String,List<String>> sourceMap,Map<String,String> condition){
+        // 先获取数据库中符合条件的词条，然后看这些词条是否是冗余词条
+        String entry = condition.get("entry");
+        String entryState = condition.get("entryState");
+        String tag = condition.get("tag");
+        String classfy2 = condition.get("classfy2");
+        String entrySource = condition.get("entrySource");
+        String translateType = condition.get("translateType");
+        String translateState = condition.get("translateState");
+        String translate = condition.get("translate");
+        TranslateEntity translateEntityTemplate = new TranslateEntity();
+        EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+        entryInfoEntity.setEntry(entry);
+        if(entryState != null)
+            entryInfoEntity.setEntryState(Integer.parseInt(entryState));
+        entryInfoEntity.setTag(tag);
+        entryInfoEntity.setClassfy2(classfy2);
+        entryInfoEntity.setEntrySource(entrySource);
+        translateEntityTemplate.setType(translateType);
+        translateEntityTemplate.setTranslateState(translateState);
+        translateEntityTemplate.setTranslate(translate);
+        translateEntityTemplate.setVisualRange(JWTTokenUtils.getDepartment(request.getHeader("token")));
+
+        List<EntryInfoEntity> entities = checkNotUseEntry(i18nUrl, 
+            entryInfoMapper.getEntryForTaskNotUseEntry(null,condition,translateEntityTemplate,entryInfoEntity), 
+            request, 
+            sourceMap
+        );
+
+        return entities;
+    }
+
+
+
+    @Override
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap) throws Exception{
+    
+        // List<EntryInfoEntity> entities = checkNotUseEntry(i18nUrl, classfyID, request, soucreMap,from,offset);  // 分页查询是classfyID中对应的所有词条中分页
+        // return filterCheckNotUseEntryResult(entities, condition);
+        return checkNotUseEntry(i18nUrl, classfyID, request, soucreMap,new HashMap<>());
+    }   
+
+    @Override
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap,
+        Map<String,String> condition) throws Exception {
         //todo:
         //1.调用i18n接口 获取ts 所有词条
         //2.调用di接口 获取di 所有词条
         //3.调用数据库 获取所有词条
         //4.对比ts di 数据库 词条
         //5.返回未使用词条
-
-
-
         List<String> productidList = new ArrayList<>();
         getProductClassfyList(classfyID,productidList);
         //通过关联表获取所有任务id
@@ -2044,8 +2094,40 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             entryIdList.add(productRelationEntity.getEntryId());
         }
-        List<EntryInfoEntity> entities = entryInfoMapper.getEntryByIDs(entryIdList);
+        if(entryIdList.isEmpty()){
+            return new LinkedList<>();
+        }
+        
+        String entry = condition.get("entry");
+        String entryState = condition.get("entryState");
+        String tag = condition.get("tag");
+        String classfy2 = condition.get("classfy2");
+        String entrySource = condition.get("entrySource");
+        String translateType = condition.get("translateType");
+        String translateState = condition.get("translateState");
+        String translate = condition.get("translate");
+        TranslateEntity translateEntityTemplate = new TranslateEntity();
+        EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+        entryInfoEntity.setEntry(entry);
+        if(entryState != null)
+            entryInfoEntity.setEntryState(Integer.parseInt(entryState));
+        entryInfoEntity.setTag(tag);
+        entryInfoEntity.setClassfy2(classfy2);
+        entryInfoEntity.setEntrySource(entrySource);
+        translateEntityTemplate.setType(translateType);
+        translateEntityTemplate.setTranslateState(translateState);
+        translateEntityTemplate.setTranslate(translate);
+        translateEntityTemplate.setVisualRange(JWTTokenUtils.getDepartment(request.getHeader("token")));
+        List<EntryInfoEntity> entities = entryInfoMapper.getEntryForTaskNotUseEntry(entryIdList, condition,translateEntityTemplate,entryInfoEntity);
+        return checkNotUseEntry(i18nUrl, entities, request, soucreMap);
+    }
+
+    @Override
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,List<EntryInfoEntity> entities, HttpServletRequest request,Map<String,List<String>> sourceMap){
         //按照导入类型分类
+        if(sourceMap == null){
+            sourceMap = new HashMap<>();
+        }
         Map<String, List<EntryInfoEntity>> entryMap = new HashMap<>();
         for (EntryInfoEntity entity : entities) {
             if (StringUtils.isNotBlank(entity.getImportType())){
@@ -2062,28 +2144,45 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             return new ArrayList<>();
         }
 
-        //查询ts 冗余词条
-        List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),soucreMap.get(ConstantInterface.TS));
-        //查询di 冗余词条
-        List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),soucreMap.get(ConstantInterface.DI));
-        //查询 元数据 冗余词条 暂不开放
-       // List<EntryInfoEntity> dbnoUsedEntrys = getDBNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DB),soucreMap.get(ConstantInterface.DB));
-        //查询 枚举 冗余词条
-        List<EntryInfoEntity> enumnoUsedEntrys =  getENUMNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.ENUM),soucreMap.get(ConstantInterface.ENUM));
-        //查询 配置文件 冗余词条
-        List<EntryInfoEntity> confignoUsedEntrys =  getCONFIGNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.CONFIG),soucreMap.get(ConstantInterface.CONFIG));
         List<EntryInfoEntity> allEntrys = new ArrayList<>();
-        allEntrys.addAll(tsnoUsedEntrys);
-        allEntrys.addAll(dinoUsedEntrys);
-        allEntrys.addAll(enumnoUsedEntrys);
-        allEntrys.addAll(confignoUsedEntrys);
+        try {
+            List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),sourceMap.get(ConstantInterface.TS));
+            allEntrys.addAll(tsnoUsedEntrys);   
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        try {
+            //查询di 冗余词条
+            List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),sourceMap.get(ConstantInterface.DI));   
+            allEntrys.addAll(dinoUsedEntrys);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
 
-        //合并返回
+        }
+        //查询 元数据 冗余词条 暂不开放
+        // List<EntryInfoEntity> dbnoUsedEntrys = getDBNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DB),soucreMap.get(ConstantInterface.DB));
+        try {
+            //查询 枚举 冗余词条
+            List<EntryInfoEntity> enumnoUsedEntrys =  getENUMNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.ENUM),sourceMap.get(ConstantInterface.ENUM));  
+            allEntrys.addAll(enumnoUsedEntrys);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
 
+        }
 
+        try {
+            //查询 配置文件 冗余词条
+            List<EntryInfoEntity> confignoUsedEntrys =  getCONFIGNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.CONFIG),sourceMap.get(ConstantInterface.CONFIG));   
+            allEntrys.addAll(confignoUsedEntrys);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
 
-     /*   List<EntryInfoEntity> tsEntry = tsUtils.getTsEntry(i18nUrl);
-        List<EntryInfoEntity> diEntry = diUtils.getDiEntry(i18nUrl);*/
+    
         return allEntrys;
     }
 
@@ -2105,18 +2204,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
             }
         }
+        if(CollectionUtils.isEmpty(fileSet)){
+            return new ArrayList<>();
+        }
         //查找i18n 词条
         List<EntryInfoEntity> configEntry = new ArrayList<>();
         try {
             configEntry = i18nService.getCONFIGEntryBySource(i18nUrl,fileSet, "", "", "", "", "");
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
 
         //对比数据库词条，冗余的词条存起来
         List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
         for (EntryInfoEntity dbEntryEntity : dbSourceEntrys) {
+            boolean isExist = false;
             if (StringUtils.isBlank(dbEntryEntity.getComment())){
                 dbEntryEntity.setComment("");
             }
@@ -2134,8 +2236,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         && entryInfoEntity.getTag().equals(dbEntryEntity.getTag())
                         && entryInfoEntity.getComment().equals(dbEntryEntity.getComment())
                         && entryInfoEntity.getEntrySource().equals(dbEntryEntity.getEntrySource())){
-                    continue;
+                    // continue;
+                    isExist = true;
+                    break;
                 }
+                // noUsedEntrys.add(dbEntryEntity);
+            }
+            if(!isExist){
                 noUsedEntrys.add(dbEntryEntity);
             }
         }
@@ -2161,19 +2268,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
             }
         }
+        if(CollectionUtils.isEmpty(fileSet)){
+            return new ArrayList<>();
+        }
         //查找i18n 词条
         List<EntryInfoEntity> enumEntry = new ArrayList<>();
         try {
             enumEntry = i18nService.getENUMEntryBySource(i18nUrl,fileSet, "", "", "", "", "");
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
 
         //对比数据库词条，冗余的词条存起来
         List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
         for (EntryInfoEntity dbEntryEntity : dbSourceEntrys) {
-
+            boolean isExist = false;
             if (StringUtils.isBlank(dbEntryEntity.getTag())){
                 dbEntryEntity.setTag("");
             }
@@ -2191,8 +2300,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         && entryInfoEntity.getTag().equals(dbEntryEntity.getTag())
                         && entryInfoEntity.getComment().equals(dbEntryEntity.getComment())
                         && entryInfoEntity.getEntrySource().equals(dbEntryEntity.getEntrySource())){
-                    continue;
+                    isExist = true;
+                    break;
+                    // continue;
                 }
+                // noUsedEntrys.add(dbEntryEntity);
+            }
+            if(!isExist){
                 noUsedEntrys.add(dbEntryEntity);
             }
         }
@@ -2229,13 +2343,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //对比数据库词条，冗余的词条存起来
         List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
         for (EntryInfoEntity dbEntryEntity : dbSourceEntrys) {
+            boolean isExist = false;
             for (EntryInfoEntity entryInfoEntity : dbEntry) {
                 if (entryInfoEntity.getEntry().equals(dbEntryEntity.getEntry())
                         && entryInfoEntity.getTag().equals(dbEntryEntity.getTag())
                         && entryInfoEntity.getComment().equals(dbEntryEntity.getComment())
                         && entryInfoEntity.getEntrySource().equals(dbEntryEntity.getEntrySource())){
-                    continue;
+                    // continue;
+                    isExist = true;
+                    break;
                 }
+                // noUsedEntrys.add(dbEntryEntity);
+            }
+            if(!isExist){
                 noUsedEntrys.add(dbEntryEntity);
             }
         }
@@ -2269,14 +2389,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         try {
             diEntry = diUtils.getDiEntry(i18nUrl,fileSet, "", "", "", "", "");
         } catch (Exception e) {
-          e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
 
         //对比数据库词条，冗余的词条存起来
         List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
 
         for (EntryInfoEntity diEntryEntity : diSourceEntrys) {
+            boolean isExist = false;
             for (EntryInfoEntity entryInfoEntity : diEntry) {
                 if (StringUtils.isBlank(entryInfoEntity.getComment())){
                     entryInfoEntity.setComment("");
@@ -2294,8 +2414,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         && diEntryEntity.getTag().equals(entryInfoEntity.getTag())
                         && diEntryEntity.getComment().equals(entryInfoEntity.getComment())
                         && diEntryEntity.getEntrySource().equals(entryInfoEntity.getEntrySource())){
-                    continue;
+                    // continue;
+                    isExist = true;
+                    break;
                 }
+                // noUsedEntrys.add(diEntryEntity);
+            }
+            if(!isExist){
                 noUsedEntrys.add(diEntryEntity);
             }
         }
@@ -2323,7 +2448,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if (CollectionUtils.isEmpty(fileSet)){
             return new ArrayList<>();
         }
-
+        // 获取数据库有,ts里面没有
         //查找i18n 词条
         List<EntryInfoEntity> i18ntsEntry = new ArrayList<>();
         try {
@@ -2335,6 +2460,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //对比数据库词条，冗余的词条存起来
         List<EntryInfoEntity> noUsedEntrys = new ArrayList<>();
         for (EntryInfoEntity tsEntryEntity : tsSourceEntrys) {
+            boolean isExist = false;
             for (EntryInfoEntity entryInfoEntity : i18ntsEntry) {
                 if (StringUtils.isBlank(entryInfoEntity.getComment())){
                     entryInfoEntity.setComment("");
@@ -2352,8 +2478,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         && entryInfoEntity.getTag().equals(tsEntryEntity.getTag())
                         && entryInfoEntity.getComment().equals(tsEntryEntity.getComment())
                         && entryInfoEntity.getEntrySource().equals(tsEntryEntity.getEntrySource())){
-                    continue;
+                    isExist = true;
+                    break;
+                    // continue;
                 }
+                // noUsedEntrys.add(tsEntryEntity);
+            }
+            if(!isExist){
                 noUsedEntrys.add(tsEntryEntity);
             }
         }
@@ -3315,6 +3446,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         return ConstantInterface.OK_STR;
     }
+
+
 
 
 }

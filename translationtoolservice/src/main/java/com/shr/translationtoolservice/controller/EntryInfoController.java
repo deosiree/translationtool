@@ -1,6 +1,8 @@
 package com.shr.translationtoolservice.controller;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
@@ -9,6 +11,9 @@ import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
+
+import io.github.resilience4j.core.lang.Nullable;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +27,28 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName EntryInfoController
@@ -50,6 +75,8 @@ public class EntryInfoController extends BaseController {
 
     @Autowired
     private TranslateService translateService;
+
+    private ThreadPoolExecutor threadPoolExecutor =  new ThreadPoolExecutor(5, 20, 120, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
 
 
     //查询词条信息
@@ -432,17 +459,143 @@ public class EntryInfoController extends BaseController {
     }
 
 
+    private Map<String,String> cacheForCheckNotUseEntry = new LinkedHashMap<>();
+
+
     @PostMapping("/checkNotUseEntry")
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request,@RequestBody Map<String,List<String>> soucreMap) {
-        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,soucreMap);
-        responseListModel.setList(entities);
-        responseListModel.setTotalNum(entities.size());
-        return checkResult(responseListModel);
+    public   HttpResponse checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam(required = false) String classfyID,
+        HttpServletRequest request,
+        @RequestParam Integer command,@RequestParam(required = false) String taskId,
+        @RequestBody(required = false) CheckNotUseEntryVO params,
+        @RequestParam(required = false,defaultValue = "-1") Integer from,@RequestParam(required = false,defaultValue = "-1") Integer offset) {
+
+        
+        if(command == 0){
+            Callable<Boolean> callable = new Callable<Boolean>() {
+                
+                @Override
+                public Boolean call() throws Exception {
+                    // TODO Auto-generated method stub
+                    Map<String, String> condition = params != null ? params.getParams() : null;
+                    Map<String, List<String>> sources = params != null ? params.getSources() : null;
+                    List<EntryInfoEntity> entities;
+                    try {
+        
+                        if(condition != null && classfyID != null){
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, classfyID, request,sources, condition);
+                        }else if(condition == null && classfyID != null){
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,sources);
+                        }else if(condition != null && classfyID == null){
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, request, sources, condition);
+                        }else{
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, request, sources);
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        return false;
+                    }
+                    /*
+                    * 先写数据库，后写缓存
+                    */
+                    try {
+                        Gson gson = new Gson();
+                        BufferedWriter writer = null;
+                        String resultText = gson.toJson(entities);
+                        try {
+                            String filePath = taskId;
+                            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath),false),StandardCharsets.UTF_8));
+                            writer.write(resultText);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return false;
+                        }finally{
+                            try {
+                                writer.close();
+                            } catch (Exception e) {
+                                // TODO: handle exception
+                                e.printStackTrace();
+                                return false;
+                            }
+                        }
+                        cacheForCheckNotUseEntry.put(taskId, resultText);    // 数据库写入成功，缓存生效
+                        return true;                        
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        e.printStackTrace();
+                        return false;
+                    }
+
+                }
+                
+                
+            };
+            try {
+                threadPoolExecutor.submit(callable); 
+                return ok("已经提交任务，正在执行中");
+            } catch (Exception e) {
+                // TODO: handle exception
+                // 没有放入线程池
+                return error(null, "无法执行该任务，服务异常: " + e.getMessage());
+            }
+        }else{
+            // 读结果
+            if(cacheForCheckNotUseEntry.containsKey(taskId)){
+                String result = cacheForCheckNotUseEntry.get(taskId);
+                return ok(result);  // 已经写到缓存里面了
+            }else{
+                String filePath = taskId;
+                File file = new File(filePath);
+                if(!file.exists()){
+                    return error(null, "服务异常，未查询到该任务"); // 缓存清理了，但结果可能持久化到存储里面了，尝试查询，没有，代表异常连文件都没写入
+                }
+                // 可能存在还没有写完的情况
+                BufferedReader reader = null;
+                try {
+                    try {
+                        reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),StandardCharsets.UTF_8));
+                    } catch (Exception e) {
+                        // 可能在写文件，没有读取的权限
+                        String result = cacheForCheckNotUseEntry.get(taskId);
+                        if(result != null){
+                            return ok(result);  // 尝试读缓存， 如果写进去了，就用这个
+                        }
+                        return error(null, "服务正在执行，请稍后再试");
+                    }
+                    String result = cacheForCheckNotUseEntry.get(taskId);   
+                    if(result != null){
+                        return ok(result);     // 文件写进去了，缓存有写好了，从缓存读
+                    }   
+                    // 文件写进去了，但还没来得及写缓存
+                    String nextLine;
+                    StringBuilder builder = new StringBuilder();
+                    while ((nextLine = reader.readLine()) != null) {
+                        builder.append(nextLine);
+                    }
+                    result = cacheForCheckNotUseEntry.get(taskId);
+                    if(result != null){
+                        return ok(cacheForCheckNotUseEntry.get(taskId));    // double-check，看是否已经写入缓存了
+                    }
+                    // 如果还没写到缓存，就直接从文件里读取
+                    return ok(builder.toString());
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    return error(null, "服务异常，提取任务结果的过程失败"); 
+                } finally{
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
+
 
     @PostMapping("/checkNewEntryByClassfy")
     @ApiOperation("查询分类中新增的词条")
