@@ -30,6 +30,7 @@ import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -663,6 +664,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
         String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
+        clearParentID(entryInfoEntities, taskID);
         processEntryInfo(entryInfoEntities, translateType, department,update);
    /*     for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
@@ -688,6 +690,35 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             return ErrorCodeList.OPERATE_ERROR;
         }*/
         return ConstantInterface.OK_STR;
+    }
+
+    private void clearParentID(List<EntryInfoEntity> entryInfoEntities,String taskID){
+        // 获取任务对应的类型，然后查看翻译状态，如果
+        TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
+        String translateType = taskEntityByTaskID.getTranslateType();
+        Iterator<EntryInfoEntity> iterator = entryInfoEntities.iterator();
+
+        while(iterator.hasNext()){
+            EntryInfoEntity entryInfoEntity = iterator.next();
+            if(translateType.equals(ConstantInterface.ENGLISH)){
+                if(entryInfoEntity.getEnglishTranslateState().equals("3"))
+                    entryInfoEntity.setParentID("");
+            }else if(translateType.equals(ConstantInterface.SPANISH)){
+                if(entryInfoEntity.getSpanishTranslateState().equals("3"))
+                    entryInfoEntity.setParentID("");
+            }else if(translateType.equals(ConstantInterface.RUSSIAN)){
+                if(entryInfoEntity.getRussianTranslateState().equals("3"))
+                    entryInfoEntity.setParentID("");
+            }else if(translateType.equals(ConstantInterface.FRENCH)){
+                if(entryInfoEntity.getFrenchTranslateState().equals("3"))
+                    entryInfoEntity.setParentID("");
+            }else{
+                throw new RuntimeException("翻译类型不属于可选择范围");
+            }
+        }
+
+        return;
+
     }
 
     private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, String department,int update) {
