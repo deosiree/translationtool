@@ -962,7 +962,14 @@ export default {
         this.loading = true;
         preTranslate(params, this.dataSource)
           .then((res) => {
-            this.dataSource = res.data.list;
+            // this.dataSource = res.data.list;
+            // 更新 dataSource 中的翻译数据
+            this.dataSource = res.data.list.map((item) => {
+              // 假设接口响应中的翻译数据在 languageCode 字段中
+              item.translate = item[languageCode];
+              return item;
+            });
+            
             // 修改编辑中数据值
             for (let key in this.editableData) {
               this.editableData[key] = this.dataSource.find(
