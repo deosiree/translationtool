@@ -36,6 +36,9 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
 
 
     List<TranslateEntity> getSykTrans(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+
+    List<TranslateEntity> getTransForSykNotUsed(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+
 }
 
 

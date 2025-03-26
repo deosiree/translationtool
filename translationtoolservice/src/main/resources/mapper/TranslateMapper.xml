@@ -186,5 +186,31 @@
         and  `translate` =  #{translate,jdbcType=VARCHAR}
     </select>
 
+   <select id="getTransForSykNotUsed" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_translate where delete_state =0 and public_state =0
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
 
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateState != null  and translateEntity.translateState != ''">
+            and translate_state = #{translateEntity.translateState,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
 </mapper>
