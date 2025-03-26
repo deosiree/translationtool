@@ -1651,9 +1651,9 @@ export default {
 };
 </script>
 <style scoped lang="less">
-:deep(.ant-table-striped .ant-table-cell) {
-  padding: 2px !important;
-}
+// :deep(.ant-table-striped tr td.ant-table-cell) {
+//   padding: 2px !important;
+// }
 .productEntryBox {
   padding: 0px 16px 16px 16px;
   width: 100%;

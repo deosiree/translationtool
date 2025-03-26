@@ -84,7 +84,7 @@
                   :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
                   :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
                   ref="workTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
-                  <template #bodyCell="{ column, record }">
+                  <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'state'">
                       <template v-if="record.state === '0'">
                         <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
@@ -107,6 +107,12 @@
                       <template v-else>
                         <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
                       </template>
+                    </template>
+                    <template v-if="column.dataIndex === 'name'">
+                      <span style="position: relative; display: inline-block;">
+                        {{ text }}
+                        <a-badge color="#ff0000" v-if="record.isHighlighted" style="position: absolute;top: -9px;right: -9px;z-index: 1;" />
+                      </span>
                     </template>
                   </template>
                 </a-table>
@@ -158,6 +164,7 @@ import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
+import { getEntryInfoList } from "@/http/api/workbench";
 export default {
   components: {
     SearchBox,
@@ -197,8 +204,12 @@ export default {
           dataIndex: "index",
           align: "center",
           width: 40,
-          customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+          customRender: (text) => {
+            const currentIndex =
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1);
+            return currentIndex;
           },
           fixed: "left",
           index: 0,
@@ -313,6 +324,37 @@ export default {
     window.onresize = null;
   },
   methods: {
+    // 获取词条数量
+    async getTaskPending(taskID) {
+      function fetch(params, data) {
+        return getEntryInfoList(params, data)
+          .then((res) => {
+            return res.data.list.length > 0;
+          })
+          .catch((err) => {
+            return false;
+          });
+      }
+      const entryStates = ["1", "2", "3", "3"];
+      const datas = [[], [], ["0", "2"], ["1"]];
+      const promises = [];
+
+      for (let i = 0; i < entryStates.length; i++) {
+        const params = {
+          taskID: taskID,
+          entryState: entryStates[i],
+          entry: "",
+        };
+        const data = datas[i];
+        promises.push(fetch(params, data));
+      }
+      try {
+        const results = await Promise.all(promises);
+        return results.some((result) => result);
+      } catch (error) {
+        return false;
+      }
+    },
     // 获取翻译语言
     getLanguage() {
       let data = {};
@@ -345,7 +387,9 @@ export default {
           // console.log("修改语言后的当前任务", task);
           updateTaskInfo(task).then((res) => {
             // console.log(`“${task.name}”的翻译语种已更改为${task.translateType}！`);
-            message.success(`“${task.name}”的翻译语种已更改为${task.translateType}！`);
+            message.success(
+              `“${task.name}”的翻译语种已更改为${task.translateType}！`
+            );
           });
         } else {
           // console.log(` “${task.name}”的翻译语种已为${task.translateType}，无需更改。`);
@@ -357,9 +401,10 @@ export default {
 
       // 更新完成后刷新任务列表
       this.selectedRows = [];
-      this.selectedRowKeys =[];
+      this.selectedRowKeys = [];
 
       this.translateTypeVisible = false; // 关闭弹窗
+      // this.init();// 刷新任务列表
     },
     // 点击 cancel取消 按钮后会发生下面的操作（弹窗）
     cancelTranslateType() {
@@ -513,6 +558,7 @@ export default {
     getTask() {
       this.getTaskByCondition(this.search);
     },
+    // 根据条件获取任务
     getTaskByCondition(data) {
       this.loading = true;
       this.checkSearchChange();
@@ -523,16 +569,16 @@ export default {
       if (this.activeCard === 1) {
         // 待办事项
         getToDoTaskInfo(params, data)
-          .then((res) => {
+          .then(async (res) => {
             this.dataSource = res.data.list;
             this.pagination.total = res.data.totalNum;
-            // if(this.dataSource.length > 0){
-            //     this.selectedRowIndex = this.dataSource[0].id
-            //     this.currentTask = this.dataSource[0]
-            // }
-            // this.selectedRowIndex = null
-            // this.showOperationArea = false
-            // this.setTableHeight()
+            for (const item of this.dataSource) {
+              if (await this.getTaskPending(item.id)) {
+                item.isHighlighted = true;
+              } else {
+                item.isHighlighted = false;
+              }
+            }
           })
           .catch((err) => {
             message.error("数据获取失败！");
@@ -793,5 +839,8 @@ export default {
 .exportCard:hover {
   box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.2),
     -1px 0px 8px 0px rgba(241, 189, 46, 0.2);
+}
+.red-text {
+  color: red;
 }
 </style>
