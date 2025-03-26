@@ -210,7 +210,7 @@ public class SykServiceImpl implements SykService {
             // 没有提供查询的部门则查本部门的
             translateTemplate.setVisualRange(JWTTokenUtils.getDepartment(token));
         }
-        List<TranslateEntity> translateEntityList = getSykEntry(translateTemplate, -1, -1);
+        List<TranslateEntity> translateEntityList = translateMapper.getTransForSykNotUsed(translateTemplate, -1, -1);
         // List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0).eq("visual_range", department));
         List<EntryInfoEntity> entities = entryInfoMapper.selectList(new QueryWrapper<EntryInfoEntity>().eq("is_delete", 0));
         processTranslateEntity(translateEntityList,entities);
