@@ -647,7 +647,7 @@ export default {
                     item[languageCode + "TranslateState"] = "0";
                   }
                 });
-                console.log("重新查询的结果", this.dataSource);
+                // console.log("重新查询的结果", this.dataSource);
                 if (this.dataSource.length == 0) {
                   // 如果没有待处理的数据就自动关闭弹窗
                   this.handleClose();

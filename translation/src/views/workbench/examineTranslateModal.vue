@@ -407,6 +407,7 @@ export default {
       let updateArr = [];
       let okArr = [];
       this.dataSource.forEach((item) => {
+        item.parentID = "";
         if (item.auditState === 0) {
           // 审核不通过
           item[languageCode + "TranslateState"] = "2";
