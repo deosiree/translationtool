@@ -2,8 +2,9 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 import Login from '@/views/login/index.vue'
 
-import LoadingService from '@/http/loading';
-import request, { cancelAllRequests, handleHideLoading } from '../http/request';
+// import LoadingService from '@/http/loading';
+// import request, { cancelAllRequests, handleHideLoading } from '../http/request';
+import request from '../http/request';
 
 const routes = [
   {
@@ -35,26 +36,26 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  // 取消所有未完成的请求
-  cancelAllRequests();
+// router.beforeEach((to, from, next) => {
+//   // 取消所有未完成的请求
+//   cancelAllRequests();
 
-  // 启动显示 loading 的定时器
-  request.showLoadingTimer = setTimeout(() => {
-    LoadingService.show();
-    request.showLoadingTimer = null;
-  }, request.DELAY_TIME);
-  next();
-});
+//   // 启动显示 loading 的定时器
+//   request.showLoadingTimer = setTimeout(() => {
+//     LoadingService.show();
+//     request.showLoadingTimer = null;
+//   }, request.DELAY_TIME);
+//   next();
+// });
 
-router.afterEach(() => {
-  // 清除显示 loading 的定时器
-  if (request.showLoadingTimer) {
-    clearTimeout(request.showLoadingTimer);
-    request.showLoadingTimer = null;
-  }
-  // 处理隐藏 loading 的逻辑
-  handleHideLoading();
-});
+// router.afterEach(() => {
+//   // 清除显示 loading 的定时器
+//   if (request.showLoadingTimer) {
+//     clearTimeout(request.showLoadingTimer);
+//     request.showLoadingTimer = null;
+//   }
+//   // 处理隐藏 loading 的逻辑
+//   handleHideLoading();
+// });
 
 export default router
