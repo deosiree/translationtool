@@ -192,7 +192,7 @@ export function pageChange(vm, page, pageSize, fetchData, selectEntry = "selectE
     vm[selectEntry].forEach((item) => {
       vm.selectedRowKeys.push(item.id);
     });
-    vm.selectedRowKeys = [...new Set(vm.selectedRowKeys)];
+    vm.selectedRowKeys = [...new Set(vm.selectedRowKeys)];// 去重
   }
 }
 
@@ -203,6 +203,7 @@ export function pageChange(vm, page, pageSize, fetchData, selectEntry = "selectE
  * @param {Array} selectedRows - 当前选中行的数据数组
  */
 export function onSelectChange(vm, selectedRowKeys, selectedRows) {
+  // console.log("onSelectChange")
   // v1：未去重
   // vm.selectedRowKeys = selectedRowKeys;// 将当前选中行的键数组赋值给 Vue 实例中的 selectedRowKeys
   // vm.selectedRows = selectedRows;// 将当前选中行的数据数组赋值给 Vue 实例中的 selectedRows
@@ -228,6 +229,16 @@ export function onSelectChange(vm, selectedRowKeys, selectedRows) {
  */
 export function onSelect(vm, record, selected, condition = true, selectEntry = "selectEntry") {
   if (!condition) return; // 如果条件不满足，直接返回
+  // console.log("select", record, )
+  // if (selected) {
+  //   vm.selectedRows.push(record);
+  //   if (selectEntry in vm)
+  //     vm[selectEntry].push(record);
+  // } else {
+  //   vm.selectedRows = vm.selectedRows.filter((item) => { return item !== record; });
+  //   if (selectEntry in vm)
+  //     vm[selectEntry] = vm[selectEntry].filter((item) => { return item !== record; });
+  // }
   if (selected) {
     const isExists1 = vm.selectedRows.some(
       (item) => item.id === record.id
@@ -269,6 +280,25 @@ export function onSelect(vm, record, selected, condition = true, selectEntry = "
  */
 export function onSelectAll(vm, selected, selectedRows, changeRows, condition = true, selectEntry = "selectEntry") {
   if (!condition) return; // 如果条件不满足，直接返回
+  // console.log("selectAll", selected);
+  // if (selected) {
+  //   vm.selectedRows = vm.selectedRows.concat(changeRows);
+  //   if (selectEntry in vm) {
+  //     vm[selectEntry] = vm[selectEntry].concat(changeRows);
+  //   }
+  // }
+  // else {
+  //   changeRows.forEach((item) => {
+  //     vm.selectedRows = vm.selectedRows.filter((entry) => {
+  //       return entry !== item;
+  //     });
+  //     if (selectEntry in vm) {
+  //       vm[selectEntry] = vm[selectEntry].filter((entry) => {
+  //         return entry !== item;
+  //       });
+  //     }
+  //   });
+  // }
   if (selected) {
     const idSet1 = new Set();
     vm.selectedRows = vm.selectedRows.concat(changeRows).filter((item) => {
@@ -307,6 +337,7 @@ export function onSelectAll(vm, selected, selectedRows, changeRows, condition = 
  * @param {VueInstance} vm - Vue 实例
  */
 export function selectAllEntry(vm) {
+  // console.log("全选");
   vm.selectedRowKeys = [];
   vm.selectedRows = [];
   let dataToSelect;
@@ -333,7 +364,7 @@ export function selectAllEntry(vm) {
     vm.selectedRowKeys.push(item.id);
     vm.selectedRows.push(item);
   });
-  console.log("全选后的行", vm.selectedRows);
+  // console.log("全选后的行", vm.selectedRows);
 }
 
 /**
@@ -341,6 +372,7 @@ export function selectAllEntry(vm) {
  * @param {VueInstance} vm - Vue 实例
  */
 export function clearAllEntry(vm) {
+  // console.log("反选");
   vm.selectedRowKeys = [];
   vm.selectedRows = [];
 }

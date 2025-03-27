@@ -610,10 +610,10 @@ export default {
           saveEntrys = saveEntrys.filter(
             (item) => !this.redHighlightIds.includes(item.id)
           );
-          // message.warn(
-          //   `校验结束，共有${this.redHighlightIds.length}条翻译异常`,
-          //   10
-          // );
+          message.warn(
+            `校验结束，共有${this.redHighlightIds.length}条翻译异常`,
+            10
+          );
           let params = {
             taskID: this.task.id,
           };
@@ -633,6 +633,7 @@ export default {
                 this.translateState === undefined
                   ? ["0", "2"]
                   : [this.translateState];
+              this.redHighlightIds = []; // 重新查询前要把异常数据清空
               getEntryInfoList(params, data).then((res) => {
                 this.dataSource = res.data.list;
                 if (this.dataSource.length > 0) {
@@ -969,7 +970,7 @@ export default {
               item.translate = item[languageCode];
               return item;
             });
-            
+
             // 修改编辑中数据值
             for (let key in this.editableData) {
               this.editableData[key] = this.dataSource.find(
