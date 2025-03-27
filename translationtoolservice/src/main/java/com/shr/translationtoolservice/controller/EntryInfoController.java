@@ -1,6 +1,8 @@
 package com.shr.translationtoolservice.controller;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
@@ -9,6 +11,9 @@ import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
+
+import io.github.resilience4j.core.lang.Nullable;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +27,28 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName EntryInfoController
@@ -50,6 +75,8 @@ public class EntryInfoController extends BaseController {
 
     @Autowired
     private TranslateService translateService;
+
+    private ThreadPoolExecutor threadPoolExecutor =  new ThreadPoolExecutor(5, 20, 120, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
 
 
     //查询词条信息
@@ -432,17 +459,183 @@ public class EntryInfoController extends BaseController {
     }
 
 
+    private Map<String,String> cacheForCheckNotUseEntry = new LinkedHashMap<>();
+
+    @Autowired
+    private ResponseMapper responseMapper;
+
+
     @PostMapping("/checkNotUseEntry")
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request,@RequestBody Map<String,List<String>> soucreMap) {
-        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,soucreMap);
-        responseListModel.setList(entities);
-        responseListModel.setTotalNum(entities.size());
-        return checkResult(responseListModel);
+    public  HttpResponse checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam(required = false) String classfyID,
+        HttpServletRequest request,
+        @RequestParam Integer command,@RequestParam String taskID,
+        @RequestBody(required = false) CheckNotUseEntryVO params,
+        @RequestParam(required = false,defaultValue = "-1") Integer fromIndex,@RequestParam(required = false,defaultValue = "-1") Integer toIndex) {
+
+        String department = JWTTokenUtils.getDepartment(request.getHeader("token"));
+        Gson gson = new Gson();
+        if(toIndex < fromIndex){
+            return error(null, "toIndex小于fromIndex");
+        }
+        if(command == 0){
+            if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                String result = cacheForCheckNotUseEntry.get(taskID);
+                if(result == null){
+                    return ok("任务执行中，请稍后再试");
+                }
+                ResponseListModel model = new ResponseListModel<>();
+                List resultList = gson.fromJson(result, List.class);
+                if(fromIndex >= resultList.size()){
+                    return error(null, "fromIndex大于等于数据总数");
+                }
+                if(fromIndex >= 0 && toIndex >= 0){
+                    model.setList(resultList.subList(fromIndex, toIndex > resultList.size() ? resultList.size() : toIndex));
+                }else{
+                    model.setList(resultList);
+                }
+                model.setTotalNum(model.getList().size());
+                return ok(model);
+            }
+
+            Callable<Boolean> callable = new Callable<Boolean>() {
+                // HttpServletRequest requestCopied = request;
+                @Override
+                public Boolean call() throws Exception {
+                    // TODO Auto-generated method stub
+                    Map<String, String> condition = params != null ? params.getParams() : null;
+                    Map<String, List<String>> sources = params != null ? params.getSources() : null;
+                    List<EntryInfoEntity> entities;
+                    try {
+                        if(condition == null){
+                            condition = new HashMap<>();
+                        }
+                        condition.put("department", department);
+                        if(classfyID != null){
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, classfyID,sources, condition);
+                        }else{
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, sources, condition);
+                        } 
+                    }catch (Exception e){
+                        if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                            cacheForCheckNotUseEntry.remove(taskID);
+                        }
+                        e.printStackTrace();
+                        return false;
+                    }
+                    /*
+                    * 先写数据库，后写缓存
+                    */
+                    try {
+         
+                        String resultText = gson.toJson(entities);
+                        try {
+                            // String filePath = taskId;
+                            ResponseEntity responseEntity = new ResponseEntity();
+                            responseEntity.setContent(resultText);
+                            responseEntity.setTaskId(taskID);
+                            responseEntity.setDataType("json");
+                            responseEntity.setTask("checkNotUseEntry");
+                            responseMapper.insertResponse(responseEntity);
+                        } catch (Exception e) {
+                            if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                                cacheForCheckNotUseEntry.remove(taskID);
+                            }
+                            e.printStackTrace();
+                            return false;
+                        }
+                        cacheForCheckNotUseEntry.put(taskID, resultText);    // 数据库写入成功，缓存生效
+                        return true;                        
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                            cacheForCheckNotUseEntry.remove(taskID);
+                        }
+                        e.printStackTrace();
+                        return false;
+                    }
+
+                }
+                
+                
+            };
+            try {
+                cacheForCheckNotUseEntry.put(taskID, null);
+                threadPoolExecutor.submit(callable); 
+                return ok("已经提交任务，正在执行中");
+            } catch (Exception e) {
+                // TODO: handle exception
+                // 没有放入线程池
+                if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                    cacheForCheckNotUseEntry.remove(taskID);
+                }
+                return error(null, "无法执行该任务，服务异常: " + e.getMessage());
+            }
+        }else{
+            // 读结果
+            if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                String result = cacheForCheckNotUseEntry.get(taskID);
+                if(result == null){
+                    return ok("服务正在执行,请稍后再试");
+                }
+                ResponseListModel model = new ResponseListModel<>();
+                List resultList = gson.fromJson(result, List.class);
+                if(fromIndex >= resultList.size()){
+                    return error(null, "fromIndex大于等于数据总数");
+                }
+                if(fromIndex >= 0 && toIndex >= 0){
+                    model.setList(resultList.subList(fromIndex, toIndex >= resultList.size() ? resultList.size() : toIndex));
+                }else{
+                    model.setList(resultList);
+                }
+                model.setTotalNum(model.getList().size());
+                return ok(model);  // 已经写到缓存里面了
+            }else{
+                /*
+                 * 1、发生异常，缓存清除
+                 * 1、正常的缓存清除
+                 * 2、服务重启，缓存丢失
+                 * 3、还没来得及执行任务（应该不会，因为第一次启动任务时，返回响应是必然会写入缓存）
+                 */
+                try {
+                    
+                    ResponseEntity entity = new ResponseEntity();
+                    entity.setTaskId(taskID);
+                    entity.setTask("checkNotUseEntry");
+                    entity.setDataType("json");
+                    List<ResponseEntity> responseEntities = responseMapper.getResponseByTaskId(entity);
+                    if(!responseEntities.isEmpty()){
+                        // 数据库里面有了
+                        ResponseListModel model = new ResponseListModel<>();
+                        String content = responseEntities.get(0).getContent() ;
+                        List resultList = gson.fromJson(content, List.class);
+                        if(fromIndex >= resultList.size()){
+                            return error(null, "fromIndex大于等于数据总数");
+                        }
+                        if(fromIndex >= 0 && toIndex >= 0){
+                            model.setList(resultList.subList(fromIndex, toIndex >= resultList.size() ? resultList.size() : toIndex));
+                        }else{
+                            model.setList(resultList);
+                        }
+                        model.setTotalNum(model.getList().size());
+                        // 缓存没有，数据库有，写入缓存中
+                        cacheForCheckNotUseEntry.put(taskID, content);
+                        return ok(model);    
+                    }
+                    return error(null, "未找到当前任务,服务执行异常"); 
+
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return error(null, "执行失败,无法获取数据,internalError");
+
+                }
+            }
+        }
     }
+
 
     @PostMapping("/checkNewEntryByClassfy")
     @ApiOperation("查询分类中新增的词条")
