@@ -2022,14 +2022,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, HttpServletRequest request,
-            Map<String, List<String>> sourceMap) {
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, Map<String, List<String>> sourceMap) {
         // TODO Auto-generated method stub
-        return checkNotUseEntry(i18nUrl, request, sourceMap,new HashMap<>());
+        return checkNotUseEntry(i18nUrl, sourceMap,new HashMap<>());
     }
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,HttpServletRequest request,Map<String,List<String>> sourceMap,Map<String,String> condition){
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,Map<String,List<String>> sourceMap,Map<String,String> condition){
         // 先获取数据库中符合条件的词条，然后看这些词条是否是冗余词条
         String entry = condition.get("entry");
         String entryState = condition.get("entryState");
@@ -2050,11 +2049,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         translateEntityTemplate.setType(translateType);
         translateEntityTemplate.setTranslateState(translateState);
         translateEntityTemplate.setTranslate(translate);
-        translateEntityTemplate.setVisualRange(JWTTokenUtils.getDepartment(request.getHeader("token")));
+        translateEntityTemplate.setVisualRange(condition.get("department"));
 
         List<EntryInfoEntity> entities = checkNotUseEntry(i18nUrl, 
             entryInfoMapper.getEntryForTaskNotUseEntry(null,condition,translateEntityTemplate,entryInfoEntity), 
-            request, 
             sourceMap
         );
 
@@ -2064,15 +2062,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap) throws Exception{
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap) throws Exception{
     
         // List<EntryInfoEntity> entities = checkNotUseEntry(i18nUrl, classfyID, request, soucreMap,from,offset);  // 分页查询是classfyID中对应的所有词条中分页
         // return filterCheckNotUseEntryResult(entities, condition);
-        return checkNotUseEntry(i18nUrl, classfyID, request, soucreMap,new HashMap<>());
+        return checkNotUseEntry(i18nUrl, classfyID, soucreMap,new HashMap<>());
     }   
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap,
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap,
         Map<String,String> condition) throws Exception {
         //todo:
         //1.调用i18n接口 获取ts 所有词条
@@ -2117,13 +2115,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         translateEntityTemplate.setType(translateType);
         translateEntityTemplate.setTranslateState(translateState);
         translateEntityTemplate.setTranslate(translate);
-        translateEntityTemplate.setVisualRange(JWTTokenUtils.getDepartment(request.getHeader("token")));
+        translateEntityTemplate.setVisualRange(condition.get("department"));
         List<EntryInfoEntity> entities = entryInfoMapper.getEntryForTaskNotUseEntry(entryIdList, condition,translateEntityTemplate,entryInfoEntity);
-        return checkNotUseEntry(i18nUrl, entities, request, soucreMap);
+        return checkNotUseEntry(i18nUrl, entities, soucreMap);
     }
 
     @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,List<EntryInfoEntity> entities, HttpServletRequest request,Map<String,List<String>> sourceMap){
+    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,List<EntryInfoEntity> entities,Map<String,List<String>> sourceMap){
         //按照导入类型分类
         if(sourceMap == null){
             sourceMap = new HashMap<>();

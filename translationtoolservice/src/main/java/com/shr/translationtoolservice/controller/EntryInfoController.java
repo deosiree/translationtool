@@ -461,21 +461,47 @@ public class EntryInfoController extends BaseController {
 
     private Map<String,String> cacheForCheckNotUseEntry = new LinkedHashMap<>();
 
+    @Autowired
+    private ResponseMapper responseMapper;
+
 
     @PostMapping("/checkNotUseEntry")
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam(required = false) String classfyID,
+    public  HttpResponse checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam(required = false) String classfyID,
         HttpServletRequest request,
-        @RequestParam Integer command,@RequestParam(required = false) String taskId,
+        @RequestParam Integer command,@RequestParam String taskID,
         @RequestBody(required = false) CheckNotUseEntryVO params,
-        @RequestParam(required = false,defaultValue = "-1") Integer from,@RequestParam(required = false,defaultValue = "-1") Integer offset) {
+        @RequestParam(required = false,defaultValue = "-1") Integer fromIndex,@RequestParam(required = false,defaultValue = "-1") Integer toIndex) {
 
-        
+        String department = JWTTokenUtils.getDepartment(request.getHeader("token"));
+        Gson gson = new Gson();
+        if(toIndex < fromIndex){
+            return error(null, "toIndex小于fromIndex");
+        }
         if(command == 0){
+            if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                String result = cacheForCheckNotUseEntry.get(taskID);
+                if(result == null){
+                    return ok("任务执行中，请稍后再试");
+                }
+                ResponseListModel model = new ResponseListModel<>();
+                List resultList = gson.fromJson(result, List.class);
+                if(fromIndex >= resultList.size()){
+                    return error(null, "fromIndex大于等于数据总数");
+                }
+                if(fromIndex >= 0 && toIndex >= 0){
+                    model.setList(resultList.subList(fromIndex, toIndex > resultList.size() ? resultList.size() : toIndex));
+                }else{
+                    model.setList(resultList);
+                }
+                model.setTotalNum(model.getList().size());
+                return ok(model);
+            }
+
             Callable<Boolean> callable = new Callable<Boolean>() {
-                
+                // HttpServletRequest requestCopied = request;
                 @Override
                 public Boolean call() throws Exception {
                     // TODO Auto-generated method stub
@@ -483,17 +509,19 @@ public class EntryInfoController extends BaseController {
                     Map<String, List<String>> sources = params != null ? params.getSources() : null;
                     List<EntryInfoEntity> entities;
                     try {
-        
-                        if(condition != null && classfyID != null){
-                            entities = entryInfoService.checkNotUseEntry(i18nUrl, classfyID, request,sources, condition);
-                        }else if(condition == null && classfyID != null){
-                            entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,sources);
-                        }else if(condition != null && classfyID == null){
-                            entities = entryInfoService.checkNotUseEntry(i18nUrl, request, sources, condition);
-                        }else{
-                            entities = entryInfoService.checkNotUseEntry(i18nUrl, request, sources);
+                        if(condition == null){
+                            condition = new HashMap<>();
                         }
+                        condition.put("department", department);
+                        if(classfyID != null){
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, classfyID,sources, condition);
+                        }else{
+                            entities = entryInfoService.checkNotUseEntry(i18nUrl, sources, condition);
+                        } 
                     }catch (Exception e){
+                        if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                            cacheForCheckNotUseEntry.remove(taskID);
+                        }
                         e.printStackTrace();
                         return false;
                     }
@@ -501,29 +529,30 @@ public class EntryInfoController extends BaseController {
                     * 先写数据库，后写缓存
                     */
                     try {
-                        Gson gson = new Gson();
-                        BufferedWriter writer = null;
+         
                         String resultText = gson.toJson(entities);
                         try {
-                            String filePath = taskId;
-                            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath),false),StandardCharsets.UTF_8));
-                            writer.write(resultText);
+                            // String filePath = taskId;
+                            ResponseEntity responseEntity = new ResponseEntity();
+                            responseEntity.setContent(resultText);
+                            responseEntity.setTaskId(taskID);
+                            responseEntity.setDataType("json");
+                            responseEntity.setTask("checkNotUseEntry");
+                            responseMapper.insertResponse(responseEntity);
                         } catch (Exception e) {
+                            if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                                cacheForCheckNotUseEntry.remove(taskID);
+                            }
                             e.printStackTrace();
                             return false;
-                        }finally{
-                            try {
-                                writer.close();
-                            } catch (Exception e) {
-                                // TODO: handle exception
-                                e.printStackTrace();
-                                return false;
-                            }
                         }
-                        cacheForCheckNotUseEntry.put(taskId, resultText);    // 数据库写入成功，缓存生效
+                        cacheForCheckNotUseEntry.put(taskID, resultText);    // 数据库写入成功，缓存生效
                         return true;                        
                     } catch (Exception e) {
                         // TODO: handle exception
+                        if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                            cacheForCheckNotUseEntry.remove(taskID);
+                        }
                         e.printStackTrace();
                         return false;
                     }
@@ -533,64 +562,75 @@ public class EntryInfoController extends BaseController {
                 
             };
             try {
+                cacheForCheckNotUseEntry.put(taskID, null);
                 threadPoolExecutor.submit(callable); 
                 return ok("已经提交任务，正在执行中");
             } catch (Exception e) {
                 // TODO: handle exception
                 // 没有放入线程池
+                if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                    cacheForCheckNotUseEntry.remove(taskID);
+                }
                 return error(null, "无法执行该任务，服务异常: " + e.getMessage());
             }
         }else{
             // 读结果
-            if(cacheForCheckNotUseEntry.containsKey(taskId)){
-                String result = cacheForCheckNotUseEntry.get(taskId);
-                return ok(result);  // 已经写到缓存里面了
-            }else{
-                String filePath = taskId;
-                File file = new File(filePath);
-                if(!file.exists()){
-                    return error(null, "服务异常，未查询到该任务"); // 缓存清理了，但结果可能持久化到存储里面了，尝试查询，没有，代表异常连文件都没写入
+            if(cacheForCheckNotUseEntry.containsKey(taskID)){
+                String result = cacheForCheckNotUseEntry.get(taskID);
+                if(result == null){
+                    return ok("服务正在执行,请稍后再试");
                 }
-                // 可能存在还没有写完的情况
-                BufferedReader reader = null;
+                ResponseListModel model = new ResponseListModel<>();
+                List resultList = gson.fromJson(result, List.class);
+                if(fromIndex >= resultList.size()){
+                    return error(null, "fromIndex大于等于数据总数");
+                }
+                if(fromIndex >= 0 && toIndex >= 0){
+                    model.setList(resultList.subList(fromIndex, toIndex >= resultList.size() ? resultList.size() : toIndex));
+                }else{
+                    model.setList(resultList);
+                }
+                model.setTotalNum(model.getList().size());
+                return ok(model);  // 已经写到缓存里面了
+            }else{
+                /*
+                 * 1、发生异常，缓存清除
+                 * 1、正常的缓存清除
+                 * 2、服务重启，缓存丢失
+                 * 3、还没来得及执行任务（应该不会，因为第一次启动任务时，返回响应是必然会写入缓存）
+                 */
                 try {
-                    try {
-                        reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),StandardCharsets.UTF_8));
-                    } catch (Exception e) {
-                        // 可能在写文件，没有读取的权限
-                        String result = cacheForCheckNotUseEntry.get(taskId);
-                        if(result != null){
-                            return ok(result);  // 尝试读缓存， 如果写进去了，就用这个
+                    
+                    ResponseEntity entity = new ResponseEntity();
+                    entity.setTaskId(taskID);
+                    entity.setTask("checkNotUseEntry");
+                    entity.setDataType("json");
+                    List<ResponseEntity> responseEntities = responseMapper.getResponseByTaskId(entity);
+                    if(!responseEntities.isEmpty()){
+                        // 数据库里面有了
+                        ResponseListModel model = new ResponseListModel<>();
+                        String content = responseEntities.get(0).getContent() ;
+                        List resultList = gson.fromJson(content, List.class);
+                        if(fromIndex >= resultList.size()){
+                            return error(null, "fromIndex大于等于数据总数");
                         }
-                        return error(null, "服务正在执行，请稍后再试");
+                        if(fromIndex >= 0 && toIndex >= 0){
+                            model.setList(resultList.subList(fromIndex, toIndex >= resultList.size() ? resultList.size() : toIndex));
+                        }else{
+                            model.setList(resultList);
+                        }
+                        model.setTotalNum(model.getList().size());
+                        // 缓存没有，数据库有，写入缓存中
+                        cacheForCheckNotUseEntry.put(taskID, content);
+                        return ok(model);    
                     }
-                    String result = cacheForCheckNotUseEntry.get(taskId);   
-                    if(result != null){
-                        return ok(result);     // 文件写进去了，缓存有写好了，从缓存读
-                    }   
-                    // 文件写进去了，但还没来得及写缓存
-                    String nextLine;
-                    StringBuilder builder = new StringBuilder();
-                    while ((nextLine = reader.readLine()) != null) {
-                        builder.append(nextLine);
-                    }
-                    result = cacheForCheckNotUseEntry.get(taskId);
-                    if(result != null){
-                        return ok(cacheForCheckNotUseEntry.get(taskId));    // double-check，看是否已经写入缓存了
-                    }
-                    // 如果还没写到缓存，就直接从文件里读取
-                    return ok(builder.toString());
+                    return error(null, "未找到当前任务,服务执行异常"); 
+
+                    
                 } catch (Exception e) {
-                    // TODO: handle exception
                     e.printStackTrace();
-                    return error(null, "服务异常，提取任务结果的过程失败"); 
-                } finally{
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
+                    return error(null, "执行失败,无法获取数据,internalError");
+
                 }
             }
         }

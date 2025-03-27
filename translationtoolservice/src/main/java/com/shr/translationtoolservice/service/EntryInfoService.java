@@ -91,17 +91,17 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,HttpServletRequest request,Map<String,List<String>> sourceMap,Map<String,String> condition);
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,Map<String,List<String>> sourceMap,Map<String,String> condition);
     
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,HttpServletRequest request,Map<String,List<String>> sourceMap);
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,Map<String,List<String>> sourceMap);
     
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request,Map<String,List<String>> soucreMap)
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap)
      throws Exception;
 
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,List<EntryInfoEntity> entities, HttpServletRequest request,Map<String,List<String>> sourceMap);
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,List<EntryInfoEntity> entities,Map<String,List<String>> sourceMap);
 
 
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request, Map<String,List<String>> soucreMap,Map<String,String> condition) throws Exception;
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID,  Map<String,List<String>> soucreMap,Map<String,String> condition) throws Exception;
 
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
