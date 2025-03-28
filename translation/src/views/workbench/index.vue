@@ -212,7 +212,7 @@ export default {
             return currentIndex;
           },
           fixed: "left",
-          index: 0,
+          index: 0.1,
         },
         {
           title: "任务名称",
@@ -238,7 +238,7 @@ export default {
           align: "center",
           width: 100,
           resizable: true,
-          index: 2,
+          index: 3,
         },
         // {title: '执行部门',dataIndex: 'department',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
         {
@@ -248,7 +248,7 @@ export default {
           width: 100,
           ellipsis: true,
           resizable: true,
-          index: 3,
+          index: 4,
         },
         {
           title: "任务描述",
@@ -257,7 +257,7 @@ export default {
           width: 100,
           ellipsis: true,
           resizable: true,
-          index: 3,
+          index: 5,
         },
         {
           title: "创建人",
@@ -265,6 +265,7 @@ export default {
           align: "center",
           width: 50,
           ellipsis: true,
+          index: 6,
         },
         {
           title: "下发时间",
@@ -272,6 +273,7 @@ export default {
           align: "center",
           width: 100,
           ellipsis: true,
+          index: 7,
         },
         // {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right',},
       ],

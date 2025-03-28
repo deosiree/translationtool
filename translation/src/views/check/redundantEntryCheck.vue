@@ -4,7 +4,7 @@
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-form-item label="词条" name="entry">
+          <!-- <a-form-item label="词条" name="entry">
             <a-input v-model:value="search.entry" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="词条状态" name="state">
@@ -31,25 +31,58 @@
           </a-form-item>
           <a-form-item label="翻译结果" name="translate">
             <a-input v-model:value="search.translate" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
+          </a-form-item> -->
+          <a-form-item label="IP" name="ip">
+            <a-select v-model:value="search.i18nURL" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
+          </a-form-item>
+          <a-form-item label="部门" name="classfyID">
+            <a-select v-model:value="search.classfyID" style="width: 186px" placeholder="请选择" size="small" :options='classfyIDs' @click="clickInput"
+              allowClear></a-select>
           </a-form-item>
         </a-form>
       </template>
       <!-- 操作按钮模板 -->
       <template v-slot:operate>
-        <a-button type="primary" size="middle" class="checkBtn" @click="check">校验</a-button>
+        <a-button type="primary" size="middle" class="yellowBtn" v-if="hasRedundantRls" @click="resetResult">重新执行</a-button>
+        <!-- <a-button type="primary" size="middle" v-if="hasRedundantRls" @click="viewResult">查看结果</a-button> -->
+        <a-button type="primary" size="middle" @click="check">查询</a-button>
+
       </template>
     </SearchBox>
     <!-- 数据展示框组件 -->
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
-      <template v-slot:label>
+      <!-- <template v-slot:label>
         产品版本： <a-select v-model:value="currentVersion" allowClear style="width: 150px" placeholder="请选择版本" :options='productVersions'
           :fieldNames="{label:'name',value:'id'}" size="small" @click="clickInput">
         </a-select>
-      </template>
+      </template> -->
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-          <!-- <a-button type="primary" danger size="small" @click="selectDelEntry" v-if="!selectDelEntryFlag">删除</a-button> -->
-          <!-- <a-button type="primary" size="small" @click="selectAllEntry" v-if="!selectAllEntryFlag">全选</a-button> -->
+          <a-button type="primary" size="small" @click="selectAllEntry">选择全部</a-button>
+          <a-button type="primary" size="small" class="yellowBtn" @click="clearAllEntry">取消选择</a-button>
+          <a-badge :count="selectEntry.length" :overflow-count="99">
+            <a-button type="primary" size="small" class="resetBtn" @click="viewSelectEntry">已选词条</a-button>
+          </a-badge>
+          <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" :search="search" @update:dataSource="selectEntry = $event"
+            :selectedRowKeys="selectedRowKeys" @update:selectedRowKeys="selectedRowKeys = $event" :selectedRows="selectedRows"
+            @update:selectedRows="selectedRows = $event" :columns="columns" @batchSelectClose="batchSelectClose"
+            @batchSelectCancel="batchSelectCancel" />
+          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+            <template #content>
+              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+                <a-row v-for="item in checkboxList" :key="item.value">
+                  <a-col :span="24">
+                    <a-checkbox :value="item.value">
+                      {{ item.label }}
+                    </a-checkbox>
+                  </a-col>
+                </a-row>
+              </a-checkbox-group>
+            </template>
+            <a-button type="primary" size="small"><template #icon>
+                <SettingOutlined />
+              </template>展示列</a-button>
+          </a-popover>
         </div>
       </template>
       <!-- 数据展示模板 -->
@@ -58,26 +91,41 @@
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }">
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
-              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="redundantEntryCheckTable" @resizeColumn="handleResizeColumn">
+              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
+              :row-key="record => record.id" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
+              ref="redundantEntryCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record }">
-                <!-- 词条状态列 -->
                 <template v-if="column.dataIndex === 'entryState'">
-                  <stateBadge :entry-state="record.entryState" />
+                  <template v-if="record.entryState === 0">
+                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+                  </template>
+                  <template v-if="record.entryState === 1">
+                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
+                  </template>
+                  <template v-if="record.entryState === 2">
+                    <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+                  </template>
+                  <template v-if="record.entryState === 3">
+                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+                  </template>
                 </template>
-                <!-- 词条列 -->
-                <template v-if="column.dataIndex === 'entry'">
-                  <span>{{ record.entry }}</span>
+                <template
+                  v-if="['translateState', 'englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
+                  <template v-if="record[column.dataIndex] === '0'">
+                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
+                  </template>
+                  <template v-if="record[column.dataIndex] === '1'">
+                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
+                  </template>
+                  <template v-if="record[column.dataIndex] === '2'">
+                    <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+                  </template>
+                  <template v-if="record[column.dataIndex] === '3'">
+                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+                  </template>
                 </template>
-                <!-- 词条版本列 -->
-                <template v-if="column.dataIndex === 'entryVersion'">
-                  <span>{{ record.entryVersion }}</span>
-                </template>
-                <!-- 词性来源列 -->
-                <template v-if="column.dataIndex === 'entrySource'">
-                  <span>{{ record.entrySource }}</span>
-                </template>
+
                 <!--Tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
                   <span>
@@ -85,18 +133,6 @@
                       <span>{{ record.tag }}</span>
                     </a-tag>
                   </span>
-                </template>
-                <!--翻译列 -->
-                <template v-if="column.dataIndex === 'english'">
-                  <span>{{ record.english }}</span>
-                </template>
-                <!-- 翻译状态列 -->
-                <template v-if="column.dataIndex === 'translateState'">
-                  <stateBadge :entry-state="record.translateState" />
-                </template>
-                <!-- 辞典名称列 -->
-                <template v-if="column.dataIndex === 'dicName'">
-                  <span>{{ record.dicName }}</span>
                 </template>
               </template>
             </a-table>
@@ -111,22 +147,37 @@ import "@/assets/style/common.less";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import stateBadge from "@/components/stateBadge/index.vue";
+import BatchSelectModal from "@/views/check/redundantBatchSelectModal.vue";
 import { getLanguage } from "@/http/api/translate";
 import { getSecondClassify } from "@/http/api/secondClassify";
-import { mockSearchCheckInfo } from "@/http/api/check";
+import { getI18nAdress } from "@/http/api/workbench";
+import {
+  mockSearchCheckInfo,
+  getCheckNotUseEntry,
+  checkNotUseEntry,
+} from "@/http/api/check";
 import { message, Modal } from "ant-design-vue";
+import { SettingOutlined } from "@ant-design/icons-vue";
+import tableParam from "@/views/check/redundantTableParam.js";
 import {
   clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
   pageChange,
+  onSelectChange,
+  onSelect,
+  onSelectAll,
+  clearAllEntry,
 } from "@/utils/tableUtils"; // 引入工具函数
+
 export default {
   components: {
     SearchBox,
     DataBox,
     stateBadge,
+    BatchSelectModal,
+    SettingOutlined,
   },
   data() {
     return {
@@ -139,14 +190,25 @@ export default {
         translateType: null, //翻译语言
         translateState: null, //翻译状态
         translate: "", //翻译结果
+        i18nURL: null,
+        classfyID: null, // 部门级的classfyID
+        pageIndex: 1,
+        pageSize: 20,
       },
       columns: [
         {
-          title: "词条状态",
-          dataIndex: "entryState",
+          title: "序号",
+          dataIndex: "index",
           align: "center",
-          width: 130,
-          resizable: true,
+          width: 80,
+          customRender: (text, record, index, column) => {
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
+          },
+          fixed: "left",
           index: 0.1,
         },
         {
@@ -155,58 +217,82 @@ export default {
           align: "center",
           width: 160,
           resizable: true,
-          index: 2,
-        },
-        {
-          title: "词条版本",
-          dataIndex: "entryVersion",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 6,
+          index: 1,
         },
         {
           title: "词条来源",
           dataIndex: "entrySource",
           align: "center",
-          width: 150,
+          width: 130,
           resizable: true,
-          index: 1,
+          index: 2,
         },
         {
-          title: "Tag",
+          title: "词条状态",
+          dataIndex: "entryState",
+          align: "center",
+          width: 130,
+          resizable: true,
+          index: 3,
+        },
+        {
+          title: "导入类型",
+          dataIndex: "importType",
+          align: "center",
+          width: 130,
+          resizable: true,
+          index: 4,
+        },
+        {
+          title: "tag",
           dataIndex: "tag",
           align: "center",
           width: 150,
           resizable: true,
-          index: 1,
+          index: 5,
         },
         {
-          title: "翻译",
-          dataIndex: "translate",
+          title: "update",
+          dataIndex: "update",
           align: "center",
-          width: 180,
+          width: 150,
           resizable: true,
-          index: 10,
-        }, // 只是英文的翻译吗？为何不是对应语言的翻译{{translateType}}
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 16,
+          index: 6,
         },
         {
-          title: "辞典名称",
-          dataIndex: "dicName",
+          title: "updateTime",
+          dataIndex: "updateTime",
           align: "center",
-          width: 180,
+          width: 150,
           resizable: true,
-          index: 19,
+          index: 7,
+        },
+        {
+          title: "upgrade",
+          dataIndex: "upgrade",
+          align: "center",
+          width: 150,
+          resizable: true,
+          index: 8,
+        },
+        {
+          title: "写入类型",
+          dataIndex: "writeType",
+          align: "center",
+          width: 150,
+          resizable: true,
+          index: 9,
         },
       ],
       dataSource: [], // 表格数据
+      ipOptions: [], // i18n状态
+      classfyIDs: [
+        { label: "通用平台部", value: "1" },
+        { label: "柔性输电系统部", value: "101" },
+        { label: "装置开发部", value: "2" },
+        { label: "监控系统部", value: "6" },
+        { label: "公共库", value: "3" },
+      ], // 词条状态
       entryStates: [
         { label: "新建", value: "0" },
         { label: "审核中", value: "1" },
@@ -224,12 +310,13 @@ export default {
       currentVersion: null, // 当前产品版本
       productVersions: [], // 产品版本
       labelCol: { style: { width: "84px" } },
-      tableTitle: "校验日志",
+      tableTitle: "冗余词条列表",
       dataHeight: 400,
       tableHeight: { x: "100%", y: 0 },
       loading: false,
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项
+      selectEntry: [], // 已存词条，很重要，用于批量选择
       selectedRowIndex: null, // 表格选中项
       pagination: {
         showSizeChanger: true,
@@ -240,19 +327,32 @@ export default {
         onChange: this.pageChange,
       },
       pageChangeSearch: {},
+      hasRedundantRls: false, // 是否有冗余词条
+      overlayStyle: tableParam.overlayStyle, // 展示列相关
+      checkboxList: tableParam.checkboxList,
+      checkedColumn: tableParam.checkedColumn,
+      batchSelectVisible: false,
     };
   },
   mounted() {
     let _this = this;
     this.$nextTick(() => {
       this.init();
+      // 读取本地存储的用户偏好
+      const storedPreferences = localStorage.getItem(
+        "redundantEntryCheckColumnPreferences"
+      );
+      if (storedPreferences) {
+        const preferences = JSON.parse(storedPreferences);
+        this.checkedColumn = preferences.displayColumn.split(",");
+        this.changeColumn(this.checkedColumn);
+      }
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
       };
     });
     this.getOpitons();
-    this.searchCheckInfo(); // mock
   },
   unmounted() {
     //注销window.onresize事件
@@ -266,9 +366,10 @@ export default {
     },
     // 获取下拉框信息
     getOpitons() {
-      this.getLanguage();
-      this.getSecondClassify();
-      this.getProductVersions();
+      this.getIPs();
+      // this.getLanguage();
+      // this.getSecondClassify();
+      // this.getProductVersions();
     },
     // 获取翻译语言
     getLanguage() {
@@ -291,49 +392,194 @@ export default {
         this.productVersions = res.data.list;
       });
     },
+    // 获取i18服务器ip
+    getIPs() {
+      this.ipOptions = [];
+      getI18nAdress().then((res) => {
+        res.data.list.forEach((item) => {
+          let ip = {
+            label: item.ip,
+            value: item.ip,
+          };
+          this.ipOptions.push(ip);
+        });
+      });
+    },
     // 校验按钮点击事件
     check() {
       this.dataSource = []; // 清空数据
       this.pageChangeSearch = this.search;
-      this.searchCheckInfo();
+      this.getCheckNotUseEntry();
     },
-    // 获取校验信息
-    searchCheckInfo() {
-      this.loading = true;
-      let params = this.search;
-      let path = "redundantEntry";
-      mockSearchCheckInfo(params, path)
+    // 查询条件下的冗余词条是否已存库中
+    getCheckNotUseEntry() {
+      if (!this.search.i18nURL) {
+        message.error("请选择i18n服务器");
+        return;
+      }
+      if (!this.search.classfyID) {
+        message.error("请选择部门");
+        return;
+      }
+      this.search.pageIndex = this.pagination.current;
+      this.search.pageSize = this.pagination.pageSize;
+      let params = {
+        i18nURL: this.search.i18nURL,
+        classfyID: this.search.classfyID,
+        pageIndex: this.search.pageIndex,
+        pageSize: this.search.pageSize,
+      };
+      getCheckNotUseEntry(params)
         .then((res) => {
-          this.dataSource = res.data.list;
-          // console.log("冗余信息", this.dataSource);
-          this.pagination.total = this.dataSource.length;
-        })
-        .catch((err) => {
-          message.info(err.message);
-          message.error(err);
+          // console.log("getCheckNotUseEntry!查询任务状态为", res.data.state);
+          if (res.data.state === 1) {
+            // 有结果
+            this.hasRedundantRls = true; // 显示“重新执行”
+            // message.info("getCheckNotUseEntry!查询有结果");
+            this.dataSource = res.data.list;
+            this.pagination.total = res.data.totalNum; // 设置数据总数
+          } else if (res.data.state === 0) {
+            // 没结果没执行
+            message.info("查询无结果,开始校验", 1);
+            this.resetResult(); // 没执行所以需要执行
+          } else if (res.data.state === 3) {
+            // 没结果有执行
+            message.info("查询无结果,正在校验", 1);
+          }
         })
         .finally(() => {
           this.loading = false;
         });
     },
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      // console.log("选择事件xxx", selectedRowKeys, selectedRows);
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
-      // console.log("选择事件", this.selectedRowKeys, this.selectedRows);
+    // 重新执行
+    resetResult() {
+      this.loading = true;
+      this.pagination.current = 1;
+      this.search.pageIndex = this.pagination.current;
+      this.search.pageSize = this.pagination.pageSize;
+      let params = {
+        i18nURL: this.search.i18nURL,
+        classfyID: this.search.classfyID,
+        pageIndex: this.search.pageIndex,
+        pageSize: this.search.pageSize,
+      };
+      checkNotUseEntry(params)
+        .then((res) => {
+          // console.log("checkNotUseEntry!");
+          if (res.data.state === 1) {
+            message.info("重新开始校验！");
+            this.hasRedundantRls = false;
+          } else {
+            if (res.data.state === 0)
+              message.error("校验失败！");
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
-    // 表格全选/反选框点击事件
-    onSelectAll(selected) {
-      // 全部选择（不是当前页全部选择）
-      if (selected) {
-        this.selectedRows = [...this.dataSource];
-        this.selectedRowKeys = this.dataSource.map((item) => item.id);
-      } else {
-        this.selectedRows = [];
-        this.selectedRowKeys = [];
-      }
-      // console.log("全选事件", this.selectedRowKeys, this.selectedRows);
+
+    // 展示列切换
+    changeColumn(checkedValue) {
+      this.checkedColumn = checkedValue;
+      this.checkboxList.forEach((value) => {
+        let checkedIndex = this.checkedColumn.findIndex(
+          (item) => item === value.value
+        );
+        let nowColumnIndex = this.columns.findIndex(
+          (item) => item.dataIndex === value.value
+        );
+        if (
+          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
+          (nowColumnIndex === -1 && checkedIndex === -1)
+        ) {
+          return;
+        }
+        if (nowColumnIndex === -1 && checkedIndex !== -1) {
+          let newCol = {
+            title: value.label,
+            dataIndex: value.value,
+            align: "center",
+            width: 100,
+            resizable: true,
+            index: value.index,
+          };
+          this.columns.splice(-1, 0, newCol);
+        }
+        if (nowColumnIndex !== -1 && checkedIndex === -1) {
+          this.columns.splice(nowColumnIndex, 1);
+        }
+      });
+      this.columns.sort(function (a, b) {
+        return a.index - b.index;
+      });
+
+      // 记录
+      let data = {
+        displayColumn: checkedValue.join(","),
+      };
+      // this.recordPartiality(data);
+      localStorage.setItem(
+        "redundantEntryCheckColumnPreferences",
+        JSON.stringify(data)
+      ); // localStorage存储用户偏好
+    },
+    // 全部选择
+    selectAllEntry() {
+      this.loading = true;
+      let params = {
+        i18nURL: this.search.i18nURL,
+        classfyID: this.search.classfyID,
+      };
+      getCheckNotUseEntry(params)
+        .then((res) => {
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
+          this.selectEntry = [];
+          res.data.list.forEach((item) => {
+            this.selectedRowKeys.push(item.id);
+            this.selectedRows.push(item);
+            this.selectEntry.push(item);
+          });
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    // 取消选择
+    clearAllEntry() {
+      clearAllEntry(this);
+    },
+    // 打开已选词条
+    viewSelectEntry() {
+      this.batchSelectVisible = true;
+    },
+    // 关闭已选词条
+    batchSelectClose() {
+      this.batchSelectVisible = false;
+    },
+    // 取消选择（批量选择取消展开，清空已选词条）
+    batchSelectCancel() {
+      this.selectEntry = [];
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
+      this.batchSelectClose(); // 关闭已选词条弹窗
+      // if (typeof this.getSearch === "function") {
+      //   // 有的接口太慢了，先不刷新
+      //   this.getSearch();
+      // }
+    },
+    // 复选框选择事件
+    onSelectChange(selectedRowKeys, selectedRows) {
+      onSelectChange(this, selectedRowKeys, selectedRows);
+    },
+    // 复选框点击事件
+    onSelect(record, selected) {
+      onSelect(this, record, selected);
+    },
+    // 复选框当前页全选/反选框点击事件
+    onSelectAll(selected, selectedRows, changeRows) {
+      onSelectAll(this, selected, selectedRows, changeRows);
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
@@ -341,7 +587,7 @@ export default {
     },
     // 动态设置表格高度
     setTableHeight() {
-      setTableHeight(this,24); // 调用工具函数
+      setTableHeight(this, 24); // 调用工具函数
     },
     // 表格列可伸缩
     handleResizeColumn(w, col) {
@@ -353,8 +599,7 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      // 传入 searchCheckInfo 作为查询接口的回调函数
-      pageChange(this, page, pageSize, this.searchCheckInfo);
+      pageChange(this, page, pageSize, this.getCheckNotUseEntry);
     },
   },
 };
