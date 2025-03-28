@@ -494,7 +494,7 @@ public class EntryInfoController extends BaseController {
                 return ok(dataResult);
             }else if(!currentCachedId.get().equals(storeID)){
                 // 当前存在新的冗余校验执行任务,如果需要,请重新执行
-                dataResult.put("state", 0);
+                dataResult.put("state", 3); // 正在执行
                 dataResult.put("list", null);
                 return ok(dataResult);
             }
@@ -526,7 +526,7 @@ public class EntryInfoController extends BaseController {
                     return ok(dataResult);
                 }else{
                     // 冗余校验正在执行中
-                    dataResult.put("state", 0);
+                    dataResult.put("state", 3);
                     dataResult.put("list", null);
                     return ok(dataResult);
                 }
@@ -534,9 +534,16 @@ public class EntryInfoController extends BaseController {
                 // 当前没有对应的任务,任务执行失败，或者还没执行
                 Thread.sleep(2000); // 可能线程没来的及执行，再次进行判断
                 if(!cacheForCheckNotUseEntry.containsKey(storeID)){
-                    dataResult.put("state", 2);
+                    if(currentCachedId.get() == null){
+                        dataResult.put("state", 2); // 执行失败
+                    }else if(!currentCachedId.get().equals(storeID)){
+                        dataResult.put("state", 3);  // 正在执行新的任务
+                        dataResult.put("list", null);
+                    }
+                    
                 }else{
-                    dataResult.put("state", 0);
+                    dataResult.put("state", 3); // 正在执行中
+                    dataResult.put("list", null);
                 }
                 return ok(dataResult);
                 // ResponseEntity entity = new ResponseEntity();
