@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper
 public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity> {
 
-    void deleteByEntryID(List<String> entryID);
+    void deleteByEntryID(@Param("entryID") List<String> entryID);
 
     int deleteByProductIdList(@Param("idList") List<String>  idList);
 
