@@ -1092,7 +1092,7 @@
     String translate = condition.get("translate");
     String department = condition.get("department"); -->
     <select id = "getEntryForTaskNotUseEntry" resultMap="BaseResultMap">
-        select 
+        select DISTINCT
         <include refid = "Base_Column_List_With_Prefix"><property name = "tbl" value = "info"></property></include>
         from t_entry_info as info
         inner join  t_translate as trans on info.en_trans_id = trans.id
@@ -1101,8 +1101,11 @@
         or info.spa_trans_id = trans.id
 
         where 
-            info.id in <foreach collection = "idList" item = "id" separator = "," open = "(" close = ")">#{id}</foreach>
-            
+            is_delete = 0
+        <if test = "idList != null">
+            and
+            info.id in <foreach collection = "idList" item = "id" separator = "," open = "(" close = ")">#{id}</foreach>        
+        </if>
         <if test = "condition.containsKey('entry')">
         <choose>
             <when test = "entryInfoEntity.entry == null">
