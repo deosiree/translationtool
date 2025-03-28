@@ -39,7 +39,7 @@
         insert into t_response <include refid = "column"></include>
         values 
         <foreach collection = "responseEntityList" item = "data" separator = ",">
-            (#{data.id},#{data.task},#{data.content},#{data.data_type},NOW(),NOW())
+            (#{data.taskId},#{data.task},#{data.content},#{data.data_type},NOW(),NOW())
         </foreach>
     </insert>
 
@@ -49,10 +49,15 @@
             (#{taskId},#{task},#{content},#{dataType},NOW(),NOW())
     </insert>
 
+    <update id = "updateResponse">
+        update t_response set content = #{content,jdbcType = VARCHAR},update_time = NOW() 
+        where id = #{taskId,jdbcType = VARCHAR} and data_type = #{dataType,jdbcType = VARCHAR} and task = #{task,jdbcType = VARCHAR}
+    </update>
+
     <select id = "getResponseByTaskId" resultMap = "ResponseMap">
         select <include refid = "column"></include>
         from t_response
-        where id = #{taskId,jdbcType=VARCHAR} and task = #{task,jdbcType=VARCHAR}
+        where id = #{taskId,jdbcType=VARCHAR} and task = #{task,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType = VARCHAR}
     
     </select>
 

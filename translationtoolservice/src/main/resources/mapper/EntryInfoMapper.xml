@@ -1061,13 +1061,10 @@
         or info.ru_trans_id = trans.id
         or info.fra_trans_id = trans.id
         or info.spa_trans_id = trans.id
-        where 
-            trans.visual_range =#{translateEntity.visualRange,jdbcType=VARCHAR}
-        <if test = "idList != null and idList.size() > 0">
-            and
-            info.id in <foreach collection = "idList" item = "id" separator = "," open = "(" close = ")">#{id}</foreach>
-        </if>
 
+        where 
+            info.id in <foreach collection = "idList" item = "id" separator = "," open = "(" close = ")">#{id}</foreach>
+            
         <if test = "condition.containsKey('entry')">
         <choose>
             <when test = "entryInfoEntity.entry == null">
