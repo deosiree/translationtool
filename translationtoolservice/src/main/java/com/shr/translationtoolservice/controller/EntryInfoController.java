@@ -3,6 +3,7 @@ package com.shr.translationtoolservice.controller;
 import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
@@ -464,7 +465,7 @@ public class EntryInfoController extends BaseController {
     }
 
 
-    private Map<String,String> cacheForCheckNotUseEntry = new HashMap<>();
+    private Map<String,List<EntryInfoEntity>> cacheForCheckNotUseEntry = new HashMap<>();
     
     private AtomicReference<String> currentCachedId = new AtomicReference<>(null);
     
@@ -494,7 +495,7 @@ public class EntryInfoController extends BaseController {
                 return ok(dataResult);
             }else if(!currentCachedId.get().equals(storeID)){
                 // 当前存在新的冗余校验执行任务,如果需要,请重新执行
-                dataResult.put("state", 3); // 正在执行
+                dataResult.put("state", 0); // 正在执行
                 dataResult.put("list", null);
                 return ok(dataResult);
             }
@@ -503,9 +504,9 @@ public class EntryInfoController extends BaseController {
             Gson gson = new Gson();
             if(cacheForCheckNotUseEntry.containsKey(storeID)){
                 // 当前任务执行中，在执行的过程中可能返回结果
-                String result = cacheForCheckNotUseEntry.get(storeID);
+                List<EntryInfoEntity> result = cacheForCheckNotUseEntry.get(storeID);
                 if(result != null){
-                    List results = gson.fromJson(result, List.class);
+                    List results = result;
                     int size = results.size();
                     List<EntryInfoEntity> resultList = null;
                     int fromIndex = (pageIndex - 1) * pageSize;
@@ -537,7 +538,7 @@ public class EntryInfoController extends BaseController {
                     if(currentCachedId.get() == null){
                         dataResult.put("state", 2); // 执行失败
                     }else if(!currentCachedId.get().equals(storeID)){
-                        dataResult.put("state", 3);  // 正在执行新的任务
+                        dataResult.put("state", 0);  // 正在执行新的任务
                         dataResult.put("list", null);
                     }
                     
@@ -582,15 +583,60 @@ public class EntryInfoController extends BaseController {
 
     }
 
+    @PostMapping("/deleteNotUseEntry")
+    @ApiOperation("删除冗余词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> deleteNotUseEntry(
+        @RequestParam String i18nURL,
+        @RequestParam String classfyID,
+        @RequestBody List<String> entryList){
+
+        try {
+            String storeID = classfyID + i18nURL;
+            if(!currentCachedId.get().equals(storeID)){
+                return error(null, "因为现在有新的任务,所以无法删除");
+            }
+            String result = entryInfoService.deleteEntryInfo(entryList, "t_entry_info");
+            if(!cacheForCheckNotUseEntry.containsKey(storeID)){
+                return error(null, "没有获取到冗余校验的数据,无法进行删除");
+            }
+            List<EntryInfoEntity> data = cacheForCheckNotUseEntry.get(storeID); // 默认当前存在
+            
+            List<EntryInfoEntity> removedList = new LinkedList<>();
+            for(EntryInfoEntity entity : data){
+         
+                if(!entryList.contains(entity.getId())){
+                    removedList.add(entity);
+                }
+                
+            }
+
+
+            if(cacheForCheckNotUseEntry.get(storeID) == null){
+                return ok("当前有新任务在进行执行,不进行更新");
+            }else{
+                cacheForCheckNotUseEntry.put(storeID, removedList);
+            }
+            
+            
+            return ok(result);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            return error(null, e.getMessage());
+        }
+    }
+
     @PostMapping("/checkNotUseEntry")
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public  HttpResponse checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,
+    public  HttpResponse checkNotUseEntry(@RequestParam String i18nURL ,@RequestParam String classfyID,
         HttpServletRequest request,
         @RequestBody(required = false) CheckNotUseEntryVO params) {
 
-        String storeID = classfyID + i18nUrl;
+        String storeID = classfyID + i18nURL;
         currentCachedId.set(storeID);
         cacheForCheckNotUseEntry.clear();
         
@@ -608,7 +654,7 @@ public class EntryInfoController extends BaseController {
                     }
                     // condition.put("department", department);
                     // if(!classfyID.equals(FULL_SEARCH)){
-                    entities = entryInfoService.checkNotUseEntry(i18nUrl, classfyID,sources, condition);
+                    entities = entryInfoService.checkNotUseEntry(i18nURL, classfyID,sources, condition);
                     // }else{
                         // entities = entryInfoService.checkNotUseEntry(i18nUrl, sources, condition);
                     // } 
@@ -627,7 +673,7 @@ public class EntryInfoController extends BaseController {
                 try {
                     try {
                         Gson gson = new Gson();
-                        String resultText = gson.toJson(entities);
+                        // String resultText = gson.toJson(entities);
                     //     ResponseEntity responseEntity = new ResponseEntity();
                     //     responseEntity.setContent(resultText);
                     //     responseEntity.setTaskId(storeID);
@@ -645,7 +691,7 @@ public class EntryInfoController extends BaseController {
                          * 比如后执行一次checkNotUseEntry方法的结果先于前一次执行checkNotUseEntry方法的结果存储在map中
                          * 不影响: 因为用户可以重新查询
                          */
-                        cacheForCheckNotUseEntry.put(storeID, resultText); 
+                        cacheForCheckNotUseEntry.put(storeID, entities); 
                         return true;   
                     } catch (Exception e) {
                         if(!currentCachedId.compareAndSet(storeID, null)){
@@ -687,6 +733,7 @@ public class EntryInfoController extends BaseController {
           
         }
     }
+
 
 
     @PostMapping("/checkNewEntryByClassfy")
