@@ -477,19 +477,26 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("获取冗余校验结果")
     @CrossOrigin
     @Transactional
-    public  HttpResponse getCheckNotUseEntryResult(@RequestParam String classfyID,
-        @RequestParam(required = false,defaultValue = "-1") Integer fromIndex,
-        @RequestParam(required = false,defaultValue = "-1") Integer toIndex) {
-        if(fromIndex > toIndex){
-            return error(null, "fromIndex大于toIndex");
-        }
-        String storeID = classfyID;
+    public  HttpResponse getCheckNotUseEntryResult(
+        @RequestParam String i18nURL,
+        @RequestParam String classfyID,
+        @RequestParam(required = false,defaultValue = "-1") Integer pageIndex,
+        @RequestParam(required = false,defaultValue = "-1") Integer pageSize) {
+        
+        String storeID = classfyID + i18nURL;
+
+        Map<String,Object> dataResult = new HashMap<>(); 
         try {
             if(currentCachedId.get() == null){
-                return error(null, "没有正在执行的冗余校验任务,或者尚未执行");
+                // 没有正在执行的冗余校验任务,或者尚未执行
+                dataResult.put("state", 0);
+                dataResult.put("list", null);
+                return ok(dataResult);
             }else if(!currentCachedId.get().equals(storeID)){
-                // 有新的任务执行
-                return ok(null,"当前存在新的冗余校验执行任务,如果需要,请重新执行");
+                // 当前存在新的冗余校验执行任务,如果需要,请重新执行
+                dataResult.put("state", 0);
+                dataResult.put("list", null);
+                return ok(dataResult);
             }
             // 弱一致性
             // 可能是还在执行中(null),或者执行失败(没找到)，也可能新的任务执行，但不影响
@@ -499,23 +506,39 @@ public class EntryInfoController extends BaseController {
                 String result = cacheForCheckNotUseEntry.get(storeID);
                 if(result != null){
                     List results = gson.fromJson(result, List.class);
-                    if(fromIndex >= results.size()){
-                        return error(null, "fromIndex大于等于数据总数");
-                    }
-                    ResponseListModel model = new ResponseListModel<>();
-                    if(fromIndex >= 0 && toIndex >= 0){
-                        model.setList(results.subList(fromIndex, toIndex >= results.size() ? results.size() : toIndex));
+                    int size = results.size();
+                    List<EntryInfoEntity> resultList = null;
+                    int fromIndex = (pageIndex - 1) * pageSize;
+                    int toIndex = fromIndex + pageSize;
+                    if(fromIndex >= 0 && toIndex >= 0 && fromIndex <= toIndex){
+                        if(fromIndex >= results.size()){
+                            return error(null, "页码和页数设定不合理,超出查询范围");
+                        }
+                        resultList = results.subList(fromIndex, toIndex >= size ? size : toIndex);
+                        // model.setList(results.subList(fromIndex, toIndex >= results.size() ? results.size() : toIndex));
                     }else{
-                        model.setList(results);
+                        // model.setList(results);
+                        resultList = results;
                     }
-                    model.setTotalNum(model.getList().size());
-                    return ok(model);
+                    dataResult.put("list", resultList);
+                    dataResult.put("totalNum", resultList.size());
+                    dataResult.put("state", 1);
+                    return ok(dataResult);
                 }else{
-                    return ok(null,"冗余校验正在执行中");
+                    // 冗余校验正在执行中
+                    dataResult.put("state", 0);
+                    dataResult.put("list", null);
+                    return ok(dataResult);
                 }
             }else{
                 // 当前没有对应的任务,任务执行失败，或者还没执行
-                return ok(null,"冗余校验执行失败或尚未执行,请重试");
+                Thread.sleep(2000); // 可能线程没来的及执行，再次进行判断
+                if(!cacheForCheckNotUseEntry.containsKey(storeID)){
+                    dataResult.put("state", 2);
+                }else{
+                    dataResult.put("state", 0);
+                }
+                return ok(dataResult);
                 // ResponseEntity entity = new ResponseEntity();
                 // entity.setTask("checkNotUseEntry");
                 // entity.setDataType("json");
@@ -556,11 +579,11 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public  HttpResponse<String> checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,
+    public  HttpResponse checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,
         HttpServletRequest request,
         @RequestBody(required = false) CheckNotUseEntryVO params) {
 
-        String storeID = classfyID;
+        String storeID = classfyID + i18nUrl;
         currentCachedId.set(storeID);
         cacheForCheckNotUseEntry.clear();
         
@@ -610,7 +633,12 @@ public class EntryInfoController extends BaseController {
                     //     }else{
                     //         responseMapper.updateResponse(responseEntity); // 以前执行过更新结果
                     //     }
-                        cacheForCheckNotUseEntry.put(storeID, resultText);
+                        /*
+                         * 弱一致性的结果，
+                         * 比如后执行一次checkNotUseEntry方法的结果先于前一次执行checkNotUseEntry方法的结果存储在map中
+                         * 不影响: 因为用户可以重新查询
+                         */
+                        cacheForCheckNotUseEntry.put(storeID, resultText); 
                         return true;   
                     } catch (Exception e) {
                         if(!currentCachedId.compareAndSet(storeID, null)){
@@ -635,7 +663,10 @@ public class EntryInfoController extends BaseController {
        
             cacheForCheckNotUseEntry.put(storeID, null);
             threadPoolExecutor.submit(callable);
-            return ok("已经提交任务，正在执行中");
+            // return ok("已经提交任务，正在执行中");
+            Map<String,String> resultMap = new HashMap<>();
+            resultMap.put("state", "0") ;
+            return ok(resultMap);
         } catch (Exception e) {
             // TODO: handle exception
             // 没有放入线程池
