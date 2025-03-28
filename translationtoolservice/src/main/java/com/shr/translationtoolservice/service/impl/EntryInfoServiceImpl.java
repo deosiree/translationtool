@@ -2065,45 +2065,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return res.size();
     }
 
-    @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl, Map<String, List<String>> sourceMap) {
-        // TODO Auto-generated method stub
-        return checkNotUseEntry(i18nUrl, sourceMap,new HashMap<>());
-    }
-
-    @Override
-    public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,Map<String,List<String>> sourceMap,Map<String,String> condition){
-        // 先获取数据库中符合条件的词条，然后看这些词条是否是冗余词条
-        String entry = condition.get("entry");
-        String entryState = condition.get("entryState");
-        String tag = condition.get("tag");
-        String classfy2 = condition.get("classfy2");
-        String entrySource = condition.get("entrySource");
-        String translateType = condition.get("translateType");
-        String translateState = condition.get("translateState");
-        String translate = condition.get("translate");
-        TranslateEntity translateEntityTemplate = new TranslateEntity();
-        EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-        entryInfoEntity.setEntry(entry);
-        if(entryState != null)
-            entryInfoEntity.setEntryState(Integer.parseInt(entryState));
-        entryInfoEntity.setTag(tag);
-        entryInfoEntity.setClassfy2(classfy2);
-        entryInfoEntity.setEntrySource(entrySource);
-        translateEntityTemplate.setType(translateType);
-        translateEntityTemplate.setTranslateState(translateState);
-        translateEntityTemplate.setTranslate(translate);
-        translateEntityTemplate.setVisualRange(condition.get("department"));
-
-        List<EntryInfoEntity> entities = checkNotUseEntry(i18nUrl, 
-            entryInfoMapper.getEntryForTaskNotUseEntry(null,condition,translateEntityTemplate,entryInfoEntity), 
-            sourceMap
-        );
-
-        return entities;
-    }
-
-
 
     @Override
     public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap) throws Exception{

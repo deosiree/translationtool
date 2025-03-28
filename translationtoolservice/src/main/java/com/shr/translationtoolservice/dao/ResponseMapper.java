@@ -18,4 +18,7 @@ public interface ResponseMapper extends BaseMapper<ResponseEntity>{
     int insertBatchResponse(@Param("responseEntityList") List<ResponseEntity> responseEntityList);
 
     int insertResponse(@Param("responseEntity") ResponseEntity responseEntity);
+
+    int updateResponse(@Param("responseEntity") ResponseEntity responseEntity);
+
 }
