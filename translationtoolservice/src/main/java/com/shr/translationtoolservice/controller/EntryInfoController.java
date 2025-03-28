@@ -521,7 +521,7 @@ public class EntryInfoController extends BaseController {
                         resultList = results;
                     }
                     dataResult.put("list", resultList);
-                    dataResult.put("totalNum", resultList.size());
+                    dataResult.put("totalNum", results.size());
                     dataResult.put("state", 1);
                     return ok(dataResult);
                 }else{
