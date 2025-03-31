@@ -472,7 +472,7 @@ public class EntryInfoController extends BaseController {
     @Autowired
     private ResponseMapper responseMapper;
 
-    // private ReentrantLock lock = new ReentrantLock(true);
+    private ReentrantLock lock = new ReentrantLock(true);
 
     @PostMapping("/getCheckNotUseEntry")
     @ApiOperation("获取冗余校验结果")
@@ -594,15 +594,19 @@ public class EntryInfoController extends BaseController {
 
         try {
             String storeID = classfyID + i18nURL;
+            if(currentCachedId.get() == null){
+                return error(null, " 没有正在执行的冗余校验任务,或者尚未执行");
+            }
             if(!currentCachedId.get().equals(storeID)){
                 return error(null, "因为现在有新的任务,所以无法删除");
             }
-            String result = entryInfoService.deleteEntryInfo(entryList, "t_entry_info");
             if(!cacheForCheckNotUseEntry.containsKey(storeID)){
                 return error(null, "没有获取到冗余校验的数据,无法进行删除");
             }
             List<EntryInfoEntity> data = cacheForCheckNotUseEntry.get(storeID); // 默认当前存在
-            
+            if(data == null){
+                return ok("当前有新任务在进行执行,无法进行词条删除操作");
+            }
             List<EntryInfoEntity> removedList = new LinkedList<>();
             for(EntryInfoEntity entity : data){
          
@@ -611,16 +615,28 @@ public class EntryInfoController extends BaseController {
                 }
                 
             }
-
-
-            if(cacheForCheckNotUseEntry.get(storeID) == null){
-                return ok("当前有新任务在进行执行,不进行更新");
-            }else{
-                cacheForCheckNotUseEntry.put(storeID, removedList);
+            if(!currentCachedId.get().equals(storeID)){
+                return error(null, "因为现在有新的任务,所以无法删除");
             }
-            
-            
-            return ok(result);
+            if(!cacheForCheckNotUseEntry.containsKey(storeID) || cacheForCheckNotUseEntry.get(storeID) == null){
+                return error(null, "有新的冗余校验任务,无法进行删除");
+            }
+            /*
+             * 删除的时候加锁
+             */
+            try {
+                lock.lock();
+                String result = entryInfoService.deleteEntryInfo(entryList, "t_entry_info");
+                cacheForCheckNotUseEntry.put(storeID, removedList);      
+                return ok(result);
+            } catch (Exception e) {
+                // TODO: handle exception
+                throw e;
+            } finally{
+                lock.unlock();
+            }
+      
+
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
@@ -654,7 +670,16 @@ public class EntryInfoController extends BaseController {
                     }
                     // condition.put("department", department);
                     // if(!classfyID.equals(FULL_SEARCH)){
-                    entities = entryInfoService.checkNotUseEntry(i18nURL, classfyID,sources, condition);
+                    try {
+                        lock.lock();
+                        entities = entryInfoService.checkNotUseEntry(i18nURL, classfyID,sources, condition);   
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        throw e;
+                    } finally{
+                        lock.unlock();
+                    }
+                    
                     // }else{
                         // entities = entryInfoService.checkNotUseEntry(i18nUrl, sources, condition);
                     // } 
