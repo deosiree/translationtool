@@ -623,7 +623,7 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      console.log("pageChange", page, pageSize);
+      // console.log("pageChange", page, pageSize);
       if (this.isGetSykEntry)
         // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
