@@ -127,45 +127,37 @@ export default {
           align: "center",
           width: 300,
           resizable: true,
+          index: 1,
+        },
+        {
+          title: "翻译",
+          dataIndex: "translate",
+          align: "center",
+          width: 300,
+          resizable: true,
           index: 2,
         },
-        // {
-        //   title: "所属类",
-        //   dataIndex: "category",
-        //   align: "center",
-        //   width: 100,
-        //   resizable: true,
-        //   index: 3,
-        // },
         {
-          title: "来源",
-          dataIndex: "comment",
+          title: "Tag",
+          dataIndex: "tag",
           align: "center",
           width: 100,
           resizable: true,
           index: 3,
         },
         {
-          title: "Tag",
-          dataIndex: "tag",
+          title: "Comment",
+          dataIndex: "comment",
           align: "center",
-          width: 200,
+          width: 100,
           resizable: true,
           index: 4,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 5,
         },
         {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 150,
+          width: 100,
           fixed: "right",
           index: 100,
         },
@@ -285,18 +277,18 @@ export default {
       this.loading = true;
       getTsProblems(null, this.search)
         .then((res) => {
-          // console.log("校验成功！！", res);
+          console.log("校验成功！！", res);
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
-          for (let item of this.dataSource) {
-            // console.log("item", item);
-            getEntryByTsVo([item]).then((res) => {
-              console.log("详情：",res);
-              item["relationCount"] = res.data.list[0].entryInfoEntities.length;
-              item["reslations"] = res.data.list[0].entryInfoEntities;
-              // console.log("item", item);
-            });
-          }
+          // for (let item of this.dataSource) {
+          //   // console.log("item", item);
+          //   getEntryByTsVo([item]).then((res) => {
+          //     // console.log("详情：",res);
+          //     item["relationCount"] = res.data.list[0].entryInfoEntities.length;
+          //     item["reslations"] = res.data.list[0].entryInfoEntities;
+          //     // console.log("item", item);
+          //   });
+          // }
         })
         .catch((err) => {
           message.info(err.message);
@@ -310,7 +302,7 @@ export default {
     // 查看详情
     viewRelation(record) {
       this.relationData = record.reslations;
-      console.log(this.relationData);
+      // console.log(this.relationData);
       this.relationVisible = true;
     },
     // 关闭详情

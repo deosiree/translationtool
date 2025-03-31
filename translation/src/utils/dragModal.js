@@ -4,8 +4,8 @@ const app = createApp({})
 // v-dialogDrag: 弹窗拖拽
 app.directive('drag-modal', 
     (el, binding, vnode, oldVnode) => {
-        console.log(el)
-        console.log(binding)
+        // console.log(el)
+        // console.log(binding)
     	// 如果要给其他UI框架中添加modal拖拽事件 修改此处即可
         const dialogHeaderEl = el.querySelector('.modalHeader')
         const dragDom = el.querySelector('.ant-modal')

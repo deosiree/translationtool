@@ -493,7 +493,7 @@ export default {
         this.dataSource = res.data.list;
         this.pagination.total = res.data.totalNum;
         for (let item of this.dataSource) {
-          if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
+          // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           getSykEntryRelation([item]).then((res) => {
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
@@ -510,7 +510,7 @@ export default {
         this.dataSource = res.data.list;
         this.pagination.total = res.data.totalNum;
         for (let item of this.dataSource) {
-          if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
+          // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           // 空挂术语的详情都是0
           item["relationCount"] = 0;
           item["reslations"] = [];
@@ -526,7 +526,7 @@ export default {
         this.dataSource = res.data;
         this.pagination.total = this.dataSource.length;
         for (let item of this.dataSource) {
-          if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
+          // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           if (item.notUsedByEntryInfo) {
             item["relationCount"] = 0;
             item["reslations"] = [];

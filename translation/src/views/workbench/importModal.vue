@@ -1222,7 +1222,7 @@ export default {
           });
           let deleteID = [];
           this.selectedRows.forEach((item) => {
-            console.log("item.entryState", item.entry, item.entryState);
+            // console.log("item.entryState", item.entry, item.entryState);
             if (item.entryState === 2) {
               // 词条审核未通过
               deleteID.push(item.id);

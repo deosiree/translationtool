@@ -370,7 +370,7 @@ export default {
                 // 翻译校验通过
                 this.update()
             }).catch(err => {
-                console.log('error', err);
+                // console.log('error', err);
             });
         },
         // 获取语言列表
@@ -385,7 +385,7 @@ export default {
                     }
                     language[item.code] = lan
                 })
-                console.log(language)
+                // console.log(language)
                 this.language = language
             })
         },

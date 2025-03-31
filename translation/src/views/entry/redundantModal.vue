@@ -134,8 +134,8 @@ export default {
     // 打开冗余窗口（i18nURL改变时触发）
     handleredundant() {
       this.loading = true; //开始加载
-      console.log("classfyID", this.redundantClassfyID);// 传自父组件的treeKey
-      console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
+      // console.log("classfyID", this.redundantClassfyID);// 传自父组件的treeKey
+      // console.log("i18nURL", this.i18nURL);// 传自本组件的mounted生命周期函数
       // 弹窗，并发送http请求(查询来源中新增的词条
       checkNotUseEntry({
         // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
@@ -145,10 +145,10 @@ export default {
       })
         .then((res) => {
           // 都放到.then内，可以确保执行顺序
-          console.log("查询来源中新增的词条", res.data.list);
+          // console.log("查询来源中新增的词条", res.data.list);
           // 设置默认全选
           this.redundantEntries = Object.values(res.data.list);
-          console.log("newDataSource", this.redundantEntries);
+          // console.log("newDataSource", this.redundantEntries);
           this.dataSource = [];
           this.selectedRows = [];
           this.selectedRowKeys = [];

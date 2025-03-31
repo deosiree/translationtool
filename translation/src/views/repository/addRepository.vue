@@ -82,7 +82,7 @@
   </Modal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import { message, TreeSelect } from "ant-design-vue";
 import Modal from "@/components/modal/index.vue";
 import { cloneDeep } from "lodash-es";
@@ -426,10 +426,11 @@ export default {
     },
     // 树形下拉菜单选择事件
     selectTree(value, label, extra) {
-      console.log(value);
+      // console.log(value);
       // console.log(label)
       // console.log(extra)
-      console.log(this.getChild(this.treeData, value[0]));
+      // console.log(this.getChild(this.treeData, value[0]));
+      this.getChild(this.treeData, value[0]);
     },
     // 弹窗确认事件
     ok() {
@@ -440,7 +441,7 @@ export default {
           this.createVersionTable();
         })
         .catch((err) => {
-          console.log("error", err);
+          // console.log("error", err);
         });
     },
     // 新增版本库
@@ -451,7 +452,7 @@ export default {
       };
       // console.log(this.selectedRows)
       createVersionTable(params, this.selectedRows).then((res) => {
-        console.log(res);
+        // console.log(res);
         message.success("已生成版本库！");
         this.visible = false;
       });
