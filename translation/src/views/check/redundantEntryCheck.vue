@@ -32,8 +32,8 @@
           <a-form-item label="翻译结果" name="translate">
             <a-input v-model:value="search.translate" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item> -->
-          <a-form-item label="IP" name="ip">
-            <a-select v-model:value="search.i18nURL" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
+          <a-form-item label="i18n" name="i18n">
+            <a-select v-model:value="search.i18nURL" :options="i18nOptions" placeholder="请选择i18n" allowClear></a-select>
           </a-form-item>
           <a-form-item label="部门" name="classfyID">
             <a-select v-model:value="search.classfyID" style="width: 186px" placeholder="请选择" size="small" :options='classfyIDs' @click="clickInput"
@@ -285,7 +285,7 @@ export default {
         },
       ],
       dataSource: [], // 表格数据
-      ipOptions: [], // i18n状态
+      i18nOptions: [], // i18n状态
       classfyIDs: [
         { label: "通用平台部", value: "1" },
         { label: "柔性输电系统部", value: "101" },
@@ -366,7 +366,7 @@ export default {
     },
     // 获取下拉框信息
     getOpitons() {
-      this.getIPs();
+      this.getI18nAdress();
       // this.getLanguage();
       // this.getSecondClassify();
       // this.getProductVersions();
@@ -393,15 +393,15 @@ export default {
       });
     },
     // 获取i18服务器ip
-    getIPs() {
-      this.ipOptions = [];
+    getI18nAdress() {
+      this.i18nOptions = [];
       getI18nAdress().then((res) => {
         res.data.list.forEach((item) => {
           let ip = {
             label: item.ip,
             value: item.ip,
           };
-          this.ipOptions.push(ip);
+          this.i18nOptions.push(ip);
         });
       });
     },

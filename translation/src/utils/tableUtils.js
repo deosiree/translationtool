@@ -246,7 +246,7 @@ export function onSelect(vm, record, selected, condition = true, selectEntry = "
     if (!isExists1) {
       vm.selectedRows.push(record);// 添加选择
     }
-    console.log("是否有保存？",selectEntry in vm)
+    // console.log("是否有保存？",selectEntry in vm)
     if (selectEntry in vm) {
       const isExists2 = vm[selectEntry].some(
         (item) => item.id === record.id
