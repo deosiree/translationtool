@@ -2004,7 +2004,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     || "0".equals(entryInfoEntity.getRussianTranslateState()) || "0".equals(entryInfoEntity.getSpanishTranslateState()) || "0".equals(entryInfoEntity.getFrenchTranslateState())){
 
                 if (pageSize != -1 && res.size() > pageSize){
-                    return res.subList(offset,offset+pageSize);
+                    return res.subList(offset,offset+pageSize >= res.size() ? res.size() : offset + pageSize);
                 }else {
                     return res;
                 }
