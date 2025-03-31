@@ -1592,6 +1592,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     continue;
                 }
                 List<TranslateEntity> repTrans = translateMapper.getRepTrans(entryInfoEntity1.getEntry(), transType, trans, department);
+                // List<TranslateEntity> repTrans = new LinkedList<>();
                 TranslateEntity translateEntity;
                 boolean isExist = false;
                 if (!CollectionUtils.isEmpty(repTrans)){
@@ -1981,7 +1982,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 || StringUtils.isNotBlank(entryInfoEntity.getFrenchTranslateState())){
              entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,-1,-1);
         }else {
-           entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,offset,pageSize);
+           entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,-1,-1);
+           if(pageSize >= 0){
+                int lastIndex = offset + pageSize;
+                entryInfoEntities = entryInfoEntities.subList(offset, lastIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : lastIndex);
+           }
         }
 
         if (CollectionUtils.isEmpty(entryInfoEntities)){
