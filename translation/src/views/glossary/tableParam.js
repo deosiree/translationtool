@@ -35,5 +35,43 @@ export default {
     borderRadius: '2px',
     boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
   },
-  exportFields: []
+  exportFields: [],
+  languageList: [
+    {
+      name: "英文",
+      value: "english",
+      state: "englishTranslateState",
+      chineseState: "englishChineseState",
+      id: "englishId",
+      publicState: "englishPublicState",
+      checked: "englishChecked"
+    },
+    {
+      name: "俄文",
+      value: "russian",
+      state: "russianTranslateState",
+      chineseState: "russianChineseState",
+      id: "russianId",
+      publicState: "russianPublicState",
+      checked: "russianChecked"
+    },
+    {
+      name: "西文",
+      value: "spanish",
+      state: "spanishTranslateState",
+      chineseState: "spanishChineseState",
+      id: "spanishId",
+      publicState: "spanishPublicState",
+      checked: "spanishChecked"
+    },
+    {
+      name: "法文",
+      value: "french",
+      state: "frenchTranslateState",
+      chineseState: "frenchChineseState",
+      id: "frenchId",
+      publicState: "frenchPublicState",
+      checked: "frenchChecked"
+    }
+  ],
 }

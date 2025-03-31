@@ -69,7 +69,8 @@
               <template v-if="column.dataIndex === 'translate'">
                 <div>
                   <template v-if="editableData[record.id]">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @click="clickInput" />
+                    <a-input v-model:value="editableData[record.id][column.dataIndex]" @pressEnter="editOK(record)" style="margin: -5px 0"
+                      @click="clickInput" />
                   </template>
                   <template v-else>
                     {{ text }}
@@ -426,7 +427,7 @@ export default {
         displayColumn: checkedValue.join(","),
       };
       // this.recordPartiality(data);
-      localStorage.setItem('glossaryColumnPreferences', JSON.stringify(data)); // localStorage存储用户偏好
+      localStorage.setItem("glossaryColumnPreferences", JSON.stringify(data)); // localStorage存储用户偏好
     },
 
     // 获取翻译语言
@@ -555,6 +556,12 @@ export default {
     cancel(id) {
       delete this.editableData[id];
     },
+    // 回车编辑框
+    editOK(record) {
+      this.save(record.id);
+      // record.translate = this.editableData[record.id].translate;
+      // delete this.editableData[record.id];
+    },
 
     // 查看详情
     viewRelation(record) {
@@ -586,6 +593,7 @@ export default {
     onResetData(newSearch, newPage) {
       this.search = newSearch;
       this.pagination.current = newPage;
+      this.getSearch();
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
