@@ -182,6 +182,9 @@ public class SykServiceImpl implements SykService {
                     sykEntryVO.setTranslate(translate.getTranslate());
                     EntryClassify entryClassfyById = entryClassifyMapper.getEntryClassfyById(productEntity.getId());
                     EntryClassify entryClassfyByParentId = entryClassifyMapper.getEntryClassfyById(entryClassfyById.getParentId());
+                    if(entryClassfyByParentId == null){
+                        continue;
+                    }
                     sykEntryVO.setClassify(entryClassfyByParentId.getTitle());
 
                     sykEntryVO.setAbbr(entity.getAbbr());
