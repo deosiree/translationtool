@@ -325,7 +325,7 @@
 
 
     <select id="getEntryByClassfyTotal" resultMap="BaseResultMap">
-        select <include refid="Base_t2_Column_List"/>,
+        select DISTINCT <include refid="Base_t2_Column_List"/>,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
