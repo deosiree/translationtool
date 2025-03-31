@@ -274,29 +274,29 @@ export default {
     },
     // 获取校验信息
     searchCheckInfo() {
-      this.loading = true;
-      getTsProblems(null, this.search)
-        .then((res) => {
-          console.log("校验成功！！", res);
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
-          // for (let item of this.dataSource) {
-          //   // console.log("item", item);
-          //   getEntryByTsVo([item]).then((res) => {
-          //     // console.log("详情：",res);
-          //     item["relationCount"] = res.data.list[0].entryInfoEntities.length;
-          //     item["reslations"] = res.data.list[0].entryInfoEntities;
-          //     // console.log("item", item);
-          //   });
-          // }
-        })
-        .catch((err) => {
-          message.info(err.message);
-          message.error(err);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      // this.loading = true;
+      // getTsProblems(null, this.search)
+      //   .then((res) => {
+      //     console.log("校验成功！！", res);
+      //     this.dataSource = res.data.list;
+      //     this.pagination.total = res.data.totalNum;
+      //     for (let item of this.dataSource) {
+      //       // console.log("item", item);
+      //       getEntryByTsVo([item]).then((res) => {
+      //         // console.log("详情：",res);
+      //         item["relationCount"] = res.data.list[0].entryInfoEntities.length;
+      //         item["reslations"] = res.data.list[0].entryInfoEntities;
+      //         // console.log("item", item);
+      //       });
+      //     }
+      //   })
+      //   .catch((err) => {
+      //     message.info(err.message);
+      //     message.error(err);
+      //   })
+      //   .finally(() => {
+      //     this.loading = false;
+      //   });
     },
 
     // 查看详情
