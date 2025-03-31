@@ -17,7 +17,7 @@
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
                     <a-menu-item @click="update(treeKey)">更新</a-menu-item>
-                    <a-menu-item @click="redundantCheck(treeKey)">冗余校验</a-menu-item>
+                    <!-- <a-menu-item @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"

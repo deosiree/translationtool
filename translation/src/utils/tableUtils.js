@@ -246,6 +246,7 @@ export function onSelect(vm, record, selected, condition = true, selectEntry = "
     if (!isExists1) {
       vm.selectedRows.push(record);// 添加选择
     }
+    console.log("是否有保存？",selectEntry in vm)
     if (selectEntry in vm) {
       const isExists2 = vm[selectEntry].some(
         (item) => item.id === record.id
@@ -336,10 +337,13 @@ export function onSelectAll(vm, selected, selectedRows, changeRows, condition = 
  * 复选框全选事件处理函数
  * @param {VueInstance} vm - Vue 实例
  */
-export function selectAllEntry(vm) {
+export function selectAllEntry(vm, selectEntry = "selectEntry") {
   // console.log("全选");
   vm.selectedRowKeys = [];
   vm.selectedRows = [];
+  if (selectEntry in vm){
+    vm[selectEntry] = [];
+  }
   let dataToSelect;
   // 检查是否存在筛选条件
   if (vm.filters && (vm.filters.isExist || vm.filters.entrySource)) {
@@ -363,6 +367,9 @@ export function selectAllEntry(vm) {
   dataToSelect.forEach((item) => {
     vm.selectedRowKeys.push(item.id);
     vm.selectedRows.push(item);
+    if (selectEntry in vm){
+      vm[selectEntry].push(item);
+    }
   });
   // console.log("全选后的行", vm.selectedRows);
 }
@@ -371,8 +378,11 @@ export function selectAllEntry(vm) {
  * 复选框反选事件处理函数
  * @param {VueInstance} vm - Vue 实例
  */
-export function clearAllEntry(vm) {
+export function clearAllEntry(vm, selectEntry = "selectEntry") {
   // console.log("反选");
   vm.selectedRowKeys = [];
   vm.selectedRows = [];
+  if (selectEntry in vm){
+    vm[selectEntry]=[];
+  }
 }

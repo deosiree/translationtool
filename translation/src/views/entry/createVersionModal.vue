@@ -82,12 +82,14 @@
           <a-textarea v-model:value="version.remarks" placeholder="请输入备注" :rows="4" />
         </a-form-item>
       </a-form>
-      <a-form v-if="title === '导出'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
-        <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
-          <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
-            placeholder="请选择" allowClear></a-select>
-        </a-form-item>
-      </a-form>
+      <a-spin :spinning="exportLoading">
+        <a-form v-if="title === '导出'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
+          <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
+            <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
+              placeholder="请选择" allowClear></a-select>
+          </a-form-item>
+        </a-form>
+      </a-spin>
       <div class="table" v-if="title === '选择任务'">
         <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource" :row-selection='taskRowSelection'
           :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
@@ -321,6 +323,7 @@ export default {
       title: "",
       operateVisible: false,
       operateWidth: "500px",
+      exportLoading: false,
       exportClass: {
         field: ["abbr", "词条"],
       },
@@ -552,6 +555,8 @@ export default {
             });
         });
       } else if (this.title === "导出") {
+        this.exportLoading = true;
+        // console.log("开始导出", this.exportLoading);
         this.$refs.exportForm.validate().then(() => {
           // 导出接口
           let fields = ["id"].concat(this.exportClass.field);
@@ -561,22 +566,27 @@ export default {
             excelName: "词条导出",
           };
           let params = {};
-          entryExportByCondition(data, params).then((res) => {
-            let fileName = res.headers["content-disposition"]
-              .split(";")[1]
-              .split("filename=")[1];
-            let contentType = res.headers["content-type"];
-            const blob = new Blob([res.data], { type: contentType });
-            const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
-            a.download = decodeURI(fileName);
-            a.href = window.URL.createObjectURL(blob);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(a.href);
-            this.operateVisible = false;
-            this.$emit("createClose");
-            this.$emit("cancelCreate");
-          });
+          entryExportByCondition(data, params)
+            .then((res) => {
+              let fileName = res.headers["content-disposition"]
+                .split(";")[1]
+                .split("filename=")[1];
+              let contentType = res.headers["content-type"];
+              const blob = new Blob([res.data], { type: contentType });
+              const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
+              a.download = decodeURI(fileName);
+              a.href = window.URL.createObjectURL(blob);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(a.href);
+              this.operateVisible = false;
+              this.$emit("createClose");
+              this.$emit("cancelCreate");
+            })
+            .finally(() => {
+              this.exportLoading = false;
+              // console.log("结束操作框", this.exportLoading);
+            });
           // 记录偏好
           this.exportFieldChange(this.exportClass.field);
         });
