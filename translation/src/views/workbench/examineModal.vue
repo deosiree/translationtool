@@ -200,7 +200,7 @@
   </CustomModal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
@@ -266,7 +266,11 @@ export default {
           dataIndex: "index",
           width: 90,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -488,12 +492,18 @@ export default {
         updateEntryList(params, updateArr)
           .then((res) => {
             message.success("已保存！");
-            this.saveLoading = false;
             this.getTaskEntry();
           })
           .catch((err) => {
             message.error("保存失败！");
+          })
+          .finally(() => {
             this.saveLoading = false;
+            // console.log("剩余待处理数据的数量：", this.dataSource.length-updateArr.length);
+            if (this.dataSource.length == updateArr.length) {
+              // 如果没有待处理的数据就自动关闭弹窗
+              this.handleClose();
+            }
           });
       } else {
         this.saveLoading = false;
@@ -1020,8 +1030,12 @@ export default {
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
         // 确保 filteredData 是最新的筛选结果
         dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =!this.filters.isExist || this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =!this.filters.entrySource || item.entrySource.includes(this.filters.entrySource);
+          const isExistMatch =
+            !this.filters.isExist ||
+            this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =
+            !this.filters.entrySource ||
+            item.entrySource.includes(this.filters.entrySource);
           return isExistMatch && entrySourceMatch;
         });
       } else {

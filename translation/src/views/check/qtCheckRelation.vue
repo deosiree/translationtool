@@ -155,7 +155,7 @@ export default {
     dataSource: {
       immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
       handler(newDataSource) {
-        console.log("收到数据", newDataSource);
+        // console.log("收到数据", newDataSource);
         // 设置默认全选
         this.selectedRowKeys = newDataSource.map((record) => record.id);
         this.selectedRows = newDataSource.map((record) => record);

@@ -66,7 +66,7 @@
           <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" :search="search" @update:dataSource="selectEntry = $event"
             :selectedRowKeys="selectedRowKeys" @update:selectedRowKeys="selectedRowKeys = $event" :selectedRows="selectedRows"
             @update:selectedRows="selectedRows = $event" :columns="columns" @batchSelectClose="batchSelectClose"
-            @batchSelectCancel="batchSelectCancel" />
+            @batchSelectCancel="batchSelectCancel" @refresh="getCheckNotUseEntry" />
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
               <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">

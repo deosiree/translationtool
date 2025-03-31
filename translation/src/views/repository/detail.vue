@@ -108,7 +108,7 @@ export default {
             this.$emit("detailClose")
         },
         ok(){
-            console.log(this.version)
+            // console.log(this.version)
              this.$emit("detailClose")
         },
         // 初始化

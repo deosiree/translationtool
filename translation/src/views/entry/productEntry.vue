@@ -377,7 +377,7 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
-import tableParam from "./tableParam.js";
+import tableParam from "@/views/entry/tableParam.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import common from "./common.js";
 import SearchBox from "@/components/search/searchBox.vue";
@@ -794,19 +794,25 @@ export default {
       } else {
         data.versionID = this.currentVersion;
       }
-      if (this.search.language === "英文") {
-        data.english = this.search.translate;
-        data.englishTranslateState = this.search.translateState;
-      } else if (this.search.language === "俄文") {
-        data.russian = this.search.translate;
-        data.russianTranslateState = this.search.translateState;
-      } else if (this.search.language === "西文") {
-        data.spanish = this.search.translate;
-        data.spanishTranslateState = this.search.translateState;
-      } else if (this.search.language === "法文") {
-        data.french = this.search.translate;
-        data.frenchTranslateState = this.search.translateState;
-      }
+      // if (this.search.language === "英文") {
+      //   data.english = this.search.translate;
+      //   data.englishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "俄文") {
+      //   data.russian = this.search.translate;
+      //   data.russianTranslateState = this.search.translateState;
+      // } else if (this.search.language === "西文") {
+      //   data.spanish = this.search.translate;
+      //   data.spanishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "法文") {
+      //   data.french = this.search.translate;
+      //   data.frenchTranslateState = this.search.translateState;
+      // }
+      tableParam.languageList.forEach((item) => {
+        if (this.search.language === item.name) {
+          data[item.value] = this.search.translate;
+          data[item.state] = this.search.translateState;
+        }
+      });
       let params = {
         classfyID: this.product.key,
         translateType: this.search.language,
@@ -825,6 +831,7 @@ export default {
       getEntryByClassfy(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
+          // console.log("总词条dataSource", res);
           this.loading = false;
           this.pagination.total = res.data.totalNum;
         })
@@ -844,31 +851,40 @@ export default {
         item.tableName = version.tableName;
         if (element.translateEntity) {
           element.translateEntity.forEach((tran) => {
-            if (tran.type === "英文") {
-              item.english = tran.translate;
-              item.englishId = tran.id;
-              item.englishTranslateState = tran.translateState;
-              item.englishPublicState = tran.publicState;
-              item.englishChecked = false;
-            } else if (tran.type === "俄文") {
-              item.russian = tran.translate;
-              item.russianId = tran.id;
-              item.russianTranslateState = tran.translateState;
-              item.russianPublicState = tran.publicState;
-              item.russianChecked = false;
-            } else if (tran.type === "西文") {
-              item.spanish = tran.translate;
-              item.spanishId = tran.id;
-              item.spanishTranslateState = tran.translateState;
-              item.spanishPublicState = tran.publicState;
-              item.spanishChecked = false;
-            } else if (tran.type === "法文") {
-              item.french = tran.translate;
-              item.frenchId = tran.id;
-              item.frenchTranslateState = tran.translateState;
-              item.frenchPublicState = tran.publicState;
-              item.frenchChecked = false;
-            }
+            // if (tran.type === "英文") {
+            //   item.english = tran.translate;
+            //   item.englishId = tran.id;
+            //   item.englishTranslateState = tran.translateState;
+            //   item.englishPublicState = tran.publicState;
+            //   item.englishChecked = false;
+            // } else if (tran.type === "俄文") {
+            //   item.russian = tran.translate;
+            //   item.russianId = tran.id;
+            //   item.russianTranslateState = tran.translateState;
+            //   item.russianPublicState = tran.publicState;
+            //   item.russianChecked = false;
+            // } else if (tran.type === "西文") {
+            //   item.spanish = tran.translate;
+            //   item.spanishId = tran.id;
+            //   item.spanishTranslateState = tran.translateState;
+            //   item.spanishPublicState = tran.publicState;
+            //   item.spanishChecked = false;
+            // } else if (tran.type === "法文") {
+            //   item.french = tran.translate;
+            //   item.frenchId = tran.id;
+            //   item.frenchTranslateState = tran.translateState;
+            //   item.frenchPublicState = tran.publicState;
+            //   item.frenchChecked = false;
+            // }
+            tableParam.languageList.forEach((lang) => {
+              if (tran.type === lang.name) {
+                item[lang.value] = tran.translate;
+                item[lang.id] = tran.id;
+                item[lang.state] = tran.translateState;
+                item[lang.publicState] = tran.publicState;
+                item[lang.checked] = false;
+              }
+            });
           });
         }
         dataSource.push(item);
@@ -972,27 +988,22 @@ export default {
       this.selectedRowIndex = record.id;
       this.currentEntry = record;
       // 将翻译状态转换为中文
-      let language = ["english", "russian", "spanish", "french"];
-      language.forEach((item) => {
-        if (
-          this.currentEntry[item + "TranslateState"] != null &&
-          this.currentEntry[item + "TranslateState"] === "1"
-        ) {
-          this.currentEntry[item + "ChineseState"] = "待审核";
-        }
-        if (
-          this.currentEntry[item + "TranslateState"] != null &&
-          this.currentEntry[item + "TranslateState"] === "2"
-        ) {
-          this.currentEntry[item + "ChineseState"] = "审核不通过";
-        }
-        if (
-          this.currentEntry[item + "TranslateState"] != null &&
-          this.currentEntry[item + "TranslateState"] === "3"
-        ) {
-          this.currentEntry[item + "ChineseState"] = "已审核";
+      tableParam.languageList.forEach((item) => {
+        if (this.currentEntry[item.state] != null) {
+          switch (this.currentEntry[item.state]) {
+            case "1":
+              this.currentEntry[item.chineseState] = "待审核";
+              break;
+            case "2":
+              this.currentEntry[item.chineseState] = "审核不通过";
+              break;
+            case "3":
+              this.currentEntry[item.chineseState] = "已审核";
+              break;
+          }
         }
       });
+
       this.showOperationArea = true;
       this.setTableHeight();
       // console.log(this.currentEntry)
@@ -1293,19 +1304,25 @@ export default {
       } else {
         data.versionID = this.currentVersion;
       }
-      if (this.search.language === "英文") {
-        data.english = this.search.translate;
-        data.englishTranslateState = this.search.translateState;
-      } else if (this.search.language === "俄文") {
-        data.russian = this.search.translate;
-        data.russianTranslateState = this.search.translateState;
-      } else if (this.search.language === "西文") {
-        data.spanish = this.search.translate;
-        data.spanishTranslateState = this.search.translateState;
-      } else if (this.search.language === "法文") {
-        data.french = this.search.translate;
-        data.frenchTranslateState = this.search.translateState;
-      }
+      // if (this.search.language === "英文") {
+      //   data.english = this.search.translate;
+      //   data.englishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "俄文") {
+      //   data.russian = this.search.translate;
+      //   data.russianTranslateState = this.search.translateState;
+      // } else if (this.search.language === "西文") {
+      //   data.spanish = this.search.translate;
+      //   data.spanishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "法文") {
+      //   data.french = this.search.translate;
+      //   data.frenchTranslateState = this.search.translateState;
+      // }
+      tableParam.languageList.forEach((item) => {
+        if (this.search.language === item.name) {
+          data[item.value] = this.search.translate;
+          data[item.state] = this.search.translateState;
+        }
+      });
       let params = {
         classfyID: this.product.key,
         translateType: this.search.language,
@@ -1333,6 +1350,7 @@ export default {
           this.selectedRowKeys = [];
           this.selectedRows = res.data.list;
           this.selectEntry = res.data.list;
+          // console.log("全选词条dataSource", res);
           res.data.list.forEach((item) => {
             this.selectedRowKeys.push(item.id);
           });

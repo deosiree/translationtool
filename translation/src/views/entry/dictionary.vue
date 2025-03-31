@@ -210,7 +210,7 @@ export default {
         okType: "danger",
         cancelText: "取消",
         onOk() {
-          console.log(fileName);
+          // console.log(fileName);
           let params = {
             dicName: fileName,
           };
