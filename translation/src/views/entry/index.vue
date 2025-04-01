@@ -92,6 +92,7 @@ import {
 } from "@/http/api/entryManage";
 import { deleteProduct, getUserProduct } from "@/http/api/product";
 import { message } from "ant-design-vue";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     SearchOutlined,
@@ -185,25 +186,13 @@ export default {
       this.classifyModalTitle = "更新详情";
       this.updateClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
       this.updateVisible = true; // 显示弹窗
-      this.$nextTick(() => {
-        const domArr = document.getElementsByClassName("ant-modal");
-        if (domArr && domArr.length > 0) {
-          Array.from(domArr).forEach((item) => {
-            if (item.childNodes && item.childNodes.length > 0) {
-              Array.from(item.childNodes).forEach((child) => {
-                if (child.setAttribute) {
-                  child.setAttribute("aria-hidden", "false");
-                }
-              });
-            }
-          });
-        }
-      });
+      setModalAriaHidden(this, document);
     },
     redundantCheck(treeKey) {
       this.classifyModalTitle = "冗余校验";
       this.redundantClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
       this.redundantVisible = true; // 显示弹窗
+      setModalAriaHidden(this, document);
     },
     // 新增分类或产品
     addClassify(treeKey, type) {
@@ -213,6 +202,7 @@ export default {
         type: type,
       };
       this.classifyVisible = true;
+      setModalAriaHidden(this, document);
       if (type === "product") {
         this.classifyModalTitle = "添加产品";
       } else if (type === "classify") {
@@ -230,6 +220,7 @@ export default {
         foreignMaxByte: foreignMaxByte,
       };
       this.classifyVisible = true;
+      setModalAriaHidden(this, document);
       if (type === "product") {
         this.classifyModalTitle = "编辑产品";
       } else if (type === "classify") {
@@ -260,6 +251,7 @@ export default {
       // message.info("权限设置！")
       this.authorityProductId = treeKey;
       this.authorityVisible = true;
+      setModalAriaHidden(this, document);
     },
     authorityClose() {
       this.authorityVisible = false;

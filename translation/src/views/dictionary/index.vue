@@ -148,6 +148,7 @@ import {
 } from "@/http/api/i18Server";
 import { getDictory, getI18nAdress } from "@/http/api/workbench";
 import { v4 as uuidv4 } from "uuid";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -441,6 +442,7 @@ export default {
     },
     addDict() {
       this.dictVisible = true;
+      setModalAriaHidden(this, document);
     },
     dictClose(val) {
       this.dictVisible = false;
@@ -542,6 +544,7 @@ export default {
       }
       this.currentDict = this.selectedTreeKeys[0];
       this.dictTermVisible = true;
+      setModalAriaHidden(this, document);
       this.dictTitle = "新增辞典内容";
       this.$refs.dictTermRef.init();
     },
@@ -565,6 +568,7 @@ export default {
       this.currentDict = this.selectedTreeKeys[0];
       this.currentData = this.selectedRows[0];
       this.dictTermVisible = true;
+      setModalAriaHidden(this, document);
       this.dictTitle = "编辑辞典内容";
       this.$refs.dictTermRef.init();
     },

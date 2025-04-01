@@ -77,6 +77,7 @@ import {
   getRowClassName,
   pageChange,
 } from "@/utils/tableUtils"; // 引入工具函数
+import { setModalAriaHidden } from "@/utils/commonUtils";
 
 export default {
   components: {
@@ -274,29 +275,29 @@ export default {
     },
     // 获取校验信息
     searchCheckInfo() {
-      this.loading = true;
-      getTsProblems(null, this.search)
-        .then((res) => {
-          console.log("校验成功！！", res);
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
-          // for (let item of this.dataSource) {
-          //   // console.log("item", item);
-          //   getEntryByTsVo([item]).then((res) => {
-          //     // console.log("详情：",res);
-          //     item["relationCount"] = res.data.list[0].entryInfoEntities.length;
-          //     item["reslations"] = res.data.list[0].entryInfoEntities;
-          //     // console.log("item", item);
-          //   });
-          // }
-        })
-        .catch((err) => {
-          message.info(err.message);
-          message.error(err);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      // this.loading = true;
+      // getTsProblems(null, this.search)
+      //   .then((res) => {
+      //     console.log("校验成功！！", res);
+      //     this.dataSource = res.data.list;
+      //     this.pagination.total = res.data.totalNum;
+      //     // for (let item of this.dataSource) {
+      //     //   // console.log("item", item);
+      //     //   getEntryByTsVo([item]).then((res) => {
+      //     //     // console.log("详情：",res);
+      //     //     item["relationCount"] = res.data.list[0].entryInfoEntities.length;
+      //     //     item["reslations"] = res.data.list[0].entryInfoEntities;
+      //     //     // console.log("item", item);
+      //     //   });
+      //     // }
+      //   })
+      //   .catch((err) => {
+      //     message.info(err.message);
+      //     message.error(err);
+      //   })
+      //   .finally(() => {
+      //     this.loading = false;
+      //   });
     },
 
     // 查看详情
@@ -304,6 +305,7 @@ export default {
       this.relationData = record.reslations;
       // console.log(this.relationData);
       this.relationVisible = true;
+      setModalAriaHidden(this, document);
     },
     // 关闭详情
     relationClose() {

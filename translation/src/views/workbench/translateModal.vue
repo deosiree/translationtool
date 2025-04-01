@@ -278,6 +278,7 @@ import workbenchCommon from "@/views/workbench/common.js";
 import common from "../entry/common";
 import tableParam from "../entry/tableParam";
 import key from "keymaster";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     Modal,
@@ -954,6 +955,7 @@ export default {
         return;
       }
       this.selectVisible = true;
+      setModalAriaHidden(this, document);
     },
     selectHandleOK() {
       let languageCode =
@@ -1044,6 +1046,7 @@ export default {
         return;
       }
       this.exportVisible = true;
+      setModalAriaHidden(this, document);
 
       this.queryPartiality();
     },
@@ -1456,6 +1459,7 @@ export default {
     },
     replace() {
       this.replaceVisible = true;
+      setModalAriaHidden(this, document);
     },
     replaceClose() {
       this.replaceVisible = false;

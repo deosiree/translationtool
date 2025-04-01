@@ -165,6 +165,7 @@ import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -372,6 +373,7 @@ export default {
         return;
       }
       this.translateTypeVisible = true; // 显示语言选择弹窗
+      setModalAriaHidden(this, document);
       this.selectedLanguage = null; // 重置选择的语言
     },
     // 点击 confirm确认 按钮后会发生下面的操作（弹窗）
@@ -629,6 +631,7 @@ export default {
     },
     importEntry() {
       this.importVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.import.initTaskEntry();
     },
     importClose() {
@@ -639,6 +642,7 @@ export default {
     // 词条审核
     examineEntry() {
       this.examineVisible = true;
+      setModalAriaHidden(this, document);
       this.examineTitle = "词条审核";
       this.$refs.examine.getTaskEntry();
     },
@@ -650,6 +654,7 @@ export default {
     // 词条翻译
     translateEntry() {
       this.translateVisible = true;
+      setModalAriaHidden(this, document);
       // this.$refs.translate.getTranslateEntry()
       this.$refs.translate.init();
     },
@@ -661,6 +666,7 @@ export default {
     // 翻译审核
     examineTranslate() {
       this.examineTranslateVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.examineTranslate.getTaskEntry();
     },
     examineTranslateClose() {
@@ -672,6 +678,7 @@ export default {
     // 归档
     archiveEntry() {
       this.archiveVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.archiveModalRef.getTaskEntry();
     },
     archiveClose() {

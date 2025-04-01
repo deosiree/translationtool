@@ -43,6 +43,7 @@ import {
     importExcle,
     bachAddEntry
 } from "@/http/api/entry";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
     components:{
         DownloadOutlined,
@@ -108,6 +109,7 @@ export default {
             let formData = new FormData()
             formData.append('multipartFile',info.file)
             this.visible = true
+            setModalAriaHidden(this, document);
             this.loading = true
             importExcle(formData).then((res) => {
                 this.dataSource = res.data.list

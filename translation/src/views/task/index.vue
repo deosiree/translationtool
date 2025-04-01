@@ -305,6 +305,7 @@ import { getVersion } from "@/http/api/productVersion";
 import { getRoleUserByDepartment, getDepartments } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
 import { getClassTree } from "@/http/api/entryManage";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -1166,6 +1167,7 @@ export default {
       this.addProductTask = this.editableData[record.id];
       this.addProductTask.allProducts = this.options[record.id].products;
       this.addProductVisible = true;
+      setModalAriaHidden(this, document);
     },
     addProductOk(record) {
       this.addProductVisible = false;
@@ -1184,6 +1186,7 @@ export default {
       this.addProductTask = this.editableData[record.id];
       this.addProductTask.allVersions = this.options[record.id].versions;
       this.addVersionVisible = true;
+      setModalAriaHidden(this, document);
     },
     addVersionOk(record) {
       this.addVersionVisible = false;

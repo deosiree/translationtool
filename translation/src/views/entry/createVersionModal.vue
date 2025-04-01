@@ -186,6 +186,7 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import { pageChange } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,
@@ -454,6 +455,7 @@ export default {
     // 创建版本
     handleOK() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "创建版本";
     },
@@ -483,6 +485,7 @@ export default {
     // 导出Excel
     exportExcel() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "导出";
 
@@ -505,6 +508,7 @@ export default {
     // 提交审核/翻译
     examine() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "50%";
       this.title = "选择任务";
       this.getTaskList();
@@ -512,6 +516,7 @@ export default {
     // 回写
     writeBackFun() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "回写";
       this.getIPs();

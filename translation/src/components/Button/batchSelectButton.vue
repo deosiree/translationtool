@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import { setModalAriaHidden } from "@/utils/commonUtils";
 import BatchSelectModal from "@/components/Button/batchSelectModal.vue";
 export default {
   components: {
@@ -122,6 +123,7 @@ export default {
         // 判断搜索条件是否变化，如果变化则重新打开批量选择
         return;
       this.$emit("update:batchSelectVisible", true); // 打开已选词条的弹窗
+      setModalAriaHidden(this, document);
     },
     // 关闭已选词条
     batchSelectClose() {

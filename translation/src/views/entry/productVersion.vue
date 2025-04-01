@@ -255,6 +255,7 @@ import {
 } from '@/http/api/userPartiality'
 import { message } from 'ant-design-vue';
 import tableParam from './tableParam';
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
     components:{
         SearchBox,
@@ -453,6 +454,7 @@ export default {
         exportTaskEntry(record){
             this.exportTask = record
             this.exportVisible = true
+            setModalAriaHidden(this, document);
             this.exportTitle = '任务词条导出'
             this.queryPartiality()
             // let params = {
@@ -558,6 +560,7 @@ export default {
             }
 
             this.versionVisible = true
+            setModalAriaHidden(this, document);
             this.versionModalTitle = '添加版本'
         },
         // 修改详情
@@ -569,6 +572,7 @@ export default {
                         .replace(/key/g, 'id'))
             this.versionModalTitle = '修改详情'
             this.versionVisible = true
+            setModalAriaHidden(this, document);
         },
         // 版本弹窗关闭
         versionClose(){
@@ -593,6 +597,7 @@ export default {
         // 版本导出
         versionExport(key,title){
             this.exportVisible = true
+            setModalAriaHidden(this, document);
             this.exportTitle = '版本词条导出'
             this.exportVersion.id = key
             this.exportVersion.name = title

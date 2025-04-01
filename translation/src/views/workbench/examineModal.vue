@@ -223,6 +223,7 @@ import {
 import { message, Modal } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
 import common from "../entry/common";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -586,6 +587,7 @@ export default {
     reject() {
       if (this.selectedRows.length > 0) {
         this.rejectReasonVisible = true;
+      setModalAriaHidden(this, document);
       }
     },
     //双击表格行 可编辑
