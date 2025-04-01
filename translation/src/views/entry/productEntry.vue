@@ -761,6 +761,10 @@ export default {
     conditionalQuery() {
       // 将页码变为第一页
       this.pagination.current = 1;
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectEntry = [];
+      this.createVersionFlag = false;
       this.getEntryByVersion();
     },
     // 获取版本词条
