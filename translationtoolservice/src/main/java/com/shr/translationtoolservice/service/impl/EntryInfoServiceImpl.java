@@ -1593,8 +1593,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 if (Objects.isNull(originalEntry)){
                     continue;
                 }
-                List<TranslateEntity> repTrans = translateMapper.getRepTrans(entryInfoEntity1.getEntry(), transType, trans, department);
-                // List<TranslateEntity> repTrans = new LinkedList<>();
+                // List<TranslateEntity> repTrans = translateMapper.getRepTrans(entryInfoEntity1.getEntry(), transType, trans, department);
+                List<TranslateEntity> repTrans = new LinkedList<>();
                 TranslateEntity translateEntity;
                 boolean isExist = false;
                 if (!CollectionUtils.isEmpty(repTrans)){
