@@ -543,6 +543,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
     handleOK() {
@@ -656,7 +657,7 @@ export default {
               });
             })
             .catch((err) => {
-              message.error("保存失败！");
+              message.error("保存失败！",err.message);
               // console.log("err", err);
             })
             .finally(() => {
@@ -665,7 +666,7 @@ export default {
             });
         })
         .catch((err) => {
-          message.error("校验失败！", err);
+          message.error("校验失败！", err.message);
         })
         .finally(() => {
           this.saveLoading = false;
@@ -858,6 +859,7 @@ export default {
             web: [],
           };
           this.spinning = false;
+          message.error(err.message);
         });
     },
     // 设置翻译建议快捷键
@@ -942,7 +944,9 @@ export default {
           record[transIdName] = this.editableData[record.id][transIdName];
           delete this.editableData[record.id];
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     // 预翻译
     preTranslation() {
@@ -987,7 +991,7 @@ export default {
             }
           })
           .catch((err) => {
-            message.error("预翻译失败！");
+            message.error("预翻译失败！",err.message);
             this.loading = false;
             this.selectVisible = false;
             this.preTranslateOkLoading = false;
@@ -1078,7 +1082,9 @@ export default {
           // 记录偏好
           this.exportFieldChange(this.exportModal.field);
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     exportAfterClose() {
       this.exportModal.field = ["abbr", "词条"];
@@ -1112,7 +1118,7 @@ export default {
           this.loading = false;
         })
         .catch((err) => {
-          message.error("导入失败！");
+          message.error("导入失败！",err.message);
           this.loading = false;
         });
 
@@ -1351,7 +1357,9 @@ export default {
             )
               .validate()
               .then(() => {})
-              .catch((err) => {});
+              .catch((err) => {
+                message.error(err.message);
+              });
           });
         }
       });
@@ -1474,7 +1482,9 @@ export default {
             this.selectedRows = [];
           });
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     replaceAfterClose() {
       this.replaceModal = {

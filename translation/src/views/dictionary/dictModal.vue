@@ -107,7 +107,7 @@ export default {
                     this.$emit('modalOK')
                     this.okLoading = false
                 }).catch((err) => {
-                    message.error("创建失败！")
+                    message.error("创建失败！",err.message)
                     this.okLoading = false
                 })
             }).catch(err => {

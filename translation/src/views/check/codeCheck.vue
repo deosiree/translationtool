@@ -378,7 +378,7 @@ export default {
           if (err.name == "AbortError") {
             // console.log(`10.请求已取消!questionType:${this.search.questionType}`);
             message.error("请求已取消");
-          } else message.error("请求出错", err);
+          } else message.error("请求出错", err.message);
         })
         .finally(() => {
           this.requestId = null; // 清空请求对象

@@ -383,6 +383,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
 
       // 初始化快捷键
@@ -433,7 +434,7 @@ export default {
             this.getTaskEntry();
           })
           .catch((err) => {
-            message.error("保存失败！");
+            message.error("保存失败！",err.message);
           })
           .finally(() => {
             this.saveLoading = false;
@@ -602,7 +603,9 @@ export default {
           record[languageCode] = this.editableData[record.id][languageCode];
           delete this.editableData[record.id];
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     afterClose() {
       this.editableData = {};
@@ -894,7 +897,9 @@ export default {
             )
               .validate()
               .then(() => {})
-              .catch((err) => {});
+              .catch((err) => {
+                message.error(err.message);
+              });
           });
         }
       });

@@ -160,7 +160,7 @@ export default {
           })
           .catch((err) => {
             this.loading = false;
-            message.error("查询失败！");
+            message.error("查询失败！",err.message);
           });
       });
     },
@@ -219,7 +219,7 @@ export default {
               message.success("清空成功！");
             })
             .catch((err) => {
-              message.error("清空失败！");
+              message.error("清空失败！",err.message);
             });
         },
         onCancel() {},

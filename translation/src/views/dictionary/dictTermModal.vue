@@ -158,14 +158,14 @@ export default {
                         message.success("新增成功！")
                         this.$emit("modalClose",true)
                     }).catch((err) => {
-                        message.error("新增失败！")
+                        message.error("新增失败！",err.message)
                     })
                 }else if(this.modalTitle.includes("编辑")){
                     updateDicTrans(params,data).then((res) => {
                         message.success("编辑成功！")
                         this.$emit("modalClose",true)
                     }).catch((err) => {
-                        message.error("编辑失败！")
+                        message.error("编辑失败！",err.message)
                     })
                 }
                 

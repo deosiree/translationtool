@@ -334,6 +334,7 @@ export default {
             return res.data.list.length > 0;
           })
           .catch((err) => {
+            message.error(err.message);
             return false;
           });
       }
@@ -583,7 +584,7 @@ export default {
             }
           })
           .catch((err) => {
-            message.error("数据获取失败！");
+            message.error("数据获取失败！",err.message);
           })
           .finally(() => {
             this.loading = false;
@@ -596,7 +597,7 @@ export default {
             this.pagination.total = res.data.totalNum;
           })
           .catch((err) => {
-            message.error("数据获取失败！");
+            message.error("数据获取失败！",err.message);
           })
           .finally(() => {
             this.loading = false;

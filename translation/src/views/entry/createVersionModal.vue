@@ -551,7 +551,7 @@ export default {
               this.$emit("cancelCreate");
             })
             .catch((err) => {
-              message.error("创建失败！");
+              message.error("创建失败！",err.message);
             });
         });
       } else if (this.title === "导出") {
@@ -657,14 +657,16 @@ export default {
                 this.$emit("cancelCreate");
               })
               .catch((err) => {
-                message.error("回写失败！");
+                message.error("回写失败！",err.message);
               })
               .finally(() => {
                 this.writeBackLoading = false;
                 this.loading = false;
               });
           })
-          .catch((err) => {});
+          .catch((err) => {
+            message.error(err.message)
+          });
       }
     },
     // 提交审核/翻译
@@ -706,7 +708,7 @@ export default {
           this.$emit("cancelCreate");
         })
         .catch((err) => {
-          message.error("提交失败！");
+          message.error("提交失败！",err.message);
         });
     },
     // 删除词条
