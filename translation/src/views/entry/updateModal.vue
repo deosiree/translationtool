@@ -34,6 +34,7 @@ import {
   getEntrysourceListByClassfy,
 } from "@/http/api/entryManage";
 import { v4 as uuidv4 } from "uuid";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     Modal,
@@ -221,6 +222,7 @@ export default {
           }));
           // console.log("taskSource", this.taskSource);
           this.taskVisible = true; // 先弹出其他弹窗
+          setModalAriaHidden(this, document);
         });
       } else {
         this.init();

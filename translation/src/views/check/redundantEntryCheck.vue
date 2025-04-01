@@ -170,6 +170,7 @@ import {
   onSelectAll,
   clearAllEntry,
 } from "@/utils/tableUtils"; // 引入工具函数
+import { setModalAriaHidden } from "@/utils/commonUtils";
 
 export default {
   components: {
@@ -553,6 +554,7 @@ export default {
     // 打开已选词条
     viewSelectEntry() {
       this.batchSelectVisible = true;
+      setModalAriaHidden(this, document);
     },
     // 关闭已选词条
     batchSelectClose() {

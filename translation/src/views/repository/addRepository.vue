@@ -98,6 +98,7 @@ import {
   createVersionTable,
   getVersionTableByCondition,
 } from "@/http/api/versionTable";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     BookOutlined,
@@ -394,6 +395,7 @@ export default {
     // 新增按钮弹窗事件
     addRepository() {
       this.visible = true;
+      setModalAriaHidden(this, document);
       this.getHistoryVersionTable();
       this.getEntryClassify();
     },
@@ -482,6 +484,7 @@ export default {
     // 选择词条点击事件
     selectData() {
       this.dataVisible = true;
+      setModalAriaHidden(this, document);
       this.getEntryToVersion();
     },
     // 查询词条

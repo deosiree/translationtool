@@ -425,6 +425,7 @@ import {
   onSelectAll,
   pageChange,
 } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,
@@ -1103,6 +1104,7 @@ export default {
           } else {
             this.editEntry = [this.editableData[id]];
             this.editVisible = true;
+            setModalAriaHidden(this, document);
           }
         })
         .catch((err) => {
@@ -1132,6 +1134,7 @@ export default {
       }
       this.editEntry = edit;
       this.editVisible = true;
+      setModalAriaHidden(this, document);
     },
     editOk(entry) {
       delete this.editableData[entry.id];
@@ -1277,6 +1280,7 @@ export default {
     // 已选词条按钮点击事件
     viewCreateVersionEntry() {
       this.createVisible = true;
+      setModalAriaHidden(this, document);
     },
     createClose() {
       this.createVisible = false;
@@ -1478,6 +1482,7 @@ export default {
     // 二级分类管理
     setSecondClassify() {
       this.secondClassifyVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.secondClassifyRef.init();
     },
     secondClassifyClose() {
@@ -1538,6 +1543,7 @@ export default {
     // 查看辞典
     viewDictionary() {
       this.dictionaryVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.dictionaryRef.init();
     },
     dictionaryClose() {
@@ -1568,6 +1574,7 @@ export default {
     // 导入词条
     importEntry() {
       this.importVisible = true;
+      setModalAriaHidden(this, document);
     },
     importClose() {
       this.importVisible = false;

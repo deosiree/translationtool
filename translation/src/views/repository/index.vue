@@ -106,6 +106,7 @@ import {
 } from "@/http/api/versionTable";
 import Pagination from "@/components/page/pagination.vue"
 import SearchForm from '@/components/search/searchForm.vue'
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
     components:{
         PlusOutlined,
@@ -347,6 +348,7 @@ export default {
         },
         detail(record){
             this.detailVisible = true
+            setModalAriaHidden(this, document);
             this.$refs.detail.init(record.version)
         },
         detailClose(){

@@ -662,6 +662,7 @@ import {
 import { templateFileDownload } from "@/http/api/download";
 import workbenchCommon from "@/views/workbench/common.js";
 import common from "../entry/common";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
   components: {
@@ -2141,6 +2142,7 @@ export default {
     // 创建辞典
     createDictionary() {
       this.createDictVisible = true;
+      setModalAriaHidden(this, document);
       this.createDict.name = "";
     },
     createDictOk() {
@@ -2215,6 +2217,7 @@ export default {
     // 模板下载
     templateFileDownload() {
       this.templateVisible = true;
+      setModalAriaHidden(this, document);
     },
     // 模板下载
     templateDownload() {

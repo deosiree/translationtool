@@ -153,6 +153,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -568,6 +569,7 @@ export default {
       this.relationData = record.reslations;
       // console.log(this.relationData);
       this.relationVisible = true;
+      setModalAriaHidden(this, document);
     },
     // 关闭详情
     relationClose() {

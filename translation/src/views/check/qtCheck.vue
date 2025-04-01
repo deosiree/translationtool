@@ -77,6 +77,7 @@ import {
   getRowClassName,
   pageChange,
 } from "@/utils/tableUtils"; // 引入工具函数
+import { setModalAriaHidden } from "@/utils/commonUtils";
 
 export default {
   components: {
@@ -304,6 +305,7 @@ export default {
       this.relationData = record.reslations;
       // console.log(this.relationData);
       this.relationVisible = true;
+      setModalAriaHidden(this, document);
     },
     // 关闭详情
     relationClose() {
