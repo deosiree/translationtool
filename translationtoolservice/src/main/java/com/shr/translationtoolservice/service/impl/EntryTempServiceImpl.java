@@ -837,7 +837,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 }
                 entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
-                    entryInfoEntity1.setEnTransId(finalTransId);
+                    entryInfoEntity1.setRuTransId(finalTransId);
                 });
                 break;
             case ConstantInterface.FRENCH:
@@ -851,7 +851,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 }
                 entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
-                    entryInfoEntity1.setEnTransId(finalTransId);
+                    entryInfoEntity1.setFraTransId(finalTransId);
                 });
                 break;
             case ConstantInterface.SPANISH:
@@ -865,7 +865,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 }
                 entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
-                    entryInfoEntity1.setEnTransId(finalTransId);
+                    entryInfoEntity1.setSpaTransId(finalTransId);
                 });
                 break;
         }
