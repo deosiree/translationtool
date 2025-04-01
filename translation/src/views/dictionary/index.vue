@@ -428,7 +428,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          message.error("查询失败！");
+          message.error("查询失败！",err.message);
         });
     },
     reset() {
@@ -460,7 +460,7 @@ export default {
           this.getDictionarys();
         })
         .catch((err) => {
-          message.error("删除失败！");
+          message.error("删除失败！",err.message);
         });
     },
     // 清空辞典
@@ -475,7 +475,7 @@ export default {
           this.queryDictronary();
         })
         .catch((err) => {
-          message.error("清空失败！");
+          message.error("清空失败！",err.message);
         });
     },
     // 辞典生效
@@ -489,7 +489,7 @@ export default {
           this.queryDictronary();
         })
         .catch((err) => {
-          message.error("生效失败！");
+          message.error("生效失败！",err.message);
         });
     },
     onSelectChange(selectedRowKeys, selectedRows) {
@@ -528,7 +528,7 @@ export default {
               _this.selectedRows = [];
             })
             .catch((err) => {
-              message.error("删除失败！");
+              message.error("删除失败！",err.message);
             });
         },
         onCancel() {},

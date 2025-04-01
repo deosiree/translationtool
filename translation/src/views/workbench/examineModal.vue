@@ -438,6 +438,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
     handleOK() {
@@ -495,7 +496,7 @@ export default {
             this.getTaskEntry();
           })
           .catch((err) => {
-            message.error("保存失败！");
+            message.error("保存失败！",err.message);
           })
           .finally(() => {
             this.saveLoading = false;
@@ -689,7 +690,9 @@ export default {
           }
           delete this.editableData[record.id];
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     // 编辑
     edit(record) {
@@ -814,7 +817,7 @@ export default {
               this.getTaskEntry();
             })
             .catch((err) => {
-              message.error("删除失败！");
+              message.error("删除失败！",err.message);
             });
         },
         onCancel: () => {},
@@ -953,7 +956,9 @@ export default {
             )
               .validate()
               .then(() => {})
-              .catch((err) => {});
+              .catch((err) => {
+                message.error(err.message);
+              });
           });
         }
       });

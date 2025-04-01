@@ -635,7 +635,7 @@ export default {
                 // 记录偏好
                 this.exportFieldChange(this.exportModal.field)
             }).catch((err) => {
-
+                message.error(err.message)
             })
         },
         exportClose(){

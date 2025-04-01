@@ -181,7 +181,7 @@ export default {
           this.$emit("batchSelectCancel");
         })
         .catch((err) => {
-          message.error("删除失败！");
+          message.error("删除失败！",err.message);
           // console.log("术语删除失败！", err);
         })
         .finally(() => {

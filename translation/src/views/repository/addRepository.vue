@@ -442,6 +442,7 @@ export default {
         })
         .catch((err) => {
           // console.log("error", err);
+          message.error(err.message);
         });
     },
     // 新增版本库

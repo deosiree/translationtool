@@ -761,6 +761,10 @@ export default {
     conditionalQuery() {
       // 将页码变为第一页
       this.pagination.current = 1;
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectEntry = [];
+      this.createVersionFlag = false;
       this.getEntryByVersion();
     },
     // 获取版本词条
@@ -832,12 +836,23 @@ export default {
         .then((res) => {
           this.dataSource = res.data.list;
           // console.log("总词条dataSource", res);
-          this.loading = false;
           this.pagination.total = res.data.totalNum;
         })
         .catch((err) => {
+          message.error(err.message);
+        })
+        .finally(() => {
           this.loading = false;
         });
+    },
+    // 获取词条分类
+    getEntryClassfy() {
+      let params = {
+        classfyID: this.product.key,
+      };
+      getEntryClassfy(params).then((res) => {
+        this.entryClassfy = res.data;
+      });
     },
     // 组装表格数据
     assemblyTableData(data) {
@@ -1090,7 +1105,9 @@ export default {
             this.editVisible = true;
           }
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message)
+        });
     },
     // 校验输入数据是否合规
     checkedData(record) {
@@ -1354,10 +1371,11 @@ export default {
           res.data.list.forEach((item) => {
             this.selectedRowKeys.push(item.id);
           });
-          this.loading = false;
-          this.selectAllLoading = false;
         })
         .catch((err) => {
+          message.error(err.message);
+        })
+        .finally(() => {
           this.loading = false;
           this.selectAllLoading = false;
         });
@@ -1503,6 +1521,7 @@ export default {
         })
         .catch((err) => {
           this.rowClassify2Option[record.id] = [];
+          message.error(err.message);
         });
     },
     // 切割字符串
@@ -1569,11 +1588,13 @@ export default {
               this.importLoading = false;
             })
             .catch((err) => {
-              message.error("导入失败！");
+              message.error("导入失败！",err.message);
               this.importLoading = false;
             });
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     importAfterClose() {
       this.importModal.language = null;

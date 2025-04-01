@@ -276,7 +276,7 @@ export default {
                     setInfo(params,[]).then((res) => {
 
                     }).catch((err) => {
-                        
+                        message.error(err.message);
                     })
                 }
             });
@@ -300,6 +300,7 @@ export default {
                 this.entryRejectCount = res.data.list.length
             }).catch((err) => {
                 this.entryRejectCount = 0
+                message.error(err.message);
             })
         },
         // 获取待审核的词条
@@ -313,6 +314,7 @@ export default {
                 this.entryCheckCount = res.data.list.length
             }).catch((err) => {
                 this.entryCheckCount = 0
+                message.error(err.message);
             })
         },
         // 获取待翻译的词条
@@ -327,6 +329,7 @@ export default {
                 this.transalteCount = res.data.list.length
             }).catch((err) => {
                 this.transalteCount = 0
+                message.error(err.message);
             })
         },
         // 获取翻译审核的词条
@@ -341,6 +344,7 @@ export default {
                 this.translateCheckCount = res.data.list.length
             }).catch((err) => {
                 this.translateCheckCount = 0
+                message.error(err.message);
             })
         }
     }

@@ -986,7 +986,7 @@ export default {
               this.saveEntrys();
             })
             .catch((err) => {
-              message.error("词条校验失败！");
+              message.error("词条校验失败！",err.message);
               this.saveLoading = false;
             });
         }
@@ -1119,6 +1119,7 @@ export default {
           .catch((err) => {
             this.saveLoading = false;
             this.loading = false;
+            message.error(err.message);
           });
       }
       if (updateArr.length > 0) {
@@ -1137,6 +1138,7 @@ export default {
           })
           .catch((err) => {
             this.saveLoading = false;
+            message.error(err.message);
           });
       }
     },
@@ -1159,6 +1161,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
 
@@ -1571,7 +1574,7 @@ export default {
                 this.importBtnLoading = false;
               })
               .catch((err) => {
-                message.error("数据获取失败！");
+                message.error("数据获取失败！",err.message);
                 this.loading = false;
                 this.importBtnLoading = false;
               });
@@ -1579,6 +1582,7 @@ export default {
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       } else if (this.dataType === "dictionary") {
         this.$refs.dictSelectRef
@@ -1617,7 +1621,7 @@ export default {
                 this.importBtnLoading = false;
               })
               .catch((err) => {
-                message.error("数据获取失败！");
+                message.error("数据获取失败！",err.message);
                 this.loading = false;
                 this.importBtnLoading = false;
               });
@@ -1625,6 +1629,7 @@ export default {
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       } else if (this.dataType === "database") {
         // 数据库导入
@@ -1638,6 +1643,7 @@ export default {
             .catch((err) => {
               this.loading = false;
               this.importBtnLoading = false;
+              message.error(err.message);
             });
         } else if (this.dataLibrary.type === "alias") {
           // 元数据
@@ -1649,6 +1655,7 @@ export default {
             .catch((err) => {
               this.loading = false;
               this.importBtnLoading = false;
+              message.error(err.message);
             });
         } else if (this.dataLibrary.type === "allData") {
           // 全量
@@ -1660,6 +1667,7 @@ export default {
             .catch((err) => {
               this.loading = false;
               this.importBtnLoading = false;
+              message.error(err.message);
             });
         }
       } else if (this.dataType === "file") {
@@ -1691,7 +1699,7 @@ export default {
             this.importBtnLoading = false;
           })
           .catch((err) => {
-            message.error("导入失败！");
+            message.error("导入失败！",err.message);
             this.loading = false;
             this.importBtnLoading = false;
           });
@@ -1723,12 +1731,13 @@ export default {
               .catch((err) => {
                 this.loading = false;
                 this.importBtnLoading = false;
-                message.error("数据获取失败！");
+                message.error("数据获取失败！",err.message);
               });
           })
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       } else if (this.dataType === "enum") {
         if (this.ip === null || this.ip === undefined || this.ip === "") {
@@ -1757,12 +1766,13 @@ export default {
               .catch((err) => {
                 this.loading = false;
                 this.importBtnLoading = false;
-                message.error("数据获取失败！");
+                message.error("数据获取失败！",err.message);
               });
           })
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       }
     },
@@ -1813,7 +1823,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.importBtnLoading = false;
-          message.error("数据获取失败！");
+          message.error("数据获取失败！",err.message);
         });
     },
     // 获取别名
@@ -1844,7 +1854,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.importBtnLoading = false;
-          message.error("数据获取失败！");
+          message.error("数据获取失败！",err.message);
         });
     },
     // 批量导入数据库
@@ -2019,7 +2029,9 @@ export default {
           }
           delete this.editableData[record.id];
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     // 编辑
     edit(record) {
@@ -2252,6 +2264,7 @@ export default {
           })
           .catch((err) => {
             this.loading = false;
+            message.error(err.message);
           });
       }
     },

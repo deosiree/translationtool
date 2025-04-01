@@ -344,6 +344,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
     handleOK() {
@@ -620,7 +621,7 @@ export default {
           this.ipSelectModal = false;
         })
         .catch((err) => {
-          message.error("归档失败！");
+          message.error("归档失败！",err.message);
         });
     },
     // 归档、归档并结束任务按钮点击事件
@@ -664,10 +665,14 @@ export default {
               .then((res) => {
                 this.ipSelectModal = false;
               })
-              .catch((err) => {});
+              .catch((err) => {
+                message.error(err.message);
+              });
           }
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     ipSelectClose() {
       this.ipSelectModal = false;

@@ -549,7 +549,7 @@ export default {
           this.getSearch();
         })
         .catch((err) => {
-          message.error("编辑失败！");
+          message.error("编辑失败！",err.message);
         });
     },
     // 取消

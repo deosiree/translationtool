@@ -265,7 +265,7 @@ export default {
           this.pagination.total = this.dataSource.totalNum;
         })
         .catch((err) => {
-          message.error("校验目录路径错误！");
+          message.error("校验目录路径错误！",err.message);
         })
         .finally(() => {
           this.loading = false;

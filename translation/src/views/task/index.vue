@@ -584,6 +584,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
     clickInput(event) {
@@ -683,7 +684,9 @@ export default {
           // 保存词条
           this.saveEntry(id);
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     saveEntry(id) {
       // console.log(this.editableData[id])
@@ -726,7 +729,7 @@ export default {
               this.searchTaskInfo();
             })
             .catch((err) => {
-              message.error("复制失败！");
+              message.error("复制失败！",err.message);
               this.loading = false;
             });
         } else {

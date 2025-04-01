@@ -185,6 +185,20 @@ export default {
       this.classifyModalTitle = "更新详情";
       this.updateClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
       this.updateVisible = true; // 显示弹窗
+      this.$nextTick(() => {
+        const domArr = document.getElementsByClassName("ant-modal");
+        if (domArr && domArr.length > 0) {
+          Array.from(domArr).forEach((item) => {
+            if (item.childNodes && item.childNodes.length > 0) {
+              Array.from(item.childNodes).forEach((child) => {
+                if (child.setAttribute) {
+                  child.setAttribute("aria-hidden", "false");
+                }
+              });
+            }
+          });
+        }
+      });
     },
     redundantCheck(treeKey) {
       this.classifyModalTitle = "冗余校验";
