@@ -775,11 +775,12 @@ export default {
       }
       if (
         (this.search.translate != "" || this.search.translateState != null) &&
-        this.search.language === null
+        !this.search.language
       ) {
         message.info("请选择翻译语言！");
         return;
       }
+      console.log("翻译语言：", this.search.language);
       let data = {
         abbr: this.search.abbr,
         entry: this.search.entry,
@@ -791,7 +792,7 @@ export default {
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:",data)
-      if (this.currentVersion === null) {
+      if (!this.currentVersion) {
         data.productID =
           this.product.type === "module"
             ? this.product.parentId
@@ -971,10 +972,7 @@ export default {
           type = "foreignMaxByte";
         }
         let maxLength = null;
-        if (
-          this.limitMap[record.classfy1] === undefined ||
-          this.limitMap[record.classfy1] === null
-        ) {
+        if (!this.limitMap[record.classfy1]) {
           if (record.maxLength != null && record.maxLength != "") {
             maxLength = record.maxLength;
           } else {
@@ -983,12 +981,7 @@ export default {
         } else {
           maxLength = this.limitMap[record.classfy1][type];
         }
-        if (
-          maxLength === undefined ||
-          maxLength === "" ||
-          maxLength === null ||
-          maxLength === 0
-        ) {
+        if (!maxLength || maxLength === "") {
           return Promise.resolve();
         }
         // 获取输入数据的长度
@@ -1108,7 +1101,7 @@ export default {
           }
         })
         .catch((err) => {
-          message.error(err.message)
+          message.error(err.message);
         });
     },
     // 校验输入数据是否合规
@@ -1317,7 +1310,7 @@ export default {
         tag: this.search.tag,
         entrySource: this.search.entrySource,
       };
-      if (this.currentVersion === null) {
+      if (!this.currentVersion) {
         data.productID =
           this.product.type === "module"
             ? this.product.parentId
@@ -1506,7 +1499,7 @@ export default {
     getRowClassify2Option(record) {
       if (
         this.editableData[record.id] === undefined ||
-        this.editableData[record.id].classfy1 === null ||
+        !this.editableData[record.id].classfy1||
         this.editableData[record.id].classfy1 === ""
       ) {
         return;
@@ -1532,7 +1525,7 @@ export default {
     // 切割字符串
     companyCut(message) {
       let res = [];
-      if (message === null || message === "") {
+      if (!message || message === "") {
         return res;
       }
       const regex = /[;；]/;
@@ -1558,14 +1551,20 @@ export default {
         params.parentId = product.parentId;
       } else if (product && product.type === "product") {
         params.parentId = product.key;
+      } else if (product && product.type === "classify") {
+        return;
       }
-      getClassfy(params).then((res) => {
-        let limitMap = {};
-        res.data.list.forEach((item) => {
-          limitMap[item.title] = item;
+      getClassfy(params)
+        .then((res) => {
+          let limitMap = {};
+          res.data.list.forEach((item) => {
+            limitMap[item.title] = item;
+          });
+          this.limitMap = limitMap;
+        })
+        .catch((err) => {
+          message.err(err.message);
         });
-        this.limitMap = limitMap;
-      });
     },
     // 记录用户偏好
     recordPartiality(data) {
@@ -1595,7 +1594,7 @@ export default {
               this.importLoading = false;
             })
             .catch((err) => {
-              message.error("导入失败！",err.message);
+              message.error("导入失败！", err.message);
               this.importLoading = false;
             });
         })
@@ -1629,7 +1628,7 @@ export default {
     // 校验上传文件是否为空
     checkFile() {
       return (rule, value) => {
-        if (this.importFile === null) {
+        if (!this.importFile) {
           return Promise.reject("请选择文件！");
         }
         return Promise.resolve();

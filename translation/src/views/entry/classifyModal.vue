@@ -82,7 +82,7 @@ export default {
     },
     methods: {
         handleClose(){
-            this.$emit("classifyClose")
+            this.$emit("classifyClose", true);
         },
         handleOK(){
             this.$refs.formRef.validate().then(() => {
