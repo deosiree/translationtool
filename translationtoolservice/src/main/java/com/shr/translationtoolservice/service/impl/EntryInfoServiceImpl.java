@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -1957,6 +1959,69 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
+    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID){
+        List<String> productidList = new ArrayList<>();
+        getProductClassfyList(classfyID, productidList);
+        if (CollectionUtils.isEmpty(productidList)){
+            log.error("当前分类不存在或者没有子分类");
+          return null;
+        }
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList, -1,-1);
+        return entryInfoEntities;
+    }
+
+    public List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize){
+        int offset = 0; 
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
+        }
+        if(offset < 0){
+            String errorMessage = "offset不能小于0,当前offset: " + offset;
+            throw new RuntimeException(errorMessage);
+        }  
+        int toIndex = offset + pageSize;
+        if(toIndex < offset){
+            String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
+            log.error(errorMessage);
+            throw new RuntimeException(errorMessage);
+        }
+
+        return entryInfoEntities.subList(offset, toIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : toIndex);
+    }
+
+    public List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntity entryInfoEntityTemplate,String translateType){
+
+        if (CollectionUtils.isEmpty(entryInfoEntities)){
+            return entryInfoEntities;
+        }
+        List<EntryInfoEntity> res = new LinkedList<>(); 
+        // 根据翻译状态，确定是否返回改词条，如果template不提供翻译状态，则返回该词条
+        if (StringUtils.isNotBlank(translateType)) {
+
+            putEntryTransInfo(entryInfoEntities,entryInfoEntityTemplate,res,translateType);
+            return res;
+            // if (
+            //     "0".equals(entryInfoEntityTemplate.getEnglishTranslateState()) || 
+            //     "0".equals(entryInfoEntityTemplate.getRussianTranslateState()) || 
+            //     "0".equals(entryInfoEntityTemplate.getSpanishTranslateState()) || 
+            //     "0".equals(entryInfoEntityTemplate.getFrenchTranslateState()))
+            // {
+            //     return res;
+            // }
+        }else {
+            String[] languages = {ConstantInterface.ENGLISH,ConstantInterface.FRENCH,ConstantInterface.RUSSIAN,ConstantInterface.SPANISH};
+            for(String lang : languages){
+                res = new LinkedList<>();
+                putEntryTransInfo(entryInfoEntities, entryInfoEntityTemplate, res, lang);
+                entryInfoEntities = res;
+                
+            }
+            return res;
+        }
+    }
+
+
+    @Deprecated
     @Override
     public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType) {
         List<String> productidList = new ArrayList<>();
@@ -2827,9 +2892,25 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return taskNames;
     }
 
-    private void    putEntryTransInfo(List<EntryInfoEntity> entryInfoEntities, EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> res,String translateType) {
-
-            int numberOfThreads = 32; // Number of threads to use
+    /**
+     * 1、如果template中翻译状态是null,则返回entryInfoEntities ---->end(添加)
+     * 2、如果list中的entitiy的TransID是null，设定entryInfo的翻译状态为0
+     * 3、如果list中的entitiy的TransID不是null,根据entity的transID在t_translate表中找到对应的记录
+     *      a、如果没找到，则设定entryInfo的翻译状态为0
+     *      b、如果找到了，则设定entryInfo对应语言的翻译状态为t_translate表中对应记录的状态
+     * 4、如果template中的翻译状态和词条对应的语言的翻译状态不同，则不添加到res里面
+     *                          
+     * @param entryInfoEntities
+     * @param entryInfoEntity
+     * @param res   存放满足条件的词条
+     * @param translateType
+     */
+    private void putEntryTransInfo(List<EntryInfoEntity> entryInfoEntities, EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> res,String translateType) {
+            /*
+             * 添加一个锁，保证线程安全
+             */
+            ReentrantLock lock = new ReentrantLock();
+            int numberOfThreads = 64; // Number of threads to use
             CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
             int chunkSize = entryInfoEntities.size() / numberOfThreads;
@@ -2839,6 +2920,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 List<EntryInfoEntity> sublist = entryInfoEntities.subList(start, end);
 
                 new Thread(() -> {
+                    List<EntryInfoEntity> collection = new LinkedList<>();
                     try {
                         // Process the sublist
                         for (EntryInfoEntity entryEntity : sublist) {
@@ -2847,7 +2929,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                             switch (translateType) {
                                 case ConstantInterface.ENGLISH:
                                     if (StringUtils.isBlank(entryInfoEntity.getEnglishTranslateState())){
-                                        res.add(entryEntity);
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                         continue;
                                     }
                                     if (StringUtils.isBlank(entryEntity.getEnTransId())) {
@@ -2861,16 +2944,18 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                                         }
                                     }
                                     if ( entryInfoEntity.getEnglishTranslateState().equals(entryEntity.getEnglishTranslateState())) {
-                                        res.add(entryEntity);
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                     }
                                     break;
                                 case ConstantInterface.RUSSIAN:
                                     if (StringUtils.isBlank(entryInfoEntity.getRussianTranslateState())){
-                                        res.add(entryEntity);
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                         continue;
                                     }
                                     if (StringUtils.isBlank(entryEntity.getRuTransId())) {
-                                        entryEntity.setEnglishTranslateState("0");
+                                        entryEntity.setRussianTranslateState("0");
                                     } else {
                                         translateEntity = translateMapper.selectById(entryEntity.getRuTransId());
                                         if (Objects.nonNull(translateEntity)) {
@@ -2879,13 +2964,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                                             entryEntity.setRussianTranslateState("0");
                                         }
                                     }
-                                    if (StringUtils.isNotBlank(entryInfoEntity.getRussianTranslateState()) && entryInfoEntity.getRussianTranslateState().equals(entryEntity.getRussianTranslateState())) {
-                                        res.add(entryEntity);
+                                    if (entryInfoEntity.getRussianTranslateState().equals(entryEntity.getRussianTranslateState())) {
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                     }
                                     break;
                                 case ConstantInterface.SPANISH:
                                     if (StringUtils.isBlank(entryInfoEntity.getSpanishTranslateState())){
-                                        res.add(entryEntity);
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                         continue;
                                     }
                                     if (StringUtils.isBlank(entryEntity.getSpaTransId())) {
@@ -2898,13 +2985,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                                             entryEntity.setSpanishTranslateState("0");
                                         }
                                     }
-                                    if (StringUtils.isNotBlank(entryInfoEntity.getSpanishTranslateState()) && entryInfoEntity.getSpanishTranslateState().equals(entryEntity.getSpanishTranslateState())) {
-                                        res.add(entryEntity);
+                                    if (entryInfoEntity.getSpanishTranslateState().equals(entryEntity.getSpanishTranslateState())) {
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                     }
                                     break;
                                 case ConstantInterface.FRENCH:
                                     if (StringUtils.isBlank(entryInfoEntity.getFrenchTranslateState())){
-                                        res.add(entryEntity);
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                         continue;
                                     }
                                     if (StringUtils.isBlank(entryEntity.getFraTransId())) {
@@ -2917,11 +3006,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                                             entryEntity.setFrenchTranslateState("0");
                                         }
                                     }
-                                    if (StringUtils.isNotBlank(entryInfoEntity.getFrenchTranslateState()) && entryInfoEntity.getFrenchTranslateState().equals(entryEntity.getFrenchTranslateState())) {
-                                        res.add(entryEntity);
+                                    if (entryInfoEntity.getFrenchTranslateState().equals(entryEntity.getFrenchTranslateState())) {
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
                                     }
                                     break;
                             }
+                        }
+                        try {
+                            lock.lock();
+                            res.addAll(collection);
+                        } catch (Exception e) {
+                            // TODO: handle exception
+                            e.printStackTrace();
+                        } finally{
+                            lock.unlock();
                         }
                     } finally {
                         latch.countDown();

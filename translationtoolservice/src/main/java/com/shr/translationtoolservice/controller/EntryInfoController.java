@@ -182,24 +182,42 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("获取分类词条")
     @CrossOrigin
     @Token
-    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntity,
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntityTemplate,
                                                                               @RequestParam(value = "classfyID") String classfyID,
                                                                                  String translateType,
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
-        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        List<EntryInfoEntity> originalEntryInfoEntities = new ArrayList<>();
 
-        entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
-
-
-
-        responseListModel.setList(entryInfoEntities);
+        // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
+        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
+        // responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
         //全选跳过汇总
         if (pageIndex != -1 && pageSize != -1) {
-            responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID,translateType));
+            // responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID,translateType));
+            List<EntryInfoEntity> results = entryInfoService.onPage(entryInfoEntities, pageIndex, pageSize);
+            for(EntryInfoEntity result: results){
+                if(StringUtils.isBlank(result.getEnTransId())){
+                    result.setEnglishTranslateState("0");
+                }
+                if(StringUtils.isBlank(result.getRuTransId())){
+                    result.setRussianTranslateState("0");
+                }
+                if(StringUtils.isBlank(result.getSpaTransId())){
+                    result.setSpanishTranslateState("0");   
+                }
+                if(StringUtils.isBlank(result.getFraTransId())){
+                    result.setFrenchTranslateState("0");
+                }
+            }
+            responseListModel.setList(results);
         }else {
-            responseListModel.setTotalNum(entryInfoEntities.size());
+            // responseListModel.setTotalNum(entryInfoEntities.size());
+            List<EntryInfoEntity> results = entryInfoEntities;
+            responseListModel.setList(results);
         }
 
         return checkResult(responseListModel);

@@ -100,4 +100,12 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     void doWeight();
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
+
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID);
+
+    List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
+
+    List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntity entryInfoEntityTemplate,String translateType);
+
+
 }
