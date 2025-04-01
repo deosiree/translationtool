@@ -166,14 +166,21 @@ export default {
         department: this.$store.state.admin ? "" : this.user.department,
         className: this.keyWords,
       };
-      getClassTree(params).then((res) => {
-        this.treeData = res.data.list;
-      });
+      getClassTree(params)
+        .then((res) => {
+          this.treeData = res.data.list;
+        })
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
-    classifyClose() {
+    classifyClose(closeFlag) {
       this.classifyVisible = false;
-      this.getClassTree();
-      this.$refs.productEntry.refresh(this.currentClickProduct);
+      if (!closeFlag) {
+        // 如果只是close的话，不用重新获取树和刷新页面
+        this.getClassTree();
+        this.$refs.productEntry.refresh(this.currentClickProduct);
+      } else console.log("没进close");
     },
     updateClose() {
       this.updateVisible = false;

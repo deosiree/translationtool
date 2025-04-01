@@ -474,7 +474,7 @@ export default {
       };
     },
     getClassfy(task) {
-      if (task.productId === null || task.productId === "") {
+      if (!task.productId || task.productId === "") {
         this.classifyLimit = {};
         return;
       }
@@ -482,12 +482,16 @@ export default {
         parentId: task.productId,
         type: "module",
       };
-      getClassfy(params).then((res) => {
-        this.classifyLimit = {};
-        res.data.list.forEach((element) => {
-          this.classifyLimit[element.title] = element;
+      getClassfy(params)
+        .then((res) => {
+          this.classifyLimit = {};
+          res.data.list.forEach((element) => {
+            this.classifyLimit[element.title] = element;
+          });
+        })
+        .catch((err) => {
+          message.err(err.message);
         });
-      });
     },
     clickCard(index) {
       if (index !== this.activeCard) this.pagination.current = 1; // 查询条件变化，分页重置
@@ -586,7 +590,7 @@ export default {
             }
           })
           .catch((err) => {
-            message.error("数据获取失败！",err.message);
+            message.error("数据获取失败！", err.message);
           })
           .finally(() => {
             this.loading = false;
@@ -599,7 +603,7 @@ export default {
             this.pagination.total = res.data.totalNum;
           })
           .catch((err) => {
-            message.error("数据获取失败！",err.message);
+            message.error("数据获取失败！", err.message);
           })
           .finally(() => {
             this.loading = false;
