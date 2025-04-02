@@ -583,12 +583,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         List<EntryInfoEntity> entryInfoEntities = getEntryInfo(taskID, entryState, transStates, entry);
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
-        if ( StringUtils.isBlank(entryState) || Integer.parseInt(entryState) > 1 ) {
-            entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
-        }else {
-            entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+        // if ( StringUtils.isBlank(entryState) || Integer.parseInt(entryState) > 1 ) {
+        //     entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+        // }else {
+        entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
 
-        }
+        // }
         //entryInfoEntityList 的元素中没有翻译的排序在前面
         sortEmptyTrans(entryInfoEntityList,taskEntityByTaskID.getTranslateType());
 
