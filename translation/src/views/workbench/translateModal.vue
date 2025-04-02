@@ -537,14 +537,12 @@ export default {
               item[languageCode + "TranslateState"] = "0";
             }
           });
-
-          // this.allData = this.dataSource
-          this.loading = false;
-          // this.select()
         })
         .catch((err) => {
-          this.loading = false;
           message.error("1", err.message);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     handleOK() {
@@ -554,17 +552,20 @@ export default {
       }
       this.saveLoading = true;
       this.loading = true;
+
       let languageCode =
         workbenchCommon.languageMap[this.task.translateType].code;
       let transIdName =
         workbenchCommon.languageMap[this.task.translateType].transIdName;
+
+      // 更新数据源中的翻译数据
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        // entry.translate = this.editableData[key].translate
         entry[languageCode] = this.editableData[key][languageCode];
         entry[transIdName] = this.editableData[key][transIdName];
       }
       this.editableData = {};
+
       // 获取保存数据
       let saveEntrys = [];
       this.dataSource.forEach((item) => {
@@ -572,6 +573,7 @@ export default {
           saveEntrys.push(item);
         }
       });
+
       // 设置翻译状态
       saveEntrys.forEach((item) => {
         if (item[languageCode] === null || item[languageCode] === "") {
@@ -583,25 +585,26 @@ export default {
           item[languageCode + "TranslateState"] = "1"; // 已翻译待审核
         }
       });
+
+      // 校验翻译长度
       let num = this.verifyTranslationLength(saveEntrys);
       if (num > 0) {
-        // 存在超长翻译
         message.warn("存在超长翻译，请检查！");
         this.saveLoading = false;
         this.loading = false;
         return;
       }
+
       const datas = [];
       Object.values(saveEntrys).forEach((item) => {
-        // if (!item[languageCode] || !item.entry)
-        //   this.redHighlightIds.push(item.id);
-        // else
         datas.push({
-          id: item.id, // 必须要的(确定身份)
-          entry: item.entry, // 必须要的
-          translate: item[languageCode], // 必须要的
+          id: item.id,
+          entry: item.entry,
+          translate: item[languageCode],
         });
       });
+
+      // 链式调用异步操作
       checkSykEntryBeforeSave(datas)
         .then((res) => {
           // 更新 redHighlightIds 数组
@@ -619,55 +622,45 @@ export default {
           let params = {
             taskID: this.task.id,
           };
-          updateEntryList(params, saveEntrys)
-            .then((res) => {
-              message.success("已保存！");
-              let params = {
-                taskID: this.task.id,
-                entryState: "3",
-                entry: this.keyWords,
-              };
-              this.loading = true;
-              let languageCode =
-                workbenchCommon.languageMap[this.task.translateType].code;
-              let data =
-                this.translateState === null ||
-                this.translateState === undefined
-                  ? ["0", "2"]
-                  : [this.translateState];
-              this.redHighlightIds = []; // 重新查询前要把异常数据清空
-              getEntryInfoList(params, data).then((res) => {
-                this.dataSource = res.data.list;
-                if (this.dataSource.length > 0) {
-                  this.selectedRowIndex = this.dataSource[0].id;
-                  this.assistedTranslation(this.dataSource[0]);
-                }
-                this.dataSource.forEach((item) => {
-                  if (
-                    item[languageCode + "TranslateState"] === null ||
-                    item[languageCode + "TranslateState"] === ""
-                  ) {
-                    item[languageCode + "TranslateState"] = "0";
-                  }
-                });
-                // console.log("重新查询的结果", this.dataSource);
-                if (this.dataSource.length == 0) {
-                  // 如果没有待处理的数据就自动关闭弹窗
-                  this.handleClose();
-                }
-              });
-            })
-            .catch((err) => {
-              message.error("保存失败！", err.message);
-              // console.log("err", err);
-            })
-            .finally(() => {
-              this.saveLoading = false;
-              this.loading = false;
-            });
+          return updateEntryList(params, saveEntrys);
+        })
+        .then((res) => {
+          message.success("已保存！");
+          let params = {
+            taskID: this.task.id,
+            entryState: "3",
+            entry: this.keyWords,
+          };
+          let languageCode =
+            workbenchCommon.languageMap[this.task.translateType].code;
+          let data =
+            this.translateState === null || this.translateState === undefined
+              ? ["0", "2"]
+              : [this.translateState];
+          this.redHighlightIds = []; // 重新查询前要把异常数据清空
+          return getEntryInfoList(params, data);
+        })
+        .then((res) => {
+          this.dataSource = res.data.list;
+          if (this.dataSource.length > 0) {
+            this.selectedRowIndex = this.dataSource[0].id;
+            this.assistedTranslation(this.dataSource[0]);
+          }
+          this.dataSource.forEach((item) => {
+            if (
+              item[languageCode + "TranslateState"] === null ||
+              item[languageCode + "TranslateState"] === ""
+            ) {
+              item[languageCode + "TranslateState"] = "0";
+            }
+          });
+          if (this.dataSource.length === 0) {
+            // 如果没有待处理的数据就自动关闭弹窗
+            this.handleClose();
+          }
         })
         .catch((err) => {
-          message.error("校验失败！", err.message);
+          message.error("操作失败！", err.message);
         })
         .finally(() => {
           this.saveLoading = false;
@@ -969,34 +962,35 @@ export default {
           priority: this.preTran.priority,
         };
         this.loading = true;
-        // 是编辑状态的要赋值，说明要取消编辑状态
-        // 遍历 this.dataSource，将 this.editableData 中有的 id 的 dataSource 的翻译都变成空
+        // 将 编辑数据对应 的 dataSource 的翻译都变成空，以便被预翻译覆盖
         this.dataSource.forEach((item) => {
-          if (Object.keys(this.editableData).some((key) => this.editableData[key].id === item.id)) {
+          if (
+            Object.keys(this.editableData).some(
+              (key) => this.editableData[key].id === item.id
+            )
+          ) {
             // console.log("取消的翻译", item[languageCode]);
             item[languageCode] = "";
           }
         });
-        this.editableData = [];
+        this.editableData = []; // 取消所有编辑状态
         preTranslate(params, this.dataSource)
           .then((res) => {
-            // this.dataSource = res.data.list;
             // 更新 dataSource 中的翻译数据
             this.dataSource = res.data.list.map((item) => {
-              // 假设接口响应中的翻译数据在 languageCode 字段中
               item.translate = item[languageCode];
               // if (!item.translate) {
               //   console.log(`${item.entry}没有翻译数据`, item);
               // }
               return item;
             });
-            // console.log("编辑数据有：", Object.keys(this.editableData));
-            // 修改编辑中数据值
-            for (let key in this.editableData) {
-              this.editableData[key] = this.dataSource.find(
-                (item) => item.id === key
-              );
-            }
+            // // console.log("编辑数据有：", Object.keys(this.editableData));
+            // // 修改编辑中数据值
+            // for (let key in this.editableData) {
+            //   this.editableData[key] = this.dataSource.find(
+            //     (item) => item.id === key
+            //   );
+            // }
             // 校验翻译长度
             let num = this.verifyTranslationLength(this.dataSource);
             if (num > 0) {
@@ -1131,23 +1125,13 @@ export default {
           this.dataSource.forEach((item) => {
             item.entryState = 3;
           });
-          this.loading = false;
         })
         .catch((err) => {
           message.error("导入失败！", err.message);
+        })
+        .finally(() => {
           this.loading = false;
         });
-
-      // importCommonExcle(formData).then((res) => {
-      //     this.dataSource = res.data.list
-      //     this.dataSource.forEach(item => {
-      //         item.entryState = 3
-      //     })
-      //     this.loading = false
-      // }).catch((err) => {
-      //     message.error('导入失败！')
-      //     this.loading = false
-      // })
     },
     // 下一个词条 快捷键
     nextEntry() {
