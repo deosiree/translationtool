@@ -853,9 +853,6 @@ export default {
             web: [],
           };
           this.spinning = false;
-          setTimeout(() => {
-            message.error("4", err.message);
-          }, 1000);
         });
     },
     // 设置翻译建议快捷键
