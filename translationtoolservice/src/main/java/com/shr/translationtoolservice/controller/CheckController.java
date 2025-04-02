@@ -118,11 +118,11 @@ public class CheckController  extends BaseController{
     @ApiOperation("展示 词条,所属类,tag,点击详情展示 对应ts文件,翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel<TsEntryInfoVo>> getEntryByTsVo(@RequestBody List<TsVo> tsVoList) {
-        ResponseListModel<TsEntryInfoVo> model = new ResponseListModel<>();
+    public HttpResponse<ResponseListModel> getEntryByTsVo(@RequestBody List<TsVo> tsVoList) {
+        ResponseListModel model = new ResponseListModel<>();
         try {
             // 去重
-            List<TsEntryInfoVo> tsEntryWithProblem = entryInfoService.getEntryInfoByTsVo(tsVoList);
+            List<EntryInfoEntity> tsEntryWithProblem = entryInfoService.getEntryInfoByTsVo(tsVoList);
             model.setList(tsEntryWithProblem);
             model.setTotalNum(tsEntryWithProblem.size());
             return ok(model);

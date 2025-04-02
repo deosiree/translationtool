@@ -110,7 +110,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<TsEntryInfoVo> getEntryInfoByTsVo(List<TsVo> tsVoList);
     List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID);
 
     List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
@@ -118,4 +117,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntity entryInfoEntityTemplate,String translateType);
 
 
+    List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
 }

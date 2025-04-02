@@ -1019,7 +1019,7 @@
     </select>
 
     <select id="getEntryByImportTypeUsingTranslate" resultType = "com.shr.translationtoolservice.entity.vo.TsVo">
-    SELECT info.entry,info.comment,info.tag,trans.translate 
+    SELECT info.entry,info.comment,info.tag,trans.type,trans.translate 
     FROM t_translate as trans INNER JOIN t_entry_info as info on trans.id = info.en_trans_id 
     or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
     WHERE
@@ -1029,23 +1029,28 @@
     <if test = "department != null and department != ''">
         and trans.visual_range = #{department,jdbcType =VARCHAR}
     </if>
-    ORDER BY info.entry,info.comment,info.tag,trans.translate
+    ORDER BY info.entry,info.comment,info.tag,trans.type,trans.translate
     
     </select>
 
     <select id="getEntryByTsVo" resultMap="BaseResultMap">
-        select info.* from t_entry_info as info INNER JOIN
-        t_translate as trans on trans.id = info.en_trans_id 
-        or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
+        select <include refid="Base_t2_Column_List"/>,
+        t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
+        t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
+        t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
+        left JOIN t_translate t3 ON t2.en_trans_id = t3.id
+        left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
+        left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
+        left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
         where 
-            info.entry = #{tsVo.entry,jdbcType=VARCHAR}
+            t2.entry = #{tsVo.entry,jdbcType=VARCHAR}
         and 
-            info.comment = #{tsVo.comment,jdbcType=VARCHAR}
+            t2.comment = #{tsVo.comment,jdbcType=VARCHAR}
         and 
-            info.tag = #{tsVo.tag,jdbcType=VARCHAR}
-        and 
-            trans.translate = #{tsVo.translate,jdbcType=VARCHAR}
-        
+            t2.tag = #{tsVo.tag,jdbcType=VARCHAR}
+        and t2.is_delete = 0
     </select>
 
     <sql id="Base_Column_List_With_Prefix">

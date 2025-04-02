@@ -127,7 +127,7 @@ public class CheckServiceImpl implements CheckService {
                 }else{
                     TsVo refTsVo = stack.firstElement();
                     TsVo rightTsVo = entryUsingTranslate.get(rightIndex++);
-                    if(refTsVo.isEqualsNotConsiderTrans(rightTsVo)){
+                    if(refTsVo.getType().equals(rightTsVo.getType()) && refTsVo.isEqualsNotConsiderTrans(rightTsVo)){
                         String refTranslate = refTsVo.getTranslate();
                         String rightTranslate = rightTsVo.getTranslate();
                         isHasProblems = !TsVo.isEquals(refTranslate, rightTranslate);
@@ -137,7 +137,8 @@ public class CheckServiceImpl implements CheckService {
                         }
                     }else{
                         if(isHasProblems){
-                            entryFiltered.addAll(stack.subList(0, stack.size()));
+                            // entryFiltered.addAll(stack.subList(0, stack.size()));
+                            entryFiltered.add(TsVo.copy(stack.peek()));
                             isHasProblems = false;
                         }
                         stack.clear();
@@ -146,7 +147,8 @@ public class CheckServiceImpl implements CheckService {
                 }
             }
             if(isHasProblems){
-                entryFiltered.addAll(stack.subList(0, stack.size()));
+                // entryFiltered.addAll(stack.subList(0, stack.size()));
+                entryFiltered.add(TsVo.copy(stack.peek()));
             }
             return entryFiltered;
         }

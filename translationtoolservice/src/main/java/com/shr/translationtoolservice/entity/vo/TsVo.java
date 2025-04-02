@@ -10,6 +10,7 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 
 import lombok.Data;
 
+
 @Data
 public class TsVo {
 
@@ -20,6 +21,17 @@ public class TsVo {
     private String tag;
 
     private String translate;
+
+    private String type;
+
+    public static TsVo copy(TsVo tsVo){
+        TsVo tsVoTarget = new TsVo();
+        tsVoTarget.setComment(tsVo.getComment());
+        tsVoTarget.setTag(tsVo.getTag());
+        tsVoTarget.setEntry(tsVo.getEntry());
+        tsVoTarget.setType(tsVo.getType());
+        return tsVoTarget;
+    }
 
     public static boolean isEquals(String text1,String text2){
         if(text1 == null && text2 == null){

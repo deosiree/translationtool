@@ -37,6 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collector;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -3556,17 +3557,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<TsEntryInfoVo> getEntryInfoByTsVo(List<TsVo> tsVoList) {
+    public List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList) {
         // TODO Auto-generated method stub
-        List<TsEntryInfoVo> entityList = new LinkedList<>();
+        List<EntryInfoEntity> entities = new LinkedList<>();
         for(TsVo tsVo : tsVoList){
-            List<EntryInfoEntity> entryByTsVo = entryInfoMapper.getEntryByTsVo(tsVo);
-            TsEntryInfoVo tsEntryInfoVo = new TsEntryInfoVo();
-            tsEntryInfoVo.setTsVo(tsVo);
-            tsEntryInfoVo.setEntryInfoEntities(entryByTsVo);
-            entityList.add(tsEntryInfoVo);
+            entities.addAll(entryInfoMapper.getEntryByTsVo(tsVo));
         }
-        return entityList;
+        // entityTemplate.
+        return entities;
     }
 
 
