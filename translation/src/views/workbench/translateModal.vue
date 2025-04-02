@@ -544,7 +544,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          message.error(err.message);
+          message.error("1", err.message);
         });
     },
     handleOK() {
@@ -658,7 +658,7 @@ export default {
               });
             })
             .catch((err) => {
-              message.error("保存失败！",err.message);
+              message.error("保存失败！", err.message);
               // console.log("err", err);
             })
             .finally(() => {
@@ -860,7 +860,9 @@ export default {
             web: [],
           };
           this.spinning = false;
-          message.error(err.message);
+          setTimeout(() => {
+            message.error("4", err.message);
+          }, 1000);
         });
     },
     // 设置翻译建议快捷键
@@ -946,7 +948,7 @@ export default {
           delete this.editableData[record.id];
         })
         .catch((err) => {
-          message.error(err.message);
+          message.error("5", err.message);
         });
     },
     // 预翻译
@@ -967,6 +969,15 @@ export default {
           priority: this.preTran.priority,
         };
         this.loading = true;
+        // 是编辑状态的要赋值，说明要取消编辑状态
+        // 遍历 this.dataSource，将 this.editableData 中有的 id 的 dataSource 的翻译都变成空
+        this.dataSource.forEach((item) => {
+          if (Object.keys(this.editableData).some((key) => this.editableData[key].id === item.id)) {
+            // console.log("取消的翻译", item[languageCode]);
+            item[languageCode] = "";
+          }
+        });
+        this.editableData = [];
         preTranslate(params, this.dataSource)
           .then((res) => {
             // this.dataSource = res.data.list;
@@ -974,18 +985,18 @@ export default {
             this.dataSource = res.data.list.map((item) => {
               // 假设接口响应中的翻译数据在 languageCode 字段中
               item.translate = item[languageCode];
+              // if (!item.translate) {
+              //   console.log(`${item.entry}没有翻译数据`, item);
+              // }
               return item;
             });
-
+            // console.log("编辑数据有：", Object.keys(this.editableData));
             // 修改编辑中数据值
             for (let key in this.editableData) {
               this.editableData[key] = this.dataSource.find(
                 (item) => item.id === key
               );
             }
-            this.loading = false;
-            this.selectVisible = false;
-            this.preTranslateOkLoading = false;
             // 校验翻译长度
             let num = this.verifyTranslationLength(this.dataSource);
             if (num > 0) {
@@ -993,7 +1004,9 @@ export default {
             }
           })
           .catch((err) => {
-            message.error("预翻译失败！",err.message);
+            message.error("预翻译失败！", err.message);
+          })
+          .finally(() => {
             this.loading = false;
             this.selectVisible = false;
             this.preTranslateOkLoading = false;
@@ -1086,7 +1099,7 @@ export default {
           this.exportFieldChange(this.exportModal.field);
         })
         .catch((err) => {
-          message.error(err.message);
+          message.error("7", err.message);
         });
     },
     exportAfterClose() {
@@ -1121,7 +1134,7 @@ export default {
           this.loading = false;
         })
         .catch((err) => {
-          message.error("导入失败！",err.message);
+          message.error("导入失败！", err.message);
           this.loading = false;
         });
 
@@ -1361,7 +1374,7 @@ export default {
               .validate()
               .then(() => {})
               .catch((err) => {
-                message.error(err.message);
+                message.error("10", err.message);
               });
           });
         }
@@ -1487,7 +1500,7 @@ export default {
           });
         })
         .catch((err) => {
-          message.error(err.message);
+          message.error("11", err.message);
         });
     },
     replaceAfterClose() {
