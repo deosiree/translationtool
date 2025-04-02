@@ -103,5 +103,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<TsEntryInfoVo> getEntryInfoByTsVo(List<TsVo> tsVoList);
+    List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
 }
