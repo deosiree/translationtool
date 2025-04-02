@@ -33,8 +33,8 @@
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }">
             <!-- 表格组件 -->
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
-              :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-              :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable" @resizeColumn="handleResizeColumn">
+              :row-key="record => record.id" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable"
+              @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, text, record }">
                 <!--Tag列 -->
@@ -67,6 +67,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import QtCheckRelation from "@/views/check/qtCheckRelation.vue";
 import commen from "@/views/entry/common.js";
+import languageParam from "@/utils/languageParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import { getTsProblems, getEntryByTsVo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
@@ -76,6 +77,7 @@ import {
   handleResizeColumn,
   getRowClassName,
   pageChange,
+  onSelectChange,
 } from "@/utils/tableUtils"; // 引入工具函数
 import { setModalAriaHidden } from "@/utils/commonUtils";
 
@@ -90,7 +92,7 @@ export default {
       labelCol: { style: { width: "84px" } },
       tableTitle: "术语列表",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       search: {
         entry: "",
@@ -112,7 +114,9 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 60,
+          width: 50,
+          resizable: false,
+          fixed: "left",
           index: 0.1,
           customRender: (text, record, index, column) => {
             return (
@@ -126,15 +130,16 @@ export default {
           title: "词条",
           dataIndex: "entry",
           align: "center",
-          width: 300,
+          width: 800,
           resizable: true,
+          fixed: "left",
           index: 1,
         },
         {
-          title: "翻译",
-          dataIndex: "translate",
+          title: "异常的翻译语言",
+          dataIndex: "type",
           align: "center",
-          width: 300,
+          width: 200,
           resizable: true,
           index: 2,
         },
@@ -142,7 +147,7 @@ export default {
           title: "Tag",
           dataIndex: "tag",
           align: "center",
-          width: 100,
+          width: 200,
           resizable: true,
           index: 3,
         },
@@ -150,7 +155,7 @@ export default {
           title: "Comment",
           dataIndex: "comment",
           align: "center",
-          width: 100,
+          width: 200,
           resizable: true,
           index: 4,
         },
@@ -158,79 +163,17 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 100,
           fixed: "right",
-          index: 100,
+          // width: 80,
+          // resizable: false,
+          // index: 100,
         },
       ],
       isDeletes: [
         { label: "已删除", value: 1 },
         { label: "待删除", value: 0 },
       ],
-      // dataSource: [],// 表格数据
-      dataSource: [
-        {
-          entry: "词条",
-          category: "Offline",
-          tag: "Tag1111111111111111111111111111111111111111111111111111",
-          operation: "详情",
-        },
-        {
-          entry: "词条2",
-          category: "Offline",
-          tag: "Tag22222222222222222222222222222222222222222222222222222222222222",
-          operation: "详情",
-        },
-        {
-          entry: "词条3",
-          category: "Offline",
-          tag: "Tagvsfvsefsefsfsefesfsefiefieshfiwefwnfiwnfiwnfownefowenfowenf",
-          operation: "详情",
-        },
-        {
-          entry: "词条",
-          category: "Offline",
-          tag: "Tageeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-          operation: "详情",
-        },
-        {
-          entry: "词条2",
-          category: "Offline",
-          tag: "Tagfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          operation: "详情",
-        },
-        {
-          entry: "词条3",
-          category: "Offline",
-          tag: "Tag4444444444444444444444444444444444444444444444444444444444444444444",
-          operation: "详情",
-        },
-        {
-          entry: "词条",
-          category: "Offline",
-          tag: "Tagbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          operation: "详情",
-        },
-        {
-          entry: "词条2",
-          category: "Offline",
-          tag: "Tagkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
-          operation: "详情",
-        },
-        {
-          entry: "词条3",
-          category: "Offline",
-          tag: "Tag99999999999999999999999999999999999999999999999999999999999999999999999999999999",
-          operation: "详情",
-        },
-        {
-          entry: "词条",
-          category: "Offline",
-          tag: "Tag0000000000000000000000000000000000000000000000000000000000000000000000000",
-          operation: "详情",
-        },
-        // ... 其他示例数据
-      ],
+      dataSource: [], // 表格数据
       relationData: [],
       relationVisible: false, // 详情弹窗
       selectedRowKeys: [], // 表格选中项
@@ -271,6 +214,7 @@ export default {
     check() {
       this.dataSource = []; // 清空数据
       this.pageChangeSearch = this.search;
+      this.pagination.current = 1;
       this.searchCheckInfo();
     },
     // 获取校验信息
@@ -278,18 +222,30 @@ export default {
       this.loading = true;
       getTsProblems(null, this.search)
         .then((res) => {
-          console.log("校验成功！！", res);
+          // console.log("校验成功！！", res);
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
-          // for (let item of this.dataSource) {
-          //   // console.log("item", item);
-          //   getEntryByTsVo([item]).then((res) => {
-          //     // console.log("详情：",res);
-          //     item["relationCount"] = res.data.list[0].entryInfoEntities.length;
-          //     item["reslations"] = res.data.list[0].entryInfoEntities;
-          //     // console.log("item", item);
-          //   });
-          // }
+          // let tsProblemsTypeValue="";
+          for (let item of this.dataSource) {
+            // console.log("item", item);
+            getEntryByTsVo([item]).then((resByTsVo) => {
+              // console.log("详情：",resByTsVo);
+              item["relationCount"] = resByTsVo.data.totalNum;
+              // 对 resByTsVo.data.list 进行排序
+              const tsProblemsTypeValue = languageParam.languageList.find((it) => it.name === item.type).value;
+              resByTsVo.data.list.sort((a, b) => {
+                const valueA = a[tsProblemsTypeValue];
+                const valueB = b[tsProblemsTypeValue];
+                return valueA > valueB ? 1 : (valueA < valueB ? -1 : 0);
+              });
+              item["reslations"] = {
+                list: resByTsVo.data.list,
+                entry: item.entry,
+                tsProblemsType: item.type,
+              };
+              // console.log("item", item);
+            });
+          }
         })
         .catch((err) => {
           message.info(err.message);
@@ -312,11 +268,6 @@ export default {
       this.relationVisible = false;
     },
 
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
-    },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
       clickInput(this, event);
@@ -327,7 +278,8 @@ export default {
     },
     // 表格列可伸缩
     handleResizeColumn(w, col) {
-      return handleResizeColumn(w, col); // 调用工具函数
+      // return handleResizeColumn(w, col); // 调用工具函数
+      col.width = w;
     },
     // 设置表格每一行的 class
     getRowClassName(record, index) {

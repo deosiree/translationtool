@@ -1,20 +1,53 @@
 <template>
   <!-- 详情弹框(?修改a-modal的大小，参考之前工作台的) -->
-  <a-modal :visible="visible" title="关联信息2" @cancel="handleClose" @ok="handleOK" style="width:70%">
+  <a-modal :visible="visible" title="同词条，不同 翻译/词条来源" @cancel="handleClose" @ok="handleOK" style="width:70%">
+    <div class="data">
+      <div style="float: left;">
+        词条：
+        <span class="value">{{dataSource.entry}}</span>
+      </div>
+      <div style="float: right;">
+        翻译语言：
+        <span class="value">{{dataSource.tsProblemsType}}</span>
+      </div>
+    </div>
     <div class="table">
-      <a-form ref="tableRelationFormRef" :model="dataSource" :wrapper-col="{ span: 0 }">
-        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
-          :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :row-key="record => record.id" :pagination='pagination'
-          :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn">
+      <a-form ref="tableRelationFormRef" :model="dataSource.list" :wrapper-col="{ span: 0 }">
+        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource.list" :scroll="{x:'60vw' , y: '50vh'}"
+          :row-key="record => record.id" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="taskTable"
+          @resizeColumn="handleResizeColumn">
           <!-- 表格单元格模板 -->
-          <template #bodyCell="{ column, text }">
-            <!--Tag列 -->
-            <template v-if="column.dataIndex === 'tag'">
-              <span>
-                <a-tag color="cyan" class="tag-content">
-                  <span>{{ text }}</span>
-                </a-tag>
-              </span>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'translate'">
+              <span>{{ record[this.translate] }}</span>
+            </template>
+            <template v-if="column.dataIndex === 'translateState'">
+              <template v-if="record[this.translateState] === '0'">
+                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
+              </template>
+              <template v-if="record[this.translateState] === '1'">
+                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
+              </template>
+              <template v-if="record[this.translateState] === '2'">
+                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+              </template>
+              <template v-if="record[this.translateState] === '3'">
+                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+              </template>
+            </template>
+            <template v-if="['publicState', 'entryState'].includes(column.dataIndex)">
+              <template v-if="[0, '0'].includes(record[this.publicState])">
+                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+              </template>
+              <template v-if="record[this.publicState] === 1">
+                <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
+              </template>
+              <template v-if="record[this.publicState] === 2">
+                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+              </template>
+              <template v-if="record[this.publicState] === 3">
+                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+              </template>
             </template>
           </template>
         </a-table>
@@ -26,67 +59,30 @@
 <script>
 import { message, Modal } from "ant-design-vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
-import { cloneDeep, flatMap } from "lodash-es";
-import { defineComponent, ref, createVNode } from "vue";
+import languageParam from "@/utils/languageParam.js";
 export default {
   emits: ["relationClose"],
   props: {
-    // 传递来的数据放这儿，不能再在data中定义了
     visible: {
       type: Boolean,
       default: false,
     },
     dataSource: {
-      type: Array,
+      type: Object,
     },
   },
   data() {
     return {
       locale: locale,
       labelCol: { style: { width: "84px" } },
-      tableHeight: { x: "100%", y: 0 },
       loading: false,
-      // columns: [
-      //   {
-      //     title: "序号",
-      //     dataIndex: "index",
-      //     align: "center",
-      //     width: 50,
-      //     index:0.1,
-      //     customRender: (text, record, index, column) => {
-      //       return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
-      //     },
-      //   },
-      //   {
-      //     id: 2,
-      //     title: "ts文件",
-      //     dataIndex: "tsFile",
-      //     align: "center",
-      //     width: 100,
-
-      //   },
-      //   {
-      //     id: 3,
-      //     title: "词条",
-      //     dataIndex: "entry",
-      //     align: "center",
-      //     width: 300,
-
-      //   },
-      //   {
-      //     id: 4,
-      //     title: "翻译",
-      //     dataIndex: "translate",
-      //     align: "center",
-      //     width: 300,
-      //   },
-      // ],
       columns: [
         {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 60,
+          width: 50,
+          resizable: true,
           index: 0.1,
           customRender: (text, record, index, column) => {
             return (
@@ -97,46 +93,73 @@ export default {
           },
         },
         {
-          title: "词条",
-          dataIndex: "entry",
+          title: "翻译",
+          dataIndex: "translate",
           align: "center",
           width: 300,
           resizable: true,
+          index: 1,
+        },
+        {
+          title: "翻译状态",
+          dataIndex: "translateState",
+          align: "center",
+          width: 100,
+          resizable: true,
           index: 2,
         },
-        // {
-        //   title: "所属类",
-        //   dataIndex: "category",
-        //   align: "center",
-        //   width: 100,
-        //   resizable: true,
-        //   index: 3,
-        // },
         {
-          title: "来源",
-          dataIndex: "comment",
+          title: "公开状态",
+          dataIndex: "publicState",
           align: "center",
           width: 100,
           resizable: true,
           index: 3,
         },
         {
-          title: "Tag",
-          dataIndex: "tag",
+          title: "词条来源",
+          dataIndex: "entrySource",
           align: "center",
-          width: 200,
+          width: 150,
           resizable: true,
           index: 4,
         },
         {
-          title: "翻译",
-          dataIndex: "translate",
+          title: "词条状态",
+          dataIndex: "entryState",
           align: "center",
-          width: 200,
+          width: 100,
           resizable: true,
           index: 5,
         },
+        {
+          title: "修改者",
+          dataIndex: "update",
+          align: "center",
+          width: 100,
+          resizable: true,
+          index: 6,
+        },
+        {
+          title: "修改时间",
+          dataIndex: "updateTime",
+          align: "center",
+          width: 200,
+          resizable: true,
+          index: 7,
+        },
+        {
+          title: "upgrade",
+          dataIndex: "upgrade",
+          align: "center",
+          width: 100,
+          resizable: true,
+          index: 8,
+        },
       ],
+      translate: "",
+      translateState: "",
+      publicState: "",
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项
       selectedRowIndex: null, // 表格选中项
@@ -155,15 +178,22 @@ export default {
     dataSource: {
       immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
       handler(newDataSource) {
-        // console.log("收到数据", newDataSource);
-        // 设置默认全选
-        this.selectedRowKeys = newDataSource.map((record) => record.id);
-        this.selectedRows = newDataSource.map((record) => record);
+        // console.log("新数据",newDataSource);
+        if (newDataSource.tsProblemsType) {
+          languageParam.languageList.forEach((item) => {
+            if (newDataSource.tsProblemsType === item.name) {
+              this.translate = item.value;
+              this.translateState = item.state;
+              this.publicState = item.publicState;
+            }
+          });
+        };
       },
     },
   },
   methods: {
     handleClose() {
+      this.pagination.current = 1;
       this.$emit("relationClose");
     },
     handleOK() {
@@ -178,35 +208,8 @@ export default {
       //   this.$emit("classifyClose");
       //   this.dataSource = [];
       // });
+      this.pagination.current = 1;
       this.$emit("relationClose");
-    },
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
-    },
-    // 表格复选框点击事件
-    onSelect(record, selected) {
-      // record是被点击的行数据，selected是是否被选中
-      if (selected) {
-        this.selectedRows.push(record);
-      } else {
-        this.selectedRows = this.selectedRows.filter((item) => {
-          return item.entrySource !== record.entrySource;
-        });
-      }
-    },
-    // 表格全选/反选框点击事件
-    onSelectAll(selected, changeRows) {
-      if (selected) {
-        this.selectedRows = this.selectedRows.concat(changeRows);
-      } else {
-        changeRows.forEach((item) => {
-          this.selectedRows = this.selectedRows.filter((entry) => {
-            return entry !== item;
-          });
-        });
-      }
     },
     // 设置表格每一行的class
     getRowClassName(record, index) {
@@ -222,29 +225,6 @@ export default {
         }
       }
       return className;
-    },
-    // 动态设置表格高度
-    setTableHeight() {
-      this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
-      });
     },
     // 表格列可伸缩
     handleResizeColumn: (w, col) => {
@@ -263,6 +243,17 @@ export default {
   width: 700px;
   height: 500px;
   // border: 1px solid red;
+}
+.data {
+  // padding: 12px 12px 36px 12px;
+  // border: 1px solid #ccc;
+  padding: 0 36px 36px 36px;
+  margin-bottom: 12px;
+  font-size: 1.2em; // 字体设置大一号
+}
+.value {
+  font-size: 0.9em;
+  color: #999; // 颜色设为淡灰色
 }
 </style>
 <style lang="less">

@@ -378,6 +378,7 @@
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import tableParam from "@/views/entry/tableParam.js";
+import languageParam from "@/utils/languageParam.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import common from "./common.js";
 import SearchBox from "@/components/search/searchBox.vue";
@@ -813,7 +814,7 @@ export default {
       //   data.french = this.search.translate;
       //   data.frenchTranslateState = this.search.translateState;
       // }
-      tableParam.languageList.forEach((item) => {
+      languageParam.languageList.forEach((item) => {
         if (this.search.language === item.name) {
           data[item.value] = this.search.translate;
           data[item.state] = this.search.translateState;
@@ -893,7 +894,7 @@ export default {
             //   item.frenchPublicState = tran.publicState;
             //   item.frenchChecked = false;
             // }
-            tableParam.languageList.forEach((lang) => {
+            languageParam.languageList.forEach((lang) => {
               if (tran.type === lang.name) {
                 item[lang.value] = tran.translate;
                 item[lang.id] = tran.id;
@@ -997,7 +998,7 @@ export default {
       this.selectedRowIndex = record.id;
       this.currentEntry = record;
       // 将翻译状态转换为中文
-      tableParam.languageList.forEach((item) => {
+      languageParam.languageList.forEach((item) => {
         if (this.currentEntry[item.state] != null) {
           switch (this.currentEntry[item.state]) {
             case "1":
@@ -1331,7 +1332,7 @@ export default {
       //   data.french = this.search.translate;
       //   data.frenchTranslateState = this.search.translateState;
       // }
-      tableParam.languageList.forEach((item) => {
+      languageParam.languageList.forEach((item) => {
         if (this.search.language === item.name) {
           data[item.value] = this.search.translate;
           data[item.state] = this.search.translateState;
