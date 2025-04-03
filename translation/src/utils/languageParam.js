@@ -7,7 +7,9 @@ export default {
       chineseState: "englishChineseState",
       id: "englishId",
       publicState: "englishPublicState",
-      checked: "englishChecked"
+      checked: "englishChecked",
+      auditSuggest: "englishAuditSuggest",
+      transIdName:"engTransId",
     },
     {
       name: "俄文",
@@ -16,7 +18,9 @@ export default {
       chineseState: "russianChineseState",
       id: "russianId",
       publicState: "russianPublicState",
-      checked: "russianChecked"
+      checked: "russianChecked",
+      auditSuggest: "russianAuditSuggest",
+      transIdName:"rusTransId",
     },
     {
       name: "西文",
@@ -25,7 +29,9 @@ export default {
       chineseState: "spanishChineseState",
       id: "spanishId",
       publicState: "spanishPublicState",
-      checked: "spanishChecked"
+      checked: "spanishChecked",
+      auditSuggest: "spanishAuditSuggest",
+      transIdName:"spaTransId",
     },
     {
       name: "法文",
@@ -34,7 +40,9 @@ export default {
       chineseState: "frenchChineseState",
       id: "frenchId",
       publicState: "frenchPublicState",
-      checked: "frenchChecked"
+      checked: "frenchChecked",
+      auditSuggest: "frenchAuditSuggest",
+      transIdName:"fraTransId",
     }
   ],
 }

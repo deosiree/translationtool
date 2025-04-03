@@ -185,6 +185,7 @@ import {
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
+import languageParam from "@/utils/languageParam.js";
 import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import { computed, defineComponent, ref } from "vue";
@@ -326,16 +327,20 @@ export default {
       overlayStyle: workbenchCommon.overlayStyle,
       checkedColumn: ["abbr", "tag"],
       checkboxList: workbenchCommon.checkboxList,
+      languageParam:null,
     };
   },
 
   created() {},
   mounted() {
     this.task = this.currentTask;
+    this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
+    // workbenchCommon.languageMap[this.task.translateType].code
   },
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
+      this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
       this.setTranslateColumn();
     },
   },
@@ -344,18 +349,13 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code;
+          item.dataIndex = this.languageParam.value;
         }
-        if (item.title === "审核状态") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code +
-            "TranslateState";
+        if (item.title === "翻译状态") {
+          item.dataIndex = this.languageParam.state;
         }
         if (item.title === "审核意见") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code +
-            "AuditSuggest";
+          item.dataIndex = this.languageParam.auditSuggest;
         }
       });
     },
@@ -371,13 +371,17 @@ export default {
         this.translateState === null || this.translateState === undefined
           ? ["1"]
           : [this.translateState];
+
+      let auditSuggest = this.languageParam.auditSuggest;
       getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
 
           this.dataSource.forEach((item) => {
             item.auditState = -1;
+            item[this.languageParam.auditSuggest] = ""; // 对应语言的审核意见清空
           });
+          console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
           // this.allData = this.dataSource
           this.loading = false;
           // this.select()
@@ -393,13 +397,11 @@ export default {
     handleOK() {
       this.loading = true;
       this.saveLoading = true;
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        entry[languageCode + "AuditSuggest"] =
-          this.editableData[key][languageCode + "AuditSuggest"];
-        entry[languageCode] = this.editableData[key][languageCode];
+        entry[this.languageParam.auditSuggest] =
+          this.editableData[key][this.languageParam.auditSuggest];
+        entry[this.languageParam.value] = this.editableData[key][this.languageParam.value];
       }
       this.editableData = {};
 
@@ -412,11 +414,11 @@ export default {
         item.parentID = "";
         if (item.auditState === 0) {
           // 审核不通过
-          item[languageCode + "TranslateState"] = "2";
+          item[this.languageParam.state] = "2";
           updateArr.push(item);
         } else if (item.auditState === 1) {
           // 审核通过
-          item[languageCode + "TranslateState"] = "3";
+          item[this.languageParam.state] = "3";
           updateArr.push(item);
           okArr.push(item);
         }
@@ -435,7 +437,7 @@ export default {
             this.getTaskEntry();
           })
           .catch((err) => {
-            message.error("保存失败！",err.message);
+            message.error("保存失败！", err.message);
           })
           .finally(() => {
             this.saveLoading = false;
@@ -511,7 +513,7 @@ export default {
     reject() {
       if (this.selectedRows.length > 0) {
         this.rejectReasonVisible = true;
-      setModalAriaHidden(this, document);
+        setModalAriaHidden(this, document);
       }
 
       // this.selectedRows.forEach(item => {
@@ -542,10 +544,8 @@ export default {
               { required: true, message: "请输入!" },
             ],
           };
-          let languageCode =
-            workbenchCommon.languageMap[this.task.translateType].code;
-          this.rules[record.id][languageCode] = [
-            { validator: this.vilidFildLength(record, languageCode) },
+          this.rules[record.id][this.languageParam.value] = [
+            { validator: this.vilidFildLength(record, this.languageParam.value) },
           ];
         },
       };
@@ -590,19 +590,17 @@ export default {
     },
     // 说明 输入框 回车事件
     inputPressEnter(record) {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       // 长度校验
       let list = [
         eval(
-          "this.$refs.form" + record.id.replaceAll("-", "") + languageCode
+          "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
         ).validate(),
       ];
       Promise.all(list)
         .then(() => {
-          record[languageCode + "AuditSuggest"] =
-            this.editableData[record.id][languageCode + "AuditSuggest"];
-          record[languageCode] = this.editableData[record.id][languageCode];
+          record[this.languageParam.auditSuggest] =
+            this.editableData[record.id][this.languageParam.auditSuggest];
+          record[this.languageParam.value] = this.editableData[record.id][this.languageParam.value];
           delete this.editableData[record.id];
         })
         .catch((err) => {
@@ -863,8 +861,6 @@ export default {
     },
     // 校验翻译长度
     verifyTranslationLength(array) {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       let flag = 0;
       array.forEach((record) => {
         let maxLength = null;
@@ -889,13 +885,13 @@ export default {
         }
         // 是否编辑中
         let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][languageCode]
-          : record[languageCode];
+          ? this.editableData[record.id][this.languageParam.value]
+          : record[this.languageParam.value];
         if (common.byteLength(text) > maxLength) {
           flag++;
           this.addEdit(record).then((res) => {
             eval(
-              "this.$refs.form" + record.id.replaceAll("-", "") + languageCode
+              "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
             )
               .validate()
               .then(() => {})
@@ -918,10 +914,8 @@ export default {
           { required: true, message: "请输入!" },
         ],
       };
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      this.rules[record.id][languageCode] = [
-        { validator: this.vilidFildLength(record, languageCode) },
+      this.rules[record.id][this.languageParam.value] = [
+        { validator: this.vilidFildLength(record, this.languageParam.value) },
       ];
       return Promise.resolve();
     },
@@ -965,12 +959,9 @@ export default {
     },
     // 编辑原因确定
     rejectReasonOK() {
-      let suggent =
-        workbenchCommon.languageMap[this.task.translateType].code +
-        "AuditSuggest";
       this.selectedRows.forEach((item) => {
         item.auditState = 0;
-        item[suggent] = this.rejectReason.reason;
+        item[this.languageParam.auditSuggest] = this.rejectReason.reason;
       });
       this.selectedRowKeys = [];
       this.selectedRows = [];

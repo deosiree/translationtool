@@ -275,6 +275,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
+import languageParam from "@/utils/languageParam.js";
 import common from "../entry/common";
 import tableParam from "../entry/tableParam";
 import key from "keymaster";
@@ -428,17 +429,21 @@ export default {
         sourceStr: null,
         replaceStr: null,
       },
+      languageParam: null,
     };
   },
 
   created() {},
   mounted() {
     this.task = this.currentTask;
+    this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
+    // workbenchCommon.languageMap[this.task.translateType].code
   },
   unmounted() {},
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
+      this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
       this.setTranslateColumn();
     },
     redHighlightIds(newval, oldval) {
@@ -451,32 +456,25 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code;
+          item.dataIndex = this.languageParam.value;
         }
         if (item.title === "翻译状态") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code +
-            "TranslateState";
+          item.dataIndex = this.languageParam.state;
         }
         if (item.title === "审核意见") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code +
-            "AuditSuggest";
+          item.dataIndex = this.languageParam.auditSuggest;
         }
       });
       // console.log(this.columns)
     },
     dynamicSortFunction(a, b) {
-      let trans = workbenchCommon.languageMap[this.task.translateType].code;
-      if (a[trans] === null) {
+      if (a[this.languageParam.value] === null) {
         return -1;
       }
-      if (b[trans] === null) {
+      if (b[this.languageParam.value] === null) {
         return 1;
       }
-
-      return a[trans].localeCompare(b[trans]);
+      return a[this.languageParam.value].localeCompare(b[this.languageParam.value]);
     },
     init() {
       this.getTranslateEntry();
@@ -515,8 +513,6 @@ export default {
         entry: this.keyWords,
       };
       this.loading = true;
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       let data =
         this.translateState === null || this.translateState === undefined
           ? ["0", "2"]
@@ -531,10 +527,10 @@ export default {
           }
           this.dataSource.forEach((item) => {
             if (
-              item[languageCode + "TranslateState"] === null ||
-              item[languageCode + "TranslateState"] === ""
+              item[this.languageParam.state] === null ||
+              item[this.languageParam.state] === ""
             ) {
-              item[languageCode + "TranslateState"] = "0";
+              item[this.languageParam.state] = "0";
             }
           });
         })
@@ -553,16 +549,11 @@ export default {
       this.saveLoading = true;
       this.loading = true;
 
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      let transIdName =
-        workbenchCommon.languageMap[this.task.translateType].transIdName;
-
       // 更新数据源中的翻译数据
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        entry[languageCode] = this.editableData[key][languageCode];
-        entry[transIdName] = this.editableData[key][transIdName];
+        entry[this.languageParam.value] = this.editableData[key][this.languageParam.value];
+        entry[this.languageParam.transIdName] = this.editableData[key][this.languageParam.transIdName];
       }
       this.editableData = {};
 
@@ -576,13 +567,13 @@ export default {
 
       // 设置翻译状态
       saveEntrys.forEach((item) => {
-        if (item[languageCode] === null || item[languageCode] === "") {
-          item[languageCode + "TranslateState"] = "0"; // 待翻译
+        if (item[this.languageParam.value] === null || item[this.languageParam.value] === "") {
+          item[this.languageParam.state] = "0"; // 待翻译
         } else if (
-          item[languageCode + "TranslateState"] === "0" ||
-          item[languageCode + "TranslateState"] === "2"
+          item[this.languageParam.state] === "0" ||
+          item[this.languageParam.state] === "2"
         ) {
-          item[languageCode + "TranslateState"] = "1"; // 已翻译待审核
+          item[this.languageParam.state] = "1"; // 已翻译待审核
         }
       });
 
@@ -600,7 +591,7 @@ export default {
         datas.push({
           id: item.id,
           entry: item.entry,
-          translate: item[languageCode],
+          translate: item[this.languageParam.value],
         });
       });
 
@@ -631,8 +622,6 @@ export default {
             entryState: "3",
             entry: this.keyWords,
           };
-          let languageCode =
-            workbenchCommon.languageMap[this.task.translateType].code;
           let data =
             this.translateState === null || this.translateState === undefined
               ? ["0", "2"]
@@ -648,10 +637,10 @@ export default {
           }
           this.dataSource.forEach((item) => {
             if (
-              item[languageCode + "TranslateState"] === null ||
-              item[languageCode + "TranslateState"] === ""
+              item[this.languageParam.state] === null ||
+              item[this.languageParam.state] === ""
             ) {
-              item[languageCode + "TranslateState"] = "0";
+              item[this.languageParam.state] = "0";
             }
           });
           if (this.dataSource.length === 0) {
@@ -734,10 +723,8 @@ export default {
           { required: true, message: "请输入!" },
         ],
       };
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      this.rules[record.id][languageCode] = [
-        { validator: this.vilidFildLength(record, languageCode) },
+      this.rules[record.id][this.languageParam.value] = [
+        { validator: this.vilidFildLength(record, this.languageParam.value) },
       ];
       return Promise.resolve();
     },
@@ -891,16 +878,11 @@ export default {
         (item) => item.id === this.selectedRowIndex
       );
 
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      let transIdName =
-        workbenchCommon.languageMap[this.task.translateType].transIdName;
-
-      record[languageCode] = title;
+      record[this.languageParam.value] = title;
       // record[transIdName] = id
 
       if (this.editableData[this.selectedRowIndex] != undefined) {
-        this.editableData[this.selectedRowIndex][languageCode] = title;
+        this.editableData[this.selectedRowIndex][this.languageParam.value] = title;
         // this.editableData[this.selectedRowIndex][transIdName] = id
 
         // 如果有子词条  则写入子词条
@@ -909,7 +891,7 @@ export default {
           this.editableData[this.selectedRowIndex].children.length > 0
         ) {
           this.editableData[this.selectedRowIndex].children.forEach((item) => {
-            item[languageCode] = title;
+            item[this.languageParam.value] = title;
             // item[transIdName] = id
           });
         }
@@ -920,21 +902,16 @@ export default {
     },
     // 输入框 回车事件
     inputPressEnter(record) {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      let transIdName =
-        workbenchCommon.languageMap[this.task.translateType].transIdName;
-
       // 长度校验
       let list = [
         eval(
-          "this.$refs.form" + record.id.replaceAll("-", "") + languageCode
+          "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
         ).validate(),
       ];
       Promise.all(list)
         .then(() => {
-          record[languageCode] = this.editableData[record.id][languageCode];
-          record[transIdName] = this.editableData[record.id][transIdName];
+          record[this.languageParam.value] = this.editableData[record.id][this.languageParam.value];
+          record[this.languageParam.transIdName] = this.editableData[record.id][this.languageParam.transIdName];
           delete this.editableData[record.id];
         })
         .catch((err) => {
@@ -950,8 +927,6 @@ export default {
       setModalAriaHidden(this, document);
     },
     selectHandleOK() {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       this.$refs.formRef.validate().then(() => {
         this.preTranslateOkLoading = true;
         let params = {
@@ -966,8 +941,8 @@ export default {
               (key) => this.editableData[key].id === item.id
             )
           ) {
-            // console.log("取消的翻译", item[languageCode]);
-            item[languageCode] = "";
+            // console.log("取消的翻译", item[this.languageParam.value]);
+            item[this.languageParam.value] = "";
           }
         });
         this.editableData = []; // 取消所有编辑状态
@@ -975,7 +950,7 @@ export default {
           .then((res) => {
             // 更新 dataSource 中的翻译数据
             this.dataSource = res.data.list.map((item) => {
-              item.translate = item[languageCode];
+              item.translate = item[this.languageParam.value];
               // if (!item.translate) {
               //   console.log(`${item.entry}没有翻译数据`, item);
               // }
@@ -1101,8 +1076,6 @@ export default {
       return false;
     },
     handleChange(info) {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       let file = info.file;
       let formData = new FormData();
       formData.append("file", file);
@@ -1116,7 +1089,7 @@ export default {
               (item2) => item2.id === item1.id
             );
             if (matchItem) {
-              item1[languageCode] = matchItem[languageCode];
+              item1[this.languageParam.value] = matchItem[this.languageParam.value];
             }
           });
           this.dataSource.forEach((item) => {
@@ -1183,11 +1156,10 @@ export default {
       }
       let notTransIndex = index;
       index++;
-      let language = workbenchCommon.languageMap[this.task.translateType].code;
       for (index; index < this.dataSource.length; index++) {
         if (
-          this.dataSource[index][language] === null ||
-          this.dataSource[index][language] === ""
+          this.dataSource[index][this.languageParam.value] === null ||
+          this.dataSource[index][this.languageParam.value] === ""
         ) {
           notTransIndex = index;
           break;
@@ -1216,11 +1188,9 @@ export default {
       let preNotTransIndex = index;
       index--;
       for (index; index >= 0; index--) {
-        let language =
-          workbenchCommon.languageMap[this.task.translateType].code;
         if (
-          this.dataSource[index][language] === null ||
-          this.dataSource[index][language] === ""
+          this.dataSource[index][this.languageParam.value] === null ||
+          this.dataSource[index][this.languageParam.value] === ""
         ) {
           preNotTransIndex = index;
           break;
@@ -1318,8 +1288,6 @@ export default {
     },
     // 校验翻译长度
     verifyTranslationLength(array) {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       let flag = 0;
       array.forEach((record) => {
         let maxLength = null;
@@ -1344,13 +1312,13 @@ export default {
         }
         // 是否编辑中
         let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][languageCode]
-          : record[languageCode];
+          ? this.editableData[record.id][this.languageParam.value]
+          : record[this.languageParam.value];
         if (common.byteLength(text) > maxLength) {
           flag++;
           this.edit(record).then(() => {
             eval(
-              "this.$refs.form" + record.id.replaceAll("-", "") + languageCode
+              "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
             )
               .validate()
               .then(() => {})
