@@ -781,7 +781,6 @@ export default {
         message.info("请选择翻译语言！");
         return;
       }
-      console.log("翻译语言：", this.search.language);
       let data = {
         abbr: this.search.abbr,
         entry: this.search.entry,
