@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -1091,7 +1092,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     @Transactional
     //用is_exist 区分 已存在和新词条，已存在升级词条版本在插入
-    public String insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
+    public List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
         long start = System.currentTimeMillis();
         int insert = 0;
         String token = request.getHeader("token");
@@ -1100,10 +1101,22 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
 
+        // 过滤掉不符合条件的词条
+        List<EntryInfoEntity> matchList = new ArrayList<>();
+        List<EntryInfoEntity> nonMatchList = new ArrayList<>();
+
+        for(EntryInfoEntity entryInfoEntity : entryInfoEntities){
+            String entry = entryInfoEntity.getEntry();
+            if(entry.toCharArray().length <= 512){
+                matchList.add(entryInfoEntity);
+            }else{
+                nonMatchList.add(entryInfoEntity);
+            }
+        }
+
         //ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
         // String entryRelationTableName = productTableEntity.getEntryRelationTableName();
-
-        insert += insertRelation(entryInfoEntities, taskInfoEntity, department);
+        insert += insertRelation(matchList, taskInfoEntity, department);
         //insert child
      /*   for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
@@ -1113,11 +1126,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         }*/
         if (0 == insert) {
-            return ErrorCodeList.INSERT_ERROR;
+            return entryInfoEntities;
+            // return ErrorCodeList.INSERT_ERROR;
+        }
+        if(!nonMatchList.isEmpty()){
+            return nonMatchList;
         }
         long end = System.currentTimeMillis();
         log.info(" ===== add entry number  :" + insert + " == and time : {}=== ", end - start);
-        return ConstantInterface.OK_STR;
+        return new ArrayList<>();
     }
 
     private int insertRelation(List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity, String department) {
