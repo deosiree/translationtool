@@ -436,7 +436,7 @@ export default {
           if (res.data.state === 1) {
             // 有结果
             this.hasRedundantRls = true; // 显示“重新执行”
-            // message.info("getCheckNotUseEntry!查询有结果");
+            message.info(`查询有结果,共有${res.data.totalNum}条冗余词条`,1);
             this.dataSource = res.data.list;
             this.pagination.total = res.data.totalNum; // 设置数据总数
           } else if (res.data.state === 0) {
