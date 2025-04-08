@@ -268,14 +268,13 @@
         <include refid="Base_Column_List"/>
         from t_translate where delete_state =0 and public_state =0
         <if test="translateEntity.translate != null  and translateEntity.translate != ''">
-            and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
-
+            and  `translate` like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
         </if>
         <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
             and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.entry != null  and translateEntity.entry != ''">
-            and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
+            and  entry like CONCAT('%',#{translateEntity.entry,jdbcType=VARCHAR},'%')
         </if>
         <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
             and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
