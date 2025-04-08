@@ -62,4 +62,25 @@ public class StringUtil {
         }
         return result.toString().trim(); // 去掉最后的多余空格
     }
+
+    public static String addEscapeCharacter(String text){
+        if(text == null){
+            return null;
+        }
+        int length = text.length();
+        if(length == 0){
+            return text;
+        }
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0 ; i < length; i ++ ){
+            char nextChar = text.charAt(i);
+            if(nextChar == '%'){
+                builder.append('\\');
+            }else if(nextChar == '\\'){
+                builder.append('\\');
+            }
+            builder.append(nextChar);
+        }
+        return builder.toString();
+    }
 }
