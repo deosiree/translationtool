@@ -601,7 +601,7 @@
   </CustomModal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
 import { add, cloneDeep, iteratee } from "lodash-es";
@@ -718,7 +718,11 @@ export default {
           dataIndex: "index",
           width: 90,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -987,7 +991,7 @@ export default {
               this.saveEntrys();
             })
             .catch((err) => {
-              message.error("词条校验失败！",err.message);
+              message.error("词条校验失败！", err.message);
               this.saveLoading = false;
             });
         }
@@ -1105,16 +1109,28 @@ export default {
         // 新增
         insertEntry(params, addArr)
           .then((res) => {
-            message.success("数据已保存！");
+            message.success(
+              `数据已保存！新增数据${
+                addArr.length - res.data.totalNum
+              }条，失败${res.data.totalNum}条`
+            );
             this.saveLoading = false;
             // this.afterClose()
             this.loading = false;
 
-            addArr.forEach((item) => {
-              this.dataSource = this.dataSource.filter((d) => {
-                return d.id != item.id;
-              });
+            // 从 addArr 中移除保存失败的数据
+            const successfulAddArr = addArr.filter((item) => {
+              return !res.data.list.some(
+                (failedItem) => failedItem.id === item.id
+              );
             });
+            // 从 this.dataSource 中移除保存成功的数据
+            this.dataSource = this.dataSource.filter((item) => {
+              return !successfulAddArr.some(
+                (successItem) => successItem.id === item.id
+              );
+            });
+
             this.allData = this.dataSource;
           })
           .catch((err) => {
@@ -1127,14 +1143,27 @@ export default {
         // 编辑
         updateEntryList(params, updateArr)
           .then((res) => {
-            message.success("数据已保存！");
+            message.success(
+              `数据已保存！重置了已审核的数据${
+                updateArr.length - res.data.totalNum
+              }条，失败${res.data.totalNum}条`
+            );
             this.saveLoading = false;
             // this.afterClose()
-            updateArr.forEach((item) => {
-              this.dataSource = this.dataSource.filter((d) => {
-                return d.id != item.id;
-              });
+
+            // 从 updateArr 中移除保存失败的数据
+            const successfulUpdateArr = updateArr.filter((item) => {
+              return !res.data.list.some(
+                (failedItem) => failedItem.id === item.id
+              );
             });
+            // 从 this.dataSource 中移除保存成功的数据
+            this.dataSource = this.dataSource.filter((item) => {
+              return !successfulUpdateArr.some(
+                (successItem) => successItem.id === item.id
+              );
+            });
+
             this.allData = this.dataSource;
           })
           .catch((err) => {
@@ -1575,7 +1604,7 @@ export default {
                 this.importBtnLoading = false;
               })
               .catch((err) => {
-                message.error("数据获取失败！",err.message);
+                message.error("数据获取失败！", err.message);
                 this.loading = false;
                 this.importBtnLoading = false;
               });
@@ -1622,7 +1651,7 @@ export default {
                 this.importBtnLoading = false;
               })
               .catch((err) => {
-                message.error("数据获取失败！",err.message);
+                message.error("数据获取失败！", err.message);
                 this.loading = false;
                 this.importBtnLoading = false;
               });
@@ -1700,7 +1729,7 @@ export default {
             this.importBtnLoading = false;
           })
           .catch((err) => {
-            message.error("导入失败！",err.message);
+            message.error("导入失败！", err.message);
             this.loading = false;
             this.importBtnLoading = false;
           });
@@ -1732,7 +1761,7 @@ export default {
               .catch((err) => {
                 this.loading = false;
                 this.importBtnLoading = false;
-                message.error("数据获取失败！",err.message);
+                message.error("数据获取失败！", err.message);
               });
           })
           .catch((err) => {
@@ -1767,7 +1796,7 @@ export default {
               .catch((err) => {
                 this.loading = false;
                 this.importBtnLoading = false;
-                message.error("数据获取失败！",err.message);
+                message.error("数据获取失败！", err.message);
               });
           })
           .catch((err) => {
@@ -1824,7 +1853,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.importBtnLoading = false;
-          message.error("数据获取失败！",err.message);
+          message.error("数据获取失败！", err.message);
         });
     },
     // 获取别名
@@ -1855,7 +1884,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.importBtnLoading = false;
-          message.error("数据获取失败！",err.message);
+          message.error("数据获取失败！", err.message);
         });
     },
     // 批量导入数据库
@@ -2324,8 +2353,12 @@ export default {
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
         // 确保 filteredData 是最新的筛选结果
         dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =!this.filters.isExist || this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =!this.filters.entrySource || item.entrySource.includes(this.filters.entrySource);
+          const isExistMatch =
+            !this.filters.isExist ||
+            this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =
+            !this.filters.entrySource ||
+            item.entrySource.includes(this.filters.entrySource);
           return isExistMatch && entrySourceMatch;
         });
       } else {
