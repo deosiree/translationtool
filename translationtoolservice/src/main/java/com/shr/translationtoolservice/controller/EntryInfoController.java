@@ -540,7 +540,7 @@ public class EntryInfoController extends BaseController {
                     List<EntryInfoEntity> resultList = null;
                     int fromIndex = (pageIndex - 1) * pageSize;
                     int toIndex = fromIndex + pageSize;
-                    if(fromIndex >= 0 && toIndex >= 0 && fromIndex <= toIndex){
+                    if(!results.isEmpty() && fromIndex >= 0 && toIndex >= 0 && fromIndex <= toIndex){
                         if(fromIndex >= results.size()){
                             return error(null, "页码和页数设定不合理,超出查询范围");
                         }
