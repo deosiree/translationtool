@@ -78,6 +78,8 @@ public class StringUtil {
                 builder.append('\\');
             }else if(nextChar == '\\'){
                 builder.append('\\');
+            }else if(nextChar == '_'){
+                builder.append('\\');
             }
             builder.append(nextChar);
         }
