@@ -21,6 +21,12 @@ public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity>
 
     int checkExist(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
 
+    /**
+     * @param productRelationEntity 该对象中必须保证有一个属性不是null或''
+     * @return
+     */
+    List<ProductRelationEntity> getProductionRelation(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
+
     void deleteByVersionID(List<String> idList);
 }
 

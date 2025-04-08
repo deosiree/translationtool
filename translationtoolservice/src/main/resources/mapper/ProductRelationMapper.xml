@@ -64,4 +64,25 @@
         </foreach>
         );
     </delete>
+
+    <select id="getProductionRelation" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_product_relation
+        where 
+        <if test = "productRelationEntity.productId != null and productRelationEntity.productId != ''">
+            product_id = #{productRelationEntity.productId,jdbcType=VARCHAR}
+        </if>
+        <if test = "productRelationEntity.taskId != null and productRelationEntity.taskId != ''">
+            and 
+                task_id = #{productRelationEntity.taskId,jdbcType=VARCHAR} 
+        </if>
+        <if test = "productRelationEntity.versionId != null and productRelationEntity.versionId != ''">
+            and 
+                version_id = #{productRelationEntity.versionId,jdbcType=VARCHAR}
+        </if>
+        <if test = "productRelationEntity.entryId != null and productRelationEntity.entryId != ''">
+            and 
+                entry_id = #{productRelationEntity.entryId,jdbcType=VARCHAR}
+        </if>
+    </select>
 </mapper>
