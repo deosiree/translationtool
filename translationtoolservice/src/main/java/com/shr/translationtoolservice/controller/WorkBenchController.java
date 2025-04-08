@@ -148,7 +148,11 @@ public class WorkBenchController extends BaseController {
                                             @RequestParam("taskID") String taskID, HttpServletRequest request) {
 
         List<EntryInfoEntity> result = entryInfoService.insertEntry(entryInfoEntities, taskID, request);
-        return checkResult(result);
+        ResponseListModel model = new ResponseListModel<>();
+        model.setList(result);
+        model.setTotalNum(result.size());
+
+        return checkResult(model);
     }
 
     @PostMapping("/getDictory")
