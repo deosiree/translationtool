@@ -1117,28 +1117,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 nonMatchList.add(entryInfoEntity);
             }
         }
-
-        //ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
-        // String entryRelationTableName = productTableEntity.getEntryRelationTableName();
-        insert += insertRelation(matchList, taskInfoEntity, department);
-        //insert child
-     /*   for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
-                insert +=insertRelation(entryInfoEntity.getChildren(),taskInfoEntity,department);
+        if(!matchList.isEmpty()){
+            insert += insertRelation(matchList, taskInfoEntity, department);
+            if (0 == insert) {
+                return entryInfoEntities;
+                // return ErrorCodeList.INSERT_ERROR;
             }
-
-
-        }*/
-        if (0 == insert) {
-            return entryInfoEntities;
-            // return ErrorCodeList.INSERT_ERROR;
-        }
-        if(!nonMatchList.isEmpty()){
+            if(!nonMatchList.isEmpty()){
+                return nonMatchList;
+            }
+            long end = System.currentTimeMillis();
+            log.info(" ===== add entry number  :" + insert + " == and time : {}=== ", end - start);
+            return new ArrayList<>();
+        }else{
             return nonMatchList;
         }
-        long end = System.currentTimeMillis();
-        log.info(" ===== add entry number  :" + insert + " == and time : {}=== ", end - start);
-        return new ArrayList<>();
+
+
     }
 
     private int insertRelation(List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity, String department) {
