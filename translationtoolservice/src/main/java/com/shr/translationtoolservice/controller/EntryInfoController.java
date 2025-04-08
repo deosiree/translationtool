@@ -176,7 +176,18 @@ public class EntryInfoController extends BaseController {
     @Token
     public HttpResponse<String> deleteEntryClassfy(@RequestBody List<String> idList) {
 
-        return checkResult(entryClassifyService.deleteEntryClassfy(idList));
+        // return checkResult(entryClassifyService.deleteEntryClassfy(idList));
+        try {
+            String result = entryClassifyService.deleteEntryClassfy(idList);   
+            if(result.equals(ErrorCodeList.UPDATE_ERROR)){
+                return ok("删除失败,该词条分类下的产品存在未完成的任务");
+            }
+            return ok("删除词条分类成功");
+        } catch (Exception e) {
+            // TODO: handle exception
+            // log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
 
     }
 
