@@ -483,7 +483,13 @@ export default {
           this.filter(); // 过滤查询条件
           message.info(`查询有结果,共有${this.pagination.total}条冗余词条`, 1);
           this.loading = false;
-        } else if (res.data.state === 0) {
+        }  else if (res.data.state === 2) {
+          // 有结果
+          this.hasRedundantRls = true; // 显示“重新执行”
+          message.info(`任务执行异常`, 1);
+          this.loading = false;
+        }
+        else if (res.data.state === 0) {
           // 没结果没执行
           message.info("查询无结果,开始校验", 1);
           this.resetResult(); // 没执行所以需要执行
