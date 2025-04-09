@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -2141,8 +2142,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             e.printStackTrace();
         }
 
-    
-        return allEntrys;
+        List<EntryInfoEntity> fliteredEntryInfoEntities = allEntrys.stream().filter(new Predicate<EntryInfoEntity>() {
+
+            Integer entryStateLow = 3;
+            Integer entryStateHigh = 4;
+            @Override
+            public boolean test(EntryInfoEntity t) {
+                // TODO Auto-generated method stub
+                Integer entryState = t.getEntryState();
+                return entryState >= entryStateLow && entryState <= entryStateHigh;
+            }
+            
+        }).collect(Collectors.toList());
+        return fliteredEntryInfoEntities;
     }
 
     private List<EntryInfoEntity> getCONFIGNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> configList) {
