@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collector;
@@ -2249,27 +2250,38 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         //查询 元数据 冗余词条 暂不开放
         // List<EntryInfoEntity> dbnoUsedEntrys = getDBNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DB),soucreMap.get(ConstantInterface.DB));
-        try {
-            //查询 枚举 冗余词条
-            List<EntryInfoEntity> enumnoUsedEntrys =  getENUMNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.ENUM),sourceMap.get(ConstantInterface.ENUM));  
-            allEntrys.addAll(enumnoUsedEntrys);
-        } catch (Exception e) {
-            // TODO: handle exception
-            e.printStackTrace();
+        // try {
+        //     //查询 枚举 冗余词条
+        //     List<EntryInfoEntity> enumnoUsedEntrys =  getENUMNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.ENUM),sourceMap.get(ConstantInterface.ENUM));  
+        //     allEntrys.addAll(enumnoUsedEntrys);
+        // } catch (Exception e) {
+        //     // TODO: handle exception
+        //     e.printStackTrace();
 
-        }
+        // }
 
-        try {
-            //查询 配置文件 冗余词条
-            List<EntryInfoEntity> confignoUsedEntrys =  getCONFIGNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.CONFIG),sourceMap.get(ConstantInterface.CONFIG));   
-            allEntrys.addAll(confignoUsedEntrys);
-        } catch (Exception e) {
-            // TODO: handle exception
-            e.printStackTrace();
-        }
+        // try {
+        //     //查询 配置文件 冗余词条
+        //     List<EntryInfoEntity> confignoUsedEntrys =  getCONFIGNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.CONFIG),sourceMap.get(ConstantInterface.CONFIG));   
+        //     allEntrys.addAll(confignoUsedEntrys);
+        // } catch (Exception e) {
+        //     // TODO: handle exception
+        //     e.printStackTrace();
+        // }
 
-    
-        return allEntrys;
+        List<EntryInfoEntity> fliteredEntryInfoEntities = allEntrys.stream().filter(new Predicate<EntryInfoEntity>() {
+
+            Integer entryStateLow = 3;
+            Integer entryStateHigh = 4;
+            @Override
+            public boolean test(EntryInfoEntity t) {
+                // TODO Auto-generated method stub
+                Integer entryState = t.getEntryState();
+                return entryState >= entryStateLow && entryState <= entryStateHigh;
+            }
+            
+        }).collect(Collectors.toList());
+        return fliteredEntryInfoEntities;
     }
 
     private List<EntryInfoEntity> getCONFIGNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> configList) {
