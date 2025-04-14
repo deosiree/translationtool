@@ -30,6 +30,8 @@ import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -582,12 +584,12 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         List<EntryInfoEntity> entryInfoEntities = getEntryInfo(taskID, entryState, transStates, entry);
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
-        if ( StringUtils.isBlank(entryState) || Integer.parseInt(entryState) > 1 ) {
-            entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
-        }else {
-            entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+        // if ( StringUtils.isBlank(entryState) || Integer.parseInt(entryState) > 1 ) {
+        //     entryInfoEntityList = entryProcessUtils.findChildEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
+        // }else {
+        entryInfoEntityList = entryProcessUtils.buildRepeEntry(entryInfoEntities, taskEntityByTaskID.getTranslateType());
 
-        }
+        // }
         //entryInfoEntityList 的元素中没有翻译的排序在前面
         sortEmptyTrans(entryInfoEntityList,taskEntityByTaskID.getTranslateType());
 
@@ -657,13 +659,14 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public String updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
+    public List<EntryInfoEntity> updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
         int update = 0;
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
         String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
-        processEntryInfo(entryInfoEntities, translateType, department,update);
+        // clearParentID(entryInfoEntities, taskID);
+        return processEntryInfo(entryInfoEntities, translateType, department,update);
    /*     for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
             updateEntryInfoTranslate(translateType, entryInfoEntity, department);
@@ -687,14 +690,44 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             log.error(" entryInfoEntity update  error ! ");
             return ErrorCodeList.OPERATE_ERROR;
         }*/
-        return ConstantInterface.OK_STR;
+        // return ConstantInterface.OK_STR;
     }
 
-    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, String department,int update) {
+    // private void clearParentID(List<EntryInfoEntity> entryInfoEntities,String taskID){
+    //     // 获取任务对应的类型，然后查看翻译状态，如果
+    //     TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
+    //     String translateType = taskEntityByTaskID.getTranslateType();
+    //     Iterator<EntryInfoEntity> iterator = entryInfoEntities.iterator();
+
+    //     while(iterator.hasNext()){
+    //         EntryInfoEntity entryInfoEntity = iterator.next();
+    //         if(translateType.equals(ConstantInterface.ENGLISH)){
+    //             if(entryInfoEntity.getEnglishTranslateState().equals("3"))
+    //                 entryInfoEntity.setParentID("");
+    //         }else if(translateType.equals(ConstantInterface.SPANISH)){
+    //             if(entryInfoEntity.getSpanishTranslateState().equals("3"))
+    //                 entryInfoEntity.setParentID("");
+    //         }else if(translateType.equals(ConstantInterface.RUSSIAN)){
+    //             if(entryInfoEntity.getRussianTranslateState().equals("3"))
+    //                 entryInfoEntity.setParentID("");
+    //         }else if(translateType.equals(ConstantInterface.FRENCH)){
+    //             if(entryInfoEntity.getFrenchTranslateState().equals("3"))
+    //                 entryInfoEntity.setParentID("");
+    //         }else{
+    //             throw new RuntimeException("翻译类型不属于可选择范围");
+    //         }
+    //     }
+
+    //     return;
+
+    // }
+
+    private List<EntryInfoEntity> processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, String department,int update) {
         int numberOfThreads = 32; // Number of threads to use
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
         int chunkSize = entryInfoEntities.size() / numberOfThreads;
+        ConcurrentLinkedQueue<EntryInfoEntity> failedEntryInfoEntities = new ConcurrentLinkedQueue<>();
         for (int i = 0; i < numberOfThreads; i++) {
             int start = i * chunkSize;
             int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
@@ -707,23 +740,35 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     // Process the sublist
                     for (EntryInfoEntity entryInfoEntity : sublist) {
                         // Your processing logic here
-                        List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
-                        updateEntryInfoTranslate(translateType, entryInfoEntity, department);
-
-                        QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper();
-                        queryWrapper.eq("parent_id", entryInfoEntity.getId());
-                        queryWrapper.eq("is_delete", 0);
-                        List<EntryInfoEntity> childList = entryInfoMapper.selectList(queryWrapper);
-
-
-                        if (!CollectionUtils.isEmpty(childrenInfoEntry)) {
-                           syncChildrenTrans(entryInfoEntity, childrenInfoEntry,translateType);
-                        }else if (!CollectionUtils.isEmpty(childList)){
-                             syncChildrenTrans(entryInfoEntity, childList,translateType);
+                        try {
+                            if(entryInfoEntity.getEntry().length() > 512){
+                                // 更新的词条的长度不能大于512
+                                failedEntryInfoEntities.add(entryInfoEntity);
+                                continue;
+                            }
+                            List<EntryInfoEntity> childrenInfoEntry = entryInfoEntity.getChildren();
+                            updateEntryInfoTranslate(translateType, entryInfoEntity, department);
+    
+                            QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper();
+                            queryWrapper.eq("parent_id", entryInfoEntity.getId());
+                            queryWrapper.eq("is_delete", 0);
+                            List<EntryInfoEntity> childList = entryInfoMapper.selectList(queryWrapper);
+    
+    
+                            if (!CollectionUtils.isEmpty(childrenInfoEntry)) {
+                               syncChildrenTrans(entryInfoEntity, childrenInfoEntry,translateType);
+                            }else if (!CollectionUtils.isEmpty(childList)){
+                                 syncChildrenTrans(entryInfoEntity, childList,translateType);
+                            }
+    
+    
+                           entryInfoMapper.updateById(entryInfoEntity);
+                        } catch (Exception e) {
+                            // TODO: handle exception
+                            log.error(e.getMessage());
+                            failedEntryInfoEntities.add(entryInfoEntity);
                         }
 
-
-                       entryInfoMapper.updateById(entryInfoEntity);
                     }
                 } finally {
 
@@ -734,10 +779,10 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
         try {
             latch.await(); // Wait for all threads to finish
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        return Arrays.asList(failedEntryInfoEntities.toArray(new EntryInfoEntity[failedEntryInfoEntities.size()]));
     }
 
     private int syncChildrenTrans(EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> childrenInfoEntry,String translateType) {
@@ -806,7 +851,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 }
                 entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
-                    entryInfoEntity1.setEnTransId(finalTransId);
+                    entryInfoEntity1.setRuTransId(finalTransId);
                 });
                 break;
             case ConstantInterface.FRENCH:
@@ -820,7 +865,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 }
                 entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
-                    entryInfoEntity1.setEnTransId(finalTransId);
+                    entryInfoEntity1.setFraTransId(finalTransId);
                 });
                 break;
             case ConstantInterface.SPANISH:
@@ -834,7 +879,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     break;
                 }
                 entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
-                    entryInfoEntity1.setEnTransId(finalTransId);
+                    entryInfoEntity1.setSpaTransId(finalTransId);
                 });
                 break;
         }
@@ -933,7 +978,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
         translateEntity.setType(type);
         translateEntity.setEntry(entry);
-        int insert = translateMapper.insert(translateEntity);
+        // int insert = translateMapper.insert(translateEntity);
+        int insert = translateMapper.insertTranslate(translateEntity);
         log.info("新增 （" + insert + " ）条 翻译 到翻译表中, transID ( " + newTransID + ") 更新内容 ： trans ( " + trans + "),  transState ( " + transState + ")  ");
         return newTransID;
     }

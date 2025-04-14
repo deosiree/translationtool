@@ -1,6 +1,9 @@
 package com.shr.translationtoolservice.controller;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
@@ -9,6 +12,9 @@ import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
+
+import io.github.resilience4j.core.lang.Nullable;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +28,33 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName EntryInfoController
@@ -50,6 +81,8 @@ public class EntryInfoController extends BaseController {
 
     @Autowired
     private TranslateService translateService;
+
+    private ThreadPoolExecutor threadPoolExecutor =  new ThreadPoolExecutor(5, 20, 120, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
 
 
     //查询词条信息
@@ -143,7 +176,18 @@ public class EntryInfoController extends BaseController {
     @Token
     public HttpResponse<String> deleteEntryClassfy(@RequestBody List<String> idList) {
 
-        return checkResult(entryClassifyService.deleteEntryClassfy(idList));
+        // return checkResult(entryClassifyService.deleteEntryClassfy(idList));
+        try {
+            String result = entryClassifyService.deleteEntryClassfy(idList);   
+            if(result.equals(ErrorCodeList.UPDATE_ERROR)){
+                return ok("删除失败,该词条分类下的产品存在未完成的任务");
+            }
+            return ok("删除词条分类成功");
+        } catch (Exception e) {
+            // TODO: handle exception
+            // log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
 
     }
 
@@ -182,24 +226,42 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("获取分类词条")
     @CrossOrigin
     @Token
-    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntity,
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntityTemplate,
                                                                               @RequestParam(value = "classfyID") String classfyID,
                                                                                  String translateType,
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
-        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        List<EntryInfoEntity> originalEntryInfoEntities = new ArrayList<>();
 
-        entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
-
-
-
-        responseListModel.setList(entryInfoEntities);
+        // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
+        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
+        // responseListModel.setList(entryInfoEntities);
+        responseListModel.setTotalNum(entryInfoEntities.size());
         //全选跳过汇总
         if (pageIndex != -1 && pageSize != -1) {
-            responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID,translateType));
+            // responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID,translateType));
+            List<EntryInfoEntity> results = entryInfoService.onPage(entryInfoEntities, pageIndex, pageSize);
+            for(EntryInfoEntity result: results){
+                if(StringUtils.isBlank(result.getEnTransId())){
+                    result.setEnglishTranslateState("0");
+                }
+                if(StringUtils.isBlank(result.getRuTransId())){
+                    result.setRussianTranslateState("0");
+                }
+                if(StringUtils.isBlank(result.getSpaTransId())){
+                    result.setSpanishTranslateState("0");   
+                }
+                if(StringUtils.isBlank(result.getFraTransId())){
+                    result.setFrenchTranslateState("0");
+                }
+            }
+            responseListModel.setList(results);
         }else {
-            responseListModel.setTotalNum(entryInfoEntities.size());
+            // responseListModel.setTotalNum(entryInfoEntities.size());
+            List<EntryInfoEntity> results = entryInfoEntities;
+            responseListModel.setList(results);
         }
 
         return checkResult(responseListModel);
@@ -432,17 +494,301 @@ public class EntryInfoController extends BaseController {
     }
 
 
+    private Map<String,List<EntryInfoEntity>> cacheForCheckNotUseEntry = new HashMap<>();
+    
+    private AtomicReference<String> currentCachedId = new AtomicReference<>(null);
+    
+    @Autowired
+    private ResponseMapper responseMapper;
+
+    private ReentrantLock lock = new ReentrantLock(true);
+
+    @PostMapping("/getCheckNotUseEntry")
+    @ApiOperation("获取冗余校验结果")
+    @CrossOrigin
+    @Transactional
+    public  HttpResponse getCheckNotUseEntryResult(
+        @RequestParam String i18nURL,
+        @RequestParam String classfyID,
+        @RequestParam(required = false,defaultValue = "-1") Integer pageIndex,
+        @RequestParam(required = false,defaultValue = "-1") Integer pageSize) {
+        
+        String storeID = classfyID + i18nURL;
+
+        Map<String,Object> dataResult = new HashMap<>(); 
+        try {
+            if(currentCachedId.get() == null){
+                // 没有正在执行的冗余校验任务,或者尚未执行
+                dataResult.put("state", 0);
+                dataResult.put("list", null);
+                return ok(dataResult);
+            }else if(!currentCachedId.get().equals(storeID)){
+                // 当前存在新的冗余校验执行任务,如果需要,请重新执行
+                dataResult.put("state", 0); // 正在执行
+                dataResult.put("list", null);
+                return ok(dataResult);
+            }
+            // 弱一致性
+            // 可能是还在执行中(null),或者执行失败(没找到)，也可能新的任务执行，但不影响
+            Gson gson = new Gson();
+            if(cacheForCheckNotUseEntry.containsKey(storeID)){
+                // 当前任务执行中，在执行的过程中可能返回结果
+                List<EntryInfoEntity> result = cacheForCheckNotUseEntry.get(storeID);
+                if(result != null){
+                    List results = result;
+                    int size = results.size();
+                    List<EntryInfoEntity> resultList = null;
+                    int fromIndex = (pageIndex - 1) * pageSize;
+                    int toIndex = fromIndex + pageSize;
+                    if(!results.isEmpty() && fromIndex >= 0 && toIndex >= 0 && fromIndex <= toIndex){
+                        if(fromIndex >= results.size()){
+                            return error(null, "页码和页数设定不合理,超出查询范围");
+                        }
+                        resultList = results.subList(fromIndex, toIndex >= size ? size : toIndex);
+                        // model.setList(results.subList(fromIndex, toIndex >= results.size() ? results.size() : toIndex));
+                    }else{
+                        // model.setList(results);
+                        resultList = results;
+                    }
+                    dataResult.put("list", resultList);
+                    dataResult.put("totalNum", results.size());
+                    dataResult.put("state", 1);
+                    return ok(dataResult);
+                }else{
+                    // 冗余校验正在执行中
+                    dataResult.put("state", 3);
+                    dataResult.put("list", null);
+                    return ok(dataResult);
+                }
+            }else{
+                // 当前没有对应的任务,任务执行失败，或者还没执行
+                Thread.sleep(2000); // 可能线程没来的及执行，再次进行判断
+                if(!cacheForCheckNotUseEntry.containsKey(storeID)){
+                    if(currentCachedId.get() == null){
+                        dataResult.put("state", 2); // 执行失败
+                    }else if(!currentCachedId.get().equals(storeID)){
+                        dataResult.put("state", 0);  // 正在执行新的任务
+                        dataResult.put("list", null);
+                    }
+                    
+                }else{
+                    dataResult.put("state", 3); // 正在执行中
+                    dataResult.put("list", null);
+                }
+                return ok(dataResult);
+                // ResponseEntity entity = new ResponseEntity();
+                // entity.setTask("checkNotUseEntry");
+                // entity.setDataType("json");
+                // entity.setTaskId(storeID);
+                // List<ResponseEntity> responseEntities = responseMapper.getResponseByTaskId(entity);
+                // ResponseListModel model = new ResponseListModel<>();
+                // if(!responseEntities.isEmpty()){
+                //     // 数据库里面有了
+                //     String content = responseEntities.get(0).getContent() ;
+                //     List resultList = gson.fromJson(content, List.class);
+                //     if(fromIndex >= resultList.size()){
+                //         return error(null, "fromIndex大于等于数据总数");
+                //     }
+                //     if(fromIndex >= 0 && toIndex >= 0){
+                //         model.setList(resultList.subList(fromIndex, toIndex >= resultList.size() ? resultList.size() : toIndex));
+                //     }else{
+                //         model.setList(resultList);
+                //     }
+                //     model.setTotalNum(model.getList().size());
+                //     // 缓存没有，数据库有，写入缓存中
+                //     cacheForCheckNotUseEntry.put(storeID, content);
+                    
+                //     return ok(model);    
+                // }else{
+                    // return error(null, "程序运行异常");
+                // }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error(null, "执行失败,无法获取数据,internalError");
+        } finally{
+            
+        }
+
+    }
+
+    @PostMapping("/deleteNotUseEntry")
+    @ApiOperation("删除冗余词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> deleteNotUseEntry(
+        @RequestParam String i18nURL,
+        @RequestParam String classfyID,
+        @RequestBody List<String> entryList){
+
+        try {
+            String storeID = classfyID + i18nURL;
+            if(currentCachedId.get() == null){
+                return error(null, " 没有正在执行的冗余校验任务,或者尚未执行");
+            }
+            if(!currentCachedId.get().equals(storeID)){
+                return error(null, "因为现在有新的任务,所以无法删除");
+            }
+            if(!cacheForCheckNotUseEntry.containsKey(storeID)){
+                return error(null, "没有获取到冗余校验的数据,无法进行删除");
+            }
+            List<EntryInfoEntity> data = cacheForCheckNotUseEntry.get(storeID); // 默认当前存在
+            if(data == null){
+                return ok("当前有新任务在进行执行,无法进行词条删除操作");
+            }
+            List<EntryInfoEntity> removedList = new LinkedList<>();
+            for(EntryInfoEntity entity : data){
+         
+                if(!entryList.contains(entity.getId())){
+                    removedList.add(entity);
+                }
+                
+            }
+            if(!currentCachedId.get().equals(storeID)){
+                return error(null, "因为现在有新的任务,所以无法删除");
+            }
+            if(!cacheForCheckNotUseEntry.containsKey(storeID) || cacheForCheckNotUseEntry.get(storeID) == null){
+                return error(null, "有新的冗余校验任务,无法进行删除");
+            }
+            /*
+             * 删除的时候加锁
+             */
+            try {
+                lock.lock();
+                String result = entryInfoService.deleteEntryInfo(entryList, "t_entry_info");
+                cacheForCheckNotUseEntry.put(storeID, removedList);      
+                return ok(result);
+            } catch (Exception e) {
+                // TODO: handle exception
+                throw e;
+            } finally{
+                lock.unlock();
+            }
+      
+
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            return error(null, e.getMessage());
+        }
+    }
+
     @PostMapping("/checkNotUseEntry")
     @ApiOperation("校验未使用的词条")
     @CrossOrigin
     @Transactional
-    public   HttpResponse<ResponseListModel> checkNotUseEntry(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request,@RequestBody Map<String,List<String>> soucreMap) {
-        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-        List<EntryInfoEntity> entities = entryInfoService.checkNotUseEntry(i18nUrl,classfyID,request,soucreMap);
-        responseListModel.setList(entities);
-        responseListModel.setTotalNum(entities.size());
-        return checkResult(responseListModel);
+    public  HttpResponse checkNotUseEntry(@RequestParam String i18nURL ,@RequestParam String classfyID,
+        HttpServletRequest request,
+        @RequestBody(required = false) CheckNotUseEntryVO params) {
+
+        String storeID = classfyID + i18nURL;
+        currentCachedId.set(storeID);
+        cacheForCheckNotUseEntry.clear();
+        
+        Callable<Boolean> callable = new Callable<Boolean>() {
+            // HttpServletRequest requestCopied = request;
+            @Override
+            public Boolean call() throws Exception {
+                // TODO Auto-generated method stub
+                Map<String, String> condition = params != null ? params.getParams() : null;
+                Map<String, List<String>> sources = params != null ? params.getSources() : null;
+                List<EntryInfoEntity> entities;
+                try {
+                    if(condition == null){
+                        condition = new HashMap<>();
+                    }
+                    // condition.put("department", department);
+                    // if(!classfyID.equals(FULL_SEARCH)){
+                    try {
+                        lock.lock();
+                        entities = entryInfoService.checkNotUseEntry(i18nURL, classfyID,sources, condition);   
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        throw e;
+                    } finally{
+                        lock.unlock();
+                    }
+                    
+                    // }else{
+                        // entities = entryInfoService.checkNotUseEntry(i18nUrl, sources, condition);
+                    // } 
+                }catch (Exception e){
+                    if(!currentCachedId.compareAndSet(storeID, null)){
+
+                    }
+
+                    cacheForCheckNotUseEntry.remove(storeID);
+                    e.printStackTrace();
+                    return false;
+                }
+                /*
+                * 写缓存
+                */
+                try {
+                    try {
+                        Gson gson = new Gson();
+                        // String resultText = gson.toJson(entities);
+                    //     ResponseEntity responseEntity = new ResponseEntity();
+                    //     responseEntity.setContent(resultText);
+                    //     responseEntity.setTaskId(storeID);
+                    //     responseEntity.setDataType("json");
+                    //     responseEntity.setTask("checkNotUseEntry");
+
+                    //     List<ResponseEntity> responseByTaskId = responseMapper.getResponseByTaskId(responseEntity);
+                    //     if(responseByTaskId.isEmpty()){
+                    //         responseMapper.insertResponse(responseEntity);  // 以前没执行过这个任务，新插入数据
+                    //     }else{
+                    //         responseMapper.updateResponse(responseEntity); // 以前执行过更新结果
+                    //     }
+                        /*
+                         * 弱一致性的结果，
+                         * 比如后执行一次checkNotUseEntry方法的结果先于前一次执行checkNotUseEntry方法的结果存储在map中
+                         * 不影响: 因为用户可以重新查询
+                         */
+                        cacheForCheckNotUseEntry.put(storeID, entities); 
+                        return true;   
+                    } catch (Exception e) {
+                        if(!currentCachedId.compareAndSet(storeID, null)){
+                            
+                        }
+                        cacheForCheckNotUseEntry.remove(storeID);
+                        e.printStackTrace();
+                        return false;
+                    }                     
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    if(!currentCachedId.compareAndSet(storeID, null)){
+                        
+                    }
+                    cacheForCheckNotUseEntry.remove(storeID);
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+        };
+        try {
+       
+            cacheForCheckNotUseEntry.put(storeID, null);
+            threadPoolExecutor.submit(callable);
+            // return ok("已经提交任务，正在执行中");
+            Map<String,String> resultMap = new HashMap<>();
+            resultMap.put("state", "0") ;
+            return ok(resultMap);
+        } catch (Exception e) {
+            // TODO: handle exception
+            // 没有放入线程池
+            if(!currentCachedId.compareAndSet(storeID, null)){
+                // 说明执行到这一步前有新的checkNotUseEntry请求
+                
+            }
+            cacheForCheckNotUseEntry.remove(storeID);
+            return error("无法执行该任务，服务异常",e.getMessage());
+        } finally{
+          
+        }
     }
+
+
 
     @PostMapping("/checkNewEntryByClassfy")
     @ApiOperation("查询分类中新增的词条")
