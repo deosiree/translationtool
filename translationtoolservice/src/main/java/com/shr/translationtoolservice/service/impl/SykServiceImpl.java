@@ -71,9 +71,9 @@ public class SykServiceImpl implements SykService {
     @Override
     public List<TranslateEntity> updateSykEntry(List<TranslateEntity> translates) throws Exception {
         /*根据translates的个数来确定是单线程执行 */
-        int taskStrategyLimit = 1;
+        // int taskStrategyLimit = 1;
         int translatesTotalCount = translates.size();
-        List<TranslateEntity> failedTranslateEntities = batchUpdate(translates,translatesTotalCount > taskStrategyLimit);
+        List<TranslateEntity> failedTranslateEntities = batchUpdate(translates,translatesTotalCount > AsyncUtils.UPDATE_TRANSLATE_LIMIT);
         return failedTranslateEntities;
 
     }
@@ -182,6 +182,9 @@ public class SykServiceImpl implements SykService {
                     sykEntryVO.setTranslate(translate.getTranslate());
                     EntryClassify entryClassfyById = entryClassifyMapper.getEntryClassfyById(productEntity.getId());
                     EntryClassify entryClassfyByParentId = entryClassifyMapper.getEntryClassfyById(entryClassfyById.getParentId());
+                    if(entryClassfyByParentId == null){
+                        continue;
+                    }
                     sykEntryVO.setClassify(entryClassfyByParentId.getTitle());
 
                     sykEntryVO.setAbbr(entity.getAbbr());
@@ -210,7 +213,7 @@ public class SykServiceImpl implements SykService {
             // 没有提供查询的部门则查本部门的
             translateTemplate.setVisualRange(JWTTokenUtils.getDepartment(token));
         }
-        List<TranslateEntity> translateEntityList = getSykEntry(translateTemplate, -1, -1);
+        List<TranslateEntity> translateEntityList = translateMapper.getTransForSykNotUsed(translateTemplate, -1, -1);
         // List<TranslateEntity> translateEntityList = translateMapper.selectList(new QueryWrapper<TranslateEntity>().eq("delete_state", 0).eq("visual_range", department));
         List<EntryInfoEntity> entities = entryInfoMapper.selectList(new QueryWrapper<EntryInfoEntity>().eq("is_delete", 0));
         processTranslateEntity(translateEntityList,entities);
@@ -267,7 +270,7 @@ public class SykServiceImpl implements SykService {
 
     @Override
     public List<TranslateEntity> checkSykEntryByTemplate(TranslateEntity translateEntityTemplate){
-        List<TranslateEntity> trans = translateMapper.getSykTrans(translateEntityTemplate,-1,-1);
+        List<TranslateEntity> trans = translateMapper.getTransForCheckSykEntry(translateEntityTemplate,-1,-1);
         List<TranslateEntity> problemEntities = checkSykEntryOnList(trans);
         for(TranslateEntity translateEntity : problemEntities){
             List<EntryInfoEntity> entryByTranslateIDs = entryInfoMapper.getEntryInfoUsingTranslate(translateEntity);

@@ -17,6 +17,6 @@ public interface CheckService {
      * @param entryInfoEntityTemplate
      * @return
      */
-    List<TsVo> getTsEntryWithProblem(EntryInfoEntity entryInfoEntityTemplate);
+    List<TsVo> getTsEntryWithProblem(EntryInfoEntity entryInfoEntityTemplate,String department);
 
 }

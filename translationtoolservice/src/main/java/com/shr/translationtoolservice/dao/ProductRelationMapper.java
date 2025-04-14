@@ -13,13 +13,19 @@ import java.util.List;
 @Mapper
 public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity> {
 
-    void deleteByEntryID(List<String> entryID);
+    void deleteByEntryID(@Param("entryID") List<String> entryID);
 
     int deleteByProductIdList(@Param("idList") List<String>  idList);
 
     int insertList(@Param("productRelationEntities") List<ProductRelationEntity> productRelationEntities);
 
     int checkExist(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
+
+    /**
+     * @param productRelationEntity 该对象中必须保证有一个属性不是null或''
+     * @return
+     */
+    List<ProductRelationEntity> getProductionRelation(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
 
     void deleteByVersionID(List<String> idList);
 }

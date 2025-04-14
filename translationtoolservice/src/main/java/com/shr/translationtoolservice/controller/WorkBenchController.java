@@ -144,11 +144,15 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("新增词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> insertEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,
+    public HttpResponse insertEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,
                                             @RequestParam("taskID") String taskID, HttpServletRequest request) {
 
-        String result = entryInfoService.insertEntry(entryInfoEntities, taskID, request);
-        return checkResult(result);
+        List<EntryInfoEntity> result = entryInfoService.insertEntry(entryInfoEntities, taskID, request);
+        ResponseListModel model = new ResponseListModel<>();
+        model.setList(result);
+        model.setTotalNum(result.size());
+
+        return checkResult(model);
     }
 
     @PostMapping("/getDictory")
@@ -168,10 +172,13 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("更新词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateEntryList(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID,HttpServletRequest request) {
+    public HttpResponse<ResponseListModel> updateEntryList(@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID,HttpServletRequest request) {
 
-        String result = entryTempService.updateEntryList(entryInfoEntities, taskID, request);
-        return checkResult(result);
+        List<EntryInfoEntity> result = entryTempService.updateEntryList(entryInfoEntities, taskID, request);
+        ResponseListModel model = new ResponseListModel<>();
+        model.setList(result);
+        model.setTotalNum(result.size());
+        return checkResult(model);
     }
 
     @PostMapping("/getEntryInfoList")

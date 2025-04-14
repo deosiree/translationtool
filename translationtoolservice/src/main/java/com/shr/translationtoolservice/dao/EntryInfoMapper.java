@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -76,7 +77,16 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     
     List<EntryInfoEntity> getEntryByTsVo(@Param("tsVo") TsVo tsVo);
 
-    List<TsVo> getEntryByImportTypeUsingTranslate(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+    List<TsVo> getEntryByImportTypeUsingTranslate(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity,@Param("department") String department);
+    int getCounts();
+
+    List<EntryInfoEntity> getEntryForTaskNotUseEntry(
+        @Param("idList") Set<String> entryIdList,  
+        @Param("condition") Map<String,String> isCondition,
+        @Param("translateEntity") TranslateEntity translateEntity,
+        @Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+
+
 }
 
 

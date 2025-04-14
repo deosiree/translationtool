@@ -13,6 +13,7 @@ import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
 import com.shr.translationtoolservice.service.CheckService;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -95,10 +96,11 @@ public class CheckController  extends BaseController{
     @ApiOperation("检查所有ts文件是否有类名、tag、词条相同，翻译不同的情况")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel<TsVo>> searchTsProblems(@RequestBody EntryInfoEntity entryInfoEntityTemplate) {
+    public HttpResponse<ResponseListModel<TsVo>> searchTsProblems(@RequestBody EntryInfoEntity entryInfoEntityTemplate,HttpServletRequest request) {
         ResponseListModel<TsVo> model = new ResponseListModel<>();
         try {
-            List<TsVo> tsEntryWithProblem = checkService.getTsEntryWithProblem(entryInfoEntityTemplate);            
+            String department = JWTTokenUtils.getDepartment(request.getHeader("token"));
+            List<TsVo> tsEntryWithProblem = checkService.getTsEntryWithProblem(entryInfoEntityTemplate,department);            
             
             model.setList(tsEntryWithProblem);
             model.setTotalNum(tsEntryWithProblem.size());
@@ -116,11 +118,11 @@ public class CheckController  extends BaseController{
     @ApiOperation("展示 词条,所属类,tag,点击详情展示 对应ts文件,翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel<TsEntryInfoVo>> getEntryByTsVo(@RequestBody List<TsVo> tsVoList) {
-        ResponseListModel<TsEntryInfoVo> model = new ResponseListModel<>();
+    public HttpResponse<ResponseListModel> getEntryByTsVo(@RequestBody List<TsVo> tsVoList) {
+        ResponseListModel model = new ResponseListModel<>();
         try {
             // 去重
-            List<TsEntryInfoVo> tsEntryWithProblem = entryInfoService.getEntryInfoByTsVo(tsVoList);
+            List<EntryInfoEntity> tsEntryWithProblem = entryInfoService.getEntryInfoByTsVo(tsVoList);
             model.setList(tsEntryWithProblem);
             model.setTotalNum(tsEntryWithProblem.size());
             return ok(model);

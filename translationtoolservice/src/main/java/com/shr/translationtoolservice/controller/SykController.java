@@ -6,6 +6,7 @@ import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
 import com.shr.translationtoolservice.service.impl.SykServiceImpl;
+import com.shr.translationtoolservice.util.StringUtil;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -42,6 +43,8 @@ public class SykController extends BaseController{
     public HttpResponse<ResponseListModel> getSykEntry(@RequestBody TranslateEntity translate , @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
+        translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
+        translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
         responseListModel.setList(sykService.getSykEntry(translate,pageIndex,pageSize));
         responseListModel.setTotalNum(sykService.getSykEntry(translate,-1,-1).size());
         return checkResult(responseListModel);
@@ -65,7 +68,8 @@ public class SykController extends BaseController{
     @Transactional
     public HttpResponse<ResponseListModel<TranslateEntity>> getSykNotUsed(@RequestBody TranslateEntity translateTemplate,HttpServletRequest request) {
         ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
-
+        translateTemplate.setEntry(StringUtil.addEscapeCharacter(translateTemplate.getEntry()));
+        translateTemplate.setTranslate(StringUtil.addEscapeCharacter(translateTemplate.getTranslate()));
         List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,request.getHeader("token"));
         responseListModel.setList(translateEntityList);
         responseListModel.setTotalNum(translateEntityList.size());
@@ -115,7 +119,8 @@ public class SykController extends BaseController{
     @CrossOrigin
     @Transactional
     public HttpResponse<List<TranslateEntity>> checkSykEntry(@RequestBody TranslateEntity translatesTemplate) {
-        
+        translatesTemplate.setEntry(StringUtil.addEscapeCharacter(translatesTemplate.getEntry()));
+        translatesTemplate.setTranslate(StringUtil.addEscapeCharacter(translatesTemplate.getTranslate()));
         List<TranslateEntity> problemEntities = sykService.checkSykEntryByTemplate(translatesTemplate);
         return checkResult(problemEntities);
 

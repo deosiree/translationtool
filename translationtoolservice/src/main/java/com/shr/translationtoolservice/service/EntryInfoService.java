@@ -60,7 +60,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID,HttpServletRequest httpServletRequest);
 
-    String insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
+    List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
 
 
     String addEntryAudit(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
@@ -93,7 +93,14 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
-    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, HttpServletRequest request,Map<String,List<String>> soucreMap);
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap)
+     throws Exception;
+
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,List<EntryInfoEntity> entities,Map<String,List<String>> sourceMap);
+
+
+    List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID,  Map<String,List<String>> soucreMap,Map<String,String> condition) throws Exception;
+
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
 
@@ -103,5 +110,12 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<TsEntryInfoVo> getEntryInfoByTsVo(List<TsVo> tsVoList);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID);
+
+    List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
+
+    List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntity entryInfoEntityTemplate,String translateType);
+
+
+    List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
 }

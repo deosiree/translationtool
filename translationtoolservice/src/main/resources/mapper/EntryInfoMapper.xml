@@ -316,7 +316,7 @@
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
         </if>
 
-        order by t2.tag
+        order by t2.tag,t2.id
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -325,7 +325,7 @@
 
 
     <select id="getEntryByClassfyTotal" resultMap="BaseResultMap">
-        select <include refid="Base_t2_Column_List"/>,
+        select DISTINCT <include refid="Base_t2_Column_List"/>,
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
@@ -1005,6 +1005,10 @@
         select <include refid="Base_Column_List"/> from t_entry_info where id in ( <foreach collection="idList" item="id" separator="," >#{id}</foreach>)
 
     </select>
+    
+    <select id="getCounts">
+        select count(*) from t_entry_info;
+    </select>
 
     <select id="getEntryInfoUsingTranslate" resultMap="BaseResultMap">
         select <include refid="Base_Column_List"/> from t_entry_info where 
@@ -1015,31 +1019,186 @@
     </select>
 
     <select id="getEntryByImportTypeUsingTranslate" resultType = "com.shr.translationtoolservice.entity.vo.TsVo">
-    SELECT info.entry,info.comment,info.tag,trans.translate 
+    SELECT info.entry,info.comment,info.tag,trans.type,trans.translate 
     FROM t_translate as trans INNER JOIN t_entry_info as info on trans.id = info.en_trans_id 
     or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
     WHERE
         info.import_type = #{entryInfoEntity.importType,jdbcType=VARCHAR}
     and
         info.is_delete = #{entryInfoEntity.isDelete,jdbcType=INTEGER}
-    
-    ORDER BY info.entry,info.comment,info.tag,trans.translate
+    <if test = "department != null and department != ''">
+        and trans.visual_range = #{department,jdbcType =VARCHAR}
+    </if>
+    ORDER BY info.entry,info.comment,info.tag,trans.type,trans.translate
     
     </select>
 
     <select id="getEntryByTsVo" resultMap="BaseResultMap">
-        select info.* from t_entry_info as info INNER JOIN
-        t_translate as trans on trans.id = info.en_trans_id 
-        or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
+        select <include refid="Base_t2_Column_List"/>,
+        t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
+        t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
+        t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
+        left JOIN t_translate t3 ON t2.en_trans_id = t3.id
+        left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
+        left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
+        left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
         where 
-            info.entry = #{tsVo.entry,jdbcType=VARCHAR}
+            t2.entry = #{tsVo.entry,jdbcType=VARCHAR}
         and 
-            info.comment = #{tsVo.comment,jdbcType=VARCHAR}
+            t2.comment = #{tsVo.comment,jdbcType=VARCHAR}
         and 
-            info.tag = #{tsVo.tag,jdbcType=VARCHAR}
-        and 
-            trans.translate = #{tsVo.translate,jdbcType=VARCHAR}
-        
+            t2.tag = #{tsVo.tag,jdbcType=VARCHAR}
+        and t2.is_delete = 0
     </select>
 
+    <sql id="Base_Column_List_With_Prefix">
+        ${tbl}.id,
+        ${tbl}.abbr,
+        ${tbl}.entry,
+        ${tbl}.entry_length,
+        ${tbl}.chinese_interpretation,
+        ${tbl}.english_interpretation,
+        ${tbl}.entry_source,
+        ${tbl}.entry_state,
+        ${tbl}.`update`,
+        ${tbl}.update_time,
+        ${tbl}.version_id,
+        ${tbl}.entry_label,tag,
+        ${tbl}.part_of_speech,
+        ${tbl}.classify_id,
+        ${tbl}.remark,
+        ${tbl}.task_id,
+        ${tbl}.en_trans_id,
+        ${tbl}.ru_trans_id,
+        ${tbl}.fra_trans_id,
+        ${tbl}.spa_trans_id,
+        ${tbl}.is_public,
+        ${tbl}.is_delete,
+        ${tbl}.import_type,
+        ${tbl}.write_type,
+        ${tbl}.entry_version_type,
+        ${tbl}.parent_id,
+        ${tbl}.di_file_name,
+        ${tbl}.classfy1,
+        ${tbl}.classfy2,
+        ${tbl}.comment
+    </sql>
+
+
+    <!-- String entry = condition.get("entry");
+    String entryState = condition.get("entryState");
+    String tag = condition.get("tag");
+    String classfy2 = condition.get("classfy2");
+    String entrySource = condition.get("entrySource");
+    String translateType = condition.get("translateType");
+    String translateState = condition.get("translateState");
+    String translate = condition.get("translate");
+    String department = condition.get("department"); -->
+    <select id = "getEntryForTaskNotUseEntry" resultMap="BaseResultMap">
+        select DISTINCT
+        <include refid = "Base_Column_List_With_Prefix"><property name = "tbl" value = "info"></property></include>
+        from t_entry_info as info
+        inner join  t_translate as trans on info.en_trans_id = trans.id
+        or info.ru_trans_id = trans.id
+        or info.fra_trans_id = trans.id
+        or info.spa_trans_id = trans.id
+
+        where 
+            is_delete = 0
+        <if test = "idList != null">
+            and
+            info.id in <foreach collection = "idList" item = "id" separator = "," open = "(" close = ")">#{id}</foreach>        
+        </if>
+        <if test = "condition.containsKey('entry')">
+        <choose>
+            <when test = "entryInfoEntity.entry == null">
+                and info.entry is null
+            </when>
+            <otherwise>
+                and
+                info.entry = #{entryInfoEntity.entry,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>
+        <if test = "condition.containsKey('entryState') ">
+        <choose>
+            <when test = "entryInfoEntity.entryState == null">
+                and info.entry_state is null
+            </when>
+            <otherwise>
+                and
+                info.entry_state = #{entryInfoEntity.entryState,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>
+        <if test = "condition.containsKey('tag')">
+        <choose>
+            <when test = "entryInfoEntity.tag == null">
+                and info.tag is null
+            </when>
+            <otherwise>
+                and
+                info.tag = #{entryInfoEntity.tag,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>
+        <if test = "condition.containsKey('classfy2')">
+        <choose>
+            <when test = "entryInfoEntity.classfy2 == null">
+                and info.classfy2 is null
+            </when>
+            <otherwise>
+                and
+                info.classfy2 = #{entryInfoEntity.classfy2,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>      
+        <if test = "condition.containsKey('entrySource')">
+        <choose>
+            <when test = "entryInfoEntity.entrySource == null">
+                and info.entry_source is null
+            </when>
+            <otherwise>
+                and
+                info.entry_source = #{entryInfoEntity.entrySource,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>      
+        <if test = "condition.containsKey('translateType')">
+        <choose>
+            <when test = "translateEntity.type == null">
+                and  trans.type is null
+            </when>
+            <otherwise>
+                and
+                trans.type = #{translateEntity.type,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>  
+        <if test = "condition.containsKey('translateState')">
+        <choose>
+            <when test = "translateEntity.translateState == null">
+                and  trans.translate_state is null
+            </when>
+            <otherwise>
+            and
+            trans.translate_state = #{translateEntity.translateState,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>  
+        <if test = "condition.containsKey('translate')">
+        <choose>
+            <when test = "translateEntity.translate == null">
+                and trans.translate is null
+            </when>
+            <otherwise>
+            and
+            trans.translate = #{translateEntity.translate,jdbcType =VARCHAR}
+            </otherwise>
+        </choose>
+        </if>  
+
+    </select>
 </mapper>
