@@ -32,7 +32,14 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     List<EntryInfoEntity> getEntryInfoList(String taskID,String entryState, List<String> transStates,String entry);
 
-    String updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
+    /**
+     * 更新对应任务的词条信息,返回更新失败的词条信息
+     * @param entryInfoEntities
+     * @param taskID
+     * @param request
+     * @return 更新失败的词条信息
+     */
+    List<EntryInfoEntity> updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
 
     String deleteEntryInfoByTaskID(List<String> entryID, String taskID);
 

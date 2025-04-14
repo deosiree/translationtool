@@ -445,7 +445,8 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
                 translateEntity.setVersionID(entryTempEntity.getVersionID());
 
                 if (StringUtils.isNotBlank(entryTempEntity.getTranslate())){
-                    translateMapper.insert(translateEntity);
+                    // translateMapper.insert(translateEntity);
+                    translateMapper.insertTranslate(translateEntity);
                 }
 
                 entryInfoService.addTransID(translateEntity, entryInfoEntity);

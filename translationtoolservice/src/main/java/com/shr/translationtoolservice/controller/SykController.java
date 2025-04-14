@@ -1,12 +1,13 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.entity.EntryLabel;
 import com.shr.translationtoolservice.entity.ResponseListModel;
-import com.shr.translationtoolservice.entity.Translate;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.service.impl.SykServiceImpl;
+import com.shr.translationtoolservice.util.StringUtil;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 
 /**
@@ -40,6 +43,8 @@ public class SykController extends BaseController{
     public HttpResponse<ResponseListModel> getSykEntry(@RequestBody TranslateEntity translate , @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel responseListModel = new ResponseListModel();
+        translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
+        translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
         responseListModel.setList(sykService.getSykEntry(translate,pageIndex,pageSize));
         responseListModel.setTotalNum(sykService.getSykEntry(translate,-1,-1).size());
         return checkResult(responseListModel);
@@ -57,13 +62,15 @@ public class SykController extends BaseController{
         return checkResult(responseListModel);
     }
 
-    @GetMapping("/getSykNotUsed")
+    @PostMapping("/getSykNotUsed")
     @ApiOperation("获取术语库未使用的翻译")
     @CrossOrigin
     @Transactional
-    public HttpResponse<ResponseListModel> getSykNotUsed(HttpServletRequest request) {
-        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel();
-        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(request);
+    public HttpResponse<ResponseListModel<TranslateEntity>> getSykNotUsed(@RequestBody TranslateEntity translateTemplate,HttpServletRequest request) {
+        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
+        translateTemplate.setEntry(StringUtil.addEscapeCharacter(translateTemplate.getEntry()));
+        translateTemplate.setTranslate(StringUtil.addEscapeCharacter(translateTemplate.getTranslate()));
+        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,request.getHeader("token"));
         responseListModel.setList(translateEntityList);
         responseListModel.setTotalNum(translateEntityList.size());
         return checkResult(responseListModel);
@@ -73,17 +80,60 @@ public class SykController extends BaseController{
     @ApiOperation("更新术语库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
-
-        return checkResult(sykService.updateSykEntry(translates));
+    public HttpResponse<ResponseListModel<String>> updateSykEntry(@RequestBody List<TranslateEntity> translates) {
+        try {
+            ResponseListModel<String> responseListModel = new ResponseListModel<>();
+            List<TranslateEntity> failedTranslates = sykService.updateSykEntry(translates);
+            responseListModel.setList(failedTranslates.stream().map(TranslateEntity::getId).collect(Collectors.toList()));
+            responseListModel.setTotalNum(failedTranslates.size());
+            return ok(responseListModel);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            return error(null, e.getMessage());
+        }
     }
 
-    @PostMapping("/checkSykEntry")
-    @ApiOperation("检查翻译")
+    @PostMapping("/deleteSykEntry")
+    @ApiOperation("删除术语库")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> checkSykEntry(@RequestBody List<TranslateEntity> translates) {
+    public HttpResponse<ResponseListModel<String>> deleteSykEntry(@RequestBody List<TranslateEntity> translates){
 
-        return checkResult(sykService.updateSykEntry(translates));
+        try {
+            ResponseListModel<String> model = new ResponseListModel<>();
+            List<TranslateEntity> failedTranslates = sykService.deleteSykEntry(translates);
+            model.setList(failedTranslates.stream().map(TranslateEntity::getId).collect(Collectors.toList()));
+            model.setTotalNum(failedTranslates.size());
+            return ok(model);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            return error(null, e.getMessage());
+        }
+    }
+
+
+    @PostMapping("/checkSykEntry")
+    @ApiOperation("检查术语库翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<List<TranslateEntity>> checkSykEntry(@RequestBody TranslateEntity translatesTemplate) {
+        translatesTemplate.setEntry(StringUtil.addEscapeCharacter(translatesTemplate.getEntry()));
+        translatesTemplate.setTranslate(StringUtil.addEscapeCharacter(translatesTemplate.getTranslate()));
+        List<TranslateEntity> problemEntities = sykService.checkSykEntryByTemplate(translatesTemplate);
+        return checkResult(problemEntities);
+
+    }
+
+    @PostMapping("/checkSykEntryBeforeSave")
+    @ApiOperation("检查预翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<List<TranslateEntity>> checkSykEntryBeforeSave(@RequestBody List<TranslateEntity> translateEntities){
+
+        List<TranslateEntity> problemEntities = sykService.checkSykEntryOnList(translateEntities);
+        return checkResult(problemEntities);
+
     }
 }

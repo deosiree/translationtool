@@ -168,7 +168,7 @@ public class TranslateUtils {
                 try {
                 //默认主语言都是中文
                  trans = baiduTransUtils.translate(entry, "zh", tLanguage.getBdCode());
-                 //Thread.sleep(1000);
+                 Thread.sleep(1000);
                 } catch (Exception e) {
                     log.error(" ==== baidu翻译失败 ！ ====");
                     //languageEntities.add(languageEntity);
@@ -213,6 +213,12 @@ public class TranslateUtils {
                 continue;
             }*/
             languageEntities.add(youdaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
         }
 
 
@@ -239,6 +245,12 @@ public class TranslateUtils {
                 continue;
             }*/
             languageEntities.add(youdaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
         }
 
 
@@ -281,6 +293,12 @@ public class TranslateUtils {
             String code = tLanguage.getDeeplCode();
             // 翻译
             String translate = deepLTranslateUtils.translate(text, null, code);
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
             // 设置返回值
             LanguageEntity languageEntity = new LanguageEntity();
             languageEntity.setValue(translate);

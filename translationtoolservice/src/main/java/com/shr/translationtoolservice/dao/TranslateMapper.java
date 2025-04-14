@@ -18,6 +18,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
 
     int getPublicEntryTotal(@Param("translateEntity")TranslateEntity translateEntity);
 
+    int deleteById(@Param("translateEntity") TranslateEntity translateEntity);
+
     int deleteByIds(@Param("idList") List<String> idList);
 
     TranslateEntity selectPublicByEntry(TranslateEntity translateEntity);
@@ -26,6 +28,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
                                          @Param("offset") int offset,@Param("limit")  Integer pageSize);
 
     int updateTranslation(@Param("translateEntityList") List<TranslateEntity> translateEntityList);
+
+    int updateEntity(@Param("translateEntity") TranslateEntity translateEntity);
 
     List<TranslateEntity> selectRepByEntryTemp(@Param("entryTempEntity") EntryTempEntity entryTempEntity);
 
@@ -36,6 +40,11 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
 
 
     List<TranslateEntity> getSykTrans(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+
+    int insertTranslate(@Param("translateEntity") TranslateEntity translateEntity);
+    List<TranslateEntity> getTransForCheckSykEntry(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+    List<TranslateEntity> getTransForSykNotUsed(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+
 }
 
 
