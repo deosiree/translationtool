@@ -1,11 +1,14 @@
 package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.vo.TsVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -69,6 +72,21 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
                                                  @Param("productidList")List<String> productidList);
 
     List<EntryInfoEntity> getEntryByIDs(@Param("idList") Set<String> entryIdList);
+
+    List<EntryInfoEntity> getEntryInfoUsingTranslate(@Param("translateEntity") TranslateEntity translateEntity);
+    
+    List<EntryInfoEntity> getEntryByTsVo(@Param("tsVo") TsVo tsVo);
+
+    List<TsVo> getEntryByImportTypeUsingTranslate(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity,@Param("department") String department);
+    int getCounts();
+
+    List<EntryInfoEntity> getEntryForTaskNotUseEntry(
+        @Param("idList") Set<String> entryIdList,  
+        @Param("condition") Map<String,String> isCondition,
+        @Param("translateEntity") TranslateEntity translateEntity,
+        @Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+
+
 }
 
 

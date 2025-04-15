@@ -73,6 +73,7 @@
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
     @afterClose="afterOperateClose">
     <div style="width:100%;height:100%">
+
       <a-form v-if="title === '创建版本'" :model="version" autocomplete="off" ref="versionForm" :label-col="{ span: 6 }">
         <a-form-item label="产品版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
           <a-input v-model:value="version.versionName" placeholder="请输入版本名称"></a-input>
@@ -81,58 +82,61 @@
           <a-textarea v-model:value="version.remarks" placeholder="请输入备注" :rows="4" />
         </a-form-item>
       </a-form>
-      <a-form v-if="title === '导出'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
-        <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
-          <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
-            placeholder="请选择"></a-select>
-        </a-form-item>
-      </a-form>
+      <a-spin :spinning="exportLoading">
+        <a-form v-if="title === '导出'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
+          <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
+            <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
+              placeholder="请选择" allowClear></a-select>
+          </a-form-item>
+        </a-form>
+      </a-spin>
       <div class="table" v-if="title === '选择任务'">
         <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource" :row-selection='taskRowSelection'
           :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="taskTable" bordered>
         </a-table>
-
       </div>
-      <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
-        <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
-          <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP"></a-select>
-        </a-form-item>
-        <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择导出字段!' }]">
-          <a-select v-model:value="writeBack.language" placeholder="请选择" @change="languageChange">
-            <a-select-option value="英文">英文</a-select-option>
-            <a-select-option value="俄文">俄文</a-select-option>
-            <a-select-option value="西文">西文</a-select-option>
-            <a-select-option value="法文">法文</a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="回写类型" name="type">
-          <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
-            <a-radio value="DEFAUT">默认 </a-radio>
-            <a-radio value="TS">TS文件</a-radio>
-            <a-radio value="DI">辞典</a-radio>
-          </a-radio-group>
-          <a-tooltip placement="top">
-            <template #title>
-              <span>默认：按词条来源回写；TS文件：写入到ts文件；辞典：写入到辞典</span>
-            </template>
-            <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-          </a-tooltip>
-        </a-form-item>
-        <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
-          <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择"></a-select>
-        </a-form-item>
-        <a-form-item label=" " :colon="false">
-          <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
-          <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
-          <a-tooltip placement="top">
-            <template #title>
-              <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
-            </template>
-            <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-          </a-tooltip>
-        </a-form-item>
-        <!-- <a-form-item
+      <!-- 添加加载动画 -->
+      <a-spin :spinning="writeBackLoading">
+        <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
+          <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
+            <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
+          </a-form-item>
+          <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择导出字段!' }]">
+            <a-select v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
+              <a-select-option value="英文">英文</a-select-option>
+              <a-select-option value="俄文">俄文</a-select-option>
+              <a-select-option value="西文">西文</a-select-option>
+              <a-select-option value="法文">法文</a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="回写类型" name="type">
+            <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
+              <a-radio value="DEFAUT">默认 </a-radio>
+              <a-radio value="TS">TS文件</a-radio>
+              <a-radio value="DI">辞典</a-radio>
+            </a-radio-group>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>默认：按词条来源回写；TS文件：写入到ts文件；辞典：写入到辞典</span>
+              </template>
+              <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
+            </a-tooltip>
+          </a-form-item>
+          <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
+            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择" allowClear></a-select>
+          </a-form-item>
+          <a-form-item label=" " :colon="false">
+            <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
+            <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
+              </template>
+              <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
+            </a-tooltip>
+          </a-form-item>
+          <!-- <a-form-item
                 label="回写Tag"
                 name="isTag"
                 >
@@ -145,10 +149,11 @@
                     <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
                 </a-form-item> -->
 
-      </a-form>
+        </a-form>
+      </a-spin>
     </div>
-
   </CustomModal>
+
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
@@ -180,6 +185,8 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
+import { pageChange } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,
@@ -214,7 +221,11 @@ export default {
           align: "center",
           width: 60,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
         },
@@ -305,11 +316,15 @@ export default {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
         total: 0,
+        current: 1,
+        pageSize: 20,
         showTotal: (total) => `共 ${total} 条`,
+        onChange: this.pageChange,
       },
       title: "",
       operateVisible: false,
       operateWidth: "500px",
+      exportLoading: false,
       exportClass: {
         field: ["abbr", "词条"],
       },
@@ -407,6 +422,7 @@ export default {
         tagDisabled: false,
         ip: null,
       },
+      writeBackLoading: false,
       ipOptions: [],
     };
   },
@@ -430,7 +446,7 @@ export default {
   watch: {
     currentProduct(newval, oldval) {
       this.product = newval;
-    }
+    },
   },
   methods: {
     handleClose() {
@@ -439,6 +455,7 @@ export default {
     // 创建版本
     handleOK() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "创建版本";
     },
@@ -468,6 +485,7 @@ export default {
     // 导出Excel
     exportExcel() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "导出";
 
@@ -490,6 +508,7 @@ export default {
     // 提交审核/翻译
     examine() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "50%";
       this.title = "选择任务";
       this.getTaskList();
@@ -497,6 +516,7 @@ export default {
     // 回写
     writeBackFun() {
       this.operateVisible = true;
+      setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "回写";
       this.getIPs();
@@ -513,6 +533,7 @@ export default {
       };
       searchTaskInfo(data, params).then((res) => {
         this.taskDataSource = res.data.list;
+        this.pagination.total = res.data.totalNum;
       });
     },
     operateClose() {
@@ -535,10 +556,12 @@ export default {
               this.$emit("cancelCreate");
             })
             .catch((err) => {
-              message.error("创建失败！");
+              message.error("创建失败！",err.message);
             });
         });
       } else if (this.title === "导出") {
+        this.exportLoading = true;
+        // console.log("开始导出", this.exportLoading);
         this.$refs.exportForm.validate().then(() => {
           // 导出接口
           let fields = ["id"].concat(this.exportClass.field);
@@ -548,22 +571,27 @@ export default {
             excelName: "词条导出",
           };
           let params = {};
-          entryExportByCondition(data, params).then((res) => {
-            let fileName = res.headers["content-disposition"]
-              .split(";")[1]
-              .split("filename=")[1];
-            let contentType = res.headers["content-type"];
-            const blob = new Blob([res.data], { type: contentType });
-            const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
-            a.download = decodeURI(fileName);
-            a.href = window.URL.createObjectURL(blob);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(a.href);
-            this.operateVisible = false;
-            this.$emit("createClose");
-            this.$emit("cancelCreate");
-          });
+          entryExportByCondition(data, params)
+            .then((res) => {
+              let fileName = res.headers["content-disposition"]
+                .split(";")[1]
+                .split("filename=")[1];
+              let contentType = res.headers["content-type"];
+              const blob = new Blob([res.data], { type: contentType });
+              const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
+              a.download = decodeURI(fileName);
+              a.href = window.URL.createObjectURL(blob);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(a.href);
+              this.operateVisible = false;
+              this.$emit("createClose");
+              this.$emit("cancelCreate");
+            })
+            .finally(() => {
+              this.exportLoading = false;
+              // console.log("结束操作框", this.exportLoading);
+            });
           // 记录偏好
           this.exportFieldChange(this.exportClass.field);
         });
@@ -618,7 +646,14 @@ export default {
               fileName: this.writeBack.file,
               i18nUrl: this.writeBack.ip,
             };
-            // console.log(params)
+            this.writeBackLoading = true;
+            // console.log("开始loading");
+            // setTimeout(() => {
+            //   console.log(params);
+            //   this.writeBackLoading = false;
+            //   console.log("结束loading");
+            //   message.success("回写成功！");
+            // }, 3000);
             writeBack(params, this.dataSource)
               .then((res) => {
                 message.success("回写成功！");
@@ -627,10 +662,16 @@ export default {
                 this.$emit("cancelCreate");
               })
               .catch((err) => {
-                message.error("回写失败！");
+                message.error("回写失败！",err.message);
+              })
+              .finally(() => {
+                this.writeBackLoading = false;
+                this.loading = false;
               });
           })
-          .catch((err) => {});
+          .catch((err) => {
+            message.error(err.message)
+          });
       }
     },
     // 提交审核/翻译
@@ -672,7 +713,7 @@ export default {
           this.$emit("cancelCreate");
         })
         .catch((err) => {
-          message.error("提交失败！");
+          message.error("提交失败！",err.message);
         });
     },
     // 删除词条
@@ -842,6 +883,10 @@ export default {
 
       this.$emit("createClose");
       this.$emit("cancelCreate");
+    },
+    // 分页切换
+    pageChange(page, pageSize) {
+      pageChange(this, page, pageSize);
     },
   },
 };

@@ -119,6 +119,7 @@ public class ConstantInterface {
     public static final String PROJECT_TABLE_Name = "t_entry_project";
     public static final String PRODUCT_TABLE_Name = "t_entry_product";
     public static final String COMMON_TABLE_Name = "t_entry_common";
+    public static final String ENTRY_INFO_TABLE_NAME = "t_entry_info";
 
     public static final String BAIDU_TRANSLATE_APPID = "20230705001734655";
     public static final String BAIDU_TRANSLATE_KEY = "Msyn6CIJy97uY1MXLW0c";

@@ -43,7 +43,8 @@ public class TranslateServiceImpl extends ServiceImpl<TranslateMapper, Translate
             translateEntity.setId(commonUtils.getUUID());
         }
 
-        int insert = translateMapper.insert(translateEntity);
+        // int insert = translateMapper.insert(translateEntity);
+        int insert = translateMapper.insertTranslate(translateEntity);
         if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }

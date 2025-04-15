@@ -34,7 +34,7 @@
                   </a-radio-group>
                 </a-form-item>
                 <a-form-item label="IP">
-                  <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP"></a-select>
+                  <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
                 </a-form-item>
               </a-form>
               <!-- 数据类型：
@@ -488,7 +488,7 @@
               <template v-else>
                 <!-- {{ text }} -->
                 <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan">
+                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
                   </a-tag>
                 </span>
@@ -590,7 +590,7 @@
     <div class="condent">
       <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
         <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
-          <a-select v-model:value="templateObj.type" placeholder="请选择">
+          <a-select v-model:value="templateObj.type" placeholder="请选择" allowClear>
             <a-select-option value="zz">装置</a-select-option>
             <a-select-option value="common">通用</a-select-option>
             <a-select-option value="jk">监控</a-select-option>
@@ -601,6 +601,7 @@
   </CustomModal>
 </template>
 <script>
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
 import { add, cloneDeep, iteratee } from "lodash-es";
@@ -661,6 +662,7 @@ import {
 import { templateFileDownload } from "@/http/api/download";
 import workbenchCommon from "@/views/workbench/common.js";
 import common from "../entry/common";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
   components: {
@@ -716,7 +718,11 @@ export default {
           dataIndex: "index",
           width: 90,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -985,7 +991,7 @@ export default {
               this.saveEntrys();
             })
             .catch((err) => {
-              message.error("词条校验失败！");
+              message.error("词条校验失败！", err.message);
               this.saveLoading = false;
             });
         }
@@ -1103,39 +1109,66 @@ export default {
         // 新增
         insertEntry(params, addArr)
           .then((res) => {
-            message.success("数据已保存！");
+            message.success(
+              `数据已保存！新增数据${
+                addArr.length - res.data.totalNum
+              }条，失败${res.data.totalNum}条`
+            );
             this.saveLoading = false;
             // this.afterClose()
             this.loading = false;
 
-            addArr.forEach((item) => {
-              this.dataSource = this.dataSource.filter((d) => {
-                return d.id != item.id;
-              });
+            // 从 addArr 中移除保存失败的数据
+            const successfulAddArr = addArr.filter((item) => {
+              return !res.data.list.some(
+                (failedItem) => failedItem.id === item.id
+              );
             });
+            // 从 this.dataSource 中移除保存成功的数据
+            this.dataSource = this.dataSource.filter((item) => {
+              return !successfulAddArr.some(
+                (successItem) => successItem.id === item.id
+              );
+            });
+
             this.allData = this.dataSource;
           })
           .catch((err) => {
             this.saveLoading = false;
             this.loading = false;
+            message.error(err.message);
           });
       }
       if (updateArr.length > 0) {
         // 编辑
         updateEntryList(params, updateArr)
           .then((res) => {
-            message.success("数据已保存！");
+            message.success(
+              `数据已保存！重置了已审核的数据${
+                updateArr.length - res.data.totalNum
+              }条，失败${res.data.totalNum}条`
+            );
             this.saveLoading = false;
             // this.afterClose()
-            updateArr.forEach((item) => {
-              this.dataSource = this.dataSource.filter((d) => {
-                return d.id != item.id;
-              });
+
+            // 从 updateArr 中移除保存失败的数据
+            const successfulUpdateArr = updateArr.filter((item) => {
+              return !res.data.list.some(
+                (failedItem) => failedItem.id === item.id
+              );
             });
+            // 从 this.dataSource 中移除保存成功的数据
+            this.dataSource = this.dataSource.filter((item) => {
+              return !successfulUpdateArr.some(
+                (successItem) => successItem.id === item.id
+              );
+            });
+
             this.allData = this.dataSource;
           })
           .catch((err) => {
             this.saveLoading = false;
+            message.error(err.message);
           });
       }
     },
@@ -1158,6 +1191,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
 
@@ -1221,7 +1255,7 @@ export default {
           });
           let deleteID = [];
           this.selectedRows.forEach((item) => {
-            console.log("item.entryState", item.entry, item.entryState);
+            // console.log("item.entryState", item.entry, item.entryState);
             if (item.entryState === 2) {
               // 词条审核未通过
               deleteID.push(item.id);
@@ -1234,11 +1268,13 @@ export default {
             }
           });
           if (deleteID.length > 0) {
-            deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then((res) => {
-              message.success(`已删除！`); // 最后一列的词条状态
-              this.selectedRowKeys = [];
-              this.selectedRows = [];
-            });
+            deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then(
+              (res) => {
+                message.success(`已删除！`); // 最后一列的词条状态
+                this.selectedRowKeys = [];
+                this.selectedRows = [];
+              }
+            );
           } else {
             message.success("已删除！"); // 看最后一列的词条状态：未审核
             this.selectedRowKeys = [];
@@ -1568,7 +1604,7 @@ export default {
                 this.importBtnLoading = false;
               })
               .catch((err) => {
-                message.error("数据获取失败！");
+                message.error("数据获取失败！", err.message);
                 this.loading = false;
                 this.importBtnLoading = false;
               });
@@ -1576,6 +1612,7 @@ export default {
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       } else if (this.dataType === "dictionary") {
         this.$refs.dictSelectRef
@@ -1614,7 +1651,7 @@ export default {
                 this.importBtnLoading = false;
               })
               .catch((err) => {
-                message.error("数据获取失败！");
+                message.error("数据获取失败！", err.message);
                 this.loading = false;
                 this.importBtnLoading = false;
               });
@@ -1622,6 +1659,7 @@ export default {
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       } else if (this.dataType === "database") {
         // 数据库导入
@@ -1635,6 +1673,7 @@ export default {
             .catch((err) => {
               this.loading = false;
               this.importBtnLoading = false;
+              message.error(err.message);
             });
         } else if (this.dataLibrary.type === "alias") {
           // 元数据
@@ -1646,6 +1685,7 @@ export default {
             .catch((err) => {
               this.loading = false;
               this.importBtnLoading = false;
+              message.error(err.message);
             });
         } else if (this.dataLibrary.type === "allData") {
           // 全量
@@ -1657,6 +1697,7 @@ export default {
             .catch((err) => {
               this.loading = false;
               this.importBtnLoading = false;
+              message.error(err.message);
             });
         }
       } else if (this.dataType === "file") {
@@ -1688,7 +1729,7 @@ export default {
             this.importBtnLoading = false;
           })
           .catch((err) => {
-            message.error("导入失败！");
+            message.error("导入失败！", err.message);
             this.loading = false;
             this.importBtnLoading = false;
           });
@@ -1720,12 +1761,13 @@ export default {
               .catch((err) => {
                 this.loading = false;
                 this.importBtnLoading = false;
-                message.error("数据获取失败！");
+                message.error("数据获取失败！", err.message);
               });
           })
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       } else if (this.dataType === "enum") {
         if (this.ip === null || this.ip === undefined || this.ip === "") {
@@ -1754,12 +1796,13 @@ export default {
               .catch((err) => {
                 this.loading = false;
                 this.importBtnLoading = false;
-                message.error("数据获取失败！");
+                message.error("数据获取失败！", err.message);
               });
           })
           .catch((err) => {
             this.loading = false;
             this.importBtnLoading = false;
+            message.error(err.message);
           });
       }
     },
@@ -1810,7 +1853,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.importBtnLoading = false;
-          message.error("数据获取失败！");
+          message.error("数据获取失败！", err.message);
         });
     },
     // 获取别名
@@ -1841,7 +1884,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.importBtnLoading = false;
-          message.error("数据获取失败！");
+          message.error("数据获取失败！", err.message);
         });
     },
     // 批量导入数据库
@@ -2016,7 +2059,9 @@ export default {
           }
           delete this.editableData[record.id];
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     // 编辑
     edit(record) {
@@ -2126,6 +2171,7 @@ export default {
     // 创建辞典
     createDictionary() {
       this.createDictVisible = true;
+      setModalAriaHidden(this, document);
       this.createDict.name = "";
     },
     createDictOk() {
@@ -2200,6 +2246,7 @@ export default {
     // 模板下载
     templateFileDownload() {
       this.templateVisible = true;
+      setModalAriaHidden(this, document);
     },
     // 模板下载
     templateDownload() {
@@ -2249,6 +2296,7 @@ export default {
           })
           .catch((err) => {
             this.loading = false;
+            message.error(err.message);
           });
       }
     },
@@ -2301,18 +2349,27 @@ export default {
     selectAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      let dataToSelect;
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        this.filteredData.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
+        // 确保 filteredData 是最新的筛选结果
+        dataToSelect = this.dataSource.filter((item) => {
+          const isExistMatch =
+            !this.filters.isExist ||
+            this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =
+            !this.filters.entrySource ||
+            item.entrySource.includes(this.filters.entrySource);
+          return isExistMatch && entrySourceMatch;
         });
       } else {
-        this.dataSource.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
-        });
+        dataToSelect = this.dataSource;
       }
+      dataToSelect.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+      });
     },
+
     clearAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
