@@ -71,7 +71,7 @@ export default {
     watch: {
         currentVersion(newval,oldval){
             this.record = newval
-            console.log(newval)
+            // console.log(newval)
         }
     },
     methods: {
