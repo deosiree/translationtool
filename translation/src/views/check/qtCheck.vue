@@ -242,6 +242,7 @@ export default {
                 list: resByTsVo.data.list,
                 entry: item.entry,
                 tsProblemsType: item.type,
+                tag: item.tag,
               };
               // console.log("item", item);
             });

@@ -2,11 +2,17 @@
   <!-- 详情弹框(?修改a-modal的大小，参考之前工作台的) -->
   <a-modal :visible="visible" title="同词条，不同 翻译/词条来源" @cancel="handleClose" @ok="handleOK" style="width:70%">
     <div class="data">
-      <div style="float: left;">
+      <div>
         词条：
         <span class="value">{{dataSource.entry}}</span>
       </div>
-      <div style="float: right;">
+      <div>
+        tag：
+        <a-tag color="cyan" class="tag-content tag-offset">
+          <span>{{dataSource.tag}}</span>
+        </a-tag>
+      </div>
+      <div>
         翻译语言：
         <span class="value">{{dataSource.tsProblemsType}}</span>
       </div>
@@ -49,6 +55,9 @@
                 <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
               </template>
             </template>
+            <template v-if="column.dataIndex === 'operation'">
+              <a-button type="primary" danger size="small" @click.stop="handleDelete(record)">删除</a-button>
+            </template>
           </template>
         </a-table>
       </a-form>
@@ -59,6 +68,7 @@
 <script>
 import { message, Modal } from "ant-design-vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
+import { deleteEntryInfo } from "@/http/api/entryManage";
 import languageParam from "@/utils/languageParam.js";
 export default {
   emits: ["relationClose"],
@@ -83,6 +93,7 @@ export default {
           align: "center",
           width: 50,
           resizable: true,
+          fixed: "left",
           index: 0.1,
           customRender: (text, record, index, column) => {
             return (
@@ -96,7 +107,8 @@ export default {
           title: "翻译",
           dataIndex: "translate",
           align: "center",
-          width: 300,
+          fixed: "left",
+          width: 100,
           resizable: true,
           index: 1,
         },
@@ -108,19 +120,19 @@ export default {
           resizable: true,
           index: 2,
         },
-        {
-          title: "公开状态",
-          dataIndex: "publicState",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 3,
-        },
+        // {
+        //   title: "公开状态",
+        //   dataIndex: "publicState",
+        //   align: "center",
+        //   width: 100,
+        //   resizable: true,
+        //   index: 3,
+        // },
         {
           title: "词条来源",
           dataIndex: "entrySource",
           align: "center",
-          width: 150,
+          width: 200,
           resizable: true,
           index: 4,
         },
@@ -149,9 +161,10 @@ export default {
           index: 7,
         },
         {
-          title: "upgrade",
-          dataIndex: "upgrade",
+          title: "操作",
+          dataIndex: "operation",
           align: "center",
+          fixed: "right",
           width: 100,
           resizable: true,
           index: 8,
@@ -178,7 +191,7 @@ export default {
     dataSource: {
       immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
       handler(newDataSource) {
-        // console.log("新数据",newDataSource);
+        // console.log("新数据", newDataSource);
         if (newDataSource.tsProblemsType) {
           languageParam.languageList.forEach((item) => {
             if (newDataSource.tsProblemsType === item.name) {
@@ -187,7 +200,7 @@ export default {
               this.publicState = item.publicState;
             }
           });
-        };
+        }
       },
     },
   },
@@ -197,19 +210,28 @@ export default {
       this.$emit("relationClose");
     },
     handleOK() {
-      // // 点击确认就发送http请求，更新到对应产品中（/workbench/insertEntry/{taskID} 新增词条
-      // let params = {};
-      // let data = {
-      //   taskID: this.task.id,
-      // };
-      // insertEntry(params, data).then((res) => {
-      //   console.log("insertEntry", res);
-      //   message.success("更新成功！");
-      //   this.$emit("classifyClose");
-      //   this.dataSource = [];
-      // });
       this.pagination.current = 1;
       this.$emit("relationClose");
+    },
+    // 针对单一词条的删除按钮
+    handleDelete(record) {
+      this.loading = true;
+      deleteEntryInfo([record.id],{tableName:"t_entry_info"})
+        .then((res) => {
+          if (res.code === 200) {
+            message.success("删除成功");
+            this.dataSource.list = this.dataSource.list.filter(
+              (item) => item.id !== record.id
+            );
+            this.pagination.current = 1;
+            this.pagination.total--;
+          } else {
+            message.error(res.message);
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     // 设置表格每一行的class
     getRowClassName(record, index) {
@@ -247,9 +269,15 @@ export default {
 .data {
   // padding: 12px 12px 36px 12px;
   // border: 1px solid #ccc;
-  padding: 0 36px 36px 36px;
+  padding: 0 36px 12px 36px;
   margin-bottom: 12px;
   font-size: 1.2em; // 字体设置大一号
+  display: flex;
+  justify-content: space-between;
+}
+.tag-offset {
+  position: relative;
+  top: 5px;
 }
 .value {
   font-size: 0.9em;

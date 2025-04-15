@@ -18,13 +18,7 @@
             <a-select v-model:value="search.classfy2" style="width: 186px" placeholder="请选择" size="small" :fieldNames="{label:'name',value:'name'}"
               :options='classify2Option' @click="clickInput" allowClear></a-select>
           </a-form-item>
-          <a-form-item label="词条来源" name="entrySource">
-            <a-input v-model:value="search.entrySource" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
-          </a-form-item>
-          <a-form-item label="翻译语言" name="translateType">
-            <a-select v-model:value="search.translateType" style="width: 186px" placeholder="请选择" size="small"
-              :fieldNames="{label:'name',value:'name'}" :options='translateTypes' @click="clickInput" allowClear></a-select>
-          </a-form-item>
+
           <a-form-item label="翻译状态" name="translateState">
             <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择" :options='translateStates' size="small"
               @click="clickInput" allowClear></a-select>
@@ -38,6 +32,13 @@
           <a-form-item label="部门" name="classfyID">
             <a-select v-model:value="search.classfyID" style="width: 186px" placeholder="请选择" size="small" :options='classfyIDs' @click="clickInput"
               allowClear></a-select>
+          </a-form-item>
+          <a-form-item label="词条来源" name="entrySource" v-if="hasRedundantRls">
+            <a-select v-model:value="search.entrySource" :options='entrySources' placeholder="请选择" size="small" @click="clickInput"
+              allowClear></a-select>
+          </a-form-item>
+          <a-form-item label="修改人" name="update" v-if="hasRedundantRls">
+            <a-select v-model:value="search.update" :options='updates' placeholder="请选择" size="small" @click="clickInput" allowClear></a-select>
           </a-form-item>
         </a-form>
       </template>
@@ -185,6 +186,7 @@ export default {
       search: {
         entry: "", //词条
         entryState: null, //词条状态
+        entrySource: null, //词条来源
         tag: "", //Tag
         classfy2: null, //二级分类
         entrySource: "", //词性来源
@@ -253,7 +255,7 @@ export default {
           index: 5,
         },
         {
-          title: "update",
+          title: "修改人",
           dataIndex: "update",
           align: "center",
           width: 150,
@@ -261,21 +263,21 @@ export default {
           index: 6,
         },
         {
-          title: "updateTime",
+          title: "修改时间",
           dataIndex: "updateTime",
           align: "center",
           width: 150,
           resizable: true,
           index: 7,
         },
-        {
-          title: "upgrade",
-          dataIndex: "upgrade",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 8,
-        },
+        // {
+        //   title: "upgrade",
+        //   dataIndex: "upgrade",
+        //   align: "center",
+        //   width: 150,
+        //   resizable: true,
+        //   index: 8,
+        // },
         {
           title: "写入类型",
           dataIndex: "writeType",
@@ -308,6 +310,8 @@ export default {
         { label: "审核不通过", value: "2" },
         { label: "已审核", value: "3" },
       ], // 翻译状态
+      entrySources: [], // 词条来源
+      updates: [], // 修改人
       currentVersion: null, // 当前产品版本
       productVersions: [], // 产品版本
       labelCol: { style: { width: "84px" } },
@@ -328,7 +332,7 @@ export default {
         onChange: this.pageChange,
       },
       pageChangeSearch: {},
-      hasRedundantRls: false, // 是否有冗余词条
+      hasRedundantRls: false, // 是否有冗余词条的结果
       overlayStyle: tableParam.overlayStyle, // 展示列相关
       checkboxList: tableParam.checkboxList,
       checkedColumn: tableParam.checkedColumn,
@@ -406,6 +410,45 @@ export default {
         });
       });
     },
+    getEntrySources() {
+      this.entrySources = [];
+      this.dataSource.forEach((item) => {
+        if (!this.entrySources.find((src) => src.label === item.entrySource)) {
+          let entrySource = {
+            label: item.entrySource,
+            value: item.entrySource,
+          };
+          this.entrySources.push(entrySource);
+        }
+      });
+    },
+    getUpdate() {
+      this.updates = [];
+      this.dataSource.forEach((item) => {
+        if (!this.updates.find((src) => src.label === item.update)) {
+          let update = {
+            label: item.update,
+            value: item.update,
+          };
+          this.updates.push(update);
+        }
+      });
+    },
+    // 过滤查询条件
+    filter() {
+      const ignoreKeys = ["i18nURL", "classfyID", "pageIndex", "pageSize"];
+      Object.keys(this.search).forEach((key) => {
+        if (this.search[key] && !ignoreKeys.includes(key)) {
+          this.dataSource = this.dataSource.filter(
+            (data) => data[key] === this.search[key]
+          );
+        }
+      });
+      this.pagination.total = this.dataSource.length;
+      this.pagination.current = 1; // 重置当前页
+      this.getEntrySources(); // 根据dataSource获取词条来源
+      this.getUpdate(); // 根据dataSource获取修改人
+    },
     // 校验按钮点击事件
     check() {
       this.dataSource = []; // 清空数据
@@ -422,47 +465,56 @@ export default {
         message.error("请选择部门");
         return;
       }
-      this.search.pageIndex = this.pagination.current;
-      this.search.pageSize = this.pagination.pageSize;
+      this.loading = true;
+      // this.search.pageIndex = this.pagination.current;
+      // this.search.pageSize = this.pagination.pageSize;
       let params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.search.classfyID,
-        pageIndex: this.search.pageIndex,
-        pageSize: this.search.pageSize,
+        // pageIndex: this.search.pageIndex,
+        // pageSize: this.search.pageSize,
       };
-      getCheckNotUseEntry(params)
-        .then((res) => {
-          // console.log("getCheckNotUseEntry!查询任务状态为", res.data.state);
-          if (res.data.state === 1) {
-            // 有结果
-            this.hasRedundantRls = true; // 显示“重新执行”
-            message.info(`查询有结果,共有${res.data.totalNum}条冗余词条`,1);
-            this.dataSource = res.data.list;
-            this.pagination.total = res.data.totalNum; // 设置数据总数
-          } else if (res.data.state === 0) {
-            // 没结果没执行
-            message.info("查询无结果,开始校验", 1);
-            this.resetResult(); // 没执行所以需要执行
-          } else if (res.data.state === 3) {
-            // 没结果有执行
-            message.info("查询无结果,正在校验", 1);
-          }
-        })
-        .finally(() => {
+      getCheckNotUseEntry(params).then((res) => {
+        // console.log("getCheckNotUseEntry!查询任务状态为", res.data.state);
+        if (res.data.state === 1) {
+          // 有结果
+          this.hasRedundantRls = true; // 显示“重新执行”
+          this.dataSource = res.data.list;
+          this.filter(); // 过滤查询条件
+          message.info(`查询有结果,共有${this.pagination.total}条冗余词条`, 1);
           this.loading = false;
-        });
+        } else if (res.data.state === 2) {
+          // 有结果
+          this.hasRedundantRls = true; // 显示“重新执行”
+          message.info(`任务执行异常`, 1);
+          this.loading = false;
+        } else if (res.data.state === 0) {
+          // 没结果没执行
+          message.info("查询无结果,开始校验", 1);
+          this.resetResult(); // 没执行所以需要执行
+          this.loading = false;
+        } else if (res.data.state === 3) {
+          // 没结果有执行
+          message.info("查询无结果,正在校验", 1);
+          this.loading = false;
+        }
+      });
+      // .finally(() => {
+      //   this.loading = false;
+      // });
     },
     // 重新执行
     resetResult() {
       this.loading = true;
       this.pagination.current = 1;
-      this.search.pageIndex = this.pagination.current;
-      this.search.pageSize = this.pagination.pageSize;
+      this.pagination.total = 0;
+      // this.search.pageIndex = this.pagination.current;
+      // this.search.pageSize = this.pagination.pageSize;
       let params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.search.classfyID,
-        pageIndex: this.search.pageIndex,
-        pageSize: this.search.pageSize,
+        // pageIndex: this.search.pageIndex,
+        // pageSize: this.search.pageSize,
       };
       checkNotUseEntry(params)
         .then((res) => {
@@ -471,8 +523,7 @@ export default {
             message.info("重新开始校验！");
             this.hasRedundantRls = false;
           } else {
-            if (res.data.state === 0)
-              message.error("校验失败！");
+            if (res.data.state === 0) message.error("校验失败！");
           }
         })
         .finally(() => {
@@ -528,24 +579,15 @@ export default {
     // 全部选择
     selectAllEntry() {
       this.loading = true;
-      let params = {
-        i18nURL: this.search.i18nURL,
-        classfyID: this.search.classfyID,
-      };
-      getCheckNotUseEntry(params)
-        .then((res) => {
-          this.selectedRowKeys = [];
-          this.selectedRows = [];
-          this.selectEntry = [];
-          res.data.list.forEach((item) => {
-            this.selectedRowKeys.push(item.id);
-            this.selectedRows.push(item);
-            this.selectEntry.push(item);
-          });
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectEntry = [];
+      this.dataSource.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+        this.selectEntry.push(item);
+      });
+      this.loading = false;
     },
     // 取消选择
     clearAllEntry() {
@@ -562,14 +604,11 @@ export default {
     },
     // 取消选择（批量选择取消展开，清空已选词条）
     batchSelectCancel() {
+      this.pagination.current = 1;
       this.selectEntry = [];
       this.selectedRows = [];
       this.selectedRowKeys = [];
       this.batchSelectClose(); // 关闭已选词条弹窗
-      // if (typeof this.getSearch === "function") {
-      //   // 有的接口太慢了，先不刷新
-      //   this.getSearch();
-      // }
     },
     // 复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
@@ -601,7 +640,8 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      pageChange(this, page, pageSize, this.getCheckNotUseEntry);
+      pageChange(this, page, pageSize);
+      // pageChange(this, page, pageSize, this.getCheckNotUseEntry);
     },
   },
 };

@@ -153,7 +153,6 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
-          this.pagination.current = 1; // 重置页码
           this.$emit("batchSelectCancel");
         },
       });
@@ -169,15 +168,14 @@ export default {
       let params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.search.classfyID,
-        pageIndex: this.search.pageIndex,
-        pageSize: this.search.pageSize,
+        // pageIndex: this.search.pageIndex,
+        // pageSize: this.search.pageSize,
       };
       deleteNotUseEntry(params, data)
         .then((res) => {
           message.success("删除成功!");
           // console.log("删除成功", res);
-          this.pagination.current = 1; // 重置页码
-
+          this.pagination.total = 0; // 重置总条数
           this.$emit("batchSelectCancel");
         })
         .catch((err) => {
