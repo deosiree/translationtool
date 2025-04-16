@@ -997,6 +997,7 @@ export default {
         }
       } else {
         this.saveEntrys();
+        this.saveLoading = false;
       }
     },
     // 保存词条
@@ -1033,7 +1034,6 @@ export default {
 
       let addArr = [];
       let updateArr = [];
-
       let notInterpretation = [];
 
       // let insertEntrys = []
@@ -1114,9 +1114,6 @@ export default {
                 addArr.length - res.data.totalNum
               }条，失败${res.data.totalNum}条`
             );
-            this.saveLoading = false;
-            // this.afterClose()
-            this.loading = false;
 
             // 从 addArr 中移除保存失败的数据
             const successfulAddArr = addArr.filter((item) => {
@@ -1132,11 +1129,17 @@ export default {
             });
 
             this.allData = this.dataSource;
+
+            if (this.dataSource.length === 0) {
+              this.handleClose();
+            }
           })
           .catch((err) => {
+            message.error(err.message);
+          })
+          .finally(() => {
             this.saveLoading = false;
             this.loading = false;
-            message.error(err.message);
           });
       }
       if (updateArr.length > 0) {
@@ -1148,9 +1151,6 @@ export default {
                 updateArr.length - res.data.totalNum
               }条，失败${res.data.totalNum}条`
             );
-            this.saveLoading = false;
-            // this.afterClose()
-
             // 从 updateArr 中移除保存失败的数据
             const successfulUpdateArr = updateArr.filter((item) => {
               return !res.data.list.some(
@@ -1165,10 +1165,16 @@ export default {
             });
 
             this.allData = this.dataSource;
+            if (this.dataSource.length === 0) {
+              this.handleClose();
+            }
           })
           .catch((err) => {
-            this.saveLoading = false;
             message.error(err.message);
+          })
+          .finally(() => {
+            this.saveLoading = false;
+            this.loading = false;
           });
       }
     },

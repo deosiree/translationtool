@@ -436,14 +436,18 @@ export default {
   created() {},
   mounted() {
     this.task = this.currentTask;
-    this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
+    this.languageParam = languageParam.languageList.find(
+      (it) => it.name === this.task.translateType
+    );
     // workbenchCommon.languageMap[this.task.translateType].code
   },
   unmounted() {},
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
+      this.languageParam = languageParam.languageList.find(
+        (it) => it.name === this.task.translateType
+      );
       this.setTranslateColumn();
     },
     redHighlightIds(newval, oldval) {
@@ -474,7 +478,9 @@ export default {
       if (b[this.languageParam.value] === null) {
         return 1;
       }
-      return a[this.languageParam.value].localeCompare(b[this.languageParam.value]);
+      return a[this.languageParam.value].localeCompare(
+        b[this.languageParam.value]
+      );
     },
     init() {
       this.getTranslateEntry();
@@ -535,7 +541,7 @@ export default {
           });
         })
         .catch((err) => {
-          message.error("1", err.message);
+          message.error(err.message);
         })
         .finally(() => {
           this.loading = false;
@@ -548,17 +554,22 @@ export default {
       }
       this.saveLoading = true;
       this.loading = true;
+      let saveLen = 0,
+        errorLen = 0,
+        noTranslateLen = 0,
+        saveEntrys = [];
 
       // 更新数据源中的翻译数据
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.languageParam.value] = this.editableData[key][this.languageParam.value];
-        entry[this.languageParam.transIdName] = this.editableData[key][this.languageParam.transIdName];
+        entry[this.languageParam.value] =
+          this.editableData[key][this.languageParam.value];
+        entry[this.languageParam.transIdName] =
+          this.editableData[key][this.languageParam.transIdName];
       }
       this.editableData = {};
 
       // 获取保存数据
-      let saveEntrys = [];
       this.dataSource.forEach((item) => {
         if (this.selectedRowKeys.includes(item.id)) {
           saveEntrys.push(item);
@@ -567,7 +578,10 @@ export default {
 
       // 设置翻译状态
       saveEntrys.forEach((item) => {
-        if (item[this.languageParam.value] === null || item[this.languageParam.value] === "") {
+        if (
+          item[this.languageParam.value] === null ||
+          item[this.languageParam.value] === ""
+        ) {
           item[this.languageParam.state] = "0"; // 待翻译
         } else if (
           item[this.languageParam.state] === "0" ||
@@ -588,35 +602,50 @@ export default {
 
       const datas = [];
       Object.values(saveEntrys).forEach((item) => {
-        datas.push({
+        const data = {
           id: item.id,
           entry: item.entry,
           translate: item[this.languageParam.value],
-        });
+        };
+        // datas.push(data);
+        if (!data.translate) noTranslateLen++; // 未翻译数量
+        else {
+          saveLen++; // 已翻译数量
+          datas.push(data);
+        }
       });
 
       // 链式调用异步操作
       checkSykEntryBeforeSave(datas)
         .then((res) => {
           // 更新 redHighlightIds 数组
-          this.redHighlightIds = this.redHighlightIds.concat(
-            res.data.map((item) => item.id)
-          );
+          this.redHighlightIds = res.data.map((item) => item.id);
           // 过滤掉异常数据
           saveEntrys = saveEntrys.filter(
             (item) => !this.redHighlightIds.includes(item.id)
           );
-          message.warn(
-            `校验结束，共有${this.redHighlightIds.length}条翻译异常`,
-            10
-          );
+          errorLen = this.redHighlightIds.length;
+          saveLen -= errorLen;
+          if (errorLen > 0) {
+            message.warn(`校验结束，共有${errorLen}条翻译异常，未保存！`, 10);
+            // console.log("翻译异常:", this.redHighlightIds);
+            errorLen = 0;
+          }
+
           let params = {
             taskID: this.task.id,
           };
           return updateEntryList(params, saveEntrys);
         })
         .then((res) => {
-          message.success("已保存！");
+          if (noTranslateLen > 0) {
+            message.warn(`未翻译${noTranslateLen}条，未保存！`, 10);
+            noTranslateLen = 0;
+          }
+          if (saveLen > 0) {
+            message.success(`翻译成功${saveLen}条，已保存！`, 10);
+            saveLen = 0;
+          }
           let params = {
             taskID: this.task.id,
             entryState: "3",
@@ -626,7 +655,6 @@ export default {
             this.translateState === null || this.translateState === undefined
               ? ["0", "2"]
               : [this.translateState];
-          this.redHighlightIds = []; // 重新查询前要把异常数据清空
           return getEntryInfoList(params, data);
         })
         .then((res) => {
@@ -640,6 +668,12 @@ export default {
               item[this.languageParam.state] === null ||
               item[this.languageParam.state] === ""
             ) {
+              // 前端提供了状态
+              // console.log(
+              //   "前端提供了状态",
+              //   this.languageParam.state,
+              //   item[this.languageParam.state]
+              // );
               item[this.languageParam.state] = "0";
             }
           });
@@ -649,7 +683,7 @@ export default {
           }
         })
         .catch((err) => {
-          message.error("操作失败！", err.message);
+          message.error("操作失败！", err);
         })
         .finally(() => {
           this.saveLoading = false;
@@ -657,6 +691,7 @@ export default {
         });
     },
     handleClose() {
+      this.redHighlightIds = []; // 重新查询前要把异常数据清空
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
@@ -882,7 +917,8 @@ export default {
       // record[transIdName] = id
 
       if (this.editableData[this.selectedRowIndex] != undefined) {
-        this.editableData[this.selectedRowIndex][this.languageParam.value] = title;
+        this.editableData[this.selectedRowIndex][this.languageParam.value] =
+          title;
         // this.editableData[this.selectedRowIndex][transIdName] = id
 
         // 如果有子词条  则写入子词条
@@ -905,13 +941,17 @@ export default {
       // 长度校验
       let list = [
         eval(
-          "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
+          "this.$refs.form" +
+            record.id.replaceAll("-", "") +
+            this.languageParam.value
         ).validate(),
       ];
       Promise.all(list)
         .then(() => {
-          record[this.languageParam.value] = this.editableData[record.id][this.languageParam.value];
-          record[this.languageParam.transIdName] = this.editableData[record.id][this.languageParam.transIdName];
+          record[this.languageParam.value] =
+            this.editableData[record.id][this.languageParam.value];
+          record[this.languageParam.transIdName] =
+            this.editableData[record.id][this.languageParam.transIdName];
           delete this.editableData[record.id];
         })
         .catch((err) => {
@@ -1089,7 +1129,8 @@ export default {
               (item2) => item2.id === item1.id
             );
             if (matchItem) {
-              item1[this.languageParam.value] = matchItem[this.languageParam.value];
+              item1[this.languageParam.value] =
+                matchItem[this.languageParam.value];
             }
           });
           this.dataSource.forEach((item) => {
@@ -1318,7 +1359,9 @@ export default {
           flag++;
           this.edit(record).then(() => {
             eval(
-              "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
+              "this.$refs.form" +
+                record.id.replaceAll("-", "") +
+                this.languageParam.value
             )
               .validate()
               .then(() => {})

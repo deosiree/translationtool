@@ -381,7 +381,7 @@ export default {
             item.auditState = -1;
             item[this.languageParam.auditSuggest] = ""; // 对应语言的审核意见清空
           });
-          console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
+          // console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
           // this.allData = this.dataSource
           this.loading = false;
           // this.select()
