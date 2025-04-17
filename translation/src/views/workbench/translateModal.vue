@@ -8,6 +8,7 @@
           <div class="taskItem">产品名称：{{task.productName}}</div>
           <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
           <div class="taskItem">翻译语种：{{task.translateType}}</div>
+          <div class="taskItem"><a-checkbox v-model:checked="shouldCheckSykEntry">先校验再保存</a-checkbox></div>
         </div>
         <div class="form">
           词条：
@@ -379,6 +380,11 @@ export default {
         },
       ],
       dataSource: [],
+      dataSourceCount: {
+        saveLen: 0,
+        errorLen: 0,
+        noTranslateLen: 0,
+      }, // 保存词条数量统计
       allData: [],
       editableData: {},
       pagination: {
@@ -430,6 +436,7 @@ export default {
         replaceStr: null,
       },
       languageParam: null,
+      shouldCheckSykEntry: false, // 新增勾选状态变量
     };
   },
 
@@ -512,7 +519,12 @@ export default {
       });
     },
     // 获取待翻译词条
-    getTranslateEntry() {
+    async getTranslateEntry() {
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.dataSource = [];
+      this.selectedRowIndex = null;
+      this.setTranslateColumn();
       let params = {
         taskID: this.task.id,
         entryState: "3",
@@ -524,7 +536,7 @@ export default {
           ? ["0", "2"]
           : [this.translateState];
       // let data = (this.translateState === null || this.translateState === undefined) ? [] : [this.translateState]
-      getEntryInfoList(params, data)
+      await getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
           if (this.dataSource.length > 0) {
@@ -532,10 +544,8 @@ export default {
             this.assistedTranslation(this.dataSource[0]);
           }
           this.dataSource.forEach((item) => {
-            if (
-              item[this.languageParam.state] === null ||
-              item[this.languageParam.state] === ""
-            ) {
+            // 前端提供了翻译状态的展示，是否合理？
+            if (!item[this.languageParam.state]) {
               item[this.languageParam.state] = "0";
             }
           });
@@ -554,12 +564,53 @@ export default {
       }
       this.saveLoading = true;
       this.loading = true;
-      let saveLen = 0,
-        errorLen = 0,
-        noTranslateLen = 0,
-        saveEntrys = [];
+      this.dataSourceCount = {
+        saveLen: 0,
+        errorLen: 0,
+        noTranslateLen: 0,
+      };
 
-      // 更新数据源中的翻译数据
+      // 更新编辑数据
+      this.saveEditEntry();
+
+      // 设置翻译状态，再记录不同类型的词条数量
+      this.dataSource.forEach((item) => {
+        if (this.selectedRowKeys.includes(item.id)) {
+          // 点击保存后前端执行对翻译状态的更新，是否合理？
+          // 记录是否翻译，更新翻译状态
+          if (!item[this.languageParam.value]) {
+            this.dataSourceCount.noTranslateLen++; // 未翻译数量
+            item[this.languageParam.state] = "0"; // 待翻译
+          } else {
+            this.dataSourceCount.saveLen++; // 已翻译数量
+            if (["0", "2"].includes(item[this.languageParam.state])) {
+              item[this.languageParam.state] = "1"; // 已翻译待审核
+            }
+            // 如校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
+          }
+        }
+      });
+
+      // 校验翻译长度
+      let num = this.verifyTranslationLength(this.dataSource);
+      if (num > 0) {
+        message.warn("存在超长翻译，请检查！");
+        this.saveLoading = false;
+        this.loading = false;
+        return;
+      }
+
+      // 先校验再执行（若勾选
+      if (this.shouldCheckSykEntry) {
+        this.checkSykEntryBeforeSave().then(() => {
+          this.updateEntryList();
+        });
+      } else {
+        this.updateEntryList();
+      }
+    },
+    // 保存编辑数据
+    saveEditEntry() {
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
         entry[this.languageParam.value] =
@@ -568,122 +619,70 @@ export default {
           this.editableData[key][this.languageParam.transIdName];
       }
       this.editableData = {};
-
-      // 获取保存数据
-      this.dataSource.forEach((item) => {
-        if (this.selectedRowKeys.includes(item.id)) {
-          saveEntrys.push(item);
-        }
-      });
-
-      // 设置翻译状态
-      saveEntrys.forEach((item) => {
-        if (
-          item[this.languageParam.value] === null ||
-          item[this.languageParam.value] === ""
-        ) {
-          item[this.languageParam.state] = "0"; // 待翻译
-        } else if (
-          item[this.languageParam.state] === "0" ||
-          item[this.languageParam.state] === "2"
-        ) {
-          item[this.languageParam.state] = "1"; // 已翻译待审核
-        }
-      });
-
-      // 校验翻译长度
-      let num = this.verifyTranslationLength(saveEntrys);
-      if (num > 0) {
-        message.warn("存在超长翻译，请检查！");
-        this.saveLoading = false;
-        this.loading = false;
-        return;
-      }
-
-      const datas = [];
-      Object.values(saveEntrys).forEach((item) => {
-        const data = {
-          id: item.id,
-          entry: item.entry,
-          translate: item[this.languageParam.value],
-        };
-        // datas.push(data);
-        if (!data.translate) noTranslateLen++; // 未翻译数量
-        else {
-          saveLen++; // 已翻译数量
+    },
+    // 先校验再保存
+    checkSykEntryBeforeSave() {
+      const datas = []; // 已翻译的词条
+      Object.values(this.selectedRows).forEach((item) => {
+        if (item[this.languageParam.value]) {
+          const data = {
+            id: item.id,
+            entry: item.entry,
+            translate: item[this.languageParam.value],
+          };
           datas.push(data);
         }
       });
-
-      // 链式调用异步操作
-      checkSykEntryBeforeSave(datas)
+      return checkSykEntryBeforeSave(datas)
         .then((res) => {
-          // 更新 redHighlightIds 数组
           this.redHighlightIds = res.data.map((item) => item.id);
           // 过滤掉异常数据
-          saveEntrys = saveEntrys.filter(
+          this.selectedRows = this.selectedRows.filter(
             (item) => !this.redHighlightIds.includes(item.id)
           );
-          errorLen = this.redHighlightIds.length;
-          saveLen -= errorLen;
-          if (errorLen > 0) {
-            message.warn(`校验结束，共有${errorLen}条翻译异常，未保存！`, 10);
-            // console.log("翻译异常:", this.redHighlightIds);
-            errorLen = 0;
-          }
+          this.selectedRowKeys = this.selectedRowKeys.filter(
+            (item) => !this.redHighlightIds.includes(item)
+          );
 
-          let params = {
-            taskID: this.task.id,
-          };
-          return updateEntryList(params, saveEntrys);
-        })
-        .then((res) => {
-          if (noTranslateLen > 0) {
-            message.warn(`未翻译${noTranslateLen}条，未保存！`, 10);
-            noTranslateLen = 0;
-          }
-          if (saveLen > 0) {
-            message.success(`翻译成功${saveLen}条，已保存！`, 10);
-            saveLen = 0;
-          }
-          let params = {
-            taskID: this.task.id,
-            entryState: "3",
-            entry: this.keyWords,
-          };
-          let data =
-            this.translateState === null || this.translateState === undefined
-              ? ["0", "2"]
-              : [this.translateState];
-          return getEntryInfoList(params, data);
-        })
-        .then((res) => {
-          this.dataSource = res.data.list;
-          if (this.dataSource.length > 0) {
-            this.selectedRowIndex = this.dataSource[0].id;
-            this.assistedTranslation(this.dataSource[0]);
-          }
-          this.dataSource.forEach((item) => {
-            if (
-              item[this.languageParam.state] === null ||
-              item[this.languageParam.state] === ""
-            ) {
-              // 前端提供了状态
-              // console.log(
-              //   "前端提供了状态",
-              //   this.languageParam.state,
-              //   item[this.languageParam.state]
-              // );
-              item[this.languageParam.state] = "0";
-            }
-          });
-          if (this.dataSource.length === 0) {
-            // 如果没有待处理的数据就自动关闭弹窗
-            this.handleClose();
+          this.dataSourceCount.errorLen = this.redHighlightIds.length;
+          this.dataSourceCount.saveLen -= this.dataSourceCount.errorLen;
+          if (this.dataSourceCount.errorLen > 0) {
+            message.warn(
+              `校验结束，共有${this.dataSourceCount.errorLen}条翻译异常，未保存！`,
+              1
+            );
           }
         })
         .catch((err) => {
-          message.error("操作失败！", err);
+          message.error("校验失败！", err);
+          console.log("校验失败！", err);
+        });
+    },
+    // 保存
+    updateEntryList() {
+      const updateParams = {
+        taskID: this.task.id,
+      };
+      updateEntryList(updateParams, this.selectedRows)
+        .then(async (res) => {
+          if (this.dataSourceCount.noTranslateLen > 0) {
+            message.warn(
+              `未翻译${this.dataSourceCount.noTranslateLen}条，未保存！`,
+              1
+            );
+          }
+          if (this.dataSourceCount.saveLen > 0) {
+            message.success(
+              `翻译成功${this.dataSourceCount.saveLen}条，已保存！`,
+              1
+            );
+          }
+          await this.getTranslateEntry();
+          if (this.dataSource.length == 0) this.handleClose();
+        })
+        .catch((err) => {
+          message.error("操作失败！", err, 1);
+          console.log("操作失败！", err);
         })
         .finally(() => {
           this.saveLoading = false;
