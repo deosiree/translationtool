@@ -17,7 +17,7 @@
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
         <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
         <result property="auditSuggest" column="audit_suggest" jdbcType="VARCHAR"/>
-        <result property="lastUseTime" column="last_use_time" jdbcType="VARCHAR"/>
+        <result property="lastUseTime" column="last_use_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -155,6 +155,37 @@
         and `type` = #{entryTempEntity.translateType,jdbcType=VARCHAR}
     </select>
 
+    <insert id="insertTranslate" parameterType="com.shr.translationtoolservice.entity.TranslateEntity">
+        insert into t_translate
+    (
+    id,entry,
+    `translate`,
+    `unique`,remark,
+    `type`,visual_range,
+    public_state,
+    delete_state,
+    version_id,
+    translate_state,
+    audit_suggest,
+    last_use_time)
+        values
+            (
+    #{translateEntity.id,jdbcType=VARCHAR},
+    #{translateEntity.entry,jdbcType=VARCHAR},
+    #{translateEntity.translate,jdbcType=VARCHAR},
+    #{translateEntity.unique,jdbcType=VARCHAR},
+    #{translateEntity.remark,jdbcType=VARCHAR},
+    #{translateEntity.type,jdbcType=VARCHAR},
+    #{translateEntity.visualRange,jdbcType=VARCHAR},
+    #{translateEntity.publicState,jdbcType=INTEGER},
+    #{translateEntity.deleteState,jdbcType=INTEGER},
+    #{translateEntity.versionID,jdbcType=VARCHAR},
+    #{translateEntity.translateState,jdbcType=INTEGER},
+    #{translateEntity.auditSuggest,jdbcType=VARCHAR},
+   NOW()
+    )
+
+    </insert>
 
 
     <select id="getSuggestTrans" resultMap="BaseResultMap">
@@ -191,9 +222,8 @@
         and `type` = #{translateType,jdbcType=VARCHAR}
 
         and visual_range = #{visualRange,jdbcType=VARCHAR}
-
-        and translate_state ='3'
         and  `translate` =  #{translate,jdbcType=VARCHAR}
+        and translate_state ='3'
     </select>
 
     <insert id="insertTranslate" parameterType="com.shr.translationtoolservice.entity.TranslateEntity">

@@ -935,16 +935,16 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 //拼成词条实体
                 //2区分出已存在词条 和新词条 is_exist 区分
                 //3.新词条翻译预写在词条中
-                importExcleEntries = excelUtils.readZZExcelToEntity(ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+                importExcleEntries = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
                 zzEntryHandle(importExcleEntries, entryEntitys, userName, taskInfoEntity, fileName);
             } else if (fileName.contains("_common.xlsx")) {
-                entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+                entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
                 ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
             } else if (fileName.contains("_jk.xlsx")) {
-                entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+                entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
                 ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
             }else if (fileName.contains("_db.xlsx")) {
-                entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+                entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
                 ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
             }
         } catch (Exception e) {
@@ -977,6 +977,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 entryInfoEntity.setWriteType(ConstantInterface.DI);
                 String tag = entryInfoEntity.getTag();
                 //tag 转成json
+                entryInfoEntity.setImportType(ConstantInterface.DB_META);
                 JSONObject jsonObject = JSONObject.parseObject(tag);
                 String appName = jsonObject.get("appName").toString();
                 String dbName = jsonObject.get("dbName").toString().replace(".","_");
@@ -1482,7 +1483,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         try {
 
-            entryInfoEntities = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(taskEntityByTaskID.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1577,7 +1578,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
 
         try {
-            entryEntitys = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
             if (CollectionUtils.isEmpty(entryEntitys)) {
                 return null;
             }
@@ -1806,7 +1807,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
         try {
-            entryInfoEntities = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
             sortEmptyTrans(entryInfoEntities,taskInfoEntity.getTranslateType());
 
        /* TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
@@ -3378,12 +3379,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     //读取带序号的表格
     public List<EntryInfoEntity> importExcle(MultipartFile multipartFile, String taskID) {
         String name = multipartFile.getOriginalFilename();
-
+        TaskInfoEntity taskInfoEntity1 = taskInfoMapper.selectById(taskID);
         //读取excle转换的实体
         List<ImportExcleVO> importExcleEntries = new ArrayList<>();
         try {
 
-            importExcleEntries = excelUtils.readExcelToEntity(ImportExcleVO.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            importExcleEntries = excelUtils.readExcelToEntity(taskInfoEntity1.getTranslateType(),ImportExcleVO.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         } catch (Exception e) {
             e.printStackTrace();
         }
