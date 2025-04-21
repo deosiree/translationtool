@@ -248,6 +248,16 @@ public class ExcelUtils {
 
                     headCell.setCellType(Cell.CELL_TYPE_STRING);
                     String headName = headCell.getStringCellValue().trim();
+                    if ((headName.equals("英文术语") ||
+                            headName.equals("西文术语") ||
+                            headName.equals("俄文术语") ||
+                            headName.equals("法文术语") ||
+                            headName.equals("术语英文释义")||
+                            headName.equals("术语法文释义")||
+                            headName.equals("术语俄文释义")||
+                            headName.equals("术语西文释义")) && !headName.contains(translateType)){
+                        break;
+                    }
                     log.info(" **** 当前列头为 " + headName + " **** ");
                     if (headName.equals("展开（缩写采用单驼峰,首字母大写）")) {
                         int a = 0;
@@ -262,9 +272,7 @@ public class ExcelUtils {
                             headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
                             headName.equals("单多驼峰搭配下划线（继保类似）") ||
                             headName.equals("展开（缩写可采用单/多驼峰）")) {
-                        if (!headName.contains(translateType)){
-                            continue;
-                        }
+
                         Row head1 = sheet.getRow(firstRowNum + 1);
                         Cell headCell1 = head1.getCell(cellIndex);
                         headCell1.setCellType(Cell.CELL_TYPE_STRING);

@@ -169,36 +169,11 @@ public class DiUtils {
                 if (!entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
                     continue;
                 }
-                //是否需要tag 查询
-              /*  if (tag){
-                    if ((StringUtils.isNotBlank(entryInfoEntity.getTag()) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) ||
-                            (StringUtils.isBlank(entryInfoEntity.getTag()) && StringUtils.isNotBlank(dictionaryVo.getTag()))) {
-                        continue;
-                    }
-                }else {
-                    //不需要tag 的时候 如果辞典里存在tag 但是不存在空tag的词条，则是不匹配的
-                    if (StringUtils.isBlank(entryInfoEntity.getTag() )  && StringUtils.isNotBlank(dictionaryVo.getTag())) {
-                        continue;
-                    }
-                }*/
 
                 if (!entryInfoEntity.getComment().equals(dictionaryVo.getComments())) {
                     continue;
                 }
                 isExist = true;
-                //是否需要common 查询
-               /* if (common){
-                    if (StringUtils.isNotBlank(entryInfoEntity.getComment() ) && !entryInfoEntity.getComment().equals(dictionaryVo.getComments())) {
-                        continue;
-                    }else if (StringUtils.isBlank(entryInfoEntity.getComment()) && StringUtils.isBlank(dictionaryVo.getComments())){
-                        continue;
-                    }
-                }else {
-                    //不需要tag 的时候 如果辞典里存在tag 但是不存在空tag的词条，则是不匹配的
-                    if (StringUtils.isBlank(entryInfoEntity.getComment() )  && StringUtils.isNotBlank(dictionaryVo.getComments())) {
-                        continue;
-                    }
-                }*/
 
 
                 Map<String, String> transMap = dictionaryVo.getTranslation();

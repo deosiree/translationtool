@@ -73,6 +73,9 @@ public class I18nServiceImpl implements I18nService {
         }
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities1) {
+            if (StringUtils.isBlank(entryInfoEntity.getTag())) {
+                entryInfoEntity.setTag("");
+            }
             if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
                 entryInfoEntities.addAll(entryInfoEntity.getChildren());
             }
@@ -244,10 +247,15 @@ public class I18nServiceImpl implements I18nService {
                                 entities = diTypeMap.get(entryInfoEntity.getDiFileName());
                                 for (EntryInfoEntity entryInfoEntity1 : entities){
                                     if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
-                                            if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag())){
+                                            if(StringUtils.isBlank(entryInfoEntity1.getTag())){
+                                                entryInfoEntity1.setTag("");
+                                            }
+                                            if(StringUtils.isBlank(entryInfoEntity1.getComment())){
+                                                entryInfoEntity1.setComment("");
+                                            }
+
+                                            if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag()) && entryInfoEntity1.getComment().equals(entryInfoEntity.getComment())){
                                                 continue;
-                                            }else if (entryInfoEntity1.getComment().equals(entryInfoEntity.getComment())){
-                                               continue;
                                             }else {
                                                 entities.add(entryInfoEntity);
                                                 break;
