@@ -82,5 +82,6 @@ export default {
     { label: "回写类型", value: "writeType" },
     { label: "DI文件名", value: "diFileName" },
     { label: "comment", value: "comment" },
+    { label: 'Tag', value: 'tag'},
   ],
 }
