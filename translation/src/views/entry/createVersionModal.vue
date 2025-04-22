@@ -683,7 +683,7 @@ export default {
       this.dataSource.forEach((item) => {
         if (item.entryState === 0) {
           item.entryState = 1;
-          updateEntryInfo(item, params).then((res) => {});
+          // updateEntryInfo(item, params).then((res) => {});// 本来词条审核那边有翻译的词条应该跳到翻译审核页面，现在直接跳到归档了，注掉就没问题了
         }
       });
       // 将词条提交到任务
