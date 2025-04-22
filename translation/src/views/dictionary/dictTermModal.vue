@@ -20,7 +20,7 @@
                 >
                     <a-input v-model:value="dictTerm.entry" placeholder="请输入内容" :disabled="modalTitle.includes('编辑') ? true : false"></a-input>
                 </a-form-item>
-                <a-form-item label="Tag" name="Tag">
+                <a-form-item label="tag" name="tag">
                     <a-input v-model:value="dictTerm.tag" placeholder="请输入内容" :disabled="modalTitle.includes('编辑') ? true : false"></a-input>
                 </a-form-item>
                 <a-form-item label="翻译语言" name="lang"

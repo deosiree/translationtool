@@ -8,7 +8,7 @@ export default {
     { label: "词条来源", value: "entrySource", index: 7 },
     { label: "英文释义", value: "englishInterpretation", index: 8 },
     { label: "中文释义", value: "chineseInterpretation", index: 9 },
-    { label: 'Tag', value: 'tag', index: 9.1 },
+    { label: 'tag', value: 'tag', index: 9.1 },
     { label: "英文翻译", value: "english", index: 10 },
     { label: "英文翻译状态", value: "englishTranslateState", index: 11 },
     { label: "俄文翻译", value: "russian", index: 16 },
@@ -82,6 +82,6 @@ export default {
     { label: "回写类型", value: "writeType" },
     { label: "DI文件名", value: "diFileName" },
     { label: "comment", value: "comment" },
-    { label: 'Tag', value: 'tag'},
+    { label: 'tag', value: 'tag'},
   ],
 }

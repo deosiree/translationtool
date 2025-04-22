@@ -11,7 +11,7 @@
             <a-select v-model:value="search.entryState" style="width: 186px" placeholder="请选择" size="small" :options='entryStates' @click="clickInput"
               allowClear></a-select>
           </a-form-item>
-          <a-form-item label="Tag" name="tag">
+          <a-form-item label="tag" name="tag">
             <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
           <a-form-item label="二级分类" name="classfy2">
@@ -127,7 +127,7 @@
                   </template>
                 </template>
 
-                <!--Tag列 -->
+                <!--tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
                   <span>
                     <a-tag color="cyan" class="tag-content">
@@ -187,7 +187,7 @@ export default {
         entry: "", //词条
         entryState: null, //词条状态
         entrySource: null, //词条来源
-        tag: "", //Tag
+        tag: "", //tag
         classfy2: null, //二级分类
         entrySource: "", //词性来源
         translateType: null, //翻译语言

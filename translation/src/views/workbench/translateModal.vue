@@ -363,7 +363,7 @@ export default {
           sorter: (a, b) => this.dynamicSortFunction(a, b),
           sortDirections: ["descend", "ascend"],
         },
-        { title: "Tag", dataIndex: "tag", align: "center", width: 150 },
+        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         {
           title: "Comment",
           dataIndex: "Comment",

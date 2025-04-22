@@ -331,7 +331,6 @@ export default {
           resizable: true,
           index: 6,
         },
-        // {title: 'Tag',dataIndex: 'tag',align:'center',width:200},
         {
           title: "审核意见",
           dataIndex: "auditSuggess",

@@ -21,7 +21,7 @@
                 <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
               </template>
             </template>
-            <!--Tag列 -->
+            <!--tag列 -->
             <template v-if="column.dataIndex === 'tag'">
               <span>
                 <a-tag color="cyan" class="tag-content">

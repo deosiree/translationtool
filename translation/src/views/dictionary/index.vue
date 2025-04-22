@@ -55,7 +55,7 @@
                 <a-form-item label="词条" name="entry">
                   <a-input v-model:value="search.entry" placeholder="请输入内容"></a-input>
                 </a-form-item>
-                <a-form-item label="Tag" name="tag">
+                <a-form-item label="tag" name="tag">
                   <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
                 </a-form-item>
                 <a-form-item label="来源" name="common">
@@ -100,7 +100,7 @@
                     <template v-if="column.dataIndex === 'translation'">
                       <pre>{{ text }}</pre>
                     </template>
-                    <!--Tag列 -->
+                    <!--tag列 -->
                     <template v-if="column.dataIndex === 'tag'">
                       <span>
                         <a-tag color="cyan" class="tag-content">
@@ -194,7 +194,7 @@ export default {
         },
         { title: "词条", dataIndex: "source", width: 200 },
         { title: "来源", dataIndex: "comments", width: 200 },
-        { title: "Tag", dataIndex: "tag", width: 150 },
+        { title: "tag", dataIndex: "tag", width: 150 },
         { title: "翻译", dataIndex: "translation" },
       ],
       dataSource: [],

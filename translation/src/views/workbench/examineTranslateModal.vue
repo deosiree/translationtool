@@ -277,7 +277,7 @@ export default {
           resizable: true,
         },
         // {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
-        { title: "Tag", dataIndex: "tag", align: "center", width: 150 },
+        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         {
           title: "审核意见",
           dataIndex: "auditSuggess",

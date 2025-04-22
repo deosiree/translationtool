@@ -10,7 +10,7 @@
           <a-form-item label="所属类" name="category">
             <a-input v-model:value="search.category" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
-          <a-form-item label="Tag" name="tag">
+          <a-form-item label="tag" name="tag">
             <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item> -->
           <a-form-item label="删除状态" name="isDelete">
@@ -37,7 +37,7 @@
               @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, text, record }">
-                <!--Tag列 -->
+                <!--tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
                   <span>
                     <a-tag color="cyan" class="tag-content">
@@ -144,7 +144,7 @@ export default {
           index: 2,
         },
         {
-          title: "Tag",
+          title: "tag",
           dataIndex: "tag",
           align: "center",
           width: 200,

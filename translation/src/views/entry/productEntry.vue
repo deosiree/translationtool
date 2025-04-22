@@ -22,7 +22,7 @@
                 <a-select-option value="3">已审核</a-select-option>
               </a-select>
             </a-form-item>
-            <a-form-item label="Tag" name="tag">
+            <a-form-item label="tag" name="tag">
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
             </a-form-item>
             <a-form-item label="二级分类" name="classfy2">
@@ -187,7 +187,7 @@
                       <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%" @click="clickInput" />
                       <a-tooltip placement="top">
                         <template #title>
-                          <span>多个Tag按分号分割！</span>
+                          <span>多个tag按分号分割！</span>
                         </template>
                         <InfoCircleOutlined style="margin-left:3px" />
                       </a-tooltip>
