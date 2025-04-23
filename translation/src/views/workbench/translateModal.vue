@@ -11,16 +11,13 @@
           <div class="taskItem"><a-checkbox v-model:checked="shouldCheckSykEntry">先校验再保存</a-checkbox></div>
         </div>
         <div class="form">
-          词条：
-          <a-input v-model:value="keyWords" style="width:200px" size="small" placeholder='请输入词条搜索' />
+          <span>词条：</span>
+          <a-input v-model:value="search.keyWords" style="width:186px" size="small" placeholder='请输入词条搜索' />
           <span style="margin-left:10px">翻译状态：</span>
-          <a-select v-model:value="translateState" allowClear size="small" style="width: 200px" placeholder='请选择'>
-            <a-select-option value="0">待翻译</a-select-option>
-            <a-select-option value="1">待审核</a-select-option>
-            <a-select-option value="2">审核不通过</a-select-option>
-            <!-- <a-select-option value="33">审核通过</a-select-option> -->
+          <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择" :options='translateStates' size="small"
+            @click="clickInput" allowClear>
           </a-select>
-          <a-button type="primary" size="small" style="margin-left:8px" @click="getTranslateEntry">查询</a-button>
+          <a-button type="primary" size="small" style="margin-left:8px" @click="getSearch">查询</a-button>
           <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="preTranslation">预翻译</a-button>
           <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="save">保存</a-button> -->
           <a-button type="primary" size="small" style="margin-left:8px" @click="exportExcel">导出Excel</a-button>
@@ -162,10 +159,12 @@
         <div style="margin-bottom: 6px;">词条释义：</div>
         <div class="suggentContent">
           <div>
-            <span class="title">中文释义：</span><span>{{chineseInterpretation}}</span>
+            <span class="title">中文释义：</span>
+            <span>{{chineseInterpretation}}</span>
           </div>
           <div>
-            <span class="title">英文释义：</span><span>{{englishInterpretation}}</span>
+            <span class="title">英文释义：</span>
+            <span>{{englishInterpretation}}</span>
           </div>
         </div>
         <div style="margin-bottom: 6px;">翻译建议：</div>
@@ -178,7 +177,12 @@
                   <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
                   <span>{{item.title}}</span>
                 </div>
-                <div class="tips">{{item.tips}} <span v-if="index < 9">Ctrl+{{index + 1}}</span></div>
+                <div class="tips">
+                  {{item.tips}}
+                  <span v-if='index < 9'>
+                    Ctrl+{{index + 1}}
+                  </span>
+                </div>
               </div>
             </template>
             <span class="title">外网翻译：</span>
@@ -188,8 +192,12 @@
                   <img :src="require('../../assets/icon/'+item.type+'.png')" style="width:24px;height:24px;margin-right:8px" />
                   <span>{{item.title}}</span>
                 </div>
-                <div class="tips">{{item.tips}} <span
-                    v-if="index + this.suggest.local.length < 9">Ctrl+{{index + this.suggest.local.length + 1}}</span></div>
+                <div class="tips">
+                  {{item.tips}}
+                  <span v-if="index + this.suggest.local.length < 9">
+                    Ctrl+{{index + this.suggest.local.length + 1}}
+                  </span>
+                </div>
               </div>
             </template>
           </div>
@@ -252,7 +260,6 @@ import Modal from "@/components/modal/index.vue";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
-  updateEntryTemp,
   preTranslate,
   getEntryInfoList,
   updateEntryList,
@@ -281,6 +288,13 @@ import common from "../entry/common";
 import tableParam from "../entry/tableParam";
 import key from "keymaster";
 import { setModalAriaHidden } from "@/utils/commonUtils";
+import {
+  clickInput,
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+  pageChange,
+} from "@/utils/tableUtils"; // 引入工具函数
 export default {
   components: {
     Modal,
@@ -306,12 +320,14 @@ export default {
       type: Object,
     },
   },
-
   data() {
     return {
       modalWidth: "75%",
       task: {},
-      keyWords: "",
+      search: {
+        keyWords: "",
+        translateState: null,
+      },
       tableHeight: { x: "100%", y: 415 },
       loading: false,
       columns: [
@@ -379,13 +395,25 @@ export default {
           resizable: true,
         },
       ],
-      dataSource: [],
+      dataSourceAll: [], // 所有数据
+      dataSource: [], // 展示的数据（可能经历过过滤）
+      selectedRowKeys: [],
+      selectedRows: [],
       selectedRowsCount: {
         saveLen: 0,
         errorLen: 0,
         noTranslateLen: 0,
       }, // 保存词条数量统计
-      allData: [],
+      selectVisible: false,
+      selectTitle: "",
+      selectedRowIndex: null,
+      redHighlightIds: [],
+      translateStates: [
+        { label: "未翻译", value: "0" },
+        { label: "待审核", value: "1" },
+        { label: "审核不通过", value: "2" },
+        // { label: "已审核", value: "3" },
+      ], // 翻译状态
       editableData: {},
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
@@ -397,22 +425,18 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      selectedRowIndex: null,
       suggest: {
         local: [],
         web: [],
       },
       spinning: false,
       timer: null,
-      selectVisible: false,
-      selectTitle: "",
       preTran: {
         priority: null,
       },
       labelCol: { style: { width: "80px" } },
       chineseInterpretation: "",
       englishInterpretation: "",
-      translateState: null,
       rules: {},
       exportVisible: false,
       exportModal: {
@@ -427,9 +451,6 @@ export default {
       },
       clearFilters: null,
       saveLoading: false,
-      selectedRowKeys: [],
-      selectedRows: [],
-      redHighlightIds: [],
       replaceVisible: false,
       replaceModal: {
         sourceStr: null,
@@ -508,37 +529,51 @@ export default {
         return false;
       });
     },
-    // 获取待翻译词条
-    async getTranslateEntry() {
+    // 根据查询条件，过滤dataSource
+    getSearch() {
+      this.loading = true;
       this.selectedRowKeys = [];
       this.selectedRows = [];
-      this.dataSource = [];
       this.selectedRowIndex = null;
-      this.setTranslateColumn();
-      let params = {
+      this.dataSource = this.dataSourceAll.filter((item) => {
+        const keywordMatch =
+          !this.search.keyWords || item.entry.includes(this.search.keyWords);
+        const stateMatch =
+          !this.search.translateState ||
+          item[this.languageParam.state] === this.search.translateState;
+        return keywordMatch && stateMatch;
+      });
+      this.loading = false;
+    },
+    // 获取待翻译词条
+    async getTranslateEntry() {
+      this.loading = true;
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectedRowIndex = null;
+      this.dataSourceAll = [];
+      this.dataSource = [];
+      this.setTranslateColumn(); // 设置翻译列展示的语言
+      const params = {
         taskID: this.task.id,
         entryState: "3",
-        entry: this.keyWords,
+        entry: this.search.keyWords,
       };
-      this.loading = true;
-      let data =
-        this.translateState === null || this.translateState === undefined
-          ? ["0", "2"]
-          : [this.translateState];
-      // let data = (this.translateState === null || this.translateState === undefined) ? [] : [this.translateState]
+      const data = ["0", "2"];
       await getEntryInfoList(params, data)
         .then((res) => {
-          this.dataSource = res.data.list;
-          if (this.dataSource.length > 0) {
-            this.selectedRowIndex = this.dataSource[0].id;
-            this.assistedTranslation(this.dataSource[0]);
+          this.dataSourceAll = res.data.list;
+          if (this.dataSourceAll.length > 0) {
+            this.selectedRowIndex = this.dataSourceAll[0].id;
+            this.assistedTranslation(this.dataSourceAll[0]);
           }
-          this.dataSource.forEach((item) => {
+          this.dataSourceAll.forEach((item) => {
             // 前端提供了翻译状态的展示，是否合理？
             if (!item[this.languageParam.state]) {
               item[this.languageParam.state] = "0";
             }
           });
+          this.dataSource = this.dataSourceAll;// 在刚取到时，无过滤，所以全量克隆
         })
         .catch((err) => {
           message.error(err.message);
@@ -564,7 +599,6 @@ export default {
       this.saveEditEntry();
       // 设置翻译状态，再记录不同类型的词条数量
       this.selectedRows.forEach((item) => {
-        // if (this.selectedRowKeys.includes(item.id)) {
         // 点击保存后前端执行对翻译状态的更新，是否合理？
         // 记录是否翻译，更新翻译状态
         if (!item[this.languageParam.value]) {
@@ -577,11 +611,10 @@ export default {
           }
           // 如校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
         }
-        // }
       });
 
       // 校验翻译长度
-      let num = this.verifyTranslationLength(this.dataSource);
+      let num = this.verifyTranslationLength(this.selectedRows);
       if (num > 0) {
         message.warn("存在超长翻译，请检查！");
         this.saveLoading = false;
@@ -666,7 +699,7 @@ export default {
             );
           }
           await this.getTranslateEntry();
-          if (this.dataSource.length == 0) this.handleClose();
+          if (this.dataSourceAll.length == 0) this.handleClose();
         })
         .catch((err) => {
           message.error("操作失败！", err, 1);
@@ -681,46 +714,16 @@ export default {
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
-    },
-    // 保存
-    save() {
-      for (let key in this.editableData) {
-        let entry = this.dataSource.find((item) => item.id === key);
-        entry.translate = this.editableData[key].translate;
-      }
-      this.editableData = {};
-      updateEntryTemp(this.dataSource).then((res) => {
-        message.success("已保存！");
-      });
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
     // 添加表格行点击事件
     customRow(record, index) {
       return {
         onClick: (event) => {
-          let _this = this;
           this.selectedRowIndex = record.id;
           this.assistedTranslation(record);
-          // clearTimeout(this.timer)
-
-          // this.timer = setTimeout(function () {
-          //     _this.selectedRowIndex = record.id
-          //     _this.assistedTranslation(record)
-          // }, 500);
         },
         onDblclick: (event) => {
-          // clearTimeout(this.timer)
           if (this.editableData.hasOwnProperty(record.id)) {
             // 当前行在编辑状态
             return;
@@ -736,7 +739,7 @@ export default {
     edit(record) {
       this.editableData[record.id] = this.editableData.hasOwnProperty(record.id)
         ? this.editableData[record.id]
-        : cloneDeep(this.dataSource.filter((item) => record.id === item.id)[0]);
+        : cloneDeep(this.dataSourceAll.filter((item) => record.id === item.id)[0]);
       // 设置校验规则
       this.rules[record.id] = {
         entry: [
@@ -789,12 +792,6 @@ export default {
     },
     handleResizeColumn: (w, col) => {
       col.width = w;
-    },
-
-    select() {
-      this.dataSource = this.allData.filter((item) =>
-        item.entry.includes(this.keyWords)
-      );
     },
     // 辅助翻译
     assistedTranslation(record) {
@@ -884,17 +881,23 @@ export default {
           key.unbind("ctrl+" + i + 1);
         }
       }
+      key.unbind(
+        "ctrl+down,ctrl+up,ctrl+shift+down,ctrl+shift+up,ctrl+e,ctrl+enter"
+      ); // 解绑快捷键
     },
-    // 辅助翻译快捷键点击事件
+    // 辅助翻译快捷键点击事件：当用户按下与翻译建议对应的快捷键时，调用此方法来应用对应的翻译建议
     clickSug(i) {
+      // 将本地翻译建议和外网翻译建议合并成一个列表
       let list = this.suggest.local.concat(this.suggest.web);
-      // console.log(i)
+      // 调用 suggestClick 方法，传入对应序号的翻译建议的标题和 ID
       this.suggestClick(list[i - 1].title, list[i - 1].id);
     },
     suggestClick(title, id) {
+      // 检查是否有选中的词条，如果没有则直接返回，不进行后续操作
       if (this.selectedRowIndex === null) {
         return;
       }
+      // 从数据源中查找当前选中的词条记录
       let record = this.dataSource.find(
         (item) => item.id === this.selectedRowIndex
       );
@@ -903,6 +906,7 @@ export default {
       // record[transIdName] = id
 
       if (this.editableData[this.selectedRowIndex] != undefined) {
+        // 如果处于编辑状态，将翻译建议的标题赋值给编辑数据中的翻译字段
         this.editableData[this.selectedRowIndex][this.languageParam.value] =
           title;
         // this.editableData[this.selectedRowIndex][transIdName] = id
@@ -912,6 +916,7 @@ export default {
           this.editableData[this.selectedRowIndex].children &&
           this.editableData[this.selectedRowIndex].children.length > 0
         ) {
+          // 如果有子词条，将翻译建议的标题应用到所有子词条的翻译字段上
           this.editableData[this.selectedRowIndex].children.forEach((item) => {
             item[this.languageParam.value] = title;
             // item[transIdName] = id
@@ -923,26 +928,25 @@ export default {
       this.verifyTranslationLength([record]);
     },
     // 输入框 回车事件
-    inputPressEnter(record) {
+    async inputPressEnter(record) {
       // 长度校验
-      let list = [
-        eval(
-          "this.$refs.form" +
-            record.id.replaceAll("-", "") +
-            this.languageParam.value
-        ).validate(),
-      ];
-      Promise.all(list)
-        .then(() => {
+      const formRefName = `form${record.id.replaceAll("-", "")}${
+        this.languageParam.value
+      }`;
+      const formRef = this.$refs[formRefName];
+      if (formRef) {
+        try {
+          await formRef.validate();
           record[this.languageParam.value] =
             this.editableData[record.id][this.languageParam.value];
           record[this.languageParam.transIdName] =
             this.editableData[record.id][this.languageParam.transIdName];
           delete this.editableData[record.id];
-        })
-        .catch((err) => {
-          message.error("5", err.message);
-        });
+        } catch (err) {
+          console.error("输入框回车验证失败:", err);
+          message.error("输入验证失败，请检查输入内容", err.message);
+        }
+      }
     },
     // 预翻译
     preTranslation() {
@@ -951,6 +955,7 @@ export default {
       }
       this.selectVisible = true;
       setModalAriaHidden(this, document);
+      // 顺势执行@handleOK="selectHandleOK"
     },
     selectHandleOK() {
       this.$refs.formRef.validate().then(() => {
@@ -967,7 +972,6 @@ export default {
               (key) => this.editableData[key].id === item.id
             )
           ) {
-            // console.log("取消的翻译", item[this.languageParam.value]);
             item[this.languageParam.value] = "";
           }
         });
@@ -1018,31 +1022,25 @@ export default {
       record.translateID = "";
     },
     afterClose() {
-      this.selectedRowIndex = null;
-      this.keyWords = "";
-      this.translateState = null;
-      // 清空 辅助翻译快捷键
-      this.deleteShortcutKeys();
-      this.suggest = {
-        local: [],
-        web: [],
-      };
+      this.pagination.current = 1;
+      this.pagination.pageSize = 20;
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
       this.editableData = {};
-      // 解绑快捷键
-      key.unbind(
-        "ctrl+down,ctrl+up,ctrl+shift+down,ctrl+shift+up,ctrl+e,ctrl+enter"
-      );
-
       if (this.clearFilters) {
         this.clearFilters({ confirm: true });
         this.state.searchText = "";
       }
-
-      this.pagination.current = 1;
-      this.pagination.pageSize = 20;
-
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      this.selectedRowIndex = null;
+      this.search = {
+        keyWords: "",
+        translateState: null,
+      };
+      this.deleteShortcutKeys(); // 清空 辅助翻译快捷键
+      this.suggest = {
+        local: [],
+        web: [],
+      };
     },
 
     // 导出
@@ -1238,21 +1236,24 @@ export default {
       if (this.selectedRowIndex === null) {
         return;
       }
+      const refName = `ref${this.selectedRowIndex.replaceAll("-", "")}`;
+      const inputRef = this.$refs[refName];
+
       if (this.editableData.hasOwnProperty(this.selectedRowIndex)) {
         // 编辑数据中包含该数据
-        eval(
-          "this.$refs.ref" + this.selectedRowIndex.replaceAll("-", "")
-        ).focus();
+        if (inputRef) {
+          inputRef.focus();
+        }
       } else {
         // 编辑数据中不包含该数据
         this.editableData[this.selectedRowIndex] = this.dataSource.find(
           (item) => item.id === this.selectedRowIndex
         );
         this.$nextTick(() => {
-          let input = eval(
-            "this.$refs.ref" + this.selectedRowIndex.replaceAll("-", "")
-          );
-          input.focus();
+          const input = this.$refs[refName];
+          if (input) {
+            input.focus();
+          }
         });
       }
     },
@@ -1343,17 +1344,19 @@ export default {
           : record[this.languageParam.value];
         if (common.byteLength(text) > maxLength) {
           flag++;
-          this.edit(record).then(() => {
-            eval(
-              "this.$refs.form" +
-                record.id.replaceAll("-", "") +
-                this.languageParam.value
-            )
-              .validate()
-              .then(() => {})
-              .catch((err) => {
-                message.error("10", err.message);
-              });
+          this.edit(record).then(async () => {
+            const formRefName = `form${record.id.replaceAll("-", "")}${
+              this.languageParam.value
+            }`;
+            const formRef = this.$refs[formRefName];
+            if (formRef) {
+              try {
+                await formRef.validate();
+              } catch (err) {
+                console.error("校验翻译长度时表单验证失败:", err);
+                message.error("翻译长度校验失败，请检查翻译内容", err.message);
+              }
+            }
           });
         }
       });
@@ -1487,6 +1490,18 @@ export default {
         replaceStr: null,
       };
     },
+  },
+  mounted() {
+    let _this = this;
+    this.$nextTick(() => {
+      this.init();
+      window.onresize = function () {
+        _this.setTableHeight();
+      };
+    });
+  },
+  beforeUnmount() {
+    this.afterClose();
   },
 };
 </script>
