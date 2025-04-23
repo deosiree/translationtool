@@ -368,6 +368,7 @@ export default {
             });
             // console.log("校验成功", tempData);
             this.dataSource = tempData;
+            this.pagination.current = 1;
             this.pagination.total = this.dataSource.length;
           } else {
             // console.log("校验失败", res.data.message);

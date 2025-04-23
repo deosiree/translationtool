@@ -654,7 +654,7 @@ export default {
       this.translateVisible = true;
       setModalAriaHidden(this, document);
       // this.$refs.translate.getTranslateEntry()
-      this.$refs.translate.init();
+      this.$refs.translate.initTranslateEntry();
     },
     translateClose() {
       this.translateVisible = false;
