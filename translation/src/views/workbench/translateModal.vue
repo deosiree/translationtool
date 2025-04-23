@@ -439,22 +439,13 @@ export default {
       shouldCheckSykEntry: false, // 新增勾选状态变量
     };
   },
-
-  created() {},
-  mounted() {
-    this.task = this.currentTask;
-    this.languageParam = languageParam.languageList.find(
-      (it) => it.name === this.task.translateType
-    );
-    // workbenchCommon.languageMap[this.task.translateType].code
-  },
-  unmounted() {},
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
       this.languageParam = languageParam.languageList.find(
         (it) => it.name === this.task.translateType
       );
+      // workbenchCommon.languageMap[this.task.translateType].code
       this.setTranslateColumn();
     },
     redHighlightIds(newval, oldval) {
@@ -476,7 +467,6 @@ export default {
           item.dataIndex = this.languageParam.auditSuggest;
         }
       });
-      // console.log(this.columns)
     },
     dynamicSortFunction(a, b) {
       if (a[this.languageParam.value] === null) {
@@ -655,7 +645,6 @@ export default {
         })
         .catch((err) => {
           message.error("校验失败！", err);
-          console.log("校验失败！", err);
         });
     },
     // 保存
@@ -682,7 +671,6 @@ export default {
         })
         .catch((err) => {
           message.error("操作失败！", err, 1);
-          console.log("操作失败！", err);
         })
         .finally(() => {
           this.saveLoading = false;

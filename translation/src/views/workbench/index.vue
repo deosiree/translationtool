@@ -386,18 +386,16 @@ export default {
 
       // 单条更新任务，批量循环调用
       for (const task of this.selectedRows) {
-        // console.log("当前任务", task);
         if (task.translateType != this.selectedLanguage) {
           task.translateType = this.selectedLanguage;
-          // console.log("修改语言后的当前任务", task);
           updateTaskInfo(task).then((res) => {
-            // console.log(`“${task.name}”的翻译语种已更改为${task.translateType}！`);
+            this.showOperationArea = false; 
+            this.init();
             message.success(
               `“${task.name}”的翻译语种已更改为${task.translateType}！`
             );
           });
         } else {
-          // console.log(` “${task.name}”的翻译语种已为${task.translateType}，无需更改。`);
           message.success(
             `“${task.name}”的翻译语种已为${task.translateType}，无需更改。`
           );
@@ -464,7 +462,6 @@ export default {
     customRow(record, index) {
       return {
         onClick: (event) => {
-          // console.log("点击")
           this.selectedRowIndex = record.id;
           this.showOperationArea = true;
           this.setTableHeight();
@@ -539,8 +536,6 @@ export default {
           buttonHeight = this.$refs.button.offsetHeight + 8;
         } catch (error) {}
         this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
       });
     },
     // 获取待办事项和已办事项数量
@@ -616,7 +611,6 @@ export default {
       for (let key in this.search) {
         if (this.search[key] !== this.lastSearch[key]) {
           isChanged = true;
-          // console.log(`查询条件${key}发生变化:`, this.search[key], this.lastSearch[key]);
           break;
         }
       }
@@ -707,7 +701,6 @@ export default {
         creator: "",
       };
       this.pageChangeSearch = this.search;
-      // console.log("分页更新", this.pageChangeSearch);
       this.getTask();
     },
     // 分页切换
