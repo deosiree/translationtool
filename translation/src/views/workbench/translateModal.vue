@@ -380,7 +380,7 @@ export default {
         },
       ],
       dataSource: [],
-      dataSourceCount: {
+      selectedRowsCount: {
         saveLen: 0,
         errorLen: 0,
         noTranslateLen: 0,
@@ -554,7 +554,7 @@ export default {
       }
       this.saveLoading = true;
       this.loading = true;
-      this.dataSourceCount = {
+      this.selectedRowsCount = {
         saveLen: 0,
         errorLen: 0,
         noTranslateLen: 0,
@@ -562,23 +562,22 @@ export default {
 
       // 更新编辑数据
       this.saveEditEntry();
-
       // 设置翻译状态，再记录不同类型的词条数量
-      this.dataSource.forEach((item) => {
-        if (this.selectedRowKeys.includes(item.id)) {
-          // 点击保存后前端执行对翻译状态的更新，是否合理？
-          // 记录是否翻译，更新翻译状态
-          if (!item[this.languageParam.value]) {
-            this.dataSourceCount.noTranslateLen++; // 未翻译数量
-            item[this.languageParam.state] = "0"; // 待翻译
-          } else {
-            this.dataSourceCount.saveLen++; // 已翻译数量
-            if (["0", "2"].includes(item[this.languageParam.state])) {
-              item[this.languageParam.state] = "1"; // 已翻译待审核
-            }
-            // 如校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
+      this.selectedRows.forEach((item) => {
+        // if (this.selectedRowKeys.includes(item.id)) {
+        // 点击保存后前端执行对翻译状态的更新，是否合理？
+        // 记录是否翻译，更新翻译状态
+        if (!item[this.languageParam.value]) {
+          this.selectedRowsCount.noTranslateLen++; // 未翻译数量
+          item[this.languageParam.state] = "0"; // 待翻译
+        } else {
+          this.selectedRowsCount.saveLen++; // 已翻译数量
+          if (["0", "2"].includes(item[this.languageParam.state])) {
+            item[this.languageParam.state] = "1"; // 已翻译待审核
           }
+          // 如校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
         }
+        // }
       });
 
       // 校验翻译长度
@@ -634,11 +633,11 @@ export default {
             (item) => !this.redHighlightIds.includes(item)
           );
 
-          this.dataSourceCount.errorLen = this.redHighlightIds.length;
-          this.dataSourceCount.saveLen -= this.dataSourceCount.errorLen;
-          if (this.dataSourceCount.errorLen > 0) {
+          this.selectedRowsCount.errorLen = this.redHighlightIds.length;
+          this.selectedRowsCount.saveLen -= this.selectedRowsCount.errorLen;
+          if (this.selectedRowsCount.errorLen > 0) {
             message.warn(
-              `校验结束，共有${this.dataSourceCount.errorLen}条翻译异常，未保存！`,
+              `校验结束，共有${this.selectedRowsCount.errorLen}条翻译异常，未保存！`,
               1
             );
           }
@@ -654,15 +653,15 @@ export default {
       };
       updateEntryList(updateParams, this.selectedRows)
         .then(async (res) => {
-          if (this.dataSourceCount.noTranslateLen > 0) {
+          if (this.selectedRowsCount.noTranslateLen > 0) {
             message.warn(
-              `未翻译${this.dataSourceCount.noTranslateLen}条，未保存！`,
+              `未翻译${this.selectedRowsCount.noTranslateLen}条，未保存！`,
               1
             );
           }
-          if (this.dataSourceCount.saveLen > 0) {
+          if (this.selectedRowsCount.saveLen > 0) {
             message.success(
-              `翻译成功${this.dataSourceCount.saveLen}条，已保存！`,
+              `翻译成功${this.selectedRowsCount.saveLen}条，已保存！`,
               1
             );
           }
