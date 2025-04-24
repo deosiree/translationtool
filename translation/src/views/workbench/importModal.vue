@@ -37,16 +37,6 @@
                   <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
                 </a-form-item>
               </a-form>
-              <!-- 数据类型：
-                            <a-radio-group v-model:value="dataType" @change="dataTypeChange">
-                                <a-radio :value="'file'">文件</a-radio>
-                                <a-radio :value="'ts'">TS</a-radio>
-                                <a-radio :value="'database'">实时库</a-radio>
-                                <a-radio :value="'dictionary'">辞典</a-radio>
-                                <a-radio :value="'config'">配置文件</a-radio>
-                                <a-radio :value="'enum'">枚举文件</a-radio>
-                            </a-radio-group> -->
-              <!-- <a-button type="primary" size="small" class="resetBtn" style="float:right" @click="importEntryData">导入</a-button> -->
             </div>
             <div class="dataTypeBox" v-if="dataType === 'file'" ref="fileRef">
               <a-row :gutter="24">
@@ -76,7 +66,6 @@
                     <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
                   </a-form-item>
                 </a-col>
-
               </a-row>
             </div>
             <div class="dataTypeBox" v-if="dataType === 'ts'">
@@ -104,48 +93,14 @@
                 <a-row :gutter="24">
                   <a-col :span="12">
                     <a-form-item label="辞典" name="dictionaryType" :rules="[{ required: true, message: '请选择辞典!' }]">
-                      <!-- <a-select
-                                            v-model:value="dict.dictionaryType"
-                                            mode="multiple"
-                                            :max-tag-count="3"
-                                            allowClear
-                                            style="width: 100%;margin-left:10px"
-                                            placeholder="请选择"
-                                            size="small"
-                                            :options="notEffectiveDicts"
-                                            >
-                                            </a-select> -->
                       <a-tree-select v-model:value="dict.dictionaryType" v-model:searchValue="searchDicValue" show-search tree-checkable
                         style="width: 100%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" placeholder="请选择" allow-clear multiple
                         :tree-data="notEffectiveDicts" :max-tag-count="2" size="small" tree-node-filter-prop="label" @search="onDicSearch"
                         @change="onDicChange" @blur="onDicBlur">
-                        <!-- <template #title="{ value: val, label }">
-                                                    <b v-if="importedDic.includes(val)" style="color: #08c">{{ label }}</b>
-                                                    <template v-else>{{ label }}</template>
-                                                </template> -->
                       </a-tree-select>
                     </a-form-item>
                   </a-col>
                   <a-col :span="12">
-                    <!-- <a-form-item 
-                                        label="未生效辞典"
-                                        name="notEffectiveDict"
-                                        >
-                                            <a-select
-                                            v-model:value="notEffectiveDict"
-                                            mode="multiple"
-                                            :max-tag-count="3"
-                                            allowClear
-                                            placeholder="请选择"
-                                            :options="notEffectiveDicts"
-                                            style="width:70%"
-                                            size="small"
-                                            >
-
-                                            </a-select>
-                                            <a-button type="primary" ghost size="small" style="margin-left:5px" @click="valDictionary">生效</a-button>
-                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                                        </a-form-item> -->
                     <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
                   </a-col>
                 </a-row>
@@ -153,7 +108,7 @@
             </div>
             <div class="dataTypeBox" v-if="dataType === 'database'" style="padding-top:0px" ref="dataSourceRef">
               <a-tabs v-model:activeKey="dataLibrary.type" size="small" style="width:100%" @change="changeDataLibraryType">
-                <a-tab-pane key="field" tab="字段"></a-tab-pane>
+                <a-tab-pane key="field" tab="对象数据"></a-tab-pane>
                 <a-tab-pane key="alias" tab="元数据"></a-tab-pane>
                 <a-tab-pane key="allData" tab="全量"></a-tab-pane>
               </a-tabs>
@@ -194,28 +149,6 @@
                     </a-form-item>
                   </a-col>
                   <a-col :span="8">
-                    <!-- <a-form-item 
-                                        label="回写辞典"
-                                        name="diFileName"
-                                        :rules="[{ required: true, message: '请选择回写辞典!' }]"
-                                        >
-                                            <a-select
-                                            v-model:value="dataLibrary.diFileName"
-                                            allowClear
-                                            placeholder="请选择翻译数据回写辞典目录"
-                                            style="width:70%"
-                                            :options="dictionaryOptions"
-                                            size="small"
-                                            >
-                                            </a-select>
-                                            <a-tooltip placement="top">
-                                                <template #title>
-                                                <span>添加辞典</span>
-                                                </template>
-                                                <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                            </a-tooltip>
-                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                                        </a-form-item> -->
                     <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
                   </a-col>
                 </a-row>
@@ -247,28 +180,6 @@
                     </a-form-item>
                   </a-col>
                   <a-col :span="8">
-                    <!-- <a-form-item 
-                                        label="回写辞典"
-                                        name="diFileName"
-                                        :rules="[{ required: true, message: '请选择回写辞典!' }]"
-                                        >
-                                            <a-select
-                                            v-model:value="dataLibrary.diFileName"
-                                            allowClear
-                                            placeholder="请选择翻译数据回写辞典目录"
-                                            :options="dictionaryOptions"
-                                            style="width:80%"
-                                            size="small"
-                                            >
-                                            </a-select>
-                                            <a-tooltip placement="top">
-                                                <template #title>
-                                                <span>添加辞典</span>
-                                                </template>
-                                                <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                            </a-tooltip>
-                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                                        </a-form-item> -->
                     <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
                   </a-col>
                 </a-row>
@@ -296,28 +207,6 @@
                     </a-form-item>
                   </a-col>
                   <a-col :span="12">
-                    <!-- <a-form-item 
-                                        label="回写辞典"
-                                        name="diFileName"
-                                        :rules="[{ required: true, message: '请选择回写辞典!' }]"
-                                        >
-                                            <a-select
-                                            v-model:value="dataLibrary.diFileName"
-                                            allowClear
-                                            placeholder="请选择翻译数据回写辞典目录"
-                                            :options="dictionaryOptions"
-                                            style="width:80%"
-                                            size="small"
-                                            >
-                                            </a-select>
-                                            <a-tooltip placement="top">
-                                                <template #title>
-                                                <span>添加辞典</span>
-                                                </template>
-                                                <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px"/>
-                                            </a-tooltip>
-                                            <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-                                        </a-form-item> -->
                     <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
                   </a-col>
                 </a-row>
@@ -558,33 +447,6 @@
       <a-button type="primary" size="small" style="margin-left:8px;float:left" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
     </template>
   </CustomModal>
-  <!-- <CustomModal
-    :visible="createDictVisible" 
-    modalTitle="新增辞典"
-    @handleOK="createDictOk"
-    @handleClose="createDictClose"
-    >
-        <div class="condent">
-            <a-form
-            ref="dictRef"
-            name="advanced_search"
-            class="ant-advanced-search-form"
-            :model="createDict"
-            style="width:100%"
-            >
-                <a-form-item
-                label="辞典名称"
-                name="name"
-                :rules="[{ required: true, message: '请输入辞典名称!' }]"
-                >
-                    <a-input
-                        v-model:value="createDict.name"
-                        placeholder='请输入辞典名称'
-                    />
-                </a-form-item>
-            </a-form>
-        </div>
-    </CustomModal> -->
   <Dict :visible="createDictVisible" @modalClose="createDictClose" @modalOK="createDictOk" />
   <CustomModal :visible="templateVisible" modalTitle="模板下载" @handleOK="templateDownload" @handleClose="templateClose">
     <div class="condent">
@@ -915,28 +777,6 @@ export default {
       });
     },
     handleOK() {
-      // if(Object.keys(this.editableData).length != 0){
-      //     Modal.confirm({
-      //         title: '有编辑数据未保存，是否保存?',
-      //         icon: createVNode(ExclamationCircleOutlined),
-      //         okText: '保存',
-      //         cancelText: '取消',
-      //         onOk: () => {
-      //             console.log("保存")
-      //         },
-      //         onCancel: () => {
-      //             console.log("取消")
-      //         }
-      //     });
-      // }
-      // this.allData.forEach(item => {
-      //     // 默认全部通过
-      //     item.auditState = 1
-      // })
-      // insertEntry(this.allData).then((res) => {
-      //     message.success('数据已保存！')
-      //     this.$emit('handleClose')
-      // })
       this.insertEntry();
     },
     handleClose() {
@@ -1036,12 +876,6 @@ export default {
       let updateArr = [];
       let notInterpretation = [];
 
-      // let insertEntrys = []
-      // this.dataSource.forEach(item => {
-      //     if(this.selectedRowKeys.includes(item.id)){
-      //         insertEntrys.push(item)
-      //     }
-      // })
       // 保存操作 将保存所有词条(allData) 改为 保存已勾选的词条
       this.selectedRows.forEach((item) => {
         if (item.parentID != "" && item.parentID != null) {
@@ -1670,7 +1504,7 @@ export default {
       } else if (this.dataType === "database") {
         // 数据库导入
         if (this.dataLibrary.type === "field") {
-          // 字段
+          // 对象数据（原 字段）
           this.$refs.fieldFormRef
             .validate()
             .then(() => {
@@ -1820,7 +1654,7 @@ export default {
         return x > y ? -1 : x < y ? 1 : 0;
       });
     },
-    // 获取字段内容
+    // 获取对象数据（原 字段）内容
     getFieldData() {
       let table = this.treeData.find(
         (item) => item.id === this.dataLibrary.table
