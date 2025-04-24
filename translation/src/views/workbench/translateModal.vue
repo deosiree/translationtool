@@ -542,7 +542,7 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedRowIndex = null;
-      this.dataSource = this.dataSourceAll.filter((item) => {
+      this.dataSource = this.allData.filter((item) => {
         const keywordMatch =
           !this.search.keyWords || item.entry.includes(this.search.keyWords);
         const stateMatch =
@@ -560,7 +560,7 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedRowIndex = null;
-      this.dataSourceAll = [];
+      this.allData = [];
       this.dataSource = [];
       this.setTranslateColumn(); // 设置翻译列展示的语言
       const params = {
@@ -571,18 +571,18 @@ export default {
       const data = ["0", "2"];
       await getEntryInfoList(params, data)
         .then((res) => {
-          this.dataSourceAll = res.data.list;
-          if (this.dataSourceAll.length > 0) {
-            this.selectedRowIndex = this.dataSourceAll[0].id;
-            this.assistedTranslation(this.dataSourceAll[0]);
+          this.allData = res.data.list;
+          if (this.allData.length > 0) {
+            this.selectedRowIndex = this.allData[0].id;
+            this.assistedTranslation(this.allData[0]);
           }
-          this.dataSourceAll.forEach((item) => {
+          this.allData.forEach((item) => {
             // 前端提供了翻译状态的展示，是否合理？
             if (!item[this.languageParam.state]) {
               item[this.languageParam.state] = "0";
             }
           });
-          this.dataSource = this.dataSourceAll; // 在刚取到时，无过滤，所以全量克隆
+          this.dataSource = this.allData; // 在刚取到时，无过滤，所以全量克隆
           this.pagination.current = 1;
           this.pagination.total = this.dataSource.length;
         })
@@ -620,14 +620,14 @@ export default {
         } else {
           this.selectedRowsCount.saveLen++; // 已翻译数量
           if (["0", "2"].includes(item[this.languageParam.state])) {
-            item[this.languageParam.state] = "1"; // 已翻译待审核
+            item[this.languageParam.state] = "1"; // 待审核(只有“1”才能通过保存)
           }
           // 如校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
         }
       });
       //// 不用，因为保存后会重新查询
       // this.updateNewByOld(this.dataSource, this.selectedRows);
-      // this.updateNewByOld(this.dataSourceAll, this.selectedRows);
+      // this.updateNewByOld(this.allData, this.selectedRows);
       // console.log("修改翻译状态", this.selectedRows);
       // 校验翻译长度
       let num = this.verifyTranslationLength(this.selectedRows);
@@ -716,7 +716,7 @@ export default {
             );
           }
           await this.getTranslateEntry();
-          if (this.dataSourceAll.length == 0) this.handleClose();
+          if (this.allData.length == 0) this.handleClose();
         })
         .catch((err) => {
           message.error("操作失败！", err, 1);
@@ -757,7 +757,7 @@ export default {
       this.editableData[record.id] = this.editableData.hasOwnProperty(record.id)
         ? this.editableData[record.id]
         : cloneDeep(
-            this.dataSourceAll.filter((item) => record.id === item.id)[0]
+            this.allData.filter((item) => record.id === item.id)[0]
           );
       // 设置校验规则
       this.rules[record.id] = {
@@ -969,7 +969,7 @@ export default {
     },
     // 使用old数据来更新new数据
     updateNewByOld(New, Old) {
-      // updateNewByOld(this.dataSourceAll,this.dataSource) 据dataSource（过滤后的展示数据）来更新dataSourceAll（不经过滤的全量数据）
+      // updateNewByOld(this.allData,this.dataSource) 据dataSource（过滤后的展示数据）来更新dataSourceAll（不经过滤的全量数据）
       // updateNewByOld(this.selectedRows,this.dataSource) 执行保存updateEntryList前更新一下已选数据
       const idToIndexMap = new Map();
       New.forEach((item, index) => {
@@ -1013,17 +1013,17 @@ export default {
         this.editableData = []; // 取消所有编辑状态
         preTranslate(params, this.dataSource)
           .then((res) => {
-            console.log("预翻译结果：", res.data.list);
-            console.log("预翻译语种：", this.languageParam.value);
+            // console.log("预翻译结果：", res.data.list);
+            // console.log("预翻译语种：", this.languageParam.value);
             // 更新 dataSource 中的翻译数据
             this.dataSource = res.data.list.map((item) => {
               item.translate = item[this.languageParam.value];
-              if (!item.translate) {
-                console.log(`${item.entry}没有翻译数据`, item);
-              }
+              // if (!item.translate) {
+              //   console.log(`${item.entry}没有翻译数据`, item);
+              // }
               return item;
             });
-            this.updateNewByOld(this.dataSourceAll, this.dataSource); // 也更新一下全量数据
+            this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
             // // console.log("编辑数据有：", Object.keys(this.editableData));
             // // 修改编辑中数据值
             // for (let key in this.editableData) {
@@ -1158,7 +1158,7 @@ export default {
           this.dataSource.forEach((item) => {
             item.entryState = 3;
           });
-          this.updateNewByOld(this.dataSourceAll, this.dataSource); // 也更新一下全量数据
+          this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
         })
         .catch((err) => {
           message.error("导入失败！", err.message);
@@ -1482,7 +1482,7 @@ export default {
             );
             return matchedItem2 || item1;
           });
-          this.updateNewByOld(this.dataSourceAll, this.dataSource); // 也更新一下全量数据
+          this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
 
           this.selectedRowKeys = [];
           this.selectedRows = [];
@@ -1515,7 +1515,7 @@ export default {
               );
               return matchedItem2 || item1;
             });
-            this.updateNewByOld(this.dataSourceAll, this.dataSource); // 也更新一下全量数据
+            this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
 
             message.success("替换成功！");
             this.replaceVisible = false;

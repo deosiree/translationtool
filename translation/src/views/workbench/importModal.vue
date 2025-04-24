@@ -963,7 +963,10 @@ export default {
             });
 
             this.allData = this.dataSource;
-
+            // 清空选中
+            this.selectedRows = [];
+            this.selectedRowKeys = [];
+            this.selectedRowIndex = null;
             if (this.dataSource.length === 0) {
               this.handleClose();
             }
@@ -999,6 +1002,10 @@ export default {
             });
 
             this.allData = this.dataSource;
+            // 清空选中
+            this.selectedRows = [];
+            this.selectedRowKeys = [];
+            this.selectedRowIndex = null;
             if (this.dataSource.length === 0) {
               this.handleClose();
             }
@@ -1023,6 +1030,7 @@ export default {
       this.loading = true;
       getEntryInfoList(params, [])
         .then((res) => {
+          // console.log("数据", this.dataSource, this.selectedRows);
           if (res.data.list.length > 0) {
             this.dataSource = res.data.list;
             this.allData = this.dataSource;
