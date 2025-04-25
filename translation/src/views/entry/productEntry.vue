@@ -239,7 +239,7 @@
                     </span>
                     <span v-else>
                       <a-button type="primary" ghost size="small" @click.stop="entryDetails(record)">详情</a-button>
-                      <a-button type="primary" ghost size="small" @click.stop="entryUpgrade(record)">升级</a-button>
+                      <!-- <a-button type="primary" ghost size="small" @click.stop="entryUpgrade(record)">升级</a-button> -->
                     </span>
                   </div>
                 </template>
