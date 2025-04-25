@@ -3,7 +3,9 @@ package com.shr.translationtoolservice.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
+import com.shr.translationtoolservice.dao.EntryInfoMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
+import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.User;
@@ -81,4 +83,24 @@ public class TestController extends BaseController {
         }
         return checkResult(map);
     }
+
+    @Autowired
+    private EntryInfoMapper entryInfoMapper;
+//    @GetMapping("/updateWarnEnTransID")
+//    public String updateWarnEnTransID() {
+//        List<EntryInfoEntity> parentEntry = entryInfoMapper.getParentEntry();
+//        List<EntryInfoEntity> childEntry = entryInfoMapper.getChildEntry();
+//        //遍历childEntry 通过parentEntry的id找到对应的childEntry parentID
+//        int total = 0;
+//        for (EntryInfoEntity entryInfoEntity : childEntry) {
+//            for (EntryInfoEntity parent : parentEntry) {
+//                if (entryInfoEntity.getParentID().equals(parent.getId())) {
+//                    entryInfoEntity.setEnTransId(parent.getEnTransId());
+//                    total += entryInfoMapper.updateById(entryInfoEntity);
+//                }
+//            }
+//        }
+//        log.info("更新了{}条数据", total);
+//        return ConstantInterface.OK_STR;
+//    }
 }

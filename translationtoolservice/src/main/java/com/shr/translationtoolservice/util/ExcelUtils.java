@@ -248,7 +248,7 @@ public class ExcelUtils {
 
                     headCell.setCellType(Cell.CELL_TYPE_STRING);
                     String headName = headCell.getStringCellValue().trim();
-                    if ((headName.equals("英文术语") ||
+                /*    if ((headName.equals("英文术语") ||
                             headName.equals("西文术语") ||
                             headName.equals("俄文术语") ||
                             headName.equals("法文术语") ||
@@ -257,7 +257,7 @@ public class ExcelUtils {
                             headName.equals("术语俄文释义")||
                             headName.equals("术语西文释义")) && !headName.contains(translateType)){
                         break;
-                    }
+                    }*/
                     log.info(" **** 当前列头为 " + headName + " **** ");
                     if (headName.equals("展开（缩写采用单驼峰,首字母大写）")) {
                         int a = 0;
@@ -315,7 +315,7 @@ public class ExcelUtils {
                             classfyMethod.invoke(instance, convertType(field.getType(), sheetName.trim()));
                             isClassfy1 = false;
                         }
-
+                        System.out.println(field.getName());
                         if (headName.equalsIgnoreCase(ImportExcleEntry.aliasMap.get(field.getName()))) {
                             String methodName = MethodUtils.setMethodName(field.getName());
                             System.out.println(methodName);

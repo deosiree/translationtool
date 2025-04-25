@@ -1110,14 +1110,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         // 过滤掉不符合条件的词条
         List<EntryInfoEntity> matchList = new ArrayList<>();
         List<EntryInfoEntity> nonMatchList = new ArrayList<>();
-
+        List<EntryInfoEntity> updateList = new ArrayList<>();
         for(EntryInfoEntity entryInfoEntity : entryInfoEntities){
             String entry = entryInfoEntity.getEntry();
+                if (entryInfoEntity.getEntryState() == 2){
+                updateList.add(entryInfoEntity);
+                continue;
+            }
             if(entry.toCharArray().length <= 512){
                 matchList.add(entryInfoEntity);
             }else{
                 nonMatchList.add(entryInfoEntity);
             }
+        }
+        if (!updateList.isEmpty()){
+           for (EntryInfoEntity entryInfoEntity : updateList) {
+               entryInfoMapper.updateById(entryInfoEntity);
+           }
         }
         if(!matchList.isEmpty()){
             insert += insertRelation(matchList, taskInfoEntity, department);
@@ -1979,11 +1988,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID){
         List<String> productidList = new ArrayList<>();
-        getProductClassfyList(classfyID, productidList);
-        if (CollectionUtils.isEmpty(productidList)){
+        //一级分类查询
+        if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
+            getProductClassfyList(classfyID, productidList);
+        }
+
+      /*  if (CollectionUtils.isEmpty(productidList)){
             log.error("当前分类不存在或者没有子分类");
           return null;
-        }
+        }*/
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList, -1,-1);
         return entryInfoEntities;
     }
@@ -3153,7 +3166,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    private List<String> getProductClassfyList(String classfyID, List<String> productidList) {
+    private List<String>    getProductClassfyList(String classfyID, List<String> productidList) {
 
         ArrayList<String> classfyList = new ArrayList<>();
         classfyList.add(classfyID);
@@ -3162,6 +3175,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             productidList.add(classfyID);
         } else {
             for (EntryClassify entryClassify : entryClassfyByParentId) {
+                if (StringUtils.isBlank(entryClassify.getType()) && entryClassify.getType().equals("module")) {
+                    continue;
+                }
                 getProductClassfyList(entryClassify.getKey(), productidList);
             }
         }

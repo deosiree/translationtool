@@ -627,6 +627,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             String s = "";
             String entrySql = "";
             String entryStateSql = "";
+            String tbCode = tLanguage.getTbCode();
             // 翻译状态处理 结果 ： 1,2,3
             for (String transState1 : transStates) {
                 if (StringUtils.isBlank(transState)) {
@@ -635,7 +636,7 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     transState += ",'" + transState1 + "' ";
                 }
                 if (Integer.parseInt(transState1) == 0) {
-                    s = " or t2." + tLanguage.getTbCode() + "_trans_id  is null or t2.en_trans_id = ''";
+                    s = " or t2." + tLanguage.getTbCode() + "_trans_id  is null or t2." + tbCode +"_trans_id = ''";
                 }
             }
             if (StringUtils.isNotBlank(entry)) {
