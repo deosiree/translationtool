@@ -275,15 +275,14 @@ export default {
       // 为currentClickProduct赋值，根据当前目录树传给子组件
       let node = e.node.dataRef;
       // console.log(node)
+      this.isProduct = true;// 除了公开库common展示CommonEntry，其他都是true展示productEntry和productVersion
       if (node.type === "product") {
-        this.isProduct = true;
         this.currentClickProduct = node;
         this.getproductIsEdit(node.key);
       } else if (node.type === "common") {
         this.isProduct = false;
         this.currentClickProduct = node;
       } else if (node.type === "module") {
-        this.isProduct = true;
         let product = e.node.parent.node;
         let newNode = cloneDeep(node);
         newNode.children = product.children;
