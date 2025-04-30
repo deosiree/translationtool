@@ -238,20 +238,25 @@ export default {
     },
     // 删除分类或产品
     deleteClassify(treeKey, type) {
-      if (type === "product") {
-        let data = [treeKey];
-        deleteEntryClassfy(data).then((res) => {});
-        deleteProduct(data).then((res) => {
-          message.success("删除成功！");
-          this.getClassTree();
-        });
-      } else if (type === "classify" || type === "module") {
-        let data = [treeKey];
-        deleteEntryClassfy(data).then((res) => {
-          message.success("删除成功！");
-          this.getClassTree();
-        });
-      }
+      let data = [treeKey];
+      deleteEntryClassfy(data).then((res) => {// 删除产品，分类，模块都是复用deleteEntryClassfy这个接口
+        message.success("删除成功！");
+        this.getClassTree();
+      });
+      // if (type === "product") {
+      //   let data = [treeKey];
+      //   deleteEntryClassfy(data).then((res) => {});
+      //   deleteProduct(data).then((res) => {
+      //     message.success("删除成功！");
+      //     this.getClassTree();
+      //   });
+      // } else if (type === "classify" || type === "module") {
+      //   let data = [treeKey];
+      //   deleteEntryClassfy(data).then((res) => {
+      //     message.success("删除成功！");
+      //     this.getClassTree();
+      //   });
+      // }
     },
     // 产品权限分配
     productAuthority(treeKey) {
@@ -275,7 +280,7 @@ export default {
       // 为currentClickProduct赋值，根据当前目录树传给子组件
       let node = e.node.dataRef;
       // console.log(node)
-      this.isProduct = true;// 除了公开库common展示CommonEntry，其他都是true展示productEntry和productVersion
+      this.isProduct = true; // 除了公开库common展示CommonEntry，其他都是true展示productEntry和productVersion
       if (node.type === "product") {
         this.currentClickProduct = node;
         this.getproductIsEdit(node.key);
