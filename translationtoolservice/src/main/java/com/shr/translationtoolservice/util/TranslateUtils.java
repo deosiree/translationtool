@@ -175,7 +175,7 @@ public class TranslateUtils {
                     e.printStackTrace();
                 }
                 languageEntity.setValue(trans);
-
+                languageEntity.setSource("百度翻译");
 
 
                 languageEntities.add(languageEntity);
@@ -271,6 +271,7 @@ public class TranslateUtils {
             languageEntity.setValue(translate.getTranslate());
             languageEntity.setId(translate.getId());
             languageEntity.setCreateTime(translate.getLastUseTime());
+            languageEntity.setSource("本地翻译-" + translate.getVisualRange());
             languageEntities.add(languageEntity);
         }
         entryEntity.setLanguageEntities(languageEntities);
@@ -303,6 +304,7 @@ public class TranslateUtils {
             LanguageEntity languageEntity = new LanguageEntity();
             languageEntity.setValue(translate);
             languageEntity.setLanguage(tLanguage.getCode());
+            languageEntity.setSource("deepl翻译");
             languageEntities.add(languageEntity);
         }
         entryEntity.setLanguageEntities(languageEntities);

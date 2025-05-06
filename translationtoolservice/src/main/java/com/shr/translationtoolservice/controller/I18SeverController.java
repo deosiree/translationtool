@@ -1131,7 +1131,7 @@ public class I18SeverController extends BaseController {
 
                     // fieldEntry.setEntrySource(  nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tbName + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldName());
                     fieldEntry.setEntryState(1);
-                    fieldEntry.setDiFileName("db/" + dbName);
+                    fieldEntry.setDiFileName("db/meta/" + dbName);
                     fieldEntry.setEntrySource(source);
                     fieldEntry.setVersionID(versionID);
                     fieldEntry.setTaskId(taskID);
@@ -1139,7 +1139,7 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setUpdateTime(date);
                     fieldEntry.setProductID(productId);
                     fieldEntry.setIsDelete(0);
-                    fieldEntry.setImportType(ConstantInterface.DB);
+                    fieldEntry.setImportType(ConstantInterface.DB_META);
                     fieldEntry.setWriteType(ConstantInterface.DI);
                     entryInfoEntities.add(fieldEntry);
                 }
@@ -1782,13 +1782,16 @@ public class I18SeverController extends BaseController {
                 EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
-                String[] split = fieldInfo.getCommon().split("/");
-                String replace = fieldInfo.getDb_name().replace("/", "_");
-                entryInfoEntity.setDiFileName("config/" + split[split.length - 1]);
-                //entryInfoEntity.setDiFileName("config/" + fieldInfo.getDb_name().split("\\.")[0]);
-                // entryInfoEntity.setEntrySource(fieldInfo.getCommon());
-                entryInfoEntity.setEntrySource(split[split.length - 1]);
-               // entryInfoEntity.setTag(fieldInfo.getCommon());
+                String id = fieldInfo.getDb_name();
+                if (fieldInfo.getDb_name().contains("@")){
+                    id = fieldInfo.getDb_name().split("@")[1];
+               }else {
+                    String[] split = fieldInfo.getDb_name().split("/");
+                    id = split[split.length - 1];
+                }
+                entryInfoEntity.setDiFileName("config/" + id);
+                entryInfoEntity.setEntrySource(fieldInfo.getDb_name());
+                entryInfoEntity.setTag(fieldInfo.getCommon());
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);
                 entryInfoEntity.setEntryState(1);
                 entryInfoEntity.setUpdateTime(date);
@@ -1857,8 +1860,8 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
                 entryInfoEntity.setDiFileName("enum/" + fieldInfo.getDb_name());
-                entryInfoEntity.setEntrySource(fieldInfo.getCommon());
-                //entryInfoEntity.setTag(fieldInfo.getCommon());
+                entryInfoEntity.setEntrySource(fieldInfo.getDb_name());
+                entryInfoEntity.setTag(fieldInfo.getCommon());
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);
                 // entryInfoEntity.setEntrySource(nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName);

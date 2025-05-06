@@ -97,7 +97,7 @@
   <select id="selectSecondClassify" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
-    from t_second_classify
+        from t_second_classify
     <where>
         <if test="secondClassify.name != null and secondClassify.name != ''">
             and name = #{secondClassify.name,jdbcType=VARCHAR}

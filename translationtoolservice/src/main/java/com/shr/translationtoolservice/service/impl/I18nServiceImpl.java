@@ -73,6 +73,9 @@ public class I18nServiceImpl implements I18nService {
         }
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities1) {
+            if (StringUtils.isBlank(entryInfoEntity.getTag())) {
+                entryInfoEntity.setTag("");
+            }
             if (!CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
                 entryInfoEntities.addAll(entryInfoEntity.getChildren());
             }
@@ -181,7 +184,8 @@ public class I18nServiceImpl implements I18nService {
         return ConstantInterface.OK_STR;
     }
 
-    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, boolean tag, boolean common, Map<String, List<Map<String, String>>> tsEntryInfoMap, Map<String, List<EntryInfoEntity>> diTypeMap) {
+    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, boolean tag
+            , boolean common, Map<String, List<Map<String, String>>> tsEntryInfoMap, Map<String, List<EntryInfoEntity>> diTypeMap) {
         int numberOfThreads = 32; // Number of threads to use
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
@@ -243,14 +247,19 @@ public class I18nServiceImpl implements I18nService {
                                 entities = diTypeMap.get(entryInfoEntity.getDiFileName());
                                 for (EntryInfoEntity entryInfoEntity1 : entities){
                                     if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
-                                        if (tag){
-                                            if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag())){
+                                            if(StringUtils.isBlank(entryInfoEntity1.getTag())){
+                                                entryInfoEntity1.setTag("");
+                                            }
+                                            if(StringUtils.isBlank(entryInfoEntity1.getComment())){
+                                                entryInfoEntity1.setComment("");
+                                            }
+
+                                            if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag()) && entryInfoEntity1.getComment().equals(entryInfoEntity.getComment())){
                                                 continue;
                                             }else {
                                                 entities.add(entryInfoEntity);
                                                 break;
                                             }
-                                        }
                                     }else {
                                         entities.add(entryInfoEntity);
                                         break;
