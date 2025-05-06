@@ -989,11 +989,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
             if (StringUtils.isBlank(entryInfoEntity.getImportType())){
-                entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+                entryInfoEntity.setImportType(ConstantInterface.DI);
             }
             if (StringUtils.isBlank(entryInfoEntity.getWriteType())){
-                entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
+                entryInfoEntity.setWriteType(ConstantInterface.DI);
             }
+
             if (StringUtils.isBlank(entryInfoEntity.getEntrySource())){
                 entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
             }

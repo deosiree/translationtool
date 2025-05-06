@@ -1131,7 +1131,7 @@ public class I18SeverController extends BaseController {
 
                     // fieldEntry.setEntrySource(  nodeName + ConstantInterface.UNDERLINE + appName + ConstantInterface.UNDERLINE + dbName + ConstantInterface.UNDERLINE + tbName + ConstantInterface.UNDERLINE + tdbFieldInfo.getFieldName());
                     fieldEntry.setEntryState(1);
-                    fieldEntry.setDiFileName("db/" + dbName);
+                    fieldEntry.setDiFileName("db/meta/" + dbName);
                     fieldEntry.setEntrySource(source);
                     fieldEntry.setVersionID(versionID);
                     fieldEntry.setTaskId(taskID);
@@ -1139,7 +1139,7 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setUpdateTime(date);
                     fieldEntry.setProductID(productId);
                     fieldEntry.setIsDelete(0);
-                    fieldEntry.setImportType(ConstantInterface.DB);
+                    fieldEntry.setImportType(ConstantInterface.DB_META);
                     fieldEntry.setWriteType(ConstantInterface.DI);
                     entryInfoEntities.add(fieldEntry);
                 }
