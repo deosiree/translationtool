@@ -2230,6 +2230,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if(sourceMap == null){
             sourceMap = new HashMap<>();
         }
+        addDefaultSource(sourceMap);
         Map<String, List<EntryInfoEntity>> entryMap = new HashMap<>();
         for (EntryInfoEntity entity : entities) {
             if (StringUtils.isNotBlank(entity.getImportType())){
@@ -2297,6 +2298,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             
         }).collect(Collectors.toList());
         return fliteredEntryInfoEntities;
+    }
+
+    private void addDefaultSource(Map<String,List<String>> sourceMap){
+        List<String> tsSources = new ArrayList<>();
+        tsSources.add("qt_help");
+        tsSources.add("designer");
+        tsSources.add("assistant");
+        tsSources.add("qtquickcontrols");
+        tsSources.add("qtquickcontrols2");
+        tsSources.add("qtxmlpatterns");
+        tsSources.add("qtbase");
+        sourceMap.put(ConstantInterface.TS, tsSources);
+        return;
     }
 
     private List<EntryInfoEntity> getCONFIGNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> configList) {
