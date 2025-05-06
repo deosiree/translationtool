@@ -27,7 +27,7 @@ export function updateProduct(data) {
     });
 }
 
-// 删除产品
+// 删除产品(已经弃用，统一使用deleteEntryClassfy来删除分类、产品、模块)
 export function deleteProduct(data) {
     return request({
         url: "/product/deleteProduct",

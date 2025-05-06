@@ -382,7 +382,7 @@ export default {
         { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         {
           title: "Comment",
-          dataIndex: "Comment",
+          dataIndex: "comment",
           align: "center",
           width: 150,
           resizable: true,
