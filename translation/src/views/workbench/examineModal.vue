@@ -12,7 +12,7 @@
         词条：
         <a-textarea v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' :auto-size="{ minRows: 1 }" />
         <span style="margin-left:10px">词条状态：</span>
-        <a-select v-model:value="entryState" size="small" style="width: 300px">
+        <a-select v-model:value="entryState" size="small" style="width: 300px" allowClear>
           <a-select-option value="1">待审核</a-select-option>
           <a-select-option value="2">审核不通过</a-select-option>
           <a-select-option value="3">审核通过</a-select-option>
@@ -94,7 +94,7 @@
               <template v-else>
                 <!-- {{ text }} -->
                 <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan">
+                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
                   </a-tag>
                 </span>
@@ -200,6 +200,7 @@
   </CustomModal>
 </template>
 <script>
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
@@ -222,6 +223,7 @@ import {
 import { message, Modal } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
 import common from "../entry/common";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -265,7 +267,11 @@ export default {
           dataIndex: "index",
           width: 90,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -433,6 +439,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
+          message.error(err.message);
         });
     },
     handleOK() {
@@ -487,12 +494,18 @@ export default {
         updateEntryList(params, updateArr)
           .then((res) => {
             message.success("已保存！");
-            this.saveLoading = false;
             this.getTaskEntry();
           })
           .catch((err) => {
-            message.error("保存失败！");
+            message.error("保存失败！",err.message);
+          })
+          .finally(() => {
             this.saveLoading = false;
+            // console.log("剩余待处理数据的数量：", this.dataSource.length-updateArr.length);
+            if (this.dataSource.length == updateArr.length) {
+              // 如果没有待处理的数据就自动关闭弹窗
+              this.handleClose();
+            }
           });
       } else {
         this.saveLoading = false;
@@ -574,6 +587,7 @@ export default {
     reject() {
       if (this.selectedRows.length > 0) {
         this.rejectReasonVisible = true;
+      setModalAriaHidden(this, document);
       }
     },
     //双击表格行 可编辑
@@ -678,7 +692,9 @@ export default {
           }
           delete this.editableData[record.id];
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     // 编辑
     edit(record) {
@@ -803,7 +819,7 @@ export default {
               this.getTaskEntry();
             })
             .catch((err) => {
-              message.error("删除失败！");
+              message.error("删除失败！",err.message);
             });
         },
         onCancel: () => {},
@@ -942,7 +958,9 @@ export default {
             )
               .validate()
               .then(() => {})
-              .catch((err) => {});
+              .catch((err) => {
+                message.error(err.message);
+              });
           });
         }
       });
@@ -1015,17 +1033,25 @@ export default {
     selectAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      let dataToSelect;
       if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        this.filteredData.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
+        // 确保 filteredData 是最新的筛选结果
+        dataToSelect = this.dataSource.filter((item) => {
+          const isExistMatch =
+            !this.filters.isExist ||
+            this.filters.isExist.includes(item.isExist);
+          const entrySourceMatch =
+            !this.filters.entrySource ||
+            item.entrySource.includes(this.filters.entrySource);
+          return isExistMatch && entrySourceMatch;
         });
       } else {
-        this.dataSource.forEach((item) => {
-          this.selectedRowKeys.push(item.id);
-          this.selectedRows.push(item);
-        });
+        dataToSelect = this.dataSource;
       }
+      dataToSelect.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+      });
     },
     clearAllEntry() {
       this.selectedRowKeys = [];

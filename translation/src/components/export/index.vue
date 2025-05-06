@@ -25,6 +25,7 @@
                     :options="fieldOptions"
                     :fieldNames="{label:'label',value:'label'}"
                     placeholder="请选择"
+                    allowClear
                     ></a-select>
                 </a-form-item>
             </a-form>

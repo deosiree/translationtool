@@ -15,7 +15,7 @@
                             <a-input v-model:value="search.abbr" placeholder="请输入内容"></a-input>
                         </a-form-item> -->
             <a-form-item label="词条状态" name="state">
-              <a-select v-model:value="search.entryState" placeholder="请选择">
+              <a-select v-model:value="search.entryState" placeholder="请选择" allowClear>
                 <a-select-option value="0">新建</a-select-option>
                 <a-select-option value="1">审核中</a-select-option>
                 <a-select-option value="2">审核不通过</a-select-option>
@@ -27,7 +27,8 @@
             </a-form-item>
             <a-form-item label="二级分类" name="classfy2">
               <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
-              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'>
+              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'
+                allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="词条来源" name="entrySource">
@@ -36,11 +37,12 @@
           </a-row>
           <a-row style="width:100%;margin-top:8px">
             <a-form-item label="翻译语言" name="language">
-              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'>
+              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
+                allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="翻译状态" name="translateState">
-              <a-select v-model:value="search.translateState" placeholder="请选择" :options='translateStates'>
+              <a-select v-model:value="search.translateState" placeholder="请选择" :options='translateStates' allowClear>
               </a-select>
             </a-form-item>
             <a-form-item label="翻译结果" name="translate">
@@ -60,8 +62,8 @@
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:label>
-        产品版本： <a-select v-model:value="currentVersion" allowClear style="width: 150px" placeholder="请选择版本" :options='productVersions'
-          :fieldNames="{label:'name',value:'id'}" size="small" @change="changeVersion">
+        产品版本： <a-select v-model:value="currentVersion" style="width: 150px" placeholder="请选择版本" :options='productVersions'
+          :fieldNames="{label:'name',value:'id'}" size="small" @change="changeVersion" allowClear>
         </a-select>
       </template>
       <template v-slot:operate>
@@ -159,7 +161,7 @@
                   <div>
                     <template v-if="editableData[record.id]">
                       <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                        :fieldNames="{label:'title',value:'title'}" :options='classify1Option' @change="getRowClassify2Option(record)">
+                        :fieldNames="{label:'title',value:'title'}" :options='classify1Option' @change="getRowClassify2Option(record)" allowClear>
                       </a-select>
                     </template>
                     <template v-else>
@@ -171,7 +173,7 @@
                   <div>
                     <template v-if="editableData[record.id]">
                       <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                        :fieldNames="{label:'name',value:'name'}" :options='rowClassify2Option[record.id]'>
+                        :fieldNames="{label:'name',value:'name'}" :options='rowClassify2Option[record.id]' allowClear>
                       </a-select>
                     </template>
                     <template v-else>
@@ -358,7 +360,8 @@
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="importModal">
         <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}">
+          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
+            allowClear>
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
@@ -372,8 +375,10 @@
   </CustomModal>
 </template>
 <script>
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
-import tableParam from "./tableParam.js";
+import tableParam from "@/views/entry/tableParam.js";
+import languageParam from "@/utils/languageParam.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import common from "./common.js";
 import SearchBox from "@/components/search/searchBox.vue";
@@ -415,6 +420,13 @@ import {
   InfoCircleOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
+import {
+  onSelectChange,
+  onSelect,
+  onSelectAll,
+  pageChange,
+} from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,
@@ -484,7 +496,11 @@ export default {
           align: "center",
           width: 50,
           customRender: (text, record, index, column) => {
-            return text.index + 1;
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
@@ -688,19 +704,20 @@ export default {
       this.$nextTick(() => {
         // 设置列表父元素高度
         let searchHeight = this.$refs.search.$el.offsetHeight;
+        const len = 84;
         try {
           let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = this.box - searchHeight - operationAreaHeight - 104;
+          this.dataHeight = this.box - searchHeight - operationAreaHeight - len;
         } catch (error) {
-          this.dataHeight = this.box - searchHeight - 104;
+          this.dataHeight = this.box - searchHeight - len;
         }
 
         // 设置表格高度
         let buttonHeight = 0;
         try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
+          buttonHeight = this.$refs.button.offsetHeight - 8;
         } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 110 - 40;
+        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
       });
     },
     // 设置表格每一行的class
@@ -746,6 +763,10 @@ export default {
     conditionalQuery() {
       // 将页码变为第一页
       this.pagination.current = 1;
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectEntry = [];
+      this.createVersionFlag = false;
       this.getEntryByVersion();
     },
     // 获取版本词条
@@ -755,7 +776,7 @@ export default {
       }
       if (
         (this.search.translate != "" || this.search.translateState != null) &&
-        this.search.language === null
+        !this.search.language
       ) {
         message.info("请选择翻译语言！");
         return;
@@ -771,7 +792,7 @@ export default {
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:",data)
-      if (this.currentVersion === null) {
+      if (!this.currentVersion) {
         data.productID =
           this.product.type === "module"
             ? this.product.parentId
@@ -779,22 +800,28 @@ export default {
       } else {
         data.versionID = this.currentVersion;
       }
-      if (this.search.language === "英文") {
-        data.english = this.search.translate;
-        data.englishTranslateState = this.search.translateState;
-      } else if (this.search.language === "俄文") {
-        data.russian = this.search.translate;
-        data.russianTranslateState = this.search.translateState;
-      } else if (this.search.language === "西文") {
-        data.spanish = this.search.translate;
-        data.spanishTranslateState = this.search.translateState;
-      } else if (this.search.language === "法文") {
-        data.french = this.search.translate;
-        data.frenchTranslateState = this.search.translateState;
-      }
+      // if (this.search.language === "英文") {
+      //   data.english = this.search.translate;
+      //   data.englishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "俄文") {
+      //   data.russian = this.search.translate;
+      //   data.russianTranslateState = this.search.translateState;
+      // } else if (this.search.language === "西文") {
+      //   data.spanish = this.search.translate;
+      //   data.spanishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "法文") {
+      //   data.french = this.search.translate;
+      //   data.frenchTranslateState = this.search.translateState;
+      // }
+      languageParam.languageList.forEach((item) => {
+        if (this.search.language === item.name) {
+          data[item.value] = this.search.translate;
+          data[item.state] = this.search.translateState;
+        }
+      });
       let params = {
         classfyID: this.product.key,
-        translateType:this.search.language,
+        translateType: this.search.language,
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
@@ -810,12 +837,24 @@ export default {
       getEntryByClassfy(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
-          this.loading = false;
+          // console.log("总词条dataSource", res);
           this.pagination.total = res.data.totalNum;
         })
         .catch((err) => {
+          message.error(err.message);
+        })
+        .finally(() => {
           this.loading = false;
         });
+    },
+    // 获取词条分类
+    getEntryClassfy() {
+      let params = {
+        classfyID: this.product.key,
+      };
+      getEntryClassfy(params).then((res) => {
+        this.entryClassfy = res.data;
+      });
     },
     // 组装表格数据
     assemblyTableData(data) {
@@ -829,31 +868,40 @@ export default {
         item.tableName = version.tableName;
         if (element.translateEntity) {
           element.translateEntity.forEach((tran) => {
-            if (tran.type === "英文") {
-              item.english = tran.translate;
-              item.englishId = tran.id;
-              item.englishTranslateState = tran.translateState;
-              item.englishPublicState = tran.publicState;
-              item.englishChecked = false;
-            } else if (tran.type === "俄文") {
-              item.russian = tran.translate;
-              item.russianId = tran.id;
-              item.russianTranslateState = tran.translateState;
-              item.russianPublicState = tran.publicState;
-              item.russianChecked = false;
-            } else if (tran.type === "西文") {
-              item.spanish = tran.translate;
-              item.spanishId = tran.id;
-              item.spanishTranslateState = tran.translateState;
-              item.spanishPublicState = tran.publicState;
-              item.spanishChecked = false;
-            } else if (tran.type === "法文") {
-              item.french = tran.translate;
-              item.frenchId = tran.id;
-              item.frenchTranslateState = tran.translateState;
-              item.frenchPublicState = tran.publicState;
-              item.frenchChecked = false;
-            }
+            // if (tran.type === "英文") {
+            //   item.english = tran.translate;
+            //   item.englishId = tran.id;
+            //   item.englishTranslateState = tran.translateState;
+            //   item.englishPublicState = tran.publicState;
+            //   item.englishChecked = false;
+            // } else if (tran.type === "俄文") {
+            //   item.russian = tran.translate;
+            //   item.russianId = tran.id;
+            //   item.russianTranslateState = tran.translateState;
+            //   item.russianPublicState = tran.publicState;
+            //   item.russianChecked = false;
+            // } else if (tran.type === "西文") {
+            //   item.spanish = tran.translate;
+            //   item.spanishId = tran.id;
+            //   item.spanishTranslateState = tran.translateState;
+            //   item.spanishPublicState = tran.publicState;
+            //   item.spanishChecked = false;
+            // } else if (tran.type === "法文") {
+            //   item.french = tran.translate;
+            //   item.frenchId = tran.id;
+            //   item.frenchTranslateState = tran.translateState;
+            //   item.frenchPublicState = tran.publicState;
+            //   item.frenchChecked = false;
+            // }
+            languageParam.languageList.forEach((lang) => {
+              if (tran.type === lang.name) {
+                item[lang.value] = tran.translate;
+                item[lang.id] = tran.id;
+                item[lang.state] = tran.translateState;
+                item[lang.publicState] = tran.publicState;
+                item[lang.checked] = false;
+              }
+            });
           });
         }
         dataSource.push(item);
@@ -924,10 +972,7 @@ export default {
           type = "foreignMaxByte";
         }
         let maxLength = null;
-        if (
-          this.limitMap[record.classfy1] === undefined ||
-          this.limitMap[record.classfy1] === null
-        ) {
+        if (!this.limitMap[record.classfy1]) {
           if (record.maxLength != null && record.maxLength != "") {
             maxLength = record.maxLength;
           } else {
@@ -936,12 +981,7 @@ export default {
         } else {
           maxLength = this.limitMap[record.classfy1][type];
         }
-        if (
-          maxLength === undefined ||
-          maxLength === "" ||
-          maxLength === null ||
-          maxLength === 0
-        ) {
+        if (!maxLength || maxLength === "") {
           return Promise.resolve();
         }
         // 获取输入数据的长度
@@ -957,27 +997,22 @@ export default {
       this.selectedRowIndex = record.id;
       this.currentEntry = record;
       // 将翻译状态转换为中文
-      let language = ["english", "russian", "spanish", "french"];
-      language.forEach((item) => {
-        if (
-          this.currentEntry[item + "TranslateState"] != null &&
-          this.currentEntry[item + "TranslateState"] === "1"
-        ) {
-          this.currentEntry[item + "ChineseState"] = "待审核";
-        }
-        if (
-          this.currentEntry[item + "TranslateState"] != null &&
-          this.currentEntry[item + "TranslateState"] === "2"
-        ) {
-          this.currentEntry[item + "ChineseState"] = "审核不通过";
-        }
-        if (
-          this.currentEntry[item + "TranslateState"] != null &&
-          this.currentEntry[item + "TranslateState"] === "3"
-        ) {
-          this.currentEntry[item + "ChineseState"] = "已审核";
+      languageParam.languageList.forEach((item) => {
+        if (this.currentEntry[item.state] != null) {
+          switch (this.currentEntry[item.state]) {
+            case "1":
+              this.currentEntry[item.chineseState] = "待审核";
+              break;
+            case "2":
+              this.currentEntry[item.chineseState] = "审核不通过";
+              break;
+            case "3":
+              this.currentEntry[item.chineseState] = "已审核";
+              break;
+          }
         }
       });
+
       this.showOperationArea = true;
       this.setTableHeight();
       // console.log(this.currentEntry)
@@ -1062,9 +1097,12 @@ export default {
           } else {
             this.editEntry = [this.editableData[id]];
             this.editVisible = true;
+            setModalAriaHidden(this, document);
           }
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     // 校验输入数据是否合规
     checkedData(record) {
@@ -1089,6 +1127,7 @@ export default {
       }
       this.editEntry = edit;
       this.editVisible = true;
+      setModalAriaHidden(this, document);
     },
     editOk(entry) {
       delete this.editableData[entry.id];
@@ -1104,11 +1143,6 @@ export default {
     },
     editClose() {
       this.editVisible = false;
-    },
-    // 表格复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
     },
 
     // 表格列可伸缩
@@ -1239,6 +1273,7 @@ export default {
     // 已选词条按钮点击事件
     viewCreateVersionEntry() {
       this.createVisible = true;
+      setModalAriaHidden(this, document);
     },
     createClose() {
       this.createVisible = false;
@@ -1250,13 +1285,13 @@ export default {
     // 移除已选择词条
     removeEntry(record) {
       this.selectEntry = this.selectEntry.filter((item) => {
-        return item != record;
+        return item.id != record.id;
       });
       this.selectedRowKeys = this.selectedRowKeys.filter((item) => {
-        return item != record.id;
+        return item.id != record.id;
       });
       this.selectedRows = this.selectedRows.filter((item) => {
-        return item != record;
+        return item.id != record.id;
       });
     },
     // 选择全部词条
@@ -1275,7 +1310,7 @@ export default {
         tag: this.search.tag,
         entrySource: this.search.entrySource,
       };
-      if (this.currentVersion === null) {
+      if (!this.currentVersion) {
         data.productID =
           this.product.type === "module"
             ? this.product.parentId
@@ -1283,27 +1318,32 @@ export default {
       } else {
         data.versionID = this.currentVersion;
       }
-      if (this.search.language === "英文") {
-        data.english = this.search.translate;
-        data.englishTranslateState = this.search.translateState;
-      } else if (this.search.language === "俄文") {
-        data.russian = this.search.translate;
-        data.russianTranslateState = this.search.translateState;
-      } else if (this.search.language === "西文") {
-        data.spanish = this.search.translate;
-        data.spanishTranslateState = this.search.translateState;
-      } else if (this.search.language === "法文") {
-        data.french = this.search.translate;
-        data.frenchTranslateState = this.search.translateState;
-      }
+      // if (this.search.language === "英文") {
+      //   data.english = this.search.translate;
+      //   data.englishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "俄文") {
+      //   data.russian = this.search.translate;
+      //   data.russianTranslateState = this.search.translateState;
+      // } else if (this.search.language === "西文") {
+      //   data.spanish = this.search.translate;
+      //   data.spanishTranslateState = this.search.translateState;
+      // } else if (this.search.language === "法文") {
+      //   data.french = this.search.translate;
+      //   data.frenchTranslateState = this.search.translateState;
+      // }
+      languageParam.languageList.forEach((item) => {
+        if (this.search.language === item.name) {
+          data[item.value] = this.search.translate;
+          data[item.state] = this.search.translateState;
+        }
+      });
       let params = {
         classfyID: this.product.key,
-        translateType:this.search.language,
+        translateType: this.search.language,
         pageIndex: -1,
         pageSize: -1,
       };
       this.loading = true;
-
       // getEntryByVersion(data,params).then((res) => {
       //     this.selectEntry = []
       //     this.selectedRowKeys = []
@@ -1318,20 +1358,21 @@ export default {
       //     this.loading = false
       //     this.selectAllLoading = false
       // })
-
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectEntry = [];
           this.selectedRowKeys = [];
           this.selectedRows = res.data.list;
           this.selectEntry = res.data.list;
+          // console.log("全选词条dataSource", res);
           res.data.list.forEach((item) => {
             this.selectedRowKeys.push(item.id);
           });
-          this.loading = false;
-          this.selectAllLoading = false;
         })
         .catch((err) => {
+          message.error(err.message);
+        })
+        .finally(() => {
           this.loading = false;
           this.selectAllLoading = false;
         });
@@ -1344,33 +1385,6 @@ export default {
       this.createVersionFlag = false;
       this.createVisible = false;
       this.batchSelectFlag = false;
-    },
-    // 表格复选框点击事件
-    onSelect(record, selected) {
-      if (this.createVersionFlag) {
-        // 创建版本时使用
-        if (selected) {
-          this.selectEntry.push(record);
-        } else {
-          this.selectEntry = this.selectEntry.filter((item) => {
-            return item.id !== record.id;
-          });
-        }
-      }
-    },
-    // 表格全选/反选框点击事件
-    onSelectAll(selected, selectedRows, changeRows) {
-      if (this.createVersionFlag) {
-        if (selected) {
-          this.selectEntry = this.selectEntry.concat(changeRows);
-        } else {
-          changeRows.forEach((item) => {
-            this.selectEntry = this.selectEntry.filter((entry) => {
-              return entry !== item;
-            });
-          });
-        }
-      }
     },
     //新增词条
     addEntry() {
@@ -1458,22 +1472,10 @@ export default {
       this.editableData[copyEntry.id] = copyEntry;
       this.getRowClassify2Option(copyEntry);
     },
-    // 分页切换
-    pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      this.getEntryByVersion();
-
-      // 分页后  保留之前勾选的词条
-      this.selectedRows = this.selectEntry;
-      this.selectEntry.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-      });
-      this.selectedRowKeys = Array.from(new Set(this.selectedRowKeys));
-    },
     // 二级分类管理
     setSecondClassify() {
       this.secondClassifyVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.secondClassifyRef.init();
     },
     secondClassifyClose() {
@@ -1497,7 +1499,7 @@ export default {
     getRowClassify2Option(record) {
       if (
         this.editableData[record.id] === undefined ||
-        this.editableData[record.id].classfy1 === null ||
+        !this.editableData[record.id].classfy1||
         this.editableData[record.id].classfy1 === ""
       ) {
         return;
@@ -1517,12 +1519,13 @@ export default {
         })
         .catch((err) => {
           this.rowClassify2Option[record.id] = [];
+          message.error(err.message);
         });
     },
     // 切割字符串
     companyCut(message) {
       let res = [];
-      if (message === null || message === "") {
+      if (!message || message === "") {
         return res;
       }
       const regex = /[;；]/;
@@ -1533,6 +1536,7 @@ export default {
     // 查看辞典
     viewDictionary() {
       this.dictionaryVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.dictionaryRef.init();
     },
     dictionaryClose() {
@@ -1547,14 +1551,20 @@ export default {
         params.parentId = product.parentId;
       } else if (product && product.type === "product") {
         params.parentId = product.key;
+      } else if (product && product.type === "classify") {
+        return;
       }
-      getClassfy(params).then((res) => {
-        let limitMap = {};
-        res.data.list.forEach((item) => {
-          limitMap[item.title] = item;
+      getClassfy(params)
+        .then((res) => {
+          let limitMap = {};
+          res.data.list.forEach((item) => {
+            limitMap[item.title] = item;
+          });
+          this.limitMap = limitMap;
+        })
+        .catch((err) => {
+          message.err(err.message);
         });
-        this.limitMap = limitMap;
-      });
     },
     // 记录用户偏好
     recordPartiality(data) {
@@ -1563,8 +1573,8 @@ export default {
     // 导入词条
     importEntry() {
       this.importVisible = true;
+      setModalAriaHidden(this, document);
     },
-
     importClose() {
       this.importVisible = false;
     },
@@ -1584,11 +1594,13 @@ export default {
               this.importLoading = false;
             })
             .catch((err) => {
-              message.error("导入失败！");
+              message.error("导入失败！", err.message);
               this.importLoading = false;
             });
         })
-        .catch((err) => {});
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     importAfterClose() {
       this.importModal.language = null;
@@ -1596,7 +1608,6 @@ export default {
       this.fileList = [];
       this.$refs.formRef.clearValidate();
     },
-
     // 导入词条
     beforeUpload(file, fileList) {
       // console.log("before");
@@ -1617,7 +1628,7 @@ export default {
     // 校验上传文件是否为空
     checkFile() {
       return (rule, value) => {
-        if (this.importFile === null) {
+        if (!this.importFile) {
           return Promise.reject("请选择文件！");
         }
         return Promise.resolve();
@@ -1659,27 +1670,35 @@ export default {
       let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
       return arr;
     },
+    // 复选框选择事件
+    onSelectChange(selectedRowKeys, selectedRows) {
+      onSelectChange(this, selectedRowKeys, selectedRows);
+    },
+    // 复选框点击事件
+    onSelect(record, selected) {
+      onSelect(this, record, selected, this.createVersionFlag);
+    },
+    // 复选框当前页全选/反选框点击事件
+    onSelectAll(selected, selectedRows, changeRows) {
+      onSelectAll(
+        this,
+        selected,
+        selectedRows,
+        changeRows,
+        this.createVersionFlag
+      );
+    },
+    // 分页切换
+    pageChange(page, pageSize) {
+      pageChange(this, page, pageSize, this.getEntryByVersion);
+    },
   },
 };
 </script>
-<style lang="less">
-@import url("@/assets/style/common.less");
-</style>
 <style scoped lang="less">
-::v-deep .tag-content {
-  max-width: 90%;
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &:hover {
-    // max-width: none; /* 悬浮时取消最大宽度限制 */
-    // overflow: visible;
-    white-space: normal;
-  }
-}
-
+// :deep(.ant-table-striped tr td.ant-table-cell) {
+//   padding: 2px !important;
+// }
 .productEntryBox {
   padding: 0px 16px 16px 16px;
   width: 100%;
