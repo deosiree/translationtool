@@ -256,7 +256,7 @@
         <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
             and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
-        <if test="productidList != null ">
+        <if test="productidList != null and productidList.size != 0 ">
             and t1.product_id in( <foreach collection="productidList" item="productid" separator="," >#{productid}</foreach>)
         </if>
         <if test="entryInfoEntity.classfy1 != null and entryInfoEntity.classfy1   != ''">

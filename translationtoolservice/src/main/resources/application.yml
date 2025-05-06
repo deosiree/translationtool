@@ -97,40 +97,40 @@ I18server:
 
 ConfigFile:
   en_US:
-    zzUrl: "src/main/resources/config/en_US/zz.xlsx"
-    commonUrl: "src/main/resources/config/en_US/common.xlsx"
-    jkUrl: "src/main/resources/config/en_US/jk.xlsx"
+    zzUrl: "config/en_US/zz.xlsx"
+    commonUrl: "config/en_US/common.xlsx"
+    jkUrl: "config/en_US/jk.xlsx"
   es_ES:
-    zzUrl: "src/main/resources/config/es_ES/zz.xlsx"
-    commonUrl: "src/main/resources/config/es_ES/common.xlsx"
-    jkUrl: "src/main/resources/config/es_ES/jk.xlsx"
+    zzUrl: "config/es_ES/zz.xlsx"
+    commonUrl: "config/es_ES/common.xlsx"
+    jkUrl: "config/es_ES/jk.xlsx"
   fr_FR:
-    zzUrl: "src/main/resources/config/fr_FR/zz.xlsx"
-    commonUrl: "src/main/resources/config/fr_FR/common.xlsx"
-    jkUrl: "src/main/resources/config/fr_FR/jk.xlsx"
+    zzUrl: "config/fr_FR/zz.xlsx"
+    commonUrl: "config/fr_FR/common.xlsx"
+    jkUrl: "config/fr_FR/jk.xlsx"
   ru_RU:
-    zzUrl: "src/main/resources/config/ru_RU/zz.xlsx"
-    commonUrl: "src/main/resources/config/ru_RU/common.xlsx"
-    jkUrl: "src/main/resources/config/ru_RU/jk.xlsx"
+    zzUrl: "config/ru_RU/zz.xlsx"
+    commonUrl: "config/ru_RU/common.xlsx"
+    jkUrl: "config/ru_RU/jk.xlsx"
 
 
-  zzUrl: "src/main/resources/config/zz.xlsx"
-  en_zzUrl: "src/main/resources/config/en_zz.xlsx"
-  es_zzUrl: "src/main/resources/config/es_zz.xlsx"
-  fra_zzUrl: "src/main/resources/config/fra_zz.xlsx"
-  ru_zzUrl: "src/main/resources/config/ru_zz.xlsx"
+  zzUrl: "config/zz.xlsx"
+  en_zzUrl: "config/en_zz.xlsx"
+  es_zzUrl: "config/es_zz.xlsx"
+  fra_zzUrl: "config/fra_zz.xlsx"
+  ru_zzUrl: "config/ru_zz.xlsx"
 
-  commonUrl: "src/main/resources/config/common.xlsx"
-  en_commonUrl: "src/main/resources/config/en_common.xlsx"
-  es_commonUrl: "src/main/resources/config/es_common.xlsx"
-  fra_commonUrl: "src/main/resources/config/fra_common.xlsx"
-  ru_commonUrl: "src/main/resources/config/ru_common.xlsx"
+  commonUrl: "config/common.xlsx"
+  en_commonUrl: "config/en_common.xlsx"
+  es_commonUrl: "config/es_common.xlsx"
+  fra_commonUrl: "config/fra_common.xlsx"
+  ru_commonUrl: "config/ru_common.xlsx"
 
-  jkUrl: "src/main/resources/config/jk.xlsx"
-  en_jkUrl: "src/main/resources/config/en_jk.xlsx"
-  es_jkUrl: "src/main/resources/config/es_jk.xlsx"
-  fra_jkUrl: "src/main/resources/config/fra_jk.xlsx"
-  ru_jkUrl: "src/main/resources/config/ru_jk.xlsx"
+  jkUrl: "config/jk.xlsx"
+  en_jkUrl: "config/en_jk.xlsx"
+  es_jkUrl: "config/es_jk.xlsx"
+  fra_jkUrl: "config/fra_jk.xlsx"
+  ru_jkUrl: "config/ru_jk.xlsx"
   #linx
   #url: "./config/import.xls"
 

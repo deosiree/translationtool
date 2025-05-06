@@ -214,7 +214,7 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
      * @return {@code true}代表删除成功,{@code false}代表删除失败，其中失败的原因为该词条分类下的产品存在未完成的任务
      */
     @Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.REPEATABLE_READ,rollbackFor = Exception.class)
-    protected boolean deleteEntryClassfyInternal(String classfyId){
+    public boolean deleteEntryClassfyInternal(String classfyId){
         
         EntryClassify entryClassfyById = entryClassifyMapper.getEntryClassfyById(classfyId);
         String classfyType = entryClassfyById.getType();
@@ -255,11 +255,11 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
      * 删除一个product下的所有信息
      * 注意事项：该方法没有开启事务进行执行，即删除每一个表的记录都被视为是单独的一次事务过程，如果需要保证一致性，在调用该
      * 方法的方法中应当开启事务
-     * @param product
+     * @param entryClassfyId
      * @return {@code true}代表删除成功,{@code false}代表删除过程中发现该类别下的产品的任务存在未完成的，不能进行删除 
      */
     @Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.REPEATABLE_READ)
-    private boolean deleteSingleEntryClassfy(String entryClassfyId){
+    public boolean deleteSingleEntryClassfy(String entryClassfyId){
 
         List<String> entryClassfyList = Arrays.asList(entryClassfyId);
         // 一个产品可能有多个任务

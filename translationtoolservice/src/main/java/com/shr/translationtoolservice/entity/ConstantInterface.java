@@ -64,6 +64,7 @@ public class ConstantInterface {
     public static final String ENUM = "ENUM";
     public static final String CONFIG = "CONFIG";
     public static final String DB = "DB";
+    public static final String DB_META = "DB_META";
     public static final String TS = "TS";
     public static final String DI = "DI";
     public static final String DEFAUT = "DEFAUT";
