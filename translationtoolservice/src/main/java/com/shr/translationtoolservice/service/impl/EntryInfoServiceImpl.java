@@ -1153,7 +1153,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
         List<ProductRelationEntity> productRelationEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            updateWorkTrans(entryInfoEntity, department);
+            // updateWorkTrans(entryInfoEntity, department);
             if (entryInfoEntity.getEntry().length() > 512) {
                 log.info(" ==== insert error : entry lenth too long : {} ======", entryInfoEntity.getEntry().length());
                 continue;
