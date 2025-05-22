@@ -556,7 +556,7 @@ export default {
               this.$emit("cancelCreate");
             })
             .catch((err) => {
-              message.error("创建失败！",err.message);
+              message.error("创建失败！", err.message);
             });
         });
       } else if (this.title === "导出") {
@@ -662,7 +662,7 @@ export default {
                 this.$emit("cancelCreate");
               })
               .catch((err) => {
-                message.error("回写失败！",err.message);
+                message.error("回写失败！", err.message);
               })
               .finally(() => {
                 this.writeBackLoading = false;
@@ -670,7 +670,7 @@ export default {
               });
           })
           .catch((err) => {
-            message.error(err.message)
+            message.error(err.message);
           });
       }
     },
@@ -713,7 +713,7 @@ export default {
           this.$emit("cancelCreate");
         })
         .catch((err) => {
-          message.error("提交失败！",err.message);
+          message.error("提交失败！", err.message);
         });
     },
     // 删除词条
@@ -725,7 +725,7 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
-          // console.log("已选词条", this.dataSource);
+          console.log("已选词条", this.dataSource);
           const seen = {};
           this.dataSource.forEach((item) => {
             const key = `${item.productID}-${item.versionID}`;
@@ -735,6 +735,11 @@ export default {
             seen[key].push(item.id);
           });
 
+          // 存储删除成功和失败的信息
+          let totalDeleted = 0;
+          let failedProducts = {};
+          let promises = [];
+
           // 遍历seen对象，并调用接口
           for (const [combinedKey, ids] of Object.entries(seen)) {
             const [productID, versionID] = combinedKey.split("-");
@@ -742,13 +747,37 @@ export default {
               versionID: versionID,
               productID: productID,
             };
-            deleteEntryInfoByID(params, ids).then((res) => {
-              message.success(`已删除${ids.length}条词条!`);
-              this.$emit("createClose");
-              this.$emit("cancelCreate");
-              this.$emit("refresh");
-            });
+            const promise = deleteEntryInfoByID(params, ids)
+              .then(() => {
+                totalDeleted += ids.length; // 累计成功条数
+              })
+              .catch((error) => {
+                failedProducts[combinedKey] = {
+                  count: ids.length,
+                  reason: error.message || "未知错误",
+                }; // 记录失败信息
+              });
+            promises.push(promise);
           }
+
+          Promise.allSettled(promises).then(() => {
+            let messageText = `总共删除了 ${totalDeleted} 条词条!`;
+            if (Object.keys(failedProducts).length > 0) {
+              messageText += "\n以下产品有词条删除失败：\n";
+              for (const [combinedKey, info] of Object.entries(
+                failedProducts
+              )) {
+                const [productID, versionID] = combinedKey.split("-");
+                messageText += `产品ID: ${productID}, 版本ID: ${versionID}, 失败数量: ${info.count}, 原因: ${info.reason}\n`;
+              }
+              message.info(messageText);
+            } else {
+              message.success(messageText);
+            }
+            this.$emit("createClose");
+            this.$emit("cancelCreate");
+            this.$emit("refresh");
+          });
         },
       });
     },
