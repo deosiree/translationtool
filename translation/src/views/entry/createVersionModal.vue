@@ -728,7 +728,11 @@ export default {
           console.log("已选词条", this.dataSource);
           const seen = {};
           this.dataSource.forEach((item) => {
-            const key = `${item.productID}-${item.versionID}`;
+            let key =""
+            if(item.versionID)
+              key = `${item.productID}--${item.versionID}`;
+            else
+              key = `${item.productID}`;
             if (!seen[key]) {
               seen[key] = [];
             }
@@ -742,11 +746,16 @@ export default {
 
           // 遍历seen对象，并调用接口
           for (const [combinedKey, ids] of Object.entries(seen)) {
-            const [productID, versionID] = combinedKey.split("-");
-            let params = {
-              versionID: versionID,
-              productID: productID,
-            };
+            const [productID, versionID] = combinedKey.split("--");
+            let params = {};
+            if (versionID == null || versionID == "")
+              params = { productID: productID };
+            else
+              params = {
+                versionID: versionID,
+                productID: productID,
+              };
+            console.log("deleteEntryInfoByID", params, ids);
             const promise = deleteEntryInfoByID(params, ids)
               .then(() => {
                 totalDeleted += ids.length; // 累计成功条数
