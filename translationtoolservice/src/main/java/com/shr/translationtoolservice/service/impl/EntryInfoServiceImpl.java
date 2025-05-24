@@ -2500,8 +2500,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         //去除白名单中的词条
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
-                if (entryInfoEntity.getImportType().equals(ConstantInterface.DI) && !diList.contains(entryInfoEntity.getEntrySource())){
+            String entrySource = entryInfoEntity.getEntrySource();
+            if (StringUtils.isNotBlank(entrySource)){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.DI) && !entrySource.endsWith(".xlsx") && !diList.contains(entrySource)){
                     diSourceEntrys.add(entryInfoEntity);
                     fileSet.add(entryInfoEntity.getEntrySource());
                 }
