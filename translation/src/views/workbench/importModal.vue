@@ -340,6 +340,14 @@
               </template>
             </div>
           </template>
+          <template v-if="column.dataIndex === 'isExist'">
+            <template v-if="record.isExist === 0">
+              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+            </template>
+            <template v-if="record.isExist === 1">
+              <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
+            </template>
+          </template>
           <template v-if="column.dataIndex === 'entryState'">
             <template v-if="record.entryState === 0">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
@@ -354,12 +362,19 @@
               <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
             </template>
           </template>
-          <template v-if="column.dataIndex === 'isExist'">
-            <template v-if="record.isExist === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+          <template
+            v-if="['englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+            <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
+              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
-            <template v-if="record.isExist === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
+            <template v-if="record[column.dataIndex] === '1'">
+              <a-badge color="#FBB31F" /><span style="color:#FBB31F">未审核</span>
+            </template>
+            <template v-if="record[column.dataIndex] === '2'">
+              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+            </template>
+            <template v-if="record[column.dataIndex] === '3'">
+              <a-badge color="#36BF7D" /><span style="color:#36BF7D">审核通过</span>
             </template>
           </template>
           <template v-if="column.dataIndex === 'tag'">
@@ -523,6 +538,7 @@ import {
 } from "@/http/api/workbench";
 import { templateFileDownload } from "@/http/api/download";
 import workbenchCommon from "@/views/workbench/common.js";
+import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 const filteredInfo = {};
@@ -578,7 +594,7 @@ export default {
         {
           title: "序号",
           dataIndex: "index",
-          width: 90,
+          width: 50,
           customRender: (text, record, index, column) => {
             return (
               text.index +
@@ -593,7 +609,8 @@ export default {
           title: "存在状态",
           dataIndex: "isExist",
           align: "center",
-          width: 120,
+          width: 100,
+          resizable: true,
           fixed: "left",
           index: 1,
           filteredValue: null,
@@ -606,10 +623,11 @@ export default {
         {
           title: "词条",
           dataIndex: "entry",
+          align: "center",
           width: 200,
           resizable: true,
-          index: 3,
-          align: "center",
+          fixed: "left",
+          index: 4,
         },
         {
           title: "翻译",
@@ -617,53 +635,41 @@ export default {
           align: "center",
           width: 200,
           resizable: true,
-          index: 4,
-        },
-        {
-          title: "中文释义",
-          dataIndex: "chineseInterpretation",
-          align: "center",
-          width: 200,
-          resizable: true,
           index: 5,
         },
         {
-          title: "英文释义",
-          dataIndex: "englishInterpretation",
+          title: "tag",
+          dataIndex: "tag",
           align: "center",
-          width: 200,
+          width: 100,
           resizable: true,
           index: 6,
         },
-        // {title: 'Tag',dataIndex: 'tag',align:'center',width:200},
         {
-          title: "审核意见",
-          dataIndex: "auditSuggess",
+          title: "comment",
+          dataIndex: "comment",
           align: "center",
-          width: 150,
+          width: 100,
           resizable: true,
-          index: 99,
+          index: 7,
         },
-        // {title: '来源',dataIndex: 'entrySource',align:'center',width:150,resizable: true},
+        {
+          title: "abbr",
+          dataIndex: "abbr",
+          align: "center",
+          width: 100,
+          resizable: true,
+          index: 14,
+        },
         {
           title: "词条状态",
           dataIndex: "entryState",
           align: "center",
           width: 100,
-          fixed: "right",
-          index: 100,
-        },
-        {
-          title: "Abbr",
-          key: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          fixed: "left",
-          width: 150,
           resizable: true,
-          index: 101,
+          fixed: "right",
+          index: 16,
         },
-        // {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right'}
       ],
       dataSource: [],
       editableData: {},
@@ -727,7 +733,18 @@ export default {
       },
       overlayStyle: workbenchCommon.overlayStyle,
       checkedColumn: workbenchCommon.checkedColumn,
-      checkboxList: workbenchCommon.checkboxList,
+      // checkboxList: workbenchCommon.checkboxList,
+      // 移除固定列对应的配置项
+      checkboxList: commonParam.checkboxList.filter(
+        (item) =>
+          ![
+            "isExist",
+            "translateState",
+            "entryState",
+            "entry",
+            "translate",
+          ].includes(item.value)
+      ),
       importBtnLoading: false,
       state: {
         searchText: "",
@@ -759,6 +776,15 @@ export default {
   created() {},
   mounted() {
     this.task = this.currentTask;
+    this.$nextTick(() => {
+      // 读取本地存储的用户偏好
+      const storedPreferences = localStorage.getItem("colPref-importModal");
+      if (storedPreferences) {
+        const preferences = JSON.parse(storedPreferences);
+        this.checkedColumn = preferences.displayColumn.split(",");
+        this.changeColumn(this.checkedColumn);
+      }
+    });
   },
   watch: {
     currentTask(newval, oldval) {
@@ -2028,50 +2054,71 @@ export default {
     createDictClose() {
       this.createDictVisible = false;
     },
+    // 展示列切换
     changeColumn(checkedValue) {
       this.checkedColumn = checkedValue;
+
       this.checkboxList.forEach((value) => {
+        // 查找当前勾选列表中是否存在该列
         let checkedIndex = this.checkedColumn.findIndex(
           (item) => item === value.value
         );
+        // 查找当前表格列中是否存在该列
         let nowColumnIndex = this.columns.findIndex(
           (item) => item.dataIndex === value.value
         );
+        // 若勾选状态和列存在状态一致，则跳过
         if (
           (nowColumnIndex !== -1 && checkedIndex !== -1) ||
           (nowColumnIndex === -1 && checkedIndex === -1)
         ) {
           return;
         }
+        // 若勾选了但列不存在，则添加列
         if (nowColumnIndex === -1 && checkedIndex !== -1) {
           let newCol = {
             title: value.label,
             dataIndex: value.value,
             align: "center",
-            width: 200,
+            width: 100,
+            ellipsis: true,
             resizable: true,
             index: value.index,
           };
-          if (newCol.dataIndex === "abbr") {
+          if (
+            ["isExist", "translateState", "entry"].includes(newCol.dataIndex)
+          ) {
             newCol.fixed = "left";
+          }
+          if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
+            newCol.fixed = "right";
           }
           if (newCol.dataIndex === "entrySource") {
             // 添加词条来源可筛选
-            (newCol.width = 250), (newCol.customFilterDropdown = true);
+            newCol.customFilterDropdown = true;
             newCol.filteredValue = null;
-            newCol.onFilter = eval(
-              "(value, record) => record.entrySource.toString().toLowerCase().includes(value.toLowerCase())"
-            );
+            newCol.onFilter = (value, record) =>
+              record.entrySource
+                .toString()
+                .toLowerCase()
+                .includes(value.toLowerCase());
           }
           this.columns.splice(-1, 0, newCol);
         }
+        // 若未勾选但列存在，则移除列
         if (nowColumnIndex !== -1 && checkedIndex === -1) {
           this.columns.splice(nowColumnIndex, 1);
         }
       });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
+
+      this.columns.sort((a, b) => a.index - b.index);
+
+      // 记录
+      let data = {
+        displayColumn: checkedValue.join(","),
+      };
+      // this.recordPartiality(data);
+      localStorage.setItem("colPref-archiveModal", JSON.stringify(data)); // localStorage存储用户偏好
     },
     // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {

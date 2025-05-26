@@ -67,7 +67,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import QtCheckRelation from "@/views/check/qtCheckRelation.vue";
 import commen from "@/views/entry/common.js";
-import languageParam from "@/utils/languageParam.js";
+import commonParam from "@/utils/commonParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import { getTsProblems, getEntryByTsVo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
@@ -232,7 +232,7 @@ export default {
               // console.log("详情：",resByTsVo);
               item["relationCount"] = resByTsVo.data.totalNum;
               // 对 resByTsVo.data.list 进行排序
-              const tsProblemsTypeValue = languageParam.languageList.find((it) => it.name === item.type).value;
+              const tsProblemsTypeValue = commonParam.languageList.find((it) => it.name === item.type).value;
               resByTsVo.data.list.sort((a, b) => {
                 const valueA = a[tsProblemsTypeValue];
                 const valueB = b[tsProblemsTypeValue];

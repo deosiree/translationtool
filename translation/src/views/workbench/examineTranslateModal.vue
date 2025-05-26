@@ -105,7 +105,7 @@
             </div>
           </template>
           <template
-            v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
+            v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState','translateState'].includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0'">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
@@ -117,6 +117,28 @@
             </template>
             <template v-if="record[column.dataIndex] === '3'">
               <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+            </template>
+          </template>
+          <template v-if="column.dataIndex === 'entryState'">
+            <template v-if="record.entryState === 0">
+              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+            </template>
+            <template v-if="record.entryState === 1">
+              <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
+            </template>
+            <template v-if="record.entryState === 2">
+              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
+            </template>
+            <template v-if="record.entryState === 3">
+              <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+            </template>
+          </template>
+          <template v-if="column.dataIndex === 'isExist'">
+            <template v-if="record.isExist === 0">
+              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
+            </template>
+            <template v-if="record.isExist === 1">
+              <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
             </template>
           </template>
           <template v-else-if="column.dataIndex === 'operation'">
@@ -185,7 +207,7 @@ import {
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
-import languageParam from "@/utils/languageParam.js";
+import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import { computed, defineComponent, ref } from "vue";
@@ -236,7 +258,7 @@ export default {
         {
           title: "序号",
           dataIndex: "index",
-          width: 70,
+          width: 50,
           customRender: (text, record, index, column) => {
             return (
               text.index +
@@ -248,11 +270,13 @@ export default {
           index: 0,
         },
         {
-          title: "审核状态",
-          dataIndex: "state",
+          title: "翻译状态",
+          dataIndex: "translateState",// 动态的
           align: "center",
           width: 100,
+          resizable: true,
           fixed: "left",
+          index: 2,
         },
         {
           title: "词条",
@@ -260,38 +284,58 @@ export default {
           align: "center",
           width: 200,
           resizable: true,
+          fixed: "left",
+          index: 4,
         },
-        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         {
           title: "翻译",
-          dataIndex: "translate",
+          dataIndex: "translate",// 动态的
           align: "center",
           width: 200,
           resizable: true,
+          index: 5,
         },
-        // {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
         {
-          title: "审核意见",
-          dataIndex: "auditSuggess",
+          title: "tag",
+          dataIndex: "tag",
           align: "center",
-          width: 200,
+          width: 100,
           resizable: true,
+          index: 6,
         },
         {
-          title: "Abbr",
+          title: "comment",
+          dataIndex: "comment",
+          align: "center",
+          width: 100,
+          resizable: true,
+          index: 7,
+        },
+        {
+          title: "abbr",
           dataIndex: "abbr",
           align: "center",
-          width: 150,
+          width: 100,
           resizable: true,
-          index: 101,
+          index: 14,
+        },
+        {
+          title: "审核意见",
+          dataIndex: "this.languageList.auditSuggest",// 动态的
+          align: "center",
+          width: 100,
+          resizable: true,
+          fixed: "right",
+          index: 16,
         },
         {
           title: "操作",
           dataIndex: "operation",
           align: "center",
           width: 100,
-          ellipsis: true,
+          resizable: true,
           fixed: "right",
+          index: 100,
         },
       ],
       dataSource: [],
@@ -326,23 +370,48 @@ export default {
       },
       overlayStyle: workbenchCommon.overlayStyle,
       checkedColumn: ["abbr", "tag"],
-      checkboxList: workbenchCommon.checkboxList,
-      languageParam: null,
+      // checkboxList: workbenchCommon.checkboxList,
+      // 移除固定列对应的配置项
+      checkboxList: commonParam.checkboxList.filter(
+        (item) =>
+          ![
+            "isExist",
+            "translateState",
+            "entryState",
+            "entry",
+            "translate",
+          ].includes(item.value)
+      ),
+      languageList: null,
     };
   },
 
   created() {},
   mounted() {
     this.task = this.currentTask;
-    this.languageParam = languageParam.languageList.find(
+    this.languageList = commonParam.languageList.find(
       (it) => it.name === this.task.translateType
     );
     // workbenchCommon.languageMap[this.task.translateType].code
+    this.$nextTick(() => {
+      // 读取本地存储的用户偏好
+      const storedPreferences = localStorage.getItem(
+        "colPref-examineTranslateModal"
+      );
+      if (storedPreferences) {
+        const preferences = JSON.parse(storedPreferences);
+        this.checkedColumn = preferences.displayColumn.split(",");
+        this.columns = [...this.columns]; // 初始化 columns 时包含固定列
+        this.changeColumn(this.checkedColumn);
+      } else {
+        this.columns = [...this.columns]; // 初始化 columns 时包含固定列
+      }
+    });
   },
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.languageParam = languageParam.languageList.find(
+      this.languageList = commonParam.languageList.find(
         (it) => it.name === this.task.translateType
       );
       this.setTranslateColumn();
@@ -353,13 +422,13 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex = this.languageParam.value;
+          item.dataIndex = this.languageList.value;
         }
         if (item.title === "翻译状态") {
-          item.dataIndex = this.languageParam.state;
+          item.dataIndex = this.languageList.state;
         }
         if (item.title === "审核意见") {
-          item.dataIndex = this.languageParam.auditSuggest;
+          item.dataIndex = this.languageList.auditSuggest;
         }
       });
     },
@@ -376,14 +445,14 @@ export default {
           ? ["1"]
           : [this.translateState];
 
-      let auditSuggest = this.languageParam.auditSuggest;
+      let auditSuggest = this.languageList.auditSuggest;
       getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
 
           this.dataSource.forEach((item) => {
             item.auditState = -1;
-            item[this.languageParam.auditSuggest] = ""; // 对应语言的审核意见清空
+            item[this.languageList.auditSuggest] = ""; // 对应语言的审核意见清空
           });
           // console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
           // this.allData = this.dataSource
@@ -403,10 +472,10 @@ export default {
       this.saveLoading = true;
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.languageParam.auditSuggest] =
-          this.editableData[key][this.languageParam.auditSuggest];
-        entry[this.languageParam.value] =
-          this.editableData[key][this.languageParam.value];
+        entry[this.languageList.auditSuggest] =
+          this.editableData[key][this.languageList.auditSuggest];
+        entry[this.languageList.value] =
+          this.editableData[key][this.languageList.value];
       }
       this.editableData = {};
 
@@ -419,11 +488,11 @@ export default {
         item.parentID = "";
         if (item.auditState === 0) {
           // 审核不通过
-          item[this.languageParam.state] = "2";
+          item[this.languageList.state] = "2";
           updateArr.push(item);
         } else if (item.auditState === 1) {
           // 审核通过
-          item[this.languageParam.state] = "3";
+          item[this.languageList.state] = "3";
           updateArr.push(item);
           okArr.push(item);
         }
@@ -549,9 +618,9 @@ export default {
               { required: true, message: "请输入!" },
             ],
           };
-          this.rules[record.id][this.languageParam.value] = [
+          this.rules[record.id][this.languageList.value] = [
             {
-              validator: this.vilidFildLength(record, this.languageParam.value),
+              validator: this.vilidFildLength(record, this.languageList.value),
             },
           ];
         },
@@ -602,15 +671,15 @@ export default {
         eval(
           "this.$refs.form" +
             record.id.replaceAll("-", "") +
-            this.languageParam.value
+            this.languageList.value
         ).validate(),
       ];
       Promise.all(list)
         .then(() => {
-          record[this.languageParam.auditSuggest] =
-            this.editableData[record.id][this.languageParam.auditSuggest];
-          record[this.languageParam.value] =
-            this.editableData[record.id][this.languageParam.value];
+          record[this.languageList.auditSuggest] =
+            this.editableData[record.id][this.languageList.auditSuggest];
+          record[this.languageList.value] =
+            this.editableData[record.id][this.languageList.value];
           delete this.editableData[record.id];
         })
         .catch((err) => {
@@ -895,15 +964,15 @@ export default {
         }
         // 是否编辑中
         let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][this.languageParam.value]
-          : record[this.languageParam.value];
+          ? this.editableData[record.id][this.languageList.value]
+          : record[this.languageList.value];
         if (common.byteLength(text) > maxLength) {
           flag++;
           this.addEdit(record).then((res) => {
             eval(
               "this.$refs.form" +
                 record.id.replaceAll("-", "") +
-                this.languageParam.value
+                this.languageList.value
             )
               .validate()
               .then(() => {})
@@ -926,8 +995,8 @@ export default {
           { required: true, message: "请输入!" },
         ],
       };
-      this.rules[record.id][this.languageParam.value] = [
-        { validator: this.vilidFildLength(record, this.languageParam.value) },
+      this.rules[record.id][this.languageList.value] = [
+        { validator: this.vilidFildLength(record, this.languageList.value) },
       ];
       return Promise.resolve();
     },
@@ -973,7 +1042,7 @@ export default {
     rejectReasonOK() {
       this.selectedRows.forEach((item) => {
         item.auditState = 0;
-        item[this.languageParam.auditSuggest] = this.rejectReason.reason;
+        item[this.languageList.auditSuggest] = this.rejectReason.reason;
       });
       this.selectedRowKeys = [];
       this.selectedRows = [];
@@ -985,42 +1054,74 @@ export default {
     rejectReasonAfterClose() {
       this.rejectReason.reason = "";
     },
+    // 展示列切换
     changeColumn(checkedValue) {
       this.checkedColumn = checkedValue;
+
       this.checkboxList.forEach((value) => {
+        // 查找当前勾选列表中是否存在该列
         let checkedIndex = this.checkedColumn.findIndex(
           (item) => item === value.value
         );
+        // 查找当前表格列中是否存在该列
         let nowColumnIndex = this.columns.findIndex(
           (item) => item.dataIndex === value.value
         );
+        // 若勾选状态和列存在状态一致，则跳过
         if (
           (nowColumnIndex !== -1 && checkedIndex !== -1) ||
           (nowColumnIndex === -1 && checkedIndex === -1)
         ) {
           return;
         }
+        // 若勾选了但列不存在，则添加列
         if (nowColumnIndex === -1 && checkedIndex !== -1) {
           let newCol = {
             title: value.label,
             dataIndex: value.value,
             align: "center",
-            width: 200,
+            width: 100,
+            ellipsis: true,
             resizable: true,
             index: value.index,
           };
-          if (newCol.dataIndex === "abbr") {
+          if (
+            ["isExist", "translateState", "entry"].includes(newCol.dataIndex)
+          ) {
             newCol.fixed = "left";
+          }
+          if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
+            newCol.fixed = "right";
+          }
+          if (newCol.dataIndex === "entrySource") {
+            // 添加词条来源可筛选
+            newCol.customFilterDropdown = true;
+            newCol.filteredValue = null;
+            newCol.onFilter = (value, record) =>
+              record.entrySource
+                .toString()
+                .toLowerCase()
+                .includes(value.toLowerCase());
           }
           this.columns.splice(-1, 0, newCol);
         }
+        // 若未勾选但列存在，则移除列
         if (nowColumnIndex !== -1 && checkedIndex === -1) {
           this.columns.splice(nowColumnIndex, 1);
         }
       });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
+
+      this.columns.sort((a, b) => a.index - b.index);
+
+      // 记录
+      let data = {
+        displayColumn: checkedValue.join(","),
+      };
+      // this.recordPartiality(data);
+      localStorage.setItem(
+        "colPref-examineTranslateModal",
+        JSON.stringify(data)
+      ); // localStorage存储用户偏好
     },
   },
 };

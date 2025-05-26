@@ -351,7 +351,7 @@ export default {
       this.init();
       // 读取本地存储的用户偏好
       const storedPreferences = localStorage.getItem(
-        "glossaryColumnPreferences"
+        "colPref-glossary"
       );
       if (storedPreferences) {
         const preferences = JSON.parse(storedPreferences);
@@ -428,7 +428,7 @@ export default {
         displayColumn: checkedValue.join(","),
       };
       // this.recordPartiality(data);
-      localStorage.setItem("glossaryColumnPreferences", JSON.stringify(data)); // localStorage存储用户偏好
+      localStorage.setItem("colPref-glossary", JSON.stringify(data)); // localStorage存储用户偏好
     },
 
     // 获取翻译语言

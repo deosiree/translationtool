@@ -69,7 +69,7 @@
 import { message, Modal } from "ant-design-vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import { deleteEntryInfo } from "@/http/api/entryManage";
-import languageParam from "@/utils/languageParam.js";
+import commonParam from "@/utils/commonParam.js";
 export default {
   emits: ["relationClose"],
   props: {
@@ -193,7 +193,7 @@ export default {
       handler(newDataSource) {
         // console.log("新数据", newDataSource);
         if (newDataSource.tsProblemsType) {
-          languageParam.languageList.forEach((item) => {
+          commonParam.languageList.forEach((item) => {
             if (newDataSource.tsProblemsType === item.name) {
               this.translate = item.value;
               this.translateState = item.state;
