@@ -291,15 +291,6 @@ export default {
           onFilter: (value, record) => record.isExist === value,
         },
         {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          fixed: "left",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
           title: "词条",
           dataIndex: "entry",
           width: 200,
@@ -355,6 +346,15 @@ export default {
           ellipsis: true,
           fixed: "right",
           index: 100,
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          align: "center",
+          fixed: "left",
+          width: 150,
+          resizable: true,
+          index: 101,
         },
       ],
       dataSource: [],
@@ -496,7 +496,7 @@ export default {
             this.getTaskEntry();
           })
           .catch((err) => {
-            message.error("保存失败！",err.message);
+            message.error("保存失败！", err.message);
           })
           .finally(() => {
             this.saveLoading = false;
@@ -586,7 +586,7 @@ export default {
     reject() {
       if (this.selectedRows.length > 0) {
         this.rejectReasonVisible = true;
-      setModalAriaHidden(this, document);
+        setModalAriaHidden(this, document);
       }
     },
     //双击表格行 可编辑
@@ -818,7 +818,7 @@ export default {
               this.getTaskEntry();
             })
             .catch((err) => {
-              message.error("删除失败！",err.message);
+              message.error("删除失败！", err.message);
             });
         },
         onCancel: () => {},

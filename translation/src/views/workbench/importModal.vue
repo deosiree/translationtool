@@ -604,16 +604,6 @@ export default {
           onFilter: (value, record) => record.isExist === value,
         },
         {
-          title: "Abbr",
-          key: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          fixed: "left",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
           title: "词条",
           dataIndex: "entry",
           width: 200,
@@ -662,6 +652,16 @@ export default {
           width: 100,
           fixed: "right",
           index: 100,
+        },
+        {
+          title: "Abbr",
+          key: "abbr",
+          dataIndex: "abbr",
+          align: "center",
+          fixed: "left",
+          width: 150,
+          resizable: true,
+          index: 101,
         },
         // {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right'}
       ],

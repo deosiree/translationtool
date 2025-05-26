@@ -236,13 +236,6 @@ export default {
           width: 130,
           fixed: "left",
         },
-        {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 180,
-          fixed: "left",
-        },
         { title: "词条", dataIndex: "entry", align: "center", width: 180 },
         {
           title: "中文释义",
@@ -298,6 +291,13 @@ export default {
           dataIndex: "frenchTranslateState",
           align: "center",
           width: 180,
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          align: "center",
+          width: 180,
+          // fixed: "left",
         },
         {
           title: "删除",
@@ -725,14 +725,12 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
-          console.log("已选词条", this.dataSource);
+          // console.log("已选词条", this.dataSource);
           const seen = {};
           this.dataSource.forEach((item) => {
-            let key =""
-            if(item.versionID)
-              key = `${item.productID}--${item.versionID}`;
-            else
-              key = `${item.productID}`;
+            let key = "";
+            if (item.versionID) key = `${item.productID}--${item.versionID}`;
+            else key = `${item.productID}`;
             if (!seen[key]) {
               seen[key] = [];
             }
@@ -755,7 +753,7 @@ export default {
                 versionID: versionID,
                 productID: productID,
               };
-            console.log("deleteEntryInfoByID", params, ids);
+            // console.log("deleteEntryInfoByID", params, ids);
             const promise = deleteEntryInfoByID(params, ids)
               .then(() => {
                 totalDeleted += ids.length; // 累计成功条数

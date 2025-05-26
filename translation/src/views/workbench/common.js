@@ -6,15 +6,15 @@ export default{
         '法文':{language:"法文",code:"french",transIdName:"fraTransId"},
     },
     checkboxList:[
-        {label: "abbr",value: "abbr",index:2},
+        {label:'tag',value:'tag',index:3},
+        {label: "Comment",value: "comment",index:4},
         {label: "英文释义",value: "englishInterpretation",index:5},
         {label: "中文释义",value: "chineseInterpretation",index:6},
-        {label:'tag',value:'tag',index:7},
         {label: "一级分类",value: "classfy1",index:8},
         {label: "二级分类",value: "classfy2",index:9},
         {label: "词条来源",value: "entrySource",index:10},
         {label: "回写辞典",value: "diFileName",index:11},
-        {label: "Comment",value: "comment",index:11}
+        {label: "abbr",value: "abbr",index:12},
     ],
     checkedColumn: ["abbr", "englishInterpretation","chineseInterpretation"],
     overlayStyle:{

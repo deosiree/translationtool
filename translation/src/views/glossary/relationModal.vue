@@ -36,7 +36,7 @@
   </CustomModal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import {
@@ -88,14 +88,13 @@ export default {
           },
           fixed: "left",
         },
+        { title: "词条", dataIndex: "entry", align: "center", width: 200 },
         {
           title: "词条状态",
           dataIndex: "entryState",
           align: "center",
           width: 120,
         },
-        { title: "Abbr", dataIndex: "abbr", align: "center", width: 200 },
-        { title: "词条", dataIndex: "entry", align: "center", width: 200 },
         { title: "翻译", dataIndex: "translate", align: "center", width: 200 },
         {
           title: "翻译状态",
@@ -142,6 +141,7 @@ export default {
           align: "center",
           width: 200,
         },
+        { title: "Abbr", dataIndex: "abbr", align: "center", width: 200 },
       ],
       search: {
         classify1: null,

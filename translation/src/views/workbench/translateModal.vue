@@ -363,14 +363,6 @@ export default {
           sortDirections: ["descend", "ascend"],
         },
         {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
           title: "翻译",
           dataIndex: "translate",
           align: "center",
@@ -386,6 +378,14 @@ export default {
           align: "center",
           width: 150,
           resizable: true,
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          align: "center",
+          width: 150,
+          resizable: true,
+          index: 101,
         },
         {
           title: "审核意见",
@@ -756,9 +756,7 @@ export default {
     edit(record) {
       this.editableData[record.id] = this.editableData.hasOwnProperty(record.id)
         ? this.editableData[record.id]
-        : cloneDeep(
-            this.allData.filter((item) => record.id === item.id)[0]
-          );
+        : cloneDeep(this.allData.filter((item) => record.id === item.id)[0]);
       // 设置校验规则
       this.rules[record.id] = {
         entry: [

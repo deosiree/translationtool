@@ -144,15 +144,6 @@ export default {
         //     return text.index + 1
         // },fixed: 'left'},
         {
-          title: "Abbr",
-          dataIndex: "abbr",
-          width: 150,
-          fixed: "left",
-          customCell: (record, rowIndex, column) => ({
-            colSpan: record.flag != "col" ? 1 : 17,
-          }),
-        },
-        {
           title: "版本",
           dataIndex: "version",
           width: 150,
@@ -276,6 +267,15 @@ export default {
               width: 150,
             },
           ],
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          width: 150,
+          fixed: "left",
+          customCell: (record, rowIndex, column) => ({
+            colSpan: record.flag != "col" ? 1 : 17,
+          }),
         },
         {
           title: "备注",

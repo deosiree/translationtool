@@ -193,26 +193,21 @@ export default {
           dataIndex: "index",
           width: 70,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
           fixed: "left",
           index: 0,
-        },
-        {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          fixed: "left",
-          width: 150,
-          resizable: true,
-          index: 2,
         },
         {
           title: "词条",
           dataIndex: "entry",
           width: 200,
           resizable: true,
-          index: 3,
+          index: 1,
           align: "center",
         },
         {
@@ -221,7 +216,7 @@ export default {
           align: "center",
           width: 200,
           resizable: true,
-          index: 4,
+          index: 2,
         },
         {
           title: "翻译状态",
@@ -229,7 +224,7 @@ export default {
           align: "center",
           width: 130,
           resizable: true,
-          index: 4.5,
+          index: 3,
         },
         {
           title: "中文释义",
@@ -237,7 +232,7 @@ export default {
           align: "center",
           width: 200,
           resizable: true,
-          index: 5,
+          index: 4,
         },
         {
           title: "英文释义",
@@ -245,7 +240,7 @@ export default {
           align: "center",
           width: 200,
           resizable: true,
-          index: 6,
+          index: 5,
         },
         {
           title: "审核意见",
@@ -253,7 +248,16 @@ export default {
           align: "center",
           width: 200,
           resizable: true,
-          index: 98,
+          index: 6,
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          align: "center",
+          fixed: "left",
+          width: 150,
+          resizable: true,
+          index: 7,
         },
         {
           title: "词条状态",
@@ -621,7 +625,7 @@ export default {
           this.ipSelectModal = false;
         })
         .catch((err) => {
-          message.error("归档失败！",err.message);
+          message.error("归档失败！", err.message);
         });
     },
     // 归档、归档并结束任务按钮点击事件

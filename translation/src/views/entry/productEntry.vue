@@ -514,15 +514,6 @@ export default {
           index: 0.1,
         },
         {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 150,
-          fixed: "left",
-          resizable: true,
-          index: 1,
-        },
-        {
           title: "词条",
           dataIndex: "entry",
           align: "center",
@@ -568,6 +559,15 @@ export default {
           width: 180,
           resizable: true,
           index: 22,
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          align: "center",
+          width: 150,
+          fixed: "left",
+          resizable: true,
+          index: 30,
         },
         {
           title: "操作",
@@ -1499,7 +1499,7 @@ export default {
     getRowClassify2Option(record) {
       if (
         this.editableData[record.id] === undefined ||
-        !this.editableData[record.id].classfy1||
+        !this.editableData[record.id].classfy1 ||
         this.editableData[record.id].classfy1 === ""
       ) {
         return;

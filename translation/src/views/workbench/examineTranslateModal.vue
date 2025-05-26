@@ -255,20 +255,13 @@ export default {
           fixed: "left",
         },
         {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
           title: "词条",
           dataIndex: "entry",
           align: "center",
           width: 200,
           resizable: true,
         },
+        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         {
           title: "翻译",
           dataIndex: "translate",
@@ -277,13 +270,20 @@ export default {
           resizable: true,
         },
         // {title: '来源',dataIndex: 'source',align:'center',width:100,resizable: true,ellipsis:true},
-        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         {
           title: "审核意见",
           dataIndex: "auditSuggess",
           align: "center",
           width: 200,
           resizable: true,
+        },
+        {
+          title: "Abbr",
+          dataIndex: "abbr",
+          align: "center",
+          width: 150,
+          resizable: true,
+          index: 101,
         },
         {
           title: "操作",
@@ -327,20 +327,24 @@ export default {
       overlayStyle: workbenchCommon.overlayStyle,
       checkedColumn: ["abbr", "tag"],
       checkboxList: workbenchCommon.checkboxList,
-      languageParam:null,
+      languageParam: null,
     };
   },
 
   created() {},
   mounted() {
     this.task = this.currentTask;
-    this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
+    this.languageParam = languageParam.languageList.find(
+      (it) => it.name === this.task.translateType
+    );
     // workbenchCommon.languageMap[this.task.translateType].code
   },
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
+      this.languageParam = languageParam.languageList.find(
+        (it) => it.name === this.task.translateType
+      );
       this.setTranslateColumn();
     },
   },
@@ -401,7 +405,8 @@ export default {
         let entry = this.dataSource.find((item) => item.id === key);
         entry[this.languageParam.auditSuggest] =
           this.editableData[key][this.languageParam.auditSuggest];
-        entry[this.languageParam.value] = this.editableData[key][this.languageParam.value];
+        entry[this.languageParam.value] =
+          this.editableData[key][this.languageParam.value];
       }
       this.editableData = {};
 
@@ -545,7 +550,9 @@ export default {
             ],
           };
           this.rules[record.id][this.languageParam.value] = [
-            { validator: this.vilidFildLength(record, this.languageParam.value) },
+            {
+              validator: this.vilidFildLength(record, this.languageParam.value),
+            },
           ];
         },
       };
@@ -593,14 +600,17 @@ export default {
       // 长度校验
       let list = [
         eval(
-          "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
+          "this.$refs.form" +
+            record.id.replaceAll("-", "") +
+            this.languageParam.value
         ).validate(),
       ];
       Promise.all(list)
         .then(() => {
           record[this.languageParam.auditSuggest] =
             this.editableData[record.id][this.languageParam.auditSuggest];
-          record[this.languageParam.value] = this.editableData[record.id][this.languageParam.value];
+          record[this.languageParam.value] =
+            this.editableData[record.id][this.languageParam.value];
           delete this.editableData[record.id];
         })
         .catch((err) => {
@@ -891,7 +901,9 @@ export default {
           flag++;
           this.addEdit(record).then((res) => {
             eval(
-              "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
+              "this.$refs.form" +
+                record.id.replaceAll("-", "") +
+                this.languageParam.value
             )
               .validate()
               .then(() => {})
