@@ -3,18 +3,11 @@
     <SearchBox ref="search" @change="setTableHeight" :operate="false">
       <template v-slot:form>
         <a-form :model="search" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-row style="width:100%">
-            <a-form-item label="词条" name="entry">
+          <a-row style="width:100%" class="search-row">
+            <a-form-item label="词条" name="entry" style="margin-top: 8px">
               <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
             </a-form-item>
-
-            <!-- <a-form-item
-                        label="Abbr"
-                        name="abbr"
-                        >
-                            <a-input v-model:value="search.abbr" placeholder="请输入内容"></a-input>
-                        </a-form-item> -->
-            <a-form-item label="词条状态" name="state">
+            <a-form-item label="词条状态" name="state" style="margin-top: 8px">
               <a-select v-model:value="search.entryState" placeholder="请选择" allowClear>
                 <a-select-option value="0">新建</a-select-option>
                 <a-select-option value="1">审核中</a-select-option>
@@ -22,36 +15,37 @@
                 <a-select-option value="3">已审核</a-select-option>
               </a-select>
             </a-form-item>
-            <a-form-item label="tag" name="tag">
+            <a-form-item label="tag" name="tag" style="margin-top: 8px">
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item label="二级分类" name="classfy2">
+            <a-form-item label="二级分类" name="classfy2" style="margin-top: 8px">
               <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
               <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'
                 allowClear>
               </a-select>
             </a-form-item>
-            <a-form-item label="词条来源" name="entrySource">
+            <a-form-item label="词条来源" name="entrySource" style="margin-top: 8px">
               <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
             </a-form-item>
-          </a-row>
-          <a-row style="width:100%;margin-top:8px">
-            <a-form-item label="翻译语言" name="language">
+            <a-form-item label="翻译语言" name="language" style="margin-top: 8px">
               <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
                 allowClear>
               </a-select>
             </a-form-item>
-            <a-form-item label="翻译状态" name="translateState">
+            <a-form-item label="翻译状态" name="translateState" style="margin-top: 8px">
               <a-select v-model:value="search.translateState" placeholder="请选择" :options='translateStates' allowClear>
               </a-select>
             </a-form-item>
-            <a-form-item label="翻译结果" name="translate">
+            <a-form-item label="翻译结果" name="translate" style="margin-top: 8px">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <div style="display: flex;justify-content: flex-end;width:calc(100% - 858px)">
-              <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-              <a-button type="primary" size="middle" @click="conditionalQuery" style="margin-left:8px">查询</a-button>
-            </div>
+            <a-form-item label="Comment" name="comment" style="margin-top: 8px">
+              <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
+            </a-form-item>
+          </a-row>
+          <a-row style="width:100%" class="search-row" justify="end">
+            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+            <a-button type="primary" size="middle" @click="conditionalQuery" style="margin-left:8px">查询</a-button>
           </a-row>
         </a-form>
       </template>
@@ -475,6 +469,7 @@ export default {
         language: null,
         translateState: null,
         translate: "",
+        comment:"",
       },
       translateStates: [
         { label: "未翻译", value: "0" },
@@ -520,6 +515,20 @@ export default {
           width: 160,
           resizable: true,
           index: 2,
+        },
+        {
+          title: "tag",
+          dataIndex: "tag",
+          align: "center",
+          width: 130,
+          index: 3,
+        },
+        {
+          title: "Comment",
+          dataIndex: "comment",
+          align: "center",
+          width: 130,
+          index: 4,
         },
         {
           title: "词条版本",
@@ -789,6 +798,7 @@ export default {
         entryState: this.search.entryState,
         tag: this.search.tag,
         entrySource: this.search.entrySource,
+        comment: this.search.comment,
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:",data)
