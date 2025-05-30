@@ -1595,6 +1595,12 @@ export default {
               this.dataSource.forEach((item) => {
                 item.diFileName = this.filediFileName;
                 item.writeType = "DI";
+                if(item.children && item.children.length > 0) {
+                  item.children.forEach((child) => {
+                    child.diFileName = this.filediFileName;
+                    child.writeType = "DI";
+                  });
+                }
               });
             }
             this.sortArray(this.dataSource, "isExist");
