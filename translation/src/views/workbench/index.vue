@@ -63,11 +63,11 @@
           <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px">
-                <a-button type="primary" size="small" @click="SelectTranslateType">批量选择语言</a-button>
+                <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
                   <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
-                    :fieldNames="{label:'name',value:'name'}">
+                    :fieldNames="{label:'name',value:'name'}" allowClear>
                   </a-select>
                   <template #footer>
                     <div style="text-align: center;">
@@ -84,7 +84,7 @@
                   :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
                   :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
                   ref="workTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
-                  <template #bodyCell="{ column, record }">
+                  <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'state'">
                       <template v-if="record.state === '0'">
                         <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
@@ -107,6 +107,12 @@
                       <template v-else>
                         <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
                       </template>
+                    </template>
+                    <template v-if="column.dataIndex === 'name'">
+                      <span style="position: relative; display: inline-block;">
+                        {{ text }}
+                        <a-badge color="#ff0000" v-if="record.isHighlighted" style="position: absolute;top: -9px;right: -9px;z-index: 1;" />
+                      </span>
                     </template>
                   </template>
                 </a-table>
@@ -158,6 +164,8 @@ import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
+import { getEntryInfoList } from "@/http/api/workbench";
+import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -180,6 +188,7 @@ export default {
       toDoNum: 0,
       finishNum: 0,
       labelCol: { style: { width: "84px" } },
+      lastSearch: {},
       search: {
         name: "",
         productName: "",
@@ -196,11 +205,15 @@ export default {
           dataIndex: "index",
           align: "center",
           width: 40,
-          customRender: (text, record, index, column) => {
-            return text.index + 1;
+          customRender: (text) => {
+            const currentIndex =
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1);
+            return currentIndex;
           },
           fixed: "left",
-          index: 0,
+          index: 0.1,
         },
         {
           title: "任务名称",
@@ -226,7 +239,7 @@ export default {
           align: "center",
           width: 100,
           resizable: true,
-          index: 2,
+          index: 3,
         },
         // {title: '执行部门',dataIndex: 'department',align:'center',width:100,ellipsis: true,resizable: true,index: 3},
         {
@@ -236,7 +249,7 @@ export default {
           width: 100,
           ellipsis: true,
           resizable: true,
-          index: 3,
+          index: 4,
         },
         {
           title: "任务描述",
@@ -245,7 +258,7 @@ export default {
           width: 100,
           ellipsis: true,
           resizable: true,
-          index: 3,
+          index: 5,
         },
         {
           title: "创建人",
@@ -253,6 +266,7 @@ export default {
           align: "center",
           width: 50,
           ellipsis: true,
+          index: 6,
         },
         {
           title: "下发时间",
@@ -260,6 +274,7 @@ export default {
           align: "center",
           width: 100,
           ellipsis: true,
+          index: 7,
         },
         // {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right',},
       ],
@@ -312,6 +327,38 @@ export default {
     window.onresize = null;
   },
   methods: {
+    // 获取词条数量
+    async getTaskPending(taskID) {
+      function fetch(params, data) {
+        return getEntryInfoList(params, data)
+          .then((res) => {
+            return res.data.list.length > 0;
+          })
+          .catch((err) => {
+            message.error(err.message);
+            return false;
+          });
+      }
+      const entryStates = ["1", "2", "3", "3"];
+      const datas = [[], [], ["0", "2"], ["1"]];
+      const promises = [];
+
+      for (let i = 0; i < entryStates.length; i++) {
+        const params = {
+          taskID: taskID,
+          entryState: entryStates[i],
+          entry: "",
+        };
+        const data = datas[i];
+        promises.push(fetch(params, data));
+      }
+      try {
+        const results = await Promise.all(promises);
+        return results.some((result) => result);
+      } catch (error) {
+        return false;
+      }
+    },
     // 获取翻译语言
     getLanguage() {
       let data = {};
@@ -319,48 +366,50 @@ export default {
         this.translateTypes = res.data.list;
       });
     },
-    // 批量选择语言
+    // 更改翻译语种
     SelectTranslateType() {
       if (this.selectedRows.length === 0) {
         message.warning("请至少选择一条任务");
         return;
       }
       this.translateTypeVisible = true; // 显示语言选择弹窗
+      setModalAriaHidden(this, document);
       this.selectedLanguage = null; // 重置选择的语言
     },
     // 点击 confirm确认 按钮后会发生下面的操作（弹窗）
     async confirmTranslateType() {
       if (!this.selectedLanguage) {
-        // 未选择语言,就会弹窗结束，不会进入下面的try-catch
+        // 未选择语言
         message.warning("请选择一种语言");
         return;
       }
 
-      // 选择了语言，所以
-      // 单条更新任务，批量循环调用（在处理多个任务更新时，每次只对一条任务进行更新操作，然后通过循环的方式依次处理所有需要更新的任务。
-      let tasks = [];
+      // 单条更新任务，批量循环调用
       for (const task of this.selectedRows) {
         // console.log("当前任务", task);
         if (task.translateType != this.selectedLanguage) {
           task.translateType = this.selectedLanguage;
           // console.log("修改语言后的当前任务", task);
           updateTaskInfo(task).then((res) => {
-            // console.log(`任务 ${task.id} 已翻译为${task.translateType}！`);
-            message.success(`任务 ${task.id} 已翻译为${task.translateType}！`);
+            // console.log(`“${task.name}”的翻译语种已更改为${task.translateType}！`);
+            message.success(
+              `“${task.name}”的翻译语种已更改为${task.translateType}！`
+            );
           });
         } else {
-          // console.log(`任务 ${task.id} 已为${task.translateType}，无需翻译。`);
+          // console.log(` “${task.name}”的翻译语种已为${task.translateType}，无需更改。`);
           message.success(
-            `任务 ${task.id} 已为${task.translateType}，无需翻译。`
+            `“${task.name}”的翻译语种已为${task.translateType}，无需更改。`
           );
         }
-        tasks.push(task);
       }
 
       // 更新完成后刷新任务列表
-      this.selectedRows = tasks;
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
 
       this.translateTypeVisible = false; // 关闭弹窗
+      // this.init();// 刷新任务列表
     },
     // 点击 cancel取消 按钮后会发生下面的操作（弹窗）
     cancelTranslateType() {
@@ -425,7 +474,7 @@ export default {
       };
     },
     getClassfy(task) {
-      if (task.productId === null || task.productId === "") {
+      if (!task.productId || task.productId === "") {
         this.classifyLimit = {};
         return;
       }
@@ -433,14 +482,19 @@ export default {
         parentId: task.productId,
         type: "module",
       };
-      getClassfy(params).then((res) => {
-        this.classifyLimit = {};
-        res.data.list.forEach((element) => {
-          this.classifyLimit[element.title] = element;
+      getClassfy(params)
+        .then((res) => {
+          this.classifyLimit = {};
+          res.data.list.forEach((element) => {
+            this.classifyLimit[element.title] = element;
+          });
+        })
+        .catch((err) => {
+          message.err(err.message);
         });
-      });
     },
     clickCard(index) {
+      if (index !== this.activeCard) this.pagination.current = 1; // 查询条件变化，分页重置
       this.activeCard = index;
       if (index === 1) {
         this.tableTitle = "待办事项列表";
@@ -513,8 +567,10 @@ export default {
     getTask() {
       this.getTaskByCondition(this.search);
     },
+    // 根据条件获取任务
     getTaskByCondition(data) {
       this.loading = true;
+      this.checkSearchChange();
       let params = {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
@@ -522,20 +578,21 @@ export default {
       if (this.activeCard === 1) {
         // 待办事项
         getToDoTaskInfo(params, data)
-          .then((res) => {
+          .then(async (res) => {
             this.dataSource = res.data.list;
             this.pagination.total = res.data.totalNum;
-            // if(this.dataSource.length > 0){
-            //     this.selectedRowIndex = this.dataSource[0].id
-            //     this.currentTask = this.dataSource[0]
-            // }
-            // this.selectedRowIndex = null
-            // this.showOperationArea = false
-            // this.setTableHeight()
-            this.loading = false;
+            for (const item of this.dataSource) {
+              if (await this.getTaskPending(item.id)) {
+                item.isHighlighted = true;
+              } else {
+                item.isHighlighted = false;
+              }
+            }
           })
           .catch((err) => {
-            message.error("数据获取失败！");
+            message.error("数据获取失败！", err.message);
+          })
+          .finally(() => {
             this.loading = false;
           });
       } else if (this.activeCard === 2) {
@@ -543,12 +600,29 @@ export default {
         getFinishTaskInfo(params, data)
           .then((res) => {
             this.dataSource = res.data.list;
-            this.loading = false;
+            this.pagination.total = res.data.totalNum;
           })
           .catch((err) => {
-            message.error("数据获取失败！");
+            message.error("数据获取失败！", err.message);
+          })
+          .finally(() => {
             this.loading = false;
           });
+      }
+    },
+    checkSearchChange() {
+      // 检测查询条件是否发生变化
+      let isChanged = false;
+      for (let key in this.search) {
+        if (this.search[key] !== this.lastSearch[key]) {
+          isChanged = true;
+          // console.log(`查询条件${key}发生变化:`, this.search[key], this.lastSearch[key]);
+          break;
+        }
+      }
+      if (isChanged) {
+        this.pagination.current = 1; // 查询条件变化，分页重置
+        this.lastSearch = { ...this.search }; // 保存查询条件
       }
     },
     handleResizeColumn: (w, col) => {
@@ -561,6 +635,7 @@ export default {
     },
     importEntry() {
       this.importVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.import.initTaskEntry();
     },
     importClose() {
@@ -571,6 +646,7 @@ export default {
     // 词条审核
     examineEntry() {
       this.examineVisible = true;
+      setModalAriaHidden(this, document);
       this.examineTitle = "词条审核";
       this.$refs.examine.getTaskEntry();
     },
@@ -582,6 +658,7 @@ export default {
     // 词条翻译
     translateEntry() {
       this.translateVisible = true;
+      setModalAriaHidden(this, document);
       // this.$refs.translate.getTranslateEntry()
       this.$refs.translate.init();
     },
@@ -593,6 +670,7 @@ export default {
     // 翻译审核
     examineTranslate() {
       this.examineTranslateVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.examineTranslate.getTaskEntry();
     },
     examineTranslateClose() {
@@ -604,6 +682,7 @@ export default {
     // 归档
     archiveEntry() {
       this.archiveVisible = true;
+      setModalAriaHidden(this, document);
       this.$refs.archiveModalRef.getTaskEntry();
     },
     archiveClose() {
@@ -628,6 +707,7 @@ export default {
         creator: "",
       };
       this.pageChangeSearch = this.search;
+      // console.log("分页更新", this.pageChangeSearch);
       this.getTask();
     },
     // 分页切换
@@ -773,5 +853,8 @@ export default {
 .exportCard:hover {
   box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.2),
     -1px 0px 8px 0px rgba(241, 189, 46, 0.2);
+}
+.red-text {
+  color: red;
 }
 </style>

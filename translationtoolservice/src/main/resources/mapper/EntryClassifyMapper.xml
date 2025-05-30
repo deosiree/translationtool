@@ -76,7 +76,7 @@
         select
         <include refid="Base_Column_List"/>
         from t_entry_classify
-        where is_delete = 0 and parent_id in (
+        where is_delete = 0  and type not in ('module') and parent_id in (
 
         <foreach collection="ids" item="id" index="index" separator=",">
             #{id,jdbcType=VARCHAR}

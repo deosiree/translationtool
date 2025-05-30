@@ -154,6 +154,7 @@ public class YoudaoTrans {
         }
        // Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
         languageEntity.setLanguage(tLanguage.getCode());
+        languageEntity.setSource("有道翻译");
         return languageEntity;
     }
 

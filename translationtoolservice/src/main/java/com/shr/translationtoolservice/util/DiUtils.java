@@ -10,6 +10,7 @@ import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.entity.vo.TDBFieldInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -57,20 +58,38 @@ public class DiUtils {
                 return ErrorCodeList.GET_DIC_ERROR + fileName;
             }
             jsonArray = JSONArray.parseArray(s);
-            List<DictionaryVo> dictionaryVos = new ArrayList<>();
+            Set<DictionaryVo> dictionaryVos = new HashSet<>();
             constructDIVO(jsonArray, dictionaryVos);
             String langCode = languageMapper.selectLaguageByName(translateType).get(0).getCode();
             int add = 0;
             int update = 0 ;
             int sum =0;
             for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-                //枚举tag 不需要回写！！！ tr的tag 需要回写
+                if (StringUtils.isBlank(entryInfoEntity.getTag())){
+                    entryInfoEntity.setTag("");
+                }
+                if (StringUtils.isBlank(entryInfoEntity.getComment())){
+                    entryInfoEntity.setComment("");
+                }
+                //回写两份 带tag 和不带tag 的
+                if (StringUtils.isNotBlank(entryInfoEntity.getTag())) {
+                    EntryInfoEntity entryInfoEntity1 = new EntryInfoEntity();
+                    BeanUtils.copyProperties(entryInfoEntity, entryInfoEntity1);
+                    entryInfoEntity1.setTag("");
+                    boolean isExist = updateTransToDiVo(tag,common,langCode, entryInfoEntity1, translateType, dictionaryVos);
+                    //如果不存在 则新增词条
+                    if (!isExist) {
+                        add ++;
+                        addEntryToDIVo(langCode, entryInfoEntity1, translateType, dictionaryVos);
+                    }
+                }
+            /*
                 if (!tag) {
                     entryInfoEntity.setTag("");
                 }
                 if (!common) {
                     entryInfoEntity.setComment("");
-                }
+                }*/
                 update++;
                 boolean isExist = updateTransToDiVo(tag,common,langCode, entryInfoEntity, translateType, dictionaryVos);
                 //如果不存在 则新增词条
@@ -79,6 +98,7 @@ public class DiUtils {
                     addEntryToDIVo(langCode, entryInfoEntity, translateType, dictionaryVos);
                 }
             }
+            //dictionaryVos 根据词条、翻译、tag、common进行去重
             String dictionaryVosStr = JSONObject.toJSONString(dictionaryVos);
             headerParameters.put("dictionaryInfo", dictionaryVosStr);
             headerParameters.put("dictionary", fileName);
@@ -100,7 +120,7 @@ public class DiUtils {
         return ConstantInterface.OK_STR;
     }
 
-    private void addEntryToDIVo(String langCode, EntryInfoEntity entryInfoEntity, String translateType, List<DictionaryVo> dictionaryVos) {
+    private void addEntryToDIVo(String langCode, EntryInfoEntity entryInfoEntity, String translateType, Set<DictionaryVo> dictionaryVos) {
         DictionaryVo dictionaryVo = new DictionaryVo();
         dictionaryVo.setSource(entryInfoEntity.getEntry());
         dictionaryVo.setComments(entryInfoEntity.getComment());
@@ -140,42 +160,25 @@ public class DiUtils {
         dictionaryVos.add(dictionaryVo);
     }
 
-    private boolean updateTransToDiVo(boolean tag,boolean common,String langCode, EntryInfoEntity entryInfoEntity, String translateType, List<DictionaryVo> dictionaryVos) {
+    private boolean updateTransToDiVo(boolean tag,boolean common,String langCode, EntryInfoEntity entryInfoEntity, String translateType, Set<DictionaryVo> dictionaryVos) {
         boolean isExist = false;
 
         for (DictionaryVo dictionaryVo : dictionaryVos) {
             if (dictionaryVo.getSource().equals(entryInfoEntity.getEntry())) {
-                //是否需要tag 查询
-                if (tag){
-                    if ((StringUtils.isNotBlank(entryInfoEntity.getTag()) && !entryInfoEntity.getTag().equals(dictionaryVo.getTag())) ||
-                            (StringUtils.isBlank(entryInfoEntity.getTag()) && StringUtils.isNotBlank(dictionaryVo.getTag()))) {
-                        continue;
-                    }
-                }else {
-                    //不需要tag 的时候 如果辞典里存在tag 但是不存在空tag的词条，则是不匹配的
-                    if (StringUtils.isBlank(entryInfoEntity.getTag() )  && StringUtils.isNotBlank(dictionaryVo.getTag())) {
-                        continue;
-                    }
+
+                if (!entryInfoEntity.getTag().equals(dictionaryVo.getTag())) {
+                    continue;
                 }
 
-
-                //是否需要common 查询
-                if (common){
-                    if (StringUtils.isNotBlank(entryInfoEntity.getComment() ) && !entryInfoEntity.getTag().equals(dictionaryVo.getComments())) {
-                        continue;
-                    }else if (StringUtils.isBlank(entryInfoEntity.getComment()) && StringUtils.isBlank(dictionaryVo.getComments())){
-                        continue;
-                    }
-                }else {
-                    //不需要tag 的时候 如果辞典里存在tag 但是不存在空tag的词条，则是不匹配的
-                    if (StringUtils.isBlank(entryInfoEntity.getComment() )  && StringUtils.isNotBlank(dictionaryVo.getComments())) {
-                        continue;
-                    }
+                if (!entryInfoEntity.getComment().equals(dictionaryVo.getComments())) {
+                    continue;
                 }
                 isExist = true;
 
+
                 Map<String, String> transMap = dictionaryVo.getTranslation();
                 if (CollectionUtils.isEmpty(transMap)) {
+
                     transMap = new HashMap<>();
                 }
                 switch (translateType) {
@@ -211,7 +214,7 @@ public class DiUtils {
         return isExist;
     }
 
-    private void constructDIVO(JSONArray jsonArray, List<DictionaryVo> dictionaryVos) {
+    private void constructDIVO(JSONArray jsonArray, Set<DictionaryVo> dictionaryVos) {
         for (int i = 0; i < jsonArray.size(); i++) {
             DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
             dictionaryVos.add(dictionaryVo);

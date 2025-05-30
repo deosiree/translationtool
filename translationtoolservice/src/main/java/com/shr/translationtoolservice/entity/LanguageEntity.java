@@ -19,4 +19,5 @@ public class LanguageEntity {
     private boolean state;
     private Date createTime;
     private String id;
+    private String source;
 }

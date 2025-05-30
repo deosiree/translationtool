@@ -71,7 +71,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
+    public <T> List<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
         List<T> excelForBeans = readNewExcel(classzz, workbook, excelHeads);  //解析Excel
@@ -90,10 +90,10 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readZZExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
+    public <T> List<T> readZZExcelToEntity(String translateType,Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
-        List<T> excelForBeans = readExcel(classzz, workbook, excelHeads);  //解析Excel
+        List<T> excelForBeans = readExcel(translateType,classzz, workbook, excelHeads);  //解析Excel
         return excelForBeans;
     }
 
@@ -107,8 +107,8 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName) throws Exception {
-        return readExcelToEntity(classzz, in, fileName, null);
+    public <T> List<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName) throws Exception {
+        return readExcelToEntity(translateType,classzz, in, fileName, null);
     }
 
 
@@ -122,8 +122,8 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readZZExcelToEntity(Class<T> classzz, InputStream in, String fileName) throws Exception {
-        return readZZExcelToEntity(classzz, in, fileName, null);
+    public <T> List<T> readZZExcelToEntity(String translateType,Class<T> classzz, InputStream in, String fileName) throws Exception {
+        return readZZExcelToEntity(translateType,classzz, in, fileName, null);
     }
 
     /**
@@ -165,7 +165,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    private <T> List<T> readExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
+    private <T> List<T> readExcel(String translateType,Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
         List<T> beans = new ArrayList<T>();
         int sheetNum = workbook.getNumberOfSheets();
         for (int sheetIndex = 0; sheetIndex < sheetNum; sheetIndex++) {
@@ -248,6 +248,16 @@ public class ExcelUtils {
 
                     headCell.setCellType(Cell.CELL_TYPE_STRING);
                     String headName = headCell.getStringCellValue().trim();
+                /*    if ((headName.equals("英文术语") ||
+                            headName.equals("西文术语") ||
+                            headName.equals("俄文术语") ||
+                            headName.equals("法文术语") ||
+                            headName.equals("术语英文释义")||
+                            headName.equals("术语法文释义")||
+                            headName.equals("术语俄文释义")||
+                            headName.equals("术语西文释义")) && !headName.contains(translateType)){
+                        break;
+                    }*/
                     log.info(" **** 当前列头为 " + headName + " **** ");
                     if (headName.equals("展开（缩写采用单驼峰,首字母大写）")) {
                         int a = 0;
@@ -262,6 +272,7 @@ public class ExcelUtils {
                             headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
                             headName.equals("单多驼峰搭配下划线（继保类似）") ||
                             headName.equals("展开（缩写可采用单/多驼峰）")) {
+
                         Row head1 = sheet.getRow(firstRowNum + 1);
                         Cell headCell1 = head1.getCell(cellIndex);
                         headCell1.setCellType(Cell.CELL_TYPE_STRING);
@@ -304,7 +315,7 @@ public class ExcelUtils {
                             classfyMethod.invoke(instance, convertType(field.getType(), sheetName.trim()));
                             isClassfy1 = false;
                         }
-
+                        System.out.println(field.getName());
                         if (headName.equalsIgnoreCase(ImportExcleEntry.aliasMap.get(field.getName()))) {
                             String methodName = MethodUtils.setMethodName(field.getName());
                             System.out.println(methodName);

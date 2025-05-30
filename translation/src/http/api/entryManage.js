@@ -30,7 +30,17 @@ export function updateEntryByEntrySource(params) {
   });
 }
 
-// 查询分类中的更新词条(mock,待删除)
+// 校验未使用的词条
+export function checkNotUseEntry(params) {
+  return request({
+      url: "/entryInfo/checkNotUseEntry",
+      method: "POST", 
+      params,
+      data:{}
+  });
+}
+
+// 查询分类中的更新词条
 export function getUpdateEntryByClassfy(params, data) {
   return request({
       url: "/entryInfo/checkNewEntryByClassfy",
