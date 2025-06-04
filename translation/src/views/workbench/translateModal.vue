@@ -347,7 +347,7 @@ export default {
         },
         {
           title: "翻译状态",
-          dataIndex: "translateState",// 动态的
+          dataIndex: "translateState", // 动态的
           align: "center",
           width: 100,
           resizable: true,
@@ -365,7 +365,7 @@ export default {
         },
         {
           title: "翻译",
-          dataIndex: "translate",// 动态的
+          dataIndex: "translate", // 动态的
           align: "center",
           width: 200,
           resizable: true,
@@ -397,7 +397,7 @@ export default {
         },
         {
           title: "审核意见",
-          dataIndex: "this.commonParam.auditSuggest",// 动态的
+          dataIndex: "this.commonParam.auditSuggest", // 动态的
           align: "center",
           width: 100,
           resizable: true,
@@ -510,9 +510,7 @@ export default {
       if (b[this.commonParam.value] === null) {
         return 1;
       }
-      return a[this.commonParam.value].localeCompare(
-        b[this.commonParam.value]
-      );
+      return a[this.commonParam.value].localeCompare(b[this.commonParam.value]);
     },
     initTranslateEntry() {
       this.getTranslateEntry();
@@ -837,11 +835,18 @@ export default {
 
       translate(params)
         .then((res) => {
+          console.log("辅助翻译", res.data);
           this.suggest = {
             local: [],
             web: [],
           };
           res.data.translateEntities.forEach((element) => {
+            if (
+              element.languageEntities.length == 0 ||
+              (element.languageEntities.length == 1 &&
+                element.languageEntities[0] == null)
+            )
+              return;
             if (element.source.includes("本地翻译")) {
               element.languageEntities.forEach((item) => {
                 let suggent = {
@@ -1159,8 +1164,7 @@ export default {
               (item2) => item2.id === item1.id
             );
             if (matchItem) {
-              item1[this.commonParam.value] =
-                matchItem[this.commonParam.value];
+              item1[this.commonParam.value] = matchItem[this.commonParam.value];
             }
           });
           this.dataSource.forEach((item) => {
