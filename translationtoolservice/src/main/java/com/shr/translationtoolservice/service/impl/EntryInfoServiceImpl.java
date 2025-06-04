@@ -952,13 +952,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             e.printStackTrace();
         }
         String diFileName = request.getParameter("diFileName");
-        if(diFileName == null){
-            throw new RuntimeException("没有提供diFileName");
+        if(diFileName != null){
+            for(EntryInfoEntity entry : entryEntitys){
+                entry.setDiFileName(diFileName);
+            }
         }
-        for(EntryInfoEntity entry : entryEntitys){
-            entry.setDiFileName(diFileName);
-        }
-
         return entryProcessUtils.buildRepeEntry(entryEntitys, taskInfoEntity.getTranslateType());
     }
 
