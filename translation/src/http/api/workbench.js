@@ -67,10 +67,11 @@ export function importExcle(data) {
 }
 
 //读取装置 excel
-export function readZZExcle(data) {
+export function readZZExcle(params, data) {
   return request({
     url: "/workbench/entryImportExcle",
     method: "POST",
+    params,
     data
   });
 }

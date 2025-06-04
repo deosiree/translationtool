@@ -1586,18 +1586,21 @@ export default {
         let formData = new FormData();
         formData.append("file", this.file);
         formData.append("taskID", this.task.id);
+        let params = {
+          diFileName: this.filediFileName
+        };
         this.loading = true;
-        readZZExcle(formData)
+        readZZExcle(params, formData)
           .then((res) => {
             this.dataSource = res.data.list;
             // 一体化平台，文件导入且选择了回写词典时，修改diFileName和importType
             if (this.platformKey === "unify" && this.filediFileName != null) {
               this.dataSource.forEach((item) => {
-                item.diFileName = this.filediFileName;
+                // item.diFileName = this.filediFileName;// 通过接口readZZExcle已将diFileName传递给后端了，后端赋值后返回，所以不用前端再刷了
                 item.writeType = "DI";
                 if(item.children && item.children.length > 0) {
                   item.children.forEach((child) => {
-                    child.diFileName = this.filediFileName;
+                    // child.diFileName = this.filediFileName;
                     child.writeType = "DI";
                   });
                 }
