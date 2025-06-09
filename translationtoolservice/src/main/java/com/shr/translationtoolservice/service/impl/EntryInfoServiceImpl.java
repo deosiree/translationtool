@@ -2824,7 +2824,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<EntryInfoEntity> configEntry = new ArrayList<>();
             List<EntryInfoEntity> dbEntry = new ArrayList<>();
             try {
-                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());                
                 diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
