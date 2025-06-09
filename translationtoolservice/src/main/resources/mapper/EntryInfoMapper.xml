@@ -316,6 +316,10 @@
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
         </if>
 
+        <if test="entryInfoEntity.remark != null and entryInfoEntity.remark != '' ">
+            and t2.remark  like CONCAT('%',#{entryInfoEntity.remark,jdbcType=VARCHAR},'%')
+        </if>
+
         order by t2.tag,t2.id
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
@@ -757,6 +761,9 @@
             <if test="entryInfoEntity.comment != null  and entryInfoEntity.comment != ''">
                 comment = #{entryInfoEntity.comment,jdbcType=VARCHAR},
             </if>
+            <if test = "entryInfoEntity.entryLength != null and entryInfoEntity.entryLength != ''">
+                entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR}
+            </if>
         </set>
         where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
     </update>
@@ -879,7 +886,9 @@
         from t_entry_info t1 left join t_product_relation t2 on t1.id = t2.entry_id
         where t1.is_delete =0
          and t1.entry =  #{entryInfoEntity.entry,jdbcType=VARCHAR} and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
-
+        <if test="entryInfoEntity.abbr != null ">
+            and t1.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+        </if>
         <if test=" entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'TS' or entryInfoEntity.importType == 'ENUM'">
             and t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
         </if>

@@ -1095,6 +1095,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
             entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
             entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
+            entryInfoEntity.setRemark(importExcleEntry.getCreator());
             String productTableName = "t_entry_info";
             caseExisttry(entryInfoEntity, taskInfoEntity, importExcleEntry, productTableName);
             entryEntitys.add(entryInfoEntity);
