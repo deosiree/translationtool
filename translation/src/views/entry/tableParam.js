@@ -34,7 +34,7 @@ export default {
     // {label: "comment",value: "comment",index:37},
   ],
   checkedColumn: ["abbr", "entry", "entryState", "entryVersion", "english", "russian", "spanish", "french"],
-  inputColumn: ["abbr", "chineseInterpretation", "englishInterpretation", "partOfSpeech", "remark", "diFileName", "comment"],
+  inputColumn: ["abbr", "entryLength", "chineseInterpretation", "englishInterpretation", "partOfSpeech", "remark", "diFileName", "comment"],
   translateColumn: ["english", "russian", "spanish", "french"],
   overlayStyle: {
     maxHeight: '300px',
