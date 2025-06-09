@@ -12,7 +12,10 @@
             :tree-data="treeData" @select="clickTree" @rightClick="rightClickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop">
             <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
               <a-dropdown :trigger="['contextmenu']">
-                <span v-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
+                <span v-if="type === 'common'" style="color: #001fb8">{{ title }}</span>
+                <span v-else-if="type === 'classify'" style="color: #7d7d7d">{{ title }}</span>
+                <span v-else-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
+                <span v-else-if="type === 'module'" style="color: #a55b7c">{{ title }}</span>
                 <span v-else>{{ title }}</span>
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
@@ -271,6 +274,7 @@ export default {
 
     // 目录树点击事件
     clickTree(selectedKeys, e) {
+      console.log("this.treeData", this.treeData);
       // console.log("触发点击事件", selectedKeys);
       if (e.selected) {
         this.selectedTreeKeys = selectedKeys;
