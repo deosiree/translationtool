@@ -3374,8 +3374,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
                 break;
             case ConstantInterface.RUSSIAN:
-                if (StringUtils.isNotBlank(importExcleEntry.getRussia())) {
-                    entryInfoEntity.setRussian(importExcleEntry.getRussia());
+                if (StringUtils.isNotBlank(importExcleEntry.getRussian())) {
+                    entryInfoEntity.setRussian(importExcleEntry.getRussian());
                     entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
                 } else {
                     entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);

@@ -11,6 +11,10 @@
         <result property="entryLength" column="entry_length" jdbcType="INTEGER"/>
         <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
         <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
+        <result property="russianInterpretation" column="russian_interpretation" jdbcType="VARCHAR"/>
+        <result property="frenchInterpretation" column="french_interpretation" jdbcType="VARCHAR"/>
+        <result property="spanishInterpretation" column="spanish_interpretation" jdbcType="VARCHAR"/>
+
         <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
         <result property="entryState" column="entry_state" jdbcType="INTEGER"/>
         <result property="update" column="update" jdbcType="VARCHAR"/>
@@ -59,6 +63,7 @@
     <sql id="Base_Column_List">
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
+        russian_interpretation,french_interpretation,spanish_interpretation,
         entry_source,entry_state,`update`,
         update_time,version_id,entry_label,tag,
         part_of_speech,classify_id,remark,
@@ -70,6 +75,7 @@
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
         t2.entry_length,t2.chinese_interpretation,t2.english_interpretation,
+        t2.russian_interpretation,t2.french_interpretation,t2.spanish_interpretation,
         t2.entry_source,t2.entry_state,t2.`update`,
         t2.update_time,t2.version_id,t2.entry_label,t2.tag,
         t2.part_of_speech,t2.classify_id,t2.remark,
@@ -433,6 +439,12 @@
 
         english_interpretation,
 
+        russian_interpretation,
+
+        french_interpretation,
+
+        spanish_interpretation,
+
         entry_source,
 
         entry_state,
@@ -492,6 +504,12 @@
             #{entryInfoEntity.chineseInterpretation,jdbcType=VARCHAR},
 
             #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
 
             #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
 
@@ -559,6 +577,15 @@
             </if>
             <if test="entryInfoEntity.englishInterpretation != null and entryInfoEntity.englishInterpretation  != ''">
                 english_interpretation,
+            </if>
+            <if test="entryInfoEntity.russianInterpretation != null and entryInfoEntity.russianInterpretation  != ''">
+                russian_interpretation,
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null and entryInfoEntity.frenchInterpretation  != ''">
+                french_interpretation,
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null and entryInfoEntity.spanishInterpretation  != ''">
+                spanish_interpretation,
             </if>
             <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource  != ''">
                 entry_source,
@@ -637,6 +664,15 @@
             <if test="entryInfoEntity.englishInterpretation != null and entryInfoEntity.englishInterpretation   != ''">
                 #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.russianInterpretation != null and entryInfoEntity.russianInterpretation   != ''">
+                #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null and entryInfoEntity.frenchInterpretation   != ''">
+                #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null and entryInfoEntity.spanishInterpretation   != ''">
+                #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
+            </if>
             <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
                 #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
             </if>
@@ -712,6 +748,15 @@
             </if>
             <if test="entryInfoEntity.englishInterpretation != null  and entryInfoEntity.englishInterpretation != ''">
                 english_interpretation = #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.russianInterpretation != null  and entryInfoEntity.russianInterpretation != ''">
+                russian_interpretation = #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null  and entryInfoEntity.frenchInterpretation != ''">
+                french_interpretation = #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null  and entryInfoEntity.spanishInterpretation != ''">
+                spanish_interpretation = #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
             </if>
             <if test="entryInfoEntity.entrySource != null  and entryInfoEntity.entrySource != ''">
                 entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
@@ -1069,6 +1114,9 @@
         ${tbl}.entry_length,
         ${tbl}.chinese_interpretation,
         ${tbl}.english_interpretation,
+        ${tbl}.russian_interpretation,
+        ${tbl}.spanish_interpretation,
+        ${tbl}.french_interpretation,
         ${tbl}.entry_source,
         ${tbl}.entry_state,
         ${tbl}.`update`,

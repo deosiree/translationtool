@@ -268,6 +268,7 @@ public class ExcelUtils {
                             headName.equals("西文术语") ||
                             headName.equals("俄文术语") ||
                             headName.equals("中文术语") ||
+                            headName.equals("法文术语") ||
                             headName.equals("ABB类全驼峰") ||
                             headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
                             headName.equals("单多驼峰搭配下划线（继保类似）") ||
