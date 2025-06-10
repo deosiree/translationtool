@@ -835,7 +835,7 @@ export default {
 
       translate(params)
         .then((res) => {
-          console.log("辅助翻译", res.data);
+          // console.log("辅助翻译", res.data);
           this.suggest = {
             local: [],
             web: [],

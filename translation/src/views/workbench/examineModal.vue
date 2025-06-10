@@ -60,7 +60,7 @@
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                   autocomplete="off">
                   <a-form-item :name="column.dataIndex">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="inputPressEnter(record)" />
+                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
                   </a-form-item>
                 </a-form>
               </template>
@@ -69,10 +69,11 @@
               </template>
             </div>
           </template>
-          <template v-if="['chineseInterpretation','englishInterpretation','auditSuggess','diFileName','comment'].includes(column.dataIndex)">
+          <template
+            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation' ,'auditSuggess','diFileName','comment'].includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="inputPressEnter(record)" />
+                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
               </template>
               <template v-else>
                 {{ text }}
@@ -82,8 +83,7 @@
           <template v-if="column.dataIndex === 'tag'">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%"
-                  @pressEnter="inputPressEnter(record)" />
+                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%" @pressEnter="edit(record)" />
                 <a-tooltip placement="top">
                   <template #title>
                     <span>多个Tag按分号分割！</span>
@@ -148,7 +148,7 @@
               <a-badge color="#36BF7D" /><span style="color:#36BF7D">审核通过</span>
             </template>
           </template>
-          <template v-else-if="column.dataIndex === 'operation'">
+          <template v-else-if="column.dataIndex === 'editOperation'">
             <div class="editable-row-operations">
               <span v-if="editableData[record.id]">
                 <a-tooltip placement="top">
@@ -361,7 +361,7 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 100,
+          width: 130,
           resizable: true,
           fixed: "right",
           index: 100,
@@ -431,6 +431,8 @@ export default {
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
+      this.task.transMap = commonParam.languageMap[this.task.translateType];
+      // console.log("this.task",this.task);
       this.setTranslateColumn();
     },
   },
@@ -468,29 +470,32 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          message.error(err.message);
+          message.error("1", err.message);
         });
     },
     handleOK() {
       this.saveLoading = true;
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
         entry.auditSuggess = this.editableData[key].auditSuggess;
-        entry[languageCode] = this.editableData[key][languageCode];
+        entry[this.task.transMap.value] =
+          this.editableData[key][this.task.transMap.value];
+        commonParam.languageList.forEach((item) => {
+          if (this.editableData[key][item.interpretation]) {
+            entry[item.interpretation] =
+              this.editableData[key][item.interpretation];
+          }
+        }); // 遍历存储外语释义
 
         entry.chineseInterpretation =
           this.editableData[key].chineseInterpretation;
-        entry.englishInterpretation =
-          this.editableData[key].englishInterpretation;
         entry.tag = this.editableData[key].tag;
         entry.diFileName = this.editableData[key].diFileName;
         entry.comment = this.editableData[key].comment;
 
-        if (entry[languageCode] != null && entry[languageCode] != null) {
+        if (entry[this.task.transMap.value] != null) {
           // 翻译存在  则状态为待审核状态
-          entry[languageCode + "TranslateState"] = "1";
+          entry[this.task.transMap.state] = "1";
         }
       }
       this.editableData = {};
@@ -646,11 +651,12 @@ export default {
               { required: true, message: "请输入!" },
             ],
           };
-          let languageCode =
-            workbenchCommon.languageMap[this.task.translateType].code;
-          this.rules[record.id][languageCode] = [
-            { validator: this.vilidFildLength(record, languageCode) },
+          this.rules[record.id][this.task.transMap.value] = [
+            {
+              validator: this.vilidFildLength(record, this.task.transMap.value),
+            },
           ];
+          this.showEditOperation(); // 显示编辑操作列
         },
       };
     },
@@ -692,57 +698,68 @@ export default {
         return Promise.resolve();
       };
     },
-    // 说明 输入框 回车事件
-    inputPressEnter(record) {
-      record.chineseInterpretation =
-        this.editableData[record.id].chineseInterpretation;
-      record.englishInterpretation =
-        this.editableData[record.id].englishInterpretation;
-      record.tag = this.editableData[record.id].tag;
-      record.diFileName = this.editableData[record.id].diFileName;
-      record.comment = this.editableData[record.id].comment;
-
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      // 长度校验
-      let list = [
-        eval(
-          "this.$refs.form" + record.id.replaceAll("-", "") + languageCode
-        ).validate(),
-      ];
-      Promise.all(list)
-        .then(() => {
-          record.auditSuggess = this.editableData[record.id].auditSuggess;
-          record[languageCode] = this.editableData[record.id][languageCode];
-
-          if (record[languageCode] != null && record[languageCode] != null) {
-            // 翻译存在  则状态为待审核状态
-            record[languageCode + "TranslateState"] = "1";
-          }
-          delete this.editableData[record.id];
-        })
-        .catch((err) => {
-          message.error(err.message);
-        });
-    },
-    // 编辑
+    // 编辑，也是编辑框的回车事件
     edit(record) {
-      record.auditEntryFeedback =
-        this.editableData[record.id].auditEntryFeedback;
-      record.translate = this.editableData[record.id].translate;
+      for (const [key, value] of Object.entries(this.editableData[record.id])) {
+        if (record.hasOwnProperty(key)) {
+          record[key] = value;
+        }
+      }
+
+      // 生成表单引用的键名
+      const formRefKey = `form${record.id.replaceAll("-", "")}${
+        this.task.transMap.value
+      }`;
+      const formRef = this.$refs[formRefKey];
+
+      // 检查表单引用是否存在
+      if (formRef) {
+        // 长度校验
+        formRef
+          .validate()
+          .then(() => {
+            if (record[this.task.transMap.value] != null) {
+              // 翻译存在  则状态为待审核状态
+              record[this.task.transMap.state] = "1";
+            }
+          })
+          .catch((err) => {
+            message.error("2", err.message);
+            console.log("表单验证失败", formRefKey, formRef.validate());
+          });
+      } else {
+        message.error("未找到对应的表单验证器");
+      }
       delete this.editableData[record.id];
-      this.deleteOperationColumns();
+      this.hideEditOperation();
     },
     // 取消编辑
     cancel(record) {
       delete this.editableData[record.id];
-      this.deleteOperationColumns();
+      this.hideEditOperation();
     },
-    // 删除操作列
-    deleteOperationColumns() {
+    // 显示编辑操作列
+    showEditOperation() {
+      if (this.columns.at(-1).dataIndex === "editOperation") {
+        // 如果编辑操作列已经存在，则不再添加
+        return;
+      }
+      const editOperationColumn = {
+        title: "编辑操作",
+        dataIndex: "editOperation",
+        align: "center",
+        width: 100,
+        resizable: true,
+        fixed: "right",
+        index: 101, // 确保该列在最右侧，可根据实际情况调整
+      };
+      this.columns.push(editOperationColumn);
+    },
+    // 隐藏编辑操作列
+    hideEditOperation() {
       if (Object.keys(this.editableData).length === 0) {
         this.columns = this.columns.filter((item) => {
-          return item.dataIndex != "operation";
+          return item.dataIndex != "editOperation";
         });
       }
     },
@@ -972,8 +989,6 @@ export default {
     },
     // 校验翻译长度
     verifyTranslationLength(array) {
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
       let flag = 0;
       array.forEach((record) => {
         let maxLength = null;
@@ -998,18 +1013,20 @@ export default {
         }
         // 是否编辑中
         let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][languageCode]
-          : record[languageCode];
+          ? this.editableData[record.id][this.task.transMap.value]
+          : record[this.task.transMap.value];
         if (common.byteLength(text) > maxLength) {
           flag++;
           this.addEdit(record).then((res) => {
             eval(
-              "this.$refs.form" + record.id.replaceAll("-", "") + languageCode
+              "this.$refs.form" +
+                record.id.replaceAll("-", "") +
+                this.task.transMap.value
             )
               .validate()
               .then(() => {})
               .catch((err) => {
-                message.error(err.message);
+                message.error("3", err.message);
               });
           });
         }
@@ -1027,10 +1044,8 @@ export default {
           { required: true, message: "请输入!" },
         ],
       };
-      let languageCode =
-        workbenchCommon.languageMap[this.task.translateType].code;
-      this.rules[record.id][languageCode] = [
-        { validator: this.vilidFildLength(record, languageCode) },
+      this.rules[record.id][this.task.transMap.value] = [
+        { validator: this.vilidFildLength(record, this.task.transMap.value) },
       ];
       return Promise.resolve();
     },

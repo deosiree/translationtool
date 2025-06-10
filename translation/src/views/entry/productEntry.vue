@@ -39,6 +39,9 @@
             <a-form-item label="翻译结果" name="translate" style="margin-top: 8px">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
             </a-form-item>
+            <!-- <a-form-item label="翻译释义" name="interpretation" style="margin-top: 8px">
+              <a-input v-model:value="search.interpretation" placeholder="请输入内容"></a-input>
+            </a-form-item> -->
             <a-form-item label="Comment" name="comment" style="margin-top: 8px">
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
@@ -469,7 +472,7 @@ export default {
         language: null,
         translateState: null,
         translate: "",
-        comment:"",
+        comment: "",
       },
       translateStates: [
         { label: "未翻译", value: "0" },
@@ -574,7 +577,7 @@ export default {
           dataIndex: "abbr",
           align: "center",
           width: 150,
-          fixed: "left",
+          fixed: "right",
           resizable: true,
           index: 30,
         },

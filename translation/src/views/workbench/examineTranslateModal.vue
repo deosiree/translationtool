@@ -76,7 +76,7 @@
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                   autocomplete="off">
                   <a-form-item :name="column.dataIndex">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="inputPressEnter(record)" />
+                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
                   </a-form-item>
                 </a-form>
               </template>
@@ -85,10 +85,10 @@
               </template>
             </div>
           </template>
-          <template v-if="['englishAuditSuggest','russianAuditSuggest','spanishAuditSuggest','frenchAuditSuggest'].includes(column.dataIndex)">
+          <template v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation','englishAuditSuggest','russianAuditSuggest','spanishAuditSuggest','frenchAuditSuggest'].includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="inputPressEnter(record)" />
+                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
               </template>
               <template v-else>
                 {{ text }}
@@ -148,6 +148,24 @@
                   @change="passTagChange(record)">通过</a-checkable-tag>
                 <a-checkable-tag :checked="record.auditState === 0" :class="record.auditState === 0 ? 'rejectTagChecked' : 'rejectTag'"
                   @change="rejectTagChange(record)">驳回</a-checkable-tag>
+              </span>
+            </div>
+          </template>
+          <template v-else-if="column.dataIndex === 'editOperation'">
+            <div class="editable-row-operations">
+              <span v-if="editableData[record.id]">
+                <a-tooltip placement="top">
+                  <template #title>
+                    <span>保存</span>
+                  </template>
+                  <CheckOutlined style="color:#369FFF;margin-left:8px" @click="edit(record)" />
+                </a-tooltip>
+                <a-tooltip placement="top">
+                  <template #title>
+                    <span>取消</span>
+                  </template>
+                  <CloseOutlined style="color:red;margin-left:8px" @click="cancel(record)" />
+                </a-tooltip>
               </span>
             </div>
           </template>
@@ -212,6 +230,8 @@ import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import { computed, defineComponent, ref } from "vue";
 import {
+  CheckOutlined,
+  CloseOutlined,
   FileSearchOutlined,
   QuestionCircleOutlined,
   SearchOutlined,
@@ -222,6 +242,8 @@ import {
 import key from "keymaster";
 export default {
   components: {
+    CheckOutlined,
+    CloseOutlined,
     Modal,
     QuestionCircleOutlined,
     SearchOutlined,
@@ -271,7 +293,7 @@ export default {
         },
         {
           title: "翻译状态",
-          dataIndex: "translateState",// 动态的
+          dataIndex: "translateState", // 动态的
           align: "center",
           width: 100,
           resizable: true,
@@ -289,7 +311,7 @@ export default {
         },
         {
           title: "翻译",
-          dataIndex: "translate",// 动态的
+          dataIndex: "translate", // 动态的
           align: "center",
           width: 200,
           resizable: true,
@@ -321,7 +343,7 @@ export default {
         },
         {
           title: "审核意见",
-          dataIndex: "this.languageList.auditSuggest",// 动态的
+          dataIndex: "this.languageList.auditSuggest", // 动态的
           align: "center",
           width: 100,
           resizable: true,
@@ -465,7 +487,7 @@ export default {
         });
 
       // 初始化快捷键
-      this.initShortcutKeys();
+      // this.initShortcutKeys();
     },
     handleOK() {
       this.loading = true;
@@ -623,6 +645,7 @@ export default {
               validator: this.vilidFildLength(record, this.languageList.value),
             },
           ];
+          this.showEditOperation(); // 显示编辑操作列
         },
       };
     },
@@ -664,82 +687,70 @@ export default {
         return Promise.resolve();
       };
     },
-    // 说明 输入框 回车事件
-    inputPressEnter(record) {
-      // 长度校验
-      let list = [
-        eval(
-          "this.$refs.form" +
-            record.id.replaceAll("-", "") +
-            this.languageList.value
-        ).validate(),
-      ];
-      Promise.all(list)
-        .then(() => {
-          record[this.languageList.auditSuggest] =
-            this.editableData[record.id][this.languageList.auditSuggest];
-          record[this.languageList.value] =
-            this.editableData[record.id][this.languageList.value];
-          delete this.editableData[record.id];
-        })
-        .catch((err) => {
-          message.error(err.message);
-        });
-    },
-    afterClose() {
-      this.editableData = {};
-      this.selectedRows = [];
-      this.selectedRowKeys = [];
-      this.keyWords = "";
-      this.pagination.current = 1;
-      this.pagination.pageSize = 20;
-      this.selectAllName = "全选";
-      // 解绑快捷键
-      key.unbind(
-        "ctrl+down,ctrl+up,ctrl+shift+down,ctrl+shift+up,ctrl+e,ctrl+enter,ctrl+p,ctrl+r"
-      );
-      // 清除表格筛选
-      if (this.clearFilters) {
-        this.clearFilters({ confirm: true });
-        this.state.searchText = "";
+    // 编辑，也是编辑框的回车事件
+    edit(record) {
+      for (const [key, value] of Object.entries(this.editableData[record.id])) {
+        if (record.hasOwnProperty(key) && value != null && value !== "") {
+          // 如果record中存在该键，并且值不为空，则更新record
+          record[key] = value;
+        }
       }
+
+      // 生成表单引用的键名
+      const formRefKey = `form${record.id.replaceAll("-", "")}${
+        this.task.transMap.value
+      }`;
+      const formRef = this.$refs[formRefKey];
+
+      // 检查表单引用是否存在
+      if (formRef) {
+        // 长度校验
+        formRef
+          .validate()
+          .then(() => {
+            if (record[this.task.transMap.value] != null) {
+              // 翻译存在  则状态为待审核状态
+              record[this.task.transMap.state] = "1";
+            }
+          })
+          .catch((err) => {
+            message.error("11", err.message);
+          });
+      } else {
+        message.error("未找到对应的表单验证器");
+      }
+      delete this.editableData[record.id];
+      this.hideEditOperation();
     },
-    // 初始化快捷键
-    initShortcutKeys() {
-      let _this = this;
-      // 绑定快捷键
-      key("ctrl+down", function () {
-        _this.nextEntry();
-        return false;
-      });
-      key("ctrl+up", function () {
-        _this.prevEntry();
-        return false;
-      });
-      key("ctrl+shift+down", function () {
-        _this.nextNotChecked();
-        return false;
-      });
-      key("ctrl+shift+up", function () {
-        _this.prevNotChecked();
-        return false;
-      });
-      key("ctrl+e", function () {
-        _this.editSelectRow();
-        return false;
-      });
-      key("ctrl+enter", function () {
-        _this.enterEditEntry();
-        return false;
-      });
-      key("ctrl+p", function () {
-        _this.translatePass();
-        return false;
-      });
-      key("ctrl+r", function () {
-        _this.translateReject();
-        return false;
-      });
+    // 取消编辑
+    cancel(record) {
+      delete this.editableData[record.id];
+      this.hideEditOperation();
+    },
+    // 显示编辑操作列
+    showEditOperation() {
+      if (this.columns.at(-1).dataIndex === "editOperation") {
+        // 如果编辑操作列已经存在，则不再添加
+        return;
+      }
+      const editOperationColumn = {
+        title: "编辑操作",
+        dataIndex: "editOperation",
+        align: "center",
+        width: 100,
+        resizable: true,
+        fixed: "right",
+        index: 101, // 确保该列在最右侧，可根据实际情况调整
+      };
+      this.columns.push(editOperationColumn);
+    },
+    // 删除操作列
+    hideEditOperation() {
+      if (Object.keys(this.editableData).length === 0) {
+        this.columns = this.columns.filter((item) => {
+          return item.dataIndex != "editOperation";
+        });
+      }
     },
     // 下一个词条 快捷键
     nextEntry() {
@@ -1053,6 +1064,15 @@ export default {
     },
     rejectReasonAfterClose() {
       this.rejectReason.reason = "";
+    },
+    afterClose() {
+      this.editableData = {};
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
+      this.keyWords = "";
+      this.pagination.current = 1;
+      this.pagination.pageSize = 20;
+      this.selectAllName = "全选";
     },
     // 展示列切换
     changeColumn(checkedValue) {
