@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.concurrent.locks.ReentrantLock;
@@ -950,8 +951,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
+        String diFileName = request.getParameter("diFileName");
+        if(diFileName != null){
+            for(EntryInfoEntity entry : entryEntitys){
+                entry.setDiFileName(diFileName);
+            }
+        }
         return entryProcessUtils.buildRepeEntry(entryEntitys, taskInfoEntity.getTranslateType());
     }
 
@@ -989,7 +994,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
             if (StringUtils.isBlank(entryInfoEntity.getImportType())){
-                entryInfoEntity.setImportType(ConstantInterface.DI);
+                entryInfoEntity.setImportType(ConstantInterface.EXCEL);
             }
             if (StringUtils.isBlank(entryInfoEntity.getWriteType())){
                 entryInfoEntity.setWriteType(ConstantInterface.DI);
@@ -1090,6 +1095,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
             entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
             entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
+            entryInfoEntity.setRemark(importExcleEntry.getCreator());
             String productTableName = "t_entry_info";
             caseExisttry(entryInfoEntity, taskInfoEntity, importExcleEntry, productTableName);
             entryEntitys.add(entryInfoEntity);
@@ -2818,7 +2824,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<EntryInfoEntity> configEntry = new ArrayList<>();
             List<EntryInfoEntity> dbEntry = new ArrayList<>();
             try {
-                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());                
                 diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
@@ -3368,8 +3374,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
                 break;
             case ConstantInterface.RUSSIAN:
-                if (StringUtils.isNotBlank(importExcleEntry.getRussia())) {
-                    entryInfoEntity.setRussian(importExcleEntry.getRussia());
+                if (StringUtils.isNotBlank(importExcleEntry.getRussian())) {
+                    entryInfoEntity.setRussian(importExcleEntry.getRussian());
                     entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
                 } else {
                     entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);

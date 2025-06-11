@@ -93,6 +93,17 @@ public class EntryInfoEntity implements Serializable {
     @DefaultValue("")
     private String englishInterpretation;
 
+    @TableField(value = "russian_interpretation")
+    @DefaultValue("")
+    private String russianInterpretation;
+
+    @TableField(value = "french_interpretation")
+    @DefaultValue("")
+    private String frenchInterpretation;
+
+    @TableField(value = "spanish_interpretation")
+    @DefaultValue("")
+    private String spanishInterpretation;
     /**
      * 词条来源
      */
