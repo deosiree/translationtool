@@ -284,7 +284,7 @@ export default {
           width: 100,
           resizable: true,
           fixed: "right",
-          index: 15,
+          index: 99,
         },
         {
           title: "词条状态",
@@ -293,7 +293,7 @@ export default {
           width: 100,
           resizable: true,
           fixed: "right",
-          index: 16,
+          index: 100,
         },
       ],
       dataSource: [],

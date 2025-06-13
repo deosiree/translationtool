@@ -355,7 +355,7 @@ export default {
           width: 100,
           resizable: true,
           fixed: "right",
-          index: 16,
+          index: 99,
         },
         {
           title: "操作",
@@ -463,6 +463,11 @@ export default {
           });
           this.dataSource.forEach((item) => {
             item.auditState = -1;
+
+            // 配置最大字符长度(此处对应的是翻译的最大字符长度，所以不用maxLength这个属性)
+            item.foreignMaxByte =
+              this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
+            // console.log("打印词条", item);
           });
           // this.allData = this.dataSource
           this.loading = false;
@@ -471,6 +476,7 @@ export default {
         .catch((err) => {
           this.loading = false;
           message.error("1", err.message);
+          // console.log("err1", err);
         });
     },
     handleOK() {
@@ -518,6 +524,7 @@ export default {
       });
       // 校验审核通过的词条
       let num = this.verifyTranslationLength(okArr);
+      // let num = 0;
       if (num > 0) {
         // 存在超长
         message.warn("存在超长数据，请检查！");
@@ -725,7 +732,7 @@ export default {
           })
           .catch((err) => {
             message.error("2", err.message);
-            console.log("表单验证失败", formRefKey, formRef.validate());
+            // console.log("表单验证失败", formRefKey, formRef.validate());
           });
       } else {
         message.error("未找到对应的表单验证器");
@@ -1016,6 +1023,7 @@ export default {
           ? this.editableData[record.id][this.task.transMap.value]
           : record[this.task.transMap.value];
         if (common.byteLength(text) > maxLength) {
+          // 若校验不通过，会调用 addEdit 方法将该词条设为编辑状态，并对其表单进行校验
           flag++;
           this.addEdit(record).then((res) => {
             eval(
@@ -1026,7 +1034,7 @@ export default {
               .validate()
               .then(() => {})
               .catch((err) => {
-                message.error("3", err.message);
+                // message.error("3", err.message);
               });
           });
         }

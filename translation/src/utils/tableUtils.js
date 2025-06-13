@@ -1,7 +1,170 @@
+import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import common from "@/views/workbench/common.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
+// 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
+/**
+ * 校验当前页数据的翻译长度
+ * @param {Object} pagination - 分页信息对象，包含 `current`（当前页码）和 `pageSize`（每页显示数量）属性
+ * @param {string} language - 当前语言类型，用于指定要校验的翻译字段
+ * @param {Object} vm - Vue 实例对象，包含 `dataSource`（数据源）等属性
+ */
+export function verifyCurrentPageData(pagination, language, vm) {
+  let data = vm.dataSource.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
+  verifyTranslationLength(data, language, vm);
+}
+
+/**
+ * 校验翻译长度，统计超长记录数量，并将超长记录设为编辑状态进行表单校验
+ * @param {Array} array - 待校验的记录数组
+ * @param {Object} editData - 编辑状态的数据对象
+ * @param {string} language - 当前语言类型
+ * @param {Object} vm - Vue 实例对象
+ * @returns {number} - 超长记录的数量
+ */
+export async function verifyTranslationLength(array, language, vm) {
+  let flag = 0;
+  const promises = [];
+
+  for (const record of array) {
+    const maxLength = getMaxLength(record, vm);
+    if (maxLength === null) continue;
+
+    const text = vm.editableData[record.id]?.[language] || record[language];
+    if (byteLength(text) > maxLength) {
+      // console.log("超长记录:", record);
+      flag++;
+      promises.push(handleExceedLength(record, language, vm));
+    } 
+    // else {
+    //   console.log("不长记录:", record);
+    // }
+  }
+
+  await Promise.all(promises);
+  return flag;
+}
+
+/**
+ * 获取记录的最大长度
+ * @param {Object} record - 当前记录对象
+ * @param {Object} vm - Vue 实例对象
+ * @returns {number|null} - 最大长度，如果不存在则返回 null
+ */
+export function getMaxLength(record, vm) {
+  if (!record.classfy1) {
+    return record.maxLength || null;
+  }
+  // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
+  return vm.classifyLimit?.[record.classfy1]?.foreignMaxByte || null;
+}
+
+/**
+ * 处理翻译长度超过限制的记录，将其设为编辑状态并进行表单校验
+ * @param {Object} record - 当前记录对象
+ * @param {string} language - 当前语言类型
+ * @param {Object} vm - Vue 实例对象
+ * @returns {Promise<void>}
+ */
+export async function handleExceedLength(record, language, vm) {
+  await addEdit(record, language, vm);
+  const formRef = vm.$refs[`form${record.id.replaceAll('-', '')}${language}`];
+  if (formRef) {
+    try {
+      await formRef.validate();
+    } catch (err) {
+      // 可根据实际需求添加错误处理逻辑
+    }
+  }
+}
+
+/**
+ * 将指定记录设置为编辑状态，并为其配置校验规则
+ * @param {Object} record - 需要设置为编辑状态的记录对象
+ * @param {string} language - 当前语言类型
+ * @param {Object} vm - Vue 实例对象
+ * @returns {Promise} - 一个立即解决的 Promise 对象
+ */
+export function addEdit(record, language, vm) {
+  vm.editableData[record.id] = vm.editableData[record.id] || cloneDeep(record);// 确保 vm.editableData 中有对应的记录（变成编辑态了）
+  // console.log("设置编辑状态:", vm.editableData);
+  // 设置校验规则
+  vm.rules[record.id] = {
+    entry: [
+      { validator: validFieldLength(record, "chinese", vm) },
+      { required: true, message: "请输入!" },
+    ],
+  };
+  vm.rules[record.id][language] = [
+    { validator: validFieldLength(record, language, vm) },
+  ];
+  return Promise.resolve();
+}
+
+// 校验翻译长度
+/**
+ * 校验翻译长度的函数，返回一个验证器函数，用于表单验证规则
+ * @param {Object} record - 当前行的数据记录对象
+ * @param {string} language - 语言类型，用于确定验证类型
+ * @param {Object} vm - Vue 实例，包含分类限制信息
+ * @returns {Function} - 验证器函数，接受 rule 和 value 作为参数
+ */
+export function validFieldLength(record, language, vm) {
+  return (rule, value) => {
+    const type = language === "chinese" ? "maxByte" : "foreignMaxByte";
+    const maxLength = getFieldMaxLength(record, vm, type);
+
+    if (maxLength === null) {
+      return Promise.resolve();
+    }
+
+    const length = byteLength(value);
+    return length > maxLength
+      ? Promise.reject(`允许最大字符数为${maxLength}！`)
+      : Promise.resolve();
+  };
+}
+
+/**
+ * 获取字段的最大长度
+ * @param {Object} record - 当前记录对象
+ * @param {Object} vm - Vue 实例对象
+ * @param {string} type - 长度类型，如 'maxByte' 或 'foreignMaxByte'
+ * @returns {number|null} - 最大长度，如果不存在则返回 null
+ */
+export function getFieldMaxLength(record, vm, type) {
+  if (!vm.classifyLimit?.[record.classfy1]) {
+    return record.maxLength || null;
+  }
+  return vm.classifyLimit[record.classfy1][type];
+}
+
+/**
+ * 计算字符串的字节长度，中文及部分中文符号按 2 字节计算，其他字符按 1 字节计算。
+ * @param {string|null|undefined} str - 待计算字节长度的字符串，允许传入 null 或 undefined。
+ * @returns {number} - 返回字符串的字节长度，若传入 null 或 undefined 则返回 0。
+ */
+export function byteLength(str) {
+  if (str === null || str === undefined) {
+    return 0
+  }
+  // 去除首尾空格
+  str = ("" + str).trim()
+  let strlen = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) >= 0x4E00 && str.charCodeAt(i) <= 0x9FA5) {
+      // 如果是汉字，则字符串长度加2
+      strlen += 2;
+    } else {
+      strlen++;
+    }
+  }
+  return strlen
+}
 
 /**
  * 查询
@@ -341,7 +504,7 @@ export function selectAllEntry(vm, selectEntry = "selectEntry") {
   // console.log("全选");
   vm.selectedRowKeys = [];
   vm.selectedRows = [];
-  if (selectEntry in vm){
+  if (selectEntry in vm) {
     vm[selectEntry] = [];
   }
   let dataToSelect;
@@ -367,7 +530,7 @@ export function selectAllEntry(vm, selectEntry = "selectEntry") {
   dataToSelect.forEach((item) => {
     vm.selectedRowKeys.push(item.id);
     vm.selectedRows.push(item);
-    if (selectEntry in vm){
+    if (selectEntry in vm) {
       vm[selectEntry].push(item);
     }
   });
@@ -382,7 +545,7 @@ export function clearAllEntry(vm, selectEntry = "selectEntry") {
   // console.log("反选");
   vm.selectedRowKeys = [];
   vm.selectedRows = [];
-  if (selectEntry in vm){
-    vm[selectEntry]=[];
+  if (selectEntry in vm) {
+    vm[selectEntry] = [];
   }
 }

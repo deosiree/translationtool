@@ -541,6 +541,12 @@ import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
+import {
+  verifyTranslationLength,
+  verifyCurrentPageData,
+  getMaxLength,
+  handleExceedLength,
+} from "@/utils/tableUtils";
 const filteredInfo = {};
 export default {
   components: {
@@ -637,30 +643,30 @@ export default {
           resizable: true,
           index: 5,
         },
-        {
-          title: "tag",
-          dataIndex: "tag",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 6,
-        },
-        {
-          title: "comment",
-          dataIndex: "comment",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 7,
-        },
-        {
-          title: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 14,
-        },
+        // {
+        //   title: "tag",
+        //   dataIndex: "tag",
+        //   align: "center",
+        //   width: 100,
+        //   resizable: true,
+        //   index: 6,
+        // },
+        // {
+        //   title: "comment",
+        //   dataIndex: "comment",
+        //   align: "center",
+        //   width: 100,
+        //   resizable: true,
+        //   index: 7,
+        // },
+        // {
+        //   title: "abbr",
+        //   dataIndex: "abbr",
+        //   align: "center",
+        //   width: 100,
+        //   resizable: true,
+        //   index: 14,
+        // },
         {
           title: "词条状态",
           dataIndex: "entryState",
@@ -668,7 +674,7 @@ export default {
           width: 100,
           resizable: true,
           fixed: "right",
-          index: 16,
+          index: 100,
         },
       ],
       dataSource: [],
@@ -782,6 +788,7 @@ export default {
       if (storedPreferences) {
         const preferences = JSON.parse(storedPreferences);
         this.checkedColumn = preferences.displayColumn.split(",");
+        // 调用 changeColumn 方法更新列显示
         this.changeColumn(this.checkedColumn);
       }
     });
@@ -798,8 +805,7 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code;
+          item.dataIndex = this.task.transMap.value; // workbenchCommon.languageMap[this.task.translateType].code
         }
       });
     },
@@ -831,39 +837,42 @@ export default {
         message.info("请勾选需要保存的词条！");
         return;
       }
-      if (Object.keys(this.editableData).length != 0) {
-        // 校验字段
-        let checkList = [];
-        for (let key in this.editableData) {
-          if (this.selectedRowKeys.includes(key)) {
-            let list = [
-              // eval("this.$refs.form"+ this.editableData[key].id.replaceAll('-','') + 'entry').validate(),
-              eval(
-                "this.$refs.form" +
-                  this.editableData[key].id.replaceAll("-", "") +
-                  this.task.transMap.value
-              ).validate(),
-            ];
-            checkList = checkList.concat(list);
-          }
-        }
-        if (checkList.length === 0) {
-          this.saveEntrys();
-        } else {
-          Promise.all(checkList)
-            .then(() => {
-              // 校验成功 保存
-              this.saveEntrys();
-            })
-            .catch((err) => {
-              message.error("词条校验失败！", err.message);
-              this.saveLoading = false;
-            });
-        }
-      } else {
-        this.saveEntrys();
-        this.saveLoading = false;
-      }
+      // if (Object.keys(this.editableData).length != 0) {
+      //   // 校验字段
+      //   let checkList = [];
+      //   for (let key in this.editableData) {
+      //     if (this.selectedRowKeys.includes(key)) {
+      //       let list = [
+      //         // eval("this.$refs.form"+ this.editableData[key].id.replaceAll('-','') + 'entry').validate(),
+      //         eval(
+      //           "this.$refs.form" +
+      //             this.editableData[key].id.replaceAll("-", "") +
+      //             this.task.transMap.value
+      //         ).validate(),
+      //       ];
+      //       checkList = checkList.concat(list);
+      //     }
+      //   }
+      //   if (checkList.length === 0) {
+      //     // 校验审核通过的词条
+      //     this.saveEntrys();
+      //   } else {
+      //     Promise.all(checkList)
+      //       .then(() => {
+      //         // 校验成功 保存
+      //         this.saveEntrys();
+      //       })
+      //       .catch((err) => {
+      //         message.error("词条校验失败！", err.message);
+      //         this.saveLoading = false;
+      //       });
+      //   }
+      // } else {
+      //   this.saveEntrys();
+      //   this.saveLoading = false;
+      // }
+      this.saveEntrys();
+      this.saveLoading = false;
     },
     // 保存词条
     saveEntrys() {
@@ -904,6 +913,8 @@ export default {
 
       let addArr = [];
       let updateArr = [];
+      let toLongArr = []; // 用于存储超长词条
+      const promises = []; // 用于存储校验超长词条的promise
       let notInterpretation = [];
 
       // 保存操作 将保存所有词条(allData) 改为 保存已勾选的词条
@@ -934,10 +945,23 @@ export default {
           });
         }
 
+        // 验证翻译是否超长
+        const maxLength = getMaxLength(item, this);
+        const text = item[this.task.transMap.value];
+        if (maxLength !== null && common.byteLength(text) > maxLength) {
+          toLongArr.push(item);
+          promises.push(
+            handleExceedLength(item, this.task.transMap.value, this)
+          );
+          return;
+        }
+
         if (item.entryState === 2) {
+          // 如果是审核不通过的词条，重置为待审核状态
           item.entryState = 1;
           updateArr.push(item);
         } else if (item.entryState === 1) {
+          // 如果是待审核的词条，则直接更新
           addArr.push(item);
         }
       });
@@ -959,24 +983,38 @@ export default {
           },
         });
       } else {
-        this.insertOrUpdateEntrys(addArr, updateArr);
+        this.insertOrUpdateEntrys(addArr, updateArr, toLongArr.length);
       }
     },
     //
-    insertOrUpdateEntrys(addArr, updateArr) {
+    insertOrUpdateEntrys(addArr, updateArr, toLongNum) {
+      if (toLongNum > 0) {
+        // 存在超长
+        message.warn("存在超长数据，请检查！");
+        // return;
+      }
       this.loading = true;
       let params = {
         taskID: this.task.id,
       };
+      const promises = [];
+      let messageTextParts = [];
+
+      if (toLongNum > 0) {
+        messageTextParts.push(`校验不通过${toLongNum}条`);
+      }
       if (addArr.length > 0) {
         // 新增
-        insertEntry(params, addArr)
+        const addPromise = insertEntry(params, addArr)
           .then((res) => {
-            message.success(
-              `数据已保存！新增数据${
-                addArr.length - res.data.totalNum
-              }条，失败${res.data.totalNum}条`
-            );
+            const successCount = addArr.length - res.data.totalNum;
+            const failCount = res.data.totalNum;
+            if (successCount > 0) {
+              messageTextParts.push(`新增数据${successCount}条`);
+            }
+            if (failCount > 0) {
+              messageTextParts.push(`新增失败${failCount}条`);
+            }
 
             // 从 addArr 中移除保存失败的数据
             const successfulAddArr = addArr.filter((item) => {
@@ -990,33 +1028,24 @@ export default {
                 (successItem) => successItem.id === item.id
               );
             });
-
-            this.allData = this.dataSource;
-            // 清空选中
-            this.selectedRows = [];
-            this.selectedRowKeys = [];
-            this.selectedRowIndex = null;
-            if (this.dataSource.length === 0) {
-              this.handleClose();
-            }
           })
           .catch((err) => {
             message.error("1", err.message);
-          })
-          .finally(() => {
-            this.saveLoading = false;
-            this.loading = false;
           });
+        promises.push(addPromise);
       }
       if (updateArr.length > 0) {
         // 编辑
-        updateEntryList(params, updateArr)
+        const updatePromise = updateEntryList(params, updateArr)
           .then((res) => {
-            message.success(
-              `数据已保存！重置了已审核的数据${
-                updateArr.length - res.data.totalNum
-              }条，失败${res.data.totalNum}条`
-            );
+            const successCount = updateArr.length - res.data.totalNum;
+            const failCount = res.data.totalNum;
+            if (successCount > 0) {
+              messageTextParts.push(`重置已审核数据${successCount}条`);
+            }
+            if (failCount > 0) {
+              messageTextParts.push(`重置失败${failCount}条`);
+            }
             // 从 updateArr 中移除保存失败的数据
             const successfulUpdateArr = updateArr.filter((item) => {
               return !res.data.list.some(
@@ -1029,24 +1058,31 @@ export default {
                 (successItem) => successItem.id === item.id
               );
             });
-
-            this.allData = this.dataSource;
-            // 清空选中
-            this.selectedRows = [];
-            this.selectedRowKeys = [];
-            this.selectedRowIndex = null;
-            if (this.dataSource.length === 0) {
-              this.handleClose();
-            }
           })
           .catch((err) => {
             message.error("2", err.message);
-          })
-          .finally(() => {
-            this.saveLoading = false;
-            this.loading = false;
           });
+        promises.push(updatePromise);
       }
+
+      Promise.all(promises)
+        .then(() => {
+          if (messageTextParts.length > 0) {
+            message.success("数据已保存！" + messageTextParts.join("，"));
+          }
+          this.allData = this.dataSource;
+          // 清空选中
+          this.selectedRows = [];
+          this.selectedRowKeys = [];
+          this.selectedRowIndex = null;
+          if (this.dataSource.length === 0) {
+            this.handleClose();
+          }
+        })
+        .finally(() => {
+          this.saveLoading = false;
+          this.loading = false;
+        });
     },
 
     // 获取该任务有无审核未通过的词条
@@ -1459,122 +1495,133 @@ export default {
     importEntryData() {
       this.loading = true;
       this.importBtnLoading = true;
+
+      // 定义公共处理函数
+      const handleCommonOperations = (data) => {
+        if (data.length > 0) {
+          this.dataSource = data;
+          this.sortArray(this.dataSource, "isExist");
+          this.dataSource.forEach((item) => {
+            item.auditState = 1;
+            // 装置部的需求
+            // 配置最大字符长度(此处对应的是翻译的最大字符长度，所以不用maxLength这个属性)
+            item.foreignMaxByte =
+              this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
+            // console.log("打印词条", item,this.classifyLimit);
+            // 一体化平台，文件导入且选择了回写词典时，修改diFileName和importType
+            if (this.platformKey === "unify" && this.filediFileName != null) {
+              // item.diFileName = this.filediFileName;// 通过接口readZZExcle已将diFileName传递给后端了，后端赋值后返回，所以不用前端再刷了
+              item.writeType = "DI";
+              if (item.children && item.children.length > 0) {
+                item.children.forEach((child) => {
+                  // child.diFileName = this.filediFileName;
+                  child.writeType = "DI";
+                });
+              }
+            }
+          });
+          this.allData = this.dataSource;
+        }
+      };
+
+      // 生成通用 params 的函数
+      const getCommonParams = (extraParams = {}) => {
+        return {
+          taskID: this.task.id,
+          versionID: this.task.versionId ? this.task.versionId : "",
+          translateType: this.task.translateType,
+          i18nUrl: this.ip,
+          ...extraParams,
+        };
+      };
+
+      // 处理异步请求的通用函数
+      const handleAsyncRequest = (
+        validateRef,
+        getDataFn,
+        params,
+        data = null
+      ) => {
+        return validateRef
+          .validate()
+          .then(() => {
+            return getDataFn(params, data)
+              .then((res) => res.data.list)
+              .catch((err) => {
+                message.error("数据获取失败！", err.message);
+                return [];
+              });
+          })
+          .catch((err) => {
+            message.error(err.message);
+            return [];
+          });
+      };
+
+      let asyncTask;
+
       if (this.dataType === "ts") {
         // ts文件导入
-        this.$refs.tsFormRef
-          .validate()
-          .then(() => {
-            let params = {
-              taskID: this.task.id,
-              translateType: this.task.translateType,
-              i18nUrl: this.ip,
-            };
-            getTsWords(params, this.tsFile.tsFileValue)
-              .then((res) => {
-                this.dataSource = res.data.list;
-                this.sortArray(this.dataSource, "isExist");
-                this.dataSource.forEach((item) => {
-                  item.auditState = 1;
-                });
-                this.allData = this.dataSource;
-                this.loading = false;
-                this.importBtnLoading = false;
-              })
-              .catch((err) => {
-                message.error("数据获取失败！", err.message);
-                this.loading = false;
-                this.importBtnLoading = false;
-              });
-          })
-          .catch((err) => {
-            this.loading = false;
-            this.importBtnLoading = false;
-            message.error("4", err.message);
-          });
+        const params = getCommonParams();
+        asyncTask = handleAsyncRequest(
+          this.$refs.tsFormRef,
+          getTsWords,
+          params,
+          this.tsFile.tsFileValue
+        );
       } else if (this.dataType === "dictionary") {
-        this.$refs.dictSelectRef
-          .validate()
-          .then(() => {
-            // 辞典文件导入
-            // let params = {
-            //     type: this.dict.dictionaryType,
-            //     taskID: this.task.id,
-            //     versionID: this.task.versionId,
-            //     transType : this.task.translateType,
-            // }
-            // getDictionaryEntry(params).then((res) => {
-            //     this.dataSource = res.data.list
-            //     this.sortArray(this.dataSource,'isExist')
-            //     this.allData = this.dataSource
-            //     this.loading = false
-            //     this.importBtnLoading = false
-            // }).catch((err) => {
-            //     message.error("数据获取失败！")
-            //     this.loading = false
-            //     this.importBtnLoading = false
-            // })
-            let params = {
-              taskID: this.task.id,
-              versionID: this.task.versionId,
-              transType: this.task.translateType,
-              i18nUrl: this.ip,
-            };
-            importDictionaryEntry(params, this.dict.dictionaryType)
-              .then((res) => {
-                this.dataSource = res.data.list;
-                this.sortArray(this.dataSource, "isExist");
-                this.allData = this.dataSource;
-                this.loading = false;
-                this.importBtnLoading = false;
-              })
-              .catch((err) => {
-                message.error("数据获取失败！", err.message);
-                this.loading = false;
-                this.importBtnLoading = false;
-              });
-          })
-          .catch((err) => {
-            this.loading = false;
-            this.importBtnLoading = false;
-            message.error("5", err.message);
-          });
+        const params = getCommonParams({
+          transType: this.task.translateType,
+        });
+        asyncTask = handleAsyncRequest(
+          this.$refs.dictSelectRef,
+          importDictionaryEntry,
+          params,
+          this.dict.dictionaryType
+        );
       } else if (this.dataType === "database") {
         // 数据库导入
         if (this.dataLibrary.type === "field") {
           // 对象数据（原 字段）
-          this.$refs.fieldFormRef
+          asyncTask = this.$refs.fieldFormRef
             .validate()
             .then(() => {
-              this.getFieldData();
+              return new Promise((resolve) => {
+                this.getFieldData();
+                resolve([]);
+              });
             })
             .catch((err) => {
-              this.loading = false;
-              this.importBtnLoading = false;
               message.error("6", err.message);
+              return [];
             });
         } else if (this.dataLibrary.type === "alias") {
           // 元数据
-          this.$refs.aliasFormRef
+          asyncTask = this.$refs.aliasFormRef
             .validate()
             .then(() => {
-              this.getAlias();
+              return new Promise((resolve) => {
+                this.getAlias();
+                resolve([]);
+              });
             })
             .catch((err) => {
-              this.loading = false;
-              this.importBtnLoading = false;
               message.error("7", err.message);
+              return [];
             });
         } else if (this.dataLibrary.type === "allData") {
           // 全量
-          this.$refs.allDataFormRef
+          asyncTask = this.$refs.allDataFormRef
             .validate()
             .then(() => {
-              this.batchImportDatabase();
+              return new Promise((resolve) => {
+                this.batchImportDatabase();
+                resolve([]);
+              });
             })
             .catch((err) => {
-              this.loading = false;
-              this.importBtnLoading = false;
               message.error("8", err.message);
+              return [];
             });
         }
       } else if (this.dataType === "file") {
@@ -1589,35 +1636,14 @@ export default {
         let formData = new FormData();
         formData.append("file", this.file);
         formData.append("taskID", this.task.id);
-        let params = {
+        const params = {
           diFileName: this.filediFileName,
         };
-        this.loading = true;
-        readZZExcle(params, formData)
-          .then((res) => {
-            this.dataSource = res.data.list;
-            // 一体化平台，文件导入且选择了回写词典时，修改diFileName和importType
-            if (this.platformKey === "unify" && this.filediFileName != null) {
-              this.dataSource.forEach((item) => {
-                // item.diFileName = this.filediFileName;// 通过接口readZZExcle已将diFileName传递给后端了，后端赋值后返回，所以不用前端再刷了
-                item.writeType = "DI";
-                if (item.children && item.children.length > 0) {
-                  item.children.forEach((child) => {
-                    // child.diFileName = this.filediFileName;
-                    child.writeType = "DI";
-                  });
-                }
-              });
-            }
-            this.sortArray(this.dataSource, "isExist");
-            this.allData = this.dataSource;
-            this.loading = false;
-            this.importBtnLoading = false;
-          })
+        asyncTask = readZZExcle(params, formData)
+          .then((res) => res.data.list)
           .catch((err) => {
             message.error("导入失败！", err.message);
-            this.loading = false;
-            this.importBtnLoading = false;
+            return [];
           });
       } else if (this.dataType === "config") {
         if (this.ip === null || this.ip === undefined || this.ip === "") {
@@ -1625,74 +1651,268 @@ export default {
           return;
         }
         // 配置文件数据导入
-        this.$refs.configFormRef
-          .validate()
-          .then(() => {
-            let params = {
-              diFileName: "",
-              taskID: this.task.id,
-              versionID: this.task.versionId ? this.task.versionId : "",
-              translateType: this.task.translateType,
-              i18nUrl: this.ip,
-            };
-            let data = this.configFile.config;
-            getConfigEntry(params, data)
-              .then((res) => {
-                this.dataSource = res.data.list;
-                this.sortArray(this.dataSource, "isExist");
-                this.allData = this.dataSource;
-                this.loading = false;
-                this.importBtnLoading = false;
-              })
-              .catch((err) => {
-                this.loading = false;
-                this.importBtnLoading = false;
-                message.error("数据获取失败！", err.message);
-              });
-          })
-          .catch((err) => {
-            this.loading = false;
-            this.importBtnLoading = false;
-            message.error("9", err.message);
-          });
+        const params = getCommonParams({ diFileName: "" });
+        asyncTask = handleAsyncRequest(
+          this.$refs.configFormRef,
+          getConfigEntry,
+          params,
+          this.configFile.config
+        );
       } else if (this.dataType === "enum") {
         if (this.ip === null || this.ip === undefined || this.ip === "") {
           message.info("请选择IP！");
           return;
         }
-        this.$refs.enumFormRef
-          .validate()
-          .then(() => {
-            let params = {
-              diFileName: "",
-              taskID: this.task.id,
-              versionID: this.task.versionId ? this.task.versionId : "",
-              translateType: this.task.translateType,
-              i18nUrl: this.ip,
-            };
-            let data = this.enumFile.enum;
-            getEnumEntry(params, data)
-              .then((res) => {
-                this.dataSource = res.data.list;
-                this.sortArray(this.dataSource, "isExist");
-                this.allData = this.dataSource;
-                this.loading = false;
-                this.importBtnLoading = false;
-              })
-              .catch((err) => {
-                this.loading = false;
-                this.importBtnLoading = false;
-                message.error("数据获取失败！", err.message);
-              });
+        const params = getCommonParams({ diFileName: "" });
+        asyncTask = handleAsyncRequest(
+          this.$refs.enumFormRef,
+          getEnumEntry,
+          params,
+          this.enumFile.enum
+        );
+      }
+
+      if (asyncTask) {
+        asyncTask
+          .then((data) => {
+            handleCommonOperations(data);
           })
-          .catch((err) => {
+          .finally(() => {
             this.loading = false;
             this.importBtnLoading = false;
-            message.error("10", err.message);
+            // 校验当前页数据的长度
+            verifyCurrentPageData(
+              this.pagination,
+              this.task.transMap.value,
+              this
+            );
+            // console.log("当前页数据校验结果!");
           });
+      } else {
+        this.loading = false;
+        this.importBtnLoading = false;
       }
     },
+    // importEntryData() {
+    //   this.loading = true;
+    //   this.importBtnLoading = true;
+
+    //   const asyncTasks = [];
+
+    //   if (this.dataType === "ts") {
+    //     // ts文件导入
+    //     const task = this.$refs.tsFormRef
+    //       .validate()
+    //       .then(() => {
+    //         let params = {
+    //           taskID: this.task.id,
+    //           translateType: this.task.translateType,
+    //           i18nUrl: this.ip,
+    //         };
+    //         return getTsWords(params, this.tsFile.tsFileValue)
+    //           .then((res) => {
+    //             this.dataSource = res.data.list;
+    //             this.sortArray(this.dataSource, "isExist");
+    //             this.dataSource.forEach((item) => {
+    //               item.auditState = 1;
+    //             });
+    //             this.allData = this.dataSource;
+    //           })
+    //           .catch((err) => {
+    //             message.error("数据获取失败！", err.message);
+    //           });
+    //       })
+    //       .catch((err) => {
+    //         message.error("4", err.message);
+    //       });
+    //     asyncTasks.push(task);
+    //   } else if (this.dataType === "dictionary") {
+    //     const task = this.$refs.dictSelectRef
+    //       .validate()
+    //       .then(() => {
+    //         let params = {
+    //           taskID: this.task.id,
+    //           versionID: this.task.versionId,
+    //           transType: this.task.translateType,
+    //           i18nUrl: this.ip,
+    //         };
+    //         return importDictionaryEntry(params, this.dict.dictionaryType)
+    //           .then((res) => {
+    //             this.dataSource = res.data.list;
+    //             this.sortArray(this.dataSource, "isExist");
+    //             this.allData = this.dataSource;
+    //           })
+    //           .catch((err) => {
+    //             message.error("数据获取失败！", err.message);
+    //           });
+    //       })
+    //       .catch((err) => {
+    //         message.error("5", err.message);
+    //       });
+    //     asyncTasks.push(task);
+    //   } else if (this.dataType === "database") {
+    //     // 数据库导入
+    //     if (this.dataLibrary.type === "field") {
+    //       // 对象数据（原 字段）
+    //       const task = this.$refs.fieldFormRef
+    //         .validate()
+    //         .then(() => {
+    //           return new Promise((resolve) => {
+    //             this.getFieldData();
+    //             resolve();
+    //           });
+    //         })
+    //         .catch((err) => {
+    //           message.error("6", err.message);
+    //         });
+    //       asyncTasks.push(task);
+    //     } else if (this.dataLibrary.type === "alias") {
+    //       // 元数据
+    //       const task = this.$refs.aliasFormRef
+    //         .validate()
+    //         .then(() => {
+    //           return new Promise((resolve) => {
+    //             this.getAlias();
+    //             resolve();
+    //           });
+    //         })
+    //         .catch((err) => {
+    //           message.error("7", err.message);
+    //         });
+    //       asyncTasks.push(task);
+    //     } else if (this.dataLibrary.type === "allData") {
+    //       // 全量
+    //       const task = this.$refs.allDataFormRef
+    //         .validate()
+    //         .then(() => {
+    //           return new Promise((resolve) => {
+    //             this.batchImportDatabase();
+    //             resolve();
+    //           });
+    //         })
+    //         .catch((err) => {
+    //           message.error("8", err.message);
+    //         });
+    //       asyncTasks.push(task);
+    //     }
+    //   } else if (this.dataType === "file") {
+    //     // console.log(this.file)
+    //     if (Object.keys(this.file).length === 0) {
+    //       this.loading = false;
+    //       this.importBtnLoading = false;
+    //       message.info("请选择文件！");
+    //       return;
+    //     }
+    //     // 文件导入
+    //     let formData = new FormData();
+    //     formData.append("file", this.file);
+    //     formData.append("taskID", this.task.id);
+    //     let params = {
+    //       diFileName: this.filediFileName,
+    //     };
+    //     const task = readZZExcle(params, formData)
+    //       .then((res) => {
+    //         this.dataSource = res.data.list;
+    //         this.dataSource.forEach((item) => {
+    //           // 装置部的需求
+    //           // 配置最大字符长度(此处对应的是翻译的最大字符长度，所以不用maxLength这个属性)
+    //           item.foreignMaxByte =
+    //             this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
+    //           // console.log("打印词条", item,this.classifyLimit);
+    //         });
+    //         // 一体化平台，文件导入且选择了回写词典时，修改diFileName和importType
+    //         if (this.platformKey === "unify" && this.filediFileName != null) {
+    //           this.dataSource.forEach((item) => {
+    //             // item.diFileName = this.filediFileName;// 通过接口readZZExcle已将diFileName传递给后端了，后端赋值后返回，所以不用前端再刷了
+    //             item.writeType = "DI";
+    //             if (item.children && item.children.length > 0) {
+    //               item.children.forEach((child) => {
+    //                 // child.diFileName = this.filediFileName;
+    //                 child.writeType = "DI";
+    //               });
+    //             }
+    //           });
+    //         }
+    //         this.sortArray(this.dataSource, "isExist");
+    //         this.allData = this.dataSource;
+    //       })
+    //       .catch((err) => {
+    //         message.error("导入失败！", err.message);
+    //       });
+    //     asyncTasks.push(task);
+    //   } else if (this.dataType === "config") {
+    //     if (this.ip === null || this.ip === undefined || this.ip === "") {
+    //       message.info("请选择IP！");
+    //       return;
+    //     }
+    //     // 配置文件数据导入
+    //     const task = this.$refs.configFormRef
+    //       .validate()
+    //       .then(() => {
+    //         let params = {
+    //           diFileName: "",
+    //           taskID: this.task.id,
+    //           versionID: this.task.versionId ? this.task.versionId : "",
+    //           translateType: this.task.translateType,
+    //           i18nUrl: this.ip,
+    //         };
+    //         let data = this.configFile.config;
+    //         return getConfigEntry(params, data)
+    //           .then((res) => {
+    //             this.dataSource = res.data.list;
+    //             this.sortArray(this.dataSource, "isExist");
+    //             this.allData = this.dataSource;
+    //           })
+    //           .catch((err) => {
+    //             message.error("数据获取失败！", err.message);
+    //           });
+    //       })
+    //       .catch((err) => {
+    //         message.error("9", err.message);
+    //       });
+    //     asyncTasks.push(task);
+    //   } else if (this.dataType === "enum") {
+    //     if (this.ip === null || this.ip === undefined || this.ip === "") {
+    //       message.info("请选择IP！");
+    //       return;
+    //     }
+    //     const task = this.$refs.enumFormRef
+    //       .validate()
+    //       .then(() => {
+    //         let params = {
+    //           diFileName: "",
+    //           taskID: this.task.id,
+    //           versionID: this.task.versionId ? this.task.versionId : "",
+    //           translateType: this.task.translateType,
+    //           i18nUrl: this.ip,
+    //         };
+    //         let data = this.enumFile.enum;
+    //         return getEnumEntry(params, data)
+    //           .then((res) => {
+    //             this.dataSource = res.data.list;
+    //             this.sortArray(this.dataSource, "isExist");
+    //             this.allData = this.dataSource;
+    //           })
+    //           .catch((err) => {
+    //             message.error("数据获取失败！", err.message);
+    //           });
+    //       })
+    //       .catch((err) => {
+    //         message.error("10", err.message);
+    //       });
+    //     asyncTasks.push(task);
+    //   }
+
+    //   Promise.all(asyncTasks).finally(() => {
+    //     this.loading = false;
+    //     this.importBtnLoading = false;
+    //     // 校验当前页数据的长度
+    //     verifyCurrentPageData(this.pagination, this.task.transMap.value, this);
+    //     console.log("当前页数据校验结果!");
+    //   });
+    // },
     // 排序
+
     sortArray(arr, key) {
       return arr.sort((a, b) => {
         let x = a[key];
@@ -2142,7 +2362,8 @@ export default {
         displayColumn: checkedValue.join(","),
       };
       // this.recordPartiality(data);
-      localStorage.setItem("colPref-archiveModal", JSON.stringify(data)); // localStorage存储用户偏好
+      localStorage.setItem("colPref-importModal", JSON.stringify(data)); // localStorage存储用户偏好
+      // console.log("已保存列偏好设置", data);
     },
     // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {
@@ -2192,10 +2413,26 @@ export default {
       this.templateVisible = false;
       this.templateObj.type = null;
     },
+    // // 校验当前页数据的长度
+    // verifyCurrentData() {
+    //   let data = this.dataSource.slice(
+    //     (this.pagination.current - 1) * this.pagination.pageSize,
+    //     this.pagination.current * this.pagination.pageSize
+    //   );
+    //   verifyTranslationLength(data, this.task.transMap.value, this);
+    // },
     // 分页切换
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
+
+      // 校验当前页数据的长度
+      verifyCurrentPageData(this.pagination, this.task.transMap.value, this);
+      // let data = this.dataSource.slice(
+      //   (this.pagination.current - 1) * this.pagination.pageSize,
+      //   this.pagination.current * this.pagination.pageSize
+      // );
+      // verifyTranslationLength(data, this.task.transMap.value, this);
     },
     // 语言切换
     filterLanguageChange() {
@@ -2503,7 +2740,8 @@ export default {
     width: 100%;
   }
   .ant-row {
-    height: 38px;
+    height: 50px;
+    // height: 38px;
   }
 
   .rejectBtn {
