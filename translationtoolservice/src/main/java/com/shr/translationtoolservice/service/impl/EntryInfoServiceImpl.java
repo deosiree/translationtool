@@ -1272,7 +1272,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public void entryExportByCondition(ExcelExportVO excelExportVO, HttpServletResponse response, String taskID) {
+    public void entryExportByCondition(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, HttpServletResponse response, String taskID) {
         EntryInfoEntity entryInfoEntity = excelExportVO.getEntryInfoEntity();
         List<String> columnNames = excelExportVO.getColumnNames();
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
@@ -1285,7 +1285,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         }
 
-        List<EntryInfoEntity> entryInfoEntities;
+        List entryInfoEntities;
         if (!CollectionUtils.isEmpty(excelExportVO.getEntryInfoEntities())) {
             entryInfoEntities = excelExportVO.getEntryInfoEntities();
         } else {

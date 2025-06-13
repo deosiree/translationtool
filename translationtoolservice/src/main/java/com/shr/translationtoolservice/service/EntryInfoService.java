@@ -67,7 +67,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
 
-    void entryExportByCondition( ExcelExportVO excelExportVO, HttpServletResponse response,String taskID);
+    void entryExportByCondition( ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, HttpServletResponse response,String taskID);
 
     List<EntryClassify> getClassfy(String parentId, String type);
 

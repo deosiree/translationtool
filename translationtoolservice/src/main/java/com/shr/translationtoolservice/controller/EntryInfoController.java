@@ -465,7 +465,7 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("导出词条（版本，任务，产品）")
     @CrossOrigin
     @Transactional
-    public void entryExportByCondition(@RequestBody ExcelExportVO excelExportVO,
+    public void entryExportByCondition(@RequestBody ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,
                                        HttpServletResponse response,  String taskID) {
         entryInfoService.   entryExportByCondition(excelExportVO,response,taskID);
     }
