@@ -364,7 +364,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //翻译如果更新的情况下 查找翻译表存在相同的 挂在已存在的额id 没有新增一个翻译
         updateTrans(entryInfoEntity, department);
 
-        int update = entryInfoMapper.updateEntryInfo(entryInfoEntity);
+        int update = entryInfoMapper.updateEntryInfoForManager(entryInfoEntity);
         if (update < ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" entryInfoEntity update  error ! ");
             return ErrorCodeList.OPERATE_ERROR;
