@@ -1,8 +1,133 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import common from "@/views/workbench/common.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
+import tableParam from '@/views/entry/tableParam';
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
+
+/**
+ * 从本地存储读取用户列偏好并更新组件状态
+ * @param {string} colPrefName - 存储用户列偏好的 localStorage 键名
+ * @param {Array} normalWidth - 表格列的默认宽度数组
+ * @param {Object} vm - Vue 实例对象，包含 `checkedColumn` 和 `changeColumn` 方法
+ */
+export function getColPref(colPrefName, normalWidth, vm) {
+  // 读取本地存储的用户偏好
+  const storedPreferences = localStorage.getItem(colPrefName);
+  if (storedPreferences) {
+    const colPref_strList = JSON.parse(storedPreferences).displayColumn.split(",");
+    // 调用 changeColumn 方法更新列显示
+    changeColumn(colPrefName, normalWidth, colPref_strList, vm);
+  }
+}
+
+/**
+ * 根据用户勾选的列配置表格列展示，并将用户偏好保存到 localStorage
+ * @param {string} colPrefName - 存储用户列偏好的 localStorage 键名
+ * @param {Array} normalWidth - 表格列的默认宽度数组
+ * @param {Array} checkedValue - 用户勾选的列值数组
+ * @param {Object} vm - Vue 实例对象，包含 `checkedColumn`、`checkboxList`、`columns` 等属性
+ */
+export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
+  // 全部的展示列复选框vm.checkboxList
+  // 勾选的展示列复选框vm.checkedColumn
+  // 表格列的复选框vm.columns
+  if (vm.checkedColumn)
+    vm.checkedColumn = colPref_strList;
+
+  if (vm.checkboxList && vm.checkboxList.length > 0 && vm.columns && vm.columns.length > 0) {// 如果有展示列，则要和列比较
+    vm.checkboxList.forEach((value) => {
+      // 查找当前勾选列表中是否存在该列
+      let checkedIndex = vm.checkedColumn.findIndex(
+        (item) => item === value.value
+      );
+      // 查找当前表格列中是否存在该列
+      let nowColumnIndex = vm.columns.findIndex(
+        (item) => item.dataIndex === value.value
+      );
+      // 若勾选状态和列存在状态一致，则跳过
+      if (
+        (nowColumnIndex !== -1 && checkedIndex !== -1) ||
+        (nowColumnIndex === -1 && checkedIndex === -1)
+      ) {
+        return;
+      }
+      // 若勾选了但列不存在，则添加列
+      if (nowColumnIndex === -1 && checkedIndex !== -1) {
+        // 调用创建列配置对象的函数
+        const newCol = createColumn(value, normalWidth);
+        vm.columns.splice(-1, 0, newCol);
+      }
+      // 若未勾选但列存在，则移除列
+      if (nowColumnIndex !== -1 && checkedIndex === -1) {
+        vm.columns.splice(nowColumnIndex, 1);
+      }
+    });
+  }else {
+    // 如果没有展示列和列，则直接使用colPref_strList,经过这个函数的处理来生成列，把空白的columns填满
+    for (let i = 0; i < colPref_strList.length; i++) {
+      if(vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
+        continue; // 如果列已经存在，则跳过
+      }
+      // 使用 find 方法查找对应的 checkboxList 项
+      const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
+      // console.log("col:", col);
+      const newCol = createColumn(col, normalWidth);
+      vm.columns.splice(-1, 0, newCol);
+    }
+    // console.log("没有展示列，使用colPref_strList生成列", vm.columns);
+  }
+
+  vm.columns.sort((a, b) => a.index - b.index);
+
+  // console.log("当前列配置", colPref_strList);
+  // 记录
+  let data = {
+    displayColumn: colPref_strList.join(","),
+  };
+  localStorage.setItem(colPrefName, JSON.stringify(data)); // localStorage存储用户偏好
+  // console.log("已保存列偏好设置!!!", data);
+}
+
+/**
+ * 创建表格列配置对象
+ * @param {Object} value - 包含列配置信息的对象，包含 `label`、`value`、`index` 属性
+ * @param {number} normalWidth - 列的正常宽度
+ * @returns {Object} - 表格列配置对象
+ */
+export function createColumn(value, normalWidth) {
+  // 初始化列配置对象
+  let newCol = {
+    title: value.label,
+    dataIndex: value.value,
+    align: "center",
+    width: normalWidth,
+    ellipsis: true,
+    resizable: true,
+    index: value.index,
+  };
+
+  // 根据列数据索引设置固定位置
+  if (["isExist", "translateState", "entry"].includes(newCol.dataIndex)) {
+    newCol.fixed = "left";
+  }
+  if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
+    newCol.fixed = "right";
+  }
+
+  // 若列数据索引为 "entrySource"，添加筛选功能
+  if (newCol.dataIndex === "entrySource") {
+    newCol.customFilterDropdown = true; // 使用自定义筛选下拉框
+    newCol.filteredValue = null; // 初始状态下没有筛选条件
+    newCol.onFilter = (filterValue, record) =>
+      record.entrySource
+        .toString()
+        .toLowerCase()
+        .includes(filterValue.toLowerCase());
+  }
+
+  return newCol;
+}
 
 /**
  * 校验当前页数据的翻译长度
@@ -39,7 +164,7 @@ export async function verifyTranslationLength(array, language, vm) {
       // console.log("超长记录:", record);
       flag++;
       promises.push(handleExceedLength(record, language, vm));
-    } 
+    }
     // else {
     //   console.log("不长记录:", record);
     // }

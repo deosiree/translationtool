@@ -42,7 +42,7 @@
             <!-- <a-form-item label="翻译释义" name="interpretation" style="margin-top: 8px">
               <a-input v-model:value="search.interpretation" placeholder="请输入内容"></a-input>
             </a-form-item> -->
-            <a-form-item label="Comment" name="comment" style="margin-top: 8px">
+            <a-form-item label="comment" name="comment" style="margin-top: 8px">
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
           </a-row>
@@ -422,6 +422,8 @@ import {
   onSelect,
   onSelectAll,
   pageChange,
+  getColPref,
+  changeColumn,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
@@ -452,6 +454,8 @@ export default {
     productEdit: false,
   },
   data() {
+    // 从本地缓存读取展示列偏好
+    const cachedDisplayColumn = localStorage.getItem("colPref-productEntry");
     return {
       locale: zhCN,
       box: 0,
@@ -509,7 +513,7 @@ export default {
           align: "center",
           width: 130,
           fixed: "left",
-          index: 0.1,
+          index: 1,
         },
         {
           title: "词条",
@@ -538,7 +542,7 @@ export default {
           dataIndex: "entryVersion",
           align: "center",
           width: 130,
-          index: 6,
+          index: 5,
         },
         {
           title: "英文翻译",
@@ -562,7 +566,7 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
-          index: 19,
+          index: 20,
         },
         {
           title: "法文翻译",
@@ -570,16 +574,16 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
-          index: 22,
+          index: 23,
         },
         {
-          title: "Abbr",
+          title: "abbr",
           dataIndex: "abbr",
           align: "center",
           width: 150,
           fixed: "right",
           resizable: true,
-          index: 30,
+          index: 99,
         },
         {
           title: "操作",
@@ -602,7 +606,9 @@ export default {
       },
       overlayStyle: tableParam.overlayStyle,
       checkboxList: tableParam.checkboxList,
-      checkedColumn: tableParam.checkedColumn,
+      checkedColumn: cachedDisplayColumn
+        ? cachedDisplayColumn.split(",")
+        : tableParam.checkedColumn,
       inputColumn: tableParam.inputColumn,
       translateColumn: tableParam.translateColumn,
       editableData: {},
@@ -643,15 +649,26 @@ export default {
 
   created() {},
   mounted() {
-    this.user = this.$store.state.user;
-    this.admin = this.$store.state.admin;
-    //保证初次传的值给到
-    this.box = this.boxHeight;
-    this.edit = this.productEdit;
-    this.setTableHeight();
-    this.product = this.currentProduct;
-    this.getLanguage();
-    this.init();
+    this.$nextTick(() => {
+      this.user = this.$store.state.user;
+      this.admin = this.$store.state.admin;
+      //保证初次传的值给到
+      this.box = this.boxHeight;
+      this.edit = this.productEdit;
+      this.setTableHeight();
+      this.product = this.currentProduct;
+      this.getLanguage();
+      this.init();
+      // 读取本地存储的用户偏好
+      getColPref("colPref-productEntry", 200, this);
+      // const storedPreferences = localStorage.getItem("colPref-productEntry");
+      // if (storedPreferences) {
+      //   const preferences = JSON.parse(storedPreferences);
+      //   this.checkedColumn = preferences.displayColumn.split(",");
+      //   // 调用 changeColumn 方法更新列显示
+      //   this.changeColumn(this.checkedColumn);
+      // }
+    });
   },
   watch: {
     boxHeight(newval, oldval) {
@@ -688,22 +705,21 @@ export default {
       this.getEntryByVersion();
       this.setTableHeight();
       this.selectSecondClassify();
-      this.getUserPartiality();
     },
     format(text) {
       return text.replace(/\n/g, "\\n");
     },
-    // 获取用户偏好
-    getUserPartiality() {
-      queryUserPartiality().then((res) => {
-        if (res.data.list && res.data.list.length > 0) {
-          let displayColumn = res.data.list[0].displayColumn;
-          if (displayColumn != null && displayColumn != "") {
-            this.changeColumn(displayColumn.split(","));
-          }
-        }
-      });
-    },
+    // // （弃用）调用后端的接口获取用户偏好，并调用changeColumn方法更新表格列显示
+    // getUserPartiality() {
+    //   queryUserPartiality().then((res) => {
+    //     if (res.data.list && res.data.list.length > 0) {
+    //       let displayColumn = res.data.list[0].displayColumn;
+    //       if (displayColumn != null && displayColumn != "") {
+    //         this.changeColumn(displayColumn.split(","));
+    //       }
+    //     }
+    //   });
+    // },
     // 获取翻译语言
     getLanguage() {
       let data = {};
@@ -1074,12 +1090,6 @@ export default {
     // 保存
     save(id) {
       // 校验字段长度是否超限
-      // let list = [eval("this.$refs.form"+ id.replaceAll('-','') + 'entry').validate(),
-      //             eval("this.$refs.form"+ id.replaceAll('-','') + 'english').validate(),
-      //             eval("this.$refs.form"+ id.replaceAll('-','') + 'russian').validate(),
-      //             eval("this.$refs.form"+ id.replaceAll('-','') + 'spanish').validate(),
-      //             eval("this.$refs.form"+ id.replaceAll('-','') + 'french').validate()]
-
       let flagArr = ["entry", "english", "russian", "spanish", "french"];
       let list = [];
       this.columns.forEach((column) => {
@@ -1109,8 +1119,19 @@ export default {
             });
           } else {
             this.editEntry = [this.editableData[id]];
+            console.log("更新已选词条", this.editEntry);
             this.editVisible = true;
             setModalAriaHidden(this, document);
+          }
+
+          // 更新选中的值
+          const selectedIndex = this.selectedRows.findIndex(
+            (item) => item.id === id
+          );
+          console.log("更新选中值：", selectedIndex, this.editableData[id]);
+          if (selectedIndex !== -1) {
+            // 更新选中行数据
+            this.selectedRows[selectedIndex] = { ...this.editableData[id] };
           }
         })
         .catch((err) => {
@@ -1224,53 +1245,68 @@ export default {
     },
     changeColumn(checkedValue) {
       this.checkedColumn = checkedValue;
+
       this.checkboxList.forEach((value) => {
+        // 查找当前勾选列表中是否存在该列
         let checkedIndex = this.checkedColumn.findIndex(
           (item) => item === value.value
         );
+        // 查找当前表格列中是否存在该列
         let nowColumnIndex = this.columns.findIndex(
           (item) => item.dataIndex === value.value
         );
+        // 若勾选状态和列存在状态一致，则跳过
         if (
           (nowColumnIndex !== -1 && checkedIndex !== -1) ||
           (nowColumnIndex === -1 && checkedIndex === -1)
         ) {
           return;
         }
+        // 若勾选了但列不存在，则添加列
         if (nowColumnIndex === -1 && checkedIndex !== -1) {
           let newCol = {
             title: value.label,
             dataIndex: value.value,
             align: "center",
             width: 200,
-            // ellipsis: true,
+            ellipsis: true,
             resizable: true,
             index: value.index,
           };
-          // filteredValue: null,
-          // filters: [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}],
-          // onFilter: (value, record) => record.englishTranslateState === value,
-          // let index = value.value
-          // if(['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(value.value)){
-          //     newCol.filteredValue = null
-          //     newCol.filters = [{text: '未翻译',value: '0',},{text: '待审核',value: '1',},{text: '审核不通过',value: '2',},{text: '已审核',value: '3',}]
-          //     newCol.onFilter = eval('(value, record) => record.'+index+' === value')
-          // }
+          if (
+            ["isExist", "translateState", "entry"].includes(newCol.dataIndex)
+          ) {
+            newCol.fixed = "left";
+          }
+          if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
+            newCol.fixed = "right";
+          }
+          if (newCol.dataIndex === "entrySource") {
+            // 添加词条来源可筛选
+            newCol.customFilterDropdown = true;
+            newCol.filteredValue = null;
+            newCol.onFilter = (value, record) =>
+              record.entrySource
+                .toString()
+                .toLowerCase()
+                .includes(value.toLowerCase());
+          }
           this.columns.splice(-1, 0, newCol);
         }
+        // 若未勾选但列存在，则移除列
         if (nowColumnIndex !== -1 && checkedIndex === -1) {
           this.columns.splice(nowColumnIndex, 1);
         }
       });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
+      this.columns.sort((a, b) => a.index - b.index);
 
       // 记录
       let data = {
         displayColumn: checkedValue.join(","),
       };
-      this.recordPartiality(data);
+      // this.recordPartiality(data);
+      localStorage.setItem("colPref-productEntry", JSON.stringify(data)); // localStorage存储用户偏好
+      // console.log("已保存列偏好设置", data);
     },
     clickInput(event) {
       event.stopPropagation();
@@ -1579,10 +1615,10 @@ export default {
           message.err(err.message);
         });
     },
-    // 记录用户偏好
-    recordPartiality(data) {
-      updateUserPartiality(data).then((res) => {});
-    },
+    // // 记录用户偏好
+    // recordPartiality(data) {
+    //   updateUserPartiality(data).then((res) => {});
+    // },
     // 导入词条
     importEntry() {
       this.importVisible = true;

@@ -103,7 +103,9 @@
             <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
           </a-form-item>
           <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择导出字段!' }]">
-            <a-select v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
+            <!-- 修改为多选 -->
+            <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
+              <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->
               <a-select-option value="英文">英文</a-select-option>
               <a-select-option value="俄文">俄文</a-select-option>
               <a-select-option value="西文">西文</a-select-option>
@@ -158,7 +160,6 @@
 <script>
 import CustomModal from "@/components/modal/index.vue";
 import zh_CN from "ant-design-vue/es/locale/zh_CN";
-import tableParam from "./tableParam.js";
 import {
   MinusSquareOutlined,
   ExclamationCircleOutlined,
@@ -185,7 +186,8 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import { pageChange } from "@/utils/tableUtils";
+import tableParam from "@/views/entry/tableParam.js";
+import { pageChange, getColPref, changeColumn } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
@@ -210,6 +212,9 @@ export default {
   },
 
   data() {
+    // 从本地缓存读取用户偏好
+    const cachedLanguages = localStorage.getItem("writeBackLanguages");
+    const cachedDisplayColumn = localStorage.getItem("colPref-productEntry");
     return {
       locale: zh_CN,
       modalWidth: "60%",
@@ -219,7 +224,7 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 60,
+          width: 50,
           customRender: (text, record, index, column) => {
             return (
               text.index +
@@ -228,6 +233,7 @@ export default {
             );
           },
           fixed: "left",
+          index: 0,
         },
         {
           title: "词条状态",
@@ -235,78 +241,20 @@ export default {
           align: "center",
           width: 130,
           fixed: "left",
-        },
-        { title: "词条", dataIndex: "entry", align: "center", width: 180 },
-        {
-          title: "中文释义",
-          dataIndex: "chineseInterpretation",
-          align: "center",
-          width: 180,
+          index: 1,
         },
         {
-          title: "英文释义",
-          dataIndex: "englishInterpretation",
+          title: "词条",
+          dataIndex: "entry",
           align: "center",
-          width: 180,
-        },
-        {
-          title: "英文翻译",
-          dataIndex: "english",
-          align: "center",
-          width: 180,
-        },
-        {
-          title: "英文翻译状态",
-          dataIndex: "englishTranslateState",
-          align: "center",
-          width: 180,
-        },
-        {
-          title: "西文翻译",
-          dataIndex: "spanish",
-          align: "center",
-          width: 180,
-        },
-        {
-          title: "西文翻译状态",
-          dataIndex: "spanishTranslateState",
-          align: "center",
-          width: 180,
-        },
-        {
-          title: "俄文翻译",
-          dataIndex: "russian",
-          align: "center",
-          width: 180,
-        },
-        {
-          title: "俄文翻译状态",
-          dataIndex: "russianTranslateState",
-          align: "center",
-          width: 180,
-        },
-        { title: "法文翻译", dataIndex: "french", align: "center", width: 180 },
-        {
-          title: "法文翻译状态",
-          dataIndex: "frenchTranslateState",
-          align: "center",
-          width: 180,
-        },
-        {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 180,
-          // fixed: "left",
-        },
-        {
-          title: "删除",
-          dataIndex: "operation",
-          align: "center",
-          width: 50,
-          fixed: "right",
+          width: 160,
+          resizable: true,
+          index: 2,
         },
       ],
+      checkedColumn: cachedDisplayColumn
+        ? cachedDisplayColumn.split(",")
+        : tableParam.checkedColumn,
       version: {
         language: null,
         versionName: "",
@@ -411,7 +359,9 @@ export default {
       taskDataSource: [],
       selectedTaskRows: [],
       writeBack: {
-        language: null,
+        language: cachedLanguages
+          ? JSON.parse(cachedLanguages)
+          : ["英文", "俄文", "西文", "法文"], // 默认全选或从缓存读取
         type: "DEFAUT",
         label: "",
         file: null,
@@ -430,14 +380,17 @@ export default {
   created() {
     this.product = this.currentProduct;
   },
-  mounted() {},
+  mounted() {
+    this.$nextTick(() => {
+      // 读取本地存储的用户偏好
+      getColPref("colPref-productEntry", 200, this);
+    });
+  },
   computed: {
     taskRowSelection() {
       return {
         type: "radio",
         onChange: (selectedRowKeys, selectedRows) => {
-          // console.log(selectedRowKeys)
-          // console.log(selectedRows)
           this.selectedTaskRows = selectedRows;
         },
       };
@@ -561,7 +514,6 @@ export default {
         });
       } else if (this.title === "导出") {
         this.exportLoading = true;
-        // console.log("开始导出", this.exportLoading);
         this.$refs.exportForm.validate().then(() => {
           // 导出接口
           let fields = ["id"].concat(this.exportClass.field);
@@ -590,7 +542,6 @@ export default {
             })
             .finally(() => {
               this.exportLoading = false;
-              // console.log("结束操作框", this.exportLoading);
             });
           // 记录偏好
           this.exportFieldChange(this.exportClass.field);
@@ -637,40 +588,57 @@ export default {
         }
         this.$refs.writeBack
           .validate()
-          .then(() => {
-            let params = {
-              translateType: this.writeBack.language,
-              isTag: this.writeBack.isTag ? 1 : 0,
-              isComment: this.writeBack.isComment ? 1 : 0,
-              writeType: this.writeBack.type,
-              fileName: this.writeBack.file,
-              i18nUrl: this.writeBack.ip,
-            };
+          .then(async () => {
             this.writeBackLoading = true;
-            // console.log("开始loading");
-            // setTimeout(() => {
-            //   console.log(params);
-            //   this.writeBackLoading = false;
-            //   console.log("结束loading");
-            //   message.success("回写成功！");
-            // }, 3000);
-            writeBack(params, this.dataSource)
-              .then((res) => {
-                message.success("回写成功！");
-                this.operateVisible = false;
-                this.$emit("createClose");
-                this.$emit("cancelCreate");
-              })
-              .catch((err) => {
-                message.error("回写失败！", err.message);
-              })
-              .finally(() => {
-                this.writeBackLoading = false;
-                this.loading = false;
-              });
+            let successLanguages = [];
+            let failedLanguages = [];
+
+            // 遍历选中的语言列表，依次执行回写操作
+            for (const language of this.writeBack.language) {
+              let params = {
+                translateType: language,
+                isTag: this.writeBack.isTag ? 1 : 0,
+                isComment: this.writeBack.isComment ? 1 : 0,
+                writeType: this.writeBack.type,
+                fileName: this.writeBack.file,
+                i18nUrl: this.writeBack.ip,
+              };
+              try {
+                await writeBack(params, this.dataSource);
+                successLanguages.push(language);
+              } catch (err) {
+                failedLanguages.push(`${language}: ${err.message}`);
+              }
+            }
+
+            let messageText = "";
+            if (successLanguages.length > 0) {
+              messageText += `以下语言回写成功：${successLanguages.join(
+                ", "
+              )}。`;
+            }
+            if (failedLanguages.length > 0) {
+              messageText += `以下语言回写失败：${failedLanguages.join(
+                ", "
+              )}。`;
+            }
+
+            if (successLanguages.length > 0) {
+              message.success(messageText);
+            } else {
+              message.error(messageText);
+            }
+
+            this.operateVisible = false;
+            this.$emit("createClose");
+            this.$emit("cancelCreate");
+          })
+          .finally(() => {
+            this.writeBackLoading = false;
+            this.loading = false;
           })
           .catch((err) => {
-            message.error(err.message);
+            // message.error("1",err.message);
           });
       }
     },
@@ -725,7 +693,6 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
-          // console.log("已选词条", this.dataSource);
           const seen = {};
           this.dataSource.forEach((item) => {
             let key = "";
@@ -753,7 +720,6 @@ export default {
                 versionID: versionID,
                 productID: productID,
               };
-            // console.log("deleteEntryInfoByID", params, ids);
             const promise = deleteEntryInfoByID(params, ids)
               .then(() => {
                 totalDeleted += ids.length; // 累计成功条数
@@ -793,7 +759,7 @@ export default {
       this.version = { versionName: "", remarks: "" };
       this.exportClass = { field: ["abbr", "词条"] };
       this.writeBack = {
-        language: null,
+        language: this.writeBack.language,
         type: "DEFAUT",
         label: "",
         file: null,
@@ -834,18 +800,25 @@ export default {
           message.warn("请选择回写语言！");
           return;
         }
-        // 获取ts文件列表
-        this.getTsFile();
+        // 遍历选中的语言，获取对应的 ts 文件列表
+        this.writeBack.language.forEach((language) => {
+          this.getTsFile(language);
+        });
       } else if (this.writeBack.type === "DI") {
         this.writeBack.label = "辞典";
         // 获取辞典文件列表
         this.getDictionary();
       }
+      // 保存用户偏好到本地缓存
+      localStorage.setItem(
+        "writeBackLanguages",
+        JSON.stringify(this.writeBack.language)
+      );
     },
     // 获取ts文件
-    getTsFile() {
+    getTsFile(language) {
       let params = {
-        language: this.writeBack.language,
+        language: language,
       };
       getFileListByLang(params).then((res) => {
         res.data.list.forEach((item) => {
@@ -854,12 +827,17 @@ export default {
             value: item,
           };
           this.writeBack.fileOptions.push(option);
+          // console.log("fileOptions:", this.writeBack.fileOptions);
         });
       });
     },
     // 获取辞典
     getDictionary() {
-      getDictionary().then((res) => {
+      let params = {
+        i18nUrl: this.writeBack.ip,
+      };
+      getDictionary(params).then((res) => {
+        // getDictionary().then((res) => {// 之前这里没写完，待重构优化，选择默认时就是辞典的就进入辞典，ts文件的就进入ts文件，用不上ts文件/辞典的选项
         res.data.list.forEach((item) => {
           let option = {
             label: item,
@@ -872,8 +850,17 @@ export default {
     // 回写语言change事件
     languageChange() {
       if (this.writeBack.type === "TS") {
-        this.getTsFile();
+        this.writeBack.fileOptions = [];
+        // 遍历选中的语言，获取对应的 ts 文件列表
+        this.writeBack.language.forEach((language) => {
+          this.getTsFile(language);
+        });
       }
+      // 保存用户偏好到本地缓存
+      localStorage.setItem(
+        "writeBackLanguages",
+        JSON.stringify(this.writeBack.language)
+      );
     },
     // 获取i18服务器ip
     getIPs() {

@@ -58,8 +58,11 @@
                 <a-form-item label="tag" name="tag">
                   <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
                 </a-form-item>
-                <a-form-item label="来源" name="common">
+                <!-- <a-form-item label="来源" name="common">
                   <a-input v-model:value="search.common" placeholder="请输入内容"></a-input>
+                </a-form-item> -->
+                <a-form-item label="comment" name="comment">
+                  <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
                 </a-form-item>
               </a-form>
             </template>
@@ -175,7 +178,8 @@ export default {
       search: {
         entry: "",
         tag: "",
-        common: "",
+        // common: "",
+        comment: "",
       },
       labelCol: { style: { width: "84px" } },
       tableTitle: "数据列表",
@@ -193,7 +197,7 @@ export default {
           },
         },
         { title: "词条", dataIndex: "source", width: 200 },
-        { title: "来源", dataIndex: "comments", width: 200 },
+        { title: "comment", dataIndex: "comment", width: 200 },
         { title: "tag", dataIndex: "tag", width: 150 },
         { title: "翻译", dataIndex: "translation" },
       ],
@@ -436,7 +440,8 @@ export default {
       this.search = {
         entry: "",
         tag: "",
-        common: "",
+        // common: "",
+        comment: "",
       };
       this.queryDictronary();
     },
