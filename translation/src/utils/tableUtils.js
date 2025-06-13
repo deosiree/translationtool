@@ -63,15 +63,18 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
         vm.columns.splice(nowColumnIndex, 1);
       }
     });
-  }else {
+  }
+  else {
     // 如果没有展示列和列，则直接使用colPref_strList,经过这个函数的处理来生成列，把空白的columns填满
     for (let i = 0; i < colPref_strList.length; i++) {
-      if(vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
+      if (colPref_strList[i] == "")
+        continue;
+      if (vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
         continue; // 如果列已经存在，则跳过
       }
       // 使用 find 方法查找对应的 checkboxList 项
       const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
-      // console.log("col:", col);
+      console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
       const newCol = createColumn(col, normalWidth);
       vm.columns.splice(-1, 0, newCol);
     }

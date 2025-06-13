@@ -219,39 +219,7 @@ export default {
       locale: zh_CN,
       modalWidth: "60%",
       tableHeight: { x: "100%", y: 395 },
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 50,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0,
-        },
-        {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 130,
-          fixed: "left",
-          index: 1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 160,
-          resizable: true,
-          index: 2,
-        },
-      ],
+      columns: [],
       checkedColumn: cachedDisplayColumn
         ? cachedDisplayColumn.split(",")
         : tableParam.checkedColumn,
@@ -381,10 +349,10 @@ export default {
     this.product = this.currentProduct;
   },
   mounted() {
-    this.$nextTick(() => {
-      // 读取本地存储的用户偏好
-      getColPref("colPref-productEntry", 200, this);
-    });
+    // this.$nextTick(() => {
+    //   // 读取本地存储的用户偏好
+    //   getColPref("colPref-productEntry", 200, this);
+    // });
   },
   computed: {
     taskRowSelection() {
@@ -399,6 +367,54 @@ export default {
   watch: {
     currentProduct(newval, oldval) {
       this.product = newval;
+    },
+    visible: {
+      async handler(newVal) {
+        // console.log("visible changed:", newVal);
+        if (newVal) {
+          this.columns = [
+            {
+              title: "序号",
+              dataIndex: "index",
+              align: "center",
+              width: 50,
+              customRender: (text, record, index, column) => {
+                return (
+                  text.index +
+                  1 +
+                  this.pagination.pageSize * (this.pagination.current - 1)
+                );
+              },
+              fixed: "left",
+              index: 0,
+            },
+            {
+              title: "词条状态",
+              dataIndex: "entryState",
+              align: "center",
+              width: 130,
+              fixed: "left",
+              index: 1,
+            },
+            {
+              title: "词条",
+              dataIndex: "entry",
+              align: "center",
+              width: 160,
+              resizable: true,
+              index: 2,
+            },
+          ];
+          // console.log("columns1:", this.columns);
+          try {
+            await getColPref("colPref-productEntry", 200, this); // 等待 getColPref 执行完成
+            // console.log("columns2:", this.columns);
+          } catch (error) {
+            console.error("获取列偏好失败:", error);
+          }
+        }
+      },
+      immediate: false, // 不立即执行
     },
   },
   methods: {
