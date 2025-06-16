@@ -102,7 +102,7 @@
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
             <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
           </a-form-item>
-          <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择导出字段!' }]">
+          <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择回写语言!' }]">
             <!-- 修改为多选 -->
             <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
               <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->

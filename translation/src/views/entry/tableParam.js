@@ -22,6 +22,9 @@ export default {
     { label: "法文翻译状态", value: "frenchTranslateState", index: 24 },
     { label: "一级分类", value: "classfy1", index: 25 },
     { label: "二级分类", value: "classfy2", index: 26 },
+    { label: "二级分类", value: "classfy2", index: 26 },
+    // { label: "中文字符上限", value: "maxChineseLength", index: 26 },
+    // { label: "外文字符上限", value: "foreignMaxLength", index: 26 },
     { label: "辞典名称", value: "diFileName", index: 26.1 },
     { label: "修改人", value: "update", index: 27 },
     { label: "修改时间", value: "updateTime", index: 28 },
@@ -37,7 +40,7 @@ export default {
     // {label: "comment",value: "comment",index:37},
   ],
   checkedColumn: ["abbr", "entry", "entryState", "entryVersion", "english", "russian", "spanish", "french"],
-  inputColumn: ["abbr", "entryLength", 'chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation', "partOfSpeech", "remark", "diFileName", "comment"],
+  inputColumn: ["abbr", "entryLength", 'chineseInterpretation', 'englishInterpretation', 'spanishInterpretation', 'frenchInterpretation', 'russianInterpretation', "partOfSpeech", "remark", "diFileName", "comment"],
   translateColumn: ["english", "russian", "spanish", "french"],
   overlayStyle: {
     maxHeight: '300px',
@@ -89,5 +92,7 @@ export default {
     { label: "DI文件名", value: "diFileName" },
     { label: "comment", value: "comment" },
     { label: 'tag', value: 'tag' },
+    { label: "中文字符上限", value: "maxChineseLength" },
+    { label: "外文字符上限", value: "foreignMaxLength" },
   ],
 }
