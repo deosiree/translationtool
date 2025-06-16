@@ -1270,10 +1270,48 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         return id;
     }
+    
+    private List<EntryInfoEntityForExcel> postProcessEntryInfoForExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO){
+        List<EntryInfoEntityForExcel> entryInfoEntities = excelExportVO.getEntryInfoEntities();
+        if(entryInfoEntities == null){
+            EntryInfoEntity template = excelExportVO.getEntryInfoEntity();
+            if(template != null){
+                List<EntryInfoEntity> entities = entryInfoMapper.getEntryInfo(template);   
+                entryInfoEntities = new ArrayList<>(entities.stream().map(EntryInfoEntityForExcel::convertFromEntryInfoEntity).collect(Collectors.toList()));
+            }else{
+                throw new RuntimeException("在没有提供要导出的词条的情况下没有提供要查询的词条需要符合的条件,无法获取要导出的词条");
+            }
+        }
+        if(entryInfoEntities.isEmpty()){
+            return entryInfoEntities;
+        }
+        Map<String,EntryClassify> entryClassifyMap = new HashMap<>();
+
+        // 获取每一个词条对应的中文字符数和外文字符数
+        List<EntryClassify> entryClassifies = entryClassifyMapper.getEntryClassfyByNames(entryInfoEntities.stream().map(EntryInfoEntityForExcel::getClassfy1).collect(Collectors.toList()));
+        for(EntryClassify item : entryClassifies){
+            entryClassifyMap.put(item.getTitle(), item);
+        }
+        for(EntryInfoEntityForExcel item : entryInfoEntities){
+            String classifyName = item.getClassfy1();
+            if(classifyName == null){
+                continue;   // 没有一级分类，不属于模块
+            }
+            EntryClassify entryClassify = entryClassifyMap.get(classifyName);
+            if(entryClassify != null){
+                // 找到了对应模块
+                Integer maxByte = entryClassify.getMaxByte();
+                Integer foreignMaxByte = entryClassify.getForeignMaxByte();
+                item.setMaxChineseLength(maxByte != null ? String.valueOf(maxByte) : null);
+                item.setForeignMaxLength(foreignMaxByte != null ? String.valueOf(foreignMaxByte) : null);
+            }
+        }
+        return entryInfoEntities;
+    }
 
     @Override
     public void entryExportByCondition(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, HttpServletResponse response, String taskID) {
-        EntryInfoEntity entryInfoEntity = excelExportVO.getEntryInfoEntity();
+
         List<String> columnNames = excelExportVO.getColumnNames();
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
         Date date = new Date();
@@ -1284,12 +1322,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             taskEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
 
         }
-
-        List entryInfoEntities;
-        if (!CollectionUtils.isEmpty(excelExportVO.getEntryInfoEntities())) {
-            entryInfoEntities = excelExportVO.getEntryInfoEntities();
-        } else {
-            entryInfoEntities = entryInfoMapper.getEntryInfo(entryInfoEntity);
+        List<EntryInfoEntityForExcel> entryInfoEntities = null;
+        try {
+            entryInfoEntities = postProcessEntryInfoForExport(excelExportVO);            
+        } catch (Exception e) {
+            String message = e.getMessage();
+            log.error(message);
+            // 不导出excel
+            entryInfoEntities = new ArrayList<>();
         }
 
         processEntryInfo(entryInfoEntities, columnNames, response, excelName, taskEntity);
@@ -1338,7 +1378,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, List<String> columnNames, HttpServletResponse response, String excelName, TaskInfoEntity taskEntity) {
+    private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities, List<String> columnNames, HttpServletResponse response, String excelName, TaskInfoEntity taskEntity) {
         int numberOfThreads = 32; // Number of threads to use
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
@@ -1346,7 +1386,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         for (int i = 0; i < numberOfThreads; i++) {
             int start = i * chunkSize;
             int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
-            List<EntryInfoEntity> sublist = entryInfoEntities.subList(start, end);
+            List<T> sublist = entryInfoEntities.subList(start, end);
 
             new Thread(() -> {
                 try {
