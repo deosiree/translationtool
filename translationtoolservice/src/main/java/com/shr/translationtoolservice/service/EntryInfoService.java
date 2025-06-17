@@ -104,7 +104,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
 
-    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request);
+    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request,List<String> exceptionMessage);
 
     void doWeight();
 

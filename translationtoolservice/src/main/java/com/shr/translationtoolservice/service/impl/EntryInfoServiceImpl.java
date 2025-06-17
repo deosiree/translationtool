@@ -12,6 +12,9 @@ import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
+import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
+import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.checkerframework.checker.units.qual.A;
@@ -2292,10 +2295,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if (CollectionUtils.isEmpty(entryMap)){
             return new ArrayList<>();
         }
-
+        List<String> exceptionMessages = new ArrayList<>();
         List<EntryInfoEntity> allEntrys = new ArrayList<>();
         try {
-            List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),sourceMap.get(ConstantInterface.TS));
+            List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),sourceMap.get(ConstantInterface.TS),exceptionMessages);
             allEntrys.addAll(tsnoUsedEntrys);   
         } catch (Exception e) {
             // TODO: handle exception
@@ -2303,7 +2306,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         try {
             //查询di 冗余词条
-            List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),sourceMap.get(ConstantInterface.DI));   
+            List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),sourceMap.get(ConstantInterface.DI),exceptionMessages);   
             allEntrys.addAll(dinoUsedEntrys);
         } catch (Exception e) {
             // TODO: handle exception
@@ -2535,7 +2538,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return noUsedEntrys;
     }
 
-    private List<EntryInfoEntity> getDINoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> diList) {
+    private List<EntryInfoEntity> getDINoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> diList,List<String> exceptionMessages) {
+        if(exceptionMessages == null){
+            throw new NullPointerException("exceptionMessages是null");
+        }
         List<EntryInfoEntity> diSourceEntrys = new ArrayList<>();
         Set<String> fileSet = new HashSet<>();
         if ( CollectionUtils.isEmpty(entryInfoEntities)){
@@ -2561,7 +2567,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //查找i18n 词条
         List<EntryInfoEntity> diEntry = new ArrayList<>();
         try {
-            diEntry = diUtils.getDiEntry(i18nUrl,fileSet, "", "", "", "", "");
+            DiEntryResult diEntryResult = diUtils.getDiEntry(i18nUrl,fileSet, "", "", "", "", "");
+            diEntry.addAll(diEntryResult.getResult());
+            exceptionMessages.addAll(diEntryResult.getExceptionMessage());
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -2601,7 +2610,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return noUsedEntrys;
     }
 
-    private List<EntryInfoEntity> getTSNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities,  List<String> tsList) {
+    private List<EntryInfoEntity> getTSNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities,  List<String> tsList,List<String> exceptionMessages) {
         List<EntryInfoEntity> tsSourceEntrys = new ArrayList<>();
         Set<String> fileSet = new HashSet<>();
         if ( CollectionUtils.isEmpty(entryInfoEntities)){
@@ -2626,7 +2635,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //查找i18n 词条
         List<EntryInfoEntity> i18ntsEntry = new ArrayList<>();
         try {
-            i18ntsEntry = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+            // i18ntsEntry = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+            TsEntryResult tsEntryResult = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+            i18ntsEntry.addAll(tsEntryResult.getResult());
+            exceptionMessages.addAll(tsEntryResult.getExceptionMessage());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -2733,10 +2745,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             //调用i18n接口获取ts词条
 
-            List<EntryInfoEntity> tsEntry = null;
-            List<EntryInfoEntity> diEntry = null;
+            List<EntryInfoEntity> tsEntry = new ArrayList<>();
+            List<EntryInfoEntity> diEntry = new ArrayList<>();
             try {
-                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                TsEntryResult tsEntryResult = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult diEntryResult = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                tsEntry.addAll(tsEntryResult.getResult());
+                diEntry.addAll(diEntryResult.getResult());
             } catch (Exception e) {
                 return null;
             }
@@ -2764,7 +2781,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public  List<SourceEntryVO> getEntrysourceListByClassfy(String classfyID,String i18nUrl, HttpServletRequest request) {
+    public  List<SourceEntryVO> getEntrysourceListByClassfy(String classfyID,String i18nUrl, HttpServletRequest request,List<String> exceptionMessage) {
         //TODO:
         //1.获取当前分类下所有任务
         //2.获取每个任务下所有词条
@@ -2775,7 +2792,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //6.合并ts 和di的词条
         //7.对比数据库看哪些是新增的词条
         //8.返回新增词条
-
+        if(exceptionMessage == null){
+            throw new NullPointerException("exceptionMessage为null");
+        }
         String token = request.getHeader("token");
 
         String userName = JWTTokenUtils.getUserName(token);
@@ -2864,15 +2883,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<EntryInfoEntity> configEntry = new ArrayList<>();
             List<EntryInfoEntity> dbEntry = new ArrayList<>();
             try {
-                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());                
-                diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                TsEntryResult tsEntryResult = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());  
+                DiEntryResult diEntryResult = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult enumEntryResult = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult configEntryResult = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // 存放正常获取的信息
+                tsEntry.addAll(tsEntryResult.getResult());
+                diEntry.addAll(diEntryResult.getResult());
+                enumEntry.addAll(enumEntryResult.getResult());
+                configEntry.addAll(configEntryResult.getResult());
+                // 存放异常信息
+                exceptionMessage.addAll(tsEntryResult.getExceptionMessage());
+                exceptionMessage.addAll(diEntryResult.getExceptionMessage());
+                exceptionMessage.addAll(enumEntryResult.getExceptionMessage());
+                exceptionMessage.addAll(configEntryResult.getExceptionMessage());
+                // tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());                
+                // diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
 
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error(e.getMessage());
-                return null;
+                // return null;
+                throw new RuntimeException(e);
             }
             //合并ts和di词条
             List<EntryInfoEntity> allEntry = new ArrayList<>();
