@@ -348,11 +348,13 @@ export default {
   mounted() {
     let _this = this;
     this.$nextTick(() => {
+      // console.log("localStorage", localStorage);// 本地存储
+      // console.log("store data",this.$store.state.user.department);// Vuex存储数据
+      this.search.visualRange = this.$store.state.user.department; // 设置可见范围
+
       this.init();
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem(
-        "colPref-glossary"
-      );
+      const storedPreferences = localStorage.getItem("colPref-glossary");
       if (storedPreferences) {
         const preferences = JSON.parse(storedPreferences);
         this.checkedColumn = preferences.displayColumn.split(",");
@@ -550,7 +552,7 @@ export default {
           this.getSearch();
         })
         .catch((err) => {
-          message.error("编辑失败！",err.message);
+          message.error("编辑失败！", err.message);
         });
     },
     // 取消
