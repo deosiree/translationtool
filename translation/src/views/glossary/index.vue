@@ -545,6 +545,7 @@ export default {
     },
     // 保存
     save(id) {
+      this.loading = true;
       updateSykEntry([this.editableData[id]])
         .then((res) => {
           message.success("编辑成功！");
@@ -553,6 +554,9 @@ export default {
         })
         .catch((err) => {
           message.error("编辑失败！", err.message);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     // 取消
