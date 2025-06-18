@@ -145,6 +145,9 @@ export default {
         i18nUrl: this.i18nURL,
       })
         .then((res) => {
+          if(res.message!=""){
+            message.error(`请求失败: ${res.message}`, 3);
+          }
           // 都放到.then内，可以确保执行顺序
           // console.log("查询来源中新增的词条", res.data.list);
           // 设置默认全选
