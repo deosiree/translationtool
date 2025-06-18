@@ -145,7 +145,7 @@ export default {
         i18nUrl: this.i18nURL,
       })
         .then((res) => {
-          if(res.message!=""){
+          if(res.message){
             message.error(`请求失败: ${res.message}`, 3);
           }
           // 都放到.then内，可以确保执行顺序
@@ -177,10 +177,9 @@ export default {
           this.dataSource = this.selectedRows;
         })
         .catch((error) => {
-          // console.log("error", error);
-          if (error.status==200) {
+          if (error.status == 200) {
             message.error(`请求失败: ${error.data.operationObject}`);
-          }else{
+          } else {
             message.error(`请求失败，状态码: ${error.data.operationObject}`);
           }
         })

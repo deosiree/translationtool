@@ -174,9 +174,33 @@ export default {
         })
         .catch((error) => {
           // console.log("error", error);
-          if (error.status==200) {
-            message.error(`请求失败: ${error.data.operationObject}`);
-          }else{
+          if (error.status == 200) {
+            // message.error(`请求失败: ${error.data.operationObject}`);
+            if (error.data.list) {// 不知道为什么error中也能有error.status==200的情况
+              // 设置默认全选
+              this.redundantEntries = Object.values(error.data.list);
+              // console.log("newDataSource", this.redundantEntries);
+              this.dataSource = [];
+              this.selectedRows = [];
+              this.selectedRowKeys = [];
+              if (this.redundantEntries.length != 0) {
+                this.redundantEntries.forEach((item) => {
+                  const EntryVO = Object.values(item.sourceFileAndEntryVO);
+                  const sourceType = item.type;
+                  if (EntryVO.length != 0) {
+                    EntryVO.forEach((item) => {
+                      this.selectedRowKeys.push(item.sourceFile);
+                      this.selectedRows.push({
+                        sourceFile: item.sourceFile,
+                        sourceType: sourceType,
+                      });
+                    });
+                  }
+                });
+              }
+              this.dataSource = this.selectedRows;
+            }
+          } else {
             message.error(`请求失败，状态码: ${error.data.operationObject}`);
           }
         })
