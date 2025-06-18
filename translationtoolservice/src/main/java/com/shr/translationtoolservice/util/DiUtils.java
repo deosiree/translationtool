@@ -8,6 +8,9 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.entity.vo.TDBFieldInfo;
+import com.shr.translationtoolservice.exception.i18nServerConnectException;
+import com.shr.translationtoolservice.exception.i18nServerParseException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -221,11 +224,14 @@ public class DiUtils {
         }
     }
 
-    public static class DiEntryResult{
+    public static class DiEntryResult<E>{
 
         List<EntryInfoEntity> result = new ArrayList<>();
 
         List<String> exceptionMessage =  new ArrayList<>();
+
+        public Map<Exception,Set<E>> exceptionCollection = new HashMap<>();
+
 
         public DiEntryResult(){}
 
@@ -245,13 +251,19 @@ public class DiUtils {
         public List<String> getExceptionMessage() {
             return exceptionMessage;
         }
+
+        public Map<Exception, Set<E>> getExceptionCollection() {
+            return exceptionCollection;
+        }
+
     }
 
 
-    public DiEntryResult getDiEntry(String i18nUrl, Set<String> difileSet, String taskID, String userName, String productId, String versionID, String translateType) throws Exception {
-        DiEntryResult result = new DiEntryResult();
+    public DiEntryResult<String> getDiEntry(String i18nUrl, Set<String> difileSet, String taskID, String userName, String productId, String versionID, String translateType) throws Exception {
+        DiEntryResult<String> result = new DiEntryResult<>();
         List<EntryInfoEntity> list = result.getResult();
         List<String> exceptionList = result.getExceptionMessage();
+        Map<Exception,Set<String>> exceptionCollection = result.getExceptionCollection();
         
         if (CollectionUtils.isEmpty(difileSet)) {
             return result;
@@ -276,10 +288,24 @@ public class DiUtils {
                 dicName1 = dicName.split("/")[1];
             }
             try {
-                String s = httpUtils.get(i18nUrl + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
-                jsonArray = JSONArray.parseArray(s);   
+                String s = "";
+                try {
+                    s = httpUtils.get(i18nUrl + ConstantInterface.IMPORT_DICTIONARY, headerParameters);                    
+                } catch (Exception e) {
+                    throw new i18nServerConnectException();
+                }
+                try {
+                    jsonArray = JSONArray.parseArray(s);   
+                } catch (Exception e) {
+                    throw new i18nServerParseException();
+                }
             } catch (Exception e) {
-                exceptionList.add("当前读取文件: \"" + dicName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
+                if(!exceptionCollection.containsKey(e)){
+                    exceptionCollection.put(e, new HashSet<>());
+                }
+                exceptionCollection.get(e).add(dicName);
+                
+                // exceptionList.add("当前读取文件: \"" + dicName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
                 continue;
             }
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -331,10 +357,12 @@ public class DiUtils {
     
     
     
-    public DiEntryResult getEnumEntry(String i18nUrl, Set<String> enumfileSet, String taskID, String userName, String productId, String versionId, String translateType) throws Exception {
-        DiEntryResult result = new DiEntryResult();
+    public  DiEntryResult<String> getEnumEntry(String i18nUrl, Set<String> enumfileSet, String taskID, String userName, String productId, String versionId, String translateType) throws Exception {
+        DiEntryResult<String> result = new DiEntryResult<>();
         List<EntryInfoEntity> entryInfoEntities = result.getResult();
         List<String> exceptionMessage = result.getExceptionMessage();
+        Map<Exception,Set<String>> exceptionCollection = result.getExceptionCollection();
+
         if (CollectionUtils.isEmpty(enumfileSet)) {
             return result;
         }
@@ -357,11 +385,24 @@ public class DiUtils {
             }
             headerParameters.put("fileName", fileName);
             try {
-                s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_ENTRY, headerParameters);
-                jsonArray = JSONArray.parseArray(s);                
+                try {
+                    s = httpUtils.get(i18nUrl + ConstantInterface.GET_ENUM_ENTRY, headerParameters);
+                } catch (Exception e) {
+                    throw new i18nServerConnectException();
+                }
+                
+                try {
+                    jsonArray = JSONArray.parseArray(s);      
+                } catch (Exception e) {
+                    throw new i18nServerParseException();
+                }
             } catch (Exception e) {
-                // TODO: handle exception
-                exceptionMessage.add("当前读取文件: \"" + fileName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
+                if(!exceptionCollection.containsKey(e)){
+                    exceptionCollection.put(e, new HashSet<>());
+                }
+                exceptionCollection.get(e).add(fileName);
+                
+                // exceptionMessage.add("当前读取文件: \"" + fileName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
                 continue;
             }
 
@@ -434,10 +475,12 @@ public class DiUtils {
         }
     }
 
-    public DiEntryResult getConfigEntry(String i18nUrl, Set<String> configfileSet, String taskID, String userName, String productID, String versionId, String translateType) throws Exception {
-        DiEntryResult result = new DiEntryResult();
+    public DiEntryResult<String> getConfigEntry(String i18nUrl, Set<String> configfileSet, String taskID, String userName, String productID, String versionId, String translateType) throws Exception {
+        DiEntryResult<String> result = new DiEntryResult<>();
         List<EntryInfoEntity> entryInfoEntities = result.getResult();
         List<String> exceptionMessage = result.getExceptionMessage();
+        Map<Exception,Set<String>> exceptionCollection = result.getExceptionCollection();
+
         if (CollectionUtils.isEmpty(configfileSet)) {
             return result;
         }
@@ -453,11 +496,23 @@ public class DiUtils {
             Map<String, String> headerParameters = new HashMap<>();
             headerParameters.put("fileName", fileName);
             try {
-                s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONGIF_ENTRY,headerParameters);
-                jsonArray = JSONArray.parseArray(s);
+                try {
+                    s = httpUtils.get(i18nUrl + ConstantInterface.GET_CONGIF_ENTRY,headerParameters);   
+                } catch (Exception e) {
+                    throw new i18nServerConnectException();
+                }
+                try {
+                    jsonArray = JSONArray.parseArray(s);
+                } catch (Exception e) {
+                    throw new i18nServerParseException();
+                }
             } catch (Exception e) {
-                // TODO: handle exception
-                exceptionMessage.add("当前读取文件: \"" + fileName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
+                if(!exceptionCollection.containsKey(e)){
+                    exceptionCollection.put(e, new HashSet<>());
+                }
+                exceptionCollection.get(e).add(fileName);
+                
+                // exceptionMessage.add("当前读取文件: \"" + fileName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
                 continue;
             }
             for (int i = 0; i < jsonArray.size(); i++) {

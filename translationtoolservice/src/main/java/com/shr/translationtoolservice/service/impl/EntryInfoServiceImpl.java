@@ -9,6 +9,8 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
+import com.shr.translationtoolservice.exception.i18nServerConnectException;
+import com.shr.translationtoolservice.exception.i18nServerParseException;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
@@ -39,6 +41,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.concurrent.locks.ReentrantLock;
@@ -2780,6 +2783,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         entryUtils.caseNewEntry(allEntry, taskID,newEntry);
     }
 
+    private <E> void constructExceptionMessage(List<String> exceptionMessage,Map<Exception, Set<E>> exceptionCollection){
+        constructExceptionMessage(exceptionMessage, exceptionCollection,null,null);
+    }
+
+    private <E> void constructExceptionMessage(List<String> exceptionMessage,Map<Exception, Set<E>> exceptionCollection,String prefix,String suffix){
+        for(Map.Entry<Exception,Set<E>> entry : exceptionCollection.entrySet()){
+            if(entry.getKey() instanceof i18nServerConnectException){
+                exceptionMessage.add("i18n服务连接异常, 检测i18n服务是否开启");
+            }else{
+                exceptionMessage.add((prefix != null ? prefix : "") + entry.getKey().toString() + ": " + entry.getValue().toString() + (suffix != null ? suffix : ""));
+            }
+        }
+        return;
+    }
+
     @Override
     public  List<SourceEntryVO> getEntrysourceListByClassfy(String classfyID,String i18nUrl, HttpServletRequest request,List<String> exceptionMessage) {
         //TODO:
@@ -2883,20 +2901,20 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<EntryInfoEntity> configEntry = new ArrayList<>();
             List<EntryInfoEntity> dbEntry = new ArrayList<>();
             try {
-                TsEntryResult tsEntryResult = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());  
-                DiEntryResult diEntryResult = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                DiEntryResult enumEntryResult = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                DiEntryResult configEntryResult = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                TsEntryResult<String> tsEntryResult = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());  
+                DiEntryResult<String> diEntryResult = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult<String> enumEntryResult = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult<String> configEntryResult = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 // 存放正常获取的信息
                 tsEntry.addAll(tsEntryResult.getResult());
                 diEntry.addAll(diEntryResult.getResult());
                 enumEntry.addAll(enumEntryResult.getResult());
                 configEntry.addAll(configEntryResult.getResult());
                 // 存放异常信息
-                exceptionMessage.addAll(tsEntryResult.getExceptionMessage());
-                exceptionMessage.addAll(diEntryResult.getExceptionMessage());
-                exceptionMessage.addAll(enumEntryResult.getExceptionMessage());
-                exceptionMessage.addAll(configEntryResult.getExceptionMessage());
+                constructExceptionMessage(exceptionMessage, tsEntryResult.getExceptionCollection());
+                constructExceptionMessage(exceptionMessage, diEntryResult.getExceptionCollection());
+                constructExceptionMessage(exceptionMessage, enumEntryResult.getExceptionCollection());
+                constructExceptionMessage(exceptionMessage, configEntryResult.getExceptionCollection());
                 // tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());                
                 // diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
                 // enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
