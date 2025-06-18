@@ -63,17 +63,17 @@
         <div style="width:100%;position: absolute;">
           <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
             :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="glossaryTable"
-            @resizeColumn="handleResizeColumn" :customRow="customRow"
+            @resizeColumn="handleResizeColumn"
             :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll} : null">
             <template #bodyCell="{ column, record,text}">
               <template v-if="column.dataIndex === 'translate'">
                 <div>
                   <template v-if="editableData[record.id]">
                     <a-input v-model:value="editableData[record.id][column.dataIndex]" @pressEnter="editOK(record)" style="margin: -5px 0"
-                      @click="clickInput" />
+                      @click="clickInput" :ref="el => inputRefs[record.id] = el" />
                   </template>
                   <template v-else>
-                    {{ text }}
+                    <span @dblclick="dbclickEdited(record.id)">{{ text }}</span>
                   </template>
                 </div>
               </template>
@@ -154,7 +154,7 @@ import {
   getRowClassName,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/commonUtils";
-import { defineComponent, ref, createVNode } from "vue";
+import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
     SearchBox,
@@ -343,6 +343,7 @@ export default {
         checkSykEntry: this.checkSykEntry,
       },
       requestId: null, // 存储校验按钮的http请求
+      inputRefs: {}, // 初始化一个对象用于存储输入框的 ref
     };
   },
   mounted() {
@@ -581,7 +582,33 @@ export default {
     relationClose() {
       this.relationVisible = false;
     },
+    // 聚焦单元格
+    focusCell(recordId) {
+      console.log("聚焦单元格", recordId);
+      nextTick(() => {
+        const inputElement = this.inputRefs[recordId];
+        if (inputElement) {
+          const input = inputElement.input;
+          console.log("input", input);
+          if (input) {
+            input.focus();
+            const length = input.value.length;
+            console.log("input.value", input.value);
+            // 设置光标位置到文本末尾
+            input.setSelectionRange(length, length);
+          }
+        }
+      });
+    },
+    // 双击未打开编辑状态的单元格
+    dbclickEdited(recordId) {
+      this.editableData[recordId] = cloneDeep(
+        this.dataSource.filter((item) => recordId === item.id)[0]
+      );
+      console.log("editableData", this.editableData[recordId]);
 
+      this.focusCell(recordId); // 调用点击编辑方法
+    },
     // 添加表格行点击事件
     customRow(record, index) {
       return {
