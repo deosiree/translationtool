@@ -177,12 +177,19 @@ public class UserManageServiceImpl implements UserManageService {
                 } else {
                     userDetailsVo.setAdmin(false);
                 }
+                if(user.getRoleName().contains(ConstantInterface.DEVELOP_ADMIN)){
+                    userDetailsVo.setDevelopAdmin(true);
+                }else{
+                    userDetailsVo.setDevelopAdmin(false);
+                }
+
             }else {
                 userDetailsVo.setTranslator(false);
                 userDetailsVo.setDeveloper(false);
                 userDetailsVo.setTranslateReviewer(false);
                 userDetailsVo.setEntryReviewer(false);
                 userDetailsVo.setAdmin(false);
+                userDetailsVo.setDevelopAdmin(false);
                 userDetailsVo.setDepartment(department);
             }
             userDetailsVos.add(userDetailsVo);
@@ -306,6 +313,11 @@ public class UserManageServiceImpl implements UserManageService {
                 // 翻译审核员
                 roleIdList.add(roleMap.get(ConstantInterface.TRANSLATE_AUDITOR).getId());
                 roleNameList.add(roleMap.get(ConstantInterface.TRANSLATE_AUDITOR).getRoleName());
+            }
+            if(userDetailsVo.getDevelopAdmin()){
+                // 开发管理员
+                roleIdList.add(roleMap.get(ConstantInterface.DEVELOP_ADMIN).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.DEVELOP_ADMIN).getRoleName());
             }
             user.setRoleName(roleNameList);
             user.setRoleId(roleIdList);

@@ -147,6 +147,7 @@ public class ConstantInterface {
     public static final String TRANSLATOR = "翻译员";
     public static final String DEVELOPER = "开发员";
     public static final String ADMIN = "管理员";
+    public static final String DEVELOP_ADMIN = "开发管理员";
 
 
     public static final String EN_TRANS = "英文翻译";
