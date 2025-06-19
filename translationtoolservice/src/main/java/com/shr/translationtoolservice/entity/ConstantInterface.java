@@ -314,6 +314,9 @@ public class ConstantInterface {
         entryName.put("回写类型", "writeType");
         entryName.put("DI文件名", "diFileName");
         entryName.put("comment", "comment");
+
+        entryName.put("中文字符上限", "maxChineseLength");
+        entryName.put("外文字符上限", "foreignMaxLength");
         return entryName;
     }
 
