@@ -2,12 +2,21 @@ package com.shr.translationtoolservice.util;
 
 import org.springframework.stereotype.Component;
 
+import com.shr.translationtoolservice.entity.EntryInfoEntity;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Component
 public class LocalTimeUtils {
+
+    public static DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     public Date getBeijingTime() {
         // 获取当前时间
@@ -27,4 +36,64 @@ public class LocalTimeUtils {
         // 格式化输出
         return  beijingTime;
     }
+
+    public static List<EntryInfoEntity> filterEntryInfoBeforeTime(List<EntryInfoEntity> entryInfoEntities,Date endTime){
+        if(endTime == null){
+            throw new RuntimeException("无法进行时间过滤功能,endTime为null");
+        }
+        return entryInfoEntities.stream().filter(new Predicate<EntryInfoEntity>() {
+            @Override
+            public boolean test(EntryInfoEntity t) {
+                // TODO Auto-generated method stub
+                Date time = t.getUpdateTime();
+                if(time == null){
+                    return true;
+                }
+                boolean result = time.before(endTime);
+                return result;
+            }
+            
+        }).collect(Collectors.toList());
+    }   
+
+    public static List<EntryInfoEntity> filterEntryInfoAfterTime(List<EntryInfoEntity> entryInfoEntities,Date startTime){
+        if(startTime == null){
+            throw new RuntimeException("无法进行时间过滤功能,startTime为null");
+        }
+        return entryInfoEntities.stream().filter(new Predicate<EntryInfoEntity>() {
+            @Override
+            public boolean test(EntryInfoEntity t) {
+                // TODO Auto-generated method stub
+                Date time = t.getUpdateTime();
+                if(time == null){
+                    return true;
+                }
+                boolean result = time.after(startTime);
+                return result;
+            }
+            
+        }).collect(Collectors.toList());
+    }   
+
+    public static List<EntryInfoEntity> filterEntryInfoByTime(List<EntryInfoEntity> entryInfoEntities,Date startTime,Date endTime){
+        if(startTime == null || endTime == null){
+            throw new RuntimeException("无法进行时间过滤功能,startTime和endTime存在null");
+        }
+        if(startTime.getTime() > endTime.getTime()){
+            throw new RuntimeException("起始日期大于终止日期");
+        }
+        return entryInfoEntities.stream().filter(new Predicate<EntryInfoEntity>() {
+            @Override
+            public boolean test(EntryInfoEntity t) {
+                // TODO Auto-generated method stub
+                Date time = t.getUpdateTime();
+                if(time == null){
+                    return true;
+                }
+                boolean result = time.before(endTime) && time.after(startTime);
+                return result;
+            }
+            
+        }).collect(Collectors.toList());
+    }   
 }

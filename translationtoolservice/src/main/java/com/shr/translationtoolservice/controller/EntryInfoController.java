@@ -229,13 +229,15 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntityTemplate,
                                                                               @RequestParam(value = "classfyID") String classfyID,
                                                                                  String translateType,
+                                                                              @RequestParam(value = "startTime",required = false)  String startTime,
+                                                                              @RequestParam(value = "endTime",required = false) String endTime,
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
         List<EntryInfoEntity> originalEntryInfoEntities = new ArrayList<>();
 
         // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
-        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID);
+        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID,startTime,endTime);
         List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
         // responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());

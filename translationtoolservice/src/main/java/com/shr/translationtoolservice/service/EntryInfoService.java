@@ -89,7 +89,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> replaceWords(List<EntryInfoEntity> entryInfoEntities, String sourceStr, String replaceStr,String translateType);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType,String startTime,String endTime);
 
     int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
@@ -110,7 +110,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID,String startTime,String endTime);
 
     List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
 

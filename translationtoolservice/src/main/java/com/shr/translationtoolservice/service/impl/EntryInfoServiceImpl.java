@@ -16,7 +16,7 @@ import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
-
+import java.util.Calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.checkerframework.checker.units.qual.A;
@@ -35,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -2039,7 +2041,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
-    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID){
+    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID,String startTime,String endTime){
         List<String> productidList = new ArrayList<>();
         //一级分类查询
         if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
@@ -2051,7 +2053,24 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
           return null;
         }*/
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList, -1,-1);
-        return entryInfoEntities;
+        boolean hasStartTime = (startTime != null && startTime != "");
+        boolean hasEndTime = (endTime != null && endTime != "");
+        DateFormat format = LocalTimeUtils.format;
+        
+        try {
+            if(hasStartTime && hasEndTime){
+                return LocalTimeUtils.filterEntryInfoByTime(entryInfoEntities, format.parse(startTime), format.parse(endTime));
+            }else if(hasStartTime){
+                return LocalTimeUtils.filterEntryInfoAfterTime(entryInfoEntities, format.parse(startTime));
+            }else if(hasEndTime){
+                return LocalTimeUtils.filterEntryInfoBeforeTime(entryInfoEntities, format.parse(endTime));
+            }else{
+                return entryInfoEntities;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
     }
 
     public List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize){
@@ -2107,7 +2126,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Deprecated
     @Override
-    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType) {
+    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType,String startTime,String endTime) {
         List<String> productidList = new ArrayList<>();
         getProductClassfyList(classfyID,productidList);
         //查询当前分类及其所有子分类,如果没有则说明当前分类是最底层分类（产品）
