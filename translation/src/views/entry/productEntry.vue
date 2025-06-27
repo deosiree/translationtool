@@ -45,6 +45,12 @@
             <a-form-item label="comment" name="comment" style="margin-top: 8px">
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
+            <a-form-item label="开始时间" name="startTime" style="margin-top: 8px">
+              <a-date-picker v-model:value="startTime" />
+            </a-form-item>
+            <a-form-item label="结束时间" name="endTime" style="margin-top: 8px">
+              <a-date-picker v-model:value="endTime" />
+            </a-form-item>
           </a-row>
           <a-row style="width:100%" class="search-row" justify="end">
             <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
@@ -477,7 +483,11 @@ export default {
         translateState: null,
         translate: "",
         comment: "",
+        startTime: null,
+        endTime: null,
       },
+      startTime: null,
+      endTime: null,
       translateStates: [
         { label: "未翻译", value: "0" },
         { label: "待审核", value: "1" },
@@ -697,6 +707,40 @@ export default {
     productEdit(newval, oldval) {
       this.edit = newval;
     },
+    startTime(newValue) {
+      // console.log("日期格式",newValue)
+      if (newValue) {
+        this.search.startTime = `${newValue.$y}-${newValue.$M + 1}-${
+          newValue.$D
+        }`; // 格式化日期为 YYYY-MM-DD 格式;
+        // console.log("日期格式",this.search.startTime)
+        if(this.endTime){
+          if (this.startTime > this.endTime) {
+            message.error("开始时间不能大于结束时间！");
+            this.search.startTime = null;
+            this.startTime = null;
+          }
+        }
+      } else {
+        this.search.startTime = null;
+      }
+    },
+    endTime(newValue) {
+      if (newValue) {
+        this.search.endTime = `${newValue.$y}-${newValue.$M + 1}-${
+          newValue.$D
+        }`; // 格式化日期为 YYYY-MM-DD 格式;
+        if(this.startTime){
+          if (this.startTime > this.endTime) {
+            message.error("结束时间不能小于开始时间！");
+            this.endTime = null;
+            this.search.endTime = null;
+          }
+        }
+      } else {
+        this.search.endTime = null;
+      }
+    },
   },
   unmounted() {},
   methods: {
@@ -799,6 +843,7 @@ export default {
     },
     // 获取版本词条
     getEntryByVersion() {
+      // console.log("获取版本词条",this.search);
       if (Object.keys(this.product).length === 0) {
         return;
       }
@@ -829,19 +874,6 @@ export default {
       } else {
         data.versionID = this.currentVersion;
       }
-      // if (this.search.language === "英文") {
-      //   data.english = this.search.translate;
-      //   data.englishTranslateState = this.search.translateState;
-      // } else if (this.search.language === "俄文") {
-      //   data.russian = this.search.translate;
-      //   data.russianTranslateState = this.search.translateState;
-      // } else if (this.search.language === "西文") {
-      //   data.spanish = this.search.translate;
-      //   data.spanishTranslateState = this.search.translateState;
-      // } else if (this.search.language === "法文") {
-      //   data.french = this.search.translate;
-      //   data.frenchTranslateState = this.search.translateState;
-      // }
       commonParam.languageList.forEach((item) => {
         if (this.search.language === item.name) {
           data[item.value] = this.search.translate;
@@ -853,16 +885,11 @@ export default {
         translateType: this.search.language,
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
+        startTime: this.search.startTime,
+        endTime: this.search.endTime,
       };
       this.loading = true;
 
-      // getEntryByVersion(data,params).then((res) => {
-      //     this.dataSource = res.data.list
-      //     this.loading = false
-      //     this.pagination.total = res.data.totalNum
-      // }).catch((err) => {
-      //     this.loading = false
-      // })
       getEntryByClassfy(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
@@ -897,31 +924,6 @@ export default {
         item.tableName = version.tableName;
         if (element.translateEntity) {
           element.translateEntity.forEach((tran) => {
-            // if (tran.type === "英文") {
-            //   item.english = tran.translate;
-            //   item.englishId = tran.id;
-            //   item.englishTranslateState = tran.translateState;
-            //   item.englishPublicState = tran.publicState;
-            //   item.englishChecked = false;
-            // } else if (tran.type === "俄文") {
-            //   item.russian = tran.translate;
-            //   item.russianId = tran.id;
-            //   item.russianTranslateState = tran.translateState;
-            //   item.russianPublicState = tran.publicState;
-            //   item.russianChecked = false;
-            // } else if (tran.type === "西文") {
-            //   item.spanish = tran.translate;
-            //   item.spanishId = tran.id;
-            //   item.spanishTranslateState = tran.translateState;
-            //   item.spanishPublicState = tran.publicState;
-            //   item.spanishChecked = false;
-            // } else if (tran.type === "法文") {
-            //   item.french = tran.translate;
-            //   item.frenchId = tran.id;
-            //   item.frenchTranslateState = tran.translateState;
-            //   item.frenchPublicState = tran.publicState;
-            //   item.frenchChecked = false;
-            // }
             commonParam.languageList.forEach((lang) => {
               if (tran.type === lang.name) {
                 item[lang.value] = tran.translate;
@@ -1367,19 +1369,6 @@ export default {
       } else {
         data.versionID = this.currentVersion;
       }
-      // if (this.search.language === "英文") {
-      //   data.english = this.search.translate;
-      //   data.englishTranslateState = this.search.translateState;
-      // } else if (this.search.language === "俄文") {
-      //   data.russian = this.search.translate;
-      //   data.russianTranslateState = this.search.translateState;
-      // } else if (this.search.language === "西文") {
-      //   data.spanish = this.search.translate;
-      //   data.spanishTranslateState = this.search.translateState;
-      // } else if (this.search.language === "法文") {
-      //   data.french = this.search.translate;
-      //   data.frenchTranslateState = this.search.translateState;
-      // }
       commonParam.languageList.forEach((item) => {
         if (this.search.language === item.name) {
           data[item.value] = this.search.translate;
@@ -1389,24 +1378,12 @@ export default {
       let params = {
         classfyID: this.product.key,
         translateType: this.search.language,
+        startTime: this.search.startTime,
+        endTime: this.search.endTime,
         pageIndex: -1,
         pageSize: -1,
       };
       this.loading = true;
-      // getEntryByVersion(data,params).then((res) => {
-      //     this.selectEntry = []
-      //     this.selectedRowKeys = []
-      //     this.selectedRows = res.data.list
-      //     this.selectEntry = res.data.list
-      //     res.data.list.forEach(item => {
-      //         this.selectedRowKeys.push(item.id)
-      //     })
-      //     this.loading = false
-      //     this.selectAllLoading = false
-      // }).catch((err) => {
-      //     this.loading = false
-      //     this.selectAllLoading = false
-      // })
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectEntry = [];
@@ -1512,11 +1489,6 @@ export default {
         };
       }
       let index = this.dataSource.indexOf(entry);
-      // if(index === this.pagination.pageSize - 1){
-      //     this.dataSource.splice(index,0,copyEntry)
-      // }else{
-      //     this.dataSource.splice(index + 1,0,copyEntry)
-      // }
       this.dataSource.splice(index + 1, 0, copyEntry);
       this.editableData[copyEntry.id] = copyEntry;
       this.getRowClassify2Option(copyEntry);
