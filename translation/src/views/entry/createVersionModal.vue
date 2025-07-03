@@ -67,6 +67,7 @@
       <a-button type="primary" danger @click="deleteEntrys">删除</a-button>
       <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
+      <a-button type="primary" @click="exportCSV">导出CSV</a-button>
       <a-button type="primary" @click="examine">提交审核/翻译</a-button>
     </template>
   </CustomModal>
@@ -83,7 +84,7 @@
         </a-form-item>
       </a-form>
       <a-spin :spinning="exportLoading">
-        <a-form v-if="title === '导出'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
+        <a-form v-if="title === '导出'||title === '导出CSV'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
           <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
             <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
               placeholder="请选择" allowClear></a-select>
@@ -468,6 +469,23 @@ export default {
         }
       });
     },
+    // 导出Excel
+    exportCSV() {
+      this.operateVisible = true;
+      setModalAriaHidden(this, document);
+      this.operateWidth = "500px";
+      this.title = "导出CSV";
+
+      // 获取用户偏好
+      queryUserPartiality().then((res) => {
+        if (res.data.list && res.data.list.length > 0) {
+          let exportColumn = res.data.list[0].exportColumn;
+          if (exportColumn != null && exportColumn != "") {
+            this.exportClass.field = exportColumn.split(",");
+          }
+        }
+      });
+    },
     exportFieldChange(value) {
       let data = {
         exportColumn: value.join(","),
@@ -545,6 +563,39 @@ export default {
                 .split(";")[1]
                 .split("filename=")[1];
               let contentType = res.headers["content-type"];
+              const blob = new Blob([res.data], { type: contentType });
+              const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
+              a.download = decodeURI(fileName);
+              a.href = window.URL.createObjectURL(blob);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(a.href);
+              this.operateVisible = false;
+              this.$emit("createClose");
+              this.$emit("cancelCreate");
+            })
+            .finally(() => {
+              this.exportLoading = false;
+            });
+          // 记录偏好
+          this.exportFieldChange(this.exportClass.field);
+        });
+      } else if (this.title === "导出CSV") {
+        this.exportLoading = true;
+        this.$refs.exportForm.validate().then(() => {
+          // 导出接口
+          let fields = ["id"].concat(this.exportClass.field);
+          let data = {
+            columnNames: fields,
+            entryInfoEntities: this.dataSource,
+            excelName: "词条导出",
+          };
+          let params = {};
+          entryExportByCondition(data, params)
+            .then((res) => {
+              // console.log("导出结果:", res);
+              let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1].split(".")[0] + ".csv";//把xlsx改名为csv
+              let contentType = "text/csv;charset=utf-8";
               const blob = new Blob([res.data], { type: contentType });
               const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
               a.download = decodeURI(fileName);

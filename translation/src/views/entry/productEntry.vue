@@ -87,6 +87,7 @@
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
           <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button>
+          <a-button type="primary" size="small" v-if="admin" @click="importEntryByCSV">导入CSV</a-button>
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -358,7 +359,7 @@
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
 
-  <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
+  <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入XLSX" @handleClose="importClose" @handleOK="importOK"
     @afterClose="importAfterClose">
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="importModal">
@@ -369,6 +370,24 @@
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
           <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
+            @remove="removeFile">
+            <a-button type="primary" size="small">选择</a-button>
+          </a-upload>
+        </a-form-item>
+      </a-form>
+    </div>
+  </CustomModal>
+  <CustomModal :visible="importCSVVisible" :okLoading="importLoading" modalTitle="导入CSV" @handleClose="importClose" @handleOK="importCSVOK"
+    @afterClose="importAfterClose">
+    <div class="content">
+      <a-form ref="formRef" name="custom-validation" :model="importModal">
+        <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
+          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
+            allowClear>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
+          <a-upload name="file" :beforeUpload="beforeUpload" :accept="acceptCSV" :max-count="1" :fileList="fileList" @change="handleChange"
             @remove="removeFile">
             <a-button type="primary" size="small">选择</a-button>
           </a-upload>
@@ -646,7 +665,9 @@ export default {
       dictionaryVisible: false,
       selectAllLoading: false,
       accept: ".xls,.xlsx",
+      acceptCSV: ".csv",
       importVisible: false,
+      importCSVVisible: false,
       importLoading: false,
       importModal: {
         language: null,
@@ -714,7 +735,7 @@ export default {
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
         // console.log("日期格式",this.search.startTime)
-        if(this.endTime){
+        if (this.endTime) {
           if (this.startTime > this.endTime) {
             message.error("开始时间不能大于结束时间！");
             this.search.startTime = null;
@@ -730,7 +751,7 @@ export default {
         this.search.endTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
-        if(this.startTime){
+        if (this.startTime) {
           if (this.startTime > this.endTime) {
             message.error("结束时间不能小于开始时间！");
             this.endTime = null;
@@ -1596,8 +1617,14 @@ export default {
       this.importVisible = true;
       setModalAriaHidden(this, document);
     },
+    // 导入词条(CSV格式)
+    importEntryByCSV() {
+      this.importCSVVisible = true;
+      setModalAriaHidden(this, document);
+    },
     importClose() {
       this.importVisible = false;
+      this.importCSVVisible = false;
     },
     importOK() {
       this.$refs.formRef
@@ -1612,6 +1639,32 @@ export default {
               message.success("导入成功！");
               this.getEntryByVersion();
               this.importVisible = false;
+              this.importCSVVisible = false;
+              this.importLoading = false;
+            })
+            .catch((err) => {
+              message.error("导入失败！", err.message);
+              this.importLoading = false;
+            });
+        })
+        .catch((err) => {
+          message.error(err.message);
+        });
+    },
+    importCSVOK() {
+      this.$refs.formRef
+        .validate()
+        .then(() => {
+          this.importLoading = true;
+          let formData = new FormData();
+          formData.append("file", this.importFile);
+          formData.append("transType", this.importModal.language);
+          entryImportExcle(formData)
+            .then((res) => {
+              message.success("导入成功！");
+              this.getEntryByVersion();
+              this.importVisible = false;
+              this.importCSVVisible = false;
               this.importLoading = false;
             })
             .catch((err) => {

@@ -74,7 +74,7 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
       }
       // 使用 find 方法查找对应的 checkboxList 项
       const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
-      console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
+      // console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
       const newCol = createColumn(col, normalWidth);
       vm.columns.splice(-1, 0, newCol);
     }

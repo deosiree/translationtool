@@ -22,7 +22,6 @@ export default {
     { label: "法文翻译状态", value: "frenchTranslateState", index: 24 },
     { label: "一级分类", value: "classfy1", index: 25 },
     { label: "二级分类", value: "classfy2", index: 26 },
-    { label: "二级分类", value: "classfy2", index: 26 },
     // { label: "中文字符上限", value: "maxChineseLength", index: 26 },
     // { label: "外文字符上限", value: "foreignMaxLength", index: 26 },
     { label: "辞典名称", value: "diFileName", index: 26.1 },
