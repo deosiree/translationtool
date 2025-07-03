@@ -2,8 +2,48 @@ import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import common from "@/views/workbench/common.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 import tableParam from '@/views/entry/tableParam';
+import commonParam from "@/utils/commonParam.js";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
+
+// 释义替换翻译
+export function interpretation2value(vm) {
+  // 遍历选中的行
+  vm.selectedRows.forEach((row) => {
+    // 遍历语言列表
+    commonParam.languageList.forEach((lang) => {
+      const langValue = lang.value;
+      const interpretationKey = lang.interpretation;
+      if (row.hasOwnProperty(interpretationKey)) {
+        // 替换释义为对应语言的值
+        row[langValue] = row[interpretationKey];
+      }
+    });
+  });
+
+  // 更新 vm.dataSource
+  if (vm.dataSource) {
+    const newdataSource = vm.dataSource.map((item) => {
+      const selectedRow = vm.selectedRows.find((row) => row.id === item.id);
+      return selectedRow ? { ...item, ...selectedRow } : item;
+    });
+    vm.dataSource = newdataSource;
+  }
+  // 更新 vm.allData
+  if (vm.allData) {
+    const newallData = vm.allData.map((item) => {
+      const selectedRow = vm.selectedRows.find((row) => row.id === item.id);
+      return selectedRow ? { ...item, ...selectedRow } : item;
+    });
+    vm.allData = newallData;
+  }
+  // 强制更新表格
+  vm.$nextTick(() => {
+    if (vm.$refs.workTable && vm.$refs.workTable.reload) {
+      vm.$refs.workTable.reload();
+    }
+  });
+}
 
 /**
  * 从本地存储读取用户列偏好并更新组件状态
