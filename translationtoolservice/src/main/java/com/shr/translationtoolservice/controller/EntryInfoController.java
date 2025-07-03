@@ -839,6 +839,7 @@ public class EntryInfoController extends BaseController {
             return httpResponse;
         } catch (Exception e) {
             // TODO: handle exception
+            log.error(null, e);
             return checkResult(null,e.getMessage());
         }
     }

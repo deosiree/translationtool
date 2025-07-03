@@ -2889,19 +2889,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             Set<String> dbfileSet = new HashSet<>();
             for (EntryInfoEntity entryInfoEntity : entryByTaskID) {
                 if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())) {
-                    if (entryInfoEntity.getImportType().equals(ConstantInterface.TS)) {
+                    String importType = entryInfoEntity.getImportType();
+                    if(importType == null){
+                        continue;
+                    }
+                    if (importType.equals(ConstantInterface.TS)) {
                         tsEntryList.add(entryInfoEntity.getEntry());
                         tsfileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.DI)) {
+                    } else if (importType.equals(ConstantInterface.DI)) {
                         diEntryList.add(entryInfoEntity.getEntry());
                         difileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.ENUM)) {
+                    } else if (importType.equals(ConstantInterface.ENUM)) {
                         enumEntryList.add(entryInfoEntity.getEntry());
                         enumfileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.CONFIG)) {
+                    } else if (importType.equals(ConstantInterface.CONFIG)) {
                         configEntryList.add(entryInfoEntity.getEntry());
                         configfileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.DB)) {
+                    } else if (importType.equals(ConstantInterface.DB)) {
                         dbEntryList.add(entryInfoEntity.getEntry());
                         dbfileSet.add(entryInfoEntity.getEntrySource());
                     }
