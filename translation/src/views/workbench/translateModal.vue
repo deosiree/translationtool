@@ -44,6 +44,22 @@
             </a-button>
           </a-dropdown>
           <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="replace">替换</a-button> -->
+                      <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+              <template #content>
+                <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+                  <a-row v-for="item in checkboxList" :key="item.value">
+                    <a-col :span="24">
+                      <a-checkbox :value="item.value">
+                        {{ item.label }}
+                      </a-checkbox>
+                    </a-col>
+                  </a-row>
+                </a-checkbox-group>
+              </template>
+              <a-button type="primary" size="small" style="margin-left:8px"><template #icon>
+                  <SettingOutlined />
+                </template>展示列</a-button>
+            </a-popover>
         </div>
         <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
           :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child" ref="tableContainer"
@@ -280,6 +296,7 @@ import {
   SearchOutlined,
   InfoCircleOutlined,
   DownOutlined,
+  SettingOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
@@ -302,6 +319,7 @@ export default {
     SearchOutlined,
     InfoCircleOutlined,
     DownOutlined,
+    SettingOutlined,
   },
   emits: ["handleClose", "handleOK"],
   props: {
@@ -472,6 +490,19 @@ export default {
         auditSuggest: "",
       },
       shouldCheckSykEntry: false, // 新增勾选状态变量
+      overlayStyle: workbenchCommon.overlayStyle, // 展示列
+      checkedColumn: workbenchCommon.checkedColumn, // 展示列切换
+      // 移除固定列对应的配置项
+      checkboxList: commonParam.checkboxList.filter(
+        (item) =>
+          ![
+            "isExist",
+            "translateState",
+            "entryState",
+            "entry",
+            "translate",
+          ].includes(item.value)
+      ),
     };
   },
   watch: {
@@ -1545,10 +1576,85 @@ export default {
         replaceStr: null,
       };
     },
+    // 展示列切换
+    changeColumn(checkedValue) {
+      this.checkedColumn = checkedValue;
+
+      this.checkboxList.forEach((value) => {
+        // 查找当前勾选列表中是否存在该列
+        let checkedIndex = this.checkedColumn.findIndex(
+          (item) => item === value.value
+        );
+        // 查找当前表格列中是否存在该列
+        let nowColumnIndex = this.columns.findIndex(
+          (item) => item.dataIndex === value.value
+        );
+        // 若勾选状态和列存在状态一致，则跳过
+        if (
+          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
+          (nowColumnIndex === -1 && checkedIndex === -1)
+        ) {
+          return;
+        }
+        // 若勾选了但列不存在，则添加列
+        if (nowColumnIndex === -1 && checkedIndex !== -1) {
+          let newCol = {
+            title: value.label,
+            dataIndex: value.value,
+            align: "center",
+            width: 100,
+            ellipsis: true,
+            resizable: true,
+            index: value.index,
+          };
+          if (
+            ["isExist", "translateState", "entry"].includes(newCol.dataIndex)
+          ) {
+            newCol.fixed = "left";
+          }
+          if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
+            newCol.fixed = "right";
+          }
+          if (newCol.dataIndex === "entrySource") {
+            // 添加词条来源可筛选
+            newCol.customFilterDropdown = true;
+            newCol.filteredValue = null;
+            newCol.onFilter = (value, record) =>
+              record.entrySource
+                .toString()
+                .toLowerCase()
+                .includes(value.toLowerCase());
+          }
+          this.columns.splice(-1, 0, newCol);
+        }
+        // 若未勾选但列存在，则移除列
+        if (nowColumnIndex !== -1 && checkedIndex === -1) {
+          this.columns.splice(nowColumnIndex, 1);
+        }
+      });
+
+      this.columns.sort((a, b) => a.index - b.index);
+
+      // 记录
+      let data = {
+        displayColumn: checkedValue.join(","),
+      };
+      // this.recordPartiality(data);
+      localStorage.setItem("colPref-translateModal", JSON.stringify(data)); // localStorage存储用户偏好
+      // console.log("已保存列偏好设置", data);
+    },
   },
   mounted() {
     let _this = this;
     this.$nextTick(() => {
+      // 读取本地存储的用户偏好
+      const storedPreferences = localStorage.getItem("colPref-translateModal");
+      if (storedPreferences) {
+        const preferences = JSON.parse(storedPreferences);
+        this.checkedColumn = preferences.displayColumn.split(",");
+        // 调用 changeColumn 方法更新列显示
+        this.changeColumn(this.checkedColumn);
+      }
       // this.init();
       window.onresize = function () {
         _this.setTableHeight();
