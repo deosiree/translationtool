@@ -158,6 +158,9 @@ import {
 import { message, Modal } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
+import {
+  getColPref,
+} from "@/utils/tableUtils";
 import common from "../entry/common.js";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -347,12 +350,7 @@ export default {
     this.task = this.currentTask;
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem("colPref-archiveModal");
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        this.changeColumn(this.checkedColumn);
-      }
+      getColPref("colPref-archiveModal", 100, this);
     });
   },
   watch: {

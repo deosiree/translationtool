@@ -228,6 +228,7 @@ import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
+import { getColPref } from "@/utils/tableUtils";
 import { computed, defineComponent, ref } from "vue";
 import {
   CheckOutlined,
@@ -417,17 +418,7 @@ export default {
     // workbenchCommon.languageMap[this.task.translateType].code
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem(
-        "colPref-examineTranslateModal"
-      );
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        this.columns = [...this.columns]; // 初始化 columns 时包含固定列
-        this.changeColumn(this.checkedColumn);
-      } else {
-        this.columns = [...this.columns]; // 初始化 columns 时包含固定列
-      }
+      getColPref("colPref-examineTranslateModal", 100, this);
     });
   },
   watch: {

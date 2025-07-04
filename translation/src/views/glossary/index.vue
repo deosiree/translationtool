@@ -152,6 +152,7 @@ import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
+  getColPref,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
@@ -355,12 +356,7 @@ export default {
 
       this.init();
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem("colPref-glossary");
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        this.changeColumn(this.checkedColumn);
-      }
+      getColPref("colPref-glossary", 150, this);
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();

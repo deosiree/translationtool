@@ -548,6 +548,7 @@ import {
   getMaxLength,
   handleExceedLength,
   interpretation2value,
+  getColPref,
 } from "@/utils/tableUtils";
 const filteredInfo = {};
 export default {
@@ -786,13 +787,7 @@ export default {
     this.task = this.currentTask;
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem("colPref-importModal");
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        // 调用 changeColumn 方法更新列显示
-        this.changeColumn(this.checkedColumn);
-      }
+      getColPref("colPref-importModal", 100, this);
     });
   },
   watch: {

@@ -170,6 +170,7 @@ import {
   onSelect,
   onSelectAll,
   clearAllEntry,
+  getColPref,
 } from "@/utils/tableUtils"; // 引入工具函数
 import { setModalAriaHidden } from "@/utils/commonUtils";
 
@@ -344,14 +345,7 @@ export default {
     this.$nextTick(() => {
       this.init();
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem(
-        "redundantEntryCheckColumnPreferences"
-      );
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        this.changeColumn(this.checkedColumn);
-      }
+      getColPref("colPref-redundantEntryCheck", 150, this);
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -571,10 +565,7 @@ export default {
         displayColumn: checkedValue.join(","),
       };
       // this.recordPartiality(data);
-      localStorage.setItem(
-        "redundantEntryCheckColumnPreferences",
-        JSON.stringify(data)
-      ); // localStorage存储用户偏好
+      localStorage.setItem("colPref-redundantEntryCheck", JSON.stringify(data)); // localStorage存储用户偏好
     },
     // 全部选择
     selectAllEntry() {

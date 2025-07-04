@@ -243,6 +243,7 @@ import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import {
   interpretation2value,
+  getColPref,
 } from "@/utils/tableUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -424,12 +425,7 @@ export default {
     this.task = this.currentTask;
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem("colPref-examineModal");
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        this.changeColumn(this.checkedColumn);
-      }
+      getColPref("colPref-examineModal", 100, this);
     });
   },
   watch: {

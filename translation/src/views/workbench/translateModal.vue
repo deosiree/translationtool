@@ -311,6 +311,7 @@ import {
   handleResizeColumn,
   getRowClassName,
   pageChange,
+  getColPref,
 } from "@/utils/tableUtils"; // 引入工具函数
 export default {
   components: {
@@ -376,7 +377,7 @@ export default {
           title: "词条",
           dataIndex: "entry",
           align: "center",
-          width: 200,
+          width: 100,
           resizable: true,
           fixed: "left",
           index: 4,
@@ -385,7 +386,7 @@ export default {
           title: "翻译",
           dataIndex: "translate", // 动态的
           align: "center",
-          width: 200,
+          width: 100,
           resizable: true,
           index: 5,
         },
@@ -1648,13 +1649,7 @@ export default {
     let _this = this;
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem("colPref-translateModal");
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        // 调用 changeColumn 方法更新列显示
-        this.changeColumn(this.checkedColumn);
-      }
+      getColPref("colPref-translateModal", 100, this);
       // this.init();
       window.onresize = function () {
         _this.setTableHeight();
