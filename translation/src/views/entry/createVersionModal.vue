@@ -68,7 +68,7 @@
       <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
       <a-button type="primary" @click="exportCSV">导出CSV</a-button>
-      <a-button type="primary" @click="examine">提交审核/翻译</a-button>
+      <a-button type="primary" @click="examine" v-if="user.department === '装置开发部'">提交审核/翻译</a-button>
     </template>
   </CustomModal>
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
@@ -350,10 +350,11 @@ export default {
     this.product = this.currentProduct;
   },
   mounted() {
-    // this.$nextTick(() => {
-    //   // 读取本地存储的用户偏好
-    //   getColPref("colPref-productEntry", 200, this);
-    // });
+    this.$nextTick(() => {
+      this.user = this.$store.state.user;
+      //   // 读取本地存储的用户偏好
+      //   getColPref("colPref-productEntry", 200, this);
+    });
   },
   computed: {
     taskRowSelection() {
@@ -594,7 +595,11 @@ export default {
           entryExportByCondition(data, params)
             .then((res) => {
               // console.log("导出结果:", res);
-              let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1].split(".")[0] + ".csv";//把xlsx改名为csv
+              let fileName =
+                res.headers["content-disposition"]
+                  .split(";")[1]
+                  .split("filename=")[1]
+                  .split(".")[0] + ".csv"; //把xlsx改名为csv
               let contentType = "text/csv;charset=utf-8";
               const blob = new Blob([res.data], { type: contentType });
               const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
