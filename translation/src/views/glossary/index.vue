@@ -153,6 +153,7 @@ import {
   handleResizeColumn,
   getRowClassName,
   getColPref,
+  changeColumn,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
@@ -386,50 +387,10 @@ export default {
       this.getLanguage();
       this.getSearchClick(); // 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
     },
-
-    // 展示列切换
+    // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      this.checkedColumn = checkedValue;
-      this.checkboxList.forEach((value) => {
-        let checkedIndex = this.checkedColumn.findIndex(
-          (item) => item === value.value
-        );
-        let nowColumnIndex = this.columns.findIndex(
-          (item) => item.dataIndex === value.value
-        );
-        if (
-          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
-          (nowColumnIndex === -1 && checkedIndex === -1)
-        ) {
-          return;
-        }
-        if (nowColumnIndex === -1 && checkedIndex !== -1) {
-          let newCol = {
-            title: value.label,
-            dataIndex: value.value,
-            align: "center",
-            width: 100,
-            resizable: true,
-            index: value.index,
-          };
-          this.columns.splice(-1, 0, newCol);
-        }
-        if (nowColumnIndex !== -1 && checkedIndex === -1) {
-          this.columns.splice(nowColumnIndex, 1);
-        }
-      });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
-
-      // 记录
-      let data = {
-        displayColumn: checkedValue.join(","),
-      };
-      // this.recordPartiality(data);
-      localStorage.setItem("colPref-glossary", JSON.stringify(data)); // localStorage存储用户偏好
+      changeColumn("colPref-glossary", 150, checkedValue, this);
     },
-
     // 获取翻译语言
     getLanguage() {
       let data = {};

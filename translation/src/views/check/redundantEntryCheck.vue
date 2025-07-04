@@ -171,6 +171,7 @@ import {
   onSelectAll,
   clearAllEntry,
   getColPref,
+  changeColumn,
 } from "@/utils/tableUtils"; // 引入工具函数
 import { setModalAriaHidden } from "@/utils/commonUtils";
 
@@ -524,48 +525,9 @@ export default {
           this.loading = false;
         });
     },
-
-    // 展示列切换
+    // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      this.checkedColumn = checkedValue;
-      this.checkboxList.forEach((value) => {
-        let checkedIndex = this.checkedColumn.findIndex(
-          (item) => item === value.value
-        );
-        let nowColumnIndex = this.columns.findIndex(
-          (item) => item.dataIndex === value.value
-        );
-        if (
-          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
-          (nowColumnIndex === -1 && checkedIndex === -1)
-        ) {
-          return;
-        }
-        if (nowColumnIndex === -1 && checkedIndex !== -1) {
-          let newCol = {
-            title: value.label,
-            dataIndex: value.value,
-            align: "center",
-            width: 100,
-            resizable: true,
-            index: value.index,
-          };
-          this.columns.splice(-1, 0, newCol);
-        }
-        if (nowColumnIndex !== -1 && checkedIndex === -1) {
-          this.columns.splice(nowColumnIndex, 1);
-        }
-      });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
-
-      // 记录
-      let data = {
-        displayColumn: checkedValue.join(","),
-      };
-      // this.recordPartiality(data);
-      localStorage.setItem("colPref-redundantEntryCheck", JSON.stringify(data)); // localStorage存储用户偏好
+      changeColumn("colPref-redundantEntryCheck", 150, checkedValue, this);
     },
     // 全部选择
     selectAllEntry() {

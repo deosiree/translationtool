@@ -160,6 +160,7 @@ import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import {
   getColPref,
+  changeColumn,
 } from "@/utils/tableUtils";
 import common from "../entry/common.js";
 import { defineComponent, ref, createVNode } from "vue";
@@ -502,71 +503,9 @@ export default {
       this.pagination.pageSize = 20;
       this.clearFilters();
     },
-    // 展示列切换
+    // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      this.checkedColumn = checkedValue;
-
-      this.checkboxList.forEach((value) => {
-        // 查找当前勾选列表中是否存在该列
-        let checkedIndex = this.checkedColumn.findIndex(
-          (item) => item === value.value
-        );
-        // 查找当前表格列中是否存在该列
-        let nowColumnIndex = this.columns.findIndex(
-          (item) => item.dataIndex === value.value
-        );
-        // 若勾选状态和列存在状态一致，则跳过
-        if (
-          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
-          (nowColumnIndex === -1 && checkedIndex === -1)
-        ) {
-          return;
-        }
-        // 若勾选了但列不存在，则添加列
-        if (nowColumnIndex === -1 && checkedIndex !== -1) {
-          let newCol = {
-            title: value.label,
-            dataIndex: value.value,
-            align: "center",
-            width: 100,
-            ellipsis: true,
-            resizable: true,
-            index: value.index,
-          };
-          if (
-            ["isExist", "translateState", "entry"].includes(newCol.dataIndex)
-          ) {
-            newCol.fixed = "left";
-          }
-          if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
-            newCol.fixed = "right";
-          }
-          if (newCol.dataIndex === "entrySource") {
-            // 添加词条来源可筛选
-            newCol.customFilterDropdown = true;
-            newCol.filteredValue = null;
-            newCol.onFilter = (value, record) =>
-              record.entrySource
-                .toString()
-                .toLowerCase()
-                .includes(value.toLowerCase());
-          }
-          this.columns.splice(-1, 0, newCol);
-        }
-        // 若未勾选但列存在，则移除列
-        if (nowColumnIndex !== -1 && checkedIndex === -1) {
-          this.columns.splice(nowColumnIndex, 1);
-        }
-      });
-
-      this.columns.sort((a, b) => a.index - b.index);
-
-      // 记录
-      let data = {
-        displayColumn: checkedValue.join(","),
-      };
-      // this.recordPartiality(data);
-      localStorage.setItem("colPref-archiveModal", JSON.stringify(data)); // localStorage存储用户偏好
+      changeColumn("colPref-archiveModal", 100, checkedValue, this);
     },
     // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {
