@@ -76,6 +76,10 @@ export default {
     { label: "回写辞典", value: "diFileName", index: 16 },
     { label: "abbr", value: "abbr", index: 17 },
     { label: '外文字符上限', value: 'foreignMaxByte', index: 18 },
+    { label: "词条来源", value: "entrySource", index: 19 },
+    { label: "中文翻译", value: "chineseTranslation", index: 30 },
+    { label: "来源表名", value: "srcTabName", index: 31 },
+    { label: "数据库记录ID", value: "DBRID", index: 32 },
     // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语言动态锁定的
     // {label:'词条状态',value:'entryState',index:19},
   ],
