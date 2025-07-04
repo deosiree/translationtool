@@ -284,6 +284,7 @@
                     <a-button type="primary" size="small" style="margin-left:8px" @click="clearAllEntry">
                         取消选择
                     </a-button> -->
+          <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
               <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
@@ -546,6 +547,7 @@ import {
   verifyCurrentPageData,
   getMaxLength,
   handleExceedLength,
+  interpretation2value,
 } from "@/utils/tableUtils";
 const filteredInfo = {};
 export default {
@@ -801,6 +803,10 @@ export default {
     },
   },
   methods: {
+    // 释义覆盖翻译
+    interpretation2value() {
+      interpretation2value(this);
+    },
     // 设置翻译列展示的语言
     setTranslateColumn() {
       this.columns.forEach((item) => {

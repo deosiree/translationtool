@@ -24,6 +24,7 @@
         <a-button type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
+        <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>
             <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
@@ -240,6 +241,9 @@ import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
 import { setModalAriaHidden } from "@/utils/commonUtils";
+import {
+  interpretation2value,
+} from "@/utils/tableUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -437,6 +441,10 @@ export default {
     },
   },
   methods: {
+    // 释义覆盖翻译
+    interpretation2value() {
+      interpretation2value(this);
+    },
     // 设置翻译列展示的语言
     setTranslateColumn() {
       this.columns.forEach((item) => {
