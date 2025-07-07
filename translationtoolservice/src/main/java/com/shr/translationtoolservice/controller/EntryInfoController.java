@@ -229,13 +229,15 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntityTemplate,
                                                                               @RequestParam(value = "classfyID") String classfyID,
                                                                                  String translateType,
+                                                                              @RequestParam(value = "startTime",required = false)  String startTime,
+                                                                              @RequestParam(value = "endTime",required = false) String endTime,
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
         List<EntryInfoEntity> originalEntryInfoEntities = new ArrayList<>();
 
         // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
-        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID);
+        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID,startTime,endTime);
         List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
         // responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());
@@ -465,7 +467,7 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("导出词条（版本，任务，产品）")
     @CrossOrigin
     @Transactional
-    public void entryExportByCondition(@RequestBody ExcelExportVO excelExportVO,
+    public void entryExportByCondition(@RequestBody ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,
                                        HttpServletResponse response,  String taskID) {
         entryInfoService.   entryExportByCondition(excelExportVO,response,taskID);
     }
@@ -811,13 +813,35 @@ public class EntryInfoController extends BaseController {
     @Transactional
     public   HttpResponse< ResponseListModel<SourceEntryVO>> getEntrysourceListByClassfy(@RequestParam String classfyID,@RequestParam String i18nUrl,HttpServletRequest request) {
         ResponseListModel<SourceEntryVO> responseListModel = new ResponseListModel<>();
-        List<SourceEntryVO> sourceEntryVOS = entryInfoService.getEntrysourceListByClassfy(classfyID, i18nUrl,request);
-        if (null == sourceEntryVOS){
-            return checkResult(null,"i18n 服务异常 ！");
+        List<String> exceptionMessages = new ArrayList<>();
+        List<SourceEntryVO> sourceEntryVOS = null;
+        try {
+            sourceEntryVOS = entryInfoService.getEntrysourceListByClassfy(classfyID, i18nUrl,request,exceptionMessages);
+            if (null == sourceEntryVOS){
+                return checkResult(null,"i18n 服务异常 ！");
+            }
+            HttpResponse<ResponseListModel<SourceEntryVO>> httpResponse = new HttpResponse<>();
+            responseListModel.setList(sourceEntryVOS);
+            responseListModel.setTotalNum(sourceEntryVOS.size());
+            httpResponse.setData(responseListModel);
+            if(!exceptionMessages.isEmpty()){
+                StringBuilder builder = new StringBuilder();
+                for(String message : exceptionMessages){
+                    builder.append(message);
+                    builder.append(";");
+                }
+                httpResponse.setMessage(builder.toString()); 
+                
+            }
+            HttpResponse.Type responseType = exceptionMessages.isEmpty() ? HttpResponse.Type.OK : HttpResponse.Type.INTERNAL_ERROR;
+            httpResponse.setType(responseType);
+            httpResponse.setCode(responseType.getVal());
+            return httpResponse;
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error(null, e);
+            return checkResult(null,e.getMessage());
         }
-        responseListModel.setList(sourceEntryVOS);
-        responseListModel.setTotalNum(sourceEntryVOS.size());
-        return checkResult(responseListModel);
     }
 
     @PostMapping("/updateEntryByClassfy")

@@ -67,7 +67,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
 
-    void entryExportByCondition( ExcelExportVO excelExportVO, HttpServletResponse response,String taskID);
+    void entryExportByCondition( ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, HttpServletResponse response,String taskID);
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
@@ -89,7 +89,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> replaceWords(List<EntryInfoEntity> entryInfoEntities, String sourceStr, String replaceStr,String translateType);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType,String startTime,String endTime);
 
     int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
@@ -104,13 +104,13 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
 
-    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request);
+    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request,List<String> exceptionMessage);
 
     void doWeight();
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID,String startTime,String endTime);
 
     List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
 
