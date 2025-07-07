@@ -1464,19 +1464,27 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public String addProductRelation(List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request) {
+    public String addProductRelation(List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request) throws Exception {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
-
+        ArrayList<EntryInfoEntity> update_entities = new ArrayList<>();
         for (EntryInfoEntity relationEntity : entryInfoEntities) {
-            relationEntity.setEntryState(1);
-            //插入关联表
             ProductRelationEntity productRelationEntity = new ProductRelationEntity();
             productRelationEntity.setProductId(relationEntity.getProductID());
             productRelationEntity.setEntryId(relationEntity.getId());
+            //通过任务拿到语言
+            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(relationEntity.getTaskId());
+            String lang = taskInfoEntity.getTranslateType();
+            if (relationEntity.getEntryState() == 0){
+                relationEntity.setEntryState(1);
+            }else {
+                throw new Exception(ErrorCodeList.ENTRY_STATE_ERROR);
+            }
+            //插入关联表
             productRelationEntity.setVersionId(relationEntity.getVersionID());
             productRelationEntity.setTaskId(relationEntity.getTaskId());
+            //查询是否存在此关联信息，没有则新建
             int sum = productRelationMapper.checkExist(productRelationEntity);
             if (sum < 1) {
                 productRelationEntity.setId(commonUtils.getUUID());
@@ -1484,57 +1492,143 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
                     return ErrorCodeList.INSERT_ERROR;
                 }
+                ProductRelationEntity delete_relation = new ProductRelationEntity();
+                delete_relation.setProductId(relationEntity.getProductID());
+                delete_relation.setEntryId(relationEntity.getId());
+                delete_relation.setVersionId(relationEntity.getVersionID());
+                List<ProductRelationEntity> delete_list = productRelationMapper.selectList(
+                        new QueryWrapper<ProductRelationEntity>().eq("entry_id", relationEntity.getId())
+                                .eq("product_id", relationEntity.getProductID()).isNull("version_id").isNull("task_id"));
+
+
+                if (delete_list.size() > 0) {
+                    //如果存在多条关联信息，删除旧的
+
+                    int delete = productRelationMapper.delete(
+                            new QueryWrapper<ProductRelationEntity>().eq("entry_id", relationEntity.getId())
+                            .eq("product_id", relationEntity.getProductID()).isNull("version_id").isNull("task_id"));
+
+                }
             }
             TranslateEntity translateEntity = new TranslateEntity();
             String transID = commonUtils.getUUID();
             translateEntity.setEntry(relationEntity.getEntry());
+            List<TranslateEntity> translateEntityList = new ArrayList<>();
 
-            //通过任务拿到语言
-            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(relationEntity.getTaskId());
-            String lang = taskInfoEntity.getTranslateType();
            switch (lang){
                case ConstantInterface.ENGLISH:
                    if (StringUtils.isBlank(relationEntity.getEnglish())){
-                          break;
+                       break;
+                   }
+                  translateEntityList = translateMapper.selectList(
+                           new QueryWrapper<TranslateEntity>().eq("entry", relationEntity.getEntry())
+                                   .eq("type", lang).eq("translate", relationEntity.getEnglish())
+                                   .eq("delete_state", 0).eq("visual_range", department).eq("translate_state", "3")
+                   );
+                   if (translateEntityList != null && !translateEntityList.isEmpty()) {
+                       // 如果已经存在相同的翻译，则换成这个id
+                       transID = translateEntityList.get(0).getId();
+                       relationEntity.setEnTransId(transID);
+                   }else {
+                       relationEntity.setEnTransId(transID);
+                       translateEntity.setTranslateState("1");
+                       translateEntity.setId(transID);
+                       translateEntity.setDeleteState(0);
+                       translateEntity.setVisualRange(department);
+                       translateEntity.setType(lang);
+                       translateEntity.setTranslate(relationEntity.getEnglish());
+                       int insert = translateMapper.insertTranslate(translateEntity);
+                       if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                           return ErrorCodeList.INSERT_ERROR;
+                       }
                    }
 
-                   translateEntity.setTranslate(relationEntity.getEnglish());
-
-                   break;
                 case ConstantInterface.RUSSIAN:
                     if (StringUtils.isBlank(relationEntity.getRussian())){
                         break;
                     }
-                    translateEntity.setTranslate(relationEntity.getRussian());
-                    break;
+                    translateEntityList = translateMapper.selectList(
+                            new QueryWrapper<TranslateEntity>().eq("entry", relationEntity.getEntry())
+                                    .eq("type", lang).eq("translate", relationEntity.getRussian())
+                                    .eq("delete_state", 0).eq("visual_range", department).eq("translate_state", "3")
+                    );
+                    if (translateEntityList != null && !translateEntityList.isEmpty()) {
+                        // 如果已经存在相同的翻译，则换成这个id
+                        transID = translateEntityList.get(0).getId();
+                        relationEntity.setRuTransId(transID);
+                    }else {
+                        relationEntity.setRuTransId(transID);
+                        translateEntity.setTranslateState("1");
+                        translateEntity.setId(transID);
+                        translateEntity.setDeleteState(0);
+                        translateEntity.setVisualRange(department);
+                        translateEntity.setType(lang);
+                        translateEntity.setTranslate(relationEntity.getRussian());
+                        int insert = translateMapper.insertTranslate(translateEntity);
+                        if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                            return ErrorCodeList.INSERT_ERROR;
+                        }
+                    }
+
                 case ConstantInterface.SPANISH:
                     if (StringUtils.isBlank(relationEntity.getSpanish())){
                         break;
                     }
-                    translateEntity.setTranslate(relationEntity.getSpanish());
-                    break;
+                    translateEntityList = translateMapper.selectList(
+                            new QueryWrapper<TranslateEntity>().eq("entry", relationEntity.getEntry())
+                                    .eq("type", lang).eq("translate", relationEntity.getSpanish())
+                                    .eq("delete_state", 0).eq("visual_range", department).eq("translate_state", "3")
+                    );
+                    if (translateEntityList != null && !translateEntityList.isEmpty()) {
+                        // 如果已经存在相同的翻译，则换成这个id
+                        transID = translateEntityList.get(0).getId();
+                        relationEntity.setSpaTransId(transID);
+                    }else {
+                        relationEntity.setSpaTransId(transID);
+                        translateEntity.setTranslateState("1");
+                        translateEntity.setId(transID);
+                        translateEntity.setDeleteState(0);
+                        translateEntity.setVisualRange(department);
+                        translateEntity.setType(lang);
+                        translateEntity.setTranslate(relationEntity.getSpanish());
+                        int insert = translateMapper.insertTranslate(translateEntity);
+                        if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                            return ErrorCodeList.INSERT_ERROR;
+                        }
+                    }
+
                 case ConstantInterface.FRENCH:
                     if (StringUtils.isBlank(relationEntity.getFrench())){
                         break;
                     }
-                    translateEntity.setTranslate(relationEntity.getFrench());
-                    break;
-           }
-            translateEntity.setTranslateState("1");
-            translateEntity.setId(transID);
-            translateEntity.setDeleteState(0);
-            translateEntity.setVisualRange(department);
-            translateEntity.setType(lang);
+                    translateEntityList = translateMapper.selectList(
+                            new QueryWrapper<TranslateEntity>().eq("entry", relationEntity.getEntry())
+                                    .eq("type", lang).eq("translate", relationEntity.getFrench())
+                                    .eq("delete_state", 0).eq("visual_range", department).eq("translate_state", "3")
+                    );
+                    if (translateEntityList != null && !translateEntityList.isEmpty()) {
+                        // 如果已经存在相同的翻译，则换成这个id
+                        transID = translateEntityList.get(0).getId();
+                        relationEntity.setFraTransId(transID);
+                    }else {
+                        relationEntity.setFraTransId(transID);
+                        translateEntity.setTranslateState("1");
+                        translateEntity.setId(transID);
+                        translateEntity.setDeleteState(0);
+                        translateEntity.setVisualRange(department);
+                        translateEntity.setType(lang);
+                        translateEntity.setTranslate(relationEntity.getFrench());
+                        int insert = translateMapper.insertTranslate(translateEntity);
+                        if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                            return ErrorCodeList.INSERT_ERROR;
+                        }
+                    }
 
-            translateEntity.setTranslateState("1");
-            translateEntity.setId(transID);
-            relationEntity.setEnTransId(transID);
-            // int insert = translateMapper.insert(translateEntity);
-            int insert = translateMapper.insertTranslate(translateEntity);
-            if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
-                return ErrorCodeList.INSERT_ERROR;
+           }
+            int update = entryInfoMapper.updateEntryInfo(relationEntity);
+            if (update < ConstantInterface.DB_SUCCESS_RESULT) {
+                return ErrorCodeList.UPDATE_ERROR;
             }
-            entryInfoMapper.updateEntryInfo(relationEntity);
         }
         return ConstantInterface.OK_STR;
     }

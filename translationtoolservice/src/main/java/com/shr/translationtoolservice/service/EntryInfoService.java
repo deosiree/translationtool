@@ -71,7 +71,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
-    String addProductRelation(List<EntryInfoEntity>  relationEntity,HttpServletRequest request);
+    String addProductRelation(List<EntryInfoEntity>  relationEntity,HttpServletRequest request) throws Exception;
 
     List<EntryInfoEntity> importCommonExcle(MultipartFile multipartFile, String taskID);
 

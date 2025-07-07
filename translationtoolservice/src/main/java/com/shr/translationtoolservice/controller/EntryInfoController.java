@@ -490,7 +490,13 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     public   HttpResponse<String> addProductRelation(@RequestBody List<EntryInfoEntity> relationEntity ,HttpServletRequest request) {
-        String relation = entryInfoService.addProductRelation(relationEntity,request);
+        String relation = null;
+        try {
+             relation = entryInfoService.addProductRelation(relationEntity,request);
+        }catch (Exception e){
+            e.printStackTrace();
+            return error(null, e.getMessage());
+        }
 
         return checkResult(relation);
     }
