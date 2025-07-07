@@ -9,6 +9,9 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.TLanguage;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
+import com.shr.translationtoolservice.exception.i18nServerConnectException;
+import com.shr.translationtoolservice.exception.i18nServerParseException;
+
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,12 +92,39 @@ public class TsUtils {
         return ConstantInterface.OK_STR;
     }
 
-    public List<EntryInfoEntity> getTsEntry(String i18nUrl, Set<String> fileNameSet,
+    public static class TsEntryResult<E>{
+        List<EntryInfoEntity> result = new ArrayList<>();
+
+        List<String> exceptionMessage =  new ArrayList<>();
+
+        public Map<Exception,Set<E>> exceptionCollection = new HashMap<>();
+
+        public TsEntryResult(){}
+
+        public List<EntryInfoEntity> getResult() {
+            return result;
+        }
+
+        public List<String> getExceptionMessage() {
+            return exceptionMessage;
+        }
+
+        public Map<Exception, Set<E>> getExceptionCollection() {
+            return exceptionCollection;
+        }
+
+
+    }
+
+    public TsEntryResult<String> getTsEntry(String i18nUrl, Set<String> fileNameSet,
                                             String taskID,String userName,String productId,String versionID,String translateType) throws Exception {
+        TsEntryResult<String> result = new TsEntryResult<>();
         List<TLanguage> tLanguages = languageMapper.selectList(new QueryWrapper<>());
-        ArrayList<EntryInfoEntity> list = new ArrayList<>();
+        List<EntryInfoEntity> list = result.getResult();
+        List<String> exceptionMessage = result.getExceptionMessage();
+        Map<Exception,Set<String>> exceptionCollection = result.getExceptionCollection();
         if (CollectionUtils.isEmpty(fileNameSet)) {
-            return list;
+            return result;
         }
         Date date = new Date(System.currentTimeMillis());
         for (String fileName : fileNameSet) {
@@ -111,9 +141,32 @@ public class TsUtils {
             String s = "";
 
                 log.info("getTsEntry: " + i18nUrl + ConstantInterface.GET_WORDS + " fileName : " + fileName);
-                s = httpUtils.get(i18nUrl + ConstantInterface.GET_WORDS, headerParameters);
 
-                jsonArray = JSONArray.parseArray(s);
+                try {
+                    try {
+                        s = httpUtils.get(i18nUrl + ConstantInterface.GET_WORDS, headerParameters);
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        throw new i18nServerConnectException();
+                    }
+                    try {
+                        jsonArray = JSONArray.parseArray(s);                         
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        throw new i18nServerParseException();
+                    }
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    // result.
+                    if(!exceptionCollection.containsKey(e)){
+                        exceptionCollection.put(e, new HashSet<>());
+                    }
+                    exceptionCollection.get(e).add(fileName);
+                    
+                    // exceptionCollection.put(e.getClass().getName(), fileName);
+                    // exceptionMessage.add("当前读取文件: \"" + fileName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
+                    continue;
+                }
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONArray jsonArray1 = JSONArray.parseArray(jsonArray.get(i).toString());
                     String entry = jsonArray1.get(0).toString();
@@ -148,6 +201,6 @@ public class TsUtils {
 
 
         }
-        return list;
+        return result;
     }
 }

@@ -66,8 +66,8 @@ public class EntryProcessUtils {
                     }
                     break;
             }
-            String mapKey = entry + ConstantInterface.UNDERLINE + translate + ConstantInterface.UNDERLINE + entryInfoEntity.getIsExist();
-
+            String mapKey = entry + ConstantInterface.UNDERLINE + translate + ConstantInterface.UNDERLINE + entryInfoEntity.getIsExist() + 
+                ConstantInterface.UNDERLINE + entryInfoEntity.getComment() + ConstantInterface.UNDERLINE + entryInfoEntity.getAbbr();
 
             EntryInfoEntity mapValueEntry = entryEntityMap.get(mapKey);
             //判断map 是否有这个key

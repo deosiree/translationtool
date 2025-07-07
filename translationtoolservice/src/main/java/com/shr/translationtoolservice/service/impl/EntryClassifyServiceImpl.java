@@ -285,20 +285,16 @@ public class EntryClassifyServiceImpl extends ServiceImpl<EntryClassifyMapper, E
             /**
              * 删除的顺序如下:删除词条、任务、产品、分类、关联表
              */
+            // 删除词条
+            ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+            productRelationEntity.setProductId(entryClassfyId);
+            List<ProductRelationEntity> productionRelation = productRelationMapper.getProductionRelation(productRelationEntity);
+            // 获取词条id
+            List<String> entryIds = productionRelation.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
+            // 词条对应的is_delete 设定为1
+            if(!entryIds.isEmpty())
+                entryInfoMapper.deleteByIdList(entryIds, ConstantInterface.ENTRY_INFO_TABLE_NAME);
 
-    
-            // 删除任务下的词条
-            for(TaskInfoEntity taskInfoEntity : completedTaskInfo){
-                ProductRelationEntity productRelationEntity = new ProductRelationEntity();
-                productRelationEntity.setTaskId(taskInfoEntity.getId());
-                productRelationEntity.setProductId(entryClassfyId);
-                List<ProductRelationEntity> productionRelation = productRelationMapper.getProductionRelation(productRelationEntity);
-                // 获取词条id
-                List<String> entryIds = productionRelation.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
-                // 词条对应的is_delete 设定为1
-                if(!entryIds.isEmpty())
-                    entryInfoMapper.deleteByIdList(entryIds, ConstantInterface.ENTRY_INFO_TABLE_NAME);
-            }
             // 执行成功，删除t_task_info表中的内容
             if(!completedTaskInfo.isEmpty()){
                 taskInfoMapper.deleteByIds(completedTaskInfo.stream().map(TaskInfoEntity::getId).collect(Collectors.toList()));

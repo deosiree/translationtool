@@ -147,6 +147,7 @@ public class ConstantInterface {
     public static final String TRANSLATOR = "翻译员";
     public static final String DEVELOPER = "开发员";
     public static final String ADMIN = "管理员";
+    public static final String DEVELOP_ADMIN = "开发管理员";
 
 
     public static final String EN_TRANS = "英文翻译";
@@ -215,6 +216,9 @@ public class ConstantInterface {
         entryName.put("classfy2", "二级分类");
         entryName.put("chineseInterpretation", "中文释义");
         entryName.put("englishInterpretation", "英文释义");
+        entryName.put("russianInterpretation", "俄文释义");
+        entryName.put("frenchInterpretation", "法文释义");
+        entryName.put("spanishInterpretation", "西文释义");
         entryName.put("chineseTranslateState", "中文翻译状态");
         entryName.put("englishTranslateState", "英文翻译状态");
         entryName.put("entrySource", "词条来源");
@@ -268,6 +272,9 @@ public class ConstantInterface {
         entryName.put("二级分类", "classfy2");
         entryName.put("中文释义", "chineseInterpretation");
         entryName.put("英文释义", "englishInterpretation");
+        entryName.put("俄文释义","russianInterpretation");
+        entryName.put("法文释义","frenchInterpretation");
+        entryName.put("西文释义","spanishInterpretation");
         entryName.put("中文翻译状态", "chineseTranslateState");
         entryName.put("英文翻译状态", "englishTranslateState");
         entryName.put("词条来源", "entrySource");
@@ -308,6 +315,9 @@ public class ConstantInterface {
         entryName.put("回写类型", "writeType");
         entryName.put("DI文件名", "diFileName");
         entryName.put("comment", "comment");
+
+        entryName.put("中文字符上限", "maxChineseLength");
+        entryName.put("外文字符上限", "foreignMaxLength");
         return entryName;
     }
 
