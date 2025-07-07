@@ -1027,7 +1027,6 @@ export default {
     this.$nextTick(() => {
       // 获取当前用户信息
       this.user = this.$store.state.user;
-      console.log("当前用户信息：", this.user);
       // 获取当前用户所在部门的相关信息
       if (
         Object.keys(commonParam.departmentMap).includes(this.user.department)
@@ -1039,11 +1038,9 @@ export default {
       }
       // 设置默认的模板类型为本部门的
       this.templateObj.type = this.currentDepartment.value;
-      if (this.templateObj.type === "default") this.templateObj.type = null;// 如果是默认部门，则不设置模板类型，否则会报错
+      if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
       // 获取IP地址
       if (this.currentDepartment.needWriteBack) this.getIPs();
-      // 获取可用的导入类型
-      console.log("可用的导入类型：", this.currentDepartment.importTypes);
       // 读取本地存储的用户偏好
       getColPref("colPref-importModal", 100, this);
     });
@@ -1072,6 +1069,9 @@ export default {
       this.insertEntry();
     },
     handleClose() {
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
+      this.selectedRowIndex = null;
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
