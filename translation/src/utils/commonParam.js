@@ -83,4 +83,11 @@ export default {
     // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语言动态锁定的
     // {label:'词条状态',value:'entryState',index:19},
   ],
+  importTypes:{
+    "通用平台部":["file","ts", "database", "dictionary", "config", "enum"],
+    "监控系统部":["file","ts", "database", "dictionary", "config", "enum"],
+    "装置开发部":["file"],
+    "default":["file","ts", "database", "dictionary", "config", "enum"],
+  },
+  noNeedWriteBack:["装置开发部"]
 };
