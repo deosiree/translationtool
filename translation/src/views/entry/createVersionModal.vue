@@ -728,7 +728,6 @@ export default {
       });
       // 将词条提交到任务
       let data = [];
-      console.log("提交的词条数据:", this.dataSource);
       this.dataSource.forEach((item) => {
         let info = {
           id: item.id,
