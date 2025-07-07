@@ -13,15 +13,15 @@
           <a-form layout="inline" style="margin-top: 10px;">
             <a-form-item label="数据类型">
               <a-radio-group v-model:value="dataType" @change="dataTypeChange">
-                <a-radio v-if="importTypes.includes('file')" :value="'file'">文件</a-radio>
-                <a-radio v-if="importTypes.includes('ts')" :value="'ts'">TS</a-radio>
-                <a-radio v-if="importTypes.includes('database')" :value="'database'">实时库</a-radio>
-                <a-radio v-if="importTypes.includes('dictionary')" :value="'dictionary'">辞典</a-radio>
-                <a-radio v-if="importTypes.includes('config')" :value="'config'">配置文件</a-radio>
-                <a-radio v-if="importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
+                <a-radio v-if="currentDepartment.importTypes.includes('file')" :value="'file'">文件</a-radio>
+                <a-radio v-if="currentDepartment.importTypes.includes('ts')" :value="'ts'">TS</a-radio>
+                <a-radio v-if="currentDepartment.importTypes.includes('database')" :value="'database'">实时库</a-radio>
+                <a-radio v-if="currentDepartment.importTypes.includes('dictionary')" :value="'dictionary'">辞典</a-radio>
+                <a-radio v-if="currentDepartment.importTypes.includes('config')" :value="'config'">配置文件</a-radio>
+                <a-radio v-if="currentDepartment.importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
               </a-radio-group>
             </a-form-item>
-            <a-form-item v-if="!noNeedWriteBack.includes(user.department)" label="IP">
+            <a-form-item v-if="currentDepartment.needWriteBack" label="IP">
               <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
             </a-form-item>
           </a-form>
@@ -37,7 +37,7 @@
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
               </a-form-item>
             </a-col>
-            <a-col v-if="!noNeedWriteBack.includes(user.department)" :span="8">
+            <a-col v-if="currentDepartment.needWriteBack" :span="8">
               <a-form-item label="回写辞典" name="diFileName">
                 <a-select v-model:value="filediFileName" allowClear placeholder="请选择翻译数据回写辞典目录" style="width:70%" :options="dictionaryOptions"
                   size="small">
@@ -697,10 +697,11 @@
     <div class="condent">
       <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
         <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
-          <a-select v-model:value="templateObj.type" placeholder="请选择" allowClear>
+          <a-select v-model:value="templateObj.type" placeholder="请选择" :options='departmentList' allowClear>
+            <!-- <a-select v-model:value="templateObj.type" placeholder="请选择" allowClear>
             <a-select-option value="zz">装置</a-select-option>
             <a-select-option value="common">通用</a-select-option>
-            <a-select-option value="jk">监控</a-select-option>
+            <a-select-option value="jk">监控</a-select-option> -->
           </a-select>
         </a-form-item>
       </a-form>
@@ -1010,8 +1011,13 @@ export default {
       searchConfigValue: "",
       searchEnumValue: "",
       user: null,
-      importTypes: [], // 可用的导入类型有哪些（根据this.user.department）
-      noNeedWriteBack: commonParam.noNeedWriteBack, // 不需要回写的部门
+      currentDepartment: {
+        label: "部门名称",
+        importTypes: [],
+        needWriteBack: false,
+        value: "name",
+      }, // 当前用户所在部门的相关信息
+      departmentList: commonParam.departmentList, // 当前用户所在部门
     };
   },
 
@@ -1022,17 +1028,22 @@ export default {
       // 获取当前用户信息
       this.user = this.$store.state.user;
       console.log("当前用户信息：", this.user);
-      // 设置默认的模板类型为本部门的
-      this.templateObj.type = this.user.department;
-      // 获取可用的导入类型
-      if (Object.keys(commonParam.importTypes).includes(this.user.department)) {
-        this.importTypes = commonParam.importTypes[this.user.department];
+      // 获取当前用户所在部门的相关信息
+      if (
+        Object.keys(commonParam.departmentMap).includes(this.user.department)
+      ) {
+        this.currentDepartment =
+          commonParam.departmentMap[this.user.department];
       } else {
-        this.importTypes = commonParam.importTypes["default"];
+        this.currentDepartment = commonParam.departmentMap["default"];
       }
-      console.log("可用的导入类型：", this.importTypes);
+      // 设置默认的模板类型为本部门的
+      this.templateObj.type = this.currentDepartment.value;
+      if (this.templateObj.type === "default") this.templateObj.type = null;// 如果是默认部门，则不设置模板类型，否则会报错
       // 获取IP地址
-      if (!this.noNeedWriteBack.includes(this.user.department)) this.getIPs();
+      if (this.currentDepartment.needWriteBack) this.getIPs();
+      // 获取可用的导入类型
+      console.log("可用的导入类型：", this.currentDepartment.importTypes);
       // 读取本地存储的用户偏好
       getColPref("colPref-importModal", 100, this);
     });
@@ -1447,7 +1458,7 @@ export default {
     // 数据类型选择事件
     dataTypeChange() {
       // 获取IP地址
-      if (!this.noNeedWriteBack.includes(this.user.department)) {
+      if (this.currentDepartment.needWriteBack) {
         // this.getIPs();// mounted时已获取
         if (this.ip === null || this.ip === undefined || this.ip === "") {
           message.info("请选择IP！");

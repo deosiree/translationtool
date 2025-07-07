@@ -83,11 +83,44 @@ export default {
     // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语言动态锁定的
     // {label:'词条状态',value:'entryState',index:19},
   ],
-  importTypes:{
-    "通用平台部":["file","ts", "database", "dictionary", "config", "enum"],
-    "监控系统部":["file","ts", "database", "dictionary", "config", "enum"],
-    "装置开发部":["file"],
-    "default":["file","ts", "database", "dictionary", "config", "enum"],
+  departmentMap:{
+    "通用平台部":{
+      label: "通用平台部",
+      importTypes:["file","ts", "database", "dictionary", "config", "enum"],// 导入类型
+      needWriteBack:true,// 是否需要回写
+      value: "common",
+    },
+    "监控系统部":{
+      label: "监控系统部",
+      importTypes:["file","ts", "database", "dictionary", "config", "enum"],// 导入类型
+      needWriteBack:true,// 是否需要回写
+      value: "jk",
+    },
+    "装置开发部":{
+      label: "装置开发部",
+      importTypes:["file"],// 导入类型
+      needWriteBack:false,// 是否需要回写
+      value: "zz",
+    },
+    "default":{
+      label: "默认部门",
+      importTypes:["file","ts", "database", "dictionary", "config", "enum"],// 导入类型
+      needWriteBack:true,// 是否需要回写
+      value: "default",
+    }
   },
-  noNeedWriteBack:["装置开发部"]
+  departmentList: [
+    {
+      label: "通用平台部",
+      value: "common"
+    },
+    {
+      label: "监控系统部",
+      value: "jk"
+    },
+    {
+      label: "装置开发部",
+      value: "zz"
+    }
+  ]
 };
