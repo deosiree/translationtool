@@ -87,7 +87,6 @@
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
           <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button>
-          <a-button type="primary" size="small" v-if="admin" @click="importEntryByCSV">导入CSV</a-button>
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -359,37 +358,23 @@
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
 
-  <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入XLSX" @handleClose="importClose" @handleOK="importOK"
+  <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
     @afterClose="importAfterClose">
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="importModal">
+        <a-form-item label="文件类型" name="importType" :rules="[{ required: true, message: '请选择!' }]">
+          <a-select v-model:value="importModal.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
+          </a-select>
+        </a-form-item>
         <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
+          <a-select v-model:value="importModal.language" placeholder="请选择语言" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
             allowClear>
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
-            @remove="removeFile">
-            <a-button type="primary" size="small">选择</a-button>
-          </a-upload>
-        </a-form-item>
-      </a-form>
-    </div>
-  </CustomModal>
-  <CustomModal :visible="importCSVVisible" :okLoading="importLoading" modalTitle="导入CSV" @handleClose="importClose" @handleOK="importCSVOK"
-    @afterClose="importAfterClose">
-    <div class="content">
-      <a-form ref="formRef" name="custom-validation" :model="importModal">
-        <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择内容" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
-            allowClear>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="acceptCSV" :max-count="1" :fileList="fileList" @change="handleChange"
-            @remove="removeFile">
-            <a-button type="primary" size="small">选择</a-button>
+          <a-upload name="file" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
+            @remove="removeFile" :disabled="!importModal.language || !importModal.importType">
+            <a-button type="primary" size="small" @click="getAccept">选择</a-button>
           </a-upload>
         </a-form-item>
       </a-form>
@@ -514,6 +499,11 @@ export default {
         { label: "已审核", value: "3" },
       ],
       translateTypes: [],
+      importTypes: [
+        { label: "csv", value: "csv", accept: ".csv" },
+        { label: "excel", value: "excel", accept: ".xls,.xlsx" },
+      ],
+      accept: null,
       tableTitle: "词条列表",
       copyVisible: false,
       copyNumber: 1,
@@ -664,13 +654,11 @@ export default {
       rowClassify2Option: {},
       dictionaryVisible: false,
       selectAllLoading: false,
-      accept: ".xls,.xlsx",
-      acceptCSV: ".csv",
       importVisible: false,
-      importCSVVisible: false,
       importLoading: false,
       importModal: {
         language: null,
+        importType: null,
       },
       importFile: null,
       fileList: [],
@@ -828,7 +816,23 @@ export default {
       }
       return className;
     },
-
+    // 获得导入文件类型
+    getAccept() {
+      if (!this.importModal.importType) {
+        message.error("请选择文件类型！");
+        return;
+      }
+      if (!this.importModal.language) {
+        message.error("请选择语言！");
+        return;
+      }
+      for (let key in this.importTypes) {
+        if (this.importModal.importType === this.importTypes[key].value) {
+          this.accept = this.importTypes[key].accept;
+          break;
+        }
+      }
+    },
     // 查询产品的所有版本
     getProductVersion() {
       if (Object.keys(this.product).length === 0) {
@@ -1142,7 +1146,6 @@ export default {
             });
           } else {
             this.editEntry = [this.editableData[id]];
-            console.log("更新已选词条", this.editEntry);
             this.editVisible = true;
             setModalAriaHidden(this, document);
           }
@@ -1151,7 +1154,6 @@ export default {
           const selectedIndex = this.selectedRows.findIndex(
             (item) => item.id === id
           );
-          console.log("更新选中值：", selectedIndex, this.editableData[id]);
           if (selectedIndex !== -1) {
             // 更新选中行数据
             this.selectedRows[selectedIndex] = { ...this.editableData[id] };
@@ -1619,14 +1621,8 @@ export default {
       this.importVisible = true;
       setModalAriaHidden(this, document);
     },
-    // 导入词条(CSV格式)
-    importEntryByCSV() {
-      this.importCSVVisible = true;
-      setModalAriaHidden(this, document);
-    },
     importClose() {
       this.importVisible = false;
-      this.importCSVVisible = false;
     },
     importOK() {
       this.$refs.formRef
@@ -1636,37 +1632,12 @@ export default {
           let formData = new FormData();
           formData.append("file", this.importFile);
           formData.append("transType", this.importModal.language);
+          formData.append("importType", this.importModal.importType);
           entryImportExcle(formData)
             .then((res) => {
               message.success("导入成功！");
               this.getEntryByVersion();
               this.importVisible = false;
-              this.importCSVVisible = false;
-              this.importLoading = false;
-            })
-            .catch((err) => {
-              message.error("导入失败！", err.message);
-              this.importLoading = false;
-            });
-        })
-        .catch((err) => {
-          message.error(err.message);
-        });
-    },
-    importCSVOK() {
-      this.$refs.formRef
-        .validate()
-        .then(() => {
-          this.importLoading = true;
-          let formData = new FormData();
-          formData.append("file", this.importFile);
-          formData.append("transType", this.importModal.language);
-          entryImportExcle(formData)
-            .then((res) => {
-              message.success("导入成功！");
-              this.getEntryByVersion();
-              this.importVisible = false;
-              this.importCSVVisible = false;
               this.importLoading = false;
             })
             .catch((err) => {
@@ -1683,11 +1654,6 @@ export default {
       this.importFile = null;
       this.fileList = [];
       this.$refs.formRef.clearValidate();
-    },
-    // 导入词条
-    beforeUpload(file, fileList) {
-      // console.log("before");
-      return false;
     },
     handleChange(info) {
       this.fileList = info.fileList;
