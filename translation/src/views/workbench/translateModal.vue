@@ -304,7 +304,6 @@ import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
 import tableParam from "../entry/tableParam";
 import key from "keymaster";
-import { setModalAriaHidden } from "@/utils/commonUtils";
 import {
   clickInput,
   setTableHeight,
@@ -313,7 +312,8 @@ import {
   pageChange,
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils"; // 引入工具函数
+  setModalAriaHidden,
+} from "@/utils/commonUtils"; // 引入工具函数
 export default {
   components: {
     Modal,

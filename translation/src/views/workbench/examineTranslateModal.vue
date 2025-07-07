@@ -228,8 +228,11 @@ import { message } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
-import { setModalAriaHidden } from "@/utils/commonUtils";
-import { getColPref, changeColumn } from "@/utils/tableUtils";
+import {
+  getColPref,
+  changeColumn,
+  setModalAriaHidden,
+} from "@/utils/commonUtils";
 import { computed, defineComponent, ref } from "vue";
 import {
   CheckOutlined,

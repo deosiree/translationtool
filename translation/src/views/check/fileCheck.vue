@@ -74,7 +74,7 @@ import {
   handleResizeColumn,
   getRowClassName,
   pageChange,
-} from "@/utils/tableUtils"; // 引入工具函数
+} from "@/utils/commonUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,

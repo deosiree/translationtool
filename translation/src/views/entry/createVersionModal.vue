@@ -188,8 +188,12 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import tableParam from "@/views/entry/tableParam.js";
-import { pageChange, getColPref, changeColumn } from "@/utils/tableUtils";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import {
+  pageChange,
+  getColPref,
+  changeColumn,
+  setModalAriaHidden,
+} from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,

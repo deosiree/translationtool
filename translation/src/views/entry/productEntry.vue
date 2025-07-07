@@ -87,6 +87,7 @@
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
           <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button>
+          <!-- <ImportButton @importSuccess="handleImportSuccess" v-if="admin" /> -->
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -372,8 +373,8 @@
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
-            @remove="removeFile" :disabled="!importModal.language || !importModal.importType">
+          <a-upload name="file" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange" @remove="removeFile"
+            :disabled="!importModal.language || !importModal.importType">
             <a-button type="primary" size="small" @click="getAccept">选择</a-button>
           </a-upload>
         </a-form-item>
@@ -391,6 +392,7 @@ import common from "./common.js";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
+import ImportButton from "@/components/Button/importButton.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -434,14 +436,15 @@ import {
   pageChange,
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+  setModalAriaHidden,
+} from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,
     SearchBox,
     DataBox,
     OperationArea,
+    ImportButton,
     EditReason,
     CreateVersionModal,
     SecondClassify,
@@ -815,6 +818,10 @@ export default {
         }
       }
       return className;
+    },
+    handleImportSuccess() {
+      // 处理导入成功后的逻辑，例如刷新表格
+      this.getEntryByVersion();
     },
     // 获得导入文件类型
     getAccept() {

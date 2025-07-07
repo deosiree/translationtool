@@ -240,12 +240,12 @@ import { message, Modal } from "ant-design-vue";
 import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
-import { setModalAriaHidden } from "@/utils/commonUtils";
 import {
   interpretation2value,
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils";
+  setModalAriaHidden,
+} from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {

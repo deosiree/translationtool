@@ -161,7 +161,7 @@ import commonParam from "@/utils/commonParam.js";
 import {
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils";
+} from "@/utils/commonUtils";
 import common from "../entry/common.js";
 import { defineComponent, ref, createVNode } from "vue";
 export default {

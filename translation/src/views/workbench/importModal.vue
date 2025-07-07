@@ -771,7 +771,6 @@ import { templateFileDownload } from "@/http/api/download";
 import workbenchCommon from "@/views/workbench/common.js";
 import commonParam from "@/utils/commonParam.js";
 import common from "../entry/common";
-import { setModalAriaHidden } from "@/utils/commonUtils";
 import {
   verifyTranslationLength,
   verifyCurrentPageData,
@@ -780,7 +779,8 @@ import {
   interpretation2value,
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils";
+  setModalAriaHidden,
+} from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
   components: {
@@ -1287,6 +1287,17 @@ export default {
                 (successItem) => successItem.id === item.id
               );
             });
+            // 从this.selectedRows 中移除保存成功的数据
+            this.selectedRows = this.selectedRows.filter((item) => {
+              return !successfulAddArr.some(
+                (successItem) => successItem.id === item.id
+              );
+            });
+            this.selectedRowKeys = this.selectedRowKeys.filter((key) => {
+              return !successfulAddArr.some(
+                (successItem) => successItem.id === key
+              );
+            });
           })
           .catch((err) => {
             message.error("1", err.message);
@@ -1315,6 +1326,17 @@ export default {
             this.dataSource = this.dataSource.filter((item) => {
               return !successfulUpdateArr.some(
                 (successItem) => successItem.id === item.id
+              );
+            });
+            // 从this.selectedRows 中移除保存成功的数据
+            this.selectedRows = this.selectedRows.filter((item) => {
+              return !successfulAddArr.some(
+                (successItem) => successItem.id === item.id
+              );
+            });
+            this.selectedRowKeys = this.selectedRowKeys.filter((key) => {
+              return !successfulAddArr.some(
+                (successItem) => successItem.id === key
               );
             });
           })

@@ -60,7 +60,7 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
-import { pageChange } from "@/utils/tableUtils";
+import { pageChange } from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,

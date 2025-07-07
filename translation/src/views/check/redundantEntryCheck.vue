@@ -172,8 +172,8 @@ import {
   clearAllEntry,
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils"; // 引入工具函数
-import { setModalAriaHidden } from "@/utils/commonUtils";
+  setModalAriaHidden,
+} from "@/utils/commonUtils"; // 引入工具函数
 
 export default {
   components: {

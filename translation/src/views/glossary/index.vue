@@ -142,7 +142,6 @@ import {
   updateSykEntry,
   getSykEntryRelation,
 } from "@/http/api/glossary";
-import { getSearch } from "@/utils/tableUtils";
 import {
   onSelectChange,
   onSelect,
@@ -154,8 +153,9 @@ import {
   getRowClassName,
   getColPref,
   changeColumn,
-} from "@/utils/tableUtils";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+  setModalAriaHidden,
+  getSearch,
+} from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
