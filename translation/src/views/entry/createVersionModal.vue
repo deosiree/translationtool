@@ -68,7 +68,7 @@
       <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
       <a-button type="primary" @click="exportCSV">导出CSV</a-button>
-      <a-button type="primary" @click="examine" v-if="user.department === '装置开发部'">提交审核/翻译</a-button>
+      <a-button type="primary" @click="examine" v-if="user.department === '装置开发部'">提交词条审核</a-button>
     </template>
   </CustomModal>
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
@@ -497,7 +497,7 @@ export default {
       };
       updateUserPartiality(data).then((res) => {});
     },
-    // 提交审核/翻译
+    // 提交词条审核
     examine() {
       this.operateVisible = true;
       setModalAriaHidden(this, document);
@@ -623,7 +623,7 @@ export default {
           this.exportFieldChange(this.exportClass.field);
         });
       } else if (this.title === "选择任务") {
-        //提交审核/翻译
+        //提交词条审核
         if (this.selectedTaskRows.length === 0) {
           message.warn("请选择任务！");
           return;
@@ -718,18 +718,20 @@ export default {
           });
       }
     },
-    // 提交审核/翻译
+    // 提交词条审核
     submitExamine() {
       let params = {
         notes: "",
       };
-      // 修改词条状态
-      this.dataSource.forEach((item) => {
-        if (item.entryState === 0) {
-          item.entryState = 1;
-          // updateEntryInfo(item, params).then((res) => {});// 本来词条审核那边有翻译的词条应该跳到翻译审核页面，现在直接跳到归档了，注掉就没问题了
-        }
-      });
+      
+      // // 修改词条状态(前端不修改，由后端修改)
+      // this.dataSource.forEach((item) => {
+      //   if (item.entryState === 0) {
+      //     item.entryState = 1;
+      //     // updateEntryInfo(item, params).then((res) => {});// 本来词条审核那边有翻译的词条应该跳到翻译审核页面，现在直接跳到归档了，注掉就没问题了
+      //   }
+      // });
+
       // 将词条提交到任务
       let data = [];
       this.dataSource.forEach((item) => {
