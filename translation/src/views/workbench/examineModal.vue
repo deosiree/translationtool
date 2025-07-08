@@ -245,6 +245,8 @@ import {
   getColPref,
   changeColumn,
   setModalAriaHidden,
+  filter_arr,
+  filter_arr_keys,
 } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -485,7 +487,6 @@ export default {
         });
     },
     handleOK() {
-      this.saveLoading = true;
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
         entry.auditSuggess = this.editableData[key].auditSuggess;
@@ -510,21 +511,51 @@ export default {
         }
       }
       this.editableData = {};
+      this.saveLoading = true;
+      this.loading = true;
+
       let params = {
         taskID: this.task.id,
       };
       let updateArr = [];
       let okArr = [];
+      let arrCount = {
+        updateNum: 0,
+        updateChildNum: 0,
+        okNum: 0,
+        okChildNum: 0,
+      };
+      const promises = [];
+      let messageTextParts = [];
+
       this.dataSource.forEach((item) => {
-        if (item.auditState === 1) {
-          // 词条审核通过
-          item.entryState = 3;
+        if (item.auditState === 1 || item.auditState === 0) {
+          // 审核通过或审核不通过
           updateArr.push(item);
-          okArr.push(item);
-        } else if (item.auditState === 0) {
-          // 词条审核不通过
-          item.entryState = 2;
-          updateArr.push(item);
+          arrCount.updateNum++;
+          if (item.children && item.children.length > 0) {
+            arrCount.updateChildNum += item.children.length;
+            // item.children.forEach((child) => {
+            //   updateArr.push(child);
+            // });
+          }
+
+          if (item.auditState === 1) {
+            // 词条审核通过
+            item.entryState = 3;
+            // 审核通过的还需要进行校验
+            okArr.push(item);
+            arrCount.okNum++;
+            if (item.children && item.children.length > 0) {
+              arrCount.okChildNum += item.children.length;
+              // item.children.forEach((child) => {
+              //   okArr.push(child);
+              // });
+            }
+          } else if (item.auditState === 0) {
+            // 词条审核不通过
+            item.entryState = 2;
+          }
         }
       });
       // 校验审核通过的词条
@@ -534,30 +565,95 @@ export default {
         // 存在超长
         message.warn("存在超长数据，请检查！");
         this.saveLoading = false;
+        this.loading = false;
         return;
       }
-      if (updateArr.length > 0) {
-        updateEntryList(params, updateArr)
+      if (arrCount.updateNum > 0) {
+        const updatePromise = updateEntryList(params, updateArr)
           .then((res) => {
-            message.success("已保存！");
+            const successCount = arrCount.updateNum - res.data.totalNum; // 成功保存的数量
+            const okCount = filter_arr(okArr, res.data.list).length; // 保存，是通过的数量
+            const rejectCount = successCount - okCount; // 保存，是驳回的数量
+            const failCount = res.data.totalNum;
+            if (successCount > 0) {
+              let text = `保存成功${successCount}条`;
+              if (okCount > 0 || rejectCount > 0) {
+                let textChild = [];
+                if (okCount > 0) {
+                  let textChild1 = `通过${okCount}条`;
+                  if (arrCount.okChildNum > 0) {
+                    textChild1 += `（聚合${arrCount.okChildNum}条）`;
+                  }
+                  textChild.push(textChild1);
+                }
+                if (rejectCount > 0) {
+                  let textChild2 = `驳回${rejectCount}条`;
+                  let rjtCount = arrCount.updateChildNum - arrCount.okChildNum;
+                  if (rjtCount > 0) {
+                    textChild2 += `（聚合${rjtCount}条）`;
+                  }
+                  textChild.push(textChild2);
+                }
+                text += `———${textChild.join("，")}`;
+              }
+              messageTextParts.push(text);
+            }
+            if (failCount > 0) {
+              messageTextParts.push(`保存失败${failCount}条`);
+            }
+            // if (arrCount.updateChildNum > 0) {
+            //   messageTextParts.push(
+            //     `其中聚合的数据${arrCount.updateChildNum}条`
+            //   );
+            // }
+            // console.log("arrCount", arrCount, updateArr.length, updateArr);
+
+            // 从 updateArr 中移除保存失败的数据
+            const successfulUpdateArr = filter_arr(updateArr, res.data.list);
+            // 从 this.dataSource 中移除保存成功的数据
+            this.dataSource = filter_arr(this.dataSource, successfulUpdateArr);
+            // 从this.selectedRows 中移除保存成功的数据
+            this.selectedRows = filter_arr(
+              this.selectedRows,
+              successfulUpdateArr
+            );
+            this.selectedRowKeys = filter_arr_keys(
+              this.selectedRowKeys,
+              successfulUpdateArr
+            );
+
             this.getTaskEntry();
           })
           .catch((err) => {
             message.error("保存失败！", err.message);
-          })
-          .finally(() => {
-            this.saveLoading = false;
-            // console.log("剩余待处理数据的数量：", this.dataSource.length-updateArr.length);
-            if (this.dataSource.length == updateArr.length) {
-              // 如果没有待处理的数据就自动关闭弹窗
-              this.handleClose();
-            }
           });
-      } else {
-        this.saveLoading = false;
+        promises.push(updatePromise);
       }
+
+      Promise.all(promises)
+        .then(() => {
+          if (messageTextParts.length > 0) {
+            message.success("数据已保存！" + messageTextParts.join("，"));
+          }
+          this.allData = this.dataSource;
+          // 清空选中
+          this.selectedRows = [];
+          this.selectedRowKeys = [];
+          this.selectedRowIndex = null;
+          if (this.dataSource.length == 0) {
+            // 如果没有待处理的数据就自动关闭弹窗
+            this.handleClose();
+          }
+        })
+        .finally(() => {
+          this.saveLoading = false;
+          this.loading = false;
+        });
     },
     handleClose() {
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
+      this.selectedRowIndex = null;
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
@@ -589,6 +685,10 @@ export default {
     },
     // 通过标签点击事件
     passTagChange(record) {
+      // 判断是否为子节点，若是则阻止操作
+      if (record.parentID) {
+        return;
+      }
       if (record.auditState === 1) {
         // 取消选择
         record.auditState = -1;
@@ -603,6 +703,10 @@ export default {
     },
     // 驳回标签点击事件
     rejectTagChange(record) {
+      // 判断是否为子节点，若是则阻止操作
+      if (record.parentID) {
+        return;
+      }
       if (record.auditState === 0) {
         record.auditState = -1;
       } else {
@@ -649,6 +753,10 @@ export default {
         // },
         onDblclick: (event) => {
           // clearTimeout(this.timer)
+          // 判断是否为子节点，若是则阻止操作
+          if (record.parentID) {
+            return;
+          }
           if (this.editableData.hasOwnProperty(record.id)) {
             // 当前行在编辑状态
             return;
@@ -863,17 +971,29 @@ export default {
         style: { top: "30%" },
         onOk: () => {
           let deleteIds = [];
+          let delCount = {
+            num: 0,
+            childNum: 0,
+          };
           this.selectedRows.forEach((item) => {
             deleteIds.push(item.id);
+            delCount.num++;
             if (item.children && item.children.length > 0) {
+              delCount.childNum += item.children.length;
               item.children.forEach((child) => {
                 deleteIds.push(child.id);
               });
             }
           });
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
           deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteIds)
             .then((res) => {
-              message.success("删除成功！");
+              let text = `删除成功${delCount.num - delCount.childNum}条`;
+              if (delCount.childNum > 0) {
+                text += `(聚合${delCount.childNum}条)`;
+              }
+              message.success(text); // 最后一列的词条状态
               this.getTaskEntry();
             })
             .catch((err) => {
