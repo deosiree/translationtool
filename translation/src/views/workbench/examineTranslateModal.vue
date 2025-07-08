@@ -478,7 +478,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          message.error(err.message);
+          message.error("1",err.message);
         });
 
       // 初始化快捷键
@@ -517,8 +517,9 @@ export default {
       // 校验审核通过的词条
       let num = this.verifyTranslationLength(okArr);
       if (num > 0) {
-        message.warn("存在超长翻译，请检查！");
+        message.warn(`超长翻译${num}条`);
         this.saveLoading = false;
+        this.loading = false;
         return;
       }
       if (updateArr.length > 0) {
@@ -709,7 +710,7 @@ export default {
             }
           })
           .catch((err) => {
-            message.error("11", err.message);
+            message.error("2", err.message);
           });
       } else {
         message.error("未找到对应的表单验证器");
@@ -983,7 +984,7 @@ export default {
               .validate()
               .then(() => {})
               .catch((err) => {
-                message.error(err.message);
+                message.error("翻译审核校验未通过，请检查翻译内容", err.message);
               });
           });
         }

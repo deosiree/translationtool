@@ -673,7 +673,7 @@ export default {
       // 校验翻译长度
       let num = this.verifyTranslationLength(this.selectedRows);
       if (num > 0) {
-        message.warn("存在超长翻译，请检查！");
+        message.warn(`超长翻译${num}条`);
         this.saveLoading = false;
         this.loading = false;
         return;
@@ -1438,7 +1438,7 @@ export default {
                 await formRef.validate();
               } catch (err) {
                 console.error("校验翻译长度时表单验证失败:", err);
-                message.error("翻译长度校验失败，请检查翻译内容", err.message);
+                message.error("翻译校验未通过，请检查翻译内容", err.message);
               }
             }
           });
