@@ -260,6 +260,10 @@ public class ConstantInterface {
         entryName.put("writeType", "回写类型");
         entryName.put("diFileName", "DI文件名");
         entryName.put("comment", "comment");
+        // 装置部新增加字段
+        entryName.put("srcTabName", "来源表名");
+        entryName.put("dbRID", "数据库记录ID");
+
         return entryName;
     }
 
@@ -318,6 +322,9 @@ public class ConstantInterface {
 
         entryName.put("中文字符上限", "maxChineseLength");
         entryName.put("外文字符上限", "foreignMaxLength");
+
+        entryName.put("来源表名", "srcTabName");
+        entryName.put("数据库记录ID", "dbRID");
         return entryName;
     }
 
