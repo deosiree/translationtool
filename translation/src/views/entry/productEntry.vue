@@ -1273,7 +1273,9 @@ export default {
         translateState: null,
         translate: "",
       };
-      this.getEntryByVersion();
+      // this.getEntryByVersion();
+      this.conditionalQuery();
+
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
