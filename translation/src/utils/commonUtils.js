@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
+import { message } from "ant-design-vue";
 import common from "@/views/workbench/common.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 import tableParam from '@/views/entry/tableParam';
@@ -6,7 +7,77 @@ import commonParam from "@/utils/commonParam.js";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
-// 释义替换翻译
+/**
+ * 从 filterSource 中移除 arr 中的数据(包括children)
+ * @param {Array} filterSource - 需要过滤的源数组，每个对象必须有一个唯一的 id 属性
+ * @param {Array} arr - 包含要移除的对象数组，每个对象必须有一个唯一的 id 属性
+ * @returns {Array} - 过滤后的数组
+ */
+export function filter_arr_with_children(filterSource, arr) {
+  filterSource = filterSource.filter((item) => {
+    return !arr.some(
+      (arrItem) => arrItem.id === item.id
+    );
+  });
+  return filterSource;
+
+  // this.selectedRows.forEach((item) => {
+  //           if (item.entryState === 2) {
+  //             // 词条审核未通过
+  //             deleteCount++;
+
+  //             deleteID.push(item.id); // 否则子词条还会重复加一遍
+
+  //             // 若存在子词条  则删除子词条
+  //             if (item.children && item.children.length > 0) {
+  //               item.children.forEach((child) => {
+  //                 deleteID.push(child.id);
+  //               });
+  //             }
+  //           }
+  //         });
+}
+
+/**
+ * 从 filterSource 中移除 arr 中的数据
+ * @param {Array} filterSource - 需要过滤的源数组，每个对象必须有一个唯一的 id 属性
+ * @param {Array} arr - 包含要移除的对象数组，每个对象必须有一个唯一的 id 属性
+ * @returns {Array} - 过滤后的数组
+ */
+export function filter_arr(filterSource, arr) {
+  filterSource = filterSource.filter((item) => {
+    return !arr.some(
+      (arrItem) => arrItem.id === item.id
+    );
+  });
+  return filterSource;
+}
+
+/**
+ * 从 filterSource 中移除 arr 中的数据
+ * @param {Array} filterSource - 需要过滤的源数组，每个元素是一个唯一的键值,代表id属性
+ * @param {Array} arr - 包含要移除的对象数组，每个对象必须有一个唯一的 id 属性
+ * @returns {Array} - 过滤后的数组
+ */
+export function filter_arr_keys(filterSource, arr) {
+  filterSource = filterSource.filter((key) => {
+    return !arr.some(
+      (arrItem) => arrItem.id === key
+    );
+  });
+  return filterSource;
+}
+
+/**
+ * 释义替换翻译
+ * 将选中行的释义字段替换为对应语言的值，并更新数据源
+ * @param {Object} vm - Vue 实例对象
+ * @param {Array} vm.selectedRows - 选中的行数据数组
+ * @param {Array} vm.dataSource - 表格数据源数组
+ * @param {Array} vm.allData - 所有数据数组
+ * @param {Object} commonParam - 公共参数对象，包含语言列表
+ * @returns {void}
+ */
 export function interpretation2value(vm) {
   // 遍历选中的行
   vm.selectedRows.forEach((row) => {
