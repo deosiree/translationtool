@@ -373,4 +373,13 @@ public class EntryInfoEntity implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+
+    /*来源表名*/
+    @TableField(value = "source_table")
+    private String srcTabName;
+    /*数据库记录ID */
+    @TableField(value = "db_record_id")
+    private String dbRID;
+
 }

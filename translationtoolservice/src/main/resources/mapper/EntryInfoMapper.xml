@@ -58,6 +58,9 @@
 
         <result property="classfy1" column="classfy1" jdbcType="VARCHAR"/>
         <result property="classfy2" column="classfy2" jdbcType="VARCHAR"/>
+
+        <result property="srcTabName" column="source_table" jdbcType = "VARCHAR"/>
+        <result property="dbRID" column="db_record_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -70,7 +73,7 @@
         task_id,en_trans_id,ru_trans_id,
         fra_trans_id,spa_trans_id,is_public,
         is_delete,import_type,write_type,entry_version_type,parent_id,
-        di_file_name,classfy1,classfy2,comment
+        di_file_name,classfy1,classfy2,comment,source_table,db_record_id
     </sql>
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
@@ -82,7 +85,8 @@
         t2.task_id,t2.en_trans_id,t2.ru_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,t2.comment,
         t2.is_delete,t2.import_type,t2.write_type,t2.entry_version_type,
-        t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2
+        t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2,
+        t2.source_table,t2.db_record_id
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
         select distinct<include refid="Base_t2_Column_List"/>,
@@ -158,6 +162,13 @@
         </if>
         <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+        </if>
+
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
         </if>
 
         <if test="limit >= 0 and offset >= 0">
@@ -242,6 +253,13 @@
         <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
         </if>
+
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
+        </if>
     </select>
 
     <select id="getEntryByClassfy" resultMap="BaseResultMap">
@@ -324,6 +342,13 @@
 
         <if test="entryInfoEntity.remark != null and entryInfoEntity.remark != '' ">
             and t2.remark  like CONCAT('%',#{entryInfoEntity.remark,jdbcType=VARCHAR},'%')
+        </if>
+
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
         </if>
 
         order by t2.tag,t2.id
@@ -410,6 +435,13 @@
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
         </if>
 
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
+        </if>
+
     </select>
 
     <select id="getEntryByAbbr"
@@ -485,8 +517,9 @@
         is_exist,
         classfy1,
         classfy2,
-         comment
-
+         comment,
+         source_table,
+         db_record_id
         )
         values
 
@@ -551,7 +584,9 @@
             #{entryInfoEntity.isExist,jdbcType=VARCHAR},
             #{entryInfoEntity.classfy1,jdbcType=VARCHAR},
             #{entryInfoEntity.classfy2,jdbcType=VARCHAR},
-            #{entryInfoEntity.comment,jdbcType=VARCHAR}
+            #{entryInfoEntity.comment,jdbcType=VARCHAR},
+            #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
+            #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
 
             )
         </foreach>
@@ -644,6 +679,13 @@
             <if test="entryInfoEntity.comment != null  and entryInfoEntity.comment   != ''">
                 comment,
             </if>
+
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                source_table,
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                db_record_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
@@ -730,6 +772,12 @@
             <if test="entryInfoEntity.comment != null and entryInfoEntity.comment   != ''">
                 #{entryInfoEntity.comment,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+            </if>
         </trim>
     </insert>
 
@@ -807,7 +855,13 @@
                 comment = #{entryInfoEntity.comment,jdbcType=VARCHAR},
             </if>
             <if test = "entryInfoEntity.entryLength != null and entryInfoEntity.entryLength != ''">
-                entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR}
+                entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
             </if>
         </set>
         where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
@@ -879,7 +933,13 @@
                 comment = #{entryInfoEntity.comment,jdbcType=VARCHAR},
             </if>
             <if test = "entryInfoEntity.entryLength != null">
-                entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR}
+                entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
@@ -1081,6 +1141,13 @@
             and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
 
+        <if test="entryInfoEntity.srcTabName != null">
+            and t2.source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR}
+        </if>
+        <if test="entryInfoEntity.dbRID != null">
+            and t2.db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+        </if>
+
     </select>
 
     <select id="getTransByID" resultType="string">
@@ -1213,7 +1280,9 @@
         ${tbl}.di_file_name,
         ${tbl}.classfy1,
         ${tbl}.classfy2,
-        ${tbl}.comment
+        ${tbl}.comment,
+        ${tbl}.source_table,
+        ${tbl}.db_record_id
     </sql>
 
 
