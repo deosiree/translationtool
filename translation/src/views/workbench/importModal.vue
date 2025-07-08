@@ -688,7 +688,7 @@ export default {
       },
       selectedRowKeys: [],
       selectedRows: [],
-      accept: ".xls,.xlsx",
+      accept: ".xls,.xlsx,.csv",
       tsOptions: [],
       selectTitle: "",
       tsFile: {
@@ -1180,14 +1180,16 @@ export default {
 
     beforeUpload(file, fileList) {
       // console.log("before");
-      if (
-        !file.name.includes("zz.xlsx") &&
-        !file.name.includes("common.xlsx") &&
-        !file.name.includes("jk.xlsx")
-      ) {
-        message.info("请选择正确的文件！");
-        return;
-      }
+      // 去掉后缀必须是_zz\_common的限制，由入参来进行部门之间的隔离
+      // if (
+      //   !file.name.includes("zz.xlsx") &&
+      //   !file.name.includes("common.xlsx") &&
+      //   !file.name.includes("jk.xlsx")
+      // ) {
+      //   message.info("请选择正确的文件！");
+      //   console.log("请选择正确的文件！",file);
+      //   return;
+      // }
       if (file.path != undefined) {
         this.filePath = file.path;
       } else {
@@ -1646,7 +1648,7 @@ export default {
         formData.append("taskID", this.task.id);
         const params = {
           diFileName: this.filediFileName,
-          importType: this.user.department,
+          departmentType: this.user.department,
         };
         asyncTask = readZZExcle(params, formData)
           .then((res) => res.data.list)

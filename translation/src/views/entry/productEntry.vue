@@ -86,8 +86,8 @@
           <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
-          <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button>
-          <!-- <ImportButton @importSuccess="handleImportSuccess" v-if="admin" /> -->
+          <!-- <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button> -->
+          <ImportButton @importSuccess="handleImportSuccess" v-if="admin" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -359,7 +359,7 @@
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
 
-  <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
+  <!-- <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
     @afterClose="importAfterClose">
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="importModal">
@@ -380,7 +380,7 @@
         </a-form-item>
       </a-form>
     </div>
-  </CustomModal>
+  </CustomModal> -->
 </template>
 <script>
 import "@/assets/style/common.less";

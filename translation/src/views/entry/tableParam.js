@@ -30,7 +30,7 @@ export default {
     { label: "备注", value: "remark", index: 29 },
     { label: "中文翻译", value: "chineseTranslation", index: 30 },
     { label: "来源表名", value: "srcTabName", index: 31 },
-    { label: "数据库记录ID", value: "DBRID", index: 32 },
+    { label: "数据库记录ID", value: "dbRID", index: 32 },
     { label: "abbr", value: "abbr", index: 99 },
     // {label: "英文翻译id",value: "enTransld",index:30},
     // {label: "俄文翻译id",value: "ruTransId",index:31},
