@@ -29,8 +29,6 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     int updateEntryInfo(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
 
-    int updateEntryInfoForManager(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
-
     EntryInfoEntity selectEntryById(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
 
     int deleteByIdList(@Param("idList") List<String> idList, @Param("tableName") String tableName);

@@ -1,8 +1,6 @@
 package com.shr.translationtoolservice.entity.vo;
 
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
-import com.shr.translationtoolservice.entity.EntryInfoEntityForExcel;
-
 import lombok.Data;
 
 import java.util.List;
@@ -14,13 +12,13 @@ import java.util.List;
  * @Date 2024/2/27 0027 11:09
  **/
 @Data
-public class ExcelExportVO<T extends EntryInfoEntity> {
+public class ExcelExportVO {
     //筛选条件
-    private T entryInfoEntity;
+    private EntryInfoEntity entryInfoEntity;
     //自定义列名
     private List<String> columnNames;
     //文件名字
     private String excelName;
     //导出数据
-    private List<T> entryInfoEntities;
+    private List<EntryInfoEntity> entryInfoEntities;
 }
