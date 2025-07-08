@@ -134,6 +134,12 @@ public class DiUtils {
         // dictionaryVo.setTag(entryInfoEntity.getEntryLabel());
         Map<String, String> transMap = new HashMap<>();
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                    transMap.put(langCode, entryInfoEntity.getChinese());
+                    dictionaryVo.setTranslation(transMap);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                     transMap.put(langCode, entryInfoEntity.getEnglish());
@@ -185,6 +191,12 @@ public class DiUtils {
                     transMap = new HashMap<>();
                 }
                 switch (translateType) {
+                    case ConstantInterface.CHINESE:
+                        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                            transMap.put(langCode, entryInfoEntity.getChinese());
+                            dictionaryVo.setTranslation(transMap);
+                        }
+                        break;
                     case ConstantInterface.ENGLISH:
                         if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                             transMap.put(langCode, entryInfoEntity.getEnglish());
@@ -332,6 +344,9 @@ public class DiUtils {
                 Map<String, String> map = dictionaryVo.getTranslation();
                 if (StringUtils.isBlank(map.get(translateType))) {
                     switch (translateType) {
+                        case ConstantInterface.CHINESE:
+                            entryInfoEntity.setChinese(map.get(translateType));
+                            break;
                         case ConstantInterface.ENGLISH:
                             entryInfoEntity.setEnglish(map.get(translateType));
                             break;
@@ -440,6 +455,14 @@ public class DiUtils {
     private void createNewTrans(EntryInfoEntity entryInfoEntity, String translateType, String translate) {
         //写入翻译字段
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(translate)) {
+                    entryInfoEntity.setChinese(translate);
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(translate)) {
                     entryInfoEntity.setEnglish(translate);

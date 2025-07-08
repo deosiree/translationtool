@@ -403,6 +403,34 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private void updateTrans(EntryInfoEntity entryInfoEntity, String department) {
         String id = "";
         String transType = "";
+        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+            transType = ConstantInterface.CHINESE;
+            List<TranslateEntity> translateEntitys = new ArrayList<>();
+            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getChinese(), department);
+            if (CollectionUtils.isEmpty(translateEntitys)) {
+                TranslateEntity translateEntity = new TranslateEntity();
+                id = commonUtils.getUUID();
+                translateEntity.setId(id);
+                translateEntity.setEntry(entryInfoEntity.getEntry());
+                translateEntity.setVersionID(entryInfoEntity.getVersionID());
+                translateEntity.setTranslate(entryInfoEntity.getChinese());
+                translateEntity.setPublicState(0);
+                translateEntity.setTranslateState("3");
+                translateEntity.setDeleteState(0);
+                translateEntity.setVisualRange(department);
+                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
+                translateEntity.setType(transType);
+                // translateMapper.insert(translateEntity);
+                translateMapper.insertTranslate(translateEntity);
+
+            } else {
+                TranslateEntity translateEntity = translateEntitys.stream().max(Comparator.comparing(TranslateEntity::getLastUseTime)).get();
+                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
+                id = translateEntity.getId();
+                translateMapper.updateById(translateEntity);
+            }
+            entryInfoEntity.setZhTransId(id);
+        }
         if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
             transType = ConstantInterface.ENGLISH;
             List<TranslateEntity> translateEntitys = new ArrayList<>();
@@ -419,7 +447,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 translateEntity.setDeleteState(0);
                 translateEntity.setVisualRange(department);
                 translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                translateEntity.setType(ConstantInterface.ENGLISH);
+                translateEntity.setType(transType);
                 // translateMapper.insert(translateEntity);
                 translateMapper.insertTranslate(translateEntity);
 
@@ -522,6 +550,29 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private void updateWorkTrans(EntryInfoEntity entryInfoEntity, String department) {
         String id = "";
         String transType = "";
+        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+            transType = ConstantInterface.CHINESE;
+            List<TranslateEntity> translateEntitys = new ArrayList<>();
+            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getChinese(), department);
+            if (CollectionUtils.isEmpty(translateEntitys)) {
+                TranslateEntity translateEntity = new TranslateEntity();
+                id = commonUtils.getUUID();
+                translateEntity.setId(id);
+                translateEntity.setEntry(entryInfoEntity.getEntry());
+                translateEntity.setVersionID(entryInfoEntity.getVersionID());
+                translateEntity.setTranslate(entryInfoEntity.getChinese());
+                translateEntity.setPublicState(0);
+                translateEntity.setTranslateState("1");
+                translateEntity.setDeleteState(0);
+                translateEntity.setVisualRange(department);
+                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
+                translateEntity.setType(transType);
+                // translateMapper.insert(translateEntity);
+                translateMapper.insertTranslate(translateEntity);
+
+            }
+            entryInfoEntity.setZhTransId(id);
+        }
         if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
             transType = ConstantInterface.ENGLISH;
             List<TranslateEntity> translateEntitys = new ArrayList<>();
@@ -538,7 +589,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 translateEntity.setDeleteState(0);
                 translateEntity.setVisualRange(department);
                 translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                translateEntity.setType(ConstantInterface.ENGLISH);
+                translateEntity.setType(transType);
                 // translateMapper.insert(translateEntity);
                 translateMapper.insertTranslate(translateEntity);
 
@@ -823,6 +874,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     public void addTransID(TranslateEntity translateEntities, EntryInfoEntity entryInfoEntity) {
         switch (translateEntities.getType()) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isBlank(translateEntities.getId())) {
+                    String transID = commonUtils.getUUID();
+                    translateEntities.setId(transID);
+                    entryInfoEntity.setZhTransId(transID);
+                } else {
+                    entryInfoEntity.setZhTransId(translateEntities.getId());
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isBlank(translateEntities.getId())) {
                     String transID = commonUtils.getUUID();
@@ -1033,6 +1093,16 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private void setPTTranslateState(TaskInfoEntity taskInfoEntity, EntryInfoEntity entryInfoEntity) {
         //写入翻译字段
         switch (taskInfoEntity.getTranslateType()) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                if (!Objects.isNull(entryInfoEntity.getZhCharLength())) {
+                    entryInfoEntity.setEntryLength(entryInfoEntity.getZhCharLength());
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                     entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
@@ -1516,6 +1586,32 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<TranslateEntity> translateEntityList = new ArrayList<>();
 
            switch (lang){
+               case ConstantInterface.CHINESE:
+                   if (StringUtils.isBlank(relationEntity.getChinese())){
+                       break;
+                   }
+                   translateEntityList = translateMapper.selectList(
+                           new QueryWrapper<TranslateEntity>().eq("entry", relationEntity.getEntry())
+                                   .eq("type", lang).eq("translate", relationEntity.getChinese())
+                                   .eq("delete_state", 0).eq("visual_range", department).eq("translate_state", "3")
+                   );
+                   if (translateEntityList != null && !translateEntityList.isEmpty()) {
+                       // 如果已经存在相同的翻译，则换成这个id
+                       transID = translateEntityList.get(0).getId();
+                       relationEntity.setZhTransId(transID);
+                   }else {
+                       relationEntity.setZhTransId(transID);
+                       translateEntity.setTranslateState("1");
+                       translateEntity.setId(transID);
+                       translateEntity.setDeleteState(0);
+                       translateEntity.setVisualRange(department);
+                       translateEntity.setType(lang);
+                       translateEntity.setTranslate(relationEntity.getChinese());
+                       int insert = translateMapper.insertTranslate(translateEntity);
+                       if (insert < ConstantInterface.DB_SUCCESS_RESULT) {
+                           return ErrorCodeList.INSERT_ERROR;
+                       }
+                   }
                case ConstantInterface.ENGLISH:
                    if (StringUtils.isBlank(relationEntity.getEnglish())){
                        break;
@@ -1663,6 +1759,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + "fileName" + name);
             switch (taskEntityByTaskID.getTranslateType()) {
+                case ConstantInterface.CHINESE:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                        entryInfoEntity.setChineseTranslateState("1");
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                         entryInfoEntity.setEnglishTranslateState("1");
@@ -1746,6 +1847,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
                 String trans = "";
                 switch (transType) {
+                    case ConstantInterface.CHINESE:
+                        trans = entryInfoEntity1.getChinese();
+                        break;
                     case ConstantInterface.ENGLISH:
                         trans = entryInfoEntity1.getEnglish();
                         break;
@@ -1789,6 +1893,31 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
 
                 switch (transType) {
+                    case ConstantInterface.CHINESE:
+                        if (StringUtils.isBlank(entryInfoEntity1.getChinese())){
+                            break;
+                        }
+                        if (StringUtils.isBlank(originalEntry.getZhTransId())) {
+                            entryInfoEntity1.setZhTransId(translateEntity.getId());
+                            entryInfoMapper.updateById(entryInfoEntity1);
+                            if (isExist){
+                                break;
+                            }
+                            // translateMapper.insert(translateEntity);
+                            translateMapper.insertTranslate(translateEntity);
+                            break;
+                        }
+                        TranslateEntity originZhTrans = translateMapper.selectById(originalEntry.getZhTransId());
+                        if (Objects.isNull(originZhTrans) || !entryInfoEntity1.getChinese().equals(originZhTrans.getTranslate())) {
+                            entryInfoEntity1.setZhTransId(translateEntity.getId());
+                            entryInfoMapper.updateById(entryInfoEntity1);
+                            if (isExist){
+                                break;
+                            }
+                            translateMapper.insertTranslate(translateEntity);
+                            break;
+                        }
+                        break;
                     case ConstantInterface.ENGLISH:
                         if (StringUtils.isBlank(entryInfoEntity1.getEnglish())){
                             break;
@@ -2079,6 +2208,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             if (StringUtils.isNotBlank(changeType) && changeType.equals(ConstantInterface.CAPITAL)) {
                 switch (translateType) {
+                    case ConstantInterface.CHINESE:
+                        entryInfoEntity.setChinese(StringUtil.capitalizeWords(entryInfoEntity.getChinese()));
+                        break;
                     case ConstantInterface.ENGLISH:
                         entryInfoEntity.setEnglish(StringUtil.capitalizeWords(entryInfoEntity.getEnglish()));
                         break;
@@ -2094,6 +2226,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
             }else if (StringUtils.isNotBlank(changeType) && changeType.equals(ConstantInterface.UNCAPITAL)){
                 switch (translateType) {
+                    case ConstantInterface.CHINESE:
+                        entryInfoEntity.setChinese(StringUtil.uncapitalizeWords(entryInfoEntity.getChinese()));
+                        break;
                     case ConstantInterface.ENGLISH:
                         entryInfoEntity.setEnglish(StringUtil.uncapitalizeWords(entryInfoEntity.getEnglish()));
                         break;
@@ -2117,6 +2252,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
             switch (translateType) {
+                case ConstantInterface.CHINESE:
+                    entryInfoEntity.setChinese(entryInfoEntity.getChinese().replace(sourceStr, replaceStr));
+                    break;
                 case ConstantInterface.ENGLISH:
                     entryInfoEntity.setEnglish(entryInfoEntity.getEnglish().replace(sourceStr, replaceStr));
                     break;
@@ -2206,7 +2344,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             //     return res;
             // }
         }else {
-            String[] languages = {ConstantInterface.ENGLISH,ConstantInterface.FRENCH,ConstantInterface.RUSSIAN,ConstantInterface.SPANISH};
+            String[] languages = {ConstantInterface.CHINESE,ConstantInterface.ENGLISH,ConstantInterface.FRENCH,ConstantInterface.RUSSIAN,ConstantInterface.SPANISH};
             for(String lang : languages){
                 res = new LinkedList<>();
                 putEntryTransInfo(entryInfoEntities, entryInfoEntityTemplate, res, lang);
@@ -3288,6 +3426,27 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                             TranslateEntity translateEntity;
                             // Your processing logic here
                             switch (translateType) {
+                                case ConstantInterface.CHINESE:
+                                    if (StringUtils.isBlank(entryInfoEntity.getChineseTranslateState())){
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
+                                        continue;
+                                    }
+                                    if (StringUtils.isBlank(entryEntity.getZhTransId())) {
+                                        entryEntity.setEnglishTranslateState("0");
+                                    } else {
+                                        translateEntity = translateMapper.selectById(entryEntity.getZhTransId());
+                                        if (Objects.nonNull(translateEntity)) {
+                                            entryEntity.setChineseTranslateState(translateEntity.getTranslateState());
+                                        } else {
+                                            entryEntity.setChineseTranslateState("0");
+                                        }
+                                    }
+                                    if ( entryInfoEntity.getChineseTranslateState().equals(entryEntity.getChineseTranslateState())) {
+                                        // res.add(entryEntity);
+                                        collection.add(entryEntity);
+                                    }
+                                    break;
                                 case ConstantInterface.ENGLISH:
                                     if (StringUtils.isBlank(entryInfoEntity.getEnglishTranslateState())){
                                         // res.add(entryEntity);
@@ -3417,6 +3576,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     private void sortEmptyTrans(List<EntryInfoEntity> entryInfoEntityList, String translateType) {
         switch (translateType){
+            case ConstantInterface.CHINESE:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getChinese, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
             case ConstantInterface.ENGLISH:
                 entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getEnglish, Comparator.nullsFirst(Comparator.naturalOrder())));
                 break;
@@ -3436,6 +3598,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String transState = "";
         String trans = "";
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                transState = entryInfoEntity.getChineseTranslateState();
+                trans = entryInfoEntity.getChinese();
+                break;
             case ConstantInterface.ENGLISH:
                 transState = entryInfoEntity.getEnglishTranslateState();
                 trans = entryInfoEntity.getEnglish();
@@ -3465,6 +3631,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         Integer translateLength = null;
         String translateID = commonUtils.getUUID();
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                translate = entryInfoEntity.getChinese();
+                if (StringUtils.isBlank(translate)) {
+                    return "";
+                }
+                translateLength = entryInfoEntity.getZhCharLength();
+                entryInfoEntity.setZhTransId(translateID);
+
+                break;
             case ConstantInterface.ENGLISH:
                 translate = entryInfoEntity.getEnglish();
                 if (StringUtils.isBlank(translate)) {
@@ -3560,6 +3735,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private void createNewTrans(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry) {
         //写入翻译字段
         switch (taskInfoEntity.getTranslateType()) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(importExcleEntry.getChinese())) {
+                    entryInfoEntity.setChinese(importExcleEntry.getChinese());
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                if (!Objects.isNull(importExcleEntry.getZhCharLength())) {
+                    entryInfoEntity.setEntryLength(importExcleEntry.getZhCharLength());
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(importExcleEntry.getEnglish())) {
                     entryInfoEntity.setEnglish(importExcleEntry.getEnglish());
@@ -3690,8 +3876,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         entryInfoEntity.setUpdate(userName);
         entryInfoEntity.setUpdateTime(date);
 
-
-        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+            setTranslate(entryInfoEntity, ConstantInterface.CHINESE, department);
+        } else if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
             setTranslate(entryInfoEntity, ConstantInterface.ENGLISH, department);
         } else if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
             setTranslate(entryInfoEntity, ConstantInterface.SPANISH, department);

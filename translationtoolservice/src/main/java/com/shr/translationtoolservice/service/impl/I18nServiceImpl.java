@@ -530,6 +530,9 @@ public class I18nServiceImpl implements I18nService {
         String trans = "";
         TranslateEntity translateEntity = new TranslateEntity();
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                translateEntity = translateMapper.selectById(entryInfoEntity.getZhTransId());
+                break;
             case ConstantInterface.ENGLISH:
                  translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
                 break;

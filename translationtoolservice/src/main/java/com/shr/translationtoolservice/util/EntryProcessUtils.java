@@ -37,6 +37,13 @@ public class EntryProcessUtils {
             String translate = "";
             //有翻译字段 直接放到map里
             switch (translateType){
+                case ConstantInterface.CHINESE:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getZhTransId())){
+                        translate = translateMapper.selectById(entryInfoEntity.getZhTransId()).getTranslate();
+                    }else {
+                        translate = entryInfoEntity.getEnglish();
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())){
                         translate = translateMapper.selectById(entryInfoEntity.getEnTransId()).getTranslate();
