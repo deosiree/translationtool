@@ -10,6 +10,9 @@ package com.shr.translationtoolservice.util;
 import cn.afterturn.easypoi.cache.manager.IFileLoader;
 import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
+import cn.hutool.core.text.csv.CsvParser;
+import io.vavr.collection.Stream.Cons;
+
 import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.dao.VersionMapper;
@@ -17,6 +20,8 @@ import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.ibatis.type.TypeException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -30,14 +35,22 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -76,6 +89,223 @@ public class ExcelUtils {
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
         List<T> excelForBeans = readNewExcel(classzz, workbook, excelHeads);  //解析Excel
         return excelForBeans;
+    }
+
+    private static String charsetDetect(String filePath){
+
+
+        return null;
+    }
+
+    private static String postProcessSubText(String subText){
+        if(subText == null){
+            return null;
+        }
+        if(subText.equals("")){
+            return subText;
+        }else if(subText.equals("\"")){
+            return null;
+        }
+        if(subText.startsWith("\"")){
+            if(subText.endsWith("\"")){
+                String processedSubText = subText.substring(1,subText.length() - 1);
+                // 如果字符串里面"不成对出现就有问题
+                boolean skip = false;
+                StringBuilder builder = new StringBuilder();
+                for(int idx = 0 ; idx < processedSubText.length() ; idx ++ ){
+                    char next = processedSubText.charAt(idx);
+                    builder.append(next);
+                    if(next == '"'){
+                        if(idx + 1 < processedSubText.length() && processedSubText.charAt(idx + 1) == '"'){
+                            idx ++;
+                        }else{
+                            skip = true;    
+                            break;   
+                        }
+                    }
+                }
+                if(skip) return null;
+                return builder.toString();
+            }else{
+                return null;
+            }
+        }else{
+            return subText;
+        }
+    }
+
+    /**
+    *   先找到最近的两个逗号
+        如果第一个后面紧跟"，则看第二个逗号前面是不是"
+            如果是，则取这两个逗号之间的内容，
+            否则,找下一个符合前面是"的逗号，如果到最后一个字符，如果前面是"，则取这两个"之间的内容，如果不是，则报错
+        如果第一个后面不是"，则取下一个逗号前面的所有
+        如果取的内容前后有",则判断剩余的内容，如果剩余的内容只有一个'"',则取下一个','
+     * @param lineText
+     * @return
+     */
+    private static String[] CSVParse(String lineText){
+        if(lineText == null){
+            return new String[0];
+        }
+        int textLength = lineText.length();
+        if(textLength == 0){
+            return new String[0];
+        }
+        List<String> textList = new ArrayList<>();
+        int leftCommaIndex = -1;
+        for(int i = 0 ; i < textLength ; i ++ ){
+            char nextChar = lineText.charAt(i);
+            if(nextChar == ','){
+                String subText = lineText.substring(leftCommaIndex + 1, i);
+                String processedText = postProcessSubText(subText);
+                if(processedText == null){
+                    // 不符合要求
+                    continue;
+                }
+                textList.add(processedText);
+                leftCommaIndex = i;
+            }else{
+                // if(i + 1 == textLength){
+                //     // 最后一个了
+                //     String processedText = postProcessSubText(lineText.substring(leftCommaIndex + 1, textLength));
+                //     if(processedText == null){
+                //         throw new RuntimeException("提供的csv文件存在异常");
+                //     }
+                //     textList.add(processedText);
+                // }
+            }
+        }
+        String processedText = postProcessSubText(lineText.substring(leftCommaIndex + 1 , textLength));
+        if(processedText == null){
+            throw new RuntimeException("解析的这一行数据存在异常: 该行数据为: " + lineText);
+        }
+        textList.add(processedText);
+        return textList.toArray(new String[textList.size()]);
+    }
+
+    private static <T> List<Method> methodListFromCSV(String lineText,Class<T> classzz){
+        return methodListFromCSV(lineText, classzz, null);
+    }
+
+    private static <T> List<Method> methodListFromCSV(String lineText,Class<T> classzz,Map<String,String> methodRedirect){
+        if(methodRedirect == null){
+            methodRedirect = new HashMap<>();
+        }
+        if(classzz == null){
+            throw new RuntimeException("没有提供classzz");
+        }
+        List<Method> methodList = new ArrayList<>();
+        String[] elementList = ExcelUtils.CSVParse(lineText);
+        Map<String,String> entryNameProjection = ConstantInterface.constructEntryName();
+
+        for(int i = 0 ; i < elementList.length ; i ++ ){
+            String nextHeader = elementList[i];
+            if(nextHeader == null || nextHeader.equals("")){
+                throw new TypeException("header行存在空单元格或csv文件中存在不符合要求的内容: " + lineText);
+            }
+            boolean isFindMethod = false;
+            Class<? super T> currentClass = classzz;
+            while (currentClass != null) {
+                for(Field field : currentClass.getDeclaredFields()){
+                    String fieldName = field.getName();
+                    String headerName = nextHeader;
+                    if(methodRedirect != null && methodRedirect.containsKey(headerName)){
+                        headerName = methodRedirect.get(headerName);
+                    }
+                    if(entryNameProjection.get(fieldName) != null && entryNameProjection.get(fieldName).equals(headerName)){
+                        String methodName =  MethodUtils.setMethodName(fieldName);
+                        Method method = null;
+                        try {
+                            method = classzz.getMethod(methodName, field.getType());
+                        } catch (NoSuchMethodException e) {
+                            // TODO Auto-generated catch block
+                            throw new RuntimeException(e);
+                        } catch (SecurityException e) {
+                            // TODO Auto-generated catch block
+                            throw new RuntimeException(e);
+                        }
+                        if(method == null){
+                            throw new RuntimeException("没有获取到methodName: \"" + methodName + "\"方法");
+                        }
+                        isFindMethod = true;
+                        methodList.add(method);
+                    }
+                }
+                currentClass = currentClass.getSuperclass();
+            }
+            if(!isFindMethod){
+                throw new RuntimeException("没有找到: \"" + nextHeader + "\"对应的方法");
+            }
+        }
+
+        return methodList;
+    }
+    
+    public <T> List<T> readCSVToEntity(String translateType,Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
+        checkFile(fileName);
+        BufferedReader reader = null;
+        List<T> entities = new  ArrayList<>();
+        // String charset = StringUtil.checkCharset(kwargs.get("charset"));
+        String charset = charsetDetect(fileName);
+        if(charset == null) charset = "UTF-8";
+        
+        try {
+            List<Method> methodList = null;
+            boolean isFindHeader = false;
+            String nextLine = null;
+            reader = new BufferedReader(new InputStreamReader(in,charset));
+            while ((nextLine = reader.readLine()) != null) {
+                if(nextLine.equals("")){
+                    // 空行跳过
+                    continue;
+                }
+                if((int)nextLine.charAt(0) == 65279){
+                    // UTF-8 +BOM 格式
+                    nextLine = nextLine.substring(1,nextLine.length());
+                    if(nextLine.equals("")) continue;
+                }
+                String[] elementList = ExcelUtils.CSVParse(nextLine);
+                if(!isFindHeader){
+                    // 第一个非空行,代表表头    
+                    methodList = methodListFromCSV(nextLine, classzz);
+                    isFindHeader = true;
+                }else{
+                    if(methodList == null){
+                        throw new RuntimeException("methodList为null");
+                    }
+                    int dataLength = elementList.length;
+                    if(dataLength != methodList.size()){
+                        throw new RuntimeException("dataLength != methodList.size()");
+                    }
+                    T instance= null; 
+                    for(int i = 0 ; i < dataLength ; i ++ ){
+                        String nextValue = elementList[i];
+                        if(nextValue == null || nextValue.equals("") ){
+                            continue;
+                        }
+                        if(instance == null){
+                            instance = classzz.newInstance();
+                        }
+                        methodList.get(i).invoke(instance, nextValue);
+                    }
+                    if(instance == null){
+                        log.warn("当前存在空行,已跳过");
+                        continue;
+                    }
+                    entities.add(instance);
+                }
+            }
+            return entities;
+        } catch (Exception e) {
+            log.error(null, e);
+            throw e;
+        } finally{
+            // if(r)
+            if(reader != null){
+                reader.close();
+            }
+        }
     }
 
 
@@ -133,7 +363,7 @@ public class ExcelUtils {
      * @throws Exception
      */
     public void checkFile(String fileName) throws Exception {
-        if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
+        if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls") || fileName.endsWith(".csv"))) {
             throw new Exception("不是Excel文件！");
         }
     }
@@ -268,6 +498,7 @@ public class ExcelUtils {
                             headName.equals("西文术语") ||
                             headName.equals("俄文术语") ||
                             headName.equals("中文术语") ||
+                            headName.equals("法文术语") ||
                             headName.equals("ABB类全驼峰") ||
                             headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
                             headName.equals("单多驼峰搭配下划线（继保类似）") ||

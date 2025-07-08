@@ -93,6 +93,17 @@ public class EntryInfoEntity implements Serializable {
     @DefaultValue("")
     private String englishInterpretation;
 
+    @TableField(value = "russian_interpretation")
+    @DefaultValue("")
+    private String russianInterpretation;
+
+    @TableField(value = "french_interpretation")
+    @DefaultValue("")
+    private String frenchInterpretation;
+
+    @TableField(value = "spanish_interpretation")
+    @DefaultValue("")
+    private String spanishInterpretation;
     /**
      * 词条来源
      */
@@ -362,4 +373,13 @@ public class EntryInfoEntity implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+
+    /*来源表名*/
+    @TableField(value = "source_table")
+    private String srcTabName;
+    /*数据库记录ID */
+    @TableField(value = "db_record_id")
+    private String dbRID;
+
 }
