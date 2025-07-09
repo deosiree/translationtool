@@ -980,6 +980,12 @@ public class ExcelUtils {
             //查找翻译
             TranslateEntity translateEntity = null;
             switch (transType) {
+                case ConstantInterface.CHINESE:
+                    translateEntity = translateMapper.selectById(entryInfoEntity.getZhTransId());
+                    if (Objects.nonNull(translateEntity)) {
+                        outputExcel.setTranslate(translateEntity.getTranslate());
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
                     if (Objects.nonNull(translateEntity)) {

@@ -201,6 +201,24 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "en_char_length")
     @DefaultValue("")
     private Integer enCharLength;
+
+
+    /**
+     * 俄文翻译id
+     */
+    @TableField(value = "zh_trans_id")
+    @DefaultValue("")
+    private String zhTransId;
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String chinese;
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String chineseTranslateState;
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String chinesePublicState;
+
     /**
      * 俄文翻译id
      */
@@ -216,6 +234,9 @@ public class EntryInfoEntity implements Serializable {
     @TableField(exist = false)
     @DefaultValue("")
     private String russianPublicState;
+
+    @TableField(exist = false)
+    private String chineseAuditSuggest;
 
     @TableField(exist = false)
     private String englishAuditSuggest;
@@ -235,6 +256,12 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "ru_char_length")
     @DefaultValue("")
     private Integer ruCharLength;
+    /**
+     * 俄文翻译长度
+     */
+    @TableField(value = "zh_char_length")
+    @DefaultValue("")
+    private Integer zhCharLength;
 
 
     /**

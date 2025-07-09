@@ -43,9 +43,12 @@ public class ImportExcleEntry {
 
     @Excel(name = "中文术语", orderNum = "1")
     private String entry;
-
-    @Excel(name = "中文术语字符数", orderNum = "1")
     private Integer entryLength;
+    @Excel(name = "中文术语字符数", orderNum = "1")
+    private Integer zhCharLength;
+    //英文术语
+    @Excel(name = "中文术语", orderNum = "1")
+    private String chinese;
     //英文术语
     @Excel(name = "英文术语", orderNum = "1")
     private String english;

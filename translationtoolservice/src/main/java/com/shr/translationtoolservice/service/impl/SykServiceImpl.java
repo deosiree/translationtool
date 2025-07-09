@@ -137,6 +137,9 @@ public class SykServiceImpl implements SykService {
             QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("is_delete", 0);
             switch (translate.getType()){
+                case ConstantInterface.CHINESE:
+                    queryWrapper.eq("zh_trans_id", id);
+                    break;
                 case ConstantInterface.ENGLISH:
                     queryWrapper.eq("en_trans_id", id);
                     break;

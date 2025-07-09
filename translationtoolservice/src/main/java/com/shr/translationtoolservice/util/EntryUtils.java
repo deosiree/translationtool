@@ -91,6 +91,14 @@ public class EntryUtils {
     public void createNewTrans(EntryInfoEntity entryInfoEntity, String translateType, String translate) {
         //写入翻译字段
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(translate)) {
+                    entryInfoEntity.setChinese(translate);
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(translate)) {
                     entryInfoEntity.setEnglish(translate);

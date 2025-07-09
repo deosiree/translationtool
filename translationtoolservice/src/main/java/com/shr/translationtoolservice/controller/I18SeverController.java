@@ -235,6 +235,14 @@ public class I18SeverController extends BaseController {
     private void createNewTrans(EntryInfoEntity entryInfoEntity, String translateType, String translate) {
         //写入翻译字段
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(translate)) {
+                    entryInfoEntity.setChinese(translate);
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(translate)) {
                     entryInfoEntity.setEnglish(translate);
@@ -290,6 +298,9 @@ public class I18SeverController extends BaseController {
                     Map<String, String> requestMap = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
                     switch (tsWordVO.getTranslateType()) {
+                        case ConstantInterface.CHINESE:
+                            requestMap.put("translate", entryInfoEntity.getChinese());
+                            break;
                         case ConstantInterface.ENGLISH:
                             requestMap.put("translate", entryInfoEntity.getEnglish());
                             break;
@@ -757,6 +768,9 @@ public class I18SeverController extends BaseController {
                 Map<String, String> map = dictionaryVo.getTranslation();
                 if (StringUtils.isBlank(map.get(code))) {
                     switch (code) {
+                        case ConstantInterface.CHINESE:
+                            entryInfoEntity.setChinese(map.get(code));
+                            break;
                         case ConstantInterface.ENGLISH:
                             entryInfoEntity.setEnglish(map.get(code));
                             break;
@@ -852,6 +866,9 @@ public class I18SeverController extends BaseController {
                     Map<String, String> map = dictionaryVo.getTranslation();
                     if (StringUtils.isBlank(map.get(code))) {
                         switch (code) {
+                            case ConstantInterface.CHINESE:
+                                entryInfoEntity.setChinese(map.get(code));
+                                break;
                             case ConstantInterface.ENGLISH:
                                 entryInfoEntity.setEnglish(map.get(code));
                                 break;

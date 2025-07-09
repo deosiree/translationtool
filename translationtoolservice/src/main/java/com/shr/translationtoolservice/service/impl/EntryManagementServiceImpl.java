@@ -466,6 +466,11 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
         for (EntryInfoEntity  entryInfoEntity : entryInfoEntities){
             switch (transType){
+                case ConstantInterface.CHINESE:
+                    if (StringUtils.isBlank(entryInfoEntity.getChinese())){
+                        entryInfoEntity.setChineseTranslateState("0");
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isBlank(entryInfoEntity.getEnglish())){
                         entryInfoEntity.setEnglishTranslateState("0");

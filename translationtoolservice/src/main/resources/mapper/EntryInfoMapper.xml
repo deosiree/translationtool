@@ -32,6 +32,17 @@
         <result property="englishPublicState" column="englishPublicState" jdbcType="VARCHAR"/>
         <result property="english" column="english" jdbcType="VARCHAR"/>
 
+        <result property="zhTransId" column="zh_trans_id" jdbcType="VARCHAR"/>
+        <result property="chinese" column="russian" jdbcType="VARCHAR"/>
+        <result property="chineseTranslateState" column="chineseTranslateState" jdbcType="VARCHAR"/>
+        <result property="chinesePublicState" column="chinesePublicState" jdbcType="VARCHAR"/>
+
+        <result property="zhCharLength" column="zh_char_length" jdbcType="VARCHAR"/>
+        <result property="enCharLength" column="en_char_length" jdbcType="VARCHAR"/>
+        <result property="ruCharLength" column="ru_char_length" jdbcType="VARCHAR"/>
+        <result property="fraCharLength" column="fra_char_length" jdbcType="VARCHAR"/>
+        <result property="spaCharLength" column="spa_char_length" jdbcType="VARCHAR"/>
+
         <result property="ruTransId" column="ru_trans_id" jdbcType="VARCHAR"/>
         <result property="russian" column="russian" jdbcType="VARCHAR"/>
         <result property="russianTranslateState" column="russianTranslateState" jdbcType="VARCHAR"/>
@@ -70,7 +81,7 @@
         entry_source,entry_state,`update`,
         update_time,version_id,entry_label,tag,
         part_of_speech,classify_id,remark,
-        task_id,en_trans_id,ru_trans_id,
+        task_id,en_trans_id,ru_trans_id,zh_trans_id,
         fra_trans_id,spa_trans_id,is_public,
         is_delete,import_type,write_type,entry_version_type,parent_id,
         di_file_name,classfy1,classfy2,comment,source_table,db_record_id
@@ -82,7 +93,7 @@
         t2.entry_source,t2.entry_state,t2.`update`,
         t2.update_time,t2.version_id,t2.entry_label,t2.tag,
         t2.part_of_speech,t2.classify_id,t2.remark,
-        t2.task_id,t2.en_trans_id,t2.ru_trans_id,
+        t2.task_id,t2.en_trans_id,t2.ru_trans_id,t2.zh_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,t2.comment,
         t2.is_delete,t2.import_type,t2.write_type,t2.entry_version_type,
         t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2,
@@ -93,12 +104,14 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
         where t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
             and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
@@ -138,6 +151,12 @@
             and t2.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
         </if>
 
+        <if test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState   != ''">
+            and t6.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+        </if>
+        <if test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState   != ''">
+            and t6.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+        </if>
         <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState   != ''">
             and t6.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
         </if>
@@ -148,6 +167,9 @@
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if>
 
+        <if test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
+            and t3.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+        </if>
         <if test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
             and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
         </if>
@@ -186,6 +208,7 @@
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
         where t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
             and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
@@ -225,6 +248,9 @@
             and t2.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
         </if>
 
+        <if test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState   != ''">
+            and t6.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+        </if>
         <if test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState   != ''">
             and t3.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
         </if>
@@ -238,6 +264,9 @@
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if>
 
+        <if test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
+            and t3.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+        </if>
         <if test="entryInfoEntity.english != null ">
             and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
         </if>
@@ -268,11 +297,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
         where t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
             and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
@@ -323,7 +354,9 @@
         <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState   != ''">
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if>-->
-
+        <if test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
+            and t7.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+        </if>
         <if test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
             and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
         </if>
@@ -365,6 +398,7 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
@@ -418,7 +452,9 @@
         <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState   != ''">
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if> -->
-
+        <if test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState   != ''">
+            and t7.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+        </if>
         <if test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
             and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
         </if>
@@ -497,6 +533,8 @@
 
         task_id,
 
+        zh_trans_id,
+
         en_trans_id,
 
         ru_trans_id,
@@ -563,6 +601,8 @@
             #{entryInfoEntity.remark,jdbcType=VARCHAR},
 
             #{entryInfoEntity.taskId,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.zhTransId,jdbcType=VARCHAR},
 
             #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
 
@@ -651,6 +691,9 @@
             </if>
             <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId  != ''">
                 task_id,
+            </if>
+            <if test="entryInfoEntity.zhTransId != null and entryInfoEntity.zhTransId   != ''">
+                zh_trans_id,
             </if>
             <if test="entryInfoEntity.enTransId != null and entryInfoEntity.enTransId   != ''">
                 en_trans_id,
@@ -745,6 +788,9 @@
             <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
                 #{entryInfoEntity.taskId,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.zhTransId != null and entryInfoEntity.zhTransId   != ''">
+                #{entryInfoEntity.zhTransId,jdbcType=VARCHAR},
+            </if>
             <if test="entryInfoEntity.enTransId != null and entryInfoEntity.enTransId   != ''">
                 #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
             </if>
@@ -827,6 +873,9 @@
             <if test="entryInfoEntity.remark != null  and entryInfoEntity.remark != ''">
                 remark = #{entryInfoEntity.remark,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.zhTransId != null   and entryInfoEntity.zhTransId != ''">
+                zh_trans_id = #{entryInfoEntity.zhTransId,jdbcType=VARCHAR},
+            </if>
             <if test="entryInfoEntity.spaTransId != null   and entryInfoEntity.spaTransId != ''">
                 spa_trans_id = #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
             </if>
@@ -905,6 +954,9 @@
             <if test="entryInfoEntity.remark != null">
                 remark = #{entryInfoEntity.remark,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.zhTransId != null   and entryInfoEntity.zhTransId != ''">
+                zh_trans_id = #{entryInfoEntity.zhTransId,jdbcType=VARCHAR},
+            </if>
             <if test="entryInfoEntity.spaTransId != null   and entryInfoEntity.spaTransId != ''">
                 spa_trans_id = #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
             </if>
@@ -951,11 +1003,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
         where t2.is_delete = 0
         <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
             and t2.id = #{entryInfoEntity.id,jdbcType=VARCHAR}
@@ -985,11 +1039,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
         where  t2.is_delete = 0 and  t1.task_id =  #{id,jdbcType=VARCHAR}
 
     </select>
@@ -1001,11 +1057,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
         where  t2.is_delete = 0 and t2.entry_state = 3  and t3.translate_state = 3   and      t1.task_id =  #{id,jdbcType=VARCHAR}
 
 
@@ -1018,11 +1076,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
         where t2.is_delete = 0 and t1.task_id = #{id,jdbcType=VARCHAR}
         <if test="entryState != null  and entryState != ''">
             and t2.entry_state = #{entryState,jdbcType=VARCHAR}
@@ -1040,11 +1100,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
         where  t2.is_delete = 0 and  t1.version_id =  #{versionID,jdbcType=VARCHAR}
 
     </select>
@@ -1104,8 +1166,13 @@
         ru.translate as russian,ru.translate_state as russianTranslateState,ru.public_state as russianPublicState,
         fra.translate as french,fra.translate_state as frenchTranslateState,fra.public_state as frenchPublicState,
         spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState
+        zh.translate as chinese,zh.translate_state as chineseTranslateState,zh.public_state as chinesePublicState
         from
         t_product_relation t1 right JOIN t_entry_info t2 on t1.entry_id = t2.id
+        left join t_translate zh on t2.zh_trans_id = zh.id
+        <if test="entryInfoEntity.chineseTranslateState != null  ">
+            and zh.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+        </if>
         left join t_translate en on t2.en_trans_id = en.id
         <if test="entryInfoEntity.englishTranslateState != null  ">
             and en.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
@@ -1160,8 +1227,12 @@
         ru.translate as russian,ru.translate_state as russianTranslateState,ru.public_state as russianPublicState,
         fra.translate as french,fra.translate_state as frenchTranslateState,fra.public_state as frenchPublicState,
         spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState
+        zh.translate as chinese,zh.translate_state as chineseTranslateState,zh.public_state as chinesePublicState
         from
         t_product_relation t1 right JOIN t_entry_info t2 on t1.entry_id = t2.id
+
+        left join t_translate zh on t2.zh_trans_id = zh.id
+
         left join t_translate en on t2.en_trans_id = en.id
 
         left join t_translate ru on t2.ru_trans_id = ru.id
@@ -1205,8 +1276,9 @@
     </select>
 
     <select id="getEntryInfoUsingTranslate" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/> from t_entry_info where 
-        en_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+        select <include refid="Base_Column_List"/> from t_entry_info where
+        zh_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
+        or en_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or ru_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or spa_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
         or fra_trans_id = #{translateEntity.id,jdbcType=VARCHAR}
@@ -1214,7 +1286,8 @@
 
     <select id="getEntryByImportTypeUsingTranslate" resultType = "com.shr.translationtoolservice.entity.vo.TsVo">
     SELECT info.entry,info.comment,info.tag,trans.type,trans.translate 
-    FROM t_translate as trans INNER JOIN t_entry_info as info on trans.id = info.en_trans_id 
+    FROM t_translate as trans INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+                                                                     or trans.id = info.en_trans_id
     or trans.id = info.ru_trans_id or trans.id = info.spa_trans_id or trans.id = info.fra_trans_id 
     WHERE
         info.import_type = #{entryInfoEntity.importType,jdbcType=VARCHAR}
@@ -1233,11 +1306,13 @@
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
         t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
+        left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
         where 
             t2.entry = #{tsVo.entry,jdbcType=VARCHAR}
         and 
@@ -1267,6 +1342,7 @@
         ${tbl}.classify_id,
         ${tbl}.remark,
         ${tbl}.task_id,
+        ${tbl}.zh_trans_id,
         ${tbl}.en_trans_id,
         ${tbl}.ru_trans_id,
         ${tbl}.fra_trans_id,
@@ -1299,7 +1375,8 @@
         select DISTINCT
         <include refid = "Base_Column_List_With_Prefix"><property name = "tbl" value = "info"></property></include>
         from t_entry_info as info
-        inner join  t_translate as trans on info.en_trans_id = trans.id
+        inner join  t_translate as trans on info.zh_trans_id = trans.id
+        or info.en_trans_id = trans.id
         or info.ru_trans_id = trans.id
         or info.fra_trans_id = trans.id
         or info.spa_trans_id = trans.id

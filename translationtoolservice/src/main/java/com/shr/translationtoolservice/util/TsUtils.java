@@ -65,6 +65,9 @@ public class TsUtils {
             List<TLanguage> tLanguages = languageMapper.selectLaguageByName(transType);
             fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
             switch (transType) {
+                case ConstantInterface.CHINESE:
+                    trans = entryInfoEntity1.getChinese();
+                    break;
                 case ConstantInterface.ENGLISH:
                     trans = entryInfoEntity1.getEnglish();
                     break;
