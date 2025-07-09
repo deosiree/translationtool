@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 public class LocalTimeUtils {
 
     public static DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    /* 导出的excel、csv对应时间单元格的内容格式 */
+    public static DateFormat formatForFile = new SimpleDateFormat("yyyy-MM-dd HH:mm:sss");
 
     public Date getBeijingTime() {
         // 获取当前时间

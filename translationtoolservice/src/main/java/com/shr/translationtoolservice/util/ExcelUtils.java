@@ -241,7 +241,56 @@ public class ExcelUtils {
 
         return methodList;
     }
-    
+    /**
+     * 是否有成对的"
+     * @param textLine
+     * @return
+     */
+    public boolean checkCSVLine(String textLine){
+        int length = textLine.length();
+        int quotaCount = 0;
+        for(int i = 0; i < length ; i ++ ){
+            if(textLine.charAt(i) == '\"'){
+                quotaCount ++;
+            }
+        }
+        return quotaCount % 2 == 0;
+    }
+
+    public List<String> parseCSVFile(InputStream in,String charset) throws Exception{
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in,charset));
+        List<String> lineTextList = new ArrayList<>();
+        String nextLine = null;
+        String beforeLine = "";
+        while ((nextLine = reader.readLine()) != null) {    
+            if(nextLine.equals("")){
+                // 空行跳过
+                continue;
+            }
+            if((int)nextLine.charAt(0) == 65279){
+                // UTF-8 +BOM 格式
+                nextLine = nextLine.substring(1,nextLine.length());
+                if(nextLine.equals("")) continue;
+            }
+            if(beforeLine.equals("")){
+                if(checkCSVLine(nextLine)){
+                    lineTextList.add(nextLine);
+                    beforeLine = "";
+                }else{
+                    beforeLine += ('\n' + nextLine);
+                }
+            }else{
+                if(checkCSVLine(beforeLine + '\n' + nextLine)){
+                    lineTextList.add(beforeLine + '\n' + nextLine);
+                    beforeLine = "";
+                }else{
+                    beforeLine += ('\n' + nextLine);
+                }
+            }            
+        }
+        return lineTextList;
+    }
+
     public <T> List<T> readCSVToEntity(String translateType,Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
         checkFile(fileName);
         BufferedReader reader = null;
@@ -253,22 +302,12 @@ public class ExcelUtils {
         try {
             List<Method> methodList = null;
             boolean isFindHeader = false;
-            String nextLine = null;
-            reader = new BufferedReader(new InputStreamReader(in,charset));
-            while ((nextLine = reader.readLine()) != null) {
-                if(nextLine.equals("")){
-                    // 空行跳过
-                    continue;
-                }
-                if((int)nextLine.charAt(0) == 65279){
-                    // UTF-8 +BOM 格式
-                    nextLine = nextLine.substring(1,nextLine.length());
-                    if(nextLine.equals("")) continue;
-                }
-                String[] elementList = ExcelUtils.CSVParse(nextLine);
+            List<String> lineTextList = parseCSVFile(in,charset);
+            for(String lineText : lineTextList){
+                String[] elementList = ExcelUtils.CSVParse(lineText);
                 if(!isFindHeader){
                     // 第一个非空行,代表表头    
-                    methodList = methodListFromCSV(nextLine, classzz);
+                    methodList = methodListFromCSV(lineText, classzz);
                     isFindHeader = true;
                 }else{
                     if(methodList == null){
@@ -302,8 +341,7 @@ public class ExcelUtils {
                                 if(convertedValue.getClass() != paramType){
                                     // convertType失效
                                     if(paramType == Date.class){
-                                        Date date = new Date(Long.valueOf(nextValue));
-                                        convertedValue = date;
+                                        convertedValue = LocalTimeUtils.formatForFile.parse(nextValue);
                                     }
                                 }
                                 method.invoke(instance, convertedValue);
@@ -312,7 +350,7 @@ public class ExcelUtils {
                             }
                         } catch (IllegalArgumentException e) {
                             // TODO: handle exception
-                            throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "时参数合适", e);
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "时显示参数不合适", e);
                         } catch (InvocationTargetException e){
                             throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "执行时报错", e);
                         }
