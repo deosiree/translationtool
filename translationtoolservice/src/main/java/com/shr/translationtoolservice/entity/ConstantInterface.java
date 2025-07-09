@@ -261,11 +261,14 @@ public class ConstantInterface {
         entryName.put("zhTransId", "中文翻译id");
         entryName.put("importType", "导入类型");
         entryName.put("writeType", "回写类型");
-        entryName.put("diFileName", "DI文件名");
+        entryName.put("diFileName", "辞典名称");
         entryName.put("comment", "comment");
         // 装置部新增加字段
         entryName.put("srcTabName", "来源表名");
         entryName.put("dbRID", "数据库记录ID");
+
+        entryName.put("maxChineseLength", "中文字符上限");
+        entryName.put("foreignMaxLength", "外文字符上限");
 
         return entryName;
     }
@@ -322,7 +325,7 @@ public class ConstantInterface {
         entryName.put("中文翻译id", "zhTransId");
         entryName.put("导入类型", "importType");
         entryName.put("回写类型", "writeType");
-        entryName.put("DI文件名", "diFileName");
+        entryName.put("辞典名称", "diFileName");
         entryName.put("comment", "comment");
 
         entryName.put("中文字符上限", "maxChineseLength");

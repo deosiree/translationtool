@@ -293,7 +293,6 @@ public class ExcelUtils {
 
     public <T> List<T> readCSVToEntity(String translateType,Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
         checkFile(fileName);
-        BufferedReader reader = null;
         List<T> entities = new  ArrayList<>();
         // String charset = StringUtil.checkCharset(kwargs.get("charset"));
         String charset = charsetDetect(fileName);
@@ -368,8 +367,8 @@ public class ExcelUtils {
             throw e;
         } finally{
             // if(r)
-            if(reader != null){
-                reader.close();
+            if(in != null){
+                in.close();
             }
         }
     }
