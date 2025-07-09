@@ -1278,6 +1278,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     entryInfoEntity1.setIsExist(0);
                     entryInfoEntity1.setEntryVersion(1);
                     entryInfoEntity1.setProductID(taskInfoEntity.getProductId());
+                    if (StringUtils.isNotBlank(entryInfoEntity.getZhTransId())) {
+                        entryInfoEntity1.setChinese(entryInfoEntity.getChinese());
+                        entryInfoEntity1.setZhTransId(entryInfoEntity.getZhTransId());
+                    }
                     if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())) {
                         entryInfoEntity1.setEnglish(entryInfoEntity.getEnglish());
                         entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());

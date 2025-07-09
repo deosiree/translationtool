@@ -41,7 +41,7 @@ public class EntryProcessUtils {
                     if (StringUtils.isNotBlank(entryInfoEntity.getZhTransId())){
                         translate = translateMapper.selectById(entryInfoEntity.getZhTransId()).getTranslate();
                     }else {
-                        translate = entryInfoEntity.getEnglish();
+                        translate = entryInfoEntity.getChinese();
                     }
                     break;
                 case ConstantInterface.ENGLISH:
