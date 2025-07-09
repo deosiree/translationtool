@@ -282,12 +282,40 @@ public class ExcelUtils {
                     for(int i = 0 ; i < dataLength ; i ++ ){
                         String nextValue = elementList[i];
                         if(nextValue == null || nextValue.equals("") ){
+                            /* 单元格内容为空时跳过，该字段默认值 */
                             continue;
                         }
                         if(instance == null){
                             instance = classzz.newInstance();
                         }
-                        methodList.get(i).invoke(instance, nextValue);
+                        /* 校验get方法的参数个数以及类型 */
+                        Method method = methodList.get(i);
+                        Class<?> paramTypes[] = method.getParameterTypes();
+                        try {
+                            if(paramTypes.length != 1){
+                                throw new RuntimeException("取得的方法的参数个数不等于1");
+                            }
+                            Class<?> paramType = paramTypes[0];
+                            /* 执行get方法 */
+                            if(paramType != String.class){
+                                Object convertedValue = convertType(paramType, nextValue);
+                                if(convertedValue.getClass() != paramType){
+                                    // convertType失效
+                                    if(paramType == Date.class){
+                                        Date date = new Date(Long.valueOf(nextValue));
+                                        convertedValue = date;
+                                    }
+                                }
+                                method.invoke(instance, convertedValue);
+                            }else{
+                                method.invoke(instance, nextValue);
+                            }
+                        } catch (IllegalArgumentException e) {
+                            // TODO: handle exception
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "时参数合适", e);
+                        } catch (InvocationTargetException e){
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "执行时报错", e);
+                        }
                     }
                     if(instance == null){
                         log.warn("当前存在空行,已跳过");

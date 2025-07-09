@@ -154,6 +154,7 @@ public class ConstantInterface {
     public static final String RU_TRANS = "俄文翻译";
     public static final String SPA_TRANS = "西文翻译";
     public static final String FRA_TRANS = "法文翻译";
+    public static final String CHN_TRANS = "中文翻译";
 
     public static final String SYK = "shuyuku";
     public static final String YD = "youdao";
@@ -239,6 +240,7 @@ public class ConstantInterface {
         entryName.put("spanish", SPA_TRANS);
         entryName.put("spanishTranslateState", "西文翻译状态");
         entryName.put("french", FRA_TRANS);
+        entryName.put("chinese", CHN_TRANS);
         entryName.put("frenchTranslateState", "法文翻译状态");
         entryName.put("environmentRemark", "环境备注");
         entryName.put("remark", "备注");
@@ -256,6 +258,7 @@ public class ConstantInterface {
         entryName.put("ruTransId", "俄文翻译id");
         entryName.put("spaTransId", "西文翻译id");
         entryName.put("fraTransId", "法文翻译id");
+        entryName.put("zhTransId", "中文翻译id");
         entryName.put("importType", "导入类型");
         entryName.put("writeType", "回写类型");
         entryName.put("diFileName", "DI文件名");
@@ -299,6 +302,7 @@ public class ConstantInterface {
         entryName.put(SPA_TRANS, "spanish");
         entryName.put("西文翻译状态", "spanishTranslateState");
         entryName.put(FRA_TRANS, "french");
+        entryName.put(CHN_TRANS, "chinese");
         entryName.put("法文翻译状态", "frenchTranslateState");
         entryName.put("环境备注", "environmentRemark");
         entryName.put("备注", "remark");
@@ -315,6 +319,7 @@ public class ConstantInterface {
         entryName.put("俄文翻译id", "ruTransId");
         entryName.put("西文翻译id", "spaTransId");
         entryName.put("法文翻译id", "fraTransId");
+        entryName.put("中文翻译id", "zhTransId");
         entryName.put("导入类型", "importType");
         entryName.put("回写类型", "writeType");
         entryName.put("DI文件名", "diFileName");
