@@ -33,7 +33,7 @@
         <result property="english" column="english" jdbcType="VARCHAR"/>
 
         <result property="zhTransId" column="zh_trans_id" jdbcType="VARCHAR"/>
-        <result property="chinese" column="russian" jdbcType="VARCHAR"/>
+        <result property="chinese" column="chinese" jdbcType="VARCHAR"/>
         <result property="chineseTranslateState" column="chineseTranslateState" jdbcType="VARCHAR"/>
         <result property="chinesePublicState" column="chinesePublicState" jdbcType="VARCHAR"/>
 
@@ -1082,7 +1082,7 @@
         left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
-        left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
+        left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
         where t2.is_delete = 0 and t1.task_id = #{id,jdbcType=VARCHAR}
         <if test="entryState != null  and entryState != ''">
             and t2.entry_state = #{entryState,jdbcType=VARCHAR}
