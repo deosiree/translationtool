@@ -80,6 +80,11 @@ public class PublicServiceImpl implements PublicService {
             PublicEntryEntity publicEntry = new PublicEntryEntity();
             // 赋值相同属性
             BeanUtils.copyProperties(entryInfoEntity,publicEntry);
+            if (ConstantInterface.EN_CHINESE.equals(targetLang)) {
+                // 英文
+                publicEntry.setTranslate(entryInfoEntity.getChinese());
+                publicEntry.setTranslateState(entryInfoEntity.getChineseTranslateState());
+            }
             // 设置翻译
             if (ConstantInterface.EN_ENGLISH.equals(targetLang)){
                 // 英文

@@ -48,6 +48,12 @@ public class EntryInfoEntityForExcel extends EntryInfoEntity {
         convert.setClassifyId(entity.getClassifyId());
         convert.setRemark(entity.getRemark());
         convert.setTaskId(entity.getTaskId());
+        convert.setZhTransId(entity.getEnTransId());
+        convert.setChinese(entity.getEnglish());
+        convert.setChineseTranslateState(entity.getEnglishTranslateState());
+        convert.setChinesePublicState(entity.getEnglishPublicState());
+        convert.setZhCharLength(entity.getEnCharLength());
+
         convert.setEnTransId(entity.getEnTransId());
         convert.setEnglish(entity.getEnglish());
         convert.setEnglishTranslateState(entity.getEnglishTranslateState());
