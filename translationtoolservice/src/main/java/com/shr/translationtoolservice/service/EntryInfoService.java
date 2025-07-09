@@ -10,6 +10,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +70,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
 
-    void entryExportByCondition( ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, HttpServletResponse response,String taskID);
+    void entryExportByCondition( ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,HttpServletRequest request, HttpServletResponse response,String taskID);
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
@@ -80,8 +83,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
-
-    <T extends EntryInfoEntity> List<T> importTransCSV(MultipartFile multipartFile, HttpServletRequest request, String transType,Class<T> classzz);
 
     String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
 

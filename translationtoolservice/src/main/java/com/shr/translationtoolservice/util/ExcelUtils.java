@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,6 +46,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -72,6 +75,17 @@ public class ExcelUtils {
     private VersionMapper versionMapper;
     @Autowired
     private EntryClassifyMapper entryClassifyMapper;
+
+    public static Set<Character> specialCharacterForCSV = new HashSet<>();
+
+    static{
+
+        specialCharacterForCSV.add('\n');
+        specialCharacterForCSV.add('\t');
+        specialCharacterForCSV.add('\b');
+        specialCharacterForCSV.add('\r');
+        specialCharacterForCSV.add('\f');
+    }
 
     /**
      * Excel表头对应Entity属性 解析封装javabean
@@ -277,7 +291,7 @@ public class ExcelUtils {
                     lineTextList.add(nextLine);
                     beforeLine = "";
                 }else{
-                    beforeLine += ('\n' + nextLine);
+                    beforeLine += nextLine;
                 }
             }else{
                 if(checkCSVLine(beforeLine + '\n' + nextLine)){
@@ -297,7 +311,7 @@ public class ExcelUtils {
         // String charset = StringUtil.checkCharset(kwargs.get("charset"));
         String charset = charsetDetect(fileName);
         if(charset == null) charset = "UTF-8";
-        
+
         try {
             List<Method> methodList = null;
             boolean isFindHeader = false;
@@ -1108,7 +1122,10 @@ public class ExcelUtils {
      * heards：字段名也就是excel首行
      * excelName：sheet名
      */
-    public void getWorkBook(List<?> dataList, HttpServletResponse response, List<String> exportFields, List<String> heards, String excelName) {
+    public void getWorkBook(ByteArrayOutputStream byteArrayOutputStream,List<?> dataList, List<String> exportFields, List<String> heards, String excelName) {
+        if(byteArrayOutputStream == null){
+            throw new NullPointerException("byteArrayOutputStream == null");
+        }
         // 创建工作簿对象
         Workbook workbook = new XSSFWorkbook();
         // 创建工作表对象
@@ -1247,21 +1264,39 @@ public class ExcelUtils {
         }
 
 
-        // 设置响应头信息
         try {
-            excelName = URLEncoder.encode(excelName, "UTF-8");
-            response.setContentType("application/octet-stream;charset=UTF-8");
-            response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".xlsx");
-            response.addHeader("Pargam", "no-cache");
-            response.addHeader("Cache-Control", "no-cache");
-            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-
-            // 将工作簿写入响应输出流中
-            workbook.write(response.getOutputStream());
-            workbook.close();
+            // if(byteArrayOutputStream == null)
+            workbook.write(byteArrayOutputStream);
+            
         } catch (IOException e) {
-            e.printStackTrace();
+            // TODO Auto-generated catch block
+            log.error("向byte缓冲输出流写入数据时报错", e);
+
+        } finally{
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                log.error("关闭workbook的流时报错", e);
+            }
         }
+
+
+        // // 设置响应头信息
+        // try {
+            // excelName = URLEncoder.encode(excelName, "UTF-8");
+        //     response.setContentType("application/octet-stream;charset=UTF-8");
+        //     response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".xlsx");
+        //     response.addHeader("Pargam", "no-cache");
+        //     response.addHeader("Cache-Control", "no-cache");
+        //     response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+        //     // 将工作簿写入响应输出流中
+        //     workbook.write(response.getOutputStream());
+        //     workbook.close();
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
     }
 
 
@@ -1291,4 +1326,163 @@ public class ExcelUtils {
 
 
     }
+    /**
+     * CSV每个单元格文本的内容修正，如果text中存在'"'或','或特殊字符例如'\n'，则首尾添加'"',
+     * 如果text中出现一个'"',则再添加一个'""
+     * 
+     * @param text
+     * @return  如果{@code text}是null,则返回null；如果{@code text}是空字符串，则返回""；
+     */
+    public static String processStringToSaveForCSV(String text){
+        if(text == null){
+            return null;
+        }
+        int length = text.length();
+        if(length == 0){
+            return text;
+        }
+        StringBuilder builder = new StringBuilder();
+        boolean containsSpecialChar = false;
+        for(int i = 0; i < length ; i ++ ){
+            char nextChar = text.charAt(i);
+            if(nextChar == '"'){
+                builder.append("\"\"");
+                containsSpecialChar = true;
+            }else if(nextChar == ','){
+                containsSpecialChar = true;
+                builder.append(nextChar);
+            }else{
+                if(specialCharacterForCSV.contains(nextChar)){
+                    containsSpecialChar = true;
+                }
+                builder.append(nextChar);
+            }
+        }
+        if(containsSpecialChar){
+            return "\"" + builder.toString() + "\"";
+        }else{
+            return builder.toString();
+        }
+    }
+    /**
+     * 如果{@code textList}是null，则返回null；如果{@code textList}是空的，则返回"\n"；
+     * @param textList
+     * @return
+     */
+    public static String csvBuildLine(List<String> textList){
+        if(textList == null){
+            return null;
+        }
+        int size = textList.size();
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0 ; i < size ; i ++ ){
+            builder.append(processStringToSaveForCSV(textList.get(i)));
+            if(i + 1 != size){
+                builder.append(",");
+            }
+        }
+        builder.append("\n");
+        return builder.toString();
+    }
+
+    public static <T extends EntryInfoEntityForExcel> void csvBuildLines(List<String> entityLines,List<T> entities,List<Method> methodList){
+        if(entityLines == null){
+            throw new NullPointerException("entityLines == null");
+        }
+        for(EntryInfoEntityForExcel entity : entities){
+            if(entity == null){
+                continue;
+            }
+            List<String> entityContents = new ArrayList<>();
+            for(Method method : methodList){
+                try {
+                    method.invoke(entity);
+                    Object fieldValue = method.invoke(entity);
+                    if(fieldValue == null){
+                        entityContents.add("");
+                    }else{
+                        if(method.getReturnType() == Date.class){
+                            fieldValue = LocalTimeUtils.formatForFile.format(fieldValue);
+                        }
+                        entityContents.add(String.valueOf(fieldValue));
+                    }
+                }catch (IllegalArgumentException e){
+                    throw new RuntimeException("函数名: " + method.getName() + "在默认无参调用时报IllegalArgumentException异常");
+                }catch (SecurityException e) {
+                // TODO Auto-generated catch block
+                    throw new RuntimeException(e);
+                }catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+
+            }
+            String entityLine = csvBuildLine(entityContents);
+            if(entityLine == null){
+                throw new NullPointerException("entityLine为null");
+            }
+            entityLines.add(entityLine);
+        }
+        return ;
+    }
+
+    public <T extends EntryInfoEntityForExcel> List<String> exportEntitiesToCSV(List<T> entities,Class<T> classzz,List<String> exportFields,List<String> columnNames,String fileName){
+        
+        // 设置响应头信息
+        try {
+            if(entities == null || exportFields == null || columnNames == null){
+                throw new RuntimeException("entities == null || exportFields == null || columnNames == null");
+            }
+            if(exportFields.size() != columnNames.size()){
+                throw new RuntimeException("exportFields.size() != columnNames.size()");
+            }
+            List<Method> methodList = new ArrayList<>(exportFields.size());
+            // 写header
+            String columnLine = csvBuildLine(columnNames);
+            if(columnLine == null || !columnLine.endsWith("\n")){
+                throw new NullPointerException("columnLine == null || !columnLine.endsWith(\"\n\")");
+            }
+            for(String field: exportFields){
+                String methodName = MethodUtils.getMethodName(field);
+                Method method = null;
+                try {
+                    method = classzz.getMethod(methodName);
+                    if(method == null){
+                        throw new NullPointerException("MethodUtils.getMethodName(field)返回结果为null, field: " + field);
+                    }
+                }catch (NoSuchMethodException e) {
+                        // TODO Auto-generated catch block
+                    throw new RuntimeException("没有名称为: " + methodName + "的方法");
+                } catch (Exception e) {
+                   throw new RuntimeException("获取methodName: " + methodName + "的方法时异常", e);
+                }
+                methodList.add(method);
+            }
+            // 写entities
+            List<String> contentLines = new ArrayList<>(entities.size() + 1);
+            contentLines.add(columnLine);
+            csvBuildLines(contentLines,entities, methodList);
+            return contentLines;
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        } finally{
+            // response.setContentType("application/octet-stream;charset=" + charsetName);
+            // response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".csv");
+            // response.addHeader("Pargam", "no-cache");
+            // response.addHeader("Cache-Control", "no-cache");
+            // response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            // /* outputstream流必须在header之后写 */
+            // try {
+            //     outputStream = response.getOutputStream();
+            //     if(columnLine != null) outputStream.write(columnLine.getBytes(charsetName));
+            //     if(entityLines != null){
+            //         for(String entityLine : entityLines){
+            //             outputStream.write(entityLine.getBytes(charsetName));
+            //         }
+            //     }
+            // }catch (Exception e){
+            //     log.error(null, e);
+            // } 
+        }
+    }
+
 }

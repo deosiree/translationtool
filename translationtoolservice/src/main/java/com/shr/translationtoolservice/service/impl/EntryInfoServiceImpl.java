@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
@@ -34,7 +35,12 @@ import javax.management.RuntimeErrorException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -1393,7 +1399,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public void entryExportByCondition(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, HttpServletResponse response, String taskID) {
+    public void entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,HttpServletRequest request, HttpServletResponse response, String taskID) {
 
         List<String> columnNames = excelExportVO.getColumnNames();
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
@@ -1415,7 +1421,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntities = new ArrayList<>();
         }
 
-        processEntryInfo(entryInfoEntities, columnNames, response, excelName, taskEntity);
+        processEntryInfo(entryInfoEntities, columnNames, excelName, taskEntity);
 
 
        /* for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
@@ -1452,16 +1458,58 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
         }*/
-        List<String> exportFields = new ArrayList<>();
-        for (String column : columnNames) {
-            exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get(column));
+        // List<String> exportFields = new ArrayList<>();
+        // for (String column : columnNames) {
+        //     exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get(column));
 
-        }
-        excelUtils.getWorkBook(entryInfoEntities, response, exportFields, columnNames, excelName);
-
+        // }
+        // excelUtils.getWorkBook(entryInfoEntities, response, exportFields, columnNames, excelName);
+        buildExportedFiles(buffer,entryInfoEntities,request, columnNames, excelName);
+        return;
     }
 
-    private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities, List<String> columnNames, HttpServletResponse response, String excelName, TaskInfoEntity taskEntity) {
+    private void buildExportedFiles(ByteArrayOutputStream buffer,List<EntryInfoEntityForExcel> entities,HttpServletRequest request,List<String> columnNames,String excelName){
+        if(buffer == null){
+            throw new NullPointerException("buffer == null");
+        }
+        List<String> exportFields = new ArrayList<>();
+        for (String column : columnNames) {
+            String fieldName = ConstantInterface.EXCEL_LIST_NAME_MAP().get(column);
+            if(fieldName == null){
+                throw new NullPointerException("没有找到: " + column + "对应的方法");
+            }
+            exportFields.add(fieldName);
+
+        }
+        String exportFileType = request.getParameter("exportType");
+        if(exportFileType == null){
+            exportFileType = "excel";
+        }
+        if(exportFileType.equals("excel")){
+            excelUtils.getWorkBook(buffer,entities,exportFields, columnNames, excelName);
+        }else if(exportFileType.equals("csv")){
+            String charsetName = "UTF-8";
+            try {
+                if(!columnNames.contains("id")){
+                    columnNames.add("id");
+                    exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get("id"));
+                }
+                List<String> contentLines = excelUtils.exportEntitiesToCSV(entities,EntryInfoEntityForExcel.class, exportFields, columnNames,excelName);
+                /* outputstream流必须在header之后写 */
+                for(String entityLine : contentLines){
+                    buffer.write(entityLine.getBytes(charsetName));
+                }
+                
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                throw new RuntimeException("解析CSV文件时报错",e);
+            } 
+        }else{
+            throw new RuntimeException("当前不支持exportFileType为: " + exportFileType);
+        }
+    }
+
+    private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities, List<String> columnNames,  String excelName, TaskInfoEntity taskEntity) {
         int numberOfThreads = 32; // Number of threads to use
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
@@ -1832,18 +1880,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
-    public <T extends EntryInfoEntity> List<T> importTransCSV(MultipartFile multipartFile, HttpServletRequest request, String transType,Class<T> classzz){
-        List<T> entryEntitys = new ArrayList<>();
-        String token = request.getHeader("token");
-        Map<String,String> kwargs = new HashMap<>();
-        try {
-            entryEntitys = excelUtils.readCSVToEntity(transType, classzz, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), kwargs);
-            return entryEntitys;
-        } catch (Exception e) {
-            log.error(null, e);
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
     public String importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
@@ -1853,7 +1889,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String department = JWTTokenUtils.getDepartment(token);
 
         //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
-
+        
         try {
             if(multipartFile.getOriginalFilename().endsWith(".csv")){
                 entryEntitys = excelUtils.readCSVToEntity(transType, EntryInfoEntityForExcel.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
@@ -2045,6 +2081,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         } catch (Exception e) {
             log.error(null,e);
             throw new RuntimeException(e);
+
         }
 
 

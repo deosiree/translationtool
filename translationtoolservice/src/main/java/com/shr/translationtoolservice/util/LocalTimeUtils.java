@@ -20,6 +20,8 @@ public class LocalTimeUtils {
     /* 导出的excel、csv对应时间单元格的内容格式 */
     public static DateFormat formatForFile = new SimpleDateFormat("yyyy-MM-dd HH:mm:sss");
 
+    public static DateFormat formatForExportFile = new SimpleDateFormat("yyyyMMddhhmmss");
+
     public Date getBeijingTime() {
         // 获取当前时间
         Date date = new Date(System.currentTimeMillis());

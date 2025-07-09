@@ -13,6 +13,7 @@ import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.LocalTimeUtils;
 
 import io.github.resilience4j.core.lang.Nullable;
 import io.swagger.annotations.Api;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -38,8 +40,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
@@ -471,9 +475,62 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("导出词条（版本，任务，产品）")
     @CrossOrigin
     @Transactional
-    public void entryExportByCondition(@RequestBody ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,
+    public void entryExportByCondition(@RequestBody ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,HttpServletRequest request,
                                        HttpServletResponse response,  String taskID) {
-        entryInfoService.   entryExportByCondition(excelExportVO,response,taskID);
+        ByteArrayOutputStream buffer = null;
+        String charsetName = "UTF-8";
+        try {
+            String excelNamePrefix = URLEncoder.encode(excelExportVO.getExcelName(), charsetName);
+            String exportFileType = request.getParameter("exportType");
+            if(exportFileType == null){
+                exportFileType = "excel";
+            }
+            Date date = new Date(); 
+            String excelName = excelNamePrefix + "_" + LocalTimeUtils.formatForExportFile.format(date);
+            if(exportFileType.equals("excel")){
+                response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".xlsx");
+            }else if(exportFileType.equals("csv")){
+                response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".csv");
+            }else{
+                throw new RuntimeException("提供的exportFileType不支持: " + exportFileType);
+            }
+            buffer = new ByteArrayOutputStream();
+            entryInfoService.entryExportByCondition(buffer,excelExportVO,request,response,taskID); 
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Cache-Control", "no-cache");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");  
+            buffer.writeTo(response.getOutputStream());
+        } catch (Exception e) {
+            log.error("导出文件功能报错", e);
+            if(!response.isCommitted()){
+                /* 保证原子性 */
+                response.reset();
+                response.setHeader("content-type", "application/json");
+                Map<String,String> messages = new HashMap<>();
+                messages.put("code", "500");
+                messages.put("message", e.getMessage());
+                Gson gson = new Gson();
+                try {
+                    response.getOutputStream().write(gson.toJson(messages).getBytes(charsetName));
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    log.error("向响应体中写入数据时报错", e1);
+                }
+            }else{
+                log.error("已经开始向响应中写响应体时发生异常", e);
+            }
+        } finally{
+            if(buffer != null){
+                try {
+                    buffer.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    log.error("关闭缓存字节流时报错", e);
+                }
+            }
+        }
+        
     }
 
     @PostMapping("/getClassfy")

@@ -249,7 +249,8 @@ public class ConstantInterface {
         entryName.put("versionName", "版本名");
         entryName.put("maxLength", "翻译最大长度");
         entryName.put("enCharLength", "英文术语字符数");
-        entryName.put("entryLength", "中文术语字符数");
+        entryName.put("entryLength", "词条字符数");
+        entryName.put("zhCharLength", "中文术语字符数");
         entryName.put("ruCharLength", "俄文术语字符数");
         entryName.put("spaCharLength", "西文术语字符数");
         entryName.put("fraCharLength", "法文术语字符数");
@@ -263,6 +264,7 @@ public class ConstantInterface {
         entryName.put("writeType", "回写类型");
         entryName.put("diFileName", "辞典名称");
         entryName.put("comment", "comment");
+        entryName.put("entryVersion", "词条版本");
         // 装置部新增加字段
         entryName.put("srcTabName", "来源表名");
         entryName.put("dbRID", "数据库记录ID");
@@ -312,7 +314,8 @@ public class ConstantInterface {
         entryName.put("产品名", "productName");
         entryName.put("版本名", "versionName");
         entryName.put("翻译最大长度", "maxLength");
-        entryName.put("中文术语字符数", "entryLength");
+        entryName.put("词条字符数", "entryLength");
+        entryName.put("中文术语字符数", "zhCharLength");
         entryName.put("英文术语字符数", "enCharLength");
         entryName.put("俄文术语字符数", "ruCharLength");
         entryName.put("西文术语字符数", "spaCharLength");
@@ -327,6 +330,7 @@ public class ConstantInterface {
         entryName.put("回写类型", "writeType");
         entryName.put("辞典名称", "diFileName");
         entryName.put("comment", "comment");
+        entryName.put("词条版本", "entryVersion");
 
         entryName.put("中文字符上限", "maxChineseLength");
         entryName.put("外文字符上限", "foreignMaxLength");
