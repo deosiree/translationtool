@@ -1995,6 +1995,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         }
                         if (StringUtils.isBlank(originalEntry.getRuTransId())) {
                             entryInfoEntity1.setRuTransId(translateEntity.getId());
+                            entryInfoMapper.updateById(entryInfoEntity1);
                             if (isExist){
                                 break;
                             }
@@ -2004,6 +2005,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         TranslateEntity originRuTrans = translateMapper.selectById(originalEntry.getRuTransId());
                         if (Objects.isNull(originRuTrans) ||!entryInfoEntity1.getRussian().equals(originRuTrans.getTranslate())) {
                             entryInfoEntity1.setRuTransId(translateEntity.getId());
+                            entryInfoMapper.updateById(entryInfoEntity1);
                             if (isExist){
                                 break;
                             }
@@ -2017,6 +2019,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         }
                         if (StringUtils.isBlank(originalEntry.getFraTransId())) {
                             entryInfoEntity1.setFraTransId(translateEntity.getId());
+                            entryInfoMapper.updateById(entryInfoEntity1);
                             if (isExist){
                                 break;
                             }
@@ -2027,6 +2030,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         TranslateEntity originFraTrans = translateMapper.selectById(originalEntry.getFraTransId());
                         if (Objects.isNull(originFraTrans) || !entryInfoEntity1.getFrench().equals(originFraTrans.getTranslate())) {
                             entryInfoEntity1.setFraTransId(translateEntity.getId());
+                            entryInfoMapper.updateById(entryInfoEntity1);
                             if (isExist){
                                 break;
                             }
