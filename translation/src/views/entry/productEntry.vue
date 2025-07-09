@@ -87,7 +87,7 @@
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
           <!-- <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button> -->
-          <ImportButton @importSuccess="handleImportSuccess" v-if="admin" />
+          <ImportButton @importSuccess="refreshTable" v-if="admin" :translateTypes="translateTypes" size="small" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -502,11 +502,6 @@ export default {
         { label: "已审核", value: "3" },
       ],
       translateTypes: [],
-      importTypes: [
-        { label: "csv", value: "csv", accept: ".csv" },
-        { label: "excel", value: "excel", accept: ".xls,.xlsx" },
-      ],
-      accept: null,
       tableTitle: "词条列表",
       copyVisible: false,
       copyNumber: 1,
@@ -657,15 +652,21 @@ export default {
       rowClassify2Option: {},
       dictionaryVisible: false,
       selectAllLoading: false,
-      importVisible: false,
-      importLoading: false,
-      importModal: {
-        language: null,
-        importType: null,
-      },
-      importFile: null,
-      fileList: [],
       filters: null,
+      // 都封在importButton中了
+      // accept: null,
+      // importVisible: false,
+      // importLoading: false,
+      // importModal: {
+      //   language: null,
+      //   importType: null,
+      // },
+      // importTypes: [
+      //   { label: "csv", value: "csv", accept: ".csv" },
+      //   { label: "excel", value: "excel", accept: ".xls,.xlsx" },
+      // ],
+      // importFile: null,
+      // fileList: [],
     };
   },
 
@@ -819,27 +820,7 @@ export default {
       }
       return className;
     },
-    handleImportSuccess() {
-      // 处理导入成功后的逻辑，例如刷新表格
-      this.getEntryByVersion();
-    },
-    // 获得导入文件类型
-    getAccept() {
-      if (!this.importModal.importType) {
-        message.error("请选择文件类型！");
-        return;
-      }
-      if (!this.importModal.language) {
-        message.error("请选择语言！");
-        return;
-      }
-      for (let key in this.importTypes) {
-        if (this.importModal.importType === this.importTypes[key].value) {
-          this.accept = this.importTypes[key].accept;
-          break;
-        }
-      }
-    },
+
     // 查询产品的所有版本
     getProductVersion() {
       if (Object.keys(this.product).length === 0) {
@@ -1275,7 +1256,6 @@ export default {
       };
       // this.getEntryByVersion();
       this.conditionalQuery();
-
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
@@ -1625,66 +1605,86 @@ export default {
     // recordPartiality(data) {
     //   updateUserPartiality(data).then((res) => {});
     // },
-    // 导入词条
-    importEntry() {
-      this.importVisible = true;
-      setModalAriaHidden(this, document);
-    },
-    importClose() {
-      this.importVisible = false;
-    },
-    importOK() {
-      this.$refs.formRef
-        .validate()
-        .then(() => {
-          this.importLoading = true;
-          let formData = new FormData();
-          formData.append("file", this.importFile);
-          formData.append("transType", this.importModal.language);
-          formData.append("importType", this.importModal.importType);
-          entryImportExcle(formData)
-            .then((res) => {
-              message.success("导入成功！");
-              this.getEntryByVersion();
-              this.importVisible = false;
-              this.importLoading = false;
-            })
-            .catch((err) => {
-              message.error("导入失败！", err.message);
-              this.importLoading = false;
-            });
-        })
-        .catch((err) => {
-          message.error(err.message);
-        });
-    },
-    importAfterClose() {
-      this.importModal.language = null;
-      this.importFile = null;
-      this.fileList = [];
-      this.$refs.formRef.clearValidate();
-    },
-    handleChange(info) {
-      this.fileList = info.fileList;
-      if (info.fileList.length === 0) {
-        this.importFile = null;
-      } else {
-        this.importFile = info.file;
-      }
-    },
-    removeFile(file) {
-      this.importFile = null;
-      return true;
-    },
-    // 校验上传文件是否为空
-    checkFile() {
-      return (rule, value) => {
-        if (!this.importFile) {
-          return Promise.reject("请选择文件！");
-        }
-        return Promise.resolve();
-      };
-    },
+
+    // // 全都由importBUtton来实现
+    // // 获得导入文件类型
+    // getAccept() {
+    //   if (!this.importModal.importType) {
+    //     message.error("请选择文件类型！");
+    //     return;
+    //   }
+    //   if (!this.importModal.language) {
+    //     message.error("请选择语言！");
+    //     return;
+    //   }
+    //   for (let key in this.importTypes) {
+    //     if (this.importModal.importType === this.importTypes[key].value) {
+    //       this.accept = this.importTypes[key].accept;
+    //       break;
+    //     }
+    //   }
+    // },
+    // // 导入词条
+    // importEntry() {
+    //   this.importVisible = true;
+    //   setModalAriaHidden(this, document);
+    // },
+    // importClose() {
+    //   this.importVisible = false;
+    // },
+    // importOK() {
+    //   this.$refs.formRef
+    //     .validate()
+    //     .then(() => {
+    //       this.importLoading = true;
+    //       let formData = new FormData();
+    //       formData.append("file", this.importFile);
+    //       formData.append("transType", this.importModal.language);
+    //       formData.append("importType", this.importModal.importType);
+    //       entryImportExcle(formData)
+    //         .then((res) => {
+    //           message.success("导入成功！");
+    //           this.getEntryByVersion();
+    //           this.importVisible = false;
+    //           this.importLoading = false;
+    //         })
+    //         .catch((err) => {
+    //           message.error("导入失败！", err.message);
+    //           this.importLoading = false;
+    //         });
+    //     })
+    //     .catch((err) => {
+    //       message.error(err.message);
+    //     });
+    // },
+    // importAfterClose() {
+    //   this.importModal.language = null;
+    //   this.importFile = null;
+    //   this.fileList = [];
+    //   this.$refs.formRef.clearValidate();
+    // },
+    // handleChange(info) {
+    //   this.fileList = info.fileList;
+    //   if (info.fileList.length === 0) {
+    //     this.importFile = null;
+    //   } else {
+    //     this.importFile = info.file;
+    //   }
+    // },
+    // removeFile(file) {
+    //   this.importFile = null;
+    //   return true;
+    // },
+    // // 校验上传文件是否为空
+    // checkFile() {
+    //   return (rule, value) => {
+    //     if (!this.importFile) {
+    //       return Promise.reject("请选择文件！");
+    //     }
+    //     return Promise.resolve();
+    //   };
+    // },
+
     // 表格change事件
     handleTableChange(pagination, filters) {
       this.filters = filters;
