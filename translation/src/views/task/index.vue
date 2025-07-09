@@ -281,7 +281,8 @@ import OperationArea from "@/components/operationArea/index.vue";
 import TimeLine from "@/components/timeLine/index.vue";
 import ProductModal from "@/views/task/productModal.vue";
 import VersionModal from "@/views/task/versionModal.vue";
-import commen from "@/views/entry/common.js";
+// import commen from "@/views/entry/common.js";
+import { getCurrentFormattedTime } from "@/utils/commonUtils.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,
@@ -1107,7 +1108,7 @@ export default {
         copyTask.state = "0";
         copyTask.name = copyTask.name + "(复制)";
         copyTask.deliveryTime = null;
-        copyTask.createTime = commen.getCurrentFormattedTime();
+        copyTask.createTime = getCurrentFormattedTime();
         copyTask.endTime = null;
         this.dataSource.unshift(copyTask);
         this.options[id] = {

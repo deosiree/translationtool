@@ -251,7 +251,8 @@
 import { cloneDeep } from 'lodash-es';
 import Modal from '@/components/modal/index.vue';
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
-import common from "./common.js";
+// import common from "./common.js";
+import { byteLength } from "@/utils/commonUtils.js";
 import { message} from 'ant-design-vue';
 import {
     updateEntry,
@@ -354,7 +355,8 @@ export default {
             if(value === null || value === '' || value === undefined){
                 return Promise.resolve();
             }
-            let length = common.byteLength(value)
+            // let length = common.byteLength(value)
+            let length = byteLength(value)
             if ( length > byteLimit) {
                 return Promise.reject('最大字节数为'+byteLimit);
             } 

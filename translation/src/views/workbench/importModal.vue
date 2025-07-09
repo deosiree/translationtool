@@ -524,9 +524,10 @@ import {
   getI18nAdress,
 } from "@/http/api/workbench";
 import { templateFileDownload } from "@/http/api/download";
-import workbenchCommon from "@/views/workbench/common.js";
+// import workbenchCommon from "@/views/workbench/common.js";
+import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
-import common from "../entry/common";
+// import common from "../entry/common";
 import {
   onSelectChange,
   onSelect,
@@ -542,6 +543,7 @@ import {
   setModalAriaHidden,
   filter_arr,
   filter_arr_keys,
+  byteLength,
 } from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
@@ -980,7 +982,8 @@ export default {
         // 验证翻译是否超长
         const maxLength = getMaxLength(item, this);
         const text = item[this.task.transMap.value];
-        if (maxLength !== null && common.byteLength(text) > maxLength) {
+        // if (maxLength !== null && common.byteLength(text) > maxLength) {
+        if (maxLength !== null && byteLength(text) > maxLength) {
           toLongArr.push(item);
           arrCount.toLongNum ++;
           promises.push(
@@ -1983,7 +1986,8 @@ export default {
           return Promise.resolve();
         }
         // 获取输入数据的长度
-        let length = common.byteLength(value);
+        // let length = common.byteLength(value);
+        let length = byteLength(value);
         if (length > maxLength) {
           return Promise.reject("允许最大字符数为" + maxLength + "！");
         }

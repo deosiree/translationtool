@@ -50,7 +50,8 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
-import common from "@/views/entry/common.js";
+// import common from "@/views/entry/common.js";
+import { getCurrentFormattedTime } from "@/utils/commonUtils.js";
 import { getClassfy } from "@/http/api/entryManage";
 import {
   getSecondClassify,
@@ -193,7 +194,8 @@ export default {
         parentName: this.classfy1Option.find(
           (item) => item.key === this.search.classify1
         ).title,
-        createTime: common.getCurrentFormattedTime(),
+        // createTime: common.getCurrentFormattedTime(),
+        createTime: getCurrentFormattedTime(),
       };
       this.dataSource.push(newData);
       this.editableData[newData.id] = newData;

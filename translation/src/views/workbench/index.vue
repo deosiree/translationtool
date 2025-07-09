@@ -158,7 +158,6 @@ import ExamineModal from "@/views/workbench/examineModal.vue";
 import TranslateModal from "@/views/workbench/translateModal.vue";
 import ExamineTranslateModal from "@/views/workbench/examineTranslateModal.vue";
 import ArchiveModal from "@/views/workbench/archiveModal.vue";
-import tableParam from "@/views/entry/tableParam.js";
 import { SendOutlined } from "@ant-design/icons-vue";
 import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
@@ -364,6 +363,7 @@ export default {
       let data = {};
       getLanguage(data).then((res) => {
         this.translateTypes = res.data.list;
+        // console.log("翻译语言:", res.data.list);
       });
     },
     // 更改翻译语种
@@ -383,17 +383,17 @@ export default {
         message.warning("请选择一种语言");
         return;
       }
-
       // 单条更新任务，批量循环调用
       for (const task of this.selectedRows) {
         if (task.translateType != this.selectedLanguage) {
           task.translateType = this.selectedLanguage;
           updateTaskInfo(task).then((res) => {
-            this.showOperationArea = false; 
+            this.showOperationArea = false;
             this.init();
             message.success(
               `“${task.name}”的翻译语种已更改为${task.translateType}！`
             );
+            // console.log("当前翻译语种", this.selectedLanguage,task);
           });
         } else {
           message.success(
@@ -467,6 +467,7 @@ export default {
           this.setTableHeight();
           this.currentTask = record;
           this.getClassfy(record);
+          // console.log("点击流水线", record,event);
         },
       };
     },

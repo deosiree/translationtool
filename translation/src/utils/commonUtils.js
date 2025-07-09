@@ -1,9 +1,10 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
-import common from "@/views/workbench/common.js";
-import { cancelRequest, cancelAllRequests } from "@/http/request";
-import tableParam from '@/views/entry/tableParam';
+// import common from "@/views/workbench/common.js";
+// import tableParam from '@/views/entry/tableParam';
+import { entryParams as tableParam } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
+import { cancelRequest, cancelAllRequests } from "@/http/request";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
@@ -125,8 +126,10 @@ export function interpretation2value(vm) {
 export function getColPref(colPrefName, normalWidth, vm) {
   // 读取本地存储的用户偏好
   const storedPreferences = localStorage.getItem(colPrefName);
+  // console.log("storedPreferences", storedPreferences)
   if (storedPreferences) {
     const colPref_strList = JSON.parse(storedPreferences).displayColumn.split(",");
+    // console.log("colPref_strList", colPref_strList);
     // 调用 changeColumn 方法更新列显示
     changeColumn(colPrefName, normalWidth, colPref_strList, vm);
   }
@@ -183,6 +186,7 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
       if (vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
         continue; // 如果列已经存在，则跳过
       }
+      // console.log("没有展示列：", colPref_strList)
       // 使用 find 方法查找对应的 checkboxList 项
       const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
       // console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
@@ -383,6 +387,21 @@ export function getFieldMaxLength(record, vm, type) {
 }
 
 /**
+ * 获取当前时间并格式化为 "YYYY-MM-DD HH:mm:ss" 格式
+ * @returns {string} - 格式化后的当前时间字符串
+ */
+export function getCurrentFormattedTime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
  * 计算字符串的字节长度，中文及部分中文符号按 2 字节计算，其他字符按 1 字节计算。
  * @param {string|null|undefined} str - 待计算字节长度的字符串，允许传入 null 或 undefined。
  * @returns {number} - 返回字符串的字节长度，若传入 null 或 undefined 则返回 0。
@@ -487,7 +506,8 @@ export function vilidFildLength(limitMap, record, language) {
       return Promise.resolve();
     }
     // 获取输入数据的字节长度
-    let length = common.byteLength(value);
+    // let length = common.byteLength(value);
+    let length = byteLength(value);
     // 检查输入数据的长度是否超过最大长度
     if (length > maxLength) {
       // 如果超过最大长度，则验证失败，返回错误信息

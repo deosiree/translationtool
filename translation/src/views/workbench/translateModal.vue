@@ -299,10 +299,12 @@ import {
   SettingOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
-import workbenchCommon from "@/views/workbench/common.js";
+// import workbenchCommon from "@/views/workbench/common.js";
+import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
+// import tableParam from "../entry/tableParam";
+import { entryParams as tableParam } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
-import common from "../entry/common";
-import tableParam from "../entry/tableParam";
+// import common from "../entry/common";
 import key from "keymaster";
 import {
   clickInput,
@@ -313,6 +315,7 @@ import {
   getColPref,
   changeColumn,
   setModalAriaHidden,
+  byteLength
 } from "@/utils/commonUtils"; // 引入工具函数
 export default {
   components: {
@@ -472,7 +475,8 @@ export default {
       exportModal: {
         field: ["abbr", "词条"],
       },
-      fieldOptions: tableParam.exportFields,
+      // fieldOptions: tableParam.exportFields,
+      fieldOptions: tableParam.checkboxList,
       accept: ".xls,.xlsx",
       preTranslateOkLoading: false,
       state: {
@@ -841,7 +845,8 @@ export default {
           return Promise.resolve();
         }
         // 获取输入数据的长度
-        let length = common.byteLength(value);
+        // let length = common.byteLength(value);
+        let length = byteLength(value);
         if (length > maxLength) {
           return Promise.reject("允许最大字符数为" + maxLength + "！");
         }
@@ -1426,7 +1431,8 @@ export default {
         let text = this.editableData.hasOwnProperty(record.id)
           ? this.editableData[record.id][this.commonParam.value]
           : record[this.commonParam.value];
-        if (common.byteLength(text) > maxLength) {
+        // if (common.byteLength(text) > maxLength) {
+        if (byteLength(text) > maxLength) {
           flag++;
           this.edit(record).then(async () => {
             const formRefName = `form${record.id.replaceAll("-", "")}${

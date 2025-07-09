@@ -117,11 +117,10 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
-import commen from "@/views/entry/common.js";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import { updateUserPartiality } from "@/http/api/userPartiality";
-import tableParam from "@/views/glossary/tableParam.js";
-
+// import tableParam from "@/views/glossary/tableParam.js";
+import { glossaryParams as tableParam } from "@/utils/commonParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,

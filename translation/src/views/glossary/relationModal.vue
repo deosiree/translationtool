@@ -48,7 +48,6 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
-import common from "@/views/entry/common.js";
 export default {
   components: {
     CustomModal,

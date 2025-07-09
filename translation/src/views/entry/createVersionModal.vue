@@ -187,7 +187,8 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import tableParam from "@/views/entry/tableParam.js";
+// import tableParam from "@/views/entry/tableParam.js";
+import { entryParams as tableParam } from "@/utils/commonParam.js";
 import {
   pageChange,
   getColPref,
@@ -249,7 +250,8 @@ export default {
       exportClass: {
         field: ["abbr", "词条"],
       },
-      fieldOptions: tableParam.exportFields,
+      // fieldOptions: tableParam.exportFields,
+      fieldOptions: tableParam.checkboxList,
       product: {},
       taskColumns: [
         {
@@ -356,8 +358,8 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      //   // 读取本地存储的用户偏好
-      //   getColPref("colPref-productEntry", 200, this);
+      // // 读取本地存储的用户偏好
+      // getColPref("colPref-productEntry", 200, this);
     });
   },
   computed: {
@@ -376,8 +378,9 @@ export default {
     },
     visible: {
       async handler(newVal) {
-        // console.log("visible changed:", newVal);
+        console.log("visible changed:", newVal);
         if (newVal) {
+          console.log("columns0:", this.columns);
           this.columns = [
             {
               title: "序号",
@@ -411,10 +414,10 @@ export default {
               index: 2,
             },
           ];
-          // console.log("columns1:", this.columns);
+          console.log("columns1:", this.columns);
           try {
             await getColPref("colPref-productEntry", 200, this); // 等待 getColPref 执行完成
-            // console.log("columns2:", this.columns);
+            console.log("columns2:", this.columns);
           } catch (error) {
             console.error("获取列偏好失败:", error);
           }
@@ -723,7 +726,7 @@ export default {
       let params = {
         notes: "",
       };
-      
+
       // // 修改词条状态(前端不修改，由后端修改)
       // this.dataSource.forEach((item) => {
       //   if (item.entryState === 0) {
@@ -989,6 +992,10 @@ export default {
     // 分页切换
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);
+    },
+    // 展示列切换并保存用户偏好
+    changeColumn(checkedValue) {
+      changeColumn("colPref-productEntry", 200, checkedValue, this);
     },
   },
 };

@@ -159,7 +159,8 @@ import {
 } from "@/http/api/check";
 import { message, Modal } from "ant-design-vue";
 import { SettingOutlined } from "@ant-design/icons-vue";
-import tableParam from "@/views/check/redundantTableParam.js";
+// import tableParam from "@/views/check/redundantTableParam.js";
+import {redundantTableParams as tableParam} from "@/utils/commonParam.js";
 import {
   clickInput,
   setTableHeight,

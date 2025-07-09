@@ -331,7 +331,8 @@ export default {
             exportTask:{},
             exportLoading: false,
             exportTitle:"",
-            fieldOptions: tableParam.exportFields
+            // fieldOptions: tableParam.exportFields
+            fieldOptions: tableParam.checkboxList,
         }
     },
     

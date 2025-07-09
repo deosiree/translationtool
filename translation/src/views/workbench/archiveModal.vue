@@ -156,13 +156,15 @@ import {
   SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-import workbenchCommon from "@/views/workbench/common.js";
+// import workbenchCommon from "@/views/workbench/common.js";
+import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
+// import common from "../entry/common.js";
 import {
   getColPref,
   changeColumn,
+  getCurrentFormattedTime,
 } from "@/utils/commonUtils";
-import common from "../entry/common.js";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -656,7 +658,8 @@ export default {
             // 归档并结束任务
             this.saveLoading = false;
             this.task.state = "6";
-            this.task.endTime = common.getCurrentFormattedTime();
+            // this.task.endTime = common.getCurrentFormattedTime();
+            this.task.endTime = getCurrentFormattedTime();
             updateTaskInfo(this.task).then((res) => {
               message.success("已归档！");
               this.$emit("refresh");

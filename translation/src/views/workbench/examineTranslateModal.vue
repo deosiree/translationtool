@@ -225,13 +225,15 @@ import {
   updateEntryList,
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
-import workbenchCommon from "@/views/workbench/common.js";
+// import workbenchCommon from "@/views/workbench/common.js";
+import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
-import common from "../entry/common";
+// import common from "../entry/common";
 import {
   getColPref,
   changeColumn,
   setModalAriaHidden,
+  byteLength
 } from "@/utils/commonUtils";
 import { computed, defineComponent, ref } from "vue";
 import {
@@ -676,7 +678,8 @@ export default {
           return Promise.resolve();
         }
         // 获取输入数据的长度
-        let length = common.byteLength(value);
+        // let length = common.byteLength(value);
+        let length = byteLength(value);
         if (length > maxLength) {
           return Promise.reject("允许最大字符数为" + maxLength + "！");
         }
@@ -973,7 +976,8 @@ export default {
         let text = this.editableData.hasOwnProperty(record.id)
           ? this.editableData[record.id][this.languageList.value]
           : record[this.languageList.value];
-        if (common.byteLength(text) > maxLength) {
+        // if (common.byteLength(text) > maxLength) {
+        if (byteLength(text) > maxLength) {
           flag++;
           this.addEdit(record).then((res) => {
             eval(

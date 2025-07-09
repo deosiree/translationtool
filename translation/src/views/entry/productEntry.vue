@@ -385,10 +385,12 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
-import tableParam from "@/views/entry/tableParam.js";
+// import tableParam from "@/views/entry/tableParam.js";
+import { entryParams as tableParam } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
+// import common from "./common.js";
+import { byteLength } from "@/utils/commonUtils.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
-import common from "./common.js";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
@@ -1029,7 +1031,8 @@ export default {
           return Promise.resolve();
         }
         // 获取输入数据的长度
-        let length = common.byteLength(value);
+        // let length = common.byteLength(value);
+        let length = byteLength(value);
         if (length > maxLength) {
           return Promise.reject("允许最大字符数为" + maxLength + "！");
         }
@@ -1153,13 +1156,28 @@ export default {
     },
     // 校验输入数据是否合规
     checkedData(record) {
-      if (
-        common.byteLength(record.entry) > record.maxLength ||
-        common.byteLength(record.english) > record.maxLength ||
-        common.byteLength(record.russian) > record.maxLength ||
-        common.byteLength(record.spanish) > record.maxLength ||
-        common.byteLength(record.french) > record.maxLength
-      ) {
+      //       if (
+      //   common.byteLength(record.entry) > record.maxLength ||
+      //   common.byteLength(record.english) > record.maxLength ||
+      //   common.byteLength(record.russian) > record.maxLength ||
+      //   common.byteLength(record.spanish) > record.maxLength ||
+      //   common.byteLength(record.french) > record.maxLength
+      // ) {
+      // 缺少新加的中文
+      const checkValue = () => {
+        // 若 record 不存在、record.entry 不存在或 record.maxLength 不存在，视为校验通过
+        if (!record || !record.entry || !record.maxLength) return false;
+
+        // 检查词条本身长度是否超过限制
+        if (byteLength(record.entry) > record.maxLength) return true;
+
+        // 检查各语言翻译长度是否超过限制
+        return commonParam.languageList.some((item) => {
+          const value = record[item.value];
+          return value && byteLength(value) > record.maxLength;
+        });
+      };
+      if (checkValue()) {
         message.error("输入的数据超长！");
         return false;
       } else {

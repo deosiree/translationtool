@@ -66,7 +66,6 @@ import { message, Modal } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import QtCheckRelation from "@/views/check/qtCheckRelation.vue";
-import commen from "@/views/entry/common.js";
 import commonParam from "@/utils/commonParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import { getTsProblems, getEntryByTsVo } from "@/http/api/check";

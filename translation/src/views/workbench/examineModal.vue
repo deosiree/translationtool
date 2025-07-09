@@ -237,9 +237,10 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-import workbenchCommon from "@/views/workbench/common.js";
+// import workbenchCommon from "@/views/workbench/common.js";
+import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
-import common from "../entry/common";
+// import common from "../entry/common";
 import {
   interpretation2value,
   getColPref,
@@ -247,6 +248,7 @@ import {
   setModalAriaHidden,
   filter_arr,
   filter_arr_keys,
+  byteLength
 } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -811,7 +813,8 @@ export default {
           return Promise.resolve();
         }
         // 获取输入数据的长度
-        let length = common.byteLength(value);
+        // let length = common.byteLength(value);
+        let length = byteLength(value);
         if (length > maxLength) {
           return Promise.reject("允许最大字符数为" + maxLength + "！");
         }
@@ -1085,7 +1088,8 @@ export default {
         let text = this.editableData.hasOwnProperty(record.id)
           ? this.editableData[record.id][this.task.transMap.value]
           : record[this.task.transMap.value];
-        if (common.byteLength(text) > maxLength) {
+        // if (common.byteLength(text) > maxLength) {
+        if (byteLength(text) > maxLength) {
           // 若校验不通过，会调用 addEdit 方法将该词条设为编辑状态，并对其表单进行校验
           flag++;
           this.addEdit(record).then((res) => {
