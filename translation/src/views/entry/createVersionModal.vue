@@ -250,8 +250,7 @@ export default {
       exportClass: {
         field: ["abbr", "词条"],
       },
-      // fieldOptions: tableParam.exportFields,
-      fieldOptions: tableParam.checkboxList,
+      fieldOptions: tableParam.exportFields,
       product: {},
       taskColumns: [
         {
@@ -378,9 +377,9 @@ export default {
     },
     visible: {
       async handler(newVal) {
-        console.log("visible changed:", newVal);
+        // console.log("visible changed:", newVal);
         if (newVal) {
-          console.log("columns0:", this.columns);
+          // console.log("columns0:", this.columns);
           this.columns = [
             {
               title: "序号",
@@ -414,10 +413,10 @@ export default {
               index: 2,
             },
           ];
-          console.log("columns1:", this.columns);
+          // console.log("columns1:", this.columns);
           try {
             await getColPref("colPref-productEntry", 200, this); // 等待 getColPref 执行完成
-            console.log("columns2:", this.columns);
+            // console.log("columns2:", this.columns);
           } catch (error) {
             console.error("获取列偏好失败:", error);
           }

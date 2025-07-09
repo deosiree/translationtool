@@ -44,8 +44,7 @@ export default {
       exportModal: {
         field: undefined,
       },
-      // fieldOptions: tableParam.exportFields,
-      fieldOptions: tableParam.checkboxList,
+      fieldOptions: tableParam.exportFields,
     };
   },
 

@@ -75,13 +75,10 @@ const default_languageList = [
     interpretation: "chineseInterpretation",
   },
 ];
-
 const default_languageMap = default_languageList.reduce((acc, lang) => {
   acc[lang.name] = lang;
   return acc;
 }, {});
-
-
 export default {
   languageList: default_languageList,
   languageMap: default_languageMap,
@@ -151,52 +148,57 @@ export default {
     }
   ]
 };
+
 // import tableParam from "@/views/entry/tableParam.js";
+const entry_checkboxList = [
+  // { label: "词条状态", value: "entryState", index: 1 },
+  // { label: "词条", value: "entry", index: 2 },
+  { label: 'tag', value: 'tag', index: 3 },
+  { label: "comment", value: "comment", index: 4 },
+  { label: "词条版本", value: "entryVersion", index: 5 },
+  { label: "词条字符数", value: "entryLength", index: 6 },
+  { label: "词条来源", value: "entrySource", index: 7 },
+  { label: "中文释义", value: "chineseInterpretation", index: 8 },
+  { label: "中文翻译", value: "chinese", index: 9 },
+  { label: "中文翻译状态", value: "chineseTranslateState", index: 10 },
+  { label: "英文释义", value: "englishInterpretation", index: 11 },
+  { label: "英文翻译", value: "english", index: 12 },
+  { label: "英文翻译状态", value: "englishTranslateState", index: 13 },
+  { label: "俄文释义", value: "russianInterpretation", index: 14 },
+  { label: "俄文翻译", value: "russian", index: 15 },
+  { label: "俄文翻译状态", value: "russianTranslateState", index: 16 },
+  { label: "西文释义", value: "spanishInterpretation", index: 17 },
+  { label: "西文翻译", value: "spanish", index: 20 },
+  { label: "西文翻译状态", value: "spanishTranslateState", index: 21 },
+  { label: "法文释义", value: "frenchInterpretation", index: 22 },
+  { label: "法文翻译", value: "french", index: 23 },
+  { label: "法文翻译状态", value: "frenchTranslateState", index: 24 },
+  { label: "一级分类", value: "classfy1", index: 25 },
+  { label: "二级分类", value: "classfy2", index: 26 },
+  // { label: "中文字符上限", value: "maxChineseLength", index: 26 },
+  // { label: "外文字符上限", value: "foreignMaxLength", index: 26 },
+  { label: "辞典名称", value: "diFileName", index: 26.1 },
+  { label: "修改人", value: "update", index: 27 },
+  { label: "修改时间", value: "updateTime", index: 28 },
+  { label: "备注", value: "remark", index: 29 },
+  // { label: "中文翻译", value: "chinese", index: 30 },// 任务语种为“中文”时，放到“翻译”那一列中
+  { label: "来源表名", value: "srcTabName", index: 31 },
+  { label: "数据库记录ID", value: "dbRID", index: 32 },
+  { label: "abbr", value: "abbr", index: 99 },
+  // {label: "英文翻译id",value: "enTransld",index:30},
+  // {label: "俄文翻译id",value: "ruTransId",index:31},
+  // {label: "西文翻译id",value: "spaTransId",index:32},
+  // {label: "法文翻译id",value: "fraTransId",index:33},
+  // {label: "导入类型",value: "importType",index:34},
+  // {label: "回写类型",value: "writeType",index:35},
+  // {label: "DI文件名",value: "diFileName",index:36},
+  // {label: "comment",value: "comment",index:37},
+];
+const entry_exportFields = entry_checkboxList
+  .filter(item => item.label !== "修改时间")// 导出修改时间时，后端会出错
+  .map(item => ({ label: item.label, value: item.value }));
 export const entryParams = {
-  checkboxList: [
-    // { label: "词条状态", value: "entryState", index: 1 },
-    // { label: "词条", value: "entry", index: 2 },
-    { label: 'tag', value: 'tag', index: 3 },
-    { label: "comment", value: "comment", index: 4 },
-    { label: "词条版本", value: "entryVersion", index: 5 },
-    { label: "词条字符数", value: "entryLength", index: 6 },
-    { label: "词条来源", value: "entrySource", index: 7 },
-    { label: "中文释义", value: "chineseInterpretation", index: 8 },
-    { label: "中文翻译", value: "chinese", index: 9 },
-    { label: "中文翻译状态", value: "chineseTranslateState", index: 10 },
-    { label: "英文释义", value: "englishInterpretation", index: 11 },
-    { label: "英文翻译", value: "english", index: 12 },
-    { label: "英文翻译状态", value: "englishTranslateState", index: 13 },
-    { label: "俄文释义", value: "russianInterpretation", index: 14 },
-    { label: "俄文翻译", value: "russian", index: 15 },
-    { label: "俄文翻译状态", value: "russianTranslateState", index: 16 },
-    { label: "西文释义", value: "spanishInterpretation", index: 17 },
-    { label: "西文翻译", value: "spanish", index: 20 },
-    { label: "西文翻译状态", value: "spanishTranslateState", index: 21 },
-    { label: "法文释义", value: "frenchInterpretation", index: 22 },
-    { label: "法文翻译", value: "french", index: 23 },
-    { label: "法文翻译状态", value: "frenchTranslateState", index: 24 },
-    { label: "一级分类", value: "classfy1", index: 25 },
-    { label: "二级分类", value: "classfy2", index: 26 },
-    // { label: "中文字符上限", value: "maxChineseLength", index: 26 },
-    // { label: "外文字符上限", value: "foreignMaxLength", index: 26 },
-    { label: "辞典名称", value: "diFileName", index: 26.1 },
-    { label: "修改人", value: "update", index: 27 },
-    { label: "修改时间", value: "updateTime", index: 28 },
-    { label: "备注", value: "remark", index: 29 },
-    // { label: "中文翻译", value: "chinese", index: 30 },// 任务语种为“中文”时，放到“翻译”那一列中
-    { label: "来源表名", value: "srcTabName", index: 31 },
-    { label: "数据库记录ID", value: "dbRID", index: 32 },
-    { label: "abbr", value: "abbr", index: 99 },
-    // {label: "英文翻译id",value: "enTransld",index:30},
-    // {label: "俄文翻译id",value: "ruTransId",index:31},
-    // {label: "西文翻译id",value: "spaTransId",index:32},
-    // {label: "法文翻译id",value: "fraTransId",index:33},
-    // {label: "导入类型",value: "importType",index:34},
-    // {label: "回写类型",value: "writeType",index:35},
-    // {label: "DI文件名",value: "diFileName",index:36},
-    // {label: "comment",value: "comment",index:37},
-  ],
+  checkboxList: entry_checkboxList,
   checkedColumn: ["abbr", "entry", "entryState", "entryVersion", "english", "russian", "spanish", "french"],
   inputColumn: ["abbr", "entryLength", 'chineseInterpretation', 'englishInterpretation', 'spanishInterpretation', 'frenchInterpretation', 'russianInterpretation', "partOfSpeech", "remark", "diFileName", "comment"],
   translateColumn: ["english", "russian", "spanish", "french"],
@@ -208,6 +210,7 @@ export const entryParams = {
     borderRadius: '2px',
     boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
   },
+  exportFields: entry_exportFields
   // exportFields: [
   //   // {label:'id',value:'id',disabled:true},
   //   { label: 'abbr', value: 'abbr' },
@@ -257,6 +260,7 @@ export const entryParams = {
   //   { label: "abbr", value: "abbr" },
   // ],
 }
+
 // import tableParam from "@/views/glossary/tableParam.js";
 export const glossaryParams = {
   checkboxList: [
@@ -296,38 +300,40 @@ export const glossaryParams = {
     boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
   },
 }
+
 // import workbenchCommon from "@/views/workbench/common.js";
 export const workbenchParams = {
-    languageMap:{
-        '英文':{language:"英文",code:"english",transIdName:"enTransId"},
-        '俄文':{language:"俄文",code:"russian",transIdName:"ruTransId"},
-        '西文':{language:"西文",code:"spanish",transIdName:"spaTransId"},
-        '法文':{language:"法文",code:"french",transIdName:"fraTransId"},
-        '中文':{language:"中文",code:"chinese",transIdName:"zhTransId"},
-    },
-    checkboxList:[
-        {label:'tag',value:'tag',index:3},
-        {label: "Comment",value: "comment",index:4},
-        {label: "英文释义",value: "englishInterpretation",index:5},
-        {label: "中文释义",value: "chineseInterpretation",index:6},
-        {label: "一级分类",value: "classfy1",index:8},
-        {label: "二级分类",value: "classfy2",index:9},
-        {label: "词条来源",value: "entrySource",index:10},
-        {label: "回写辞典",value: "diFileName",index:11},
-        {label: "abbr",value: "abbr",index:12},
-    ],
-    checkedColumn: ["abbr", "englishInterpretation","chineseInterpretation"],
-    overlayStyle:{
-        maxHeight:'300px',
-        overflowY: 'scroll',
-        backgroundColor: '#fff',
-        backgroundClip: 'padding-box',
-        borderRadius: '2px',
-        // padding:'0',
-        boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
-    },
-    keys:['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+  languageMap: {
+    '英文': { language: "英文", code: "english", transIdName: "enTransId" },
+    '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
+    '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
+    '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
+    '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
+  },
+  checkboxList: [
+    { label: 'tag', value: 'tag', index: 3 },
+    { label: "Comment", value: "comment", index: 4 },
+    { label: "英文释义", value: "englishInterpretation", index: 5 },
+    { label: "中文释义", value: "chineseInterpretation", index: 6 },
+    { label: "一级分类", value: "classfy1", index: 8 },
+    { label: "二级分类", value: "classfy2", index: 9 },
+    { label: "词条来源", value: "entrySource", index: 10 },
+    { label: "回写辞典", value: "diFileName", index: 11 },
+    { label: "abbr", value: "abbr", index: 12 },
+  ],
+  checkedColumn: ["abbr", "englishInterpretation", "chineseInterpretation"],
+  overlayStyle: {
+    maxHeight: '300px',
+    overflowY: 'scroll',
+    backgroundColor: '#fff',
+    backgroundClip: 'padding-box',
+    borderRadius: '2px',
+    // padding:'0',
+    boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
+  },
+  keys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 }
+
 // import tableParam from "@/views/check/redundantTableParam.js";
 export const redundantTableParams = {
   checkboxList: [
