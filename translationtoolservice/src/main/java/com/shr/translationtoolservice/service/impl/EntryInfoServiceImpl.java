@@ -16,7 +16,7 @@ import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
-import java.util.Calendar;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.checkerframework.checker.units.qual.A;
@@ -30,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.management.RuntimeErrorException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -1827,6 +1828,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
+    public <T extends EntryInfoEntity> List<T> importTransCSV(MultipartFile multipartFile, HttpServletRequest request, String transType,Class<T> classzz){
+        List<T> entryEntitys = new ArrayList<>();
+        String token = request.getHeader("token");
+        Map<String,String> kwargs = new HashMap<>();
+        try {
+            entryEntitys = excelUtils.readCSVToEntity(transType, classzz, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), kwargs);
+            return entryEntitys;
+        } catch (Exception e) {
+            log.error(null, e);
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public String importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
 
@@ -1837,12 +1851,16 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
 
         try {
-            entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            if(multipartFile.getOriginalFilename().endsWith(".csv")){
+                entryEntitys = excelUtils.readCSVToEntity(transType, EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
+            }else{
+                entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            }
             if (CollectionUtils.isEmpty(entryEntitys)) {
                 return null;
             }
             for (EntryInfoEntity entryInfoEntity1 : entryEntitys) {
-                if (entryInfoEntity1.getEntry().equals("字节顺序")){
+                if (entryInfoEntity1.getEntry() != null && entryInfoEntity1.getEntry().equals("字节顺序")){
                     System.out.println("字节顺序");
                 }
                 String trans = "";
@@ -2015,73 +2033,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         break;
 
                 }
-        /*
-
-                TranslateEntity translateEntity = new TranslateEntity();
-                translateEntity.setId(commonUtils.getUUID());
-                translateEntity.setEntry(entryInfoEntity1.getEntry());
-                translateEntity.setLastUseTime(new Date(System.currentTimeMillis()));
-                translateEntity.setTranslateState("3");
-                translateEntity.setDeleteState(0);
-                translateEntity.setVisualRange(department);
-                translateEntity.setPublicState(0);
-
-                switch (transType) {
-                    case ConstantInterface.ENGLISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity1.getEnglish())) {
-                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "en_trans_id");
-                            //如果是空则返回
-                            if (trans.equals(entryInfoEntity1.getEnglish())) {
-                                continue;
-                            }
-                            translateEntity.setType(ConstantInterface.ENGLISH);
-
-                            entryInfoEntity1.setEnTransId(translateEntity.getId());
-
-                        }
-                    case ConstantInterface.SPANISH:
-                        if (StringUtils.isNotBlank(entryInfoEntity1.getSpanish())) {
-                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "spa_trans_id");
-                            //如果是空则返回
-                            if (trans.equals(entryInfoEntity1.getSpanish())) {
-                                continue;
-                            }
-                            translateEntity.setType(ConstantInterface.SPANISH);
-
-                            entryInfoEntity1.setSpaTransId(translateEntity.getId());
-
-                        }
-                    case ConstantInterface.FRENCH:
-                        if (StringUtils.isNotBlank(entryInfoEntity1.getFrench())) {
-                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "fra_trans_id");
-                            //如果是空则返回
-                            if (trans.equals(entryInfoEntity1.getFrench())) {
-                                continue;
-                            }
-                            translateEntity.setType(ConstantInterface.FRENCH);
-
-                            entryInfoEntity1.setFraTransId(translateEntity.getId());
-
-                        }
-                    case ConstantInterface.RUSSIAN:
-                        if (StringUtils.isNotBlank(entryInfoEntity1.getRussian())) {
-                            String trans = entryInfoMapper.getTransByID(entryInfoEntity1.getId(), "ru_trans_id");
-                            //如果是空则返回
-                            if (trans.equals(entryInfoEntity1.getRussian())) {
-                                continue;
-                            }
-                            translateEntity.setType(ConstantInterface.RUSSIAN);
-
-                            entryInfoEntity1.setRussian(translateEntity.getId());
-
-                        }
-                }
-
-                entryInfoMapper.updateById(entryInfoEntity1);
-                translateMapper.updateById(translateEntity);*/
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(null,e);
+            throw new RuntimeException(e);
         }
 
 

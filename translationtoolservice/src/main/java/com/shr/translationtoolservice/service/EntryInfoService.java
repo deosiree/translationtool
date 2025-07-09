@@ -81,6 +81,8 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
 
+    <T extends EntryInfoEntity> List<T> importTransCSV(MultipartFile multipartFile, HttpServletRequest request, String transType,Class<T> classzz);
+
     String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
 
     List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);

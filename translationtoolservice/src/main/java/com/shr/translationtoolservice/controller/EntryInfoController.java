@@ -289,9 +289,13 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<String> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,
                                                           HttpServletRequest httpServletRequest
     ) {
-        String re = entryInfoService.importTransExcle(multipartFile, httpServletRequest,transType);
-
-        return checkResult(re);
+        try {
+            String re = entryInfoService.importTransExcle(multipartFile, httpServletRequest,transType);
+            return checkResult(re);   
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+            // TODO: handle exception
+        }
     }
 
     @PostMapping("/workImportExcleTrans")
