@@ -296,7 +296,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -397,7 +397,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -1002,7 +1002,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -1038,7 +1038,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -1056,7 +1056,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -1075,7 +1075,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -1099,7 +1099,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join  t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
@@ -1305,7 +1305,7 @@
         t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
         t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
         t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState
+        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
         t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
         from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
         left JOIN t_translate t3 ON t2.en_trans_id = t3.id
