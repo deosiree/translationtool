@@ -65,6 +65,7 @@
       <a-button @click="cancelCreate">关闭</a-button>
       <a-button type="primary" @click="writeBackFun">回写</a-button>
       <a-button type="primary" danger @click="deleteEntrys">删除</a-button>
+      <ExportButton :dataSource="dataSource" :fieldOptions="fieldOptions" size="middle" />
       <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
       <a-button type="primary" @click="exportCSV">导出CSV</a-button>
@@ -160,6 +161,7 @@
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import ExportButton from '@/components/Button/exportButton.vue';
 import zh_CN from "ant-design-vue/es/locale/zh_CN";
 import {
   MinusSquareOutlined,
@@ -202,6 +204,7 @@ export default {
     ExclamationCircleOutlined,
     DeleteOutlined,
     QuestionCircleOutlined,
+    ExportButton,
   },
   emits: ["createClose", "removeEntry", "cancelCreate", "refresh"],
   props: {
@@ -563,7 +566,9 @@ export default {
             entryInfoEntities: this.dataSource,
             excelName: "词条导出",
           };
-          let params = {};
+          let params = {
+            exportType: "excel",
+          };
           entryExportByCondition(data, params)
             .then((res) => {
               let fileName = res.headers["content-disposition"]
@@ -597,7 +602,9 @@ export default {
             entryInfoEntities: this.dataSource,
             excelName: "词条导出",
           };
-          let params = {};
+          let params = {
+            exportType: "csv",
+          };
           entryExportByCondition(data, params)
             .then((res) => {
               // console.log("导出结果:", res);

@@ -4,7 +4,7 @@
   <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
     @afterClose="importAfterClose">
     <div class="content">
-      <a-form ref="formRef" name="custom-validation" :model="importModal">
+      <a-form ref="formRef" :model="importModal">
         <a-form-item label="文件类型" name="importType" :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="importModal.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
           </a-select>
