@@ -4,7 +4,7 @@
   <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
     @afterClose="importAfterClose">
     <div class="content">
-      <a-form ref="formRef" :model="importModal">
+      <a-form ref="importForm" :model="importModal">
         <a-form-item label="文件类型" name="importType" :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="importModal.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
           </a-select>
@@ -86,8 +86,8 @@ export default {
     },
     // 确认导入
     importOK() {
-      if (!this.$refs.formRef) return;
-      this.$refs.formRef
+      if (!this.$refs.importForm) return;
+      this.$refs.importForm
         .validate()
         .then(() => {
           this.importLoading = true;
@@ -126,8 +126,8 @@ export default {
       this.importModal.language = null;
       this.importFile = null;
       this.fileList = [];
-      if (this.$refs.formRef) {
-        this.$refs.formRef.clearValidate();
+      if (this.$refs.importForm) {
+        this.$refs.importForm.clearValidate();
       }
     },
     // 文件变化处理

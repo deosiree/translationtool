@@ -57,7 +57,7 @@ export function filter_arr(filterSource, arr) {
 /**
  * 从 filterSource 中移除 arr 中的数据
  * @param {Array} filterSource - 需要过滤的源数组，每个元素是一个唯一的键值,代表id属性
- * @param {Array} arr - 包含要移除的对象数组，每个对象必须有一个唯一的 id 属性
+ * @param {Array} arr - 包含要移除的对象数组，每个元素是一个唯一的键值,代表id属性
  * @returns {Array} - 过滤后的数组
  */
 export function filter_arr_keys(filterSource, arr) {

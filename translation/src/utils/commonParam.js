@@ -184,6 +184,8 @@ const entry_checkboxList = [
   // { label: "中文翻译", value: "chinese", index: 30 },// 任务语种为“中文”时，放到“翻译”那一列中
   { label: "来源表名", value: "srcTabName", index: 31 },
   { label: "数据库记录ID", value: "dbRID", index: 32 },
+  { label: "中文字符上限", value: "maxChineseLength", index: 33 },
+  { label: "外文字符上限", value: "foreignMaxLength", index: 34 },
   { label: "abbr", value: "abbr", index: 99 },
   // {label: "英文翻译id",value: "enTransld",index:30},
   // {label: "俄文翻译id",value: "ruTransId",index:31},
@@ -194,9 +196,13 @@ const entry_checkboxList = [
   // {label: "DI文件名",value: "diFileName",index:36},
   // {label: "comment",value: "comment",index:37},
 ];
-const entry_exportFields = entry_checkboxList
+const entry_exportFields = [
+  // { label: 'id', value: 'id' },// id不需要，id是默认会隐藏地导出出来的
+  { label: '词条', value: 'entry' },
+  { label: "词条状态", value: "entryState" },
+].concat(entry_checkboxList
   .filter(item => item.label !== "修改时间")// 导出修改时间时，后端会出错
-  .map(item => ({ label: item.label, value: item.value }));
+  .map(item => ({ label: item.label, value: item.value })));
 export const entryParams = {
   checkboxList: entry_checkboxList,
   checkedColumn: ["abbr", "entry", "entryState", "entryVersion", "english", "russian", "spanish", "french"],
@@ -302,14 +308,24 @@ export const glossaryParams = {
 }
 
 // import workbenchCommon from "@/views/workbench/common.js";
-export const workbenchParams = {
-  languageMap: {
+const workBench_langageMap = {
+    /* 
+    '英文': { 
+      language: "英文", 
+      code: "english", 
+      transIdName: "enTransId", 
+    },
+    */
     '英文': { language: "英文", code: "english", transIdName: "enTransId" },
     '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
     '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
     '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
     '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
-  },
+  };
+const workbench_languageList = Object.values(workBench_langageMap);
+export const workbenchParams = {
+  languageMap: workBench_langageMap,
+  languageList: workbench_languageList,
   checkboxList: [
     { label: 'tag', value: 'tag', index: 3 },
     { label: "Comment", value: "comment", index: 4 },
