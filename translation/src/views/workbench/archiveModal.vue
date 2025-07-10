@@ -130,7 +130,7 @@
       <a-button type="primary" ghost @click="placeOnFile">归档</a-button>
     </template>
   </CustomModal>
-  <CustomModal :visible="ipSelectModal" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK" @afterClose="ipSelectAfterClose">
+  <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK" @afterClose="ipSelectAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="ipModal" name="custom-validation" :model="ipModal">
         <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
@@ -345,6 +345,7 @@ export default {
       },
       ipOptions: [],
       optionFlag: 0,
+      writeBackLoading:false,
     };
   },
 
@@ -629,6 +630,7 @@ export default {
           this.selectedRowKeys = [];
           this.selectedRows = [];
           this.ipSelectModal = false;
+          this.writeBackLoading = false;
         })
         .catch((err) => {
           message.error("归档失败！", err.message);
@@ -648,6 +650,7 @@ export default {
       this.ipModal.ip === null;
     },
     ipSelectOK() {
+      this.writeBackLoading = true;
       this.$refs.ipModal
         .validate()
         .then(() => {
@@ -683,7 +686,10 @@ export default {
         })
         .catch((err) => {
           message.error(err.message);
-        });
+        }).finally(() => {
+          this.writeBackLoading = false;
+        })
+        ;
     },
     ipSelectClose() {
       this.ipSelectModal = false;
