@@ -47,10 +47,10 @@ export default {
   },
   data() {
     return {
-      accept: null,
       importVisible: false,
       importLoading: false,
       importModal: {
+        importFile: null,
         language: null,
         importType: null,
       },
@@ -58,17 +58,16 @@ export default {
         { label: "csv", value: "csv", accept: ".csv" },
         { label: "excel", value: "excel", accept: ".xls,.xlsx" },
       ],
+      accept: null,
       fileList: [],
-      importFile: null,
     };
   },
   watch: {
     "importModal.importType": {
       handler(newValue, oldValue) {
         if (newValue !== oldValue) {
-          console.log("newValue", newValue);
-          console.log("oldValue", oldValue);
-          this.removeFile();
+          this.accept = null;
+          this.removeFile(); // 切换文件类型后清空文件
         }
       },
       immediate: false,
@@ -92,18 +91,18 @@ export default {
         .then(() => {
           this.importLoading = true;
           const formData = new FormData();
-          formData.append("file", this.importFile);
+          formData.append("file", this.importModal.importFile);
           formData.append("transType", this.importModal.language);
-          formData.append("importType", this.importModal.importType);
+          // formData.append("importType", this.importModal.importType); // 后端不需要这个参数
 
-          console.log("formData", formData);
-          console.log("file", this.importFile);
-          console.log("transType", this.importModal.language);
-          console.log("importType", this.importModal.importType);
-          // 使用 entries() 方法查看 FormData 的属性
-          for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-          }
+          // console.log("formData", formData);
+          // console.log("file", this.importModal.importFile);
+          // console.log("transType", this.importModal.language);
+          // console.log("importType", this.importModal.importType);
+          // // 使用 entries() 方法查看 FormData 的属性
+          // for (const [key, value] of formData.entries()) {
+          //   console.log(`${key}: ${value}`);
+          // }
 
           entryImportExcle(formData)
             .then((res) => {
@@ -123,8 +122,11 @@ export default {
     },
     // 导入模态框关闭后回调
     importAfterClose() {
-      this.importModal.language = null;
-      this.importFile = null;
+      this.importModal = {
+        importFile: null,
+        language: null,
+        importType: null,
+      };
       this.fileList = [];
       if (this.$refs.importForm) {
         this.$refs.importForm.clearValidate();
@@ -132,16 +134,17 @@ export default {
     },
     // 文件变化处理
     handleChange(info) {
-      this.fileList = info.fileList;
+      this.fileList = info.fileList; // max-count=1,一个文件一个文件地上传
       if (info.fileList.length === 0) {
-        this.importFile = null;
+        this.importModal.importFile = null;
       } else {
-        this.importFile = info.file;
+        this.importModal.importFile = info.file;
       }
     },
     // 移除文件
     removeFile(file) {
-      this.importFile = null;
+      this.importModal.importFile = null;
+      this.fileList = [];
       return true;
     },
     // 获得导入文件类型
@@ -164,7 +167,7 @@ export default {
     // 校验上传文件是否为空
     checkFile() {
       return (rule, value) => {
-        if (!this.importFile) {
+        if (!this.importModal.importFile) {
           return Promise.reject("请选择文件！");
         }
         return Promise.resolve();
