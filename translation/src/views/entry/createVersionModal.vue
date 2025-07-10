@@ -458,7 +458,6 @@ export default {
               "colPref-productEntry",
               200,
               this,
-              (needFilter = true)
             ); // 等待 getColPref 执行完成
             // console.log("columns2:", this.columns);
           } catch (error) {
@@ -1047,7 +1046,6 @@ export default {
         200,
         checkedValue,
         this,
-        true
       );
     },
   },
