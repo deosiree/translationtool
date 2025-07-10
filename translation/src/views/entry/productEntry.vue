@@ -87,7 +87,7 @@
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
           <!-- <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button> -->
-          <ImportButton @importSuccess="refreshTable" v-if="admin" :translateTypes="translateTypes" size="small" />
+          <ImportButton @importSuccess="refreshTable" v-if="admin" :translateTypes="translateTypes" size="small" buttonTitle="更新翻译" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>

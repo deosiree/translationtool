@@ -1,7 +1,7 @@
 <template>
-  <a-button type="primary" @click="importEntry" :size="size">导入</a-button>
+  <a-button type="primary" @click="importEntry" :size="size">{{ buttonTitle }}</a-button>
 
-  <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
+  <CustomModal :visible="importVisible" :okLoading="importLoading" :modalTitle="buttonTitle" @handleClose="importClose" @handleOK="importOK"
     @afterClose="importAfterClose">
     <div class="content">
       <a-form ref="importForm" :model="importModal">
@@ -43,6 +43,10 @@ export default {
     size: {
       type: String,
       default: "small",
+    },
+    buttonTitle: {
+      type: String,
+      default: "导入", // 设置默认值为 "导入"
     },
   },
   data() {
