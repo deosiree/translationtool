@@ -130,7 +130,8 @@
       <a-button type="primary" ghost @click="placeOnFile">归档</a-button>
     </template>
   </CustomModal>
-  <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK" @afterClose="ipSelectAfterClose">
+  <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"
+    @afterClose="ipSelectAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="ipModal" name="custom-validation" :model="ipModal">
         <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
@@ -157,13 +158,19 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 // import workbenchCommon from "@/views/workbench/common.js";
-import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
+import { workbenchParams as workbenchCommon } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
 // import common from "../entry/common.js";
 import {
   getColPref,
   changeColumn,
   getCurrentFormattedTime,
+  handleSearch,
+  handleReset,
+  clearFilters,
+  handleTableChange,
+  selectAllEntry,
+  clearAllEntry,
 } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -345,7 +352,7 @@ export default {
       },
       ipOptions: [],
       optionFlag: 0,
-      writeBackLoading:false,
+      writeBackLoading: false,
     };
   },
 
@@ -354,7 +361,7 @@ export default {
     this.task = this.currentTask;
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
-      getColPref("colPref-archiveModal", 100, this);
+      getColPref("colPref-archiveModal", 100, this, true);
     });
   },
   watch: {
@@ -508,18 +515,70 @@ export default {
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn("colPref-archiveModal", 100, checkedValue, this);
+      changeColumn("colPref-archiveModal", 100, checkedValue, this, true);
     },
+    // 筛选功能(可封装)
     // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
+      handleSearch(selectedKeys, confirm, dataIndex, this);
+      // confirm();
+      // this.state.searchText = selectedKeys[0];
+      // this.state.searchedColumn = dataIndex;
     },
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      handleReset(clearFilters, this);
+      // clearFilters({ confirm: true });
+      // this.state.searchText = "";
     },
+    // 清空表格筛选条件
+    clearFilters() {
+      clearFilters(this);
+      // if (this.filters) {
+      //   for (let key in this.filters) {
+      //     this.columns.forEach((col) => {
+      //       if (col.dataIndex === key) {
+      //         col.filteredValue = null;
+      //       }
+      //     });
+      //   }
+      // }
+    },
+    // 表格change事件
+    handleTableChange(pagination, filters) {
+      handleTableChange(pagination, filters, this);
+      // this.filters = filters;
+      // for (let key in filters) {
+      //   this.columns.forEach((col) => {
+      //     if (col.dataIndex === key) {
+      //       col.filteredValue = filters[key];
+      //     }
+      //   });
+      // }
+      // // 获取筛选后的数据
+      // let isExistData = this.dataSource.filter((item) => {
+      //   return filters.isExist && filters.isExist.includes(item.isExist);
+      // });
+      // let sourceData = this.dataSource.filter((item) => {
+      //   return (
+      //     filters.entrySource && item.entrySource.includes(filters.entrySource)
+      //   );
+      // });
+      // this.filteredData = this.intersection(isExistData, sourceData);
+    },
+    // // 两个数组取并集(可封装)
+    // intersection(nums1, nums2) {
+    //   if (nums1.length === 0) {
+    //     return nums2;
+    //   }
+    //   if (nums2.length === 0) {
+    //     return nums1;
+    //   }
+    //   let a = new Set(nums1);
+    //   let b = new Set(nums2);
+    //   let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
+    //   return arr;
+    // },
+
     // 动态设置表格高度
     setTableHeight(height, type) {
       if (type === "full") {
@@ -533,82 +592,38 @@ export default {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
     },
-    // 表格change事件
-    handleTableChange(pagination, filters) {
-      this.filters = filters;
-      for (let key in filters) {
-        this.columns.forEach((col) => {
-          if (col.dataIndex === key) {
-            col.filteredValue = filters[key];
-          }
-        });
-      }
-      // 获取筛选后的数据
-      let isExistData = this.dataSource.filter((item) => {
-        return filters.isExist && filters.isExist.includes(item.isExist);
-      });
-      let sourceData = this.dataSource.filter((item) => {
-        return (
-          filters.entrySource && item.entrySource.includes(filters.entrySource)
-        );
-      });
-      this.filteredData = this.intersection(isExistData, sourceData);
-    },
-    // 两个数组取并集
-    intersection(nums1, nums2) {
-      if (nums1.length === 0) {
-        return nums2;
-      }
-      if (nums2.length === 0) {
-        return nums1;
-      }
-      let a = new Set(nums1);
-      let b = new Set(nums2);
-      let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
-      return arr;
-    },
-    // 清空表格筛选条件
-    clearFilters() {
-      if (this.filters) {
-        for (let key in this.filters) {
-          this.columns.forEach((col) => {
-            if (col.dataIndex === key) {
-              col.filteredValue = null;
-            }
-          });
-        }
-      }
-    },
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys;
       this.selectedRows = selectedRows;
     },
     selectAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      let dataToSelect;
-      if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        // 确保 filteredData 是最新的筛选结果
-        dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =
-            !this.filters.isExist ||
-            this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =
-            !this.filters.entrySource ||
-            item.entrySource.includes(this.filters.entrySource);
-          return isExistMatch && entrySourceMatch;
-        });
-      } else {
-        dataToSelect = this.dataSource;
-      }
-      dataToSelect.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-      });
+      selectAllEntry(this);
+      // this.selectedRowKeys = [];
+      // this.selectedRows = [];
+      // let dataToSelect;
+      // if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
+      //   // 确保 filteredData 是最新的筛选结果
+      //   dataToSelect = this.dataSource.filter((item) => {
+      //     const isExistMatch =
+      //       !this.filters.isExist ||
+      //       this.filters.isExist.includes(item.isExist);
+      //     const entrySourceMatch =
+      //       !this.filters.entrySource ||
+      //       item.entrySource.includes(this.filters.entrySource);
+      //     return isExistMatch && entrySourceMatch;
+      //   });
+      // } else {
+      //   dataToSelect = this.dataSource;
+      // }
+      // dataToSelect.forEach((item) => {
+      //   this.selectedRowKeys.push(item.id);
+      //   this.selectedRows.push(item);
+      // });
     },
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      clearAllEntry(this);
+      // this.selectedRowKeys = [];
+      // this.selectedRows = [];
     },
     // 归档  回写数据
     writeBackFun() {
@@ -686,10 +701,10 @@ export default {
         })
         .catch((err) => {
           message.error(err.message);
-        }).finally(() => {
-          this.writeBackLoading = false;
         })
-        ;
+        .finally(() => {
+          this.writeBackLoading = false;
+        });
     },
     ipSelectClose() {
       this.ipSelectModal = false;

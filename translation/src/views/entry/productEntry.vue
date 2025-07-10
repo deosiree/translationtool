@@ -248,6 +248,36 @@
                   </div>
                 </template>
               </template>
+              <!-- 设置表格行展开子行的样式 -->
+              <template #expandIcon="props">
+                <span v-if="props.record.children != null && props.record.children.length > 0">
+                  <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                    <CaretDownOutlined />
+                  </div>
+                  <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                    <CaretRightOutlined />
+                  </div>
+                </span>
+                <span v-else style="margin-right:23px"></span>
+              </template>
+              <!-- 设置筛选菜单 -->
+              <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+                <div style="padding: 8px">
+                  <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
+                    style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                    @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
+                  <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
+                    @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+                    <template #icon>
+                      <SearchOutlined />
+                    </template>搜索</a-button>
+                  <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
+                </div>
+              </template>
+              <!-- 设置筛选图标 -->
+              <template #customFilterIcon="{ filtered }">
+                <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+              </template>
             </a-table>
           </a-config-provider>
           <!-- <a-pagination
@@ -430,6 +460,9 @@ import {
   SwapOutlined,
   InfoCircleOutlined,
   ExclamationCircleOutlined,
+  SearchOutlined,
+  CaretDownOutlined,
+  CaretRightOutlined,
 } from "@ant-design/icons-vue";
 import {
   onSelectChange,
@@ -439,6 +472,13 @@ import {
   getColPref,
   changeColumn,
   setModalAriaHidden,
+  getCurrentFormattedTime,
+  handleSearch,
+  handleReset,
+  clearFilters,
+  handleTableChange,
+  selectAllEntry,
+  clearAllEntry,
 } from "@/utils/commonUtils";
 export default {
   components: {
@@ -461,6 +501,9 @@ export default {
     SwapOutlined,
     InfoCircleOutlined,
     ExclamationCircleOutlined,
+    SearchOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined,
   },
   emits: [],
   props: {
@@ -1708,41 +1751,20 @@ export default {
     //   };
     // },
 
+    // 列筛选
+    handleSearch(selectedKeys, confirm, dataIndex) {
+      handleSearch(selectedKeys, confirm, dataIndex, this);
+    },
+    handleReset(clearFilters) {
+      handleReset(clearFilters, this);
+    },
+    // 清空表格筛选条件
+    clearFilters() {
+      clearFilters(this);
+    },
     // 表格change事件
     handleTableChange(pagination, filters) {
-      this.filters = filters;
-      // console.log(filters)
-      for (let key in filters) {
-        this.columns.forEach((col) => {
-          if (col.dataIndex === key) {
-            col.filteredValue = filters[key];
-          }
-        });
-      }
-      // console.log(this.columns)
-      // 获取筛选后的数据
-      let isExistData = this.dataSource.filter((item) => {
-        return filters.isExist && filters.isExist.includes(item.isExist);
-      });
-      let sourceData = this.dataSource.filter((item) => {
-        return (
-          filters.entrySource && item.entrySource.includes(filters.entrySource)
-        );
-      });
-      this.filteredData = this.intersection(isExistData, sourceData);
-    },
-    // 两个数组取并集
-    intersection(nums1, nums2) {
-      if (nums1.length === 0) {
-        return nums2;
-      }
-      if (nums2.length === 0) {
-        return nums1;
-      }
-      let a = new Set(nums1);
-      let b = new Set(nums2);
-      let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
-      return arr;
+      handleTableChange(pagination, filters, this);
     },
     // 复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {

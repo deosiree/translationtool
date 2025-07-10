@@ -122,8 +122,9 @@ export function interpretation2value(vm) {
  * @param {string} colPrefName - 存储用户列偏好的 localStorage 键名
  * @param {Array} normalWidth - 表格列的默认宽度数组
  * @param {Object} vm - Vue 实例对象，包含 `checkedColumn` 和 `changeColumn` 方法
+ * @param {boolean} needFilter - 是否需要过滤
  */
-export function getColPref(colPrefName, normalWidth, vm) {
+export function getColPref(colPrefName, normalWidth, vm, needFilter = false) {
   // 读取本地存储的用户偏好
   const storedPreferences = localStorage.getItem(colPrefName);
   // console.log("storedPreferences", storedPreferences)
@@ -131,7 +132,7 @@ export function getColPref(colPrefName, normalWidth, vm) {
     const colPref_strList = JSON.parse(storedPreferences).displayColumn.split(",");
     // console.log("colPref_strList", colPref_strList);
     // 调用 changeColumn 方法更新列显示
-    changeColumn(colPrefName, normalWidth, colPref_strList, vm);
+    changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = needFilter);
   }
 }
 
@@ -141,8 +142,9 @@ export function getColPref(colPrefName, normalWidth, vm) {
  * @param {Array} normalWidth - 表格列的默认宽度数组
  * @param {Array} checkedValue - 用户勾选的列值数组
  * @param {Object} vm - Vue 实例对象，包含 `checkedColumn`、`checkboxList`、`columns` 等属性
+ * @param {boolean} needFilter - 是否需要过滤
  */
-export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
+export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = false) {
   // 全部的展示列复选框vm.checkboxList
   // 勾选的展示列复选框vm.checkedColumn
   // 表格列的复选框vm.columns
@@ -169,7 +171,7 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
       // 若勾选了但列不存在，则添加列
       if (nowColumnIndex === -1 && checkedIndex !== -1) {
         // 调用创建列配置对象的函数
-        const newCol = createColumn(value, normalWidth);
+        const newCol = createColumn(value, normalWidth, needFilter = needFilter);
         vm.columns.splice(-1, 0, newCol);
       }
       // 若未勾选但列存在，则移除列
@@ -190,7 +192,7 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
       // 使用 find 方法查找对应的 checkboxList 项
       const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
       // console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
-      const newCol = createColumn(col, normalWidth);
+      const newCol = createColumn(col, normalWidth, needFilter = needFilter);
       vm.columns.splice(-1, 0, newCol);
     }
     // console.log("没有展示列，使用colPref_strList生成列", vm.columns);
@@ -211,9 +213,10 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm) {
  * 创建表格列配置对象
  * @param {Object} value - 包含列配置信息的对象，包含 `label`、`value`、`index` 属性
  * @param {number} normalWidth - 列的正常宽度
+ * @param {boolean} needFilter - 是否需要筛选功能，默认为 false
  * @returns {Object} - 表格列配置对象
  */
-export function createColumn(value, normalWidth) {
+export function createColumn(value, normalWidth, needFilter = false) {
   // 初始化列配置对象
   let newCol = {
     title: value.label,
@@ -233,18 +236,127 @@ export function createColumn(value, normalWidth) {
     newCol.fixed = "right";
   }
 
-  // 若列数据索引为 "entrySource"，添加筛选功能
-  if (newCol.dataIndex === "entrySource") {
-    newCol.customFilterDropdown = true; // 使用自定义筛选下拉框
-    newCol.filteredValue = null; // 初始状态下没有筛选条件
-    newCol.onFilter = (filterValue, record) =>
-      record.entrySource
-        .toString()
-        .toLowerCase()
-        .includes(filterValue.toLowerCase());
+  if (needFilter) {
+    // 若列数据索引为 "entrySource"，添加筛选功能
+    /**
+     * entrySource 列：用于筛选 entrySource 字段的数据，通常该字段可能存储着词条来源等文本信息。
+     * 筛选逻辑：模糊匹配，将 record.entrySource 转换为字符串并转为小写，检查是否包含用户输入的筛选值（同样转为小写）
+     * 应用场景：适用于文本类型的数据筛选，用户可以输入部分关键字来筛选出包含该关键字的所有记录。
+     */
+    if (newCol.dataIndex === "entrySource") {
+      newCol.customFilterDropdown = true; // 使用自定义筛选下拉框
+      newCol.filteredValue = null; // 初始状态下没有筛选条件
+      newCol.onFilter = (filterValue, record) =>
+        record.entrySource
+          .toString()
+          .toLowerCase()
+          .includes(filterValue.toLowerCase());
+    }
+
+    // 若列数据索引为 "isExist"，添加筛选功能
+    /**
+     * isExist 列：用于筛选 isExist 字段的数据，该字段一般存储布尔值或表示存在状态的枚举值。
+     * 筛选逻辑：精确匹配，会判断 record.isExist 是否等于筛选值。
+     * 应用场景：适用于枚举类型或布尔类型的数据筛选，用户可以精确选择某个状态值来筛选出符合该状态的记录。
+     */
+    if (newCol.dataIndex === "isExist") {
+      newCol.customFilterDropdown = true; // 使用自定义筛选下拉框
+      newCol.filteredValue = null; // 初始状态下没有筛选条件
+      newCol.filters = [
+        { text: "已存在", value: 1 },
+        { text: "新建", value: 0 },
+      ];
+      newCol.onFilter = (filterValue, record) =>
+        record.isExist === filterValue;
+    }
   }
 
   return newCol;
+}
+
+/**
+ * 筛选功能-列筛选
+ * @param {Array} selectedKeys - 选中词条的key集合
+ * @param {Function} confirm - 确认筛选的回调函数
+ * @param {string} dataIndex - 当前筛选的列的 dataIndex
+ * @param {Object} vm - Vue 实例对象
+ */
+export function handleSearch(selectedKeys, confirm, dataIndex, vm) {
+  confirm();
+  vm.state.searchText = selectedKeys[0];
+  vm.state.searchedColumn = dataIndex;
+}
+
+/**
+ * 筛选功能-重置
+ * @param {Function} clearFilters - 重置筛选条件的回调函数
+ * @param {Object} vm - Vue 实例对象
+ */
+export function handleReset(clearFilters, vm) {
+  clearFilters({ confirm: true });
+  vm.state.searchText = "";
+}
+
+/**
+ * 筛选功能-清空表格筛选条件
+ * @param {Object} vm - Vue 实例对象
+ */
+export function clearFilters(vm) {
+  if (vm.filters) {
+    for (let key in vm.filters) {
+      vm.columns.forEach((col) => {
+        if (col.dataIndex === key) {
+          col.filteredValue = null;
+        }
+      });
+    }
+  }
+}
+
+/**
+ * 筛选功能-表格change事件
+ * @param {Object} pagination - 分页信息对象，包含 `current`（当前页码）和 `pageSize`（每页显示数量）属性
+ * @param {Object} filters - 筛选条件对象，包含 `isExist`（存在状态筛选）和 `entrySource`（来源筛选）属性
+ * @param {Object} vm - Vue 实例对象
+ */
+export function handleTableChange(pagination, filters, vm) {
+  vm.filters = filters;
+  for (let key in filters) {
+    vm.columns.forEach((col) => {
+      if (col.dataIndex === key) {
+        col.filteredValue = filters[key];
+      }
+    });
+  }
+  // 获取筛选后的数据
+  let isExistData = vm.dataSource.filter((item) => {
+    return filters.isExist && filters.isExist.includes(item.isExist);
+  });
+  let sourceData = vm.dataSource.filter((item) => {
+    return (
+      filters.entrySource && item.entrySource.includes(filters.entrySource)
+    );
+  });
+  vm.filteredData = intersection(isExistData, sourceData);
+}
+
+/**
+ * 两个数组取并集
+ * @param {Array} nums1 - 第一个数组
+ * @param {Array} nums2 - 第二个数组
+ * @return {Array} - 并集数组
+ */
+export function intersection(nums1, nums2) {
+  if (nums1.length === 0) {
+    return nums2;
+  }
+  if (nums2.length === 0) {
+    return nums1;
+  }
+  let a = new Set(nums1);
+  let b = new Set(nums2);
+  let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
+  return arr;
 }
 
 /**
@@ -702,55 +814,61 @@ export function onSelect(vm, record, selected, condition = true, selectEntry = "
  */
 export function onSelectAll(vm, selected, selectedRows, changeRows, condition = true, selectEntry = "selectEntry") {
   if (!condition) return; // 如果条件不满足，直接返回
-  // console.log("selectAll", selected);
-  // if (selected) {
-  //   vm.selectedRows = vm.selectedRows.concat(changeRows);
-  //   if (selectEntry in vm) {
-  //     vm[selectEntry] = vm[selectEntry].concat(changeRows);
-  //   }
-  // }
-  // else {
-  //   changeRows.forEach((item) => {
-  //     vm.selectedRows = vm.selectedRows.filter((entry) => {
-  //       return entry !== item;
-  //     });
-  //     if (selectEntry in vm) {
-  //       vm[selectEntry] = vm[selectEntry].filter((entry) => {
-  //         return entry !== item;
-  //       });
-  //     }
-  //   });
-  // }
-  if (selected) {
-    const idSet1 = new Set();
-    vm.selectedRows = vm.selectedRows.concat(changeRows).filter((item) => {
-      if (idSet1.has(item.id)) {
-        return false;
-      }
-      idSet1.add(item.id);
-      return true;
+
+  let dataToSelect;
+  // 检查是否存在筛选条件
+  if (vm.filters && (vm.filters.isExist || vm.filters.entrySource)) {
+    // 若存在筛选条件，根据筛选条件过滤数据源
+    dataToSelect = vm.dataSource.filter((item) => {
+      // 检查 isExist 字段是否匹配筛选条件
+      const isExistMatch =
+        !vm.filters.isExist ||
+        vm.filters.isExist.includes(item.isExist);
+      // 检查 entrySource 字段是否匹配筛选条件
+      const entrySourceMatch =
+        !vm.filters.entrySource ||
+        item.entrySource.includes(vm.filters.entrySource);
+      // 只有当两个条件都匹配时，才将该项加入待选择数据
+      return isExistMatch && entrySourceMatch;
     });
+  } else {
+    // 若不存在筛选条件，直接使用数据源
+    dataToSelect = vm.dataSource;
+  }
+
+  if (selected) {
+    const idSet1 = new Set(vm.selectedRows.map(item => item.id));
+    dataToSelect.forEach((item) => {
+      if (!idSet1.has(item.id)) {
+        vm.selectedRows.push(item);
+        vm.selectedRowKeys.push(item.id);
+        idSet1.add(item.id);
+      }
+    });
+
     if (selectEntry in vm) {
-      const idSet2 = new Set();
-      vm[selectEntry] = vm[selectEntry].concat(changeRows).filter((item) => {
-        if (idSet2.has(item.id)) {
-          return false;
+      const idSet2 = new Set(vm[selectEntry].map(item => item.id));
+      dataToSelect.forEach((item) => {
+        if (!idSet2.has(item.id)) {
+          vm[selectEntry].push(item);
+          idSet2.add(item.id);
         }
-        idSet2.add(item.id);
-        return true;
       });
     }
   } else {
-    changeRows.forEach((item) => {
-      vm.selectedRows = vm.selectedRows.filter((entry) => {
-        return entry.id !== item.id;
-      });
-      if (selectEntry in vm) {
-        vm[selectEntry] = vm[selectEntry].filter((entry) => {
-          return entry.id !== item.id;
-        });
-      }
+    const changeIds = new Set(dataToSelect.map(item => item.id));
+    vm.selectedRows = vm.selectedRows.filter((entry) => {
+      return !changeIds.has(entry.id);
     });
+    vm.selectedRowKeys = vm.selectedRowKeys.filter((key) => {
+      return !changeIds.has(key);
+    });
+
+    if (selectEntry in vm) {
+      vm[selectEntry] = vm[selectEntry].filter((entry) => {
+        return !changeIds.has(entry.id);
+      });
+    }
   }
 }
 

@@ -136,6 +136,36 @@
                   </span>
                 </template>
               </template>
+              <!-- 设置表格行展开子行的样式 -->
+              <template #expandIcon="props">
+                <span v-if="props.record.children != null && props.record.children.length > 0">
+                  <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                    <CaretDownOutlined />
+                  </div>
+                  <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                    <CaretRightOutlined />
+                  </div>
+                </span>
+                <span v-else style="margin-right:23px"></span>
+              </template>
+              <!-- 设置筛选菜单 -->
+              <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+                <div style="padding: 8px">
+                  <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
+                    style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                    @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
+                  <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
+                    @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+                    <template #icon>
+                      <SearchOutlined />
+                    </template>搜索</a-button>
+                  <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
+                </div>
+              </template>
+              <!-- 设置筛选图标 -->
+              <template #customFilterIcon="{ filtered }">
+                <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+              </template>
             </a-table>
           </a-form>
         </div>
@@ -158,9 +188,14 @@ import {
   checkNotUseEntry,
 } from "@/http/api/check";
 import { message, Modal } from "ant-design-vue";
-import { SettingOutlined } from "@ant-design/icons-vue";
+import {
+  SettingOutlined,
+  SearchOutlined,
+  CaretDownOutlined,
+  CaretRightOutlined,
+} from "@ant-design/icons-vue";
 // import tableParam from "@/views/check/redundantTableParam.js";
-import {redundantTableParams as tableParam} from "@/utils/commonParam.js";
+import { redundantTableParams as tableParam } from "@/utils/commonParam.js";
 import {
   clickInput,
   setTableHeight,
@@ -183,6 +218,9 @@ export default {
     stateBadge,
     BatchSelectModal,
     SettingOutlined,
+    SearchOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined,
   },
   data() {
     return {
@@ -347,7 +385,7 @@ export default {
     this.$nextTick(() => {
       this.init();
       // 读取本地存储的用户偏好
-      getColPref("colPref-redundantEntryCheck", 150, this);
+      getColPref("colPref-redundantEntryCheck", 150, this, true);
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -528,7 +566,13 @@ export default {
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn("colPref-redundantEntryCheck", 150, checkedValue, this);
+      changeColumn(
+        "colPref-redundantEntryCheck",
+        150,
+        checkedValue,
+        this,
+        true
+      );
     },
     // 全部选择
     selectAllEntry() {

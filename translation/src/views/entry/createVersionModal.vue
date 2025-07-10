@@ -57,6 +57,36 @@
                 </template>
               </template>
             </template>
+            <!-- 设置表格行展开子行的样式 -->
+            <template #expandIcon="props">
+              <span v-if="props.record.children != null && props.record.children.length > 0">
+                <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                  <CaretDownOutlined />
+                </div>
+                <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                  <CaretRightOutlined />
+                </div>
+              </span>
+              <span v-else style="margin-right:23px"></span>
+            </template>
+            <!-- 设置筛选菜单 -->
+            <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+              <div style="padding: 8px">
+                <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
+                  style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                  @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
+                <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
+                  @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+                  <template #icon>
+                    <SearchOutlined />
+                  </template>搜索</a-button>
+                <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
+              </div>
+            </template>
+            <!-- 设置筛选图标 -->
+            <template #customFilterIcon="{ filtered }">
+              <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+            </template>
           </a-table>
         </a-config-provider>
       </div>
@@ -161,13 +191,16 @@
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
-import ExportButton from '@/components/Button/exportButton.vue';
+import ExportButton from "@/components/Button/exportButton.vue";
 import zh_CN from "ant-design-vue/es/locale/zh_CN";
 import {
   MinusSquareOutlined,
   ExclamationCircleOutlined,
   DeleteOutlined,
   QuestionCircleOutlined,
+  SearchOutlined,
+  CaretDownOutlined,
+  CaretRightOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
@@ -204,6 +237,9 @@ export default {
     ExclamationCircleOutlined,
     DeleteOutlined,
     QuestionCircleOutlined,
+    SearchOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined,
     ExportButton,
   },
   emits: ["createClose", "removeEntry", "cancelCreate", "refresh"],
@@ -418,7 +454,12 @@ export default {
           ];
           // console.log("columns1:", this.columns);
           try {
-            await getColPref("colPref-productEntry", 200, this); // 等待 getColPref 执行完成
+            await getColPref(
+              "colPref-productEntry",
+              200,
+              this,
+              (needFilter = true)
+            ); // 等待 getColPref 执行完成
             // console.log("columns2:", this.columns);
           } catch (error) {
             console.error("获取列偏好失败:", error);
@@ -1001,7 +1042,13 @@ export default {
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn("colPref-productEntry", 200, checkedValue, this);
+      changeColumn(
+        "colPref-productEntry",
+        200,
+        checkedValue,
+        this,
+        true
+      );
     },
   },
 };
