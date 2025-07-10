@@ -30,6 +30,7 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import { workbenchParams } from "@/utils/commonParam.js";
+import { setModalAriaHidden } from "@/utils/commonUtils.js";
 export default {
   components: {
     CustomModal,
@@ -72,6 +73,7 @@ export default {
   methods: {
     showExportModal() {
       this.exportVisible = true;
+      setModalAriaHidden(this, document);
       console.log("local", this.localDescOptions);
       console.log("获取用户偏好前：导出字段", this.exportModal.field);
       // 获取用户偏好
@@ -103,11 +105,17 @@ export default {
         message.error("请选择导出的文件类型！");
         return;
       }
-      if (this.exportModal.exportType != "xml" && (!this.exportModal.field || this.exportModal.field.length === 0)) {
+      if (
+        this.exportModal.exportType != "xml" &&
+        (!this.exportModal.field || this.exportModal.field.length === 0)
+      ) {
         message.error("请选择导出字段！");
         return;
       }
-      if(this.exportModal.exportType === "xml" && !this.exportModal.local_desc) {
+      if (
+        this.exportModal.exportType === "xml" &&
+        !this.exportModal.local_desc
+      ) {
         message.error("请选择指定local语言！");
         return;
       }

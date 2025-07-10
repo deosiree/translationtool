@@ -373,8 +373,8 @@
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange" @remove="removeFile"
-            :disabled="!importModal.language || !importModal.importType">
+          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
+            @remove="removeFile" :disabled="!importModal.language || !importModal.importType">
             <a-button type="primary" size="small" @click="getAccept">选择</a-button>
           </a-upload>
         </a-form-item>
@@ -656,19 +656,19 @@ export default {
       selectAllLoading: false,
       filters: null,
       // 都封在importButton中了
-      // accept: null,
-      // importVisible: false,
-      // importLoading: false,
-      // importModal: {
-      //   language: null,
-      //   importType: null,
-      // },
-      // importTypes: [
-      //   { label: "csv", value: "csv", accept: ".csv" },
-      //   { label: "excel", value: "excel", accept: ".xls,.xlsx" },
-      // ],
-      // importFile: null,
-      // fileList: [],
+      accept: null,
+      importVisible: false,
+      importLoading: false,
+      importModal: {
+        language: null,
+        importType: null,
+      },
+      importTypes: [
+        { label: "csv", value: "csv", accept: ".csv" },
+        { label: "excel", value: "excel", accept: ".xls,.xlsx" },
+      ],
+      importFile: null,
+      fileList: [],
     };
   },
 
@@ -1619,10 +1619,10 @@ export default {
           message.err(err.message);
         });
     },
-    // // 记录用户偏好
-    // recordPartiality(data) {
-    //   updateUserPartiality(data).then((res) => {});
-    // },
+    // 记录用户偏好
+    recordPartiality(data) {
+      updateUserPartiality(data).then((res) => {});
+    },
 
     // // 全都由importBUtton来实现
     // // 获得导入文件类型
@@ -1680,6 +1680,11 @@ export default {
     //   this.importFile = null;
     //   this.fileList = [];
     //   this.$refs.formRef.clearValidate();
+    // },
+    // // 导入词条(在文件开始上传之前阻止文件上传操作)
+    // beforeUpload(file, fileList) {
+    //   // console.log("before");
+    //   return false;
     // },
     // handleChange(info) {
     //   this.fileList = info.fileList;

@@ -15,8 +15,8 @@
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange" @remove="removeFile"
-            :disabled="!importModal.language || !importModal.importType">
+          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
+            @remove="removeFile" :disabled="!importModal.language || !importModal.importType">
             <a-button type="primary" size="small" @click="getAccept">选择</a-button>
           </a-upload>
         </a-form-item>
@@ -96,8 +96,10 @@ export default {
           this.importLoading = true;
           const formData = new FormData();
           formData.append("file", this.importModal.importFile);
-          formData.append("transType", this.importModal.language);
-          // formData.append("importType", this.importModal.importType); // 后端不需要这个参数
+          const params = {
+            transType: this.importModal.language,
+            // importType: this.importModal.importType,// 后端不需要这个参数
+          };
 
           // console.log("formData", formData);
           // console.log("file", this.importModal.importFile);
@@ -108,7 +110,7 @@ export default {
           //   console.log(`${key}: ${value}`);
           // }
 
-          entryImportExcle(formData)
+          entryImportExcle(params, formData)
             .then((res) => {
               message.success("导入成功！");
               this.$emit("importSuccess");
@@ -116,7 +118,8 @@ export default {
               this.importLoading = false;
             })
             .catch((err) => {
-              message.error(`导入失败！${err.message}`);
+              console.log("导入失败原因",err);
+              message.error(`导入失败！注意，请使用在词条管理中导出的文件进行导入`);
               this.importLoading = false;
             });
         })
@@ -135,6 +138,11 @@ export default {
       if (this.$refs.importForm) {
         this.$refs.importForm.clearValidate();
       }
+    },
+    // 导入词条(在文件开始上传之前阻止文件上传操作)
+    beforeUpload(file, fileList) {
+      // console.log("before");
+      return false;
     },
     // 文件变化处理
     handleChange(info) {

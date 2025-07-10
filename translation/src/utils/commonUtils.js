@@ -348,7 +348,6 @@ export function addEdit(record, language, vm) {
   return Promise.resolve();
 }
 
-// 校验翻译长度
 /**
  * 校验翻译长度的函数，返回一个验证器函数，用于表单验证规则
  * @param {Object} record - 当前行的数据记录对象
@@ -384,76 +383,6 @@ export function getFieldMaxLength(record, vm, type) {
     return record.maxLength || null;
   }
   return vm.classifyLimit[record.classfy1][type];
-}
-
-/**
- * 获取当前时间并格式化为 "YYYY-MM-DD HH:mm:ss" 格式
- * @returns {string} - 格式化后的当前时间字符串
- */
-export function getCurrentFormattedTime() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-/**
- * 计算字符串的字节长度，中文及部分中文符号按 2 字节计算，其他字符按 1 字节计算。
- * @param {string|null|undefined} str - 待计算字节长度的字符串，允许传入 null 或 undefined。
- * @returns {number} - 返回字符串的字节长度，若传入 null 或 undefined 则返回 0。
- */
-export function byteLength(str) {
-  if (str === null || str === undefined) {
-    return 0
-  }
-  // 去除首尾空格
-  str = ("" + str).trim()
-  let strlen = 0;
-  for (let i = 0; i < str.length; i++) {
-    if (str.charCodeAt(i) >= 0x4E00 && str.charCodeAt(i) <= 0x9FA5) {
-      // 如果是汉字，则字符串长度加2
-      strlen += 2;
-    } else {
-      strlen++;
-    }
-  }
-  return strlen
-}
-
-/**
- * 查询
- * 查询按钮共用多个接口，并维护loading状态
- * @param {Object} vm - Vue 实例，用于控制 loading 状态
- * @param {Object} params - 包含请求参数和数据的对象，结构为 { params: {...}, data: {...} }
- * @param {string} option - 用户选择的按钮名称，用于匹配 API 函数
- * @param {Object} apiFunctions - 包含按钮名称和对应 API 接口函数的对象，默认值为 { "按钮名称": "接口函数" }
- */
-export function getSearch(vm, params, option, apiFunctions = { "按钮名称": "接口函数" }) {
-  vm.loading = true; // 开始请求前设置 loading 为 true
-
-  Object.entries(apiFunctions).forEach(([key, value]) => {
-    if (option == key) {
-      if (params.lastRequestId) {// 如果需要取消请求就会有上次请求的id属性lastRequestId，则可以取消上次的请求
-        requestDelId.push(params.lastRequestId);
-        cancelRequest(params.lastRequestId);
-      }
-      value(params.params, params.data).then((response) => {// 调用接口函数
-        if (!requestDelId.includes(params.params.requestId)) {
-          vm.loading = false;
-          // console.log(`${key}请求完了,${params.params.requestId}`);
-        }
-        else {
-          // console.log(`${key}请求被取消了,${params.params.requestId}`);
-          requestDelId.splice(requestDelId.indexOf(params.params.requestId), 1); // 已经用过了保存loading状态的作用
-        }
-      }
-      );
-    }
-  });
 }
 
 /**
@@ -516,6 +445,76 @@ export function vilidFildLength(limitMap, record, language) {
     // 如果输入数据的长度未超过最大长度，则验证通过
     return Promise.resolve();
   };
+}
+
+/**
+ * 计算字符串的字节长度，中文及部分中文符号按 2 字节计算，其他字符按 1 字节计算。
+ * @param {string|null|undefined} str - 待计算字节长度的字符串，允许传入 null 或 undefined。
+ * @returns {number} - 返回字符串的字节长度，若传入 null 或 undefined 则返回 0。
+ */
+export function byteLength(str) {
+  if (str === null || str === undefined) {
+    return 0
+  }
+  // 去除首尾空格
+  str = ("" + str).trim()
+  let strlen = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) >= 0x4E00 && str.charCodeAt(i) <= 0x9FA5) {
+      // 如果是汉字，则字符串长度加2
+      strlen += 2;
+    } else {
+      strlen++;
+    }
+  }
+  return strlen
+}
+
+/**
+ * 获取当前时间并格式化为 "YYYY-MM-DD HH:mm:ss" 格式
+ * @returns {string} - 格式化后的当前时间字符串
+ */
+export function getCurrentFormattedTime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * 查询
+ * 查询按钮共用多个接口，并维护loading状态
+ * @param {Object} vm - Vue 实例，用于控制 loading 状态
+ * @param {Object} params - 包含请求参数和数据的对象，结构为 { params: {...}, data: {...} }
+ * @param {string} option - 用户选择的按钮名称，用于匹配 API 函数
+ * @param {Object} apiFunctions - 包含按钮名称和对应 API 接口函数的对象，默认值为 { "按钮名称": "接口函数" }
+ */
+export function getSearch(vm, params, option, apiFunctions = { "按钮名称": "接口函数" }) {
+  vm.loading = true; // 开始请求前设置 loading 为 true
+
+  Object.entries(apiFunctions).forEach(([key, value]) => {
+    if (option == key) {
+      if (params.lastRequestId) {// 如果需要取消请求就会有上次请求的id属性lastRequestId，则可以取消上次的请求
+        requestDelId.push(params.lastRequestId);
+        cancelRequest(params.lastRequestId);
+      }
+      value(params.params, params.data).then((response) => {// 调用接口函数
+        if (!requestDelId.includes(params.params.requestId)) {
+          vm.loading = false;
+          // console.log(`${key}请求完了,${params.params.requestId}`);
+        }
+        else {
+          // console.log(`${key}请求被取消了,${params.params.requestId}`);
+          requestDelId.splice(requestDelId.indexOf(params.params.requestId), 1); // 已经用过了保存loading状态的作用
+        }
+      }
+      );
+    }
+  });
 }
 
 /**
