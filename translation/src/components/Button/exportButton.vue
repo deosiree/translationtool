@@ -24,8 +24,8 @@
     </div>
     <template #leftBottomBtn>
       <a-button key="back" @click="handleClose">取消</a-button>
-      <a-button type="primary" @click="handleOK" :loading="exportLoading2">指定路径</a-button>
-      <a-button type="primary" @click="handleOK(false)" :loading="exportLoading">默认路径</a-button>
+      <!-- <a-button type="primary" @click="handleOK" :loading="exportLoading2">指定路径</a-button> -->
+      <a-button type="primary" @click="handleOK(false)" :loading="exportLoading">确定</a-button>
     </template>
   </CustomModal>
 </template>
