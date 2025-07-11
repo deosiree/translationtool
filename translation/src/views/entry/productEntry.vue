@@ -897,6 +897,7 @@ export default {
       this.selectedRows = [];
       this.selectEntry = [];
       this.createVersionFlag = false;
+      this.batchSelectFlag = false;
       this.getEntryByVersion();
     },
     // 获取版本词条

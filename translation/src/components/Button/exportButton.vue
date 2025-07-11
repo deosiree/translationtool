@@ -1,7 +1,8 @@
 <template>
-  <a-button type="primary" @click="showExportModal" :size="size">导出</a-button>
+  <a-button type="primary" @click="showExportModal" :size="size">{{ buttonTitle }}</a-button>
 
-  <CustomModal :okLoading="exportLoading" modalTitle="导出" width="500px" :visible="exportVisible" @handleClose="handleClose" @handleOK="handleOK">
+  <CustomModal :okLoading="exportLoading" :modalTitle="buttonTitle" width="500px" :visible="exportVisible" @handleClose="handleClose"
+    @handleOK="handleOK">
     <div class="content">
       <a-form ref="exportForm" :model="exportModal">
         <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择!' }]">
@@ -9,8 +10,12 @@
           </a-select>
         </a-form-item>
         <a-form-item label="导出字段" name="field" v-if="exportModal.exportType !== 'xml'" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions" :fieldNames="{ label: 'label', value: 'label' }"
-            placeholder="请选择导出字段" :disabled="exportModal.exportType === 'xml'" allowClear />
+          <div style="display: flex; justify-content: space-between;">
+            <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions" :fieldNames="{ label: 'label', value: 'label' }"
+              placeholder="请选择导出字段" :disabled="exportModal.exportType === 'xml'" allowClear style="flex: 1; margin-right: 8px;" />
+            <a-button type="link" size="small" @click="selectAllFields" style="
+              font-size: smaller;margin-top:0">全选</a-button>
+          </div>
         </a-form-item>
         <a-form-item label="指定local语言" name="local_desc" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="exportModal.local_desc" placeholder="请选择语言" :options='localDescOptions' allowClear>
@@ -47,6 +52,10 @@ export default {
     size: {
       type: String,
       default: "small",
+    },
+    buttonTitle: {
+      type: String,
+      default: "导出",
     },
   },
   data() {
@@ -100,32 +109,38 @@ export default {
         console.log("锁定导出字段", this.exportModal.field);
       }
     },
+    // 全选导出字段方法
+    selectAllFields() {
+      this.exportModal.field = this.fieldOptions.map((item) => item.label);
+    },
     async handleOK() {
-      if (!this.exportModal.exportType) {
-        message.error("请选择导出的文件类型！");
-        return;
-      }
-      if (
-        this.exportModal.exportType != "xml" &&
-        (!this.exportModal.field || this.exportModal.field.length === 0)
-      ) {
-        message.error("请选择导出字段！");
-        return;
-      }
-      if (
-        this.exportModal.exportType === "xml" &&
-        !this.exportModal.local_desc
-      ) {
-        message.error("请选择指定local语言！");
-        return;
-      }
-
       try {
         this.exportLoading = true;
+        if (!this.exportModal.exportType) {
+          message.error("请选择导出的文件类型！");
+          return;
+        }
+        if (
+          this.exportModal.exportType != "xml" &&
+          (!this.exportModal.field || this.exportModal.field.length === 0)
+        ) {
+          message.error("请选择导出字段！");
+          return;
+        }
+        if (
+          this.exportModal.exportType === "xml" &&
+          !this.exportModal.local_desc
+        ) {
+          message.error("请选择指定local语言！");
+          return;
+        }
+
         await this.$refs.exportForm.validate();
         const { exportType, field } = this.exportModal;
         let data = {};
-        let params = {};
+        let params = {
+          exportType: exportType,
+        };
 
         if (exportType === "xml") {
           // 对词条去重
@@ -170,49 +185,49 @@ export default {
           link.click();
           URL.revokeObjectURL(url);
         } else if (exportType === "excel" || exportType === "csv") {
-          this.$refs.exportForm.validate().then(() => {
-            // 导出接口
-            let fields = ["id"].concat(field);
-            data = {
-              columnNames: fields,
-              entryInfoEntities: this.dataSource,
-              excelName: "词条导出",
-            };
-            entryExportByCondition(data, params).then((res) => {
-              let fileName = res.headers["content-disposition"]
-                .split(";")[1]
-                .split("filename=")[1];
-              // csv与excel不同的地方
-              if (exportType === "csv") {
-                fileName = fileName.split(".")[0] + ".csv";
-              }
-              let contentType =
-                exportType === "csv"
-                  ? "text/csv;charset=utf-8"
-                  : res.headers["content-type"];
+          // 导出接口
+          let fields = ["id"].concat(field);
+          data = {
+            columnNames: fields,
+            entryInfoEntities: this.dataSource,
+            excelName: "词条导出",
+          };
+          const res = await entryExportByCondition(data, params);
+          console.log("res:", res);
+          console.log("res.headers:", res.headers);
+          let fileName = res.headers["content-disposition"]
+            .split(";")[1]
+            .split("filename=")[1];
 
-              const blob = new Blob([res.data], { type: contentType });
-              const a = document.createElement("a");
-              a.download = decodeURI(fileName);
-              a.href = window.URL.createObjectURL(blob);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(a.href);
-            });
-          });
+          // // csv与excel不同的地方
+          // if (exportType === "csv") {
+          //   fileName = fileName.split(".")[0] + ".csv";
+          // }
+          // let contentType =
+          //   exportType === "csv"
+          //     ? "text/csv;charset=utf-8"
+          //     : res.headers["content-type"];
+
+          let contentType = res.headers["content-type"];
+
+          const blob = new Blob([res.data], { type: contentType });
+          const a = document.createElement("a");
+          a.download = decodeURI(fileName);
+          a.href = window.URL.createObjectURL(blob);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(a.href);
         }
-      } catch (err) {
-        message.error(`导出失败: ${err.message || err}`);
+      } catch (error) {
+        console.log("导出失败原因", error);
+        message.error(`导出失败: ${error.message || error}`);
       } finally {
         this.$emit("operateClose");
-        // // 表示让父组件执行关闭，使得父组件的父组件执行相关代码
-        // this.$emit("createClose");
-        // this.$emit("cancelCreate");
         this.exportVisible = false;
         this.exportLoading = false;
+        // 记录偏好
+        this.exportFieldChange(this.exportModal.field);
       }
-      // 记录偏好
-      this.exportFieldChange(this.exportModal.field);
     },
     // 记录用户偏好
     exportFieldChange(value) {

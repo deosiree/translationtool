@@ -95,10 +95,10 @@
       <a-button @click="cancelCreate">关闭</a-button>
       <a-button type="primary" @click="writeBackFun">回写</a-button>
       <a-button type="primary" danger @click="deleteEntrys">删除</a-button>
-      <ExportButton :dataSource="dataSource" :fieldOptions="fieldOptions" size="middle" />
-      <a-button type="primary" @click="exportExcel">导出Excel</a-button>
+      <ExportButton :dataSource="dataSource" :fieldOptions="fieldOptions" size="middle" buttonTitle="导出" />
+      <!-- <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
-      <a-button type="primary" @click="exportCSV">导出CSV</a-button>
+      <a-button type="primary" @click="exportCSV">导出CSV</a-button> -->
       <a-button type="primary" @click="examine" v-if="user.department === '装置开发部'">提交词条审核</a-button>
     </template>
   </CustomModal>
@@ -114,7 +114,7 @@
           <a-textarea v-model:value="version.remarks" placeholder="请输入备注" :rows="4" />
         </a-form-item>
       </a-form>
-      <a-spin :spinning="exportLoading">
+      <!-- <a-spin :spinning="exportLoading">
         <a-form v-if="title === '导出'||title === '导出CSV'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
           <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
             <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
@@ -127,7 +127,7 @@
           :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="taskTable" bordered>
         </a-table>
-      </div>
+      </div> -->
       <!-- 添加加载动画 -->
       <a-spin :spinning="writeBackLoading">
         <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
@@ -439,7 +439,7 @@ export default {
               title: "词条状态",
               dataIndex: "entryState",
               align: "center",
-              width: 130,
+              width: 100,
               fixed: "left",
               index: 1,
             },
@@ -447,18 +447,14 @@ export default {
               title: "词条",
               dataIndex: "entry",
               align: "center",
-              width: 160,
+              width: 100,
               resizable: true,
               index: 2,
             },
           ];
           // console.log("columns1:", this.columns);
           try {
-            await getColPref(
-              "colPref-productEntry",
-              200,
-              this,
-            ); // 等待 getColPref 执行完成
+            await getColPref("colPref-productEntry", 100, this); // 等待 getColPref 执行完成
             // console.log("columns2:", this.columns);
           } catch (error) {
             console.error("获取列偏好失败:", error);
@@ -502,40 +498,42 @@ export default {
       };
       // this.$refs.formRef.clearValidate()
     },
-    // 导出Excel
-    exportExcel() {
-      this.operateVisible = true;
-      setModalAriaHidden(this, document);
-      this.operateWidth = "500px";
-      this.title = "导出";
 
-      // 获取用户偏好
-      queryUserPartiality().then((res) => {
-        if (res.data.list && res.data.list.length > 0) {
-          let exportColumn = res.data.list[0].exportColumn;
-          if (exportColumn != null && exportColumn != "") {
-            this.exportClass.field = exportColumn.split(",");
-          }
-        }
-      });
-    },
-    // 导出Excel
-    exportCSV() {
-      this.operateVisible = true;
-      setModalAriaHidden(this, document);
-      this.operateWidth = "500px";
-      this.title = "导出CSV";
+    // // 导出Excel
+    // exportExcel() {
+    //   this.operateVisible = true;
+    //   setModalAriaHidden(this, document);
+    //   this.operateWidth = "500px";
+    //   this.title = "导出";
 
-      // 获取用户偏好
-      queryUserPartiality().then((res) => {
-        if (res.data.list && res.data.list.length > 0) {
-          let exportColumn = res.data.list[0].exportColumn;
-          if (exportColumn != null && exportColumn != "") {
-            this.exportClass.field = exportColumn.split(",");
-          }
-        }
-      });
-    },
+    //   // 获取用户偏好
+    //   queryUserPartiality().then((res) => {
+    //     if (res.data.list && res.data.list.length > 0) {
+    //       let exportColumn = res.data.list[0].exportColumn;
+    //       if (exportColumn != null && exportColumn != "") {
+    //         this.exportClass.field = exportColumn.split(",");
+    //       }
+    //     }
+    //   });
+    // },
+    // // 导出Excel
+    // exportCSV() {
+    //   this.operateVisible = true;
+    //   setModalAriaHidden(this, document);
+    //   this.operateWidth = "500px";
+    //   this.title = "导出CSV";
+
+    //   // 获取用户偏好
+    //   queryUserPartiality().then((res) => {
+    //     if (res.data.list && res.data.list.length > 0) {
+    //       let exportColumn = res.data.list[0].exportColumn;
+    //       if (exportColumn != null && exportColumn != "") {
+    //         this.exportClass.field = exportColumn.split(",");
+    //       }
+    //     }
+    //   });
+    // },
+
     exportFieldChange(value) {
       let data = {
         exportColumn: value.join(","),
@@ -596,116 +594,6 @@ export default {
               message.error("创建失败！", err.message);
             });
         });
-      } else if (this.title === "导出") {
-        this.exportLoading = true;
-        this.$refs.exportForm.validate().then(() => {
-          // 导出接口
-          let fields = ["id"].concat(this.exportClass.field);
-          let data = {
-            columnNames: fields,
-            entryInfoEntities: this.dataSource,
-            excelName: "词条导出",
-          };
-          let params = {
-            exportType: "excel",
-          };
-          entryExportByCondition(data, params)
-            .then((res) => {
-              let fileName = res.headers["content-disposition"]
-                .split(";")[1]
-                .split("filename=")[1];
-              let contentType = res.headers["content-type"];
-              const blob = new Blob([res.data], { type: contentType });
-              const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
-              a.download = decodeURI(fileName);
-              a.href = window.URL.createObjectURL(blob);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(a.href);
-              this.operateVisible = false;
-              this.$emit("createClose");
-              this.$emit("cancelCreate");
-            })
-            .finally(() => {
-              this.exportLoading = false;
-            });
-          // 记录偏好
-          this.exportFieldChange(this.exportClass.field);
-        });
-      } else if (this.title === "导出CSV") {
-        this.exportLoading = true;
-        this.$refs.exportForm.validate().then(() => {
-          // 导出接口
-          let fields = ["id"].concat(this.exportClass.field);
-          let data = {
-            columnNames: fields,
-            entryInfoEntities: this.dataSource,
-            excelName: "词条导出",
-          };
-          let params = {
-            exportType: "csv",
-          };
-          entryExportByCondition(data, params)
-            .then((res) => {
-              // console.log("导出结果:", res);
-              let fileName =
-                res.headers["content-disposition"]
-                  .split(";")[1]
-                  .split("filename=")[1]
-                  .split(".")[0] + ".csv"; //把xlsx改名为csv
-              let contentType = "text/csv;charset=utf-8";
-              const blob = new Blob([res.data], { type: contentType });
-              const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
-              a.download = decodeURI(fileName);
-              a.href = window.URL.createObjectURL(blob);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(a.href);
-              this.operateVisible = false;
-              this.$emit("createClose");
-              this.$emit("cancelCreate");
-            })
-            .finally(() => {
-              this.exportLoading = false;
-            });
-          // 记录偏好
-          this.exportFieldChange(this.exportClass.field);
-        });
-      } else if (this.title === "选择任务") {
-        //提交词条审核
-        if (this.selectedTaskRows.length === 0) {
-          message.warn("请选择任务！");
-          return;
-        }
-        // 判断词条中是否含有 中文释义和英文释义都不存在的词条
-        let notInterpretation = [];
-        this.dataSource.forEach((item) => {
-          if (
-            (item.englishInterpretation === null ||
-              item.englishInterpretation === "") &&
-            (item.chineseInterpretation === null ||
-              item.chineseInterpretation === "")
-          ) {
-            notInterpretation.push(item);
-          }
-        });
-        if (notInterpretation.length > 0) {
-          Modal.confirm({
-            title:
-              "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
-            icon: createVNode(ExclamationCircleOutlined),
-            content: "",
-            okText: "是",
-            cancelText: "否",
-            style: { top: "30%" },
-            onOk: () => {
-              this.submitExamine();
-            },
-            onCancel: () => {},
-          });
-        } else {
-          this.submitExamine();
-        }
       } else if (this.title === "回写") {
         if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
           message.info("请选择" + this.writeBack.label + "!");
@@ -766,6 +654,119 @@ export default {
             // message.error("1",err.message);
           });
       }
+      // else if (this.title === "选择任务") {
+      //   //提交词条审核
+      //   if (this.selectedTaskRows.length === 0) {
+      //     message.warn("请选择任务！");
+      //     return;
+      //   }
+      //   // 判断词条中是否含有 中文释义和英文释义都不存在的词条
+      //   let notInterpretation = [];
+      //   this.dataSource.forEach((item) => {
+      //     if (
+      //       (item.englishInterpretation === null ||
+      //         item.englishInterpretation === "") &&
+      //       (item.chineseInterpretation === null ||
+      //         item.chineseInterpretation === "")
+      //     ) {
+      //       notInterpretation.push(item);
+      //     }
+      //   });
+      //   if (notInterpretation.length > 0) {
+      //     Modal.confirm({
+      //       title:
+      //         "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
+      //       icon: createVNode(ExclamationCircleOutlined),
+      //       content: "",
+      //       okText: "是",
+      //       cancelText: "否",
+      //       style: { top: "30%" },
+      //       onOk: () => {
+      //         this.submitExamine();
+      //       },
+      //       onCancel: () => {},
+      //     });
+      //   } else {
+      //     this.submitExamine();
+      //   }
+      // }
+      // else if (this.title === "导出") {
+      //   this.exportLoading = true;
+      //   this.$refs.exportForm.validate().then(() => {
+      //     // 导出接口
+      //     let fields = ["id"].concat(this.exportClass.field);
+      //     let data = {
+      //       columnNames: fields,
+      //       entryInfoEntities: this.dataSource,
+      //       excelName: "词条导出",
+      //     };
+      //     let params = {
+      //       exportType: "excel",
+      //     };
+      //     entryExportByCondition(data, params)
+      //       .then((res) => {
+      //         let fileName = res.headers["content-disposition"]
+      //           .split(";")[1]
+      //           .split("filename=")[1];
+      //         let contentType = res.headers["content-type"];
+      //         const blob = new Blob([res.data], { type: contentType });
+      //         const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
+      //         a.download = decodeURI(fileName);
+      //         a.href = window.URL.createObjectURL(blob);
+      //         a.click();
+      //         a.remove();
+      //         window.URL.revokeObjectURL(a.href);
+      //         this.operateVisible = false;
+      //         this.$emit("createClose");
+      //         this.$emit("cancelCreate");
+      //       })
+      //       .finally(() => {
+      //         this.exportLoading = false;
+      //       });
+      //     // 记录偏好
+      //     this.exportFieldChange(this.exportClass.field);
+      //   });
+      // }
+      // else if (this.title === "导出CSV") {
+      //   this.exportLoading = true;
+      //   this.$refs.exportForm.validate().then(() => {
+      //     // 导出接口
+      //     let fields = ["id"].concat(this.exportClass.field);
+      //     let data = {
+      //       columnNames: fields,
+      //       entryInfoEntities: this.dataSource,
+      //       excelName: "词条导出",
+      //     };
+      //     let params = {
+      //       exportType: "csv",
+      //     };
+      //     entryExportByCondition(data, params)
+      //       .then((res) => {
+      //         // console.log("导出结果:", res);
+      //         let fileName =
+      //           res.headers["content-disposition"]
+      //             .split(";")[1]
+      //             .split("filename=")[1]
+      //             .split(".")[0] + ".csv"; //把xlsx改名为csv
+      //         let contentType = "text/csv;charset=utf-8";
+      //         const blob = new Blob([res.data], { type: contentType });
+      //         const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
+      //         a.download = decodeURI(fileName);
+      //         a.href = window.URL.createObjectURL(blob);
+      //         a.click();
+      //         a.remove();
+      //         window.URL.revokeObjectURL(a.href);
+      //         this.operateVisible = false;
+      //         this.$emit("createClose");
+      //         this.$emit("cancelCreate");
+      //       })
+      //       .finally(() => {
+      //         this.exportLoading = false;
+      //       });
+      //     // 记录偏好
+      //     this.exportFieldChange(this.exportClass.field);
+      //   });
+      // }
     },
     // 提交词条审核
     submitExamine() {
@@ -1006,47 +1007,42 @@ export default {
         });
       });
     },
-    // 导出xml文件，装置的格式
-    exportXml() {
-      // 手动构建 XML 字符串
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
-      this.dataSource.forEach((item) => {
-        let abbr = item.abbr != null ? item.abbr : "";
-        let cn_desc = item.entry != null ? item.entry : "";
-        let en_desc = item.english != null ? item.english : "";
-        let local_desc = item.entry != null ? item.entry : "";
-        let es_desc = item.spanish != null ? item.spanish : "";
-        let ru_desc = item.russian != null ? item.russian : "";
+    // // 导出xml文件，装置的格式
+    // exportXml() {
+    //   // 手动构建 XML 字符串
+    //   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
+    //   this.dataSource.forEach((item) => {
+    //     let abbr = item.abbr != null ? item.abbr : "";
+    //     let cn_desc = item.entry != null ? item.entry : "";
+    //     let en_desc = item.english != null ? item.english : "";
+    //     let local_desc = item.entry != null ? item.entry : "";
+    //     let es_desc = item.spanish != null ? item.spanish : "";
+    //     let ru_desc = item.russian != null ? item.russian : "";
 
-        xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${en_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
-      });
-      xml += `</DICT>`;
+    //     xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${en_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
+    //   });
+    //   xml += `</DICT>`;
 
-      // 导出 XML 文件
-      const blob = new Blob([xml], { type: "application/xml" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "sysdict.xml";
+    //   // 导出 XML 文件
+    //   const blob = new Blob([xml], { type: "application/xml" });
+    //   const url = URL.createObjectURL(blob);
+    //   const link = document.createElement("a");
+    //   link.href = url;
+    //   link.download = "sysdict.xml";
 
-      link.click();
-      URL.revokeObjectURL(url);
+    //   link.click();
+    //   URL.revokeObjectURL(url);
 
-      this.$emit("createClose");
-      this.$emit("cancelCreate");
-    },
+    //   this.$emit("createClose");
+    //   this.$emit("cancelCreate");
+    // },
     // 分页切换
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-productEntry",
-        200,
-        checkedValue,
-        this,
-      );
+      changeColumn("colPref-productEntry", 100, checkedValue, this);
     },
   },
 };
