@@ -3,7 +3,7 @@
     <div class="table">
       <div>已选词条：</div>
       <a-config-provider :locale="locale">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}" :pagination="pagination"
+        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'max-content' , y: '60vh'}" :pagination="pagination"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
           <template #bodyCell="{ column, record, text }">
             <template v-if="column.dataIndex === 'translateState'">

@@ -281,7 +281,8 @@ export default {
       modalWidth: "70%",
       task: {},
       keyWords: "",
-      tableHeight: { x: "100%", y: 415 },
+      tableHeight: { x: "max-content", y: 415 },
+      // tableHeight: { x: "100%", y: 415 },
       loading: false,
       columns: [
         {

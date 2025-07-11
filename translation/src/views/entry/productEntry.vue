@@ -551,7 +551,8 @@ export default {
       copyVisible: false,
       copyNumber: 1,
       dataHeight: 200,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
         {

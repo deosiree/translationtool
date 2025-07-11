@@ -35,6 +35,7 @@
                   <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
                 </a-upload>
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
+                <a-checkbox v-model:checked="isOldmodel" style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox>
               </a-form-item>
             </a-col>
             <a-col v-if="currentDepartment.needWriteBack" :span="8">
@@ -592,7 +593,8 @@ export default {
       filediFileName: null,
       keyWords: "",
       dataType: "file",
-      tableHeight: { x: "100%", y: "300px" },
+      tableHeight: { x: "max-content", y: "300px" },
+      // tableHeight: { x: "100%", y: "300px" },
       loading: false,
       columns: [
         {
@@ -782,6 +784,7 @@ export default {
         value: "name",
       }, // 当前用户所在部门的相关信息
       departmentList: commonParam.departmentList, // 当前用户所在部门
+      isOldmodel: false,// 导入的文件是否是旧模板
     };
   },
 
@@ -1652,6 +1655,7 @@ export default {
         const params = {
           diFileName: this.filediFileName,
           departmentType: this.user.department,
+          isOldmodel: this.isOldmodel,
         };
         asyncTask = readZZExcle(params, formData)
           .then((res) => res.data.list)
@@ -2207,7 +2211,8 @@ export default {
     },
     templateClose() {
       this.templateVisible = false;
-      this.templateObj.type = null;
+      this.templateObj.type = this.currentDepartment.value;
+      if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
     },
     // // 校验当前页数据的长度
     // verifyCurrentData() {

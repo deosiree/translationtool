@@ -3,8 +3,8 @@
     <div class="table">
       <div>已选词条：</div>
       <a-config-provider :locale="locale">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}" :pagination="pagination"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
+        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'max-content' , y: '60vh'}"
+          :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
           <template #bodyCell="{ column, record, text }">
             <template v-if="column.dataIndex === 'translateState'">
               <template v-if="text === '0'">
@@ -60,7 +60,8 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
-import { pageChange } from "@/utils/commonUtils";
+import { pageChange, changeColumn, getColPref } from "@/utils/commonUtils";
+import { glossaryParams } from "@/utils/commonParam.js";
 export default {
   components: {
     CustomModal,
@@ -81,10 +82,10 @@ export default {
       type: Boolean,
       default: false,
     },
-    columns: {
-      type: Array,
-      default: () => [],
-    },
+    // columns: {
+    //   type: Array,
+    //   default: () => [],
+    // },
     dataSource: {
       type: Array,
       default: () => [],
@@ -99,9 +100,15 @@ export default {
     },
   },
   data() {
+    // 从本地缓存读取用户偏好
+    const cachedDisplayColumn = localStorage.getItem("colPref-glossary");
     return {
       locale: zh_CN,
       modalWidth: "60%",
+      columns: [],
+      checkedColumn: cachedDisplayColumn
+        ? cachedDisplayColumn.split(",")
+        : glossaryParams.checkedColumn, // 展示列相关，少了会报错
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -112,6 +119,66 @@ export default {
         onChange: this.pageChange,
       },
     };
+  },
+  watch: {
+    visible: {
+      async handler(newVal) {
+        // console.log("visible changed:", newVal);
+        if (newVal) {
+          // console.log("columns0:", this.columns);
+          this.columns = [
+            {
+              title: "序号",
+              dataIndex: "index",
+              align: "center",
+              width: 50,
+              customRender: (text, record, index, column) => {
+                return (
+                  text.index +
+                  1 +
+                  this.pagination.pageSize * (this.pagination.current - 1)
+                );
+              },
+              fixed: "left",
+              resizable: true,
+              index: 0,
+            },
+            {
+              title: "词条",
+              dataIndex: "entry",
+              align: "center",
+              width: 100,
+              fixed: "left",
+              resizable: true,
+              index: 1,
+            },
+            {
+              title: "操作",
+              dataIndex: "operation",
+              align: "center",
+              width: 50,
+              fixed: "right",
+              resizable: true,
+              index: 101,
+            },
+          ];
+          // console.log("columns1:", this.columns);
+          try {
+            await getColPref(
+              "colPref-glossary",
+              100,
+              this,
+              false,
+              glossaryParams
+            ); // 等待 getColPref 执行完成
+            console.log("columns2:", this.columns);
+          } catch (error) {
+            console.error("获取列偏好失败:", error);
+          }
+        }
+      },
+      immediate: false, // 不立即执行
+    },
   },
   methods: {
     // 移除某条已选词条（每行最右边的按钮
@@ -165,18 +232,21 @@ export default {
           this.$emit("batchSelectCancel");
         })
         .catch((err) => {
-          message.error("删除失败！",err.message);
+          message.error("删除失败！", err.message);
           // console.log("术语删除失败！", err);
         })
         .finally(() => {
-          this.$emit("refresh");// 让父组件执行refresh函数
+          this.$emit("refresh"); // 让父组件执行refresh函数
           // console.log("刷新");
         });
     },
-
     // 分页切换
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);
+    },
+    // 展示列切换并保存用户偏好
+    changeColumn(checkedValue) {
+      changeColumn("colPref-glossary", 100, checkedValue, this);
     },
   },
 };

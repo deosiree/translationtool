@@ -107,7 +107,8 @@ export default {
       },
       tableTitle: "校验日志",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
         {

@@ -351,7 +351,8 @@ export default {
         keyWords: "",
         translateState: null,
       },
-      tableHeight: { x: "100%", y: 415 },
+      // tableHeight: { x: "100%", y: 415 },
+      tableHeight: { x: "max-content", y: 415 },
       loading: false,
       columns: [
         {

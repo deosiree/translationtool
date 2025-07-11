@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
 // import common from "@/views/workbench/common.js";
 // import tableParam from '@/views/entry/tableParam';
-import { entryParams as tableParam } from "@/utils/commonParam.js";
+import { entryParams } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
@@ -123,16 +123,17 @@ export function interpretation2value(vm) {
  * @param {Array} normalWidth - 表格列的默认宽度数组
  * @param {Object} vm - Vue 实例对象，包含 `checkedColumn` 和 `changeColumn` 方法
  * @param {boolean} needFilter - 是否需要过滤
+ * @param {Object} tableParam - 表格参数对象，包含 `checkboxList` 属性(默认使用entryParams，比如术语库时就要使用glossaryParams了)
  */
-export function getColPref(colPrefName, normalWidth, vm, needFilter = false) {
+export function getColPref(colPrefName, normalWidth, vm, needFilter = false, tableParam = entryParams) {
   // 读取本地存储的用户偏好
   const storedPreferences = localStorage.getItem(colPrefName);
-  // console.log("storedPreferences", storedPreferences)
+  console.log("storedPreferences", storedPreferences)
   if (storedPreferences) {
     const colPref_strList = JSON.parse(storedPreferences).displayColumn.split(",");
-    // console.log("colPref_strList", colPref_strList);
+    console.log("colPref_strList", colPref_strList);
     // 调用 changeColumn 方法更新列显示
-    changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = needFilter);
+    changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = needFilter, tableParam = tableParam);
   }
 }
 
@@ -143,8 +144,9 @@ export function getColPref(colPrefName, normalWidth, vm, needFilter = false) {
  * @param {Array} checkedValue - 用户勾选的列值数组
  * @param {Object} vm - Vue 实例对象，包含 `checkedColumn`、`checkboxList`、`columns` 等属性
  * @param {boolean} needFilter - 是否需要过滤
+ * @param {Object} tableParam - 表格参数对象，包含 `checkboxList` 属性(默认使用entryParams，比如术语库时就要使用glossaryParams了)
  */
-export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = false) {
+export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = false, tableParam = entryParams) {
   // 全部的展示列复选框vm.checkboxList
   // 勾选的展示列复选框vm.checkedColumn
   // 表格列的复选框vm.columns
@@ -188,10 +190,10 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, need
       if (vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
         continue; // 如果列已经存在，则跳过
       }
-      // console.log("没有展示列：", colPref_strList)
+      console.log("没有展示列：", colPref_strList)
       // 使用 find 方法查找对应的 checkboxList 项
       const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
-      // console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
+      console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
       const newCol = createColumn(col, normalWidth, needFilter = needFilter);
       vm.columns.splice(-1, 0, newCol);
     }
@@ -217,14 +219,15 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, need
  * @returns {Object} - 表格列配置对象
  */
 export function createColumn(value, normalWidth, needFilter = false) {
+  console.log("创建列value", value)
   // 初始化列配置对象
   let newCol = {
     title: value.label,
     dataIndex: value.value,
     align: "center",
-    width: normalWidth,
-    ellipsis: true,
-    resizable: true,
+    width: normalWidth,// 默认宽度
+    ellipsis: true,// 超出显示省略号
+    resizable: true,// 可调整列宽
     index: value.index,
   };
 
@@ -232,7 +235,7 @@ export function createColumn(value, normalWidth, needFilter = false) {
   if (["isExist", "translateState", "entry"].includes(newCol.dataIndex)) {
     newCol.fixed = "left";
   }
-  if (["auditSuggess", "entryState"].includes(newCol.dataIndex)) {
+  if (["auditSuggess", "entryState", "operation"].includes(newCol.dataIndex)) {
     newCol.fixed = "right";
   }
 

@@ -263,7 +263,8 @@ export default {
     return {
       locale: zh_CN,
       modalWidth: "60%",
-      tableHeight: { x: "100%", y: 395 },
+      // tableHeight: { x: "100%", y: 395 },
+      tableHeight: { x: "max-content", y: 395 },
       columns: [],
       checkedColumn: cachedDisplayColumn
         ? cachedDisplayColumn.split(",")
@@ -433,6 +434,8 @@ export default {
                 );
               },
               fixed: "left",
+              resizable: true,
+
               index: 0,
             },
             {
@@ -441,6 +444,8 @@ export default {
               align: "center",
               width: 100,
               fixed: "left",
+              resizable: true,
+
               index: 1,
             },
             {

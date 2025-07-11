@@ -90,6 +90,7 @@ export default {
       labelCol: { style: { width: "84px" } },
       tableTitle: "术语列表",
       dataHeight: 400,
+      // tableHeight: { x: "max-content", y: 0 },
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
       search: {

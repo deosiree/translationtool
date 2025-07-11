@@ -204,7 +204,8 @@ export default {
       ],
       tableTitle: "术语列表",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
         {
@@ -312,7 +313,7 @@ export default {
           align: "center",
           width: 150,
           fixed: "right",
-          index: 12,
+          index: 101,
         },
       ],
       dataSource: [],

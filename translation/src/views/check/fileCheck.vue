@@ -129,7 +129,8 @@ export default {
       labelCol: { style: { width: "84px" } },
       tableTitle: "校验日志",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项

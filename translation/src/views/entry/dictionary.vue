@@ -86,7 +86,8 @@ export default {
   data() {
     return {
       modalWidth: "65%",
-      tableHeight: { x: "100%", y: 380 },
+      // tableHeight: { x: "100%", y: 380 },
+      tableHeight: { x: "max-content", y: 380 },
       dataSource: [],
       columns: [
         {

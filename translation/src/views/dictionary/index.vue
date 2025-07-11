@@ -184,7 +184,8 @@ export default {
       labelCol: { style: { width: "84px" } },
       tableTitle: "数据列表",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
         {
