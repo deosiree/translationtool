@@ -131,13 +131,29 @@ public class WorkBenchController extends BaseController {
     @Transactional
     //new
     public HttpResponse<ResponseListModel> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,
-                                                            @RequestParam("taskID") String taskID, HttpServletRequest httpServletRequest
+        @RequestParam(value = "departmentType",defaultValue = "通用平台部") String departmentType, 
+        @RequestParam("taskID") String taskID, HttpServletRequest httpServletRequest
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryInfoEntities = entryInfoService.importZZExcle(multipartFile, taskID, httpServletRequest);
-        responseListModel.setList(entryInfoEntities);
-        responseListModel.setTotalNum(entryInfoEntities.size());
-        return checkResult(responseListModel);
+        List<EntryInfoEntity> entryInfoEntities = null;
+        try {
+            if(departmentType.equals("装置开发部")){
+                entryInfoEntities = entryInfoService.importEntitiesFromFile(multipartFile, taskID, httpServletRequest);
+            }else{
+                entryInfoEntities = entryInfoService.importZZExcle(multipartFile, taskID, httpServletRequest);
+            }   
+            if(entryInfoEntities == null){
+                throw new NullPointerException("entryInfoEntities == null");
+            }
+            responseListModel.setList(entryInfoEntities);
+            responseListModel.setTotalNum(entryInfoEntities.size());
+            return checkResult(responseListModel);
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error("导入excel文件的词条时报错", e);
+            return error(null, e.getMessage());
+        }
+
     }
 
     @PostMapping("/insertEntry")

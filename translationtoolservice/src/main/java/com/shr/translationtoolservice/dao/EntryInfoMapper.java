@@ -45,6 +45,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<EntryInfoEntity> getExistEntryList(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
 
+    List<EntryInfoEntity> getExistEntryListForEquipment(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
+
     Integer getLastVersionNum(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity);
 
     List<EntryInfoEntity> getTransStateEntry(String sql);

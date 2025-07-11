@@ -21,6 +21,10 @@ public class LocalTimeUtils {
     public static DateFormat formatForFile = new SimpleDateFormat("yyyy-MM-dd HH:mm:sss");
 
     public static DateFormat formatForExportFile = new SimpleDateFormat("yyyyMMddhhmmss");
+    public static DateFormat format2ForFile = new SimpleDateFormat("yyyy/MM/dd HH:mm:sss");
+    
+    public static DateFormat format3ForFile = new SimpleDateFormat("yyyy/MM/dd");
+
 
     public Date getBeijingTime() {
         // 获取当前时间

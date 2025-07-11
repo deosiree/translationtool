@@ -4,6 +4,8 @@ import cn.afterturn.easypoi.excel.annotation.Excel;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+
 import java.util.Date;
 import java.util.HashMap;
 
@@ -78,6 +80,15 @@ public class ImportExcleEntry {
     private String DSTerm;
     private int DSLength;
 
+    /*来源表名*/
+    private String srcTabName;
+
+    /*数据库记录ID */
+    private String dbRID;
+
+    /* 词条来源 */
+    private String entrySource;
+
 
     public final static  HashMap<String,String> aliasMap = new HashMap(){{
         put("version","版本");
@@ -100,6 +111,7 @@ public class ImportExcleEntry {
         put("ruCharLength","俄文术语字符数");
         put("french","法文术语术语");
         put("fraCharLength","法文术语字符数");
+        put("chinese", "中文术语别名");
         put("classfy1","类别1");
         put("classfy2","类别2");
         put("ABTerm","ABB类全驼峰术语");
@@ -111,6 +123,9 @@ public class ImportExcleEntry {
         put("DSTerm","展开（缩写可采用单/多驼峰）术语");
         put("DSLength","展开（缩写可采用单/多驼峰）字符数");
         put("diFileName","回写词典");
+        put("srcTabName", "来源表名");
+        put("dbRID", "数据库记录ID");
+        put("entrySource", "词条来源");
     }};
 
 

@@ -264,7 +264,6 @@ public class ConstantInterface {
         entryName.put("writeType", "回写类型");
         entryName.put("diFileName", "辞典名称");
         entryName.put("comment", "comment");
-        entryName.put("entryVersion", "词条版本");
         // 装置部新增加字段
         entryName.put("srcTabName", "来源表名");
         entryName.put("dbRID", "数据库记录ID");
