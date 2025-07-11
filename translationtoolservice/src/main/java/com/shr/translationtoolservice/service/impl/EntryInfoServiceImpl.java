@@ -1494,8 +1494,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoEntities = new ArrayList<>();
         }
 
-        processEntryInfo(entryInfoEntities, columnNames, excelName, taskEntity);
-
+        // processEntryInfo(entryInfoEntities, columnNames, excelName, taskEntity);
+        processEntryInfo(entryInfoEntities, columnNames, taskEntity);
 
        /* for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
             if (Objects.isNull(taskEntity)) {
@@ -1580,6 +1580,117 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }else{
             throw new RuntimeException("当前不支持exportFileType为: " + exportFileType);
         }
+    }
+
+    /**
+     * 根据t_product和t_version填写词条的产品ID，产品名，版本ID和版本名，其中产品ID和版本ID根据t_product_relation获取
+     * @param <T>
+     * @param entryInfoEntities
+     * @param columnNames
+     * @param taskEntity
+     */
+    private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities,List<String> columnNames,TaskInfoEntity taskEntity){
+        Map<String,EntryInfoEntity> entryInfoEntitiesIDMap = entryInfoEntities.stream().collect(Collectors.toMap(EntryInfoEntity::getId, EntryInfoEntity -> EntryInfoEntity));
+        /*
+         * 可能出现的情况
+         * 1. 词条在t_product_relation表中没有找到对应词条的记录信息，则productID依然为NULL，并且productName为NULL
+         * 2. 词条在t_product_relation表中找到对应词条的记录信息，但productID项为NULL，则productID依然为NULL，并且productName为NULL
+         * 3. 词条在t_product_relation表中找到对应词条的记录信息，productID不为NULL
+         *  但t_product表中没有找到对应productID的行记录，则productID依然为NULL，并且productName为NULL
+         *  如果找到对应的行记录，则productID不为NULL，并且productName为对应行记录的结果
+         */
+        if(taskEntity == null){
+            List<String> ids = new ArrayList<>(entryInfoEntitiesIDMap.keySet());
+            if(ids.isEmpty()){
+                return;
+            }
+            Map<String,ProductRelationEntity> productRelationIDMap = productRelationMapper.getProductionRelationsByIDs(ids);
+
+            Set<String> productIDs = productRelationIDMap.values().stream().map(ProductRelationEntity::getProductId).collect(Collectors.toSet());
+            Set<String> versionIDs = productRelationIDMap.values().stream().map(ProductRelationEntity::getVersionId).collect(Collectors.toSet());
+            
+            Map<String,ProductEntity> productIDMap = null;
+            if(!productIDs.isEmpty()){
+                productIDMap = productMapper.getProductByIDs(productIDs);
+            }else{
+                productIDMap = new HashMap<>();
+            }
+            Map<String,VersionEntity> versionIDMap = null;
+            if(!versionIDs.isEmpty()){
+                versionIDMap = versionMapper.getVersionByIDs(versionIDs);
+            }else{
+                versionIDMap = new HashMap<>();
+            }
+            for(Map.Entry<String,EntryInfoEntity> entry : entryInfoEntitiesIDMap.entrySet()){
+                EntryInfoEntity entity = entry.getValue();
+                String id = entity.getId();
+                if(id == null){
+                    throw new NullPointerException("存在词条的ID为NULL");
+                }
+                ProductRelationEntity productRelationEntity = productRelationIDMap.get(id);
+                if(productRelationEntity == null){
+                    log.warn("警告: t_production_relation表中不存在id为: " + id + "的词条的相关信息");
+                    continue;
+                }
+                String productID = productRelationEntity.getProductId();
+                String versionID = productRelationEntity.getVersionId();
+                ProductEntity productEntity = productIDMap.get(productID);
+                VersionEntity versionEntity = versionIDMap.get(versionID);
+                if(StringUtils.isBlank(productID)){
+                    log.warn("警告,词条id: " + id + "没有关联到任何产品上");
+                }else if(productID == null){
+                    log.warn("警告: 没有在t_product表中查询到productID: " + productID + "的信息");
+                }else{
+                    entity.setProductID(productID);
+                    entity.setProductName(productEntity.getName()); 
+                }
+                if(StringUtils.isBlank(versionID)){
+                    log.warn("警告,词条id: " + id + "没有关联到任何版本上");
+                }else if(versionID == null){
+                    log.warn("警告: 没有在t_product表中查询到versionID: " + versionID + "的信息");
+                }else{
+                    entity.setVersionID(versionID);
+                    entity.setVersionName(versionEntity.getName());
+                }
+            }
+        }else{
+            String productID = taskEntity.getProductId();
+            if(productID == null){
+                log.warn("警告,任务id: " + taskEntity.getId() + "没有关联到任何产品上");
+            }else{
+                Map<String,ProductEntity> productIDMap = productMapper.getProductByIDs(new HashSet<>(Arrays.asList(new String[]{productID})));
+                ProductEntity productEntity = productIDMap.get(productID);
+                if(productEntity == null){
+                    log.warn("警告: 没有在t_product表中查询到productID: " + productID + "的信息");
+                }else{
+                    for(Map.Entry<String,EntryInfoEntity> entry : entryInfoEntitiesIDMap.entrySet()){
+                        EntryInfoEntity entity = entry.getValue();
+                        entity.setProductID(productID);
+                        entity.setProductName(productEntity.getName());
+                    }
+                }
+
+                
+            }
+            String versionID = taskEntity.getVersionId();
+            if(versionID == null){
+                log.warn("警告,任务id: " + taskEntity.getId() + "没有关联到任何版本上");
+            }else{
+                Map<String,VersionEntity> versionIDMap = versionMapper.getVersionByIDs(new HashSet<>(Arrays.asList(new String[]{versionID})));
+                VersionEntity versionEntity = versionIDMap.get(versionID);
+                if(versionEntity == null){
+                    log.warn("警告,任务id: " + taskEntity.getVersionId() + "没有关联到任何版本上");
+                }else{
+                    for(Map.Entry<String,EntryInfoEntity> entry : entryInfoEntitiesIDMap.entrySet()){
+                        EntryInfoEntity entity = entry.getValue();
+                        entity.setProductID(versionID);
+                        entity.setProductName(versionEntity.getName());
+                    }    
+                }
+            }
+        }
+
+
     }
 
     private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities, List<String> columnNames,  String excelName, TaskInfoEntity taskEntity) {

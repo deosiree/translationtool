@@ -85,4 +85,11 @@
                 entry_id = #{productRelationEntity.entryId,jdbcType=VARCHAR}
         </if>
     </select>
+
+    <select id = "getProductionRelationsByIDs" resultMap = "BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM t_product_relation WHERE entry_id in 
+        <foreach collection = "ids" item = "id" open = "(" close = ")" separator = ",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
 </mapper>
