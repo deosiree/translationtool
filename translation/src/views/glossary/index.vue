@@ -9,8 +9,8 @@
           <a-form-item label="翻译" name="translate">
             <a-input v-model:value="search.translate" placeholder="请输入翻译"></a-input>
           </a-form-item>
-          <a-form-item label="翻译类型" name="translateType">
-            <a-select v-model:value="search.translateType" style="width: 186px" placeholder="请选择翻译类型" :options='translateTypes'
+          <a-form-item label="翻译类型" name="type">
+            <a-select v-model:value="search.type" style="width: 186px" placeholder="请选择翻译类型" :options='translateTypes'
               :fieldNames="{label:'name',value:'name'}" allowClear>
             </a-select>
           </a-form-item>
@@ -429,7 +429,7 @@ export default {
       this.lastSearch = currentSearch;
 
       // 入参+请求体
-      this.search.type = this.search.translateType;
+      // this.search.type = this.search.translateType;
       let params = {
         params: {
           pageIndex: this.pagination.current,
