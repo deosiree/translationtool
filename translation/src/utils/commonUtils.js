@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
 // import common from "@/views/workbench/common.js";
-// import tableParam from '@/views/entry/tableParam';
 import { entryParams } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
@@ -128,10 +127,10 @@ export function interpretation2value(vm) {
 export function getColPref(colPrefName, normalWidth, vm, needFilter = false, tableParam = entryParams) {
   // 读取本地存储的用户偏好
   const storedPreferences = localStorage.getItem(colPrefName);
-  console.log("storedPreferences", storedPreferences)
+  // console.log("storedPreferences", storedPreferences)
   if (storedPreferences) {
     const colPref_strList = JSON.parse(storedPreferences).displayColumn.split(",");
-    console.log("colPref_strList", colPref_strList);
+    // console.log("colPref_strList", colPref_strList);
     // 调用 changeColumn 方法更新列显示
     changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = needFilter, tableParam = tableParam);
   }
@@ -190,10 +189,10 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, need
       if (vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
         continue; // 如果列已经存在，则跳过
       }
-      console.log("没有展示列：", colPref_strList)
+      // console.log("没有展示列：", colPref_strList)
       // 使用 find 方法查找对应的 checkboxList 项
       const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
-      console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
+      // console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
       const newCol = createColumn(col, normalWidth, needFilter = needFilter);
       vm.columns.splice(-1, 0, newCol);
     }
@@ -219,7 +218,7 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, need
  * @returns {Object} - 表格列配置对象
  */
 export function createColumn(value, normalWidth, needFilter = false) {
-  console.log("创建列value", value)
+  // console.log("创建列value", value)
   // 初始化列配置对象
   let newCol = {
     title: value.label,

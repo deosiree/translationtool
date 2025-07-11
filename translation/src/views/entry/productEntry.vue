@@ -383,8 +383,9 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :dataSource="selectEntry" :currentProduct="product" @createClose="createClose"
-    @removeEntry="removeEntry" @refresh="refreshTable" @cancelCreate="cancelCreate" />
+  <CreateVersionModal :visible="createVisible" :dataSource="selectEntry" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows"
+    @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event"
+    @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
@@ -1409,18 +1410,6 @@ export default {
     },
     refreshTable() {
       this.getEntryByVersion();
-    },
-    // 移除已选择词条
-    removeEntry(record) {
-      this.selectEntry = this.selectEntry.filter((item) => {
-        return item.id != record.id;
-      });
-      this.selectedRowKeys = this.selectedRowKeys.filter((item) => {
-        return item.id != record.id;
-      });
-      this.selectedRows = this.selectedRows.filter((item) => {
-        return item.id != record.id;
-      });
     },
     // 选择全部词条
     selectAllEntry() {

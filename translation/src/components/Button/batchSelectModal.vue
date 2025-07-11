@@ -60,7 +60,7 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
-import { pageChange, changeColumn, getColPref } from "@/utils/commonUtils";
+import { pageChange, getColPref } from "@/utils/commonUtils";
 import { glossaryParams } from "@/utils/commonParam.js";
 export default {
   components: {
@@ -164,6 +164,7 @@ export default {
           ];
           // console.log("columns1:", this.columns);
           try {
+            // 读取本地存储的用户偏好
             await getColPref(
               "colPref-glossary",
               100,
@@ -171,7 +172,7 @@ export default {
               false,
               glossaryParams
             ); // 等待 getColPref 执行完成
-            console.log("columns2:", this.columns);
+            // console.log("columns2:", this.columns);
           } catch (error) {
             console.error("获取列偏好失败:", error);
           }
@@ -243,10 +244,6 @@ export default {
     // 分页切换
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn("colPref-glossary", 100, checkedValue, this);
     },
   },
 };

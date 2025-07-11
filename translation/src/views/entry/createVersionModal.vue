@@ -22,11 +22,6 @@
           <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination="pagination"
             :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="historyTable" bordered>
             <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'operation'">
-                <div class="editable-row-operations">
-                  <DeleteOutlined style="color:#369FFF;font-size:16px" @click="remove(record)" title="取消选择" />
-                </div>
-              </template>
               <template v-if="column.dataIndex === 'entryState'">
                 <template v-if="record.entryState === 0">
                   <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
@@ -55,6 +50,11 @@
                 <template v-if="record[column.dataIndex] === '3'">
                   <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
                 </template>
+              </template>
+              <template v-if="column.dataIndex === 'operation'">
+                <div class="editable-row-operations">
+                  <DeleteOutlined style="color:#369FFF;font-size:16px" @click="remove(record)" title="取消选择" />
+                </div>
               </template>
             </template>
             <!-- 设置表格行展开子行的样式 -->
@@ -227,7 +227,6 @@ import { entryParams as tableParam } from "@/utils/commonParam.js";
 import {
   pageChange,
   getColPref,
-  changeColumn,
   setModalAriaHidden,
 } from "@/utils/commonUtils";
 export default {
@@ -242,7 +241,14 @@ export default {
     CaretRightOutlined,
     ExportButton,
   },
-  emits: ["createClose", "removeEntry", "cancelCreate", "refresh"],
+  emits: [
+    "createClose",
+    "cancelCreate",
+    "refresh",
+    "update:dataSource", // 添加 update:dataSource 事件
+    "update:selectedRowKeys", // 添加 update:selectedRowKeys 事件
+    "update:selectedRows", // 添加 update:selectedRows 事件
+  ],
   props: {
     visible: {
       type: Boolean,
@@ -253,6 +259,14 @@ export default {
     },
     currentProduct: {
       type: Object,
+    },
+    selectedRowKeys: {
+      type: Array,
+      default: () => [],
+    },
+    selectedRows: {
+      type: Array,
+      default: () => [],
     },
   },
 
@@ -397,8 +411,6 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      // // 读取本地存储的用户偏好
-      // getColPref("colPref-productEntry", 200, this);
     });
   },
   computed: {
@@ -456,9 +468,19 @@ export default {
               resizable: true,
               index: 2,
             },
+            {
+              title: "操作",
+              dataIndex: "operation",
+              align: "center",
+              width: 50,
+              fixed: "right",
+              resizable: true,
+              index: 101,
+            },
           ];
           // console.log("columns1:", this.columns);
           try {
+            // 读取本地存储的用户偏好
             await getColPref("colPref-productEntry", 100, this); // 等待 getColPref 执行完成
             // console.log("columns2:", this.columns);
           } catch (error) {
@@ -470,6 +492,21 @@ export default {
     },
   },
   methods: {
+    // 移除某条已选词条（每行最右边的按钮
+    remove(record) {
+      const newdataSource = this.dataSource.filter((item) => {
+        return item.id != record.id;
+      });
+      const newSelectedRowKeys = this.selectedRowKeys.filter((item) => {
+        return item.id != record.id;
+      });
+      const newSelectedRows = this.selectedRows.filter((item) => {
+        return item.id != record.id;
+      });
+      this.$emit("update:dataSource", newdataSource); // 重新更新dataSource，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+      this.$emit("update:selectedRowKeys", newSelectedRowKeys); // 重新更新selectedRowKeys，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+      this.$emit("update:selectedRows", newSelectedRows); // 重新更新selectedRows，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+    },
     handleClose() {
       this.$emit("createClose");
     },
@@ -479,9 +516,6 @@ export default {
       setModalAriaHidden(this, document);
       this.operateWidth = "500px";
       this.title = "创建版本";
-    },
-    remove(record) {
-      this.$emit("removeEntry", record);
     },
     cancelCreate() {
       Modal.confirm({
@@ -1044,10 +1078,6 @@ export default {
     // 分页切换
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn("colPref-productEntry", 100, checkedValue, this);
     },
   },
 };
