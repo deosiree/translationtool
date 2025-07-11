@@ -1,8 +1,7 @@
 <template>
   <a-button type="primary" @click="showExportModal" :size="size">{{ buttonTitle }}</a-button>
 
-  <CustomModal :okLoading="exportLoading" :modalTitle="buttonTitle" width="500px" :visible="exportVisible" @handleClose="handleClose"
-    @handleOK="handleOK">
+  <CustomModal :modalTitle="buttonTitle" width="500px" :visible="exportVisible" :showCancel="false" :showOk="false" @handleClose="handleClose">
     <div class="content">
       <a-form ref="exportForm" :model="exportModal">
         <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择!' }]">
@@ -23,6 +22,11 @@
         </a-form-item>
       </a-form>
     </div>
+    <template #leftBottomBtn>
+      <a-button key="back" @click="handleClose">取消</a-button>
+      <a-button type="primary" @click="handleOK" :loading="exportLoading2">指定路径</a-button>
+      <a-button type="primary" @click="handleOK(false)" :loading="exportLoading">默认路径</a-button>
+    </template>
   </CustomModal>
 </template>
 
@@ -35,7 +39,10 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import { workbenchParams } from "@/utils/commonParam.js";
-import { setModalAriaHidden } from "@/utils/commonUtils.js";
+import {
+  setModalAriaHidden,
+  getCurrentStringTime,
+} from "@/utils/commonUtils.js";
 export default {
   components: {
     CustomModal,
@@ -62,6 +69,7 @@ export default {
     return {
       exportVisible: false,
       exportLoading: false,
+      exportLoading2: false,
       exportModal: {
         exportType: null,
         field: [],
@@ -76,6 +84,7 @@ export default {
         label: item.language,
         value: item.code,
       })),
+      fileHandle: null, // 新增，用于保存文件句柄
       // fieldOptions: tableParam.exportFields,
     };
   },
@@ -83,19 +92,19 @@ export default {
     showExportModal() {
       this.exportVisible = true;
       setModalAriaHidden(this, document);
-      console.log("local", this.localDescOptions);
-      console.log("获取用户偏好前：导出字段", this.exportModal.field);
+      // console.log("local", this.localDescOptions);
+      // console.log("获取用户偏好前：导出字段", this.exportModal.field);
       // 获取用户偏好
       queryUserPartiality().then((res) => {
         if (res.data.list && res.data.list.length > 0) {
-          console.log("获取用户偏好！！！", res.data.list);
+          // console.log("获取用户偏好！！！", res.data.list);
           let exportColumn = res.data.list[0].exportColumn;
           if (exportColumn != null && exportColumn != "") {
             this.exportModal.field = exportColumn.split(",");
           }
         }
       });
-      console.log("获取用户偏好后：导出字段", this.exportModal.field);
+      // console.log("获取用户偏好后：导出字段", this.exportModal.field);
     },
     exportTypeChange(value) {
       if (value === "xml") {
@@ -106,16 +115,18 @@ export default {
           .map((item) => item.label);
         // 添加上“词条”字段
         this.exportModal.field = ["词条", ...translationFields];
-        console.log("锁定导出字段", this.exportModal.field);
+        // console.log("锁定导出字段", this.exportModal.field);
       }
     },
     // 全选导出字段方法
     selectAllFields() {
       this.exportModal.field = this.fieldOptions.map((item) => item.label);
     },
-    async handleOK() {
+    // 导出-确认
+    async handleOK(choosePath = true) {
+      if (choosePath) this.exportLoading2 = true;
+      else this.exportLoading = true;
       try {
-        this.exportLoading = true;
         if (!this.exportModal.exportType) {
           message.error("请选择导出的文件类型！");
           return;
@@ -142,6 +153,46 @@ export default {
           exportType: exportType,
         };
 
+        // let blob;// 二进制大对象，不可变的、原始数据的类文件对象
+        let suggestedName; // 默认导出的文件名
+        let types;
+
+        if (choosePath && "showSaveFilePicker" in window) {
+          // 提前获取文件句柄
+          if (exportType === "xml") {
+            suggestedName = "sysdict.xml";
+            types = [
+              {
+                description: "XML 文件",
+                accept: {
+                  "application/xml": [".xml"],
+                },
+              },
+            ];
+          } else if (exportType === "excel" || exportType === "csv") {
+            // 这里先设置一个临时建议名，后续获取真实文件名后再更新
+            const time = getCurrentStringTime();
+            // console.log("当前时间", time);
+            suggestedName = `词条导出_${time}${
+              exportType === "excel" ? ".xlsx" : ".csv"
+            }`;
+            types = [
+              {
+                description: exportType === "excel" ? "Excel 文件" : "CSV 文件",
+                accept: {
+                  [exportType === "excel"
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : "text/csv"]: [exportType === "excel" ? ".xlsx" : ".csv"],
+                },
+              },
+            ];
+          }
+          this.fileHandle = await window.showSaveFilePicker({
+            suggestedName,
+            types,
+          });
+        }
+
         if (exportType === "xml") {
           // 对词条去重
           const uniqueEntries = [];
@@ -162,12 +213,12 @@ export default {
               item[this.exportModal.local_desc] != null
                 ? item[this.exportModal.local_desc]
                 : "";
-            console.log(
-              "当前选中的local:",
-              this.exportModal.local_desc,
-              item,
-              item[this.exportModal.local_desc]
-            );
+            // console.log(
+            //   "当前选中的local:",
+            //   this.exportModal.local_desc,
+            //   item,
+            //   item[this.exportModal.local_desc]
+            // );
             let es_desc = item.spanish != null ? item.spanish : "";
             let ru_desc = item.russian != null ? item.russian : "";
 
@@ -175,15 +226,27 @@ export default {
           });
           xml += `</DICT>`;
 
-          // 导出 XML 文件
+          // 导出文件
           const blob = new Blob([xml], { type: "application/xml" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "sysdict.xml";
-
-          link.click();
-          URL.revokeObjectURL(url);
+          if (choosePath && this.fileHandle) {
+            const writable = await this.fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+          } else {
+            await this.handleFileSave(
+              blob,
+              "sysdict.xml",
+              [
+                {
+                  description: "XML 文件",
+                  accept: {
+                    "application/xml": [".xml"],
+                  },
+                },
+              ],
+              choosePath
+            );
+          }
         } else if (exportType === "excel" || exportType === "csv") {
           // 导出接口
           let fields = ["id"].concat(field);
@@ -193,40 +256,82 @@ export default {
             excelName: "词条导出",
           };
           const res = await entryExportByCondition(data, params);
-          console.log("res:", res);
-          console.log("res.headers:", res.headers);
+          // console.log("res:", res);
+          // console.log("res.headers:", res.headers);
           let fileName = res.headers["content-disposition"]
             .split(";")[1]
             .split("filename=")[1];
 
-          // // csv与excel不同的地方
-          // if (exportType === "csv") {
-          //   fileName = fileName.split(".")[0] + ".csv";
-          // }
-          // let contentType =
-          //   exportType === "csv"
-          //     ? "text/csv;charset=utf-8"
-          //     : res.headers["content-type"];
-
           let contentType = res.headers["content-type"];
+          // 去除字符编码信息
+          contentType = contentType.split(";")[0];
 
+          // 导出文件
           const blob = new Blob([res.data], { type: contentType });
-          const a = document.createElement("a");
-          a.download = decodeURI(fileName);
-          a.href = window.URL.createObjectURL(blob);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(a.href);
+          if (choosePath && this.fileHandle) {
+            // 更新建议文件名
+            const writable = await this.fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+          } else {
+            await this.handleFileSave(
+              blob,
+              decodeURI(fileName),
+              [
+                {
+                  description:
+                    exportType === "excel" ? "Excel 文件" : "CSV 文件",
+                  accept: {
+                    [contentType]: [exportType === "excel" ? ".xlsx" : ".csv"],
+                  },
+                },
+              ],
+              choosePath
+            );
+          }
         }
-      } catch (error) {
-        console.log("导出失败原因", error);
-        message.error(`导出失败: ${error.message || error}`);
-      } finally {
         this.$emit("operateClose");
         this.exportVisible = false;
-        this.exportLoading = false;
         // 记录偏好
         this.exportFieldChange(this.exportModal.field);
+      } catch (error) {
+        if (!(error.name === "AbortError")) {
+          console.log("导出失败原因", error);
+          message.error(`导出失败: ${error.message || error}`);
+        }
+      } finally {
+        if (choosePath) this.exportLoading2 = false;
+        else this.exportLoading = false;
+        this.fileHandle = null; // 重置文件句柄
+      }
+    },
+    // 保存文件
+    async handleFileSave(blob, suggestedName, types, choosePath = true) {
+      try {
+        if ("showSaveFilePicker" in window && choosePath) {
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName,
+            types,
+          });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } else {
+          // 旧浏览器兼容处理
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = suggestedName;
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("用户取消了文件保存操作", error);
+          return;
+        }
+        message.error("文件保存失败:", error);
+        throw error;
       }
     },
     // 记录用户偏好
@@ -236,6 +341,7 @@ export default {
       };
       updateUserPartiality(data).then((res) => {});
     },
+    // 关闭导出模态框
     handleClose() {
       this.exportVisible = false;
     },

@@ -598,6 +598,21 @@ export function getCurrentFormattedTime() {
 }
 
 /**
+ * 获取当前时间并格式化为 "YYYYMMDDHHmmss" 格式
+ * @returns {string} - 格式化后的当前时间字符串
+ */
+export function getCurrentStringTime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
+
+/**
  * 查询
  * 查询按钮共用多个接口，并维护loading状态
  * @param {Object} vm - Vue 实例，用于控制 loading 状态
