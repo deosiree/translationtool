@@ -451,7 +451,7 @@
   </CustomModal>
   <Dict :visible="createDictVisible" @modalClose="createDictClose" @modalOK="createDictOk" />
   <CustomModal :visible="templateVisible" modalTitle="模板下载" @handleOK="templateDownload" @handleClose="templateClose">
-    <div class="condent">
+    <div class="condent templateForm">
       <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
         <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
           <a-select v-model:value="templateObj.type" placeholder="请选择" :options='departmentList' allowClear>
@@ -461,6 +461,18 @@
             <a-select-option value="jk">监控</a-select-option> -->
           </a-select>
         </a-form-item>
+        <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择文件类型!' }]">
+          <a-select v-model:value="templateObj.exportType" placeholder="请选择文件类型" :options='exportTypes' allowClear>
+          </a-select>
+        </a-form-item>
+        <!-- <a-form-item label="导出字段" name="exportFields" :rules="[{ required: true, message: '请选择!' }]">
+          <div style="display: flex; justify-content: space-between;">
+            <a-select mode="multiple" v-model:value="exportFields" :options="exportFieldOptions" placeholder="请选择导出字段" allowClear
+              style="flex: 1; margin-right: 8px;" />
+            <a-button type="link" size="small" @click="selectAllFields" style="
+              font-size: smaller;margin-top:0">全选</a-button>
+          </div>
+        </a-form-item> -->
       </a-form>
     </div>
   </CustomModal>
@@ -525,9 +537,10 @@ import {
   getI18nAdress,
 } from "@/http/api/workbench";
 import { templateFileDownload } from "@/http/api/download";
-// import workbenchCommon from "@/views/workbench/common.js";
-import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
+import commonParam, {
+  entryParams,
+  workbenchParams,
+} from "@/utils/commonParam.js";
 // import common from "../entry/common";
 import {
   onSelectChange,
@@ -737,9 +750,11 @@ export default {
       createDict: {
         name: "",
       },
-      overlayStyle: workbenchCommon.overlayStyle,
-      checkedColumn: workbenchCommon.checkedColumn,
-      // checkboxList: workbenchCommon.checkboxList,
+      exportFields: [], // 下载模板的导出字段
+      exportFieldOptions: entryParams.exportFields,
+      overlayStyle: workbenchParams.overlayStyle,
+      checkedColumn: workbenchParams.checkedColumn,
+      // checkboxList: workbenchParams.checkboxList,
       // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
@@ -763,6 +778,8 @@ export default {
       templateVisible: false,
       templateObj: {
         type: null,
+        exportType: null,
+        // field: [], // 导出模板的字段
       },
       platformKey: "device",
       searchValue: "",
@@ -784,7 +801,11 @@ export default {
         value: "name",
       }, // 当前用户所在部门的相关信息
       departmentList: commonParam.departmentList, // 当前用户所在部门
-      isOldmodel: false,// 导入的文件是否是旧模板
+      isOldmodel: false, // 导入的文件是否是旧模板
+      exportTypes: [
+        { label: "excel", value: "excel" },
+        { label: "csv", value: "csv" },
+      ],
     };
   },
 
@@ -818,8 +839,17 @@ export default {
       this.task.transMap = commonParam.languageMap[this.task.translateType];
       this.setTranslateColumn();
     },
+    // exportFields(newval, oldval) {
+    //   console.log("newval", newval);
+    // },
   },
   methods: {
+    // 全选导出字段方法
+    selectAllFields() {
+      // this.exportFields = this.exportFieldOptions.map((item) => item.label);
+      this.exportFields = this.exportFieldOptions;
+      console.log("this.exportFields", this.exportFields);
+    },
     // 释义覆盖翻译
     interpretation2value() {
       interpretation2value(this);
@@ -828,7 +858,7 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex = this.task.transMap.value; // workbenchCommon.languageMap[this.task.translateType].code
+          item.dataIndex = this.task.transMap.value; // workbenchParams.languageMap[this.task.translateType].code
         }
       });
     },
@@ -988,7 +1018,7 @@ export default {
         // if (maxLength !== null && common.byteLength(text) > maxLength) {
         if (maxLength !== null && byteLength(text) > maxLength) {
           toLongArr.push(item);
-          arrCount.toLongNum ++;
+          arrCount.toLongNum++;
           promises.push(
             handleExceedLength(item, this.task.transMap.value, this)
           );
@@ -1117,7 +1147,9 @@ export default {
               messageTextParts.push(`重置失败${failCount}条`);
             }
             if (arrCount.updateChildNum > 0) {
-              messageTextParts.push(`其中聚合的数据${arrCount.updateChildNum}条`);
+              messageTextParts.push(
+                `其中聚合的数据${arrCount.updateChildNum}条`
+              );
             }
             // console.log("arrCount", arrCount);
 
@@ -1247,7 +1279,7 @@ export default {
           let delCount = {
             num: 0,
             childNum: 0,
-          }
+          };
           this.selectedRows.forEach((item) => {
             if (item.entryState === 2) {
               // 词条审核未通过
@@ -2194,6 +2226,8 @@ export default {
         let params = {
           fileType: this.templateObj.type,
           translateType: this.task.translateType,
+          // exportFields: this.exportFields,
+          exportType: this.templateObj.exportType,
         };
         templateFileDownload(params).then((res) => {
           let fileName = res.headers["content-disposition"]
@@ -2213,6 +2247,7 @@ export default {
       this.templateVisible = false;
       this.templateObj.type = this.currentDepartment.value;
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
+      this.templateObj.exportType = null;
     },
     // // 校验当前页数据的长度
     // verifyCurrentData() {
@@ -2476,6 +2511,9 @@ export default {
 };
 </script>
 <style scoped lang="less">
+.modalContent .templateForm form div {
+  margin-bottom: 10px !important;
+}
 .ant-divider {
   margin: 15px 0;
 }

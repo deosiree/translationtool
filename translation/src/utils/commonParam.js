@@ -175,26 +175,38 @@ const entry_checkboxList = [
   { label: "法文翻译状态", value: "frenchTranslateState", index: 22 },
   { label: "一级分类", value: "classfy1", index: 23 },
   { label: "二级分类", value: "classfy2", index: 24 },
-  // { label: "中文字符上限", value: "maxChineseLength", index: 26 },
-  // { label: "外文字符上限", value: "foreignMaxLength", index: 26 },
   { label: "辞典名称", value: "diFileName", index: 25 },
-  { label: "修改人", value: "update", index: 26 },
-  { label: "修改时间", value: "updateTime", index: 27 },
   { label: "备注", value: "remark", index: 28 },
-  // { label: "中文翻译", value: "chinese", index: 30 },// 任务语种为“中文”时，放到“翻译”那一列中
   { label: "来源表名", value: "srcTabName", index: 29 },
   { label: "数据库记录ID", value: "dbRID", index: 30 },
   { label: "中文字符上限", value: "maxChineseLength", index: 31 },
   { label: "外文字符上限", value: "foreignMaxLength", index: 32 },
+  { label: "创建人", value: "creator", index: 33 },
+  { label: "创建时间", value: "createTime", index: 34 },
+  { label: "修改人", value: "update", index: 35 },
+  { label: "修改时间", value: "updateTime", index: 36 },
+  { label: "是否最新版本", value: "isLatestVersion", index: 37 },
+  { label: "词性备注", value: "partOfSpeech", index: 41 },
+  { label: "词条所属分类", value: "classifyId", index: 42 },
+  { label: "重复词条id", value: "repeatEntryId", index: 43 },
+  { label: "环境备注", value: "environmentRemark", index: 44 },
+  { label: "产品名", value: "productName", index: 45 },
+  { label: "版本名", value: "versionName", index: 46 },
+  { label: "翻译最大长度", value: "maxLength", index: 47 },
+  { label: "英文术语字符数", value: "enCharLength", index: 48 },
+  { label: "中文术语字符数", value: "zhCharLength", index: 49 },
+  { label: "俄文术语字符数", value: "ruCharLength", index: 50 },
+  { label: "西文术语字符数", value: "spaCharLength", index: 51 },
+  { label: "法文术语字符数", value: "fraCharLength", index: 52 },
+  { label: "英文翻译id", value: "enTransId", index: 53 },
+  { label: "俄文翻译id", value: "ruTransId", index: 54 },
+  { label: "西文翻译id", value: "spaTransId", index: 55 },
+  { label: "法文翻译id", value: "fraTransId", index: 56 },
+  { label: "中文翻译id", value: "zhTransId", index: 57 },
+  { label: "导入类型", value: "importType", index: 58 },
+  { label: "回写类型", value: "writeType", index: 59 },
+  { label: "词条标签", value: "entryLabel", index: 60 },
   { label: "abbr", value: "abbr", index: 99 },
-  // {label: "英文翻译id",value: "enTransld",index:30},
-  // {label: "俄文翻译id",value: "ruTransId",index:31},
-  // {label: "西文翻译id",value: "spaTransId",index:32},
-  // {label: "法文翻译id",value: "fraTransId",index:33},
-  // {label: "导入类型",value: "importType",index:34},
-  // {label: "回写类型",value: "writeType",index:35},
-  // {label: "DI文件名",value: "diFileName",index:36},
-  // {label: "comment",value: "comment",index:37},
 ];
 const entry_exportFields = [
   // { label: 'id', value: 'id' },// id不需要，id是默认会隐藏地导出出来的
@@ -347,7 +359,8 @@ export const workbenchParams = {
     // padding:'0',
     boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
   },
-  keys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+  keys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
+
 }
 
 // import tableParam from "@/views/check/redundantTableParam.js";
