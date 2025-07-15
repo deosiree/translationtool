@@ -2076,7 +2076,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Override
     public String importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
 
-        List<EntryInfoEntityForExcel> entryEntitys = new ArrayList<>();
+        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
         String token = request.getHeader("token");
         String department = JWTTokenUtils.getDepartment(token);
 
@@ -2084,9 +2084,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         
         try {
             if(multipartFile.getOriginalFilename().endsWith(".csv")){
-                entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntityForExcel.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
+                entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
             }else{
-                entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntityForExcel.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+                entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
             }
             if (CollectionUtils.isEmpty(entryEntitys)) {
                 return null;
