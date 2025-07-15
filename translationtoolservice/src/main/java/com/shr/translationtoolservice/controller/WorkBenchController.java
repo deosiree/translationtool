@@ -137,11 +137,8 @@ public class WorkBenchController extends BaseController {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryInfoEntity> entryInfoEntities = null;
         try {
-            if(departmentType.equals("装置开发部")){
-                entryInfoEntities = entryInfoService.importEntitiesFromFile(multipartFile, taskID, httpServletRequest);
-            }else{
-                entryInfoEntities = entryInfoService.importZZExcle(multipartFile, taskID, httpServletRequest);
-            }   
+            entryInfoEntities = entryInfoService.importEntitiesFromFile(multipartFile, taskID,departmentType, httpServletRequest);
+
             if(entryInfoEntities == null){
                 throw new NullPointerException("entryInfoEntities == null");
             }

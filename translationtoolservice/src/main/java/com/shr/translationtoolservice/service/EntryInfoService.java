@@ -61,9 +61,9 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     void versionExport(String versionID, HttpServletResponse response,String translateType);
 
-    List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,HttpServletRequest request);
+    List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,String departmentType,HttpServletRequest request);
 
-    List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID,HttpServletRequest httpServletRequest);
+    // List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID,HttpServletRequest httpServletRequest);
 
     List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
 

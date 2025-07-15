@@ -992,7 +992,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
-    public List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,HttpServletRequest request){
+    public List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,String departmentType,HttpServletRequest request){
         String fileName = multipartFile.getOriginalFilename();
         List<EntryInfoEntity> entryInfoEntities = null;
         try {
@@ -1001,22 +1001,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
             TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
             /* 加版本号 */
-            if(fileName.endsWith("_zz.xlsx")){
-                
-                String isNewFileVersion = request.getParameter("isNewFileVersion");
-                Boolean isNewVersion = Boolean.parseBoolean(isNewFileVersion);
-                if(isNewVersion){
-                    entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
-                    zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+            if(fileName.endsWith(".xlsx")){
+                if(departmentType.equals("装置开发部")){
+                    String isNewFileVersion = request.getParameter("isNewFileVersion");
+                    Boolean isNewVersion = Boolean.parseBoolean(isNewFileVersion);
+                    if(isNewVersion){
+                        entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                        zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                    }else{
+                        List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), fileName);
+                        entryInfoEntities = new ArrayList<>();
+                        zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
+                    }
                 }else{
-                    List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), fileName);
-                    entryInfoEntities = new ArrayList<>();
-                    zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
+                    entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                    ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }
 
             }else if(fileName.endsWith(".csv")){
                 entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), fileName, null);
-                zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                if(departmentType.equals("装置开发部")){
+                    zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                }else{
+                    ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                }
             }else{
                 throw new RuntimeException("暂时不支持文件: " + fileName + "的词条导入功能");
             }
@@ -1026,7 +1034,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     entry.setDiFileName(diFileName);
                 }
             }
-            return entryProcessUtils.buildRepeEntry(entryInfoEntities, taskInfoEntity.getTranslateType(),"装置开发部");
+            return entryProcessUtils.buildRepeEntry(entryInfoEntities, taskInfoEntity.getTranslateType(),departmentType);
         } catch (Exception e) {
             // TODO: handle exception
             throw new RuntimeException(e);
@@ -1034,54 +1042,54 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    @Override
-    public List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID, HttpServletRequest request) {
-        String fileName = multipartFile.getOriginalFilename();
-        List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
-        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
-        String token = request.getHeader("token");
+    // @Override
+    // public List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID, HttpServletRequest request) {
+    //     String fileName = multipartFile.getOriginalFilename();
+    //     List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
+    //     List<EntryInfoEntity> entryEntitys = new ArrayList<>();
+    //     String token = request.getHeader("token");
 
-        String userName = JWTTokenUtils.getUserName(token);
-        //读取excle转换的实体
-        TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
+    //     String userName = JWTTokenUtils.getUserName(token);
+    //     //读取excle转换的实体
+    //     TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
 
-        //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
+    //     //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
 
-        try {
-            //装饰
-            // if (fileName.contains("_zz.xlsx")) {
-            //     //拼成词条实体
-            //     //2区分出已存在词条 和新词条 is_exist 区分
-            //     //3.新词条翻译预写在词条中
-            //     importExcleEntries = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-            //     zzEntryHandle(importExcleEntries, entryEntitys, userName, taskInfoEntity, fileName);
-            // } else 
-            if (fileName.contains("_common.xlsx")) {
-                entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-                ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-            } else if (fileName.contains("_jk.xlsx")) {
-                entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-                ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-            }else if (fileName.contains("_db.xlsx")) {
-                entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-                ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-            }else if(fileName.endsWith(".csv")){
-                entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),null);
-                ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-            } else{
-                throw new RuntimeException("暂时不支持文件: " + fileName + "的词条导入功能");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String diFileName = request.getParameter("diFileName");
-        if(diFileName != null){
-            for(EntryInfoEntity entry : entryEntitys){
-                entry.setDiFileName(diFileName);
-            }
-        }
-        return entryProcessUtils.buildRepeEntry(entryEntitys, taskInfoEntity.getTranslateType());
-    }
+    //     try {
+    //         //装饰
+    //         // if (fileName.contains("_zz.xlsx")) {
+    //         //     //拼成词条实体
+    //         //     //2区分出已存在词条 和新词条 is_exist 区分
+    //         //     //3.新词条翻译预写在词条中
+    //         //     importExcleEntries = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+    //         //     zzEntryHandle(importExcleEntries, entryEntitys, userName, taskInfoEntity, fileName);
+    //         // } else 
+    //         if (fileName.contains("_common.xlsx")) {
+    //             entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
+    //         } else if (fileName.contains("_jk.xlsx")) {
+    //             entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
+    //         }else if (fileName.contains("_db.xlsx")) {
+    //             entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
+    //         }else if(fileName.endsWith(".csv")){
+    //             entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),null);
+    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
+    //         } else{
+    //             throw new RuntimeException("暂时不支持文件: " + fileName + "的词条导入功能");
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    //     String diFileName = request.getParameter("diFileName");
+    //     if(diFileName != null){
+    //         for(EntryInfoEntity entry : entryEntitys){
+    //             entry.setDiFileName(diFileName);
+    //         }
+    //     }
+    //     return entryProcessUtils.buildRepeEntry(entryEntitys, taskInfoEntity.getTranslateType());
+    // }
 
     private void ptEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
         Date date = new Date(System.currentTimeMillis());
