@@ -35,7 +35,7 @@
                   <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
                 </a-upload>
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
-                <a-checkbox v-model:checked="isOldmodel" style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox>
+                <a-checkbox  v-if="!currentDepartment.needWriteBack" v-model:checked="isOldmodel" style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox>
               </a-form-item>
             </a-col>
             <a-col v-if="currentDepartment.needWriteBack" :span="8">
