@@ -237,10 +237,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-// import workbenchCommon from "@/views/workbench/common.js";
-import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
-// import common from "../entry/common";
+import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   interpretation2value,
   getColPref,
@@ -248,7 +245,7 @@ import {
   setModalAriaHidden,
   filter_arr,
   filter_arr_keys,
-  byteLength
+  byteLength,
 } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
@@ -397,9 +394,9 @@ export default {
       entryState: "1",
       selectedRowIndex: null,
       timer: null,
-      overlayStyle: workbenchCommon.overlayStyle,
-      checkedColumn: workbenchCommon.checkedColumn,
-      // checkboxList: workbenchCommon.checkboxList,
+      overlayStyle: workbenchParams.overlayStyle,
+      checkedColumn: workbenchParams.checkedColumn,
+      // checkboxList: workbenchParams.checkboxList,
       // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
@@ -452,7 +449,7 @@ export default {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code;
+            workbenchParams.languageMap[this.task.translateType].code;
         }
       });
     },

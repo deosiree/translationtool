@@ -335,13 +335,6 @@ import {
   SettingOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
-import { encodeParams } from "@/utils/commonUtils";
-// import workbenchCommon from "@/views/workbench/common.js";
-import { workbenchParams as workbenchCommon } from "@/utils/commonParam.js";
-// import tableParam from "../entry/tableParam";
-import { entryParams as tableParam } from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
-// import common from "../entry/common";
 import key from "keymaster";
 import {
   clickInput,
@@ -353,7 +346,12 @@ import {
   changeColumn,
   setModalAriaHidden,
   byteLength,
+  encodeParams,
 } from "@/utils/commonUtils"; // 引入工具函数
+import commonParam, {
+  entryParams,
+  workbenchParams,
+} from "@/utils/commonParam.js";
 export default {
   components: {
     Modal,
@@ -517,8 +515,8 @@ export default {
       exportModal: {
         field: ["abbr", "词条"],
       },
-      // fieldOptions: tableParam.exportFields,
-      fieldOptions: tableParam.checkboxList,
+      // fieldOptions: entryParams.exportFields,
+      fieldOptions: entryParams.checkboxList,
       accept: ".xls,.xlsx",
       preTranslateOkLoading: false,
       state: {
@@ -538,8 +536,8 @@ export default {
         auditSuggest: "",
       },
       shouldCheckSykEntry: false, // 新增勾选状态变量
-      overlayStyle: workbenchCommon.overlayStyle, // 展示列
-      checkedColumn: workbenchCommon.checkedColumn, // 展示列切换
+      overlayStyle: workbenchParams.overlayStyle, // 展示列
+      checkedColumn: workbenchParams.checkedColumn, // 展示列切换
       // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
@@ -564,7 +562,7 @@ export default {
         (it) => it.name === this.task.translateType
       );
       this.search.department = this.task.department; // 默认部门
-      // workbenchCommon.languageMap[this.task.translateType].code
+      // workbenchParams.languageMap[this.task.translateType].code
       this.setTranslateColumn();
     },
     redHighlightIds(newval, oldval) {

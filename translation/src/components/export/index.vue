@@ -13,8 +13,7 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
-// import tableParam from '@/views/entry/tableParam';
-import { entryParams as tableParam } from "@/utils/commonParam.js";
+import { entryParams } from "@/utils/commonParam.js";
 import {
   queryUserPartiality,
   updateUserPartiality,
@@ -44,7 +43,7 @@ export default {
       exportModal: {
         field: undefined,
       },
-      fieldOptions: tableParam.exportFields,
+      fieldOptions: entryParams.exportFields,
     };
   },
 

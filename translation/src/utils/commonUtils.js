@@ -1,8 +1,6 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
-// import common from "@/views/workbench/common.js";
-import { entryParams } from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
+import commonParam,{ entryParams } from "@/utils/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值

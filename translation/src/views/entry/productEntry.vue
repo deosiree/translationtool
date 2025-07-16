@@ -419,11 +419,6 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
-// import tableParam from "@/views/entry/tableParam.js";
-import { entryParams as tableParam } from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
-// import common from "./common.js";
-import { byteLength } from "@/utils/commonUtils.js";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
@@ -483,7 +478,9 @@ import {
   handleTableChange,
   selectAllEntry,
   clearAllEntry,
+  byteLength,
 } from "@/utils/commonUtils";
+import commonParam,{ entryParams } from "@/utils/commonParam.js";
 export default {
   components: {
     CustomModal,
@@ -672,13 +669,13 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      overlayStyle: tableParam.overlayStyle,
-      checkboxList: tableParam.checkboxList,
+      overlayStyle: entryParams.overlayStyle,
+      checkboxList: entryParams.checkboxList,
       checkedColumn: cachedDisplayColumn
         ? cachedDisplayColumn.split(",")
-        : tableParam.checkedColumn,
-      inputColumn: tableParam.inputColumn,
-      translateColumn: tableParam.translateColumn,
+        : entryParams.checkedColumn,
+      inputColumn: entryParams.inputColumn,
+      translateColumn: entryParams.translateColumn,
       editableData: {},
       selectedRowKeys: [],
       selectedRows: [],

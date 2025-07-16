@@ -225,10 +225,7 @@ import {
   updateEntryList,
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
-// import workbenchCommon from "@/views/workbench/common.js";
-import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
-// import common from "../entry/common";
+import commonParam,{workbenchParams} from "@/utils/commonParam.js";
 import {
   getColPref,
   changeColumn,
@@ -398,9 +395,9 @@ export default {
       rejectReason: {
         reason: "",
       },
-      overlayStyle: workbenchCommon.overlayStyle,
+      overlayStyle: workbenchParams.overlayStyle,
       checkedColumn: ["abbr", "tag"],
-      // checkboxList: workbenchCommon.checkboxList,
+      // checkboxList: workbenchParams.checkboxList,
       // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
@@ -422,7 +419,7 @@ export default {
     this.languageList = commonParam.languageList.find(
       (it) => it.name === this.task.translateType
     );
-    // workbenchCommon.languageMap[this.task.translateType].code
+    // workbenchParams.languageMap[this.task.translateType].code
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
       getColPref("colPref-examineTranslateModal", 100, this);

@@ -194,8 +194,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-// import tableParam from "@/views/check/redundantTableParam.js";
-import { redundantTableParams as tableParam } from "@/utils/commonParam.js";
+import { redundantTableParams } from "@/utils/commonParam.js";
 import {
   clickInput,
   setTableHeight,
@@ -375,9 +374,9 @@ export default {
       },
       pageChangeSearch: {},
       hasRedundantRls: false, // 是否有冗余词条的结果
-      overlayStyle: tableParam.overlayStyle, // 展示列相关
-      checkboxList: tableParam.checkboxList,
-      checkedColumn: tableParam.checkedColumn,
+      overlayStyle: redundantTableParams.overlayStyle, // 展示列相关
+      checkboxList: redundantTableParams.checkboxList,
+      checkedColumn: redundantTableParams.checkedColumn,
       batchSelectVisible: false,
     };
   },

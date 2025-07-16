@@ -222,8 +222,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-// import tableParam from "@/views/entry/tableParam.js";
-import { entryParams as tableParam } from "@/utils/commonParam.js";
+import { entryParams } from "@/utils/commonParam.js";
 import {
   pageChange,
   getColPref,
@@ -282,7 +281,7 @@ export default {
       columns: [],
       checkedColumn: cachedDisplayColumn
         ? cachedDisplayColumn.split(",")
-        : tableParam.checkedColumn,
+        : entryParams.checkedColumn,
       version: {
         language: null,
         versionName: "",
@@ -304,7 +303,7 @@ export default {
       exportClass: {
         field: ["abbr", "词条"],
       },
-      fieldOptions: tableParam.exportFields,
+      fieldOptions: entryParams.exportFields,
       product: {},
       taskColumns: [
         {

@@ -157,10 +157,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-// import workbenchCommon from "@/views/workbench/common.js";
-import { workbenchParams as workbenchCommon } from "@/utils/commonParam.js";
-import commonParam from "@/utils/commonParam.js";
-// import common from "../entry/common.js";
+import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   getColPref,
   changeColumn,
@@ -324,9 +321,9 @@ export default {
       entryState: null,
       translateState: null,
       selectedRowIndex: null,
-      overlayStyle: workbenchCommon.overlayStyle,
-      checkedColumn: workbenchCommon.checkedColumn,
-      // checkboxList: workbenchCommon.checkboxList,
+      overlayStyle: workbenchParams.overlayStyle,
+      checkedColumn: workbenchParams.checkedColumn,
+      // checkboxList: workbenchParams.checkboxList,
       // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
@@ -377,11 +374,11 @@ export default {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code;
+            workbenchParams.languageMap[this.task.translateType].code;
         }
         if (item.title === "翻译状态") {
           item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code +
+            workbenchParams.languageMap[this.task.translateType].code +
             "TranslateState";
         }
       });
@@ -427,7 +424,7 @@ export default {
         return;
       }
       let code =
-        workbenchCommon.languageMap[this.task.translateType].code +
+        workbenchParams.languageMap[this.task.translateType].code +
         "TranslateState";
       let flag = false;
       data.forEach((item) => {

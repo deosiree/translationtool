@@ -119,8 +119,6 @@ import ResetButton from "@/components/Button/resetButton.vue";
 import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import { updateUserPartiality } from "@/http/api/userPartiality";
-// import tableParam from "@/views/glossary/tableParam.js";
-import { glossaryParams as tableParam } from "@/utils/commonParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,
@@ -132,7 +130,6 @@ import {
   ExclamationCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons-vue";
-
 import { getLanguage } from "@/http/api/translate";
 import {
   getSykEntry,
@@ -155,6 +152,7 @@ import {
   setModalAriaHidden,
   getSearch,
 } from "@/utils/commonUtils";
+import { glossaryParams } from "@/utils/commonParam.js";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
@@ -333,9 +331,9 @@ export default {
       },
       relationVisible: false,
       relationData: [],
-      overlayStyle: tableParam.overlayStyle, // 展示列相关
-      checkboxList: tableParam.checkboxList,
-      checkedColumn: tableParam.checkedColumn,
+      overlayStyle: glossaryParams.overlayStyle, // 展示列相关
+      checkboxList: glossaryParams.checkboxList,
+      checkedColumn: glossaryParams.checkedColumn,
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
       batchSelectVisible: false,
