@@ -35,13 +35,14 @@
                   <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
                 </a-upload>
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
-                <a-checkbox  v-if="!currentDepartment.needWriteBack" v-model:checked="isOldmodel" style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox>
+                <a-checkbox v-if="!currentDepartment.needWriteBack" v-model:checked="isOldmodel"
+                  style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox>
               </a-form-item>
             </a-col>
             <a-col v-if="currentDepartment.needWriteBack" :span="8">
               <a-form-item label="回写辞典" name="diFileName">
                 <a-select v-model:value="filediFileName" allowClear placeholder="请选择翻译数据回写辞典目录" style="width:70%" :options="dictionaryOptions"
-                  size="small">
+                  size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
                 </a-select>
                 <a-tooltip placement="top">
                   <template #title>
