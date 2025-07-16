@@ -45,6 +45,9 @@
             <a-form-item label="comment" name="comment" style="margin-top: 8px">
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
+            <a-form-item label="辞典名称" name="diFileName" style="margin-top: 8px">
+              <a-input v-model:value="search.diFileName" placeholder="请输入内容"></a-input>
+            </a-form-item>
             <a-form-item label="开始时间" name="startTime" style="margin-top: 8px">
               <a-date-picker v-model:value="startTime" />
             </a-form-item>
@@ -538,6 +541,7 @@ export default {
         comment: "",
         startTime: null,
         endTime: null,
+        diFileName: null,
       },
       startTime: null,
       endTime: null,
@@ -924,6 +928,7 @@ export default {
         tag: this.search.tag,
         entrySource: this.search.entrySource,
         comment: this.search.comment,
+        diFileName: this.search.diFileName,
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:",data)
@@ -1317,6 +1322,7 @@ export default {
         language: null,
         translateState: null,
         translate: "",
+        diFileName: null,
       };
       // this.getEntryByVersion();
       this.conditionalQuery();
