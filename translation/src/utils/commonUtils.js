@@ -8,6 +8,28 @@ const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
 /**
+ * 对接口入参进行编码转译，使用 encodeURIComponent 处理
+ * @param {string | object | array} input - 输入的参数，可以是字符串、对象或数组
+ * @returns {string | object | array} - 转译后的参数
+ */
+export function encodeParams(input) {
+  if (typeof input === 'string') {
+    return encodeURIComponent(input);
+  } else if (Array.isArray(input)) {
+    return input.map(item => encodeParams(item));
+  } else if (typeof input === 'object' && input !== null) {
+    const newObj = {};
+    for (const key in input) {
+      if (input.hasOwnProperty(key)) {
+        newObj[key] = encodeParams(input[key]);
+      }
+    }
+    return newObj;
+  }
+  return input;
+}
+
+/**
  * 从 filterSource 中移除 arr 中的数据(包括children)
  * @param {Array} filterSource - 需要过滤的源数组，每个对象必须有一个唯一的 id 属性
  * @param {Array} arr - 包含要移除的对象数组，每个对象必须有一个唯一的 id 属性

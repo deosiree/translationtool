@@ -335,6 +335,7 @@ import {
   SettingOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import { encodeParams } from "@/utils/commonUtils";
 // import workbenchCommon from "@/views/workbench/common.js";
 import { workbenchParams as workbenchCommon } from "@/utils/commonParam.js";
 // import tableParam from "../entry/tableParam";
@@ -423,6 +424,9 @@ export default {
           resizable: true,
           fixed: "left",
           index: 4,
+          // 添加 sorter 属性实现排序功能
+          sorter: (a, b) => a.entry.localeCompare(b.entry),
+          sortDirections: ["ascend", "descend"],
         },
         {
           title: "翻译",
@@ -907,6 +911,7 @@ export default {
 
       this.spinning = true;
       let params = {
+        // name: encodeParams(record.entry),
         name: record.entry,
         type: this.task.translateType,
         department: this.search.department,
