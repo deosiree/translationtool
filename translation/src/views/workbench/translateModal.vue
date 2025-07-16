@@ -11,55 +11,91 @@
           <div class="taskItem"><a-checkbox v-model:checked="shouldCheckSykEntry">先校验再保存</a-checkbox></div>
         </div>
         <div class="form">
-          <span>词条：</span>
-          <a-input v-model:value="search.keyWords" style="width:186px" size="small" placeholder='请输入词条搜索' />
-          <span style="margin-left:10px">翻译状态：</span>
-          <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择" :options='translateStates' size="small"
-            @click="clickInput" allowClear>
-          </a-select>
-          <a-button type="primary" size="small" style="margin-left:8px" @click="getSearch">查询</a-button>
-          <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="preTranslation">预翻译</a-button>
-          <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="save">保存</a-button> -->
-          <a-button type="primary" size="small" style="margin-left:8px" @click="exportExcel">导出Excel</a-button>
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
-            <a-button type="primary" size="small" style="margin-left:8px">翻译导入</a-button>
-          </a-upload>
-          <a-dropdown>
-            <template #overlay>
-              <a-menu @click="capitalizeWordsClick">
-                <a-menu-item key="upper">
-                  首字母大写
-                </a-menu-item>
-                <a-menu-item key="lower">
-                  首字母小写
-                </a-menu-item>
-                <a-menu-item key="replace">
-                  查找替换
-                </a-menu-item>
-              </a-menu>
-            </template>
-            <a-button size="small" type="primary" style="margin-left:8px">
-              翻译调整
-              <DownOutlined />
-            </a-button>
-          </a-dropdown>
-          <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="replace">替换</a-button> -->
-                      <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
-              <template #content>
-                <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
-                  <a-row v-for="item in checkboxList" :key="item.value">
-                    <a-col :span="24">
-                      <a-checkbox :value="item.value">
-                        {{ item.label }}
-                      </a-checkbox>
-                    </a-col>
-                  </a-row>
-                </a-checkbox-group>
-              </template>
-              <a-button type="primary" size="small" style="margin-left:8px"><template #icon>
-                  <SettingOutlined />
-                </template>展示列</a-button>
-            </a-popover>
+          <a-row :gutter="8" justify="space-between">
+            <a-col :span="12">
+              <a-row :gutter="8" justify="start" class="search-row">
+                <a-col :span="12">
+                  <div class="inline-left-align">
+                    <span>词条：</span>
+                    <a-input v-model:value="search.keyWords" size="small" placeholder='请输入词条搜索' />
+                  </div>
+                </a-col>
+                <a-col :span="12">
+                  <div class="inline-left-align">
+                    <span>翻译状态：</span>
+                    <a-select v-model:value="search.translateState" style="width: 150px" placeholder="请选择" :options='translateStates' size="small"
+                      @click="clickInput" allowClear>
+                    </a-select>
+                  </div>
+                </a-col>
+                <a-col :span="12">
+                  <div class="inline-left-align">
+                    <span>部门所属：</span>
+                    <a-select v-model:value="search.department" style="width: 186px" placeholder="请选择" :options='departments' size="small"
+                      @click="clickInput" allowClear>
+                    </a-select>
+                  </div>
+                </a-col>
+              </a-row>
+            </a-col>
+            <a-col :span="12">
+              <a-row :gutter="8" justify="start" class="search-row">
+                <a-col>
+                  <a-button type="primary" size="small" @click="getSearch">查询</a-button>
+                </a-col>
+                <a-col>
+                  <a-button type="primary" size="small" class="resetBtn" @click="preTranslation">预翻译</a-button>
+                </a-col>
+                <a-col>
+                  <a-button type="primary" size="small" @click="exportExcel">导出Excel</a-button>
+                </a-col>
+                <a-col>
+                  <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
+                    <a-button type="primary" size="small">翻译导入</a-button>
+                  </a-upload>
+                </a-col>
+                <a-col>
+                  <a-dropdown>
+                    <template #overlay>
+                      <a-menu @click="capitalizeWordsClick">
+                        <a-menu-item key="upper">
+                          首字母大写
+                        </a-menu-item>
+                        <a-menu-item key="lower">
+                          首字母小写
+                        </a-menu-item>
+                        <a-menu-item key="replace">
+                          查找替换
+                        </a-menu-item>
+                      </a-menu>
+                    </template>
+                    <a-button size="small" type="primary">
+                      翻译调整
+                      <DownOutlined />
+                    </a-button>
+                  </a-dropdown>
+                </a-col>
+                <a-col>
+                  <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+                    <template #content>
+                      <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+                        <a-row v-for="item in checkboxList" :key="item.value">
+                          <a-col :span="24">
+                            <a-checkbox :value="item.value">
+                              {{ item.label }}
+                            </a-checkbox>
+                          </a-col>
+                        </a-row>
+                      </a-checkbox-group>
+                    </template>
+                    <a-button type="primary" size="small"><template #icon>
+                        <SettingOutlined />
+                      </template>展示列</a-button>
+                  </a-popover>
+                </a-col>
+              </a-row>
+            </a-col>
+          </a-row>
         </div>
         <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
           :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child" ref="tableContainer"
@@ -300,7 +336,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 // import workbenchCommon from "@/views/workbench/common.js";
-import {workbenchParams as workbenchCommon} from "@/utils/commonParam.js";
+import { workbenchParams as workbenchCommon } from "@/utils/commonParam.js";
 // import tableParam from "../entry/tableParam";
 import { entryParams as tableParam } from "@/utils/commonParam.js";
 import commonParam from "@/utils/commonParam.js";
@@ -315,7 +351,7 @@ import {
   getColPref,
   changeColumn,
   setModalAriaHidden,
-  byteLength
+  byteLength,
 } from "@/utils/commonUtils"; // 引入工具函数
 export default {
   components: {
@@ -350,6 +386,7 @@ export default {
       search: {
         keyWords: "",
         translateState: null,
+        department: null,
       },
       // tableHeight: { x: "100%", y: 415 },
       tableHeight: { x: "max-content", y: 415 },
@@ -510,6 +547,10 @@ export default {
             "translate",
           ].includes(item.value)
       ),
+      departments: commonParam.departmentList.map((item) => ({
+        label: item.label,
+        value: item.label,
+      })),
     };
   },
   watch: {
@@ -518,6 +559,7 @@ export default {
       this.commonParam = commonParam.languageList.find(
         (it) => it.name === this.task.translateType
       );
+      this.search.department = this.task.department; // 默认部门
       // workbenchCommon.languageMap[this.task.translateType].code
       this.setTranslateColumn();
     },
@@ -867,7 +909,7 @@ export default {
       let params = {
         name: record.entry,
         type: this.task.translateType,
-        department: this.task.department,
+        department: this.search.department,
       };
       // 清空 快捷键
       this.deleteShortcutKeys();
@@ -1125,6 +1167,7 @@ export default {
       this.search = {
         keyWords: "",
         translateState: null,
+        department: this.task.department,
       };
       this.deleteShortcutKeys(); // 清空 辅助翻译快捷键
       this.suggest = {
@@ -1610,6 +1653,21 @@ export default {
 @import url("@/assets/style/common.less");
 </style>
 <style scoped lang="less">
+.search-row .ant-col {
+  margin-bottom: 4px !important; /* 使用 !important 确保覆盖 Ant Design 默认样式 */
+}
+.inline-left-align {
+  display: flex; /* 使用 Flex 布局 */
+  flex-direction: row; /* 水平排列 */
+  align-items: center; /* 垂直居中对齐 */
+  white-space: nowrap; /* 防止内容换行 */
+  & span {
+    margin-right: 8px; /* 给 span 右侧添加间距 */
+  }
+  & a-input {
+    flex: 1; /* 让输入框自动填充剩余空间 */
+  }
+}
 .content {
   width: 100%;
   height: 100%;
