@@ -383,6 +383,9 @@
         <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
             and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
         </if>
+        <if test="entryInfoEntity.diFileName != null and entryInfoEntity.diFileName != '' ">
+            and t2.di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
+        </if>
 
         order by t2.tag,t2.id
         <if test="limit >= 0 and offset >= 0">
