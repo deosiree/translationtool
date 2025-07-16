@@ -254,6 +254,9 @@ export default {
           resizable: true,
           fixed: "left",
           index: 4,
+          // 添加 sorter 属性实现排序功能
+          sorter: (a, b) => a.entry.localeCompare(b.entry),
+          sortDirections: ["ascend", "descend"],
         },
         {
           title: "翻译",
@@ -262,6 +265,9 @@ export default {
           width: 200,
           resizable: true,
           index: 5,
+          // 添加 sorter 属性实现排序功能
+          sorter: (a, b) => a.entry.localeCompare(b.entry),
+          sortDirections: ["ascend", "descend"],
         },
         {
           title: "tag",

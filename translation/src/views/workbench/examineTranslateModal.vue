@@ -225,12 +225,12 @@ import {
   updateEntryList,
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
-import commonParam,{workbenchParams} from "@/utils/commonParam.js";
+import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   getColPref,
   changeColumn,
   setModalAriaHidden,
-  byteLength
+  byteLength,
 } from "@/utils/commonUtils";
 import { computed, defineComponent, ref } from "vue";
 import {
@@ -313,6 +313,9 @@ export default {
           resizable: true,
           fixed: "left",
           index: 4,
+          // 添加 sorter 属性实现排序功能
+          sorter: (a, b) => a.entry.localeCompare(b.entry),
+          sortDirections: ["ascend", "descend"],
         },
         {
           title: "翻译",
@@ -321,6 +324,9 @@ export default {
           width: 200,
           resizable: true,
           index: 5,
+          // 添加 sorter 属性实现排序功能
+          sorter: (a, b) => a.entry.localeCompare(b.entry),
+          sortDirections: ["ascend", "descend"],
         },
         {
           title: "tag",
@@ -478,7 +484,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          message.error("1",err.message);
+          message.error("1", err.message);
         });
 
       // 初始化快捷键
@@ -986,7 +992,10 @@ export default {
               .validate()
               .then(() => {})
               .catch((err) => {
-                message.error("翻译审核校验未通过，请检查翻译内容", err.message);
+                message.error(
+                  "翻译审核校验未通过，请检查翻译内容",
+                  err.message
+                );
               });
           });
         }
