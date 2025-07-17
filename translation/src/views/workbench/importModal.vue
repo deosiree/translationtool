@@ -35,8 +35,8 @@
                   <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
                 </a-upload>
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
-                <a-checkbox v-if="!currentDepartment.needWriteBack" v-model:checked="isOldmodel"
-                  style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox>
+                <!-- <a-checkbox v-if="!currentDepartment.needWriteBack" v-model:checked="isOldmodel"
+                  style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox> -->
               </a-form-item>
             </a-col>
             <a-col v-if="currentDepartment.needWriteBack" :span="8">
@@ -451,7 +451,7 @@
     </template>
   </CustomModal>
   <Dict :visible="createDictVisible" @modalClose="createDictClose" @modalOK="createDictOk" />
-  <CustomModal :visible="templateVisible" modalTitle="模板下载" @handleOK="templateDownload" @handleClose="templateClose">
+  <CustomModal :visible="templateVisible" modalTitle="模板下载" @handleOK="templateDownload" @handleClose="templateClose" :okLoading="templateLoading">
     <div class="condent templateForm">
       <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
         <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
@@ -610,6 +610,7 @@ export default {
       tableHeight: { x: "max-content", y: "300px" },
       // tableHeight: { x: "100%", y: "300px" },
       loading: false,
+      templateLoading: false,
       columns: [
         {
           title: "序号",
@@ -855,7 +856,7 @@ export default {
     selectAllFields() {
       // this.exportFields = this.exportFieldOptions.map((item) => item.label);
       this.exportFields = this.exportFieldOptions;
-      console.log("this.exportFields", this.exportFields);
+      // console.log("this.exportFields", this.exportFields);
     },
     // 释义覆盖翻译
     interpretation2value() {
@@ -1435,6 +1436,14 @@ export default {
     },
     // 获取数据库节点信息
     getAllNode() {
+      // 获取IP地址
+      if (this.currentDepartment.needWriteBack) {
+        // this.getIPs();// mounted时已获取
+        if (this.ip === null || this.ip === undefined || this.ip === "") {
+          message.info("请选择IP！");
+          return;
+        }
+      }
       let params = {
         i18nUrl: this.ip,
       };
@@ -1521,23 +1530,25 @@ export default {
             i18nUrl: this.ip,
           };
           getTableByApp(params).then((res) => {
-            res.data.list.forEach((item) => {
-              const newId = uuidv4();
-              let table = {
-                id: newId,
-                pId: id,
-                value: newId,
-                key: newId,
-                tableId: item.tableId,
-                title: item.tableName,
-                type: "table",
-                node: node.dataRef.node,
-                app: node.dataRef.app,
-                db: node.dataRef.title,
-                isLeaf: true,
-              };
-              this.treeData.push(table);
-            });
+            if (res.data.list) {
+              res.data.list.forEach((item) => {
+                const newId = uuidv4();
+                let table = {
+                  id: newId,
+                  pId: id,
+                  value: newId,
+                  key: newId,
+                  tableId: item.tableId,
+                  title: item.tableName,
+                  type: "table",
+                  node: node.dataRef.node,
+                  app: node.dataRef.app,
+                  db: node.dataRef.title,
+                  isLeaf: true,
+                };
+                this.treeData.push(table);
+              });
+            }
           });
         }
         resolve(true);
@@ -1617,6 +1628,7 @@ export default {
 
       // 定义公共处理函数
       const handleCommonOperations = (data) => {
+        // console.log("data数据", data);
         if (data.length > 0) {
           this.dataSource = data;
           this.sortArray(this.dataSource, "isExist");
@@ -1694,7 +1706,7 @@ export default {
         const params = {
           diFileName: this.filediFileName,
           departmentType: this.user.department,
-          isOldmodel: this.isOldmodel,
+          // isOldmodel: this.isOldmodel,
         };
         asyncTask = readZZExcle(params, formData)
           .then((res) => res.data.list)
@@ -1715,46 +1727,67 @@ export default {
         // 实时库
         if (this.dataLibrary.type === "field") {
           // 实时库-对象数据（原 字段）
-          asyncTask = this.$refs.fieldFormRef
-            .validate()
-            .then(() => {
-              return new Promise((resolve) => {
-                this.getFieldData();
-                resolve([]);
-              });
-            })
-            .catch((err) => {
-              // message.error(err.message);// 校验参数未通过，不提示错误信息
-              return [];
-            });
+          // asyncTask = this.$refs.fieldFormRef
+          //   .validate()
+          //   .then(() => {
+          //     return new Promise((resolve) => {
+          //       this.getFieldData();
+          //       resolve([]);
+          //     });
+          //   })
+          //   .catch((err) => {
+          //     // message.error(err.message);// 校验参数未通过，不提示错误信息
+          //     return [];
+          //   });
+          asyncTask = handleAsyncRequest(
+            this.$refs.fieldFormRef,
+            this.getFieldData,
+            null,
+            null,
+            null
+          );
         } else if (this.dataLibrary.type === "alias") {
           // 实时库-元数据
-          asyncTask = this.$refs.aliasFormRef
-            .validate()
-            .then(() => {
-              return new Promise((resolve) => {
-                this.getAlias();
-                resolve([]);
-              });
-            })
-            .catch((err) => {
-              message.error("7", err.message);
-              return [];
-            });
+          // asyncTask = this.$refs.aliasFormRef
+          //   .validate()
+          //   .then(() => {
+          //     return new Promise((resolve) => {
+          //       this.getAlias();
+          //       resolve([]);
+          //     });
+          //   })
+          //   .catch((err) => {
+          //     message.error("7", err.message);
+          //     return [];
+          //   });
+          asyncTask = handleAsyncRequest(
+            this.$refs.aliasFormRef,
+            this.getAlias,
+            null,
+            null,
+            null
+          );
         } else if (this.dataLibrary.type === "allData") {
           // 实时库-全量
-          asyncTask = this.$refs.allDataFormRef
-            .validate()
-            .then(() => {
-              return new Promise((resolve) => {
-                this.batchImportDatabase();
-                resolve([]);
-              });
-            })
-            .catch((err) => {
-              message.error("8", err.message);
-              return [];
-            });
+          // asyncTask = this.$refs.allDataFormRef
+          //   .validate()
+          //   .then(() => {
+          //     return new Promise((resolve) => {
+          //       this.batchImportDatabase();
+          //       resolve([]);
+          //     });
+          //   })
+          //   .catch((err) => {
+          //     message.error("8", err.message);
+          //     return [];
+          //   });
+          asyncTask = handleAsyncRequest(
+            this.$refs.allDataFormRef,
+            this.batchImportDatabase,
+            null,
+            null,
+            null
+          );
         }
       } else if (this.dataType === "dictionary") {
         // 辞典
@@ -1815,7 +1848,7 @@ export default {
       });
     },
     // 获取对象数据（原 字段）内容
-    getFieldData() {
+    async getFieldData() {
       let table = this.treeData.find(
         (item) => item.id === this.dataLibrary.table
       );
@@ -1842,22 +1875,22 @@ export default {
         };
         data.push(field);
       });
-      getFieldData(params, data)
+      await getFieldData(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
           this.sortArray(this.dataSource, "isExist");
           this.allData = this.dataSource;
-          this.loading = false;
-          this.importBtnLoading = false;
+          // this.loading = false;
+          // this.importBtnLoading = false;
         })
         .catch((err) => {
-          this.loading = false;
-          this.importBtnLoading = false;
+          // this.loading = false;
+          // this.importBtnLoading = false;
           message.error("数据获取失败！", err.message);
         });
     },
     // 获取别名
-    getAlias() {
+    async getAlias() {
       let table = this.treeData.find(
         (item) => item.id === this.dataLibrary.table
       );
@@ -1873,22 +1906,22 @@ export default {
         maxLength: this.dataLibrary.maxLength,
         i18nUrl: this.ip,
       };
-      getAlias(params)
+      await getAlias(params)
         .then((res) => {
           this.dataSource = res.data.list;
           this.sortArray(this.dataSource, "isExist");
           this.allData = this.dataSource;
-          this.loading = false;
-          this.importBtnLoading = false;
+          // this.loading = false;
+          // this.importBtnLoading = false;
         })
         .catch((err) => {
-          this.loading = false;
-          this.importBtnLoading = false;
+          // this.loading = false;
+          // this.importBtnLoading = false;
           message.error("数据获取失败！", err.message);
         });
     },
     // 批量导入数据库
-    batchImportDatabase() {
+    async batchImportDatabase() {
       this.dataSource = [];
       this.allData = [];
       let selectNode = [];
@@ -1930,44 +1963,91 @@ export default {
         diFileName: "",
         i18nUrl: this.ip,
       };
-      if (nodes.length > 0) {
-        nodes.forEach((item) => {
-          item.node = item.value;
-        });
-        getDBALLEntryByNode(params, nodes).then((res) => {
-          this.dataSource = this.dataSource.concat(res.data.list);
-          this.sortArray(this.dataSource, "isExist");
-          this.allData = this.dataSource;
-          this.loading = false;
-          this.importBtnLoading = false;
-        });
+      // if (nodes.length > 0) {
+      //   nodes.forEach((item) => {
+      //     item.node = item.value;
+      //   });
+      //   getDBALLEntryByNode(params, nodes).then((res) => {
+      //     this.dataSource = this.dataSource.concat(res.data.list);
+      //     this.sortArray(this.dataSource, "isExist");
+      //     this.allData = this.dataSource;
+      //     // this.loading = false;
+      //     // this.importBtnLoading = false;
+      //   });
+      // }
+      // if (apps.length > 0) {
+      //   apps.forEach((item) => {
+      //     // item.modeType = item.appId
+      //     item.app = item.title;
+      //   });
+      //   getDBALLEntryByApp(params, apps).then((res) => {
+      //     this.dataSource = this.dataSource.concat(res.data.list);
+      //     this.sortArray(this.dataSource, "isExist");
+      //     this.allData = this.dataSource;
+      //     // this.loading = false;
+      //     // this.importBtnLoading = false;
+      //   });
+      // }
+      // if (dbs.length > 0) {
+      //   dbs.forEach((item) => {
+      //     item.db = item.title;
+      //     item.modeType = item.appId;
+      //   });
+      //   getDBALLEntryByDB(params, dbs).then((res) => {
+      //     this.dataSource = this.dataSource.concat(res.data.list);
+      //     this.sortArray(this.dataSource, "isExist");
+      //     this.allData = this.dataSource;
+      //     // this.loading = false;
+      //     // this.importBtnLoading = false;
+      //   });
+      // }
+      // 定义映射对象
+      const typeMap = {
+        nodes: {
+          list: nodes,
+          modifyFn: (item) => {
+            item.node = item.value;
+          },
+          apiFn: getDBALLEntryByNode,
+        },
+        apps: {
+          list: apps,
+          modifyFn: (item) => {
+            item.app = item.title;
+          },
+          apiFn: getDBALLEntryByApp,
+        },
+        dbs: {
+          list: dbs,
+          modifyFn: (item) => {
+            item.db = item.title;
+            item.modeType = item.appId;
+          },
+          apiFn: getDBALLEntryByDB,
+        },
+      };
+
+      const promises = [];
+
+      // 遍历映射对象
+      for (const key in typeMap) {
+        const { list, modifyFn, apiFn } = typeMap[key];
+        if (list.length > 0) {
+          list.forEach(modifyFn);
+          const promise = await apiFn(params, list).then((res) => {
+            this.dataSource = this.dataSource.concat(res.data.list);
+            this.sortArray(this.dataSource, "isExist");
+            this.allData = this.dataSource;
+          });
+          promises.push(promise);
+        }
       }
-      if (apps.length > 0) {
-        apps.forEach((item) => {
-          // item.modeType = item.appId
-          item.app = item.title;
-        });
-        getDBALLEntryByApp(params, apps).then((res) => {
-          this.dataSource = this.dataSource.concat(res.data.list);
-          this.sortArray(this.dataSource, "isExist");
-          this.allData = this.dataSource;
-          this.loading = false;
-          this.importBtnLoading = false;
-        });
-      }
-      if (dbs.length > 0) {
-        dbs.forEach((item) => {
-          item.db = item.title;
-          item.modeType = item.appId;
-        });
-        getDBALLEntryByDB(params, dbs).then((res) => {
-          this.dataSource = this.dataSource.concat(res.data.list);
-          this.sortArray(this.dataSource, "isExist");
-          this.allData = this.dataSource;
-          this.loading = false;
-          this.importBtnLoading = false;
-        });
-      }
+
+      // 等待所有请求完成后更新加载状态
+      Promise.all(promises).finally(() => {
+        // this.loading = false;
+        // this.importBtnLoading = false;
+      });
     },
     // 添加表格行点击事件
     customRow(record, index) {
@@ -2222,6 +2302,7 @@ export default {
     },
     // 模板下载
     templateDownload() {
+      this.templateLoading = true;
       this.$refs.dictRef.validate().then(() => {
         let params = {
           fileType: this.templateObj.type,
@@ -2229,18 +2310,22 @@ export default {
           // exportFields: this.exportFields,
           exportType: this.templateObj.exportType,
         };
-        templateFileDownload(params).then((res) => {
-          let fileName = res.headers["content-disposition"]
-            .split(";")[1]
-            .split("filename=")[1];
-          let contentType = res.headers["content-type"];
-          const blob = new Blob([res.data], { type: contentType });
-          const a = document.createElement("a");
-          a.download = decodeURI(fileName);
-          a.href = window.URL.createObjectURL(blob);
-          a.click();
-          a.remove();
-        });
+        templateFileDownload(params)
+          .then((res) => {
+            let fileName = res.headers["content-disposition"]
+              .split(";")[1]
+              .split("filename=")[1];
+            let contentType = res.headers["content-type"];
+            const blob = new Blob([res.data], { type: contentType });
+            const a = document.createElement("a");
+            a.download = decodeURI(fileName);
+            a.href = window.URL.createObjectURL(blob);
+            a.click();
+            a.remove();
+          })
+          .finally(() => {
+            this.templateLoading = false;
+          });
       });
     },
     templateClose() {

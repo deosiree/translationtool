@@ -13,24 +13,30 @@ const requestDelId = [];// 存储删除请求的id，用于保留loading状态
  * @param {*} [data=null] - 可选参数，传递给 getDataFn 的额外数据
  * @returns {Promise<Array>} - 返回一个 Promise，解析为数据列表数组，如果出错则返回空数组
  */
-export function handleAsyncRequest(validateRef, getDataFn, params, data = null) {
-  return validateRef
-    .validate()
-    .then(() => {
-      return new Promise((resolve) => {
-        getDataFn(params, data)
-          .then((res) => res.data.list)
-          .catch((err) => {
-            message.error("数据获取失败！", err.message);
-            return [];
-          });
-        resolve([]);
-      });
-    })
-    .catch((err) => {
+export async function handleAsyncRequest(validateRef, getDataFn, params = null, data = null, returnParams = 'data.list') {
+  try {
+    // 执行表单验证
+    await validateRef.validate();
+    // 调用 getDataFn 并等待其结果
+    const res = await getDataFn(params, data);
+    if (returnParams) {
+      const result = returnParams.split('.').reduce((obj, key) => obj && obj[key], res);// 默认为 res.data.list
+      // console.log("返回值为", result);
+      return result;
+    }
+    else {
+      return [];
+    }
+  } catch (err) {
+    if (err.name === 'ValidationError') {
       // 校验参数未通过，不提示错误信息
       return [];
-    });
+    }
+    // 数据获取失败，提示错误信息
+    message.error("数据获取失败！", err.message);
+    console.log("数据获取失败", err);
+    return [];
+  }
 }
 
 /**
