@@ -1,9 +1,37 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
-import commonParam,{ entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/utils/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
+
+/**
+ * 处理异步请求的通用函数
+ * @param {Object} validateRef - 表单验证引用对象，用于调用 validate 方法进行表单验证
+ * @param {Function} getDataFn - 获取数据的异步函数，接收 params 和 data 作为参数
+ * @param {Object} params - 传递给 getDataFn 的参数对象
+ * @param {*} [data=null] - 可选参数，传递给 getDataFn 的额外数据
+ * @returns {Promise<Array>} - 返回一个 Promise，解析为数据列表数组，如果出错则返回空数组
+ */
+export function handleAsyncRequest(validateRef, getDataFn, params, data = null) {
+  return validateRef
+    .validate()
+    .then(() => {
+      return new Promise((resolve) => {
+        getDataFn(params, data)
+          .then((res) => res.data.list)
+          .catch((err) => {
+            message.error("数据获取失败！", err.message);
+            return [];
+          });
+        resolve([]);
+      });
+    })
+    .catch((err) => {
+      // 校验参数未通过，不提示错误信息
+      return [];
+    });
+}
 
 /**
  * 对接口入参进行编码转译，使用 encodeURIComponent 处理

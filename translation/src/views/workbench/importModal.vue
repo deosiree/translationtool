@@ -558,6 +558,7 @@ import {
   filter_arr,
   filter_arr_keys,
   byteLength,
+  handleAsyncRequest,
 } from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
@@ -1653,32 +1654,33 @@ export default {
         };
       };
 
-      // 处理异步请求的通用函数
-      const handleAsyncRequest = (
-        validateRef,
-        getDataFn,
-        params,
-        data = null
-      ) => {
-        return validateRef
-          .validate()
-          .then(() => {
-            return getDataFn(params, data)
-              .then((res) => res.data.list)
-              .catch((err) => {
-                message.error("数据获取失败！", err.message);
-                return [];
-              });
-          })
-          .catch((err) => {
-            message.error(err.message);
-            return [];
-          });
-      };
+      // // 处理异步请求的通用函数
+      // const handleAsyncRequest = (
+      //   validateRef,
+      //   getDataFn,
+      //   params,
+      //   data = null
+      // ) => {
+      //   return validateRef
+      //     .validate()
+      //     .then(() => {
+      //       return getDataFn(params, data)
+      //         .then((res) => res.data.list)
+      //         .catch((err) => {
+      //           message.error("数据获取失败！", err.message);
+      //           return [];
+      //         });
+      //     })
+      //     .catch((err) => {
+      //       // message.error("10",err.message);// 校验参数未通过，不提示错误信息
+      //       return [];
+      //     });
+      // };
 
       let asyncTask;
 
       if (this.dataType === "file") {
+        // 文件
         // console.log(this.file)
         if (Object.keys(this.file).length === 0) {
           this.loading = false;
@@ -1686,7 +1688,6 @@ export default {
           message.info("请选择文件！");
           return;
         }
-        // 文件导入
         let formData = new FormData();
         formData.append("file", this.file);
         formData.append("taskID", this.task.id);
@@ -1702,7 +1703,7 @@ export default {
             return [];
           });
       } else if (this.dataType === "ts") {
-        // ts文件导入
+        // TS
         const params = getCommonParams();
         asyncTask = handleAsyncRequest(
           this.$refs.tsFormRef,
@@ -1710,20 +1711,10 @@ export default {
           params,
           this.tsFile.tsFileValue
         );
-      } else if (this.dataType === "dictionary") {
-        const params = getCommonParams({
-          transType: this.task.translateType,
-        });
-        asyncTask = handleAsyncRequest(
-          this.$refs.dictSelectRef,
-          importDictionaryEntry,
-          params,
-          this.dict.dictionaryType
-        );
       } else if (this.dataType === "database") {
-        // 数据库导入
+        // 实时库
         if (this.dataLibrary.type === "field") {
-          // 对象数据（原 字段）
+          // 实时库-对象数据（原 字段）
           asyncTask = this.$refs.fieldFormRef
             .validate()
             .then(() => {
@@ -1733,11 +1724,11 @@ export default {
               });
             })
             .catch((err) => {
-              message.error("6", err.message);
+              // message.error(err.message);// 校验参数未通过，不提示错误信息
               return [];
             });
         } else if (this.dataLibrary.type === "alias") {
-          // 元数据
+          // 实时库-元数据
           asyncTask = this.$refs.aliasFormRef
             .validate()
             .then(() => {
@@ -1751,7 +1742,7 @@ export default {
               return [];
             });
         } else if (this.dataLibrary.type === "allData") {
-          // 全量
+          // 实时库-全量
           asyncTask = this.$refs.allDataFormRef
             .validate()
             .then(() => {
@@ -1765,12 +1756,19 @@ export default {
               return [];
             });
         }
+      } else if (this.dataType === "dictionary") {
+        // 辞典
+        const params = getCommonParams({
+          transType: this.task.translateType,
+        });
+        asyncTask = handleAsyncRequest(
+          this.$refs.dictSelectRef,
+          importDictionaryEntry,
+          params,
+          this.dict.dictionaryType
+        );
       } else if (this.dataType === "config") {
-        if (this.ip === null || this.ip === undefined || this.ip === "") {
-          message.info("请选择IP！");
-          return;
-        }
-        // 配置文件数据导入
+        // 配置文件
         const params = getCommonParams({ diFileName: "" });
         asyncTask = handleAsyncRequest(
           this.$refs.configFormRef,
@@ -1779,10 +1777,7 @@ export default {
           this.configFile.config
         );
       } else if (this.dataType === "enum") {
-        if (this.ip === null || this.ip === undefined || this.ip === "") {
-          message.info("请选择IP！");
-          return;
-        }
+        // 枚举文件
         const params = getCommonParams({ diFileName: "" });
         asyncTask = handleAsyncRequest(
           this.$refs.enumFormRef,
@@ -1791,7 +1786,6 @@ export default {
           this.enumFile.enum
         );
       }
-
       if (asyncTask) {
         asyncTask
           .then((data) => {
