@@ -480,7 +480,7 @@ import {
   clearAllEntry,
   byteLength,
 } from "@/utils/commonUtils";
-import commonParam,{ entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/utils/commonParam.js";
 export default {
   components: {
     CustomModal,
@@ -807,7 +807,7 @@ export default {
   methods: {
     init() {
       this.getProductVersion();
-      this.getEntryByVersion();
+      this.getEntryByVersion(true); // isInit=true
       this.setTableHeight();
       this.selectSecondClassify();
     },
@@ -881,6 +881,7 @@ export default {
             ? this.product.parentId
             : this.product.key,
       };
+      // console.log("查询产品的所有版本", this.product);
       getVersionByName(params).then((res) => {
         this.productVersions = res.data.list;
         // if(this.productVersions.length > 0){
@@ -904,7 +905,15 @@ export default {
       this.getEntryByVersion();
     },
     // 获取版本词条
-    getEntryByVersion() {
+    getEntryByVersion(isInit = false) {
+      // console.log("isInit", isInit, this.product, this.product.type);
+      if (isInit) {
+        if (this.product.type == "department") {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return; // 如果是部门，则不在点击状态树时查询版本
+        }
+      }
       // console.log("获取版本词条",this.search);
       if (Object.keys(this.product).length === 0) {
         return;
