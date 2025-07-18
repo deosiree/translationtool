@@ -126,6 +126,18 @@ export default {
       needWriteBack: false,// 是否需要回写
       value: "zz",
     },
+    "人工智能部": {
+      label: "人工智能部",
+      importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
+      needWriteBack: false,// 是否需要回写
+      value: "zn",// 瞎写的
+    },
+        "柔性输电系统部": {
+      label: "柔性输电系统部",
+      importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
+      needWriteBack: false,// 是否需要回写
+      value: "rx",// 瞎写的
+    },
     "default": {
       label: "默认部门",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
@@ -145,6 +157,51 @@ export default {
     {
       label: "装置开发部",
       value: "zz"
+    },
+    {
+      label: "人工智能部",
+      value: "zn"
+    },
+    {
+      label: "柔性输电系统部",
+      value: "rx"
+    },
+    {
+      label: "默认部门",
+      value: "default"
+    }
+  ],
+  treeScoped: [
+    {
+      title: "思源宏瑞",
+      children: [
+        {
+          title: "通用平台部",
+        },
+        {
+          title: "监控系统部",
+        },
+        {
+          title: "装置开发部",
+        },
+        {
+          title: "人工智能部",
+        }
+      ]
+    },
+    {
+      title: "中研院",
+      children: [
+        {
+          title: "柔性输电系统部",
+        },
+      ]
+    },
+    {
+      title: "清能",
+    },
+    {
+      title: "公共库",
     }
   ]
 };
@@ -321,19 +378,19 @@ export const glossaryParams = {
 
 // import workbenchCommon from "@/views/workbench/common.js";
 const workBench_langageMap = {
-    /* 
-    '英文': { 
-      language: "英文", 
-      code: "english", 
-      transIdName: "enTransId", 
-    },
-    */
-    '英文': { language: "英文", code: "english", transIdName: "enTransId" },
-    '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
-    '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
-    '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
-    '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
-  };
+  /* 
+  '英文': { 
+    language: "英文", 
+    code: "english", 
+    transIdName: "enTransId", 
+  },
+  */
+  '英文': { language: "英文", code: "english", transIdName: "enTransId" },
+  '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
+  '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
+  '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
+  '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
+};
 const workbench_languageList = Object.values(workBench_langageMap);
 export const workbenchParams = {
   languageMap: workBench_langageMap,

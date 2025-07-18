@@ -96,6 +96,7 @@ import {
 import { deleteProduct, getUserProduct } from "@/http/api/product";
 import { message } from "ant-design-vue";
 import { setModalAriaHidden } from "@/utils/commonUtils";
+import commonParam from "@/utils/commonParam";
 export default {
   components: {
     SearchOutlined,
@@ -172,10 +173,39 @@ export default {
       getClassTree(params)
         .then((res) => {
           this.treeData = res.data.list;
+          // console.log("分类树", this.treeData);
+          this.getClassTreeByUsed();
         })
         .catch((err) => {
           message.error(err.message);
         });
+    },
+    // 根据用户权限限制状态树的展示
+    getClassTreeByUsed() {
+      let treeScoped = ["公共库"]; // 状态树可展示的字段
+      if (this.user.roleName.includes("超级管理员"))
+        treeScoped = commonParam.treeScoped.map((item) => item.title);
+      else {
+        treeScoped.push(this.user.department);
+      }
+      let treeData = cloneDeep(this.treeData);
+      let treeDataScoped = [];
+      // 遍历树数据，根据部门名过滤
+      treeDataScoped = treeData.filter((company) => {
+        // 如果有公司信息（如：“公共库”）
+        if (treeScoped.includes(company.title)) return true;
+        if (company.children) {
+          // 过滤出包含目标部门的公司
+          company.children = company.children.filter((department) => {
+            return treeScoped.includes(department.title);
+          });
+          // 若公司有符合条件的部门，则保留该公司
+          return company.children.length > 0;
+        }
+        return false;
+      });
+      this.treeData = treeDataScoped;
+      // console.log("过滤后的分类树", this.treeData);
     },
     classifyClose(closeFlag) {
       this.classifyVisible = false;
@@ -242,7 +272,8 @@ export default {
     // 删除分类或产品
     deleteClassify(treeKey, type) {
       let data = [treeKey];
-      deleteEntryClassfy(data).then((res) => {// 删除产品，分类，模块都是复用deleteEntryClassfy这个接口
+      deleteEntryClassfy(data).then((res) => {
+        // 删除产品，分类，模块都是复用deleteEntryClassfy这个接口
         message.success("删除成功！");
         this.getClassTree();
       });
