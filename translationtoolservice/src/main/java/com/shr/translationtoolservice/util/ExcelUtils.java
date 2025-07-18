@@ -313,17 +313,21 @@ public class ExcelUtils {
                 if(nextLine.equals("")) continue;
             }
             if(beforeLine.equals("")){
-                if(checkCSVLine(nextLine)){
+                try {
+                    CSVParse(nextLine);
                     lineTextList.add(nextLine);
                     beforeLine = "";
-                }else{
+                } catch (Exception e) {
+                    /* 说明当前行解析不正常，说明可能有单元格的文本有换行符 */
                     beforeLine += nextLine;
                 }
             }else{
-                if(checkCSVLine(beforeLine + '\n' + nextLine)){
+                try {
+                    CSVParse(beforeLine + '\n' + nextLine);
                     lineTextList.add(beforeLine + '\n' + nextLine);
                     beforeLine = "";
-                }else{
+                } catch (Exception e) {
+                    /* 说明当前行解析不正常，说明可能有单元格的文本有换行符 */
                     beforeLine += ('\n' + nextLine);
                 }
             }            
