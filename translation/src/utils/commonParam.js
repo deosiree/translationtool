@@ -238,15 +238,15 @@ const entry_checkboxList = [
   { label: "数据库记录ID", value: "dbRID", index: 30 },
   { label: "中文字符上限", value: "maxChineseLength", index: 31 },
   { label: "外文字符上限", value: "foreignMaxLength", index: 32 },
-  { label: "创建人", value: "creator", index: 33 },
-  { label: "创建时间", value: "createTime", index: 34 },
+  // { label: "创建人", value: "creator", index: 33 },// 词条管理-导出csv后端会报错
+  // { label: "创建时间", value: "createTime", index: 34 },// 词条管理-导出csv后端会报错
   { label: "修改人", value: "update", index: 35 },
   { label: "修改时间", value: "updateTime", index: 36 },
-  { label: "是否最新版本", value: "isLatestVersion", index: 37 },
+  // { label: "是否最新版本", value: "isLatestVersion", index: 37 },// 词条管理-导出csv后端会报错
   { label: "词性备注", value: "partOfSpeech", index: 41 },
   { label: "词条所属分类", value: "classifyId", index: 42 },
-  { label: "重复词条id", value: "repeatEntryId", index: 43 },
-  { label: "环境备注", value: "environmentRemark", index: 44 },
+  // { label: "重复词条id", value: "repeatEntryId", index: 43 },// 词条管理-导出csv后端会报错
+  // { label: "环境备注", value: "environmentRemark", index: 44 },// 词条管理-导出csv后端会报错
   { label: "产品名", value: "productName", index: 45 },
   { label: "版本名", value: "versionName", index: 46 },
   { label: "翻译最大长度", value: "maxLength", index: 47 },
