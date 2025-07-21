@@ -768,13 +768,13 @@ export default {
     productEdit(newval, oldval) {
       this.edit = newval;
     },
-    startTime(newValue) {
+    "search.startTime_": function(newValue) {
       // console.log("日期格式",newValue)
       if (newValue) {
         this.search.startTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
-        // console.log("日期格式",this.search.startTime)
+        console.log("日期格式",this.search.startTime)
         if (this.search.endTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("开始时间不能大于结束时间！");
@@ -786,7 +786,7 @@ export default {
         this.search.startTime = null;
       }
     },
-    endTime(newValue) {
+    "search.endTime_": function(newValue) {
       if (newValue) {
         this.search.endTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
@@ -961,6 +961,7 @@ export default {
         endTime: this.search.endTime,
       };
       this.loading = true;
+      console.log("params2", params);
 
       getEntryByClassfy(params, data)
         .then((res) => {
@@ -1468,6 +1469,7 @@ export default {
         pageSize: -1,
       };
       this.loading = true;
+      console.log("params1", params);
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectEntry = [];
