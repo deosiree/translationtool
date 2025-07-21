@@ -1141,6 +1141,7 @@ public class I18SeverController extends BaseController {
             String source = nodeName + "_" + appName + "_" + dbName + "_" + tbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo tdbFieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
+                String fieldName = tdbFieldInfo.getFieldName();
                 for (String entry : tdbFieldInfo.getFieldDatas()) {
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
                     fieldEntry.setId(commonUtils.getUUID());
@@ -1158,6 +1159,8 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setIsDelete(0);
                     fieldEntry.setImportType(ConstantInterface.DB_META);
                     fieldEntry.setWriteType(ConstantInterface.DI);
+                    fieldEntry.setTag(tbName + "/" + fieldName);
+                    fieldEntry.setImportType(ConstantInterface.DB);
                     entryInfoEntities.add(fieldEntry);
                 }
 
