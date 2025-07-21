@@ -49,10 +49,10 @@
               <a-input v-model:value="search.diFileName" placeholder="请输入内容"></a-input>
             </a-form-item>
             <a-form-item label="开始时间" name="startTime" style="margin-top: 8px">
-              <a-date-picker v-model:value="startTime" />
+              <a-date-picker v-model:value="search.startTime_" />
             </a-form-item>
             <a-form-item label="结束时间" name="endTime" style="margin-top: 8px">
-              <a-date-picker v-model:value="endTime" />
+              <a-date-picker v-model:value="search.endTime_" />
             </a-form-item>
           </a-row>
           <a-row style="width:100%" class="search-row" justify="end">
@@ -536,12 +536,12 @@ export default {
         translateState: null,
         translate: "",
         comment: "",
+        startTime_: null, // 时间戳格式
+        endTime_: null, // 时间戳格式
         startTime: null,
         endTime: null,
         diFileName: null,
       },
-      startTime: null,
-      endTime: null,
       translateStates: [
         { label: "未翻译", value: "0" },
         { label: "待审核", value: "1" },
@@ -775,11 +775,11 @@ export default {
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
         // console.log("日期格式",this.search.startTime)
-        if (this.endTime) {
-          if (this.startTime > this.endTime) {
+        if (this.search.endTime_) {
+          if (this.search.startTime_ > this.search.endTime_) {
             message.error("开始时间不能大于结束时间！");
             this.search.startTime = null;
-            this.startTime = null;
+            this.search.startTime_ = null;
           }
         }
       } else {
@@ -791,11 +791,11 @@ export default {
         this.search.endTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
-        if (this.startTime) {
-          if (this.startTime > this.endTime) {
+        if (this.search.startTime_) {
+          if (this.search.startTime_ > this.search.endTime_) {
             message.error("结束时间不能小于开始时间！");
-            this.endTime = null;
             this.search.endTime = null;
+            this.search.endTime_ = null;
           }
         }
       } else {
@@ -1322,12 +1322,18 @@ export default {
         abbr: "",
         partOfSpeech: "",
         translateType: null,
-        entrySource: "",
+        classfy2: null,
         entryState: null,
         tag: "",
+        entrySource: "",
         language: null,
         translateState: null,
         translate: "",
+        comment: "",
+        startTime_: null, // 时间戳格式
+        endTime_: null, // 时间戳格式
+        startTime: null,
+        endTime: null,
         diFileName: null,
       };
       // this.getEntryByVersion();
