@@ -573,18 +573,19 @@ export default {
           index: 0,
         },
         {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 130,
-          fixed: "left",
-          index: 1,
-        },
-        {
           title: "词条",
           dataIndex: "entry",
           align: "center",
           width: 160,
+          resizable: true,
+          fixed: "left",
+          index: 1,
+        },
+        {
+          title: "词条状态",
+          dataIndex: "entryState",
+          align: "center",
+          width: 130,
           resizable: true,
           index: 2,
         },
@@ -593,6 +594,7 @@ export default {
           dataIndex: "tag",
           align: "center",
           width: 130,
+          resizable: true,
           index: 3,
         },
         {
@@ -600,6 +602,7 @@ export default {
           dataIndex: "comment",
           align: "center",
           width: 130,
+          resizable: true,
           index: 4,
         },
         {
@@ -607,6 +610,7 @@ export default {
           dataIndex: "entryVersion",
           align: "center",
           width: 130,
+          resizable: true,
           index: 5,
         },
         {
@@ -768,13 +772,13 @@ export default {
     productEdit(newval, oldval) {
       this.edit = newval;
     },
-    "search.startTime_": function(newValue) {
+    "search.startTime_": function (newValue) {
       // console.log("日期格式",newValue)
       if (newValue) {
         this.search.startTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
-        console.log("日期格式",this.search.startTime)
+        console.log("日期格式", this.search.startTime);
         if (this.search.endTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("开始时间不能大于结束时间！");
@@ -786,7 +790,7 @@ export default {
         this.search.startTime = null;
       }
     },
-    "search.endTime_": function(newValue) {
+    "search.endTime_": function (newValue) {
       if (newValue) {
         this.search.endTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D

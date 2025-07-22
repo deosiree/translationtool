@@ -285,10 +285,11 @@ export function createColumn(value, normalWidth, needFilter = false) {
   };
 
   // 根据列数据索引设置固定位置
-  if (["isExist", "translateState", "entry"].includes(newCol.dataIndex)) {
+  // ("isExist", "translateState","auditSuggess","entryState"：存在状态、翻译状态，审核意见，词条状态，也不固定了)
+  if (["entry"].includes(newCol.dataIndex)) {
     newCol.fixed = "left";
   }
-  if (["auditSuggess", "entryState", "operation"].includes(newCol.dataIndex)) {
+  if (["operation"].includes(newCol.dataIndex)) {
     newCol.fixed = "right";
   }
 

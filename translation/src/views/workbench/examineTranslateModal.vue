@@ -297,25 +297,25 @@ export default {
           index: 0,
         },
         {
-          title: "翻译状态",
-          dataIndex: "translateState", // 动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          fixed: "left",
-          index: 2,
-        },
-        {
           title: "词条",
           dataIndex: "entry",
           align: "center",
           width: 200,
           resizable: true,
           fixed: "left",
-          index: 4,
+          index: 1,
           // 添加 sorter 属性实现排序功能
           sorter: (a, b) => a.entry.localeCompare(b.entry),
           sortDirections: ["ascend", "descend"],
+        },
+        {
+          title: "翻译状态",
+          dataIndex: "translateState", // 动态的
+          align: "center",
+          width: 100,
+          resizable: true,
+          // fixed: "left",
+          index: 3,
         },
         {
           title: "翻译",
