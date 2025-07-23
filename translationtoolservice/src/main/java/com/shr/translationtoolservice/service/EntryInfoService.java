@@ -94,8 +94,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> replaceWords(List<EntryInfoEntity> entryInfoEntities, String sourceStr, String replaceStr,String translateType);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType,String startTime,String endTime);
-
     int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
     List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap)
@@ -115,7 +113,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID,String startTime,String endTime);
+    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime);
 
     List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
 

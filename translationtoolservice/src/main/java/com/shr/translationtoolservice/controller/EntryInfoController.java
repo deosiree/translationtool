@@ -233,15 +233,16 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntityTemplate,
                                                                               @RequestParam(value = "classfyID") String classfyID,
                                                                                  String translateType,
+                                                                              @RequestParam(value = "accurate[]",required = false) Set<String> totalMatchSet,
                                                                               @RequestParam(value = "startTime",required = false)  String startTime,
                                                                               @RequestParam(value = "endTime",required = false) String endTime,
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
         List<EntryInfoEntity> originalEntryInfoEntities = new ArrayList<>();
-
+        if(totalMatchSet == null) totalMatchSet = new HashSet<>();
         // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
-        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate, classfyID,startTime,endTime);
+        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate,totalMatchSet, classfyID,startTime,endTime);
         List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
         // responseListModel.setList(entryInfoEntities);
         responseListModel.setTotalNum(entryInfoEntities.size());

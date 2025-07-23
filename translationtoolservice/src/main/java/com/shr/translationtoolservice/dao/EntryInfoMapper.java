@@ -69,6 +69,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<EntryInfoEntity> getEntryByClassfy(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
                                             @Param("productidList")List<String> productidList,
+                                            @Param("clearMatchSet") Set<String> clearMatchSet,
                                             @Param("offset") Integer offset,
                                             @Param("limit") Integer limit);
 

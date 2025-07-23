@@ -322,7 +322,14 @@
         </if>
 
         <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
-            and t2.entry like CONCAT('%',#{entryInfoEntity.entry,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('词条')">
+                    and t2.entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t2.entry like CONCAT('%',#{entryInfoEntity.entry,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr   != ''">
             and t2.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
@@ -334,10 +341,24 @@
             and t2.entry_label like CONCAT('%',#{entryInfoEntity.entryLabel,jdbcType=VARCHAR},'%')
         </if>
         <if test="entryInfoEntity.tag != null and entryInfoEntity.tag   != ''">
-            and t2.tag like CONCAT('%',#{entryInfoEntity.tag,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('tag')">
+                    and t2.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t2.tag like CONCAT('%',#{entryInfoEntity.tag,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
-            and t2.entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('词条来源')">
+                    and t2.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t2.entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.entryVersion != null and entryInfoEntity.entryVersion   != ''">
             and t2.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
@@ -355,22 +376,64 @@
             and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
         </if>-->
         <if test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
-            and t7.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('翻译结果')">
+                    and t7.translate = #{entryInfoEntity.chinese,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t7.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
-            and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('翻译结果')">
+                    and t3.translate = #{entryInfoEntity.english,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t3.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
-            and t6.translate  like CONCAT('%',#{entryInfoEntity.russian,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('翻译结果')">
+                    and t6.translate = #{entryInfoEntity.russian,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t6.translate  like CONCAT('%',#{entryInfoEntity.russian,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
-            and t4.translate  like CONCAT('%',#{entryInfoEntity.french,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('翻译结果')">
+                    and t4.translate = #{entryInfoEntity.french,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t4.translate  like CONCAT('%',#{entryInfoEntity.french,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
-            and t5.translate  like CONCAT('%',#{entryInfoEntity.spanish,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('翻译结果')">
+                    and t5.translate = #{entryInfoEntity.spanish,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t5.translate  like CONCAT('%',#{entryInfoEntity.spanish,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
         <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
-            and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('Comment')">
+                    and t2.comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
 
         <if test="entryInfoEntity.remark != null and entryInfoEntity.remark != '' ">
@@ -384,7 +447,14 @@
             and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
         </if>
         <if test="entryInfoEntity.diFileName != null and entryInfoEntity.diFileName != '' ">
-            and t2.di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
+            <choose>
+                <when test = "clearMatchSet.contains('辞典名称')">
+                    and t2.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and t2.di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
         </if>
 
         order by t2.tag,t2.id

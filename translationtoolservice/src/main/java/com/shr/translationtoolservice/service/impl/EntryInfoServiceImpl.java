@@ -2465,7 +2465,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
-    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID,String startTime,String endTime){
+    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime){
         List<String> productidList = new ArrayList<>();
         //一级分类查询
         if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
@@ -2476,7 +2476,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             log.error("当前分类不存在或者没有子分类");
           return null;
         }*/
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList, -1,-1);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList,clearMatchSet, -1,-1);
         boolean hasStartTime = (startTime != null && startTime != "");
         boolean hasEndTime = (endTime != null && endTime != "");
         DateFormat format = LocalTimeUtils.format;
@@ -2547,79 +2547,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
-
-    @Deprecated
-    @Override
-    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType,String startTime,String endTime) {
-        List<String> productidList = new ArrayList<>();
-        getProductClassfyList(classfyID,productidList);
-        //查询当前分类及其所有子分类,如果没有则说明当前分类是最底层分类（产品）
-        if (CollectionUtils.isEmpty(productidList)){
-            log.error("当前分类不存在或者没有子分类");
-          return null;
-        }
-        int offset = 0;
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            offset = (pageIndex - 1) * pageSize;
-
-        }
-        List<EntryInfoEntity> res = new ArrayList<>();
-        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        if (StringUtils.isNotBlank(entryInfoEntity.getEnglishTranslateState())
-                || StringUtils.isNotBlank(entryInfoEntity.getRussianTranslateState())
-                || StringUtils.isNotBlank(entryInfoEntity.getSpanishTranslateState())
-                || StringUtils.isNotBlank(entryInfoEntity.getFrenchTranslateState())){
-             entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,-1,-1);
-        }else {
-           entryInfoEntities =  entryInfoMapper.getEntryByClassfy(entryInfoEntity,productidList,-1,-1);
-           if(pageSize >= 0){
-                int lastIndex = offset + pageSize;
-                entryInfoEntities = entryInfoEntities.subList(offset, lastIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : lastIndex);
-           }
-        }
-
-        if (CollectionUtils.isEmpty(entryInfoEntities)){
-            return null;
-        }
-
-        //使用countdownlunch线程处理entryInfoEntities
-        //翻译状态处理
-        if (StringUtils.isNotBlank(translateType)) {
-
-
-            putEntryTransInfo(entryInfoEntities,entryInfoEntity,res,translateType);
-            //res 分页
-             if ("0".equals(entryInfoEntity.getEnglishTranslateState())
-                    || "0".equals(entryInfoEntity.getRussianTranslateState()) || "0".equals(entryInfoEntity.getSpanishTranslateState()) || "0".equals(entryInfoEntity.getFrenchTranslateState())){
-
-                if (pageSize != -1 && res.size() > pageSize){
-                    return res.subList(offset,offset+pageSize >= res.size() ? res.size() : offset + pageSize);
-                }else {
-                    return res;
-                }
-            }
-
-
-        }else {
-            return entryInfoEntities;
-        }
-
-
-    /*    for (EntryInfoEntity entryEntity : entryInfoEntities) {
-            TranslateEntity translateEntity = translateMapper.selectById(entryEntity.getEnTransId());
-
-            if (Objects.nonNull(translateEntity)) {
-                entryEntity.setEnglishTranslateState(translateEntity.getTranslateState());
-            }else {
-                entryEntity.setEnglishTranslateState("0");
-            }
-            if (StringUtils.isNotBlank(entryInfoEntity.getEnglishTranslateState()) && !entryInfoEntity.getEnglishTranslateState().equals(entryEntity.getEnglishTranslateState())){
-                res.remove(entryEntity);
-            }
-        }*/
-
-        return res;
-    }
 
     @Override
     public int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity ,String classfyID ,String translateType) {
