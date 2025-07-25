@@ -51,6 +51,46 @@
         <include refid="Base_Column_List"/>
         from t_translate where delete_state =0 and public_state =0
         <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            <choose>
+                <when test = "matchList != null and matchList.contains('translate')">
+                    and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and  `translate`  like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range  like CONCAT('%',#{translateEntity.visualRange,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            <choose>
+                <when test = "matchList != null and matchList.contains('entry')">
+                    and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and  entry like CONCAT('%',#{translateEntity.entry,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateState != null  and translateEntity.translateState != ''">
+            and translate_state = #{translateEntity.translateState,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+   <select id="checkSykSameEntry" resultMap="BaseResultMap">
+        SELECT tbl.entry,tbl.type,tbl.visual_range,count(*) from (SELECT entry,translate,type,visual_range FROM t_translate 
+        WHERE delete_state = 0 and public_state = 0 and entry is not NULL 
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
             and  `translate`  like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
 
         </if>
@@ -69,11 +109,12 @@
         <if test="translateEntity.type != null  and translateEntity.type != ''">
             and type = #{translateEntity.type,jdbcType=VARCHAR}
         </if>
+        GROUP BY entry,translate,type,visual_range  ORDER BY entry,type) as tbl 
+        GROUP BY tbl.entry,tbl.type,tbl.visual_range HAVING COUNT(*) > 1 
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
     </select>
-
 
     <select id="getPublicEntry" resultMap="BaseResultMap">
         select

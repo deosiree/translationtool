@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @Entity com.shr.translationtoolservice.entity.TranslateEntity
@@ -39,7 +40,9 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
     List<TranslateEntity> getRepTrans(@Param("entry")String entry,@Param("translateType") String translateType,@Param("translate") String translate,@Param("visualRange")  String visualRange);
 
 
-    List<TranslateEntity> getSykTrans(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+    List<TranslateEntity> getSykTrans(@Param("translateEntity") TranslateEntity translateEntity,@Param("matchList") Set<String> matchList,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+
+    List<TranslateEntity> checkSykSameEntry(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
 
     int insertTranslate(@Param("translateEntity") TranslateEntity translateEntity);
     List<TranslateEntity> getTransForCheckSykEntry(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);

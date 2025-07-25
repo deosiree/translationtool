@@ -22,12 +22,14 @@ import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -63,9 +65,17 @@ public class SykServiceImpl implements SykService {
 
 
     @Override
-    public List<TranslateEntity> getSykEntry(TranslateEntity translate, Integer pageIndex, Integer pageSize) {
+    public List<TranslateEntity> getSykEntry(TranslateEntity translate,Set<String> matchList, Integer pageIndex, Integer pageSize) {
 
-        return translateMapper.getSykTrans(translate, (pageIndex - 1) * pageSize, pageSize);
+        return translateMapper.getSykTrans(translate,matchList, (pageIndex - 1) * pageSize, pageSize);
+    }
+
+    @Override
+    public List<TranslateEntity> acquireSykSameEntry(TranslateEntity translate,Integer pageIndex, Integer pageSize) {
+        // TODO Auto-generated method stub
+        List<TranslateEntity> translateEntities = translateMapper.checkSykSameEntry(translate, (pageIndex - 1) * pageSize, pageSize);
+        return translateEntities;
+        
     }
 
     @Override
