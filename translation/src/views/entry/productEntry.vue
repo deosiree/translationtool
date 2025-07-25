@@ -57,14 +57,12 @@
           </a-row>
           <a-row style="width:100%" class="search-row" justify="end">
             <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-            <a-button type="primary" size="middle" @click="conditionalQuery" style="margin-left:8px">查询</a-button>
+            <a-button type="primary" size="middle" @click="conditionalQuery" style="margin:0 8px">查询</a-button>
+            <AccurSearchButton @update:accurSearch="accurSearch=$event" :fieldOptions="exportFields" @searchFunction="conditionalQuery($event)"
+              size="middle" buttonTitle="全量查询" />
           </a-row>
         </a-form>
       </template>
-      <!-- <template v-slot:operate>
-                <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin-left:8px">重置</a-button>
-                <a-button type="primary" size="middle" @click="conditionalQuery">查询</a-button>
-            </template> -->
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:label>
@@ -392,29 +390,6 @@
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
-
-  <!-- <CustomModal :visible="importVisible" :okLoading="importLoading" modalTitle="导入" @handleClose="importClose" @handleOK="importOK"
-    @afterClose="importAfterClose">
-    <div class="content">
-      <a-form ref="formRef" name="custom-validation" :model="importModal">
-        <a-form-item label="文件类型" name="importType" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择语言" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
-            allowClear>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
-            @remove="removeFile" :disabled="!importModal.language || !importModal.importType">
-            <a-button type="primary" size="small" @click="getAccept">选择</a-button>
-          </a-upload>
-        </a-form-item>
-      </a-form>
-    </div>
-  </CustomModal> -->
 </template>
 <script>
 import "@/assets/style/common.less";
@@ -424,6 +399,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
 import ImportButton from "@/components/Button/importButton.vue";
+import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -488,6 +464,7 @@ export default {
     DataBox,
     OperationArea,
     ImportButton,
+    AccurSearchButton,
     EditReason,
     CreateVersionModal,
     SecondClassify,
@@ -542,6 +519,14 @@ export default {
         endTime: null,
         diFileName: null,
       },
+      exportFields: [
+        "词条",
+        "tag",
+        "词条来源",
+        "翻译结果",
+        "Comment",
+        "辞典名称",
+      ],
       translateStates: [
         { label: "未翻译", value: "0" },
         { label: "待审核", value: "1" },
@@ -580,6 +565,13 @@ export default {
           resizable: true,
           fixed: "left",
           index: 1,
+          // // 添加筛选功能(但是查询做了分页，只能获得当前页的数据)
+          // customFilterDropdown: true, // 使用自定义筛选下拉框
+          // filteredValue: null, // 初始状态下没有筛选条件
+          // onFilter: (filterValue, record) => {
+          //   // 精确匹配，不忽略大小写
+          //   return record.entry.toString() === filterValue;
+          // },
         },
         {
           title: "词条状态",
@@ -705,20 +697,8 @@ export default {
       dictionaryVisible: false,
       selectAllLoading: false,
       filters: null,
-      // 都封在importButton中了
-      accept: null,
-      importVisible: false,
-      importLoading: false,
-      importModal: {
-        language: null,
-        importType: null,
-      },
-      importTypes: [
-        { label: "csv", value: "csv", accept: ".csv" },
-        { label: "excel", value: "excel", accept: ".xls,.xlsx" },
-      ],
-      importFile: null,
-      fileList: [],
+      accurSearch: [], // 用于分页时的查询参数
+      accurOrNot: false, // 是否是精确查询
     };
   },
 
@@ -778,7 +758,7 @@ export default {
         this.search.startTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
-        console.log("日期格式", this.search.startTime);
+        // console.log("日期格式", this.search.startTime);
         if (this.search.endTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("开始时间不能大于结束时间！");
@@ -898,7 +878,7 @@ export default {
       });
     },
     // 条件查询
-    conditionalQuery() {
+    conditionalQuery(accurate = []) {
       // 将页码变为第一页
       this.pagination.current = 1;
       this.selectedRowKeys = [];
@@ -906,10 +886,12 @@ export default {
       this.selectEntry = [];
       this.createVersionFlag = false;
       this.batchSelectFlag = false;
-      this.getEntryByVersion();
+      if (accurate.length > 0) this.accurSearch = accurate;
+      else this.accurSearch = [];
+      this.getEntryByVersion(false, this.accurSearch);
     },
-    // 获取版本词条
-    getEntryByVersion(isInit = false) {
+    // 获取版本词条(isInit是否是点击状态树的首次（部门级不用查询）；accurate是否全量查询)
+    getEntryByVersion(isInit = false, accurate = []) {
       // console.log("isInit", isInit, this.product, this.product.type);
       if (isInit) {
         if (this.product.type == "department") {
@@ -964,8 +946,11 @@ export default {
         startTime: this.search.startTime,
         endTime: this.search.endTime,
       };
+      if (accurate.length > 0) {
+        params.accurate = accurate;
+      }
       this.loading = true;
-      console.log("params2", params);
+      // console.log("params2", params);
 
       getEntryByClassfy(params, data)
         .then((res) => {
@@ -1473,7 +1458,7 @@ export default {
         pageSize: -1,
       };
       this.loading = true;
-      console.log("params1", params);
+      // console.log("params1", params);
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectEntry = [];
@@ -1681,92 +1666,6 @@ export default {
     recordPartiality(data) {
       updateUserPartiality(data).then((res) => {});
     },
-
-    // // 全都由importBUtton来实现
-    // // 获得导入文件类型
-    // getAccept() {
-    //   if (!this.importModal.importType) {
-    //     message.error("请选择文件类型！");
-    //     return;
-    //   }
-    //   if (!this.importModal.language) {
-    //     message.error("请选择语言！");
-    //     return;
-    //   }
-    //   for (let key in this.importTypes) {
-    //     if (this.importModal.importType === this.importTypes[key].value) {
-    //       this.accept = this.importTypes[key].accept;
-    //       break;
-    //     }
-    //   }
-    // },
-    // // 导入词条
-    // importEntry() {
-    //   this.importVisible = true;
-    //   setModalAriaHidden(this, document);
-    // },
-    // importClose() {
-    //   this.importVisible = false;
-    // },
-    // importOK() {
-    //   this.$refs.formRef
-    //     .validate()
-    //     .then(() => {
-    //       this.importLoading = true;
-    //       let formData = new FormData();
-    //       formData.append("file", this.importFile);
-    //       formData.append("transType", this.importModal.language);
-    //       formData.append("importType", this.importModal.importType);
-    //       entryImportExcle(formData)
-    //         .then((res) => {
-    //           message.success("导入成功！");
-    //           this.getEntryByVersion();
-    //           this.importVisible = false;
-    //           this.importLoading = false;
-    //         })
-    //         .catch((err) => {
-    //           message.error("导入失败！", err.message);
-    //           this.importLoading = false;
-    //         });
-    //     })
-    //     .catch((err) => {
-    //       message.error(err.message);
-    //     });
-    // },
-    // importAfterClose() {
-    //   this.importModal.language = null;
-    //   this.importFile = null;
-    //   this.fileList = [];
-    //   this.$refs.formRef.clearValidate();
-    // },
-    // // 导入词条(在文件开始上传之前阻止文件上传操作)
-    // beforeUpload(file, fileList) {
-    //   // console.log("before");
-    //   return false;
-    // },
-    // handleChange(info) {
-    //   this.fileList = info.fileList;
-    //   if (info.fileList.length === 0) {
-    //     this.importFile = null;
-    //   } else {
-    //     this.importFile = info.file;
-    //   }
-    // },
-    // removeFile(file) {
-    //   this.importFile = null;
-    //   return true;
-    // },
-    // // 校验上传文件是否为空
-    // checkFile() {
-    //   return (rule, value) => {
-    //     if (!this.importFile) {
-    //       return Promise.reject("请选择文件！");
-    //     }
-    //     return Promise.resolve();
-    //   };
-    // },
-
-    // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {
       handleSearch(selectedKeys, confirm, dataIndex, this);
     },
@@ -1801,7 +1700,13 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      pageChange(this, page, pageSize, this.getEntryByVersion);
+      // console.log("全量信息", this.accurSearch);
+      pageChange(
+        this,
+        page,
+        pageSize,
+        this.getEntryByVersion(false, this.accurSearch)
+      );
     },
   },
 };

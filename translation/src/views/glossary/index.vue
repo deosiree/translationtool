@@ -133,10 +133,12 @@ import {
 import { getLanguage } from "@/http/api/translate";
 import {
   getSykEntry,
+  checkSameEntry,
   getSykNotUsed,
   checkSykEntry,
   updateSykEntry,
   getSykEntryRelation,
+  getSameEntryRelation,
 } from "@/http/api/glossary";
 import {
   onSelectChange,
@@ -198,6 +200,7 @@ export default {
       searchTypes: [
         { label: "格式校验", value: "checkSykEntry" },
         { label: "空挂术语", value: "getSykNotUsed" },
+        { label: "查重自检", value: "checkSameEntry" },
         { label: "条件查询", value: "getSykEntry" },
       ],
       tableTitle: "术语列表",
@@ -340,6 +343,7 @@ export default {
       apiFunctions: {
         getSykEntry: this.getSykEntry,
         getSykNotUsed: this.getSykNotUsed,
+        checkSameEntry: this.checkSameEntry,
         checkSykEntry: this.checkSykEntry,
       },
       requestId: null, // 存储校验按钮的http请求
@@ -412,6 +416,7 @@ export default {
       const apiFunctions = {
         getSykEntry: this.getSykEntry,
         getSykNotUsed: this.getSykNotUsed,
+        checkSameEntry: this.checkSameEntry,
         checkSykEntry: this.checkSykEntry,
       };
       // 选项赋值
@@ -455,6 +460,24 @@ export default {
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           getSykEntryRelation([item]).then((res) => {
+            item["relationCount"] = res.data.list.length;
+            item["reslations"] = res.data.list;
+          });
+        }
+      });
+    },
+    // 查重自检查询
+    checkSameEntry(params, data, lastRequestId) {
+      console.log("查重自检", params, data, lastRequestId);
+      return checkSameEntry(params, data, lastRequestId).then((res) => {
+        if (!res) {
+          return;
+        }
+        this.dataSource = res.data.list;
+        this.pagination.total = res.data.totalNum;
+        for (let item of this.dataSource) {
+          // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
+          getSameEntryRelation([item]).then((res) => {
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
           });

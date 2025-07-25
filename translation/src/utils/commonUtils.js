@@ -300,14 +300,32 @@ export function createColumn(value, normalWidth, needFilter = false) {
      * 筛选逻辑：模糊匹配，将 record.entrySource 转换为字符串并转为小写，检查是否包含用户输入的筛选值（同样转为小写）
      * 应用场景：适用于文本类型的数据筛选，用户可以输入部分关键字来筛选出包含该关键字的所有记录。
      */
-    if (newCol.dataIndex === "entrySource") {
+    if (["entrySource"].includes(newCol.dataIndex)) {
       newCol.customFilterDropdown = true; // 使用自定义筛选下拉框
       newCol.filteredValue = null; // 初始状态下没有筛选条件
-      newCol.onFilter = (filterValue, record) =>
-        record.entrySource
-          .toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase());
+      newCol.onFilter = (filterValue, record) => {
+        const cellValue = record[newCol.dataIndex];
+        // 处理空值情况
+        if (cellValue === null || cellValue === undefined) {
+          return false;
+        }
+        return cellValue.toString().toLowerCase().includes(filterValue.toLowerCase());
+      };
+    }
+
+    // 添加筛选功能（全量筛选）
+    if (["entry"].includes(newCol.dataIndex)) {
+      newCol.customFilterDropdown = true; // 使用自定义筛选下拉框
+      newCol.filteredValue = null; // 初始状态下没有筛选条件
+      newCol.onFilter = (filterValue, record) => {
+        const cellValue = record[newCol.dataIndex];
+        // 处理空值情况
+        if (cellValue === null || cellValue === undefined) {
+          return false;
+        }
+        // 精确匹配，不忽略大小写
+        return cellValue.toString() === filterValue;
+      };
     }
 
     // 若列数据索引为 "isExist"，添加筛选功能
