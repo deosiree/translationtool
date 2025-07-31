@@ -172,7 +172,7 @@ public class SykServiceImpl implements SykService {
                 queryWrapper1.eq("entry_id", entity.getId());
                 List<ProductRelationEntity> productRelationEntitys = productRelationMapper.selectList(queryWrapper1);
 
-
+                /* 过滤掉没有关联产品的词条 */
                 if (!CollectionUtils.isEmpty(productRelationEntitys)) {
                     ProductRelationEntity productRelationEntity ;
                     if (productRelationEntitys.size() > 1) {
@@ -188,12 +188,18 @@ public class SykServiceImpl implements SykService {
                     if (StringUtils.isNotBlank(productRelationEntity.getVersionId())) {
                         sykEntryVO.setVersionName(versionMapper.selectById(productRelationEntity.getVersionId()).getName());
                     }
-
-                    sykEntryVO.setTaskName(taskInfoMapper.selectById(productRelationEntity.getTaskId()).getName());
+                    TaskInfoEntity taskInfo = taskInfoMapper.selectById(productRelationEntity.getTaskId());
+                    if(taskInfo != null)
+                        sykEntryVO.setTaskName(taskInfo.getName());
                     sykEntryVO.setId(entity.getId());
                     sykEntryVO.setEntry(translate.getEntry());
                     sykEntryVO.setTranslate(translate.getTranslate());
                     EntryClassify entryClassfyById = entryClassifyMapper.getEntryClassfyById(productEntity.getId());
+                    /* 过滤掉没有纳入分类的产品的词条 */
+                    if(entryClassfyById == null){
+                        continue;
+                    }
+                    /* 过滤掉术语顶层分类的词条 */
                     EntryClassify entryClassfyByParentId = entryClassifyMapper.getEntryClassfyById(entryClassfyById.getParentId());
                     if(entryClassfyByParentId == null){
                         continue;
