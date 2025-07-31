@@ -23,7 +23,7 @@ export function getSykEntry(params, data) {
 // 查重自检查询
 export function checkSameEntry(params, data) {
   return request({
-    url: "/Syk/getSykEntry",
+    url: "/Syk/checkSykSameEntry",
     method: "POST",
     params,
     data
@@ -81,7 +81,8 @@ export function getSykEntryRelation(data) {
 // 获取术语库同名词条关联信息
 export function getSameEntryRelation(data) {
   return request({
-    url: "/Syk/getSykEntryRelation",
+    // url: "/Syk/getSykEntryRelation",
+    url: "/Syk/getSameEntryRelation",
     method: "POST",
     data
   });

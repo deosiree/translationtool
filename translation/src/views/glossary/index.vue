@@ -36,7 +36,7 @@
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-          <BatchSelectButton v-if="!isGetSykEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
+          <BatchSelectButton v-if="!isGetSykEntry&&!isCheckSameEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
             v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
             v-model:selectedRows="selectedRows" v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag"
             v-model:batchSelectVisible="batchSelectVisible" />
@@ -339,6 +339,7 @@ export default {
       checkedColumn: glossaryParams.checkedColumn,
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
+      isCheckSameEntry: false,
       batchSelectVisible: false,
       apiFunctions: {
         getSykEntry: this.getSykEntry,
@@ -378,6 +379,11 @@ export default {
           this.isGetSykEntry = false;
         } else {
           this.isGetSykEntry = true;
+        }
+        if (newVal && newVal !== "checkSameEntry") {
+          this.isCheckSameEntry = false;
+        }else{
+          this.isCheckSameEntry = true;
         }
       },
     },
@@ -429,7 +435,7 @@ export default {
       // 记录上次查询条件
       const currentSearch = { ...this.search };
       currentSearch.searchType = option;
-      // console.log("当前查询条件：", currentSearch);
+      console.log("当前查询条件：", currentSearch);
       this.lastSearch = currentSearch;
 
       // 入参+请求体
@@ -477,7 +483,7 @@ export default {
         this.pagination.total = res.data.totalNum;
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
-          getSameEntryRelation([item]).then((res) => {
+          getSameEntryRelation(item).then((res) => {
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
           });
@@ -644,8 +650,8 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      // console.log("pageChange", page, pageSize);
-      if (this.isGetSykEntry)
+      console.log("pageChange", page, pageSize, );
+      if (this.isGetSykEntry||this.isCheckSameEntry)// 条件查询||查重自检时，根据分页信息回调查询函数
         // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
       // 需要回调查询接口，否则一次查询出所有数据，对前端压力太大了，所以每次分页查询只查询当前页的数据
