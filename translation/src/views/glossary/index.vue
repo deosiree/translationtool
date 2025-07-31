@@ -435,7 +435,7 @@ export default {
       // 记录上次查询条件
       const currentSearch = { ...this.search };
       currentSearch.searchType = option;
-      console.log("当前查询条件：", currentSearch);
+      // console.log("当前查询条件：", currentSearch);
       this.lastSearch = currentSearch;
 
       // 入参+请求体
@@ -474,7 +474,7 @@ export default {
     },
     // 查重自检查询
     checkSameEntry(params, data, lastRequestId) {
-      console.log("查重自检", params, data, lastRequestId);
+      // console.log("查重自检", params, data, lastRequestId);
       return checkSameEntry(params, data, lastRequestId).then((res) => {
         if (!res) {
           return;
@@ -568,16 +568,16 @@ export default {
     },
     // 聚焦单元格
     focusCell(recordId) {
-      console.log("聚焦单元格", recordId);
+      // console.log("聚焦单元格", recordId);
       nextTick(() => {
         const inputElement = this.inputRefs[recordId];
         if (inputElement) {
           const input = inputElement.input;
-          console.log("input", input);
+          // console.log("input", input);
           if (input) {
             input.focus();
             const length = input.value.length;
-            console.log("input.value", input.value);
+            // console.log("input.value", input.value);
             // 设置光标位置到文本末尾
             input.setSelectionRange(length, length);
           }
@@ -589,7 +589,7 @@ export default {
       this.editableData[recordId] = cloneDeep(
         this.dataSource.filter((item) => recordId === item.id)[0]
       );
-      console.log("editableData", this.editableData[recordId]);
+      // console.log("editableData", this.editableData[recordId]);
 
       this.focusCell(recordId); // 调用点击编辑方法
     },
@@ -650,7 +650,7 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      console.log("pageChange", page, pageSize, );
+      // console.log("pageChange", page, pageSize, );
       if (this.isGetSykEntry||this.isCheckSameEntry)// 条件查询||查重自检时，根据分页信息回调查询函数
         // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
