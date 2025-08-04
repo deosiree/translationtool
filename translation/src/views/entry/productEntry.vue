@@ -1012,7 +1012,7 @@ export default {
       }
       this.pagination.current = 1;
       // 查询版本词条
-      this.getEntryByVersion();
+      this.getEntryByVersion(false, this.accurSearch);
     },
 
     // 添加表格行点击事件
@@ -1130,7 +1130,7 @@ export default {
           };
           deleteEntryInfo(this.selectedRowKeys, params).then((res) => {
             message.success("删除成功！");
-            this.getEntryByVersion();
+            this.getEntryByVersion(false, this.accurSearch);
             this.selectedRowKeys = [];
             this.selectedRows = [];
           });
@@ -1244,14 +1244,13 @@ export default {
     editOk(entry) {
       delete this.editableData[entry.id];
       delete this.rules[entry.id];
-      // this.getEntryByVersion()
       let index = this.dataSource.findIndex((item) => item.id === entry.id);
       this.dataSource.splice(index, 1);
       this.dataSource.splice(index, 0, entry);
 
       this.editVisible = false;
       delete this.rowClassify2Option[entry.id];
-      this.getEntryByVersion();
+      this.getEntryByVersion(false, this.accurSearch);
     },
     editClose() {
       this.editVisible = false;
@@ -1417,7 +1416,7 @@ export default {
       this.getProductVersion();
     },
     refreshTable() {
-      this.getEntryByVersion();
+      this.getEntryByVersion(false, this.accurSearch)
     },
     // 选择全部词条
     selectAllEntry() {
