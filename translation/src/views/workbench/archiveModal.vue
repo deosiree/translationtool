@@ -342,6 +342,7 @@ export default {
             "translate",
           ].includes(item.value)
       ),
+      user:null, // 当前用户的相关信息
       currentDepartment: {
         label: "部门名称",
         importTypes: [],

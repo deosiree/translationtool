@@ -38,7 +38,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import { workbenchParams } from "@/utils/commonParam.js";
+import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   setModalAriaHidden,
   getCurrentStringTime,
@@ -85,8 +85,30 @@ export default {
         value: item.code,
       })),
       fileHandle: null, // 新增，用于保存文件句柄
-      // fieldOptions: tableParam.exportFields,
+      user: null, // 当前用户的相关信息
+      currentDepartment: {
+        label: "部门名称",
+        importTypes: [],
+        needWriteBack: false,
+        value: "name",
+        xml_temp: false,
+      }, // 当前用户所在部门的相关信息
     };
+  },
+  mounted() {
+    this.$nextTick(() => {
+      // 获取当前用户信息
+      this.user = this.$store.state.user;
+      // 获取当前用户所在部门的相关信息
+      if (
+        Object.keys(commonParam.departmentMap).includes(this.user.department)
+      ) {
+        this.currentDepartment =
+          commonParam.departmentMap[this.user.department];
+      } else {
+        this.currentDepartment = commonParam.departmentMap["default"];
+      }
+    });
   },
   methods: {
     showExportModal() {
@@ -209,20 +231,26 @@ export default {
             let abbr = item.entry != null ? item.entry : ""; // 装置部需求
             let cn_desc = item.chinese != null ? item.chinese : ""; // 装置部需求
             let en_desc = item.english != null ? item.english : "";
+            let es_desc = item.spanish != null ? item.spanish : "";
+            let ru_desc = item.russian != null ? item.russian : "";
             let local_desc =
               item[this.exportModal.local_desc] != null
                 ? item[this.exportModal.local_desc]
                 : "";
-            // console.log(
-            //   "当前选中的local:",
-            //   this.exportModal.local_desc,
-            //   item,
-            //   item[this.exportModal.local_desc]
-            // );
-            let es_desc = item.spanish != null ? item.spanish : "";
-            let ru_desc = item.russian != null ? item.russian : "";
+
+            // 装置部给领导看的临时版本
+            if (
+              this.currentDepartment.hasOwnProperty("xml_temp") &&
+              this.currentDepartment.xml_temp
+            ) {
+              let abbr_tmp = abbr;
+              abbr = cn_desc;
+              cn_desc = abbr_tmp;
+            }
 
             xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${local_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
+
+            // console.log("当前xml内容:", xml, this.currentDepartment);
           });
           xml += `</DICT>`;
 

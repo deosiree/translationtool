@@ -124,6 +124,7 @@ export default {
       label: "装置开发部",
       importTypes: ["file"],// 导入类型
       needWriteBack: false,// 是否需要回写
+      xml_temp: true,// 临时修改一下xml的样式
       value: "zz",
     },
     "人工智能部": {
@@ -132,7 +133,7 @@ export default {
       needWriteBack: false,// 是否需要回写
       value: "zn",// 瞎写的
     },
-        "柔性输电系统部": {
+    "柔性输电系统部": {
       label: "柔性输电系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       needWriteBack: false,// 是否需要回写
