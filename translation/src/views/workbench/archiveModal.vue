@@ -127,7 +127,8 @@
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
-      <a-button type="primary" ghost @click="placeOnFile">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.needWriteBack">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.needWriteBack">结束任务</a-button>
     </template>
   </CustomModal>
   <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"
@@ -222,7 +223,7 @@ export default {
           fixed: "left",
           index: 0,
         },
-                {
+        {
           title: "词条",
           dataIndex: "entry",
           align: "center",
@@ -341,6 +342,12 @@ export default {
             "translate",
           ].includes(item.value)
       ),
+      currentDepartment: {
+        label: "部门名称",
+        importTypes: [],
+        needWriteBack: false,
+        value: "name",
+      }, // 当前用户所在部门的相关信息
       state: {
         searchText: "",
         searchedColumn: "",
@@ -366,6 +373,17 @@ export default {
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
       getColPref("colPref-archiveModal", 100, this, true);
+      // 获取当前用户信息
+      this.user = this.$store.state.user;
+      // 获取当前用户所在部门的相关信息
+      if (
+        Object.keys(commonParam.departmentMap).includes(this.user.department)
+      ) {
+        this.currentDepartment =
+          commonParam.departmentMap[this.user.department];
+      } else {
+        this.currentDepartment = commonParam.departmentMap["default"];
+      }
     });
   },
   watch: {
@@ -655,7 +673,7 @@ export default {
           message.error("归档失败！", err.message);
         });
     },
-    // 归档、归档并结束任务按钮点击事件
+    // 归档按钮点击事件
     placeOnFile() {
       if (this.selectedRows.length === 0) {
         message.info("请选择词条");
@@ -664,6 +682,15 @@ export default {
       this.ipSelectModal = true;
       this.optionFlag = 0;
       this.getIPs();
+    },
+    // 结束任务按钮点击事件
+    placeOnFile2() {
+      this.task.state = "6";
+      this.task.endTime = getCurrentFormattedTime();
+      updateTaskInfo(this.task).then((res) => {
+        message.success("已结束任务！（词条状态更新为'已归档'）");
+        this.$emit("refresh");
+      });
     },
     ipSelectAfterClose() {
       this.ipModal.ip === null;
@@ -677,7 +704,7 @@ export default {
             // 归档
             this.writeBackFun();
           } else if (this.optionFlag === 1) {
-            // 归档并结束任务
+            // 归档并结束任务+回写
             this.saveLoading = false;
             this.task.state = "6";
             // this.task.endTime = common.getCurrentFormattedTime();
