@@ -800,13 +800,16 @@ export function getRowClassName(record, index, selectedRowIndex) {
  * @param {number} pageSize - 每页显示数量
  * @param {function} fetchData - 数据查询回调函数
  */
-export function pageChange(vm, page, pageSize, fetchData, selectEntry = "selectEntry") {
+export function pageChange(vm, page, pageSize, fetchData, selectEntry = "selectEntry", ...fetchDataParams) {
   vm.pagination.current = page;
   vm.pagination.pageSize = pageSize;
-
+  console.log("更新了page信息", page, pageSize);
   // 调用传入的查询接口函数
   if (typeof fetchData === 'function') {// 有可能不传，就是null
-    fetchData();
+    if (fetchDataParams.length === 0)
+      fetchData();
+    else
+      fetchData(...fetchDataParams);
   }
 
   // 如果vm中有这个参数（默认为vm[selectEntry]）,就在分页后  保留之前勾选的词条

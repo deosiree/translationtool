@@ -222,8 +222,7 @@
                   </template>
                 </template>
                 <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
-                <template
-                  v-if="langTranslateStateList.includes(column.dataIndex)">
+                <template v-if="langTranslateStateList.includes(column.dataIndex)">
                   <template v-if="record[column.dataIndex] === '0'">
                     <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
                   </template>
@@ -688,7 +687,7 @@ export default {
       translateColumn: entryParams.translateColumn,
       commonParam: commonParam,
       langTranslateStateList: commonParam.langTranslateStateList,
-      langNameList:commonParam.langNameList,
+      langNameList: commonParam.langNameList,
       editableData: {},
       selectedRowKeys: [],
       selectedRows: [],
@@ -1433,7 +1432,7 @@ export default {
       this.getProductVersion();
     },
     refreshTable() {
-      this.getEntryByVersion(false, this.accurSearch)
+      this.getEntryByVersion(false, this.accurSearch);
     },
     // 选择全部词条
     selectAllEntry() {
@@ -1716,12 +1715,14 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      // console.log("全量信息", this.accurSearch);
       pageChange(
         this,
         page,
         pageSize,
-        this.getEntryByVersion(false, this.accurSearch)
+        this.getEntryByVersion,
+        "selectEntry",
+        false,
+        this.accurSearch
       );
     },
   },
