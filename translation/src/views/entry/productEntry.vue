@@ -221,8 +221,9 @@
                     <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
                   </template>
                 </template>
+                <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
                 <template
-                  v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
+                  v-if="langTranslateStateList.includes(column.dataIndex)">
                   <template v-if="record[column.dataIndex] === '0'">
                     <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
                   </template>
@@ -299,6 +300,7 @@
           <table>
             <tr>
               <td class="tableTitle">翻译语种</td>
+              <!-- <td v-for="lang in commonParam.languageList" :key="lang.name">{{ lang.name }}</td> -->
               <td>英文</td>
               <td>俄文</td>
               <td>西文</td>
@@ -306,6 +308,7 @@
             </tr>
             <tr>
               <td class="tableTitle">翻译结果</td>
+              <!-- <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{currentEntry[lang.value]}}</td> -->
               <td>{{currentEntry.english}}</td>
               <td>{{currentEntry.russian}}</td>
               <td>{{currentEntry.spanish}}</td>
@@ -313,6 +316,14 @@
             </tr>
             <tr>
               <td class="tableTitle">翻译状态</td>
+              <!-- <td v-for="lang in commonParam.languageList" :key="lang.value">
+                <template v-if="currentEntry[lang.state] === '3'">
+                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry[lang.chineseState]}}</span>
+                </template>
+                <template v-else-if="currentEntry[lang.state] != null">
+                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry[lang.chineseState]}}</span>
+                </template>
+              </td> -->
               <td>
                 <template v-if="currentEntry.englishTranslateState === '3'">
                   <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.englishChineseState}}</span>
@@ -344,11 +355,14 @@
                 <template v-else-if="currentEntry.frenchTranslateState != null">
                   <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.frenchChineseState}}</span>
                 </template>
-
               </td>
             </tr>
             <tr>
               <td class="tableTitle">选择</td>
+              <!-- <td v-for="lang in commonParam.languageList" :key="lang.value">
+                <a-checkbox :disabled="currentEntry[lang.state] != '3'" v-model:checked="currentEntry[lang.checked]">
+                </a-checkbox>
+              </td> -->
               <td>
                 <a-checkbox :disabled="currentEntry.englishTranslateState != '3'" v-model:checked="currentEntry.englishChecked">
                 </a-checkbox>
@@ -672,6 +686,9 @@ export default {
         : entryParams.checkedColumn,
       inputColumn: entryParams.inputColumn,
       translateColumn: entryParams.translateColumn,
+      commonParam: commonParam,
+      langTranslateStateList: commonParam.langTranslateStateList,
+      langNameList:commonParam.langNameList,
       editableData: {},
       selectedRowKeys: [],
       selectedRows: [],

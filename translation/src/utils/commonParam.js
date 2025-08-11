@@ -81,6 +81,8 @@ const default_languageMap = default_languageList.reduce((acc, lang) => {
 }, {});
 export default {
   languageList: default_languageList,
+  langTranslateStateList: default_languageList.map(item => item.state),
+  langNameList: default_languageList.map(item => item.name),
   languageMap: default_languageMap,
   checkboxList: [
     // {label:'存在状态',value:'isExist',index:1},
@@ -275,9 +277,10 @@ const entry_exportFields = [
   .map(item => ({ label: item.label, value: item.value })));
 export const entryParams = {
   checkboxList: entry_checkboxList,
-  checkedColumn: ["abbr", "entry", "entryState", "entryVersion", "english", "russian", "spanish", "french"],
-  inputColumn: ["abbr", "entryLength", 'chineseInterpretation', 'englishInterpretation', 'spanishInterpretation', 'frenchInterpretation', 'russianInterpretation', "partOfSpeech", "remark", "diFileName", "comment"],
-  translateColumn: ["english", "russian", "spanish", "french"],
+  checkedColumn: ["abbr", "entry", "entryState", "entryVersion"].concat(default_languageList.map(item => item.value)),
+  inputColumn: ["abbr", "entryLength", "partOfSpeech", "remark", "diFileName", "comment"].concat(default_languageList.map(item => item.interpretation)),
+  translateColumn: default_languageList.map(item => item.value),
+  // translateColumn: ["english", "russian", "spanish", "french"],
   overlayStyle: {
     maxHeight: '300px',
     overflowY: 'scroll',
@@ -378,20 +381,22 @@ export const glossaryParams = {
 }
 
 // import workbenchCommon from "@/views/workbench/common.js";
-const workBench_langageMap = {
-  /* 
-  '英文': { 
-    language: "英文", 
-    code: "english", 
-    transIdName: "enTransId", 
-  },
-  */
-  '英文': { language: "英文", code: "english", transIdName: "enTransId" },
-  '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
-  '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
-  '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
-  '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
-};
+
+const workBench_langageMap = default_languageList.reduce((acc, cur) => {
+  acc[cur.name] = {
+    "language": cur.name,
+    "code": cur.value,
+    "transIdName": cur.transIdName,
+  };
+  return acc; // 添加返回累加器
+}, {}); // 添加初始值为空对象
+// const workBench_langageMap = {
+//   '英文': { language: "英文", code: "english", transIdName: "enTransId" },
+//   '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
+//   '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
+//   '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
+//   '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
+// };
 const workbench_languageList = Object.values(workBench_langageMap);
 export const workbenchParams = {
   languageMap: workBench_langageMap,
