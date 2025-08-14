@@ -126,6 +126,7 @@
       </a-table>
     </div>
     <template v-slot:leftBottomBtn>
+      <GitButton :size="'middle'" v-model:loading="loading"/>
       <a-button @click="handleClose">取消</a-button>
       <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.needWriteBack">归档</a-button>
       <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.needWriteBack">结束任务</a-button>
@@ -158,6 +159,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
+import GitButton from "@/components/Button/gitButton.vue";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   getColPref,
@@ -181,6 +183,7 @@ export default {
     SearchOutlined,
     ExclamationCircleOutlined,
     CustomModal,
+    GitButton,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
@@ -342,7 +345,7 @@ export default {
             "translate",
           ].includes(item.value)
       ),
-      user:null, // 当前用户的相关信息
+      user: null, // 当前用户的相关信息
       currentDepartment: {
         label: "部门名称",
         importTypes: [],
