@@ -126,7 +126,7 @@
       </a-table>
     </div>
     <template v-slot:leftBottomBtn>
-      <GitButton :size="'middle'" v-model:loading="loading"/>
+      <!-- <GitButton :size="'middle'" v-model:loading="loading"/> -->
       <a-button @click="handleClose">取消</a-button>
       <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.needWriteBack">归档</a-button>
       <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.needWriteBack">结束任务</a-button>

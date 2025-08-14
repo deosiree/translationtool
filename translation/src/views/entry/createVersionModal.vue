@@ -121,13 +121,13 @@
               placeholder="请选择" allowClear></a-select>
           </a-form-item>
         </a-form>
-      </a-spin>
+      </a-spin> -->
       <div class="table" v-if="title === '选择任务'">
         <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource" :row-selection='taskRowSelection'
           :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="taskTable" bordered>
         </a-table>
-      </div> -->
+      </div>
       <!-- 添加加载动画 -->
       <a-spin :spinning="writeBackLoading">
         <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
@@ -410,6 +410,7 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.user = this.$store.state.user;
+      // console.log("currentProduct:", this.currentProduct)
     });
   },
   computed: {
@@ -692,42 +693,42 @@ export default {
             // message.error("1",err.message);
           });
       }
-      // else if (this.title === "选择任务") {
-      //   //提交词条审核
-      //   if (this.selectedTaskRows.length === 0) {
-      //     message.warn("请选择任务！");
-      //     return;
-      //   }
-      //   // 判断词条中是否含有 中文释义和英文释义都不存在的词条
-      //   let notInterpretation = [];
-      //   this.dataSource.forEach((item) => {
-      //     if (
-      //       (item.englishInterpretation === null ||
-      //         item.englishInterpretation === "") &&
-      //       (item.chineseInterpretation === null ||
-      //         item.chineseInterpretation === "")
-      //     ) {
-      //       notInterpretation.push(item);
-      //     }
-      //   });
-      //   if (notInterpretation.length > 0) {
-      //     Modal.confirm({
-      //       title:
-      //         "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
-      //       icon: createVNode(ExclamationCircleOutlined),
-      //       content: "",
-      //       okText: "是",
-      //       cancelText: "否",
-      //       style: { top: "30%" },
-      //       onOk: () => {
-      //         this.submitExamine();
-      //       },
-      //       onCancel: () => {},
-      //     });
-      //   } else {
-      //     this.submitExamine();
-      //   }
-      // }
+      else if (this.title === "选择任务") {
+        //提交词条审核
+        if (this.selectedTaskRows.length === 0) {
+          message.warn("请选择任务！");
+          return;
+        }
+        // 判断词条中是否含有 中文释义和英文释义都不存在的词条
+        let notInterpretation = [];
+        this.dataSource.forEach((item) => {
+          if (
+            (item.englishInterpretation === null ||
+              item.englishInterpretation === "") &&
+            (item.chineseInterpretation === null ||
+              item.chineseInterpretation === "")
+          ) {
+            notInterpretation.push(item);
+          }
+        });
+        if (notInterpretation.length > 0) {
+          Modal.confirm({
+            title:
+              "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
+            icon: createVNode(ExclamationCircleOutlined),
+            content: "",
+            okText: "是",
+            cancelText: "否",
+            style: { top: "30%" },
+            onOk: () => {
+              this.submitExamine();
+            },
+            onCancel: () => {},
+          });
+        } else {
+          this.submitExamine();
+        }
+      }
       // else if (this.title === "导出") {
       //   this.exportLoading = true;
       //   this.$refs.exportForm.validate().then(() => {
