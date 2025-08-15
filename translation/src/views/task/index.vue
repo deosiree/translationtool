@@ -12,7 +12,7 @@
             </a-select>
           </a-form-item>
           <a-form-item label="产品名称" name="productName">
-            <a-input v-model:value="search.productId" placeholder="请输入产品名称" size="small"></a-input>
+            <a-input v-model:value="search.productName" placeholder="请输入产品名称" size="small"></a-input>
           </a-form-item>
           <a-form-item label="开发员" name="developer">
             <a-input v-model:value="search.developer" placeholder="请输入开发员" size="small"></a-input>
