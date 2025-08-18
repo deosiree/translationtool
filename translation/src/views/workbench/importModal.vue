@@ -39,22 +39,31 @@
                   style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox> -->
               </a-form-item>
             </a-col>
-            <a-col v-if="currentDepartment.needWriteBack" :span="8">
-              <a-form-item label="回写辞典" name="diFileName">
-                <a-select v-model:value="filediFileName" allowClear placeholder="请选择翻译数据回写辞典目录" style="width:70%" :options="dictionaryOptions"
-                  size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
-                </a-select>
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>添加辞典</span>
-                  </template>
-                  <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px" />
-                </a-tooltip>
-                <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
-              </a-form-item>
-            </a-col>
-            <a-col v-else :span="8">
-              <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
+            <a-col :span="8">
+              <a-row type="flex" align="middle" justify="space-between">
+                <a-col :flex="1">
+                  <a-form-item v-if="currentDepartment.needWriteBack" label="回写辞典" name="diFileName">
+                    <a-select v-model:value="filediFileName" allowClear placeholder="请选择回写辞典目录" style="width:70%" :options="dictionaryOptions"
+                      size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
+                    </a-select>
+                    <a-tooltip placement="top">
+                      <template #title>
+                        <span>添加辞典</span>
+                      </template>
+                      <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px" />
+                    </a-tooltip>
+                  </a-form-item>
+                  <a-form-item v-if="templateTypes" label="选择模板" name="templateType">
+                    <a-select v-model:value="templateType" allowClear placeholder="请选择模板类型" style="width:70%" size="small" :options="templateTypes">
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+                <a-col :span="2">
+                  <a-form-item>
+                    <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
+                  </a-form-item>
+                </a-col>
+              </a-row>
             </a-col>
           </a-row>
         </div>
@@ -739,7 +748,6 @@ export default {
         enum: [],
         enumOptions: [],
       },
-
       nodeOptions: [],
       serverOptions: [],
       libraryOptions: [],
@@ -809,6 +817,8 @@ export default {
         value: "name",
       }, // 当前用户所在部门的相关信息
       departmentList: commonParam.departmentList, // 当前用户所在部门
+      templateTypes: null,
+      templateType: null,
       isOldmodel: false, // 导入的文件是否是旧模板
       exportTypes: [
         { label: "excel", value: "excel" },
@@ -832,6 +842,9 @@ export default {
       } else {
         this.currentDepartment = commonParam.departmentMap["default"];
       }
+      // 获取模板类型（暂时只有装置部使用多个模板）
+      if (Object.keys(this.currentDepartment).includes("templateType"))
+        this.templateTypes = this.currentDepartment.templateType;
       // 设置默认的模板类型为本部门的
       this.templateObj.type = this.currentDepartment.value;
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
@@ -1700,6 +1713,12 @@ export default {
           message.info("请选择文件！");
           return;
         }
+        if (this.templateTypes && !this.templateType) {
+          this.loading = false;
+          this.importBtnLoading = false;
+          message.info("请选择模板类型！");
+          return;
+        }
         let formData = new FormData();
         formData.append("file", this.file);
         formData.append("taskID", this.task.id);
@@ -1707,6 +1726,7 @@ export default {
           diFileName: this.filediFileName,
           departmentType: this.user.department,
           // isOldmodel: this.isOldmodel,
+          templateType: this.templateType,
         };
         asyncTask = readZZExcle(params, formData)
           .then((res) => res.data.list)

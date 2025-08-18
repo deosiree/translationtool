@@ -127,6 +127,11 @@ export default {
       importTypes: ["file"],// 导入类型
       needWriteBack: false,// 是否需要回写
       xml_temp: true,// 临时修改一下xml的样式
+      templateType: [
+        { label: '新模板', value: '新模板' },
+        { label: '旧模板', value: '旧模板' },
+        { label: '通用模板', value: '通用模板' }
+      ],
       value: "zz",
     },
     "人工智能部": {
