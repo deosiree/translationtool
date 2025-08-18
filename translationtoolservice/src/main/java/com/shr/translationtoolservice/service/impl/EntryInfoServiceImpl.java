@@ -9,6 +9,7 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
+import com.shr.translationtoolservice.entity.vo.WorkBenchVO.EntryImportFileTypeVO;
 import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
 import com.shr.translationtoolservice.exception.i18nServerConnectException;
 import com.shr.translationtoolservice.exception.i18nServerParseException;
@@ -1003,15 +1004,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             /* 加版本号 */
             if(fileName.endsWith(".xlsx")){
                 if(departmentType.equals("装置开发部")){
-                    String isNewFileVersion = request.getParameter("isNewFileVersion");
-                    Boolean isNewVersion = Boolean.parseBoolean(isNewFileVersion);
-                    if(isNewVersion){
-                        entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
-                        zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                    }else{
+                    EntryImportFileTypeVO modeType = EntryImportFileTypeVO.parse(request.getParameter("templateType"));
+                    if(modeType == null){
+                        throw new NullPointerException("传递的modeType参数不正确或为null");
+                    }
+                    if(modeType == EntryImportFileTypeVO.NEW_FILE_VERSION){
+                        throw new Exception("暂不支持,请使用其他模板");
+                        // entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                        // zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                    }else if(modeType == EntryImportFileTypeVO.OLD_FILE_VERSION){
                         List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), fileName);
                         entryInfoEntities = new ArrayList<>();
                         zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
+                    }else if(modeType == EntryImportFileTypeVO.COMMON_VERSION){
+                        entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                        zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                    }else{
+                        throw new Exception("当前不支持该文件类型: " + request.getParameter("modeType"));
                     }
                 }else{
                     entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
