@@ -25,7 +25,12 @@
 <script>
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
-import { getI18nAdress, getBranches, gitCommit, gitPush } from "@/http/api/workbench.js";
+import {
+  getI18nAdress,
+  getBranches,
+  gitCommit,
+  gitPush,
+} from "@/http/api/workbench.js";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import { setModalAriaHidden } from "@/utils/commonUtils.js";
 export default {
@@ -139,8 +144,18 @@ export default {
           ...this.commitMsg,
         };
         console.log("导出参数", params);
-        this.$emit("operateClose");
-        this.visible = false;
+        gitCommit(params).then((res) => {
+          message.success("commit提交成功");
+          gitPush(params).then((res) => {
+            message.success("push推送成功");
+            this.visible = false;
+          })
+          .catch((error) => {
+            message.error(`push推送失败: ${error.message || error}`);
+          });
+        }).catch((error) => {
+          message.error(`commit提交失败: ${error.message || error}`);
+        });
       } catch (error) {
         if (!(error.name === "AbortError")) {
           console.log("导出失败原因", error);

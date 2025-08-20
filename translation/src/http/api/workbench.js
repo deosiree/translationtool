@@ -98,22 +98,22 @@ export function updateEntryList(params, data) {
 
 // 删除词条
 export function deleteEntryInfoByID(params, data) {
-    return request({
-        url: "/workbench/deleteEntryInfoByID",
-        method: "POST", 
-        params,
-        data
-    });
+  return request({
+    url: "/workbench/deleteEntryInfoByID",
+    method: "POST",
+    params,
+    data
+  });
 
 }
 
 // 删除任务中的词条
 export function deleteEntryInfoByTaskID(params, data) {
   return request({
-      url: "/workbench/deleteEntryInfoByTaskID",
-      method: "POST", 
-      params,
-      data
+    url: "/workbench/deleteEntryInfoByTaskID",
+    method: "POST",
+    params,
+    data
   });
 
 }
@@ -148,6 +148,45 @@ export function importCommonExcle(data) {
 
 // 获取i18 ip地址
 export function getI18nAdress() {
+  return request({
+    url: "/workbench/getI18nAdress",
+    method: "GET"
+  });
+}
+
+// 获取iip地址对应的分支
+export function getBranches(params) {
+  // return request({
+  //   url: "/workbench/getBranches",
+  //   method: "POST",
+  //   params
+  // });
+  return request({
+    url: "/workbench/getI18nAdress",
+    method: "GET"
+  });
+}
+
+// git commit
+export function gitCommit(params) {
+  // return request({
+  //   url: "/workbench/gitCommit",
+  //   method: "POST",
+  //   params
+  // });
+  return request({
+    url: "/workbench/getI18nAdress",
+    method: "GET"
+  });
+}
+
+// git push
+export function gitPush(params) {
+  // return request({
+  //   url: "/workbench/gitPush",
+  //   method: "POST",
+  //   params
+  // });
   return request({
     url: "/workbench/getI18nAdress",
     method: "GET"

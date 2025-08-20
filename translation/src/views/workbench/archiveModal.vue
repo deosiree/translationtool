@@ -126,7 +126,8 @@
       </a-table>
     </div>
     <template v-slot:leftBottomBtn>
-      <GitButton :size="'middle'" v-model:loading="loading"/>
+      <!-- <GitButton :size="'middle'" v-model:loading="loading"/> -->
+      <GitCommitPushButton size="middle" buttonTitle="git推送" buttonClass="yellowBtn"/>
       <a-button @click="handleClose">取消</a-button>
       <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.needWriteBack">归档</a-button>
       <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.needWriteBack">结束任务</a-button>
@@ -160,6 +161,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import GitButton from "@/components/Button/gitButton.vue";
+import GitCommitPushButton from "@/components/Button/gitCommitPushButton.vue";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   getColPref,
@@ -184,6 +186,7 @@ export default {
     ExclamationCircleOutlined,
     CustomModal,
     GitButton,
+    GitCommitPushButton,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
