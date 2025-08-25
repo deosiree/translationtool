@@ -154,42 +154,30 @@ export function getI18nAdress() {
   });
 }
 
-// 获取iip地址对应的分支
+// 获取ip地址对应的分支
 export function getBranches(params) {
-  // return request({
-  //   url: "/workbench/getBranches",
-  //   method: "POST",
-  //   params
-  // });
   return request({
-    url: "/workbench/getI18nAdress",
-    method: "GET"
+    url: "/workbench/getBranches",
+    method: "POST",
+    params
   });
 }
 
 // git commit
 export function gitCommit(params) {
-  // return request({
-  //   url: "/workbench/gitCommit",
-  //   method: "POST",
-  //   params
-  // });
   return request({
-    url: "/workbench/getI18nAdress",
-    method: "GET"
+    url: "/workbench/gitCommit",
+    method: "POST",
+    params
   });
 }
 
 // git push
 export function gitPush(params) {
-  // return request({
-  //   url: "/workbench/gitPush",
-  //   method: "POST",
-  //   params
-  // });
   return request({
-    url: "/workbench/getI18nAdress",
-    method: "GET"
+    url: "/workbench/gitPush",
+    method: "POST",
+    params
   });
 }
 

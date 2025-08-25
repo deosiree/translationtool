@@ -72,6 +72,7 @@
       </template>
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
+          <GitCommitButton size="small" buttonTitle="git推送" buttonClass="yellowBtn"/>
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
 
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
@@ -413,6 +414,7 @@ import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
 import ImportButton from "@/components/Button/importButton.vue";
 import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
+import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -478,6 +480,7 @@ export default {
     OperationArea,
     ImportButton,
     AccurSearchButton,
+    GitCommitButton,
     EditReason,
     CreateVersionModal,
     SecondClassify,

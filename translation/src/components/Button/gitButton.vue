@@ -1,7 +1,6 @@
 <template>
   <a-button type="primary" :size="size" @click="gitOpen" v-if="!gitFlag" class="yellowBtn">Git操作</a-button>
-  <GitCommitButton :dataSource="[]" :fieldOptions="[]" size="middle" buttonTitle="提交commit" v-if="gitFlag" />
-  <GitPushButton :dataSource="[]" :fieldOptions="[]" size="middle" buttonTitle="推送push" v-if="gitFlag" />
+  <!-- <GitPushButton :dataSource="[]" :fieldOptions="[]" size="middle" buttonTitle="推送push" v-if="gitFlag" /> -->
   <!-- <a-button type="primary" :size="size" @click="gitAll" v-if="gitFlag" :loading="loading" class="resetBtn">创建分支</a-button>
   <a-button type="primary" :size="size" @click="gitAll" v-if="gitFlag" :loading="loading" class="resetBtn">切换分支</a-button> -->
 
@@ -16,11 +15,9 @@
 <script>
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
-import GitPushButton from "@/components/Button/gitPushButton.vue";
 export default {
   components: {
     GitCommitButton,
-    GitPushButton,
   },
   emits: ["update:loading"],
   props: {

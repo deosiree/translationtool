@@ -1,6 +1,6 @@
 <template>
   <a-button type="primary" @click="showModal" :size="size" :class="buttonClass">{{ buttonTitle }}</a-button>
-  <CustomModal :modalTitle="buttonTitle" width="500px" :visible="visible" :showCancel="false" :showOk="false" @handleClose="handleClose">
+  <CustomModal :modalTitle="buttonTitle" width="500px" :modalVisible="visible" :showCancel="false" :showOk="false" @handleClose="handleClose">
     <div class="content">
       <a-form ref="contentForm" :model="commitMsg">
         <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
@@ -17,7 +17,8 @@
     </div>
     <template #leftBottomBtn>
       <a-button key="back" @click="handleClose">取消</a-button>
-      <a-button type="primary" @click="handleOK(false)" :loading="loading">确定</a-button>
+      <a-button type="primary" @click="commitOK" :loading="loading">commit</a-button>
+      <a-button type="primary" @click="pushOK" :loading="loading">push</a-button>
     </template>
   </CustomModal>
 </template>
@@ -25,7 +26,12 @@
 <script>
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
-import { getI18nAdress, getBranches, gitCommit, gitPush } from "@/http/api/workbench.js";
+import {
+  getI18nAdress,
+  getBranches,
+  gitCommit,
+  gitPush,
+} from "@/http/api/workbench.js";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import { setModalAriaHidden } from "@/utils/commonUtils.js";
 export default {
@@ -39,11 +45,11 @@ export default {
     },
     buttonClass: {
       type: String,
-      default: "small",
+      default: null,
     },
     buttonTitle: {
       type: String,
-      default: "导出",
+      default: "git推送",
     },
   },
   data() {
@@ -54,6 +60,7 @@ export default {
         ip: null,
         branch: null,
         versionName: "",
+        userName: this.$store.state.user.userName,
       },
       visible: false,
       loading: false,
@@ -63,6 +70,8 @@ export default {
     this.$nextTick(() => {
       // 获取当前用户信息
       this.user = this.$store.state.user;
+      console.log("当前用户信息", this.commitMsg.userName);
+
       // 获取当前用户所在部门的相关信息
       if (
         Object.keys(commonParam.departmentMap).includes(this.user.department)
@@ -89,6 +98,9 @@ export default {
       this.visible = true;
       setModalAriaHidden(this, document);
       this.getIPs();
+      if (this.commitMsg.ip) {
+        this.getBranches();
+      }
     },
     // 获取i18服务器ip
     getIPs() {
@@ -107,48 +119,76 @@ export default {
     // 获取ip对应的分支
     getBranches() {
       this.branchOptions = [];
-      getBranches(this.commitMsg.ip).then((res) => {
+      getBranches({ ip: this.commitMsg.ip }).then((res) => {
+        console.log("获取ip分支结果", res);
         res.data.list.forEach((item) => {
-          // let branch = {
-          //   label: item.branch,
-          //   value: item.branch,
-          // };
           let branch = {
-            label: item.ip,
-            value: item.ip,
+            label: item,
+            value: item,
           };
           this.branchOptions.push(branch);
         });
       });
     },
 
-    // 导出-确认
-    async handleOK() {
-      this.loading = true;
-      try {
-        if (!this.commitMsg.ip) {
-          message.error("请选择IP！");
-          return;
-        }
-        if (!this.commitMsg.branch) {
-          message.error("请选择分支！");
-          return;
-        }
-        await this.$refs.contentForm.validate();
-        let params = {
-          ...this.commitMsg,
-        };
-        console.log("导出参数", params);
-        this.$emit("operateClose");
-        this.visible = false;
-      } catch (error) {
-        if (!(error.name === "AbortError")) {
-          console.log("导出失败原因", error);
-          message.error(`导出失败: ${error.message || error}`);
-        }
-      } finally {
-        this.loading = false;
+    // commit
+    async commitOK() {
+      if (!this.commitMsg.ip) {
+        message.error("请选择IP！");
+        return;
       }
+      if (!this.commitMsg.branch) {
+        message.error("请选择分支！");
+        return;
+      }
+      await this.$refs.contentForm.validate();
+      let params = {
+        ip: this.commitMsg.ip,
+        branch: this.commitMsg.branch,
+        versionName:
+          this.commitMsg.versionName == ""
+            ? this.commitMsg.userName
+            : this.commitMsg.userName + "-" + this.commitMsg.versionName,
+      };
+      console.log("导出参数", params);
+      this.loading = true;
+      await gitCommit(params)
+        .then((res) => {
+          message.success("commit提交成功");
+        })
+        .catch((error) => {
+          message.error(`commit提交失败: ${error.message || error}`);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    // push
+    async pushOK() {
+      if (!this.commitMsg.ip) {
+        message.error("请选择IP！");
+        return;
+      }
+      if (!this.commitMsg.branch) {
+        message.error("请选择分支！");
+        return;
+      }
+      await this.$refs.contentForm.validate();
+      this.loading = true;
+      let params = {
+        ip: this.commitMsg.ip,
+      };
+      await gitPush(params)
+        .then((res) => {
+          // console.log("push推送成功",qwed);
+          message.success("push推送成功");
+        })
+        .catch((error) => {
+          message.error(`push推送失败: ${error.message || error}`);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     // 关闭导出模态框
     handleClose() {

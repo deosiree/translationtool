@@ -692,8 +692,7 @@ export default {
           .catch((err) => {
             // message.error("1",err.message);
           });
-      }
-      else if (this.title === "选择任务") {
+      } else if (this.title === "选择任务") {
         //提交词条审核
         if (this.selectedTaskRows.length === 0) {
           message.warn("请选择任务！");
@@ -987,6 +986,7 @@ export default {
     getTsFile(language) {
       let params = {
         language: language,
+        i18nUrl: this.writeBack.ip,
       };
       getFileListByLang(params).then((res) => {
         res.data.list.forEach((item) => {
