@@ -1034,6 +1034,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }else{
                     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }
+            }else if(fileName.endsWith(".xml")){
+                if(departmentType.equals("装置开发部")){
+                    /* 目前通用平台部xml导入是可视化平台项目需要，如果后续有其他的项目需要，则需要改变判断逻辑 */
+                    entryInfoEntities = XMLUtils.parseXML(multipartFile.getInputStream(),XMLUtils.XMLHandlerForEquipment.class);
+                    zzEntryHandleForXML(entryInfoEntities, userName, taskInfoEntity, fileName);
+                }else{
+                    throw new Exception("暂不支持XML导入");
+                }
             }else{
                 throw new RuntimeException("暂时不支持文件: " + fileName + "的词条导入功能");
             }
@@ -1215,6 +1223,31 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     entryInfoEntity.setEntryLength(entryInfoEntity.getFraCharLength());
                 }
                 break;
+        }
+    }
+
+    private void zzEntryHandleForXML(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
+        Date date = new Date(System.currentTimeMillis());
+        for(EntryInfoEntity entryInfoEntity : entryEntitys){
+            entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
+            entryInfoEntity.setIsDelete(0);
+            if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
+                entryInfoEntity.setUpdate(userName);
+            }
+            entryInfoEntity.setUpdateTime(date);
+            entryInfoEntity.setIsPublic(0);
+            entryInfoEntity.setEntryState(1);
+            entryInfoEntity.setId(commonUtils.getUUID());
+            if (Objects.nonNull(taskInfoEntity)) {
+                entryInfoEntity.setTaskId(taskInfoEntity.getId());
+                entryInfoEntity.setProductID(taskInfoEntity.getProductId());
+                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
+            }
+            if (StringUtils.isBlank(entryInfoEntity.getImportType())){
+                entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+            }
+            String productTableName = "t_entry_info";
+            caseExisttryForXML(entryInfoEntity, taskInfoEntity,  productTableName);
         }
     }
 
@@ -3840,6 +3873,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         // translateMapper.insert(translateEntity);
         translateMapper.insertTranslate(translateEntity);
 
+    }
+
+    private void caseExisttryForXML(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {
+        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForXML(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+        if (CollectionUtils.isEmpty(entryEntities)) {
+            //创建新翻译
+            entryInfoEntity.setIsExist(0);
+            entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+            entryInfoEntity.setEntryVersion(1);
+            createNewTrans(entryInfoEntity, taskInfoEntity);
+        } else {
+            entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
+            int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
+            entryInfoEntity.setEntryVersion(maxVersion);
+            entryInfoEntity.setIsExist(1);
+        }
     }
 
     private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {

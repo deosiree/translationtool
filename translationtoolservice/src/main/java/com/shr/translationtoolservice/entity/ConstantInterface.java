@@ -69,6 +69,7 @@ public class ConstantInterface {
     public static final String DI = "DI";
     public static final String DEFAUT = "DEFAUT";
     public static final String EXCEL = "excel";
+    public static final String XML = "xml";
     public static final String FIELD = "field";
     public static final String ALIAS = "alias";
 
