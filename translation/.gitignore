@@ -1,8 +1,12 @@
 .DS_Store
+ ../.git_call/
 node_modules
 /dist
 /dist_electron
 /clearCopy
+../knowledge
+../translation_check/
+
 
 # local env files
 .env.local
