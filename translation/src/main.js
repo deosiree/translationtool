@@ -7,5 +7,12 @@ import 'ant-design-vue/dist/antd.css'
 import './router/permission'
 
 import * as antIcons from '@ant-design/icons-vue'
+import moment from 'moment';
+import 'moment/locale/zh-cn'; // 引入中文语言包
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+dayjs.locale('zh-cn');
+// 设置全局语言为中文
+moment.locale('zh-cn');
 
 createApp(App).use(store).use(router).use(Antd).mount('#app')
