@@ -129,7 +129,7 @@ export default {
       importTypes: ["file"],// 导入类型
       needWriteBack: false,// 是否需要回写
       needGit: false,// 是否需要git推送
-      xml_temp: true,// 临时修改一下xml的样式
+      xml_temp: false,// 临时修改一下xml的样式(现已置false，改回去了)
       templateType: [
         { label: '新模板', value: '新模板' },
         { label: '旧模板', value: '旧模板' },
