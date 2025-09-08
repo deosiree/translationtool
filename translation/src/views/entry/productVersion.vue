@@ -170,7 +170,7 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import { message } from "ant-design-vue";
-import tableParam from "./tableParam";
+import { entryParams as tableParam } from "@/utils/commonParam.js";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {

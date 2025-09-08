@@ -53,7 +53,7 @@
     </Modal>
 </template>
 <script>
-import tableParam from "./tableParam.js";
+import { entryParams as tableParam } from "@/utils/commonParam.js";
 import Modal from '@/components/modal/index.vue';
 import { message,TreeSelect } from 'ant-design-vue';
 import {
