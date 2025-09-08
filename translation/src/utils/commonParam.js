@@ -114,18 +114,21 @@ export default {
       label: "通用平台部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       needWriteBack: true,// 是否需要回写
+      needGit: true,// 是否需要git推送
       value: "common",
     },
     "监控系统部": {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       needWriteBack: true,// 是否需要回写
+      needGit: true,// 是否需要git推送
       value: "jk",
     },
     "装置开发部": {
       label: "装置开发部",
       importTypes: ["file"],// 导入类型
       needWriteBack: false,// 是否需要回写
+      needGit: false,// 是否需要git推送
       xml_temp: true,// 临时修改一下xml的样式
       templateType: [
         { label: '新模板', value: '新模板' },
@@ -138,18 +141,21 @@ export default {
       label: "人工智能部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       needWriteBack: false,// 是否需要回写
+      needGit: false,// 是否需要git推送
       value: "zn",// 瞎写的
     },
     "柔性输电系统部": {
       label: "柔性输电系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       needWriteBack: false,// 是否需要回写
+      needGit: false,// 是否需要git推送
       value: "rx",// 瞎写的
     },
     "default": {
       label: "默认部门",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       needWriteBack: true,// 是否需要回写
+      needGit: false,// 是否需要git推送
       value: "default",
     }
   },
