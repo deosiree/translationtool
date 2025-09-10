@@ -1254,7 +1254,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private void zzEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
         Date date = new Date(System.currentTimeMillis());
         for(EntryInfoEntity entryInfoEntity : entryEntitys){
-            entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
+            entryInfoEntity.setEntry(entryInfoEntity.getAbbr());
+            entryInfoEntity.setEntryLength(entryInfoEntity.getAbbr().length());
             entryInfoEntity.setIsDelete(0);
             if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
                 entryInfoEntity.setUpdate(userName);
@@ -1283,8 +1284,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
             BeanUtils.copyProperties(importExcleEntry, entryInfoEntity);
             entryInfoEntity.setAbbr(importExcleEntry.getAbbr());
-            entryInfoEntity.setEntry(importExcleEntry.getEntry());
-            entryInfoEntity.setEntryLength(importExcleEntry.getEntryLength());
+            entryInfoEntity.setEntry(importExcleEntry.getAbbr());
+            entryInfoEntity.setEntryLength(importExcleEntry.getAbbr().length());
             entryInfoEntity.setUpdate(userName);
             entryInfoEntity.setUpdateTime(date);
             entryInfoEntity.setChineseInterpretation(importExcleEntry.getChineseInterpretation());
