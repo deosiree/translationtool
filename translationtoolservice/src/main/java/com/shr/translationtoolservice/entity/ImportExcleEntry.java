@@ -101,8 +101,8 @@ public class ImportExcleEntry {
         put("russianInterpretation","术语俄文释义");
         put("frenchInterpretation","术语法文释义");
         put("spanishInterpretation","术语西文释义");
-        put("entry","中文术语术语");
-        put("entryLength","中文术语字符数");
+        put("chinese","中文术语术语");
+        put("zhCharLength","中文术语字符数");
         put("english","英文术语术语");
         put("enCharLength","英文术语字符数");
         put("spanish","西文术语术语");
@@ -111,7 +111,7 @@ public class ImportExcleEntry {
         put("ruCharLength","俄文术语字符数");
         put("french","法文术语术语");
         put("fraCharLength","法文术语字符数");
-        put("chinese", "中文术语别名");
+        // put("chinese", "中文术语别名");
         put("classfy1","类别1");
         put("classfy2","类别2");
         put("ABTerm","ABB类全驼峰术语");
