@@ -79,7 +79,7 @@
             </template>
           </template>
           <template
-            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+            v-if="translateStateList.includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
@@ -330,8 +330,6 @@ export default {
       selectedRowIndex: null,
       overlayStyle: workbenchParams.overlayStyle,
       checkedColumn: workbenchParams.checkedColumn,
-      // checkboxList: workbenchParams.checkboxList,
-      // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
           ![
@@ -341,7 +339,8 @@ export default {
             "entry",
             "translate",
           ].includes(item.value)
-      ),
+      ),// 移除固定列对应的配置项
+      translateStateList: [...commonParam.langTranslateStateList, "translateState"],
       user: null, // 当前用户的相关信息
       currentDepartment: {
         label: "部门名称",
@@ -367,7 +366,6 @@ export default {
       writeBackLoading: false,
     };
   },
-
   created() {},
   mounted() {
     this.task = this.currentTask;

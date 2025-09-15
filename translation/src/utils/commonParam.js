@@ -13,6 +13,7 @@
  * const namedExport = commonModule.namedExport;
  */
 
+// 1.commonParam如下：
 const default_languageList = [
   {
     name: "英文",// XX语种的中文
@@ -225,7 +226,7 @@ export default {
   ]
 };
 
-// import tableParam from "@/views/entry/tableParam.js";
+// 2.tableParam如下：
 const entry_checkboxList = [
   // { label: "词条状态", value: "entryState", index: 1 },
   // { label: "词条", value: "entry", index: 2 },
@@ -356,7 +357,7 @@ export const entryParams = {
   // ],
 }
 
-// import tableParam from "@/views/glossary/tableParam.js";
+// 3.glossaryParams如下：
 export const glossaryParams = {
   checkboxList: [
     { label: "词条", value: "entry", index: 1 },
@@ -396,8 +397,7 @@ export const glossaryParams = {
   },
 }
 
-// import workbenchCommon from "@/views/workbench/common.js";
-
+// 4.workbenchParams如下：
 const workBench_langageMap = default_languageList.reduce((acc, cur) => {
   acc[cur.name] = {
     "language": cur.name,
@@ -406,13 +406,7 @@ const workBench_langageMap = default_languageList.reduce((acc, cur) => {
   };
   return acc; // 添加返回累加器
 }, {}); // 添加初始值为空对象
-// const workBench_langageMap = {
-//   '英文': { language: "英文", code: "english", transIdName: "enTransId" },
-//   '俄文': { language: "俄文", code: "russian", transIdName: "ruTransId" },
-//   '西文': { language: "西文", code: "spanish", transIdName: "spaTransId" },
-//   '法文': { language: "法文", code: "french", transIdName: "fraTransId" },
-//   '中文': { language: "中文", code: "chinese", transIdName: "zhTransId" },
-// };
+//   形如：'英文': { language: "英文", code: "english", transIdName: "enTransId" },
 const workbench_languageList = Object.values(workBench_langageMap);
 export const workbenchParams = {
   languageMap: workBench_langageMap,
@@ -439,10 +433,9 @@ export const workbenchParams = {
     boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
   },
   keys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
-
 }
 
-// import tableParam from "@/views/check/redundantTableParam.js";
+// 5.redundantTableParams如下：
 export const redundantTableParams = {
   checkboxList: [
     { label: "词条", value: "entry", index: 1 },

@@ -55,7 +55,7 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
-          <template v-if="['chinese','english','russian','spanish','french'].includes(column.dataIndex)">
+          <template v-if="editList_needValidate.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
@@ -70,8 +70,7 @@
               </template>
             </div>
           </template>
-          <template
-            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation' ,'auditSuggess','diFileName','comment'].includes(column.dataIndex)">
+          <template v-if="editList.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
@@ -134,8 +133,7 @@
               <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
             </template>
           </template>
-          <template
-            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+          <template v-if="translateStateList.includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
@@ -402,8 +400,6 @@ export default {
       timer: null,
       overlayStyle: workbenchParams.overlayStyle,
       checkedColumn: workbenchParams.checkedColumn,
-      // checkboxList: workbenchParams.checkboxList,
-      // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
           ![
@@ -413,7 +409,19 @@ export default {
             "entry",
             "translate",
           ].includes(item.value)
-      ),
+      ), // 移除固定列对应的配置项
+      editList_needValidate: commonParam.langValList, // 可编辑的列名集合(需要验证长度)
+      editList: [
+        ...commonParam.langInterList,
+        ...commonParam.langAudSugList,
+        "auditSuggess",
+        "diFileName",
+        "comment",
+      ], // 可编辑的列名集合
+      translateStateList: [
+        ...commonParam.langTranslateStateList,
+        "translateState",
+      ],
       state: {
         searchText: "",
         searchedColumn: "",
@@ -564,16 +572,16 @@ export default {
           }
         }
       });
-      // 校验审核通过的词条
-      let num = this.verifyTranslationLength(okArr);
-      // let num = 0;
-      if (num > 0) {
-        // 存在超长
-        message.warn("存在超长数据，请检查！");
-        this.saveLoading = false;
-        this.loading = false;
-        return;
-      }
+      // // 校验审核通过的词条
+      // let num = this.verifyTranslationLength(okArr);
+      // // let num = 0;
+      // if (num > 0) {
+      //   // 存在超长
+      //   message.warn("存在超长数据，请检查！");
+      //   this.saveLoading = false;
+      //   this.loading = false;
+      //   return;
+      // }
       if (arrCount.updateNum > 0) {
         const updatePromise = updateEntryList(params, updateArr)
           .then((res) => {
@@ -803,7 +811,7 @@ export default {
         ) {
           if (record.maxLength != null && record.maxLength != "") {
             maxLength = record.maxLength;
-            console.log("maxLength = record.maxLength;",record)
+            console.log("maxLength = record.maxLength;", record);
           } else {
             return Promise.resolve();
           }

@@ -54,6 +54,9 @@
             <a-form-item label="结束时间" name="endTime" style="margin-top: 8px">
               <a-date-picker v-model:value="search.endTime_" />
             </a-form-item>
+            <a-form-item label="修改人" name="update" style="margin-top: 8px">
+              <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
+            </a-form-item>
           </a-row>
           <a-row style="width:100%" class="search-row" justify="end">
             <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
@@ -72,7 +75,7 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="currentDepartment.needGit" size="small" buttonTitle="git推送" buttonClass="yellowBtn"/>
+          <GitCommitButton v-if="currentDepartment.needGit" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
 
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
@@ -300,83 +303,27 @@
           <table>
             <tr>
               <td class="tableTitle">翻译语种</td>
-              <!-- <td v-for="lang in commonParam.languageList" :key="lang.name">{{ lang.name }}</td> -->
-              <td>英文</td>
-              <td>俄文</td>
-              <td>西文</td>
-              <td>法文</td>
+              <td v-for="lang in commonParam.languageList" :key="lang.name">{{ lang.name }}</td>
             </tr>
             <tr>
               <td class="tableTitle">翻译结果</td>
-              <!-- <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{currentEntry[lang.value]}}</td> -->
-              <td>{{currentEntry.english}}</td>
-              <td>{{currentEntry.russian}}</td>
-              <td>{{currentEntry.spanish}}</td>
-              <td>{{currentEntry.french}}</td>
+              <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{currentEntry[lang.value]}}</td>
             </tr>
             <tr>
               <td class="tableTitle">翻译状态</td>
-              <!-- <td v-for="lang in commonParam.languageList" :key="lang.value">
+              <td v-for="lang in commonParam.languageList" :key="lang.value">
                 <template v-if="currentEntry[lang.state] === '3'">
                   <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry[lang.chineseState]}}</span>
                 </template>
                 <template v-else-if="currentEntry[lang.state] != null">
                   <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry[lang.chineseState]}}</span>
                 </template>
-              </td> -->
-              <td>
-                <template v-if="currentEntry.englishTranslateState === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.englishChineseState}}</span>
-                </template>
-                <template v-else-if="currentEntry.englishTranslateState != null">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.englishChineseState}}</span>
-                </template>
-              </td>
-              <td>
-                <template v-if="currentEntry.russianTranslateState === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.russianChineseState}}</span>
-                </template>
-                <template v-else-if="currentEntry.russianTranslateState != null">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.russianChineseState}}</span>
-                </template>
-              </td>
-              <td>
-                <template v-if="currentEntry.spanishTranslateState === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.spanishChineseState}}</span>
-                </template>
-                <template v-else-if="currentEntry.spanishTranslateState != null">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.spanishChineseState}}</span>
-                </template>
-              </td>
-              <td>
-                <template v-if="currentEntry.frenchTranslateState === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{currentEntry.frenchChineseState}}</span>
-                </template>
-                <template v-else-if="currentEntry.frenchTranslateState != null">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{currentEntry.frenchChineseState}}</span>
-                </template>
               </td>
             </tr>
             <tr>
               <td class="tableTitle">选择</td>
-              <!-- <td v-for="lang in commonParam.languageList" :key="lang.value">
+              <td v-for="lang in commonParam.languageList" :key="lang.value">
                 <a-checkbox :disabled="currentEntry[lang.state] != '3'" v-model:checked="currentEntry[lang.checked]">
-                </a-checkbox>
-              </td> -->
-              <td>
-                <a-checkbox :disabled="currentEntry.englishTranslateState != '3'" v-model:checked="currentEntry.englishChecked">
-                </a-checkbox>
-              </td>
-              <td>
-                <a-checkbox :disabled="currentEntry.russianTranslateState != '3'" v-model:checked="currentEntry.russianChecked">
-                </a-checkbox>
-              </td>
-              <td>
-                <a-checkbox :disabled="currentEntry.spanishTranslateState != '3'" v-model:checked="currentEntry.spanishChecked">
-                </a-checkbox>
-              </td>
-              <td>
-                <a-checkbox :disabled="currentEntry.frenchTranslateState != '3'" v-model:checked="currentEntry.frenchChecked">
                 </a-checkbox>
               </td>
             </tr>
@@ -398,9 +345,9 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :dataSource="selectEntry" :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows"
-    @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event"
-    @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
+  <CreateVersionModal :visible="createVisible" :dataSource="selectEntry" :currentProduct="product" :selectedRowKeys="selectedRowKeys"
+    :selectedRows="selectedRows" @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event"
+    @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
@@ -539,6 +486,7 @@ export default {
         startTime: null,
         endTime: null,
         diFileName: null,
+        update: null,
       },
       exportFields: [
         "词条",
@@ -954,6 +902,7 @@ export default {
         entrySource: this.search.entrySource,
         comment: this.search.comment,
         diFileName: this.search.diFileName,
+        update:this.search.update,
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:",data)
@@ -978,6 +927,7 @@ export default {
         pageSize: this.pagination.pageSize,
         startTime: this.search.startTime,
         endTime: this.search.endTime,
+        update:this.search.update,
       };
       if (accurate.length > 0) {
         params.accurate = accurate;
@@ -1486,6 +1436,7 @@ export default {
         translateType: this.search.language,
         startTime: this.search.startTime,
         endTime: this.search.endTime,
+        update:this.search.update,
         pageIndex: -1,
         pageSize: -1,
       };

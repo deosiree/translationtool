@@ -312,7 +312,8 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
-          <template v-if="['chinese','english','russian','spanish','french'].includes(column.dataIndex)">
+          <!-- <template v-if="['chinese','english','russian','spanish','french'].includes(column.dataIndex)"> -->
+          <template v-if="editList_needValidate.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
@@ -327,8 +328,9 @@
               </template>
             </div>
           </template>
-          <template
-            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation','comment'].includes(column.dataIndex)">
+          <!-- <template
+            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation','comment'].includes(column.dataIndex)"> -->
+          <template v-if="editList.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
@@ -360,8 +362,9 @@
               <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
             </template>
           </template>
-          <template
-            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+          <!-- <template
+            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)"> -->
+          <template v-if="translateStateList.includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
@@ -465,10 +468,6 @@
       <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
         <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
           <a-select v-model:value="templateObj.type" placeholder="请选择" :options='departmentList' allowClear>
-            <!-- <a-select v-model:value="templateObj.type" placeholder="请选择" allowClear>
-            <a-select-option value="zz">装置</a-select-option>
-            <a-select-option value="common">通用</a-select-option>
-            <a-select-option value="jk">监控</a-select-option> -->
           </a-select>
         </a-form-item>
         <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择文件类型!' }]">
@@ -770,8 +769,6 @@ export default {
       exportFieldOptions: entryParams.exportFields,
       overlayStyle: workbenchParams.overlayStyle,
       checkedColumn: workbenchParams.checkedColumn,
-      // checkboxList: workbenchParams.checkboxList,
-      // 移除固定列对应的配置项
       checkboxList: commonParam.checkboxList.filter(
         (item) =>
           ![
@@ -781,7 +778,13 @@ export default {
             "entry",
             "translate",
           ].includes(item.value)
-      ),
+      ), // 移除固定列对应的配置项
+      editList_needValidate: commonParam.langValList, // 可编辑的列名集合(需要验证长度)
+      editList: [...commonParam.langInterList, "comment"], // 可编辑的列名集合
+      translateStateList: [
+        ...commonParam.langTranslateStateList,
+        "translateState",
+      ],
       importBtnLoading: false,
       state: {
         searchText: "",
@@ -1102,11 +1105,11 @@ export default {
     },
     //
     insertOrUpdateEntrys(addArr, updateArr, arrCount) {
-      if (arrCount.toLongNum > 0) {
-        // 存在超长
-        message.warn("存在超长数据，请检查！");
-        // return;
-      }
+      // if (arrCount.toLongNum > 0) {
+      //   // 存在超长
+      //   message.warn("存在超长数据，请检查！");
+      //   // return;
+      // }
       this.loading = true;
       let params = {
         taskID: this.task.id,
