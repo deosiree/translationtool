@@ -2511,9 +2511,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime){
         List<String> productidList = new ArrayList<>();
         //一级分类查询
-        if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
-            getProductClassfyList(classfyID, productidList);
-        }
+        // if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
+        getProductClassfyList(classfyID, productidList);
+        // }
 
       /*  if (CollectionUtils.isEmpty(productidList)){
             log.error("当前分类不存在或者没有子分类");
@@ -3595,7 +3595,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                                         continue;
                                     }
                                     if (StringUtils.isBlank(entryEntity.getZhTransId())) {
-                                        entryEntity.setEnglishTranslateState("0");
+                                        // entryEntity.setEnglishTranslateState("0");
+                                        entryEntity.setChineseTranslateState("0");
                                     } else {
                                         translateEntity = translateMapper.selectById(entryEntity.getZhTransId());
                                         if (Objects.nonNull(translateEntity)) {
