@@ -81,8 +81,13 @@ const default_languageMap = default_languageList.reduce((acc, lang) => {
 }, {});
 export default {
   languageList: default_languageList,
-  langTranslateStateList: default_languageList.map(item => item.state),
   langNameList: default_languageList.map(item => item.name),
+  langValList: default_languageList.map(item => item.value),
+  langTranslateStateList: default_languageList.map(item => item.state),
+  langCNStateList: default_languageList.map(item => item.chineseState),
+  langPublicStateList: default_languageList.map(item => item.publicState),
+  langAudSugList: default_languageList.map(item => item.auditSuggest),
+  langInterList: default_languageList.map(item => item.interpretation),
   languageMap: default_languageMap,
   checkboxList: [
     // {label:'存在状态',value:'isExist',index:1},

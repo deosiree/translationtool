@@ -70,7 +70,8 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
-          <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
+          <template v-if="['english','russian','spanish','french', 'chinese'].includes(column.dataIndex)">
+          <!-- <template v-if="(languageList.map(item => item.value)).includes(column.dataIndex)"> -->
             <div>
               <template v-if="editableData[record.id]">
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
@@ -86,7 +87,7 @@
             </div>
           </template>
           <template
-            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation','englishAuditSuggest','russianAuditSuggest','spanishAuditSuggest','frenchAuditSuggest'].includes(column.dataIndex)">
+            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation','chineseAuditSuggest','englishAuditSuggest','russianAuditSuggest','spanishAuditSuggest','frenchAuditSuggest'].includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
@@ -106,7 +107,7 @@
             </div>
           </template>
           <template
-            v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState','translateState'].includes(column.dataIndex)">
+            v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState','chineseTranslateState','translateState'].includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0'">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
@@ -354,7 +355,7 @@ export default {
         },
         {
           title: "审核意见",
-          dataIndex: "this.languageList.auditSuggest", // 动态的
+          dataIndex: "this.languageObj.auditSuggest", // 动态的
           align: "center",
           width: 100,
           resizable: true,
@@ -415,14 +416,16 @@ export default {
             "translate",
           ].includes(item.value)
       ),
-      languageList: null,
+      languageObj: null,
+      // langValList: commonParam.langValList,
+      // langEditList:commonParam.langValList,
     };
   },
 
   created() {},
   mounted() {
     this.task = this.currentTask;
-    this.languageList = commonParam.languageList.find(
+    this.languageObj = commonParam.languageList.find(
       (it) => it.name === this.task.translateType
     );
     // workbenchParams.languageMap[this.task.translateType].code
@@ -434,7 +437,7 @@ export default {
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.languageList = commonParam.languageList.find(
+      this.languageObj = commonParam.languageList.find(
         (it) => it.name === this.task.translateType
       );
       this.setTranslateColumn();
@@ -445,13 +448,13 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex = this.languageList.value;
+          item.dataIndex = this.languageObj.value;
         }
         if (item.title === "翻译状态") {
-          item.dataIndex = this.languageList.state;
+          item.dataIndex = this.languageObj.state;
         }
         if (item.title === "审核意见") {
-          item.dataIndex = this.languageList.auditSuggest;
+          item.dataIndex = this.languageObj.auditSuggest;
         }
       });
     },
@@ -468,14 +471,14 @@ export default {
           ? ["1"]
           : [this.translateState];
 
-      let auditSuggest = this.languageList.auditSuggest;
+      let auditSuggest = this.languageObj.auditSuggest;
       getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
 
           this.dataSource.forEach((item) => {
             item.auditState = -1;
-            item[this.languageList.auditSuggest] = ""; // 对应语言的审核意见清空
+            item[this.languageObj.auditSuggest] = ""; // 对应语言的审核意见清空
           });
           // console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
           // this.allData = this.dataSource
@@ -495,10 +498,10 @@ export default {
       this.saveLoading = true;
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.languageList.auditSuggest] =
-          this.editableData[key][this.languageList.auditSuggest];
-        entry[this.languageList.value] =
-          this.editableData[key][this.languageList.value];
+        entry[this.languageObj.auditSuggest] =
+          this.editableData[key][this.languageObj.auditSuggest];
+        entry[this.languageObj.value] =
+          this.editableData[key][this.languageObj.value];
       }
       this.editableData = {};
 
@@ -511,11 +514,11 @@ export default {
         item.parentID = "";
         if (item.auditState === 0) {
           // 审核不通过
-          item[this.languageList.state] = "2";
+          item[this.languageObj.state] = "2";
           updateArr.push(item);
         } else if (item.auditState === 1) {
           // 审核通过
-          item[this.languageList.state] = "3";
+          item[this.languageObj.state] = "3";
           updateArr.push(item);
           okArr.push(item);
         }
@@ -642,9 +645,9 @@ export default {
               { required: true, message: "请输入!" },
             ],
           };
-          this.rules[record.id][this.languageList.value] = [
+          this.rules[record.id][this.languageObj.value] = [
             {
-              validator: this.vilidFildLength(record, this.languageList.value),
+              validator: this.vilidFildLength(record, this.languageObj.value),
             },
           ];
           this.showEditOperation(); // 显示编辑操作列
@@ -978,8 +981,8 @@ export default {
         }
         // 是否编辑中
         let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][this.languageList.value]
-          : record[this.languageList.value];
+          ? this.editableData[record.id][this.languageObj.value]
+          : record[this.languageObj.value];
         // if (common.byteLength(text) > maxLength) {
         if (byteLength(text) > maxLength) {
           flag++;
@@ -987,7 +990,7 @@ export default {
             eval(
               "this.$refs.form" +
                 record.id.replaceAll("-", "") +
-                this.languageList.value
+                this.languageObj.value
             )
               .validate()
               .then(() => {})
@@ -1013,8 +1016,8 @@ export default {
           { required: true, message: "请输入!" },
         ],
       };
-      this.rules[record.id][this.languageList.value] = [
-        { validator: this.vilidFildLength(record, this.languageList.value) },
+      this.rules[record.id][this.languageObj.value] = [
+        { validator: this.vilidFildLength(record, this.languageObj.value) },
       ];
       return Promise.resolve();
     },
@@ -1060,7 +1063,7 @@ export default {
     rejectReasonOK() {
       this.selectedRows.forEach((item) => {
         item.auditState = 0;
-        item[this.languageList.auditSuggest] = this.rejectReason.reason;
+        item[this.languageObj.auditSuggest] = this.rejectReason.reason;
       });
       this.selectedRowKeys = [];
       this.selectedRows = [];

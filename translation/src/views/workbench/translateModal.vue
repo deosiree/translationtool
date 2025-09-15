@@ -110,7 +110,7 @@
             <template v-if="column.dataIndex === 'entry'">
               <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
             </template>
-            <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
+            <template v-if="['english','russian','spanish','french','chinese'].includes(column.dataIndex)">
               <div>
                 <template v-if="editableData[record.id]">
                   <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
@@ -136,7 +136,7 @@
               </div>
             </template>
             <template
-              v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
+              v-if="['chineseTranslateState','englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
               <template v-if="record[column.dataIndex] === '0'">
                 <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
               </template>
@@ -1481,7 +1481,6 @@ export default {
         let text = this.editableData.hasOwnProperty(record.id)
           ? this.editableData[record.id][this.commonParam.value]
           : record[this.commonParam.value];
-        // if (common.byteLength(text) > maxLength) {
         if (byteLength(text) > maxLength) {
           flag++;
           this.edit(record).then(async () => {

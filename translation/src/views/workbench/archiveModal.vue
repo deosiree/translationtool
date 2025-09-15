@@ -79,7 +79,7 @@
             </template>
           </template>
           <template
-            v-if="['englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>

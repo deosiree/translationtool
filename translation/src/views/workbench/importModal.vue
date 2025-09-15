@@ -312,7 +312,7 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
-          <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
+          <template v-if="['chinese','english','russian','spanish','french'].includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
@@ -361,7 +361,7 @@
             </template>
           </template>
           <template
-            v-if="['englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>

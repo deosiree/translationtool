@@ -55,7 +55,7 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
-          <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
+          <template v-if="['chinese','english','russian','spanish','french'].includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
@@ -135,7 +135,7 @@
             </template>
           </template>
           <template
-            v-if="['englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
+            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
             </template>
@@ -788,6 +788,7 @@ export default {
     },
     // 校验输入数据的长度
     vilidFildLength(record, language) {
+      // console.log("校验语言：",language)
       return (rule, value) => {
         let type = "";
         if (language === "chinese") {
@@ -802,11 +803,13 @@ export default {
         ) {
           if (record.maxLength != null && record.maxLength != "") {
             maxLength = record.maxLength;
+            console.log("maxLength = record.maxLength;",record)
           } else {
             return Promise.resolve();
           }
         } else {
           maxLength = this.classifyLimit[record.classfy1][type];
+          // console.log("maxLength = this.classifyLimit[record.classfy1][type];",this.classifyLimit,record.classfy1,type);
         }
         if (
           maxLength === null ||
@@ -817,7 +820,6 @@ export default {
           return Promise.resolve();
         }
         // 获取输入数据的长度
-        // let length = common.byteLength(value);
         let length = byteLength(value);
         if (length > maxLength) {
           return Promise.reject("允许最大字符数为" + maxLength + "！");
