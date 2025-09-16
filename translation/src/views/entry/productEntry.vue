@@ -1144,7 +1144,7 @@ export default {
     // 保存
     save(id) {
       // 校验字段长度是否超限
-      let flagArr = ["entry", "english", "russian", "spanish", "french"];
+      let flagArr = ["entry", ...commonParam.langValList];
       let list = [];
       this.columns.forEach((column) => {
         if (flagArr.includes(column.dataIndex)) {
@@ -1187,7 +1187,8 @@ export default {
           }
         })
         .catch((err) => {
-          message.error(err.message);
+          // console.log(err,"保存失败")
+          // message.error(err.message);校验不通过，不用弹窗提示，通过ref进行提示
         });
     },
     // 校验输入数据是否合规
