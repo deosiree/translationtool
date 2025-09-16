@@ -76,13 +76,15 @@
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
           <GitCommitButton v-if="currentDepartment.needGit" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
-          <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
 
+          <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
           <a-button type="primary" size="small" @click="cancelCreate" class="yellowBtn" v-if="createVersionFlag">取消选择</a-button>
           <a-badge :count="selectEntry.length" :overflow-count="99" v-if="createVersionFlag">
             <a-button type="primary" size="small" class="resetBtn" @click="viewCreateVersionEntry">已选词条</a-button>
           </a-badge>
+
+
           <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
           <a-button type="primary" size="small" @click="addEntry"><template #icon>
               <PlusOutlined />
@@ -718,11 +720,12 @@ export default {
       this.product = newval;
       this.showOperationArea = false;
       this.pagination.current = 1;
-      this.selectEntry = [];
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      // this.selectEntry = [];
+      // this.selectedRowKeys = [];
+      // this.selectedRows = [];
+      this.pageChange(this.pagination.current,this.pagination.pageSize)// 切换产品时第一页的已选未显示
       this.init();
-      // console.log(newval)
+      // console.log("产品切换了",newval,this.selectedRows,this.selectedRowKeys)
       let classifyLimit = {};
       this.classify1Option = [];
       newval.children.forEach((item) => {
@@ -863,11 +866,11 @@ export default {
     conditionalQuery(accurate = []) {
       // 将页码变为第一页
       this.pagination.current = 1;
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      this.selectEntry = [];
-      this.createVersionFlag = false;
-      this.batchSelectFlag = false;
+      // this.selectedRowKeys = [];
+      // this.selectedRows = [];
+      // this.selectEntry = [];
+      // this.createVersionFlag = false;
+      // this.batchSelectFlag = false;
       if (accurate.length > 0) this.accurSearch = accurate;
       else this.accurSearch = [];
       this.getEntryByVersion(false, this.accurSearch);
@@ -1042,7 +1045,7 @@ export default {
     // 校验输入数据的长度
     vilidFildLength(record, colName) {
       return (rule, value) => {
-        console.log("校验长度", this.classifyLimit, record);
+        // console.log("校验长度", this.classifyLimit, record);
         const maxLength = getMaxLength(record, this, colName);
         // let type = "";
         // if (language === "chinese") {
@@ -1387,9 +1390,9 @@ export default {
     // 创建版本
     createVersion() {
       this.createVersionFlag = true;
-      this.selectEntry = [];
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      // this.selectEntry = [];
+      // this.selectedRowKeys = [];
+      // this.selectedRows = [];
       this.batchSelectFlag = true;
     },
     // 已选词条按钮点击事件
@@ -1447,10 +1450,9 @@ export default {
       // console.log("params1", params);
       getEntryByClassfy(params, data)
         .then((res) => {
-          this.selectEntry = [];
           this.selectedRowKeys = [];
-          this.selectedRows = res.data.list;
-          this.selectEntry = res.data.list;
+          this.selectedRows = [...this.selectedRows,...res.data.list];
+          this.selectEntry = this.selectedRows;
           // console.log("全选词条dataSource", res);
           res.data.list.forEach((item) => {
             this.selectedRowKeys.push(item.id);
