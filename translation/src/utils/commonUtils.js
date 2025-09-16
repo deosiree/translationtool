@@ -811,7 +811,7 @@ export function getRowClassName(record, index, selectedRowIndex) {
 export function pageChange(vm, page, pageSize, fetchData, selectEntry = "selectEntry", ...fetchDataParams) {
   vm.pagination.current = page;
   vm.pagination.pageSize = pageSize;
-  console.log("更新了page信息", page, pageSize);
+  // console.log("更新了page信息", page, pageSize);
   // 调用传入的查询接口函数
   if (typeof fetchData === 'function') {// 有可能不传，就是null
     if (fetchDataParams.length === 0)
