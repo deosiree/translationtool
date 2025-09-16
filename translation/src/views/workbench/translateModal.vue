@@ -8,7 +8,28 @@
           <div class="taskItem">产品名称：{{task.productName}}</div>
           <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
           <div class="taskItem">翻译语种：{{task.translateType}}</div>
-          <div class="taskItem"><a-checkbox v-model:checked="shouldCheckSykEntry">先校验再保存</a-checkbox></div>
+          <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
+          <!-- <div class="validation-rules">
+            <a-dropdown>
+              <a-button type="text" class="dropdown-trigger">
+                校验规则 <down-outlined />
+              </a-button>
+              <template #overlay>
+                <a-menu class="validation-menu">
+                  <a-menu-item key="verify-length">
+                    <a-checkbox v-model:checked="needVerifyLength">
+                      校验字符长度
+                    </a-checkbox>
+                  </a-menu-item>
+                  <a-menu-item key="check-entry">
+                    <a-checkbox v-model:checked="needCheckEntry">
+                      校验特殊字符
+                    </a-checkbox>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div> -->
         </div>
         <div class="form">
           <a-row :gutter="8" justify="space-between">
@@ -168,7 +189,7 @@
       <div class="suggest">
         <div style="height:30px">
           <span style="float:right;font-size:12px">
-            <a-tooltip placement="left">
+            <!-- <a-tooltip placement="left">
               <template #title>
                 <table>
                   <tr>
@@ -199,7 +220,7 @@
               </template>
               快捷键
               <QuestionCircleOutlined />
-            </a-tooltip>
+            </a-tooltip> -->
           </span>
         </div>
         <div style="margin-bottom: 6px;">词条释义：</div>
@@ -251,8 +272,8 @@
       </div>
     </div>
   </Modal>
-  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="preTranslateClose" @handleOK="preTranslateOK"
-    @afterClose="preTranslateAfterClose">
+  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="preTranslateClose"
+    @handleOK="preTranslateOK" @afterClose="preTranslateAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="formRef" name="custom-validation" autocomplete='off' :label-col="labelCol" :model="preTran">
         <a-form-item label="优先级" name="priority" :rules="[{ required: true, message: '请选择优先级!' }]">
@@ -341,11 +362,14 @@ import {
   setModalAriaHidden,
   byteLength,
   encodeParams,
+  getMaxLength,
+  handleExceedLength,
 } from "@/utils/commonUtils"; // 引入工具函数
 import commonParam, {
   entryParams,
   workbenchParams,
 } from "@/utils/commonParam.js";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 export default {
   components: {
     Modal,
@@ -354,6 +378,7 @@ export default {
     InfoCircleOutlined,
     DownOutlined,
     SettingOutlined,
+    RulesDropdown,
   },
   emits: ["handleClose", "handleOK"],
   props: {
@@ -531,7 +556,12 @@ export default {
         state: "",
         auditSuggest: "",
       },
-      shouldCheckSykEntry: false, // 新增勾选状态变量
+      needVerifyLength: true, // 勾选状态变量-校验字符长度
+      needCheckEntry: false, // 勾选状态变量-校验特殊字符（占位符等）
+      rulesOptions: [
+        { key: "verify-length", label: "校验字符长度", checked: true },
+        { key: "check-entry", label: "校验特殊字符", checked: false },
+      ],
       overlayStyle: workbenchParams.overlayStyle, // 展示列
       checkedColumn: workbenchParams.checkedColumn, // 展示列切换
       checkboxList: commonParam.checkboxList.filter(
@@ -683,7 +713,7 @@ export default {
           this.loading = false;
         });
     },
-    handleOK() {
+    async handleOK() {
       if (this.selectedRows.length === 0) {
         message.info("请选择需要保存的数据！");
         return;
@@ -725,14 +755,34 @@ export default {
       //   return;
       // }
 
-      // 先校验再执行（若勾选(待改)
-      if (this.shouldCheckSykEntry) {
-        this.checkSykEntryBeforeSave().then(() => {
-          this.updateEntryList();
-        });
-      } else {
-        this.updateEntryList();
-      }
+      // // 先校验再执行（若勾选(待改)
+      // if (this.needCheckEntry) {
+      //   this.checkSykEntryBeforeSave().then(() => {
+      //     this.updateEntryList();
+      //   });
+      // } else {
+      //   this.updateEntryList();
+      // }
+
+      // if (this.needCheckEntry) {
+      //   try {
+      //     await this.checkSykEntryBeforeSave();
+      //   } catch (checkError) {
+      //     return; // 校验失败时终止后续操作
+      //   }
+      // }
+      // let arr = {
+      //   updateArr: this.selectedRows, // 符合校验规则的待更新词条
+      //   toLongArr: [], // 长度超限词条
+      //   updateNum: this.selectedRows.length,
+      //   toLongNum: 0,
+      // };
+      // if (this.needVerifyLength) {
+      //   arr = await this.checkSykEntryBeforeSave(); // 明天来重新封装长度校验，把过长和符合的分开来
+      // }
+
+      let updateArr = await this.validateRules();
+      await this.updateEntryList(updateArr);
     },
     // 保存编辑数据
     saveEditEntry() {
@@ -744,6 +794,89 @@ export default {
           this.editableData[key][this.commonParam.transIdName];
       }
       this.editableData = {};
+    },
+    // 校验规则的汇总
+    async validateRules() {
+      let arr = {
+        noTranslateArr: [],
+        updateArr: [],
+        toLongArr: [],
+        specialCharArr: [],
+      };
+      let msgError = [];
+      // 区分是否已有翻译
+      Object.values(this.selectedRows).forEach((item) => {
+        const data = {
+          id: item.id,
+          entry: item.entry,
+          translate: this.editableData.hasOwnProperty(item.id)
+            ? this.editableData[item.id][this.commonParam.value]
+            : item[this.commonParam.value],
+          maxLength: getMaxLength(item, this),
+        };
+        if (data.translate) {
+          arr.updateArr.push(data);
+        } else {
+          arr.noTranslateArr.push(data);
+        }
+      });
+      if (arr.noTranslateArr.length > 0) {
+        msgError.push(`未翻译${arr.noTranslateArr.length}条`);
+      }
+      for (const option of this.rulesOptions) {
+        if (option.checked) {
+          if (option.key === "verify-length") {
+            // 校验字符长度
+            for (const record of arr.updateArr) {
+              if (
+                record.maxLength !== null &&
+                byteLength(record.translate) > record.maxLength
+              ) {
+                arr.toLongArr.push(record);
+                if (record.children && record.children.length > 0) {
+                  record.children.forEach((child) => {
+                    arr.toLongArr.push(child);
+                  });
+                }
+              }
+            }
+            if (arr.toLongArr.length > 0) {
+              arr.updateArr = arr.updateArr.filter(
+                (item) => !arr.toLongArr.includes(item)
+              );
+              msgError.push(`超长翻译${arr.toLongArr.length}条`);
+            }
+          } else if (option.key === "check-entry") {
+            // 校验特殊字符
+            await checkSykEntryBeforeSave(arr.updateArr)
+              .then((res) => {
+                res.data.forEach((item) => {
+                  this.redHighlightIds.push(item.id);
+                  const data = {
+                    id: item.id,
+                    entry: item.entry,
+                    translate: this.editableData.hasOwnProperty(item.id)
+                      ? this.editableData[item.id][this.commonParam.value]
+                      : item[this.commonParam.value],
+                  };
+                  arr.specialCharArr.push(data);
+                });
+              })
+              .catch((err) => {
+                message.error("特殊字符校验失败！", err);
+              });
+            if (arr.specialCharArr.length > 0) {
+              arr.updateArr = arr.updateArr.filter(
+                (item) => !arr.specialCharArr.includes(item)
+              );
+              msgError.push(`存在特殊字符${arr.specialCharArr.length}条`);
+            }
+          }
+        }
+      }
+      if (msgError.length > 0)
+        message.warn(`保存未通过：${msgError.join(",")}`, 3);
+      return arr.updateArr;
     },
     // 先校验再保存
     checkSykEntryBeforeSave() {
@@ -773,7 +906,7 @@ export default {
           this.selectedRowsCount.saveLen -= this.selectedRowsCount.errorLen;
           if (this.selectedRowsCount.errorLen > 0) {
             message.warn(
-              `校验结束，共有${this.selectedRowsCount.errorLen}条翻译异常，未保存！`,
+              `校验结束，共有${this.selectedRowsCount.errorLen}条翻译异常（有特殊占位符），未保存！`,
               1
             );
           }
@@ -783,33 +916,17 @@ export default {
         });
     },
     // 保存
-    updateEntryList() {
+    async updateEntryList(updateArr) {
       const updateParams = {
         taskID: this.task.id,
       };
-      this.updateNewByOld(this.selectedRows, this.dataSource);
-      // // 校验翻译长度，超长的不进行保存
-      // let toLongNum, toLongArr = this.verifyTranslationLength(this.selectedRows);
-      // if (toLongNum > 0) {
-      //   message.warn(`超长翻译${toLongNum}条`);
-      // }
-      // this.selectedRows = this.selectedRows.filter(item => !toLongArr.includes(item));
-      updateEntryList(updateParams, this.selectedRows)
+      await this.updateNewByOld(updateArr, this.dataSource);
+      await updateEntryList(updateParams, updateArr)
         .then(async (res) => {
-          if (this.selectedRowsCount.noTranslateLen > 0) {
-            message.warn(
-              `未翻译${this.selectedRowsCount.noTranslateLen}条，未保存！`,
-              1
-            );
+          if (res.data.totalNum == 0 && updateArr.length > 0) {
+            message.success(`翻译成功${updateArr.length}条，已保存！`, 1);
           }
-          if (this.selectedRowsCount.saveLen > 0) {
-            message.success(
-              `翻译成功${this.selectedRowsCount.saveLen}条，已保存！`,
-              1
-            );
-          }
-          await this.getTranslateEntry();
-          // this.selectedRows = toLongArr;
+          await this.getTranslateEntry(); //刷新
           if (this.allData.length == 0) this.handleClose();
         })
         .catch((err) => {

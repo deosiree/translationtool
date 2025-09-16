@@ -417,6 +417,7 @@ import {
   selectAllEntry,
   clearAllEntry,
   byteLength,
+  getMaxLength,
 } from "@/utils/commonUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 export default {
@@ -661,7 +662,7 @@ export default {
       createVisible: false,
       rules: {},
       batchSelectFlag: false,
-      limitMap: {},
+      classifyLimit: {},
       classify1Option: [],
       secondClassifyVisible: false,
       classify2Option: [],
@@ -722,13 +723,13 @@ export default {
       this.selectedRows = [];
       this.init();
       // console.log(newval)
-      let limitMap = {};
+      let classifyLimit = {};
       this.classify1Option = [];
       newval.children.forEach((item) => {
-        limitMap[item.title] = item;
+        classifyLimit[item.title] = item;
         this.classify1Option.push(item);
       });
-      this.limitMap = limitMap;
+      this.classifyLimit = classifyLimit;
     },
     productEdit(newval, oldval) {
       this.edit = newval;
@@ -902,7 +903,7 @@ export default {
         entrySource: this.search.entrySource,
         comment: this.search.comment,
         diFileName: this.search.diFileName,
-        update:this.search.update,
+        update: this.search.update,
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:",data)
@@ -927,7 +928,7 @@ export default {
         pageSize: this.pagination.pageSize,
         startTime: this.search.startTime,
         endTime: this.search.endTime,
-        update:this.search.update,
+        update: this.search.update,
       };
       if (accurate.length > 0) {
         params.accurate = accurate;
@@ -1022,16 +1023,16 @@ export default {
               this.dataSource.filter((item) => record.id === item.id)[0]
             );
             // 设置校验规则
-            this.rules[record.id] = {
-              entry: [
-                { validator: this.vilidFildLength(record, "chinese") },
-                { required: true, message: "请输入!" },
-              ],
-              english: [{ validator: this.vilidFildLength(record, "english") }],
-              french: [{ validator: this.vilidFildLength(record, "french") }],
-              russian: [{ validator: this.vilidFildLength(record, "russian") }],
-              spanish: [{ validator: this.vilidFildLength(record, "spanish") }],
-            };
+            this.rules[record.id] = {};
+            this.rules[record.id]["entry"] = [
+              { validator: this.vilidFildLength(record, "maxByte") },
+              { required: true, message: "请输入!" },
+            ];
+            commonParam.langValList.forEach((item) => {
+              this.rules[record.id][item] = [
+                { validator: this.vilidFildLength(record, "foreignMaxByte") },
+              ];
+            });
             // 获取表格操作行的classify2Option
             this.getRowClassify2Option(record);
           }
@@ -1039,32 +1040,34 @@ export default {
       };
     },
     // 校验输入数据的长度
-    vilidFildLength(record, language) {
+    vilidFildLength(record, colName) {
       return (rule, value) => {
-        let type = "";
-        if (language === "chinese") {
-          type = "maxByte";
-        } else {
-          type = "foreignMaxByte";
-        }
-        let maxLength = null;
-        if (!this.limitMap[record.classfy1]) {
-          if (record.maxLength != null && record.maxLength != "") {
-            maxLength = record.maxLength;
-          } else {
-            return Promise.resolve();
-          }
-        } else {
-          maxLength = this.limitMap[record.classfy1][type];
-        }
-        if (!maxLength || maxLength === "") {
-          return Promise.resolve();
-        }
+        console.log("校验长度", this.classifyLimit, record);
+        const maxLength = getMaxLength(record, this, colName);
+        // let type = "";
+        // if (language === "chinese") {
+        //   type = "maxByte";
+        // } else {
+        //   type = "foreignMaxByte";
+        // }
+        // let maxLength = null;
+        // if (!this.classifyLimit[record.classfy1]) {
+        //   if (record.maxLength != null && record.maxLength != "") {
+        //     maxLength = record.maxLength;
+        //   } else {
+        //     return Promise.resolve();
+        //   }
+        // } else {
+        //   maxLength = this.classifyLimit[record.classfy1][type];
+        // }
+        // if (!maxLength || maxLength === "") {
+        //   return Promise.resolve();
+        // }
         // 获取输入数据的长度
         // let length = common.byteLength(value);
         let length = byteLength(value);
         if (length > maxLength) {
-          return Promise.reject("允许最大字符数为" + maxLength + "！");
+          return Promise.reject("允许最大字符数为" + maxLength + "！\n(1中文=2字符)");
         }
         return Promise.resolve();
       };
@@ -1436,7 +1439,7 @@ export default {
         translateType: this.search.language,
         startTime: this.search.startTime,
         endTime: this.search.endTime,
-        update:this.search.update,
+        update: this.search.update,
         pageIndex: -1,
         pageSize: -1,
       };
@@ -1495,16 +1498,17 @@ export default {
       // console.log(newData)
       // 设置校验规则
       if (newData.maxLength != "") {
-        this.rules[newData.id] = {
-          entry: [
-            { validator: this.vilidFildLength(newData, "chinese") },
-            { required: true, message: "请输入!" },
-          ],
-          english: [{ validator: this.vilidFildLength(newData, "english") }],
-          french: [{ validator: this.vilidFildLength(newData, "french") }],
-          russian: [{ validator: this.vilidFildLength(newData, "russian") }],
-          spanish: [{ validator: this.vilidFildLength(newData, "spanish") }],
-        };
+        this.rules[newData.id] = {};
+        this.rules[newData.id]["entry"] = [
+          { validator: this.vilidFildLength(newData, "maxByte") },
+          { required: true, message: "请输入!" },
+        ];
+        commonParam.langValList.forEach((item) => {
+          this.rules[newData.id][item] = [
+            { validator: this.vilidFildLength(newData, "foreignMaxByte") },
+          ];
+        });
+
       }
 
       if (this.pagination.total >= this.pagination.pageSize) {
@@ -1535,16 +1539,26 @@ export default {
       // copyEntry.entryVersion = 'new'
       // 设置校验规则
       if (copyEntry.maxLength != "") {
-        this.rules[copyEntry.id] = {
-          entry: [
-            { validator: this.vilidFildLength(copyEntry, "chinese") },
-            { required: true, message: "请输入!" },
-          ],
-          english: [{ validator: this.vilidFildLength(copyEntry, "english") }],
-          french: [{ validator: this.vilidFildLength(copyEntry, "french") }],
-          russian: [{ validator: this.vilidFildLength(copyEntry, "russian") }],
-          spanish: [{ validator: this.vilidFildLength(copyEntry, "spanish") }],
-        };
+        this.rules[copyEntry.id] = {};
+        this.rules[copyEntry.id]["entry"] = [
+          { validator: this.vilidFildLength(copyEntry, "maxByte") },
+          { required: true, message: "请输入!" },
+        ];
+        commonParam.langValList.forEach((item) => {
+          this.rules[copyEntry.id][item] = [
+            { validator: this.vilidFildLength(copyEntry, "foreignMaxByte") },
+          ];
+        });
+        // this.rules[copyEntry.id] = {
+        //   entry: [
+        //     { validator: this.vilidFildLength(copyEntry, "chinese") },
+        //     { required: true, message: "请输入!" },
+        //   ],
+        //   english: [{ validator: this.vilidFildLength(copyEntry, "english") }],
+        //   french: [{ validator: this.vilidFildLength(copyEntry, "french") }],
+        //   russian: [{ validator: this.vilidFildLength(copyEntry, "russian") }],
+        //   spanish: [{ validator: this.vilidFildLength(copyEntry, "spanish") }],
+        // };
       }
       let index = this.dataSource.indexOf(entry);
       this.dataSource.splice(index + 1, 0, copyEntry);
@@ -1635,11 +1649,11 @@ export default {
       }
       getClassfy(params)
         .then((res) => {
-          let limitMap = {};
+          let classifyLimit = {};
           res.data.list.forEach((item) => {
-            limitMap[item.title] = item;
+            classifyLimit[item.title] = item;
           });
-          this.limitMap = limitMap;
+          this.classifyLimit = classifyLimit;
         })
         .catch((err) => {
           message.err(err.message);
