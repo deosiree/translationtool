@@ -16,6 +16,9 @@
               font-size: smaller;margin-top:0">全选</a-button>
           </div>
         </a-form-item>
+        <a-form-item label="文件名称" name="xml_name" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请输入文件名!' }]">
+          <a-input v-model:value="exportModal.xml_name" placeholder="请输入文件名"></a-input>
+        </a-form-item>
         <a-form-item label="指定local语言" name="local_desc" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="exportModal.local_desc" placeholder="请选择语言" :options='localDescOptions' allowClear>
           </a-select>
@@ -74,6 +77,7 @@ export default {
         exportType: null,
         field: [],
         local_desc: null,
+        xml_name:"sysdict",
       },
       exportTypes: [
         { label: "excel", value: "excel" },
@@ -182,7 +186,7 @@ export default {
         if (choosePath && "showSaveFilePicker" in window) {
           // 提前获取文件句柄
           if (exportType === "xml") {
-            suggestedName = "sysdict.xml";
+            suggestedName = this.exportModal.xml_name+".xml";
             types = [
               {
                 description: "XML 文件",
