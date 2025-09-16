@@ -35,6 +35,8 @@
 
 <script>
 import { message } from "ant-design-vue";
+import { create } from "xmlbuilder2";
+import { ref } from "vue";
 import CustomModal from "@/components/modal/index.vue";
 import { entryExportByCondition } from "@/http/api/download";
 import {
@@ -77,7 +79,7 @@ export default {
         exportType: null,
         field: [],
         local_desc: null,
-        xml_name:"sysdict",
+        xml_name: "sysdict",
       },
       exportTypes: [
         { label: "excel", value: "excel" },
@@ -186,7 +188,7 @@ export default {
         if (choosePath && "showSaveFilePicker" in window) {
           // 提前获取文件句柄
           if (exportType === "xml") {
-            suggestedName = this.exportModal.xml_name+".xml";
+            suggestedName = this.exportModal.xml_name + ".xml";
             types = [
               {
                 description: "XML 文件",
@@ -229,56 +231,140 @@ export default {
               uniqueEntries.push(item);
             }
           });
-          // 手动构建 XML 字符串
-          let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
+
+          // 自动转义并生成xml文件
+          const itemDataList = [];
           uniqueEntries.forEach((item) => {
-            let abbr = item.entry != null ? item.entry : ""; // 装置部需求
-            let cn_desc = item.chinese != null ? item.chinese : ""; // 装置部需求
-            let en_desc = item.english != null ? item.english : "";
-            let es_desc = item.spanish != null ? item.spanish : "";
-            let ru_desc = item.russian != null ? item.russian : "";
-            let local_desc =
-              item[this.exportModal.local_desc] != null
-                ? item[this.exportModal.local_desc]
-                : "";
+            console.log(
+              "法国",item,
+              this.exportModal.local_desc,
+              item[this.exportModal.local_desc]
+            );
+            const itemData = {
+              abbr: item.entry != null ? item.entry : "",
+              cn_desc: item.chinese != null ? item.chinese : "",
+              en_desc: item.english != null ? item.english : "",
+              es_desc: item.spanish != null ? item.spanish : "",
+              ru_desc: item.russian != null ? item.russian : "",
+              local_desc:
+                item[this.exportModal.local_desc] != null
+                  ? item[this.exportModal.local_desc]
+                  : "",
+            };
 
             // 装置部给领导看的临时版本
             if (
               this.currentDepartment.hasOwnProperty("xml_temp") &&
               this.currentDepartment.xml_temp
             ) {
-              let abbr_tmp = abbr;
-              abbr = cn_desc;
-              cn_desc = abbr_tmp;
+              let abbr_tmp = itemData.abbr;
+              itemData.abbr = itemData.cn_desc;
+              itemData.cn_desc = abbr_tmp;
             }
 
-            xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${local_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
-
-            // console.log("当前xml内容:", xml, this.currentDepartment);
+            itemDataList.push(itemData);
           });
-          xml += `</DICT>`;
 
-          // 导出文件
-          const blob = new Blob([xml], { type: "application/xml" });
-          if (choosePath && this.fileHandle) {
-            const writable = await this.fileHandle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-          } else {
-            await this.handleFileSave(
-              blob,
-              "sysdict.xml",
-              [
-                {
-                  description: "XML 文件",
-                  accept: {
-                    "application/xml": [".xml"],
-                  },
-                },
-              ],
-              choosePath
-            );
-          }
+          // 创建 XML 文档（指定版本和编码）
+          const xml = create({ version: "1.0", encoding: "UTF-8" }).ele(
+            "DICT",
+            { local_language: "0" }
+          );
+          // 遍历数据，为每个 item 生成 <ITEM> 子元素
+          itemDataList.forEach((item) => {
+            // 添加 <ITEM> 子元素，并设置其属性（自动转义特殊字符）
+            xml.ele("ITEM", {
+              abbr: item.abbr, // 属性名合法（字母开头）
+              cn_desc: item.cn_desc,
+              en_desc: item.en_desc,
+              local_desc: item.local_desc,
+              es_desc: item.es_desc,
+              ru_desc: item.ru_desc,
+            });
+          });
+          const xmlString = xml.end({ prettyPrint: true, indent: "  " });
+          console.log("生成的 XML 内容：\n", xmlString); // 关键：输出检查
+
+          // 创建 Blob 对象（类型为 XML）
+          const blob = new Blob([xmlString], { type: "application/xml" });
+          // 生成临时 URL
+          const url = URL.createObjectURL(blob);
+          // 创建隐藏的 <a> 标签触发下载
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "dict.xml"; // 文件名
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          // 释放资源
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          // // 手动构建 XML 字符串
+          // let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
+          // uniqueEntries.forEach((item) => {
+          //   // 赋值
+          //   let abbr = item.entry != null ? item.entry : ""; // 装置部需求
+          //   let cn_desc = item.chinese != null ? item.chinese : ""; // 装置部需求
+          //   let en_desc = item.english != null ? item.english : "";
+          //   let es_desc = item.spanish != null ? item.spanish : "";
+          //   let ru_desc = item.russian != null ? item.russian : "";
+          //   let local_desc =
+          //     item[this.exportModal.local_desc] != null
+          //       ? item[this.exportModal.local_desc]
+          //       : "";
+
+          //   // 转义
+          //   const escapeHtml = (str) => {
+          //     return str.replace(
+          //       /[&<>"']/g,
+          //       (char) => commonParam.escapeMap[char] || char
+          //     );
+          //   };
+          //   abbr = escapeHtml(abbr);
+          //   cn_desc = escapeHtml(cn_desc);
+          //   en_desc = escapeHtml(en_desc);
+          //   es_desc = escapeHtml(es_desc);
+          //   ru_desc = escapeHtml(ru_desc);
+          //   local_desc = escapeHtml(local_desc);
+
+          //   // 装置部给领导看的临时版本
+          //   if (
+          //     this.currentDepartment.hasOwnProperty("xml_temp") &&
+          //     this.currentDepartment.xml_temp
+          //   ) {
+          //     let abbr_tmp = abbr;
+          //     abbr = cn_desc;
+          //     cn_desc = abbr_tmp;
+          //   }
+
+          //   xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${local_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
+
+          //   // console.log("当前xml内容:", xml, this.currentDepartment);
+          // });
+          // xml += `</DICT>`;
+
+          // // 导出文件
+          // const blob = new Blob([xml], { type: "application/xml" });
+          // if (choosePath && this.fileHandle) {
+          //   const writable = await this.fileHandle.createWritable();
+          //   await writable.write(blob);
+          //   await writable.close();
+          // } else {
+          //   await this.handleFileSave(
+          //     blob,
+          //     this.exportModal.xml_name + ".xml",
+          //     [
+          //       {
+          //         description: "XML 文件",
+          //         accept: {
+          //           "application/xml": [".xml"],
+          //         },
+          //       },
+          //     ],
+          //     choosePath
+          //   );
+          // }
         } else if (exportType === "excel" || exportType === "csv") {
           // 导出接口
           let fields = ["id"].concat(field);
