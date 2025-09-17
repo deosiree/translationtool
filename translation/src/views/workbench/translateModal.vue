@@ -116,7 +116,7 @@
                   <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                     autocomplete="off">
                     <a-form-item :name="column.dataIndex">
-                      <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)"
+                      <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="editSave(record)"
                         @change="changeInput(record)" />
                     </a-form-item>
                   </a-form>
@@ -156,13 +156,13 @@
                     <template #title>
                       <span>保存</span>
                     </template>
-                    <CheckOutlined style="color:#369FFF;margin-left:8px" @click="edit(record)" />
+                    <CheckOutlined style="color:#369FFF;margin-left:8px" @click="editSave(record)" />
                   </a-tooltip>
                   <a-tooltip placement="top">
                     <template #title>
                       <span>取消</span>
                     </template>
-                    <CloseOutlined style="color:red;margin-left:8px" @click="cancel(record)" />
+                    <CloseOutlined style="color:red;margin-left:8px" @click="editCancel(record)" />
                   </a-tooltip>
                 </span>
               </div>
@@ -738,11 +738,14 @@ export default {
           this.editableData[key][this.language.transIdName];
       }
       this.editableData = {};
+
       // 2.更新选中词条
       this.updateNewByOld(this.selectedRows, this.dataSource);
+
       // 3.（可选）保存前校验：通过校验的词条才可以保存
       await this.validateRules();
       console.log("updateArr", this.selectedArr);
+
       // 4.修改状态
       if (
         this.selectedArr.updateArr.length > 0 ||
@@ -765,6 +768,7 @@ export default {
           }
         }
       }
+
       // 5.更新词条
       await this.updateEntryList(this.selectedArr.updateArr);
     },
@@ -842,6 +846,17 @@ export default {
           ...this.selectedArr.toLongIds,
           ...this.selectedArr.specialIds,
         ]);
+        // 将所有未通过的词条变为编辑态（这样未通过的原因就会显示出来了）
+        this.selectedRows.forEach((record) => {
+          if (this.selectedArr.redHighlightIds.has(record.id)) {
+            this.editableData[record.id] = cloneDeep(record);
+            // this.editableData[record.id] = cloneDeep(
+            //   this.dataSource.filter((item) => record.id === item.id)[0]
+            // ); // 进入编辑态
+            // 设置校验规则
+            setRefRules(this, record, [this.language.value]);
+          }
+        });
         message.warn(`保存未通过：${msgError.join(",")}`, 1);
       }
     },
@@ -895,7 +910,7 @@ export default {
           }
           this.editableData[record.id] = cloneDeep(
             this.dataSource.filter((item) => record.id === item.id)[0]
-          );
+          ); // 进入编辑态
           // 设置校验规则
           // this.rules[record.id] = {};
           // this.rules[record.id][this.language.value] = [
@@ -945,52 +960,60 @@ export default {
     //   // };
     // },
     // 编辑-保存
-    async edit(record) {
-      // 使用校验规则
-      const formRefName = `form${record.id.replaceAll("-", "")}${
-        this.language.value
-      }`;
-      // console.log(
-      //   "删除前的edit",
-      //   record[this.language.value],
-      //   record[this.language.transIdName],
-      //   this.editableData[record.id]
-      // );
-      // const formRef = this.$refs[formRefName];
-      // if (formRef) {
-      //   try {
-      //     await formRef.validate(); // 双击打开编辑框时设置的校验规则
-      //     record[this.language.value] =
-      //       this.editableData[record.id][this.language.value];
-      //     record[this.language.transIdName] =
-      //       this.editableData[record.id][this.language.transIdName];
-      //     delete this.editableData[record.id];
-      //   } catch (err) {
-      //     console.error("输入框回车验证失败:", err);
-      //     // message.error("输入验证失败，请检查输入内容", err.message);// 长度超限，ref提示
-      //   }
-      // }
-      try {
-        await useRefRules(this.$refs, formRefName);
-        record[this.language.value] =
-          this.editableData[record.id][this.language.value];
-        record[this.language.transIdName] =
-          this.editableData[record.id][this.language.transIdName];
-        delete this.editableData[record.id];
-      } catch (err) {
-        console.error(err);
-      }
-      // console.log(
-      //   "删除后的edit",
-      //   record[this.language.value],
-      //   record[this.language.transIdName],
-      //   this.editableData[record.id]
-      // );
-
+    async editSave(record) {
+      record[this.language.value] =
+        this.editableData[record.id][this.language.value];
+      record[this.language.transIdName] =
+        this.editableData[record.id][this.language.transIdName];
+      delete this.editableData[record.id];
       this.hideEditOperation();
     },
+    // async editSave(record) {
+    //   // 使用校验规则
+    //   const formRefName = `form${record.id.replaceAll("-", "")}${
+    //     this.language.value
+    //   }`;
+    //   // console.log(
+    //   //   "删除前的edit",
+    //   //   record[this.language.value],
+    //   //   record[this.language.transIdName],
+    //   //   this.editableData[record.id]
+    //   // );
+    //   // const formRef = this.$refs[formRefName];
+    //   // if (formRef) {
+    //   //   try {
+    //   //     await formRef.validate(); // 双击打开编辑框时设置的校验规则
+    //   //     record[this.language.value] =
+    //   //       this.editableData[record.id][this.language.value];
+    //   //     record[this.language.transIdName] =
+    //   //       this.editableData[record.id][this.language.transIdName];
+    //   //     delete this.editableData[record.id];
+    //   //   } catch (err) {
+    //   //     console.error("输入框回车验证失败:", err);
+    //   //     // message.error("输入验证失败，请检查输入内容", err.message);// 长度超限，ref提示
+    //   //   }
+    //   // }
+    //   try {
+    //     await useRefRules(this.$refs, formRefName);
+    //     record[this.language.value] =
+    //       this.editableData[record.id][this.language.value];
+    //     record[this.language.transIdName] =
+    //       this.editableData[record.id][this.language.transIdName];
+    //     delete this.editableData[record.id];
+    //   } catch (err) {
+    //     console.error(err);
+    //   }
+    //   // console.log(
+    //   //   "删除后的edit",
+    //   //   record[this.language.value],
+    //   //   record[this.language.transIdName],
+    //   //   this.editableData[record.id]
+    //   // );
+
+    //   this.hideEditOperation();
+    // },
     // 取消编辑
-    cancel(record) {
+    editCancel(record) {
       delete this.editableData[record.id];
       this.hideEditOperation();
     },

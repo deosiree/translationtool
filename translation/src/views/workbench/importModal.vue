@@ -35,8 +35,6 @@
                   <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
                 </a-upload>
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
-                <!-- <a-checkbox v-if="!currentDepartment.needWriteBack" v-model:checked="isOldmodel"
-                  style="font-size: 12px; margin-left: 10px">旧模板</a-checkbox> -->
               </a-form-item>
             </a-col>
             <a-col :span="8">
@@ -258,8 +256,6 @@
             <SearchOutlined />
           </template>查询
         </a-button>
-        <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
-                <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
         <a-button type="primary" danger size="small" style="margin-left:8px" @click="deleteEntry">
           <template #icon>
             <DeleteOutlined />
@@ -272,13 +268,6 @@
           <a-radio value="英文">英文</a-radio>
         </a-radio-group>
         <div style="margin-left:auto">
-
-          <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAllEntry">
-                        选择全部
-                    </a-button>
-                    <a-button type="primary" size="small" style="margin-left:8px" @click="clearAllEntry">
-                        取消选择
-                    </a-button> -->
           <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -311,14 +300,14 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
-          <!-- <template v-if="['chinese','english','russian','spanish','french'].includes(column.dataIndex)"> -->
           <template v-if="editList_needValidate.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                   autocomplete="off">
                   <a-form-item :name="column.dataIndex">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
+                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;margin-top:10px"
+                      @pressEnter="editSave(record)" />
                   </a-form-item>
                 </a-form>
               </template>
@@ -327,12 +316,10 @@
               </template>
             </div>
           </template>
-          <!-- <template
-            v-if="['chineseInterpretation','englishInterpretation','spanishInterpretation','frenchInterpretation','russianInterpretation','comment'].includes(column.dataIndex)"> -->
           <template v-if="editList.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
+                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="editSave(record)" />
               </template>
               <template v-else>
                 {{ text }}
@@ -361,8 +348,6 @@
               <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
             </template>
           </template>
-          <!-- <template
-            v-if="['chineseTranslateState','englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState','translateState'].includes(column.dataIndex)"> -->
           <template v-if="translateStateList.includes(column.dataIndex)">
             <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
               <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
@@ -380,7 +365,7 @@
           <template v-if="column.dataIndex === 'tag'">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%" @pressEnter="edit(record)" />
+                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%" @pressEnter="editSave(record)" />
                 <a-tooltip placement="top">
                   <template #title>
                     <span>多个Tag按分号分割！</span>
@@ -413,7 +398,7 @@
                   <template #title>
                     <span>保存</span>
                   </template>
-                  <CheckOutlined style="color:#369FFF;margin-left:8px" @click="edit(record)" />
+                  <CheckOutlined style="color:#369FFF;margin-left:8px" @click="editSave(record)" />
                 </a-tooltip>
                 <a-tooltip placement="top">
                   <template #title>
@@ -566,6 +551,7 @@ import {
   filter_arr_keys,
   byteLength,
   handleAsyncRequest,
+  verifyArray_workbench,
 } from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
@@ -778,7 +764,7 @@ export default {
             "translate",
           ].includes(item.value)
       ), // 移除固定列对应的配置项
-      editList_needValidate: commonParam.langValList, // 可编辑的列名集合(需要验证长度)
+      editList_needValidate: ["translate", ...commonParam.langValList], // 可编辑的列名集合(需要表单校验)
       editList: [...commonParam.langInterList, "comment"], // 可编辑的列名集合
       translateStateList: [
         ...commonParam.langTranslateStateList,
@@ -821,7 +807,6 @@ export default {
       departmentList: commonParam.departmentList, // 当前用户所在部门
       templateTypes: null,
       templateType: null,
-      isOldmodel: false, // 导入的文件是否是旧模板
       exportTypes: [
         { label: "excel", value: "excel" },
         { label: "csv", value: "csv" },
@@ -917,7 +902,121 @@ export default {
       col.width = w;
     },
     // 保存词条
-    saveEntrys() {
+    async saveEntrys() {
+      const currentLang = this.task.transMap.value;
+      let hasNoInter = false;
+      let arr = {
+        acceptIds: new Set(),
+        toLongIds: new Set(), // 校验长度
+        specialIds: new Set(), // 校验特殊字符
+      };
+      arr = await verifyArray_workbench(this, this.selectedRows, currentLang);
+      console.log("ok", arr, arr.acceptIds);
+      let arrCount = {
+        updateArr: [],
+        insertArr: [],
+        toLongNum: arr.toLongIds.size,
+        specialNum: arr.specialIds.size,
+        addNum: 0,
+        addChildNum: 0,
+        updateNum: 0,
+        updateChildNum: 0,
+      };
+
+      // 保存编辑框中的所有信息
+      for (let key in this.editableData) {
+        if (this.selectedRowKeys.includes(key)) {
+          let entry = this.dataSource.find((item) => item.id === key);
+          entry = cloneDeep(this.editableData[key]);
+
+          if (entry[currentLang] != null) {
+            // 翻译存在  则状态为待审核状态
+            entry[this.task.transMap.state] = "1";
+          }
+          delete this.editableData[key];
+        }
+      }
+      console.log("ok2", arr.acceptIds.size);
+      if (this.allData.length === 0) {
+        return;
+      }
+      this.saveLoading = true;
+      console.log("ok3", this.selectedRows, arr.specialIds);
+      for (const record of this.selectedRows) {
+        console.log("record", record.id, arr.specialIds.has(record.id));
+        if (arr.acceptIds.has(record.id)) {
+          if (
+            !hasNoInter &&
+            !record.englishInterpretation &&
+            !record.chineseInterpretation
+          ) {
+            hasNoInter = true;
+          }
+          if (record.entryState === 2) {
+            // 如果是审核不通过的词条，重置为待审核状态
+            record.entryState = 1;
+            try {
+              arrCount.updateArr.push(record);
+            } catch (err) {
+              console.log("update报错");
+            }
+            arrCount.updateNum++;
+            if (record.children && record.children.length > 0) {
+              record.children.forEach((child) => {
+                child.entryState = 1;
+              });
+              arrCount.updateChildNum += record.children.length;
+            }
+          } else if (record.entryState === 1) {
+            // 如果是待审核的词条，则直接更新
+            try {
+              arrCount.insertArr.push(record);
+            } catch (err) {
+              console.log("add报错", record);
+            }
+            arrCount.addNum++;
+            if (record.children && record.children.length > 0) {
+              arrCount.addChildNum += record.children.length;
+            }
+          }
+        } else if (
+          arr.toLongIds.has(record.id) ||
+          arr.specialIds.has(record.id)
+        ) {
+          console.log("有问题");
+          await handleExceedLength(record, currentLang, this);
+        }
+      }
+      if (hasNoInter) {
+        Modal.confirm({
+          title:
+            "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
+          icon: createVNode(ExclamationCircleOutlined),
+          content: "",
+          okText: "是",
+          cancelText: "否",
+          style: { top: "30%" },
+          onOk: () => {
+            this.insertOrUpdateEntrys(
+              arrCount.insertArr,
+              arrCount.updateArr,
+              arrCount
+            );
+          },
+          onCancel: () => {
+            this.saveLoading = false;
+          },
+        });
+      } else {
+        this.insertOrUpdateEntrys(
+          arrCount.insertArr,
+          arrCount.updateArr,
+          arrCount
+        );
+      }
+    },
+    // 保存词条
+    saveEntrys_bak() {
       for (let key in this.editableData) {
         if (this.selectedRowKeys.includes(key)) {
           let entry = this.dataSource.find((item) => item.id === key);
@@ -953,7 +1052,7 @@ export default {
       }
       this.saveLoading = true;
 
-      let addArr = [];
+      let insertArr = [];
       let updateArr = [];
       let toLongArr = []; // 用于存储超长词条
       let arrCount = {
@@ -1034,12 +1133,12 @@ export default {
           }
         } else if (item.entryState === 1) {
           // 如果是待审核的词条，则直接更新
-          addArr.push(item);
+          insertArr.push(item);
           arrCount.addNum++;
           if (item.children && item.children.length > 0) {
             arrCount.addChildNum += item.children.length;
             // item.children.forEach((child) => {
-            //   addArr.push(child);
+            //   insertArr.push(child);
             // });
           }
         }
@@ -1055,18 +1154,18 @@ export default {
           cancelText: "否",
           style: { top: "30%" },
           onOk: () => {
-            this.insertOrUpdateEntrys(addArr, updateArr, arrCount);
+            this.insertOrUpdateEntrys(insertArr, updateArr, arrCount);
           },
           onCancel: () => {
             this.saveLoading = false;
           },
         });
       } else {
-        this.insertOrUpdateEntrys(addArr, updateArr, arrCount);
+        this.insertOrUpdateEntrys(insertArr, updateArr, arrCount);
       }
     },
     //
-    insertOrUpdateEntrys(addArr, updateArr, arrCount) {
+    insertOrUpdateEntrys(insertArr, updateArr, arrCount) {
       // if (arrCount.toLongNum > 0) {
       //   // 存在超长
       //   message.warn("存在超长数据，请检查！");
@@ -1079,17 +1178,19 @@ export default {
       const promises = [];
       let messageTextParts = [];
 
+      console.log("arrCount", arrCount);
       if (arrCount.toLongNum > 0) {
-        let toLongNumText = `校验不通过${arrCount.toLongNum}条`;
-        if (arrCount.toLongChildNum > 0) {
-          toLongNumText += `(聚合${arrCount.toLongChildNum}条)`;
-        }
+        let toLongNumText = `字符长度超限${arrCount.toLongNum}条`;
         messageTextParts.push(toLongNumText);
+      }
+      if (arrCount.specialNum > 0) {
+        let specialNumText = `特殊字符不一致${arrCount.specialNum}条`;
+        messageTextParts.push(specialNumText);
       }
 
       if (arrCount.addNum > 0) {
         // 新增
-        const addPromise = insertEntry(params, addArr)
+        const addPromise = insertEntry(params, insertArr)
           .then((res) => {
             const successCount = arrCount.addNum - res.data.totalNum;
             const failCount = res.data.totalNum;
@@ -1103,15 +1204,18 @@ export default {
               messageTextParts.push(`其中聚合的数据${arrCount.addChildNum}条`);
             }
 
-            // 从 addArr 中移除保存失败的数据
-            const successfulAddArr = filter_arr(addArr, res.data.list);
+            // 从 insertArr 中移除保存失败的数据
+            const successfulInsertArr = filter_arr(insertArr, res.data.list);
             // 从 this.dataSource 中移除保存成功的数据
-            this.dataSource = filter_arr(this.dataSource, successfulAddArr);
+            this.dataSource = filter_arr(this.dataSource, successfulInsertArr);
             // 从this.selectedRows 中移除保存成功的数据
-            this.selectedRows = filter_arr(this.selectedRows, successfulAddArr);
+            this.selectedRows = filter_arr(
+              this.selectedRows,
+              successfulInsertArr
+            );
             this.selectedRowKeys = filter_arr_keys(
               this.selectedRowKeys,
-              successfulAddArr
+              successfulInsertArr
             );
           })
           .catch((err) => {
@@ -1690,7 +1794,6 @@ export default {
         const params = {
           diFileName: this.filediFileName,
           departmentType: this.user.department,
-          // isOldmodel: this.isOldmodel,
           templateType: this.templateType,
         };
         asyncTask = readZZExcle(params, formData)
@@ -1818,7 +1921,7 @@ export default {
               this.task.transMap.value,
               this
             );
-            // console.log("当前页数据校验结果!");
+            console.log("当前页数据校验结果!");
           });
       } else {
         this.loading = false;
@@ -2095,8 +2198,8 @@ export default {
         return Promise.resolve();
       };
     },
-    // 编辑，也是编辑框的回车事件
-    edit(record) {
+    // 编辑-保存
+    editSave(record) {
       for (const [key, value] of Object.entries(this.editableData[record.id])) {
         if (record.hasOwnProperty(key) && value != null && value !== "") {
           // 如果record中存在该键，并且值不为空，则更新record
@@ -2125,6 +2228,11 @@ export default {
             message.error("11", err.message);
           });
       } else {
+        console.log(
+          "未找到对应的表单验证器",
+          formRef,
+          this.task.transMap.value
+        );
         message.error("未找到对应的表单验证器");
       }
       delete this.editableData[record.id];
@@ -2670,7 +2778,7 @@ export default {
   }
 }
 .ant-form-item {
-  margin-bottom: 0%;
+  margin-bottom: 0;
 }
 :deep(.ant-pagination) {
   margin: 8px 0;
