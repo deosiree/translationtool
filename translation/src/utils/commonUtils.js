@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
+import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
@@ -435,6 +436,99 @@ export function intersection(nums1, nums2) {
 }
 
 /**
+ * 使用校验规则
+ * 通常用于双击编辑框后，用户点击保存时触发。
+ *
+ * @param {Object} refs - 包含多个表单引用对象的容器，值为对应的表单引用（如 Element Plus 的 FormInstance）
+ * @param {string} refName - 用于从 refs 中获取目标表单引用的键名，如 'form1'、'editForm' 等
+ * @returns {Promise<void>} - 返回一个 Promise，通常由调用方 await
+ */
+export async function useRefRules(refs, refName) {
+  const formRef = refs[refName];
+  if (formRef) {
+    try {
+      await formRef.validate(); // 双击打开编辑框时设置的校验规则
+      return Promise.resolve();
+    } catch (err) {
+      // message.error("输入验证失败，请检查输入内容", err.message);// 不弹窗，通过ref提示
+      return Promise.reject("编辑-保存校验失败");
+    }
+  }
+  return Promise.reject(new Error(`未找到 ref 名称为 "${refName}" 的表单引用`));
+}
+
+/**
+ * 设置校验规则
+ * 为指定的数据记录设置表单校验规则。
+ * 通常在打开编辑框时调用，为每个可编辑字段配置校验逻辑。
+ *
+ * @param {Object} vm - Vue 组件实例，需包含 rules 对象用于存储校验规则（如 this.rules = {}）
+ * @param {Object} record - 当前正在编辑的数据记录，需包含唯一标识字段 id，以及其他待校验字段
+ * @param {Array<string>} cols - 需要设置校验规则的字段名数组，如 ["entry", "english", "chinese"]
+ * @returns {void}
+ */
+export function setRefRules(vm, record, cols) {
+  vm.rules[record.id] = {};
+  for (const col of cols) {
+    if (col === "entry") {
+      vm.rules[record.id][col] = [
+        { validator: validateRefRules(record, vm, "maxByte", "") },
+        { required: true, message: "请输入!" },
+      ];
+    }
+    else {
+      vm.rules[record.id][col] = [
+        { validator: validateRefRules(record, vm, "foreignMaxByte", col) },
+      ];
+    }
+  }
+}
+
+/**
+ * 定义校验规则（通过.validate执行）
+ * 校验器工厂函数，根据字段名返回一个异步校验函数。
+ * 用于校验输入内容的字节长度和特殊字符是否翻译一致。
+ *
+ * @param {Object} vm - Vue 组件实例，需包含 rules 对象用于存储校验规则（如 this.rules = {}）
+ * @param {Object} record - 当前数据记录，包含字段如 id, entry 等
+ * @param {string} colName - 当前校验的字段类型，比如 "maxByte" 或 "foreignMaxByte"，用于区分校验策略
+ * @param {string} language - 当前校验的语言类型，如english,chinese
+ * @returns {(rule: any, value: any) => Promise<void>} - 返回一个异步校验函数，符合 Element Plus 的 validator 要求
+ */
+export function validateRefRules(record, vm, colName, language) {
+  return async (rule, value) => {
+    // console.log("校验长度", this.classifyLimit, record);
+    const maxLength = getMaxLength(record, vm, colName);
+    let length = byteLength(value);
+    if (maxLength && length > maxLength) {
+      return Promise.reject(`允许最大字符数为${maxLength}(1中文=2字符)`);
+    }
+
+    if (language) {// 需要拿翻译与词条进行比较，所以词条本身不需要进行特殊字符校验
+      const datas = [
+        {
+          id: record.id,
+          entry: record.entry,
+          translate: vm.editableData[record.id]
+            ? vm.editableData[record.id][language]
+            : record[language],
+        },
+      ];
+      // console.log("校验特殊字符", datas);
+      let specialCharNum = 0;
+      try {
+        const res = await checkSykEntryBeforeSave(datas);//调用后端接口
+        specialCharNum = res.data?.length ?? 0;
+      } catch (err) { }
+      if (specialCharNum > 0)
+        return Promise.reject(`特殊字符不一致\r\n(如%1翻译成% 1)`);
+    }
+
+    return Promise.resolve();
+  };
+}
+
+/**
  * 校验当前页数据的翻译长度
  * @param {Object} pagination - 分页信息对象，包含 `current`（当前页码）和 `pageSize`（每页显示数量）属性
  * @param {string} language - 当前语言类型，用于指定要校验的翻译字段
@@ -487,16 +581,16 @@ export async function verifyTranslationLength(array, language, vm) {
  */
 export function getMaxLength(record, vm, colName = "foreignMaxByte") {
   if (!record.classfy1) {
-    console.log("无一级分类", record)
+    // console.log("无一级分类", record)
     return record.maxLength || null;
   }
-  console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
+  // console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
   if (colName == "foreignMaxByte") {
-    console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
+    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
     return vm.classifyLimit?.[record.classfy1]?.foreignMaxByte || null;
   }
   else if (colName == "maxByte") {
-    console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
+    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
     return vm.classifyLimit?.[record.classfy1]?.maxByte || null;
   }
 }

@@ -84,11 +84,12 @@
             <a-button type="primary" size="small" class="resetBtn" @click="viewCreateVersionEntry">已选词条</a-button>
           </a-badge>
 
-
           <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
-          <a-button type="primary" size="small" @click="addEntry"><template #icon>
+          <a-button type="primary" size="small" @click="addEntry">
+            <template #icon>
               <PlusOutlined />
-            </template>新增</a-button>
+            </template>新增
+          </a-button>
           <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
           <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
@@ -245,8 +246,8 @@
                 <template v-if="column.dataIndex === 'operation'">
                   <div class="editable-row-operations">
                     <span v-if="editableData[record.id]">
-                      <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                      <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                      <a-button type="primary" ghost size="small" @click.stop="editSave(record.id)">保存</a-button>
+                      <a-button type="primary" ghost size="small" danger @click.stop="editCancel(record.id)">取消</a-button>
                     </span>
                     <span v-else>
                       <a-button type="primary" ghost size="small" @click.stop="entryDetails(record)">详情</a-button>
@@ -420,6 +421,8 @@ import {
   clearAllEntry,
   byteLength,
   getMaxLength,
+  setRefRules,
+  useRefRules,
 } from "@/utils/commonUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 export default {
@@ -676,7 +679,6 @@ export default {
       accurOrNot: false, // 是否是精确查询
     };
   },
-
   created() {},
   mounted() {
     this.$nextTick(() => {
@@ -700,19 +702,11 @@ export default {
       this.init();
       // 读取本地存储的用户偏好
       getColPref("colPref-productEntry", 200, this);
-      // const storedPreferences = localStorage.getItem("colPref-productEntry");
-      // if (storedPreferences) {
-      //   const preferences = JSON.parse(storedPreferences);
-      //   this.checkedColumn = preferences.displayColumn.split(",");
-      //   // 调用 changeColumn 方法更新列显示
-      //   this.changeColumn(this.checkedColumn);
-      // }
     });
   },
   watch: {
     boxHeight(newval, oldval) {
       this.box = newval;
-      // console.log(newval)
       this.setTableHeight();
     },
     currentProduct(newval, oldval) {
@@ -723,7 +717,7 @@ export default {
       // this.selectEntry = [];
       // this.selectedRowKeys = [];
       // this.selectedRows = [];
-      this.pageChange(this.pagination.current,this.pagination.pageSize)// 切换产品时第一页的已选未显示
+      this.pageChange(this.pagination.current, this.pagination.pageSize); // 切换产品时第一页的已选未显示
       this.init();
       // console.log("产品切换了",newval,this.selectedRows,this.selectedRowKeys)
       let classifyLimit = {};
@@ -738,12 +732,10 @@ export default {
       this.edit = newval;
     },
     "search.startTime_": function (newValue) {
-      // console.log("日期格式",newValue)
       if (newValue) {
         this.search.startTime = `${newValue.$y}-${newValue.$M + 1}-${
           newValue.$D
         }`; // 格式化日期为 YYYY-MM-DD 格式;
-        // console.log("日期格式", this.search.startTime);
         if (this.search.endTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("开始时间不能大于结束时间！");
@@ -783,17 +775,6 @@ export default {
     format(text) {
       return text.replace(/\n/g, "\\n");
     },
-    // // （弃用）调用后端的接口获取用户偏好，并调用changeColumn方法更新表格列显示
-    // getUserPartiality() {
-    //   queryUserPartiality().then((res) => {
-    //     if (res.data.list && res.data.list.length > 0) {
-    //       let displayColumn = res.data.list[0].displayColumn;
-    //       if (displayColumn != null && displayColumn != "") {
-    //         this.changeColumn(displayColumn.split(","));
-    //       }
-    //     }
-    //   });
-    // },
     // 获取翻译语言
     getLanguage() {
       let data = {};
@@ -813,7 +794,6 @@ export default {
         } catch (error) {
           this.dataHeight = this.box - searchHeight - len;
         }
-
         // 设置表格高度
         let buttonHeight = 0;
         try {
@@ -837,7 +817,6 @@ export default {
       }
       return className;
     },
-
     // 查询产品的所有版本
     getProductVersion() {
       if (Object.keys(this.product).length === 0) {
@@ -851,7 +830,7 @@ export default {
             : this.product.key,
       };
       // console.log("查询产品的所有版本", this.product);
-      getVersionByName(params).then((res) => {
+      getVersionByName(params).then((res) => {// 接口有问题，获取不到值
         this.productVersions = res.data.list;
         // if(this.productVersions.length > 0){
         //     this.currentVersion = this.productVersions[0].id
@@ -875,9 +854,12 @@ export default {
       else this.accurSearch = [];
       this.getEntryByVersion(false, this.accurSearch);
     },
-    // 获取版本词条(isInit是否是点击状态树的首次（部门级不用查询）；accurate是否全量查询)
+    /**
+     * 获取版本词条
+     * isInit：是否是点击状态树的首次（部门级不用查询）；
+     * accurate：是否全量查询
+     */
     getEntryByVersion(isInit = false, accurate = []) {
-      // console.log("isInit", isInit, this.product, this.product.type);
       if (isInit) {
         if (this.product.type == "department") {
           this.dataSource = [];
@@ -885,7 +867,6 @@ export default {
           return; // 如果是部门，则不在点击状态树时查询版本
         }
       }
-      // console.log("获取版本词条",this.search);
       if (Object.keys(this.product).length === 0) {
         return;
       }
@@ -937,12 +918,9 @@ export default {
         params.accurate = accurate;
       }
       this.loading = true;
-      // console.log("params2", params);
-
       getEntryByClassfy(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
-          // console.log("总词条dataSource", res);
           this.pagination.total = res.data.totalNum;
         })
         .catch((err) => {
@@ -987,11 +965,9 @@ export default {
         dataSource.push(item);
       });
       this.dataSource = dataSource;
-      // console.log(this.dataSource)
       this.loading = false;
     },
     changeVersion(version) {
-      // console.log(version)
       if (version === undefined) {
         this.currentVersion = null;
       } else {
@@ -1026,16 +1002,18 @@ export default {
               this.dataSource.filter((item) => record.id === item.id)[0]
             );
             // 设置校验规则
-            this.rules[record.id] = {};
-            this.rules[record.id]["entry"] = [
-              { validator: this.vilidFildLength(record, "maxByte") },
-              { required: true, message: "请输入!" },
-            ];
-            commonParam.langValList.forEach((item) => {
-              this.rules[record.id][item] = [
-                { validator: this.vilidFildLength(record, "foreignMaxByte") },
-              ];
-            });
+            // this.rules[record.id] = {};
+            // this.rules[record.id]["entry"] = [
+            //   { validator: this.vilidFildLength(record, "maxByte") },
+            //   { required: true, message: "请输入!" },
+            // ];
+            // commonParam.langValList.forEach((item) => {
+            //   this.rules[record.id][item] = [
+            //     { validator: this.vilidFildLength(record, "foreignMaxByte") },
+            //   ];
+            // });
+            setRefRules(this, record, ["entry", ...commonParam.langValList]);
+
             // 获取表格操作行的classify2Option
             this.getRowClassify2Option(record);
           }
@@ -1069,8 +1047,11 @@ export default {
         // 获取输入数据的长度
         // let length = common.byteLength(value);
         let length = byteLength(value);
-        if (length > maxLength) {
-          return Promise.reject("允许最大字符数为" + maxLength + "！\n(1中文=2字符)");
+        if (maxLength && length > maxLength) {
+          console.log("报错", maxLength);
+          return Promise.reject(
+            "允许最大字符数为" + maxLength + "！\n(1中文=2字符)"
+          );
         }
         return Promise.resolve();
       };
@@ -1100,7 +1081,7 @@ export default {
       this.setTableHeight();
       // console.log(this.currentEntry)
     },
-    deleteEntry() {
+    deleteEntry() {// 删除按钮已封，this.productVersions获取不到版本表的所有信息
       if (this.selectedRowKeys.length === 0) {
         return;
       }
@@ -1127,7 +1108,7 @@ export default {
       });
     },
     // 取消
-    cancel(id) {
+    editCancel(id) {
       delete this.editableData[id];
       delete this.rules[id];
       delete this.rowClassify2Option[id];
@@ -1141,85 +1122,99 @@ export default {
         this.pagination.pageSize = this.pagination.pageSize - 1;
       }
     },
-    // 保存
-    save(id) {
-      // 校验字段长度是否超限
-      let flagArr = ["entry", ...commonParam.langValList];
-      let list = [];
+    // 编辑-保存
+    async editSave(id) {
+      const validateArrSum = ["entry", ...commonParam.langValList];
+      const formRefNameList = [];
       this.columns.forEach((column) => {
-        if (flagArr.includes(column.dataIndex)) {
-          list.push(
-            eval(
-              "this.$refs.form" + id.replaceAll("-", "") + column.dataIndex
-            ).validate()
+        if (validateArrSum.includes(column.dataIndex)) {
+          formRefNameList.push(
+            `form${id.replaceAll("-", "")}${column.dataIndex}`
           );
         }
       });
+      try {
+        for (const formRefName of formRefNameList) {
+          // 使用校验规则
+          await useRefRules(this.$refs, formRefName);
+        }
+        // 所有表单校验通过，执行后续逻辑
+        if (id.startsWith("new") || id.startsWith("copy")) {
+          // 新增词条/升级词条
+          addSingleEntry(this.editableData[id]).then((res) => {
+            message.success("新增成功!");
+            // this.getEntryByVersion()
+            let index = this.dataSource.findIndex((item) => item.id === id);
+            this.dataSource.splice(index, 1);
+            this.dataSource.splice(index, 0, res.data);
+            delete this.editableData[id];
+            delete this.rowClassify2Option[id];
+            this.pagination.total = this.pagination.total + 1;
+          });
+        } else {
+          this.editEntry = [this.editableData[id]];
+          this.editVisible = true;
+          setModalAriaHidden(this, document);
+        }
 
-      Promise.all(list)
-        .then(() => {
-          // 校验成功
-          if (id.startsWith("new") || id.startsWith("copy")) {
-            // 新增词条/升级词条
-            addSingleEntry(this.editableData[id]).then((res) => {
-              message.success("新增成功!");
-              // this.getEntryByVersion()
-              let index = this.dataSource.findIndex((item) => item.id === id);
-              this.dataSource.splice(index, 1);
-              this.dataSource.splice(index, 0, res.data);
-              delete this.editableData[id];
-              delete this.rowClassify2Option[id];
-              this.pagination.total = this.pagination.total + 1;
-            });
-          } else {
-            this.editEntry = [this.editableData[id]];
-            this.editVisible = true;
-            setModalAriaHidden(this, document);
-          }
-
-          // 更新选中的值
-          const selectedIndex = this.selectedRows.findIndex(
-            (item) => item.id === id
-          );
-          if (selectedIndex !== -1) {
-            // 更新选中行数据
-            this.selectedRows[selectedIndex] = { ...this.editableData[id] };
-          }
-        })
-        .catch((err) => {
-          // console.log(err,"保存失败")
-          // message.error(err.message);校验不通过，不用弹窗提示，通过ref进行提示
-        });
-    },
-    // 校验输入数据是否合规
-    checkedData(record) {
-      //       if (
-      //   common.byteLength(record.entry) > record.maxLength ||
-      //   common.byteLength(record.english) > record.maxLength ||
-      //   common.byteLength(record.russian) > record.maxLength ||
-      //   common.byteLength(record.spanish) > record.maxLength ||
-      //   common.byteLength(record.french) > record.maxLength
-      // ) {
-      // 缺少新加的中文
-      const checkValue = () => {
-        // 若 record 不存在、record.entry 不存在或 record.maxLength 不存在，视为校验通过
-        if (!record || !record.entry || !record.maxLength) return false;
-
-        // 检查词条本身长度是否超过限制
-        if (byteLength(record.entry) > record.maxLength) return true;
-
-        // 检查各语言翻译长度是否超过限制
-        return commonParam.languageList.some((item) => {
-          const value = record[item.value];
-          return value && byteLength(value) > record.maxLength;
-        });
-      };
-      if (checkValue()) {
-        message.error("输入的数据超长！");
-        return false;
-      } else {
-        return true;
+        // 更新选中的值
+        const selectedIndex = this.selectedRows.findIndex(
+          (item) => item.id === id
+        );
+        if (selectedIndex !== -1) {
+          // 更新选中行数据
+          this.selectedRows[selectedIndex] = { ...this.editableData[id] };
+        }
+      } catch (err) {
+        console.error(err);
       }
+
+      // // 校验字段长度是否超限
+      // let flagArr = ["entry", ...commonParam.langValList];
+      // let list = [];
+      // this.columns.forEach((column) => {
+      //   if (flagArr.includes(column.dataIndex)) {
+      //     list.push(
+      //       eval(
+      //         "this.$refs.form" + id.replaceAll("-", "") + column.dataIndex
+      //       ).validate()
+      //     );
+      //   }
+      // });
+      // Promise.all(list)
+      //   .then(() => {
+      //     // 校验成功
+      //     if (id.startsWith("new") || id.startsWith("copy")) {
+      //       // 新增词条/升级词条
+      //       addSingleEntry(this.editableData[id]).then((res) => {
+      //         message.success("新增成功!");
+      //         // this.getEntryByVersion()
+      //         let index = this.dataSource.findIndex((item) => item.id === id);
+      //         this.dataSource.splice(index, 1);
+      //         this.dataSource.splice(index, 0, res.data);
+      //         delete this.editableData[id];
+      //         delete this.rowClassify2Option[id];
+      //         this.pagination.total = this.pagination.total + 1;
+      //       });
+      //     } else {
+      //       this.editEntry = [this.editableData[id]];
+      //       this.editVisible = true;
+      //       setModalAriaHidden(this, document);
+      //     }
+
+      //     // 更新选中的值
+      //     const selectedIndex = this.selectedRows.findIndex(
+      //       (item) => item.id === id
+      //     );
+      //     if (selectedIndex !== -1) {
+      //       // 更新选中行数据
+      //       this.selectedRows[selectedIndex] = { ...this.editableData[id] };
+      //     }
+      //   })
+      //   .catch((err) => {
+      //     // console.log(err,"保存失败")
+      //     // message.error(err.message);校验不通过，不用弹窗提示，通过ref进行提示
+      //   });
     },
     // 批量保存
     batchSave() {
@@ -1452,7 +1447,7 @@ export default {
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectedRowKeys = [];
-          this.selectedRows = [...this.selectedRows,...res.data.list];
+          this.selectedRows = [...this.selectedRows, ...res.data.list];
           this.selectEntry = this.selectedRows;
           // console.log("全选词条dataSource", res);
           res.data.list.forEach((item) => {
@@ -1500,19 +1495,19 @@ export default {
       };
       // console.log(newData)
       // 设置校验规则
-      if (newData.maxLength != "") {
-        this.rules[newData.id] = {};
-        this.rules[newData.id]["entry"] = [
-          { validator: this.vilidFildLength(newData, "maxByte") },
-          { required: true, message: "请输入!" },
-        ];
-        commonParam.langValList.forEach((item) => {
-          this.rules[newData.id][item] = [
-            { validator: this.vilidFildLength(newData, "foreignMaxByte") },
-          ];
-        });
-
-      }
+      // if (newData.maxLength != "") {
+      //   this.rules[newData.id] = {};
+      //   this.rules[newData.id]["entry"] = [
+      //     { validator: this.vilidFildLength(newData, "maxByte") },
+      //     { required: true, message: "请输入!" },
+      //   ];
+      //   commonParam.langValList.forEach((item) => {
+      //     this.rules[newData.id][item] = [
+      //       { validator: this.vilidFildLength(newData, "foreignMaxByte") },
+      //     ];
+      //   });
+      // }
+      setRefRules(this, newData, ["entry", ...commonParam.langValList]);
 
       if (this.pagination.total >= this.pagination.pageSize) {
         this.dataSource.splice(this.pagination.pageSize - 1, 0, newData);
@@ -1541,28 +1536,20 @@ export default {
       copyEntry.maxLength = entry.maxLength;
       // copyEntry.entryVersion = 'new'
       // 设置校验规则
-      if (copyEntry.maxLength != "") {
-        this.rules[copyEntry.id] = {};
-        this.rules[copyEntry.id]["entry"] = [
-          { validator: this.vilidFildLength(copyEntry, "maxByte") },
-          { required: true, message: "请输入!" },
-        ];
-        commonParam.langValList.forEach((item) => {
-          this.rules[copyEntry.id][item] = [
-            { validator: this.vilidFildLength(copyEntry, "foreignMaxByte") },
-          ];
-        });
-        // this.rules[copyEntry.id] = {
-        //   entry: [
-        //     { validator: this.vilidFildLength(copyEntry, "chinese") },
-        //     { required: true, message: "请输入!" },
-        //   ],
-        //   english: [{ validator: this.vilidFildLength(copyEntry, "english") }],
-        //   french: [{ validator: this.vilidFildLength(copyEntry, "french") }],
-        //   russian: [{ validator: this.vilidFildLength(copyEntry, "russian") }],
-        //   spanish: [{ validator: this.vilidFildLength(copyEntry, "spanish") }],
-        // };
-      }
+      // if (copyEntry.maxLength != "") {
+      //   this.rules[copyEntry.id] = {};
+      //   this.rules[copyEntry.id]["entry"] = [
+      //     { validator: this.vilidFildLength(copyEntry, "maxByte") },
+      //     { required: true, message: "请输入!" },
+      //   ];
+      //   commonParam.langValList.forEach((item) => {
+      //     this.rules[copyEntry.id][item] = [
+      //       { validator: this.vilidFildLength(copyEntry, "foreignMaxByte") },
+      //     ];
+      //   });
+      // }
+      setRefRules(this, copyEntry, ["entry", ...commonParam.langValList]);
+
       let index = this.dataSource.indexOf(entry);
       this.dataSource.splice(index + 1, 0, copyEntry);
       this.editableData[copyEntry.id] = copyEntry;

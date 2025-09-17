@@ -24,7 +24,7 @@ const default_languageList = [
     publicState: "englishPublicState",// XX发布状态
     checked: "englishChecked",// XX是否已选
     auditSuggest: "englishAuditSuggest",// XX审核意见
-    transIdName: "engTransId",// XX语种的翻译id
+    transIdName: "engTransId",// XX语种的翻译id（工作台-翻译：保存编辑数据时使用了）
     interpretation: "englishInterpretation",// XX释义
   },
   {
