@@ -265,7 +265,6 @@
             <DeleteOutlined />
           </template>删除
         </a-button>
-        <!-- <a-button type="primary" size="small" class="resetBtn" style="margin-left:8px" @click="insertEntry" :loading="saveLoading">保存</a-button> -->
         <span style="margin-left:10px">过滤语言：</span>
         <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
           <a-radio value="全部">全部</a-radio>
@@ -887,7 +886,12 @@ export default {
       });
     },
     handleOK() {
-      this.insertEntry();
+      if (this.selectedRows.length === 0) {
+        message.info("请勾选需要保存的词条！");
+        return;
+      }
+      this.saveEntrys();
+      this.saveLoading = false;
     },
     handleClose() {
       this.selectedRows = [];
@@ -911,48 +915,6 @@ export default {
     },
     handleResizeColumn: (w, col) => {
       col.width = w;
-    },
-    insertEntry() {
-      if (this.selectedRows.length === 0) {
-        message.info("请勾选需要保存的词条！");
-        return;
-      }
-      // if (Object.keys(this.editableData).length != 0) {
-      //   // 校验字段
-      //   let checkList = [];
-      //   for (let key in this.editableData) {
-      //     if (this.selectedRowKeys.includes(key)) {
-      //       let list = [
-      //         // eval("this.$refs.form"+ this.editableData[key].id.replaceAll('-','') + 'entry').validate(),
-      //         eval(
-      //           "this.$refs.form" +
-      //             this.editableData[key].id.replaceAll("-", "") +
-      //             this.task.transMap.value
-      //         ).validate(),
-      //       ];
-      //       checkList = checkList.concat(list);
-      //     }
-      //   }
-      //   if (checkList.length === 0) {
-      //     // 校验审核通过的词条
-      //     this.saveEntrys();
-      //   } else {
-      //     Promise.all(checkList)
-      //       .then(() => {
-      //         // 校验成功 保存
-      //         this.saveEntrys();
-      //       })
-      //       .catch((err) => {
-      //         message.error("词条校验失败！", err.message);
-      //         this.saveLoading = false;
-      //       });
-      //   }
-      // } else {
-      //   this.saveEntrys();
-      //   this.saveLoading = false;
-      // }
-      this.saveEntrys();
-      this.saveLoading = false;
     },
     // 保存词条
     saveEntrys() {
@@ -2357,14 +2319,6 @@ export default {
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
       this.templateObj.exportType = null;
     },
-    // // 校验当前页数据的长度
-    // verifyCurrentData() {
-    //   let data = this.dataSource.slice(
-    //     (this.pagination.current - 1) * this.pagination.pageSize,
-    //     this.pagination.current * this.pagination.pageSize
-    //   );
-    //   verifyTranslationLength(data, this.task.transMap.value, this);
-    // },
     // 分页切换
     pageChange(page, pageSize) {
       this.pagination.current = page;
@@ -2372,11 +2326,6 @@ export default {
 
       // 校验当前页数据的长度
       verifyCurrentPageData(this.pagination, this.task.transMap.value, this);
-      // let data = this.dataSource.slice(
-      //   (this.pagination.current - 1) * this.pagination.pageSize,
-      //   this.pagination.current * this.pagination.pageSize
-      // );
-      // verifyTranslationLength(data, this.task.transMap.value, this);
     },
     // 语言切换
     filterLanguageChange() {
