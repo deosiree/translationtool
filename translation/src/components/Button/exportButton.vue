@@ -36,6 +36,7 @@
 <script>
 import { message } from "ant-design-vue";
 import { create } from "xmlbuilder2";
+// import builder from "xmlbuilder"; // 注意：这是 xmlbuilder 的常见导入方式
 import { ref } from "vue";
 import CustomModal from "@/components/modal/index.vue";
 import { entryExportByCondition } from "@/http/api/download";
@@ -236,7 +237,8 @@ export default {
           const itemDataList = [];
           uniqueEntries.forEach((item) => {
             console.log(
-              "法国",item,
+              "法国",
+              item,
               this.exportModal.local_desc,
               item[this.exportModal.local_desc]
             );
@@ -266,6 +268,7 @@ export default {
           });
 
           // 创建 XML 文档（指定版本和编码）
+          // 基于xmlbuilder2包（更规范）
           const xml = create({ version: "1.0", encoding: "UTF-8" }).ele(
             "DICT",
             { local_language: "0" }
@@ -283,6 +286,26 @@ export default {
             });
           });
           const xmlString = xml.end({ prettyPrint: true, indent: "  " });
+          // // 基于xmlbuilder包（与后端统一，但>也未转义）
+          // const xml = builder
+          //   .create("DICT", { version: "1.0", encoding: "UTF-8" })
+          //   .att("local_language", "0");
+
+          // // 遍历数据，生成 ITEM 节点
+          // itemDataList.forEach((item) => {
+          //   xml
+          //     .ele("ITEM")
+          //     .att("abbr", item.abbr)
+          //     .att("cn_desc", item.cn_desc)
+          //     .att("en_desc", item.en_desc)
+          //     .att("local_desc", item.local_desc)
+          //     .att("es_desc", item.es_desc)
+          //     .att("ru_desc", item.ru_desc)
+          //     .up(); // 返回 DICT
+          // });
+
+          // // 生成格式化 XML 字符串
+          // const xmlString = xml.end({ pretty: true, indent: "  " });
           console.log("生成的 XML 内容：\n", xmlString); // 关键：输出检查
 
           // 创建 Blob 对象（类型为 XML）
