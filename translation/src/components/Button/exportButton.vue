@@ -292,7 +292,7 @@ export default {
           // 创建隐藏的 <a> 标签触发下载
           const a = document.createElement("a");
           a.href = url;
-          a.download = "dict.xml"; // 文件名
+          a.download = this.exportModal.xml_name + ".xml"; // 文件名
           a.style.display = "none";
           document.body.appendChild(a);
           a.click();
