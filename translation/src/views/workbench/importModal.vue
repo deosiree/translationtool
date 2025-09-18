@@ -2168,7 +2168,7 @@ export default {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
 
-      // 校验当前页数据的长度
+      // 校验当前页数据
       verifyArray_workbench_page(
         this.pagination,
         this.task.transMap.value,
@@ -2216,7 +2216,7 @@ export default {
           filters.entrySource && item.entrySource.includes(filters.entrySource)
         );
       });
-      this.filteredData = Array.from(new Set([...isExistData,...sourceData]));
+      this.filteredData = Array.from(new Set([...isExistData, ...sourceData]));
     },
     // 清空表格筛选条件
     clearFilters() {

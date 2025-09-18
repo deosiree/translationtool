@@ -370,6 +370,9 @@ import {
   validateRefRules,
   setRefRules,
   useRefRules,
+  verifyArray_workbench_page,
+  verifyArray_workbench,
+  openSetEdit,
 } from "@/utils/commonUtils"; // 引入工具函数
 import commonParam, {
   entryParams,
@@ -567,8 +570,8 @@ export default {
         transIdName: "",
       }, // 当前翻译语种的其他信息
       rulesOptions: [
-        { key: "verify-length", label: "校验字符长度", checked: true },
-        { key: "check-entry", label: "校验特殊字符", checked: false }, // %1翻成% 1
+        { key: "toLong", label: "校验字符长度", checked: true },
+        { key: "special", label: "校验特殊字符", checked: false }, // %1翻成% 1
       ],
       overlayStyle: workbenchParams.overlayStyle, // 展示列
       checkedColumn: workbenchParams.checkedColumn, // 展示列切换
@@ -727,149 +730,81 @@ export default {
       }
       this.saveLoading = true;
       this.loading = true;
-
-      // 1.保存编辑数据
-      for (let key in this.editableData) {
-        let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.language.value] =
-          this.editableData[key][this.language.value];
-        entry[this.language.transIdName] =
-          this.editableData[key][this.language.transIdName];
+      const currentLang = this.language.value;
+      let arr = {
+        acceptIds: new Set(), // 所有校验通过
+        errorIds: new Set(), // 所有校验不通过
+        toLongIds: new Set(), // 校验长度
+        specialIds: new Set(), // 校验特殊字符
+      };
+      // 1.保存前校验
+      const verifyMethods = this.rulesOptions
+        .filter((option) => option.checked)
+        .map((option) => option.key);
+      console.log("选择校验方法", verifyMethods);
+      arr = await verifyArray_workbench(
+        this,
+        this.selectedRows,
+        currentLang,
+        verifyMethods
+      );
+      let arrCount = {
+        updateArr: [],
+        toLongNum: arr.toLongIds.size,
+        specialNum: arr.specialIds.size,
+        errorNum: arr.errorIds.size,
+        updateNum: 0,
+        noTranslateNum: 0,
+      };
+      let messageTextParts = [];
+      if (arrCount.errorNum > 0) {
+        let errorNumText = `校验不通过${arrCount.errorNum}条`;
+        messageTextParts.push(errorNumText);
       }
-      this.editableData = {};
 
-      // 2.更新选中词条
+      // 2.保存编辑框中的所有信息
+      for (let key in this.editableData) {
+        if (this.selectedRowKeys.includes(key)) {
+          let entry = this.dataSource.find((item) => item.id === key);
+          entry = cloneDeep(this.editableData[key]);
+          delete this.editableData[key];
+        }
+      }
+
+      // 3.更新选中词条
       this.updateNewByOld(this.selectedRows, this.dataSource);
 
-      // 3.（可选）保存前校验：通过校验的词条才可以保存
-      await this.validateRules();
-      console.log("updateArr", this.selectedArr);
-
       // 4.修改状态
-      if (
-        this.selectedArr.updateArr.length > 0 ||
-        this.selectedArr.noTranslateIds.size > 0
-      ) {
-        for (const item of this.selectedRows) {
-          if (
-            this.selectedArr.noTranslateIds.size > 0 &&
-            this.selectedArr.noTranslateIds.has(item.id)
-          ) {
+      for (const record of this.selectedRows) {
+        if (arr.acceptIds.has(record.id)) {
+          if (record[currentLang]) {
+            // 校验通过且有翻译
+            arrCount.updateArr.push(record);
+            arrCount.updateNum++;
+            if (["0", "2"].includes(record[this.language.state])) {
+              // 修改可以保存的词条的状态：校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
+              record[this.language.state] = "1"; // 待审核(只有“1”才能通过保存)
+            }
+          } else {
+            //  校验通过但无翻译
+            arrCount.noTranslateNum++;
             // 修改未翻译的词条的状态
-            item[this.language.state] = "0"; // 待翻译
-          } else if (
-            this.selectedArr.updateArr.length > 0 &&
-            this.selectedArr.updateArr.some((arr) => arr.id === item.id) &&
-            ["0", "2"].includes(item[this.language.state])
-          ) {
-            // 修改可以保存的词条的状态：校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
-            item[this.language.state] = "1"; // 待审核(只有“1”才能通过保存)
+            record[this.language.state] = "0"; // 待翻译
           }
         }
       }
 
       // 5.更新词条
-      await this.updateEntryList(this.selectedArr.updateArr);
-    },
-    // 校验规则的汇总
-    async validateRules() {
-      let msgError = [];
-      // 区分是否已有翻译
-      this.selectedRows.forEach((item) => {
-        const data = {
-          id: item.id,
-          entry: item.entry,
-          translate: this.editableData.hasOwnProperty(item.id)
-            ? this.editableData[item.id][this.language.value]
-            : item[this.language.value],
-          maxLength: getMaxLength(item, this),
-        };
-        if (data.translate) {
-          this.selectedArr.updateArr.push(data);
-        } else {
-          this.selectedArr.noTranslateIds.add(data.id);
-          item[this.language.state] = "0"; // 待翻译
-        }
-      });
-      if (this.selectedArr.noTranslateIds.size > 0) {
-        msgError.push(`未翻译${this.selectedArr.noTranslateIds.size}条`);
-      }
-      for (const option of this.rulesOptions) {
-        if (option.checked) {
-          if (option.key === "verify-length") {
-            // 校验字符长度
-            for (const record of this.selectedArr.updateArr) {
-              if (
-                record.maxLength !== null &&
-                byteLength(record.translate) > record.maxLength
-              ) {
-                this.selectedArr.toLongIds.add(record.id);
-                if (record.children && record.children.length > 0) {
-                  record.children.forEach((child) => {
-                    this.selectedArr.toLongIds.add(child.id);
-                  });
-                }
-              }
-            }
-            if (this.selectedArr.toLongIds.size > 0) {
-              this.selectedArr.updateArr = this.selectedArr.updateArr.filter(
-                (item) => !this.selectedArr.toLongIds.has(item.id)
-              );
-              msgError.push(`超长翻译${this.selectedArr.toLongIds.size}条`);
-            }
-          } else if (option.key === "check-entry") {
-            // 校验特殊字符
-            await checkSykEntryBeforeSave(this.selectedArr.updateArr)
-              .then((res) => {
-                res.data.forEach((item) => {
-                  this.selectedArr.specialIds.add(item.id);
-                });
-              })
-              .catch((err) => {
-                message.error("特殊字符校验失败！", err);
-              });
-            if (this.selectedArr.specialIds.size > 0) {
-              this.selectedArr.updateArr = this.selectedArr.updateArr.filter(
-                (item) => !this.selectedArr.specialIds.has(item.id)
-              );
-              msgError.push(
-                `特殊字符翻译不一致${this.selectedArr.specialIds.size}条`
-              );
-            }
-          }
-        }
-      }
-      if (msgError.length > 0) {
-        this.selectedArr.redHighlightIds = new Set([
-          ...this.selectedArr.redHighlightIds,
-          ...this.selectedArr.toLongIds,
-          ...this.selectedArr.specialIds,
-        ]);
-        // 将所有未通过的词条变为编辑态（这样未通过的原因就会显示出来了）
-        this.selectedRows.forEach((record) => {
-          if (this.selectedArr.redHighlightIds.has(record.id)) {
-            this.editableData[record.id] = cloneDeep(record);
-            // this.editableData[record.id] = cloneDeep(
-            //   this.dataSource.filter((item) => record.id === item.id)[0]
-            // ); // 进入编辑态
-            // 设置校验规则
-            setRefRules(this, record, [this.language.value]);
-          }
-        });
-        message.warn(`保存未通过：${msgError.join(",")}`, 1);
-      }
-    },
-    // 保存
-    async updateEntryList(updateArr) {
       const updateParams = {
         taskID: this.task.id,
       };
-      await this.updateNewByOld(updateArr, this.dataSource);
-      await updateEntryList(updateParams, updateArr)
+      // console.log("5.更新词条",arrCount)
+      await updateEntryList(updateParams, arrCount.updateArr)
         .then(async (res) => {
-          if (res.data.totalNum == 0 && updateArr.length > 0) {
-            message.success(`翻译成功${updateArr.length}条，已保存！`, 1);
-          }
+          const failCount = res.data.totalNum;
+          const successCount = arrCount.updateNum - failCount;
+          if (successCount) messageTextParts.push(`更新翻译${successCount}条`);
+          if (failCount) messageTextParts.push(`更新翻译失败${failCount}条`);
           await this.getTranslateEntry(); //刷新
           if (this.allData.length == 0) this.handleClose();
         })
@@ -880,7 +815,190 @@ export default {
           this.saveLoading = false;
           this.loading = false;
         });
+
+      // 6.弹窗,校验当前页数据
+      if (messageTextParts.length > 0) {
+        message.success("已更新翻译！" + messageTextParts.join("，"));
+        // console.log("弹窗信息",messageTextParts)
+        // console.log("当前数据", this.dataSource);
+      }
+
+      // 7.无数据则关闭弹窗；有数据则检验当前页
+      if (this.dataSource.length === 0) {
+        this.handleClose();
+      } else {
+        try {
+          // 校验当前页数据的长度
+          await verifyArray_workbench_page(
+            this.pagination,
+            currentLang,
+            this
+          );
+        } catch (err) {}
+      }
     },
+    // async handleOK_bak() {
+    //   if (this.selectedRows.length === 0) {
+    //     message.info("请选择需要保存的数据！");
+    //     return;
+    //   }
+    //   this.saveLoading = true;
+    //   this.loading = true;
+
+    //   // 1.保存编辑数据
+    //   for (let key in this.editableData) {
+    //     let entry = this.dataSource.find((item) => item.id === key);
+    //     entry[this.language.value] =
+    //       this.editableData[key][this.language.value];
+    //     entry[this.language.transIdName] =
+    //       this.editableData[key][this.language.transIdName];
+    //   }
+    //   this.editableData = {};
+
+    //   // 2.更新选中词条
+    //   this.updateNewByOld(this.selectedRows, this.dataSource);
+
+    //   // 3.（可选）保存前校验：通过校验的词条才可以保存
+    //   await this.validateRules();
+    //   console.log("updateArr", this.selectedArr);
+
+    //   // 4.修改状态
+    //   if (
+    //     this.selectedArr.updateArr.length > 0 ||
+    //     this.selectedArr.noTranslateIds.size > 0
+    //   ) {
+    //     for (const item of this.selectedRows) {
+    //       if (
+    //         this.selectedArr.noTranslateIds.size > 0 &&
+    //         this.selectedArr.noTranslateIds.has(item.id)
+    //       ) {
+    //         // 修改未翻译的词条的状态
+    //         item[this.language.state] = "0"; // 待翻译
+    //       } else if (
+    //         this.selectedArr.updateArr.length > 0 &&
+    //         this.selectedArr.updateArr.some((arr) => arr.id === item.id) &&
+    //         ["0", "2"].includes(item[this.language.state])
+    //       ) {
+    //         // 修改可以保存的词条的状态：校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
+    //         item[this.language.state] = "1"; // 待审核(只有“1”才能通过保存)
+    //       }
+    //     }
+    //   }
+
+    //   // 5.更新词条
+    //   await this.updateEntryList(this.selectedArr.updateArr);
+    // },
+    // // 校验规则的汇总
+    // async validateRules() {
+    //   let msgError = [];
+    //   // 区分是否已有翻译
+    //   this.selectedRows.forEach((item) => {
+    //     const data = {
+    //       id: item.id,
+    //       entry: item.entry,
+    //       translate: this.editableData.hasOwnProperty(item.id)
+    //         ? this.editableData[item.id][this.language.value]
+    //         : item[this.language.value],
+    //       maxLength: getMaxLength(item, this),
+    //     };
+    //     if (data.translate) {
+    //       this.selectedArr.updateArr.push(data);
+    //     } else {
+    //       this.selectedArr.noTranslateIds.add(data.id);
+    //       item[this.language.state] = "0"; // 待翻译
+    //     }
+    //   });
+    //   if (this.selectedArr.noTranslateIds.size > 0) {
+    //     msgError.push(`未翻译${this.selectedArr.noTranslateIds.size}条`);
+    //   }
+    //   for (const option of this.rulesOptions) {
+    //     if (option.checked) {
+    //       if (option.key === "toLong") {
+    //         // 校验字符长度
+    //         for (const record of this.selectedArr.updateArr) {
+    //           if (
+    //             record.maxLength !== null &&
+    //             byteLength(record.translate) > record.maxLength
+    //           ) {
+    //             this.selectedArr.toLongIds.add(record.id);
+    //             if (record.children && record.children.length > 0) {
+    //               record.children.forEach((child) => {
+    //                 this.selectedArr.toLongIds.add(child.id);
+    //               });
+    //             }
+    //           }
+    //         }
+    //         if (this.selectedArr.toLongIds.size > 0) {
+    //           this.selectedArr.updateArr = this.selectedArr.updateArr.filter(
+    //             (item) => !this.selectedArr.toLongIds.has(item.id)
+    //           );
+    //           msgError.push(`超长翻译${this.selectedArr.toLongIds.size}条`);
+    //         }
+    //       } else if (option.key === "special") {
+    //         // 校验特殊字符
+    //         await checkSykEntryBeforeSave(this.selectedArr.updateArr)
+    //           .then((res) => {
+    //             res.data.forEach((item) => {
+    //               this.selectedArr.specialIds.add(item.id);
+    //             });
+    //           })
+    //           .catch((err) => {
+    //             message.error("特殊字符校验失败！", err);
+    //           });
+    //         if (this.selectedArr.specialIds.size > 0) {
+    //           this.selectedArr.updateArr = this.selectedArr.updateArr.filter(
+    //             (item) => !this.selectedArr.specialIds.has(item.id)
+    //           );
+    //           msgError.push(
+    //             `特殊字符翻译不一致${this.selectedArr.specialIds.size}条`
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    //   if (msgError.length > 0) {
+    //     this.selectedArr.redHighlightIds = new Set([
+    //       ...this.selectedArr.redHighlightIds,
+    //       ...this.selectedArr.toLongIds,
+    //       ...this.selectedArr.specialIds,
+    //     ]);
+    //     // 将所有未通过的词条变为编辑态（这样未通过的原因就会显示出来了）
+    //     this.selectedRows.forEach((record) => {
+    //       if (this.selectedArr.redHighlightIds.has(record.id)) {
+    //         this.editableData[record.id] = cloneDeep(record);
+    //         // this.editableData[record.id] = cloneDeep(
+    //         //   this.dataSource.filter((item) => record.id === item.id)[0]
+    //         // ); // 进入编辑态
+    //         // 设置校验规则
+    //         setRefRules(this, record, [this.language.value]);
+    //       }
+    //     });
+    //     message.warn(`保存未通过：${msgError.join(",")}`, 1);
+    //   }
+    // },
+    // // 保存
+    // async updateEntryList(updateArr) {
+    //   const updateParams = {
+    //     taskID: this.task.id,
+    //   };
+    //   // 3.更新选中词条
+    //   await this.updateNewByOld(updateArr, this.dataSource);
+    //   await updateEntryList(updateParams, updateArr)
+    //     .then(async (res) => {
+    //       if (res.data.totalNum == 0 && updateArr.length > 0) {
+    //         message.success(`翻译成功${updateArr.length}条，已保存！`, 1);
+    //       }
+    //       await this.getTranslateEntry(); //刷新
+    //       if (this.allData.length == 0) this.handleClose();
+    //     })
+    //     .catch((err) => {
+    //       message.error("操作失败！", err, 1);
+    //     })
+    //     .finally(() => {
+    //       this.saveLoading = false;
+    //       this.loading = false;
+    //     });
+    // },
     handleClose() {
       this.selectedArr = {
         updateArr: [],
@@ -901,22 +1019,19 @@ export default {
           this.selectedRowIndex = record.id;
           this.assistedTranslation(record); // 辅助翻译
         },
-        onDblclick: (event) => {
+        onDblclick: async (event) => {
           console.log("双击了", event);
           if (this.editableData.hasOwnProperty(record.id)) {
             // 当前行在编辑状态
             return;
           }
-          this.editableData[record.id] = cloneDeep(
-            this.dataSource.filter((item) => record.id === item.id)[0]
-          ); // 进入编辑态
-          // 设置校验规则
-          // this.rules[record.id] = {};
-          // this.rules[record.id][this.language.value] = [
-          //   // { validator: this.validateRefRules(record, "foreignMaxByte") },
-          //   { validator: validateRefRules(record, this, "foreignMaxByte") },
-          // ];
-          setRefRules(this, record, [this.language.value]);
+          // 打开编辑态;设置校验规则(工作台只为翻译列配置)
+          await openSetEdit(record, [this.language.value], this);
+          // 使用校验规则-翻译列
+          useRefRules(
+            this.$refs,
+            `form${record.id.replaceAll("-", "")}${this.language.value}`
+          );
           this.showEditOperation(); // 显示编辑操作列
         },
         style: {
@@ -927,90 +1042,26 @@ export default {
         },
       };
     },
-    // // 定义校验规则
-    // validateRefRules(record, colName) {
-    //   return validateRefRules(record, this, colName);
-    //   // return async (rule, value) => {
-    //   //   // console.log("校验长度", this.classifyLimit, record);
-    //   //   const maxLength = getMaxLength(record, this, colName);
-    //   //   let length = byteLength(value);
-    //   //   if (maxLength && length > maxLength) {
-    //   //     return Promise.reject(`允许最大字符数为${maxLength}(1中文=2字符)`);
-    //   //   }
-
-    //   //   const datas = [
-    //   //     {
-    //   //       id: record.id,
-    //   //       entry: record.entry,
-    //   //       translate: this.editableData.hasOwnProperty(record.id)
-    //   //         ? this.editableData[record.id][this.language.value]
-    //   //         : record[this.language.value],
-    //   //     },
-    //   //   ];
-    //   //   // console.log("校验特殊字符", datas);
-    //   //   let specialCharNum = 0;
-    //   //   try {
-    //   //     const res = await checkSykEntryBeforeSave(datas);
-    //   //     specialCharNum = res.data?.length ?? 0;
-    //   //   } catch (err) {}
-    //   //   if (specialCharNum > 0)
-    //   //     return Promise.reject(`特殊字符不一致\r\n(如%1翻译成% 1)`);
-    //   //   return Promise.resolve();
-    //   // };
-    // },
     // 编辑-保存
     async editSave(record) {
-      record[this.language.value] =
-        this.editableData[record.id][this.language.value];
-      record[this.language.transIdName] =
-        this.editableData[record.id][this.language.transIdName];
-      delete this.editableData[record.id];
-      this.hideEditOperation();
+      try {
+        // 编辑保存不使用表单校验，因为回车事件会导致ref的outofData=true
+        // // 使用校验规则-翻译列
+        // await useRefRules(
+        //   this.$refs,
+        //   `form${record.id.replaceAll("-", "")}${this.language.value}`
+        // );
+        record[this.language.value] =
+          this.editableData[record.id][this.language.value];
+        record[this.language.transIdName] =
+          this.editableData[record.id][this.language.transIdName];
+        delete this.editableData[record.id];
+        this.hideEditOperation();
+      } catch (err) {
+        console.log(err);
+        message.warn(err);
+      }
     },
-    // async editSave(record) {
-    //   // 使用校验规则
-    //   const formRefName = `form${record.id.replaceAll("-", "")}${
-    //     this.language.value
-    //   }`;
-    //   // console.log(
-    //   //   "删除前的edit",
-    //   //   record[this.language.value],
-    //   //   record[this.language.transIdName],
-    //   //   this.editableData[record.id]
-    //   // );
-    //   // const formRef = this.$refs[formRefName];
-    //   // if (formRef) {
-    //   //   try {
-    //   //     await formRef.validate(); // 双击打开编辑框时设置的校验规则
-    //   //     record[this.language.value] =
-    //   //       this.editableData[record.id][this.language.value];
-    //   //     record[this.language.transIdName] =
-    //   //       this.editableData[record.id][this.language.transIdName];
-    //   //     delete this.editableData[record.id];
-    //   //   } catch (err) {
-    //   //     console.error("输入框回车验证失败:", err);
-    //   //     // message.error("输入验证失败，请检查输入内容", err.message);// 长度超限，ref提示
-    //   //   }
-    //   // }
-    //   try {
-    //     await useRefRules(this.$refs, formRefName);
-    //     record[this.language.value] =
-    //       this.editableData[record.id][this.language.value];
-    //     record[this.language.transIdName] =
-    //       this.editableData[record.id][this.language.transIdName];
-    //     delete this.editableData[record.id];
-    //   } catch (err) {
-    //     console.error(err);
-    //   }
-    //   // console.log(
-    //   //   "删除后的edit",
-    //   //   record[this.language.value],
-    //   //   record[this.language.transIdName],
-    //   //   this.editableData[record.id]
-    //   // );
-
-    //   this.hideEditOperation();
-    // },
     // 取消编辑
     editCancel(record) {
       delete this.editableData[record.id];
@@ -1151,7 +1202,7 @@ export default {
       // 调用 suggestClick 方法，传入对应序号的翻译建议的标题和 ID
       this.suggestClick(list[i - 1].title, list[i - 1].id);
     },
-    suggestClick(title, id) {
+    async suggestClick(title, id) {
       // 检查是否有选中的词条，如果没有则直接返回，不进行后续操作
       if (this.selectedRowIndex === null) {
         return;
@@ -1182,8 +1233,16 @@ export default {
         }
       }
 
-      // // 校验字符串长度
-      // this.verifyTranslationLength([record]);
+      // 点击翻译建议后，校验本条数据
+      // 打开编辑态;设置校验规则(工作台只为翻译列配置)
+      await openSetEdit(record, [this.language.value], this);
+      // 使用校验规则-翻译列
+      useRefRules(
+        this.$refs,
+        `form${record.id.replaceAll("-", "")}${this.language.value}`
+      );
+      // 显示编辑操作列
+      this.showEditOperation();
     },
     // 使用old数据来更新new数据
     updateNewByOld(New, Old) {
@@ -1239,7 +1298,14 @@ export default {
         .catch((err) => {
           message.error("预翻译失败！", err.message);
         })
-        .finally(() => {
+        .finally(async () => {
+          // 校验当前页数据
+          await verifyArray_workbench_page(
+            this.pagination,
+            this.language.value,
+            this
+          );
+
           this.loading = false;
           this.preTranslateVisible = false;
           this.preTranslateOkLoading = false;
@@ -1544,12 +1610,8 @@ export default {
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
-      // 校验该页数据翻译长度
-      let checkArr = this.dataSource.slice(
-        (page - 1) * pageSize,
-        page * pageSize
-      );
-      // this.verifyTranslationLength(checkArr);
+      // 校验当前页数据
+      verifyArray_workbench_page(this.pagination, this.language.value, this);
     },
     companyCut(message) {
       let res = [];

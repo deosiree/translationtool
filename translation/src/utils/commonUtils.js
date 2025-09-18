@@ -454,7 +454,7 @@ export async function useRefRules(refs, refName) {
       return Promise.resolve();
     } catch (err) {
       console.log("验证失败", err);// 不弹窗，通过ref提示
-      return Promise.reject("编辑-保存校验失败!");
+      return Promise.reject(`编辑-保存校验失败:${err.errorFields[0].errors}`);
     }
   }
   else {
@@ -547,6 +547,7 @@ export async function verifyArray_workbench_page(pagination, language, vm,
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
   );
+  console.log("当前页校验",data)
   await verifyArray_workbench(vm, data, language, verifyMethods);
 }
 
