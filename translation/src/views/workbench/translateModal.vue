@@ -365,7 +365,6 @@ import {
   changeColumn,
   setModalAriaHidden,
   encodeParams,
-  handleExceedLength,
   byteLength,
   getMaxLength,
   validateRefRules,

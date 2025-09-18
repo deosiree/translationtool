@@ -539,10 +539,8 @@ import {
   onSelect,
   onSelectAll,
   pageChange,
-  verifyTranslationLength,
-  verifyCurrentPageData,
+  verifyArray_workbench_page,
   getMaxLength,
-  handleExceedLength,
   interpretation2value,
   getColPref,
   changeColumn,
@@ -552,6 +550,8 @@ import {
   byteLength,
   handleAsyncRequest,
   verifyArray_workbench,
+  openSetEdit,
+  useRefRules,
 } from "@/utils/commonUtils";
 const filteredInfo = {};
 export default {
@@ -657,30 +657,6 @@ export default {
           sorter: (a, b) => a.entry.localeCompare(b.entry),
           sortDirections: ["ascend", "descend"],
         },
-        // {
-        //   title: "tag",
-        //   dataIndex: "tag",
-        //   align: "center",
-        //   width: 100,
-        //   resizable: true,
-        //   index: 6,
-        // },
-        // {
-        //   title: "comment",
-        //   dataIndex: "comment",
-        //   align: "center",
-        //   width: 100,
-        //   resizable: true,
-        //   index: 7,
-        // },
-        // {
-        //   title: "abbr",
-        //   dataIndex: "abbr",
-        //   align: "center",
-        //   width: 100,
-        //   resizable: true,
-        //   index: 14,
-        // },
         {
           title: "词条状态",
           dataIndex: "entryState",
@@ -906,17 +882,18 @@ export default {
       const currentLang = this.task.transMap.value;
       let hasNoInter = false;
       let arr = {
-        acceptIds: new Set(),
+        acceptIds: new Set(), // 所有校验通过
+        errorIds: new Set(), // 所有校验不通过
         toLongIds: new Set(), // 校验长度
         specialIds: new Set(), // 校验特殊字符
       };
       arr = await verifyArray_workbench(this, this.selectedRows, currentLang);
-      console.log("ok", arr, arr.acceptIds);
       let arrCount = {
         updateArr: [],
         insertArr: [],
         toLongNum: arr.toLongIds.size,
         specialNum: arr.specialIds.size,
+        errorNum: arr.errorIds.size,
         addNum: 0,
         addChildNum: 0,
         updateNum: 0,
@@ -936,14 +913,11 @@ export default {
           delete this.editableData[key];
         }
       }
-      console.log("ok2", arr.acceptIds.size);
       if (this.allData.length === 0) {
         return;
       }
       this.saveLoading = true;
-      console.log("ok3", this.selectedRows, arr.specialIds);
       for (const record of this.selectedRows) {
-        console.log("record", record.id, arr.specialIds.has(record.id));
         if (arr.acceptIds.has(record.id)) {
           if (
             !hasNoInter &&
@@ -955,11 +929,7 @@ export default {
           if (record.entryState === 2) {
             // 如果是审核不通过的词条，重置为待审核状态
             record.entryState = 1;
-            try {
-              arrCount.updateArr.push(record);
-            } catch (err) {
-              console.log("update报错");
-            }
+            arrCount.updateArr.push(record);
             arrCount.updateNum++;
             if (record.children && record.children.length > 0) {
               record.children.forEach((child) => {
@@ -969,22 +939,12 @@ export default {
             }
           } else if (record.entryState === 1) {
             // 如果是待审核的词条，则直接更新
-            try {
-              arrCount.insertArr.push(record);
-            } catch (err) {
-              console.log("add报错", record);
-            }
+            arrCount.insertArr.push(record);
             arrCount.addNum++;
             if (record.children && record.children.length > 0) {
               arrCount.addChildNum += record.children.length;
             }
           }
-        } else if (
-          arr.toLongIds.has(record.id) ||
-          arr.specialIds.has(record.id)
-        ) {
-          console.log("有问题");
-          await handleExceedLength(record, currentLang, this);
         }
       }
       if (hasNoInter) {
@@ -1015,162 +975,8 @@ export default {
         );
       }
     },
-    // 保存词条
-    saveEntrys_bak() {
-      for (let key in this.editableData) {
-        if (this.selectedRowKeys.includes(key)) {
-          let entry = this.dataSource.find((item) => item.id === key);
-          // entry = this.editableData[key]
-          entry.entry = this.editableData[key].entry;
-          entry[this.task.transMap.value] =
-            this.editableData[key][this.task.transMap.value];
-          commonParam.languageList.forEach((item) => {
-            if (this.editableData[key][item.interpretation]) {
-              entry[item.interpretation] =
-                this.editableData[key][item.interpretation];
-            }
-          }); // 遍历存储外语释义
-
-          entry.chineseInterpretation =
-            this.editableData[key].chineseInterpretation;
-          // entry.englishInterpretation =
-          //   this.editableData[key].englishInterpretation;
-          entry.tag = this.editableData[key].tag;
-          entry.comment = this.editableData[key].comment;
-
-          if (entry[this.task.transMap.value] != null) {
-            // 翻译存在  则状态为待审核状态
-            entry[this.task.transMap.state] = "1";
-          }
-
-          delete this.editableData[key];
-        }
-      }
-
-      if (this.allData.length === 0) {
-        return;
-      }
-      this.saveLoading = true;
-
-      let insertArr = [];
-      let updateArr = [];
-      let toLongArr = []; // 用于存储超长词条
-      let arrCount = {
-        selectedNum: this.selectedRows.length,
-        selectedChildNum: 0,
-        addNum: 0,
-        addChildNum: 0,
-        updateNum: 0,
-        updateChildNum: 0,
-        toLongNum: 0,
-        toLongChildNum: 0,
-      };
-      const promises = []; // 用于存储校验超长词条的promise
-      let notInterpretation = [];
-
-      // 保存操作 将保存所有词条(allData) 改为 保存已勾选的词条
-      this.selectedRows.forEach((item) => {
-        if (item.parentID != "" && item.parentID != null) {
-          // 去除含有父节点的词条
-          return;
-        }
-        // 一体化平台，文 件导入且选择了回写词典时，修改diFileName和importType
-        // if(this.platformKey === "unify" && this.dataType === 'file' && this.filediFileName != null){
-        //     item.diFileName = this.filediFileName
-        //     item.importType = 'DI'
-        //     item.writeType = 'DI'
-        // }
-        if (
-          (item.englishInterpretation === null ||
-            item.englishInterpretation === "") &&
-          (item.chineseInterpretation === null ||
-            item.chineseInterpretation === "")
-        ) {
-          notInterpretation.push(item);
-        }
-        // 聚合的子词条翻译和父一致
-        if (item.children && item.children.length > 0) {
-          arrCount.selectedChildNum += item.children.length;
-          item.children.forEach((child) => {
-            child[this.task.transMap.value] = item[this.task.transMap.value];
-            child[this.task.transMap.state] = item[this.task.transMap.state];
-          });
-        }
-
-        // 验证翻译是否超长
-        const maxLength = getMaxLength(item, this);
-        const text = item[this.task.transMap.value];
-        // if (maxLength !== null && common.byteLength(text) > maxLength) {
-        if (maxLength !== null && byteLength(text) > maxLength) {
-          toLongArr.push(item);
-          arrCount.toLongNum++;
-          promises.push(
-            handleExceedLength(item, this.task.transMap.value, this)
-          );
-          if (item.children && item.children.length > 0) {
-            arrCount.toLongChildNum += item.children.length;
-            item.children.forEach((child) => {
-              toLongArr.push(child);
-              promises.push(
-                handleExceedLength(child, this.task.transMap.value, this)
-              );
-            });
-          }
-          return;
-        }
-
-        if (item.entryState === 2) {
-          // 如果是审核不通过的词条，重置为待审核状态
-          item.entryState = 1;
-          updateArr.push(item);
-          arrCount.updateNum++;
-          if (item.children && item.children.length > 0) {
-            arrCount.updateChildNum += item.children.length;
-            item.children.forEach((child) => {
-              child.entryState = 1;
-              // updateArr.push(child);
-            });
-          }
-        } else if (item.entryState === 1) {
-          // 如果是待审核的词条，则直接更新
-          insertArr.push(item);
-          arrCount.addNum++;
-          if (item.children && item.children.length > 0) {
-            arrCount.addChildNum += item.children.length;
-            // item.children.forEach((child) => {
-            //   insertArr.push(child);
-            // });
-          }
-        }
-      });
-
-      if (notInterpretation.length > 0) {
-        Modal.confirm({
-          title:
-            "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
-          icon: createVNode(ExclamationCircleOutlined),
-          content: "",
-          okText: "是",
-          cancelText: "否",
-          style: { top: "30%" },
-          onOk: () => {
-            this.insertOrUpdateEntrys(insertArr, updateArr, arrCount);
-          },
-          onCancel: () => {
-            this.saveLoading = false;
-          },
-        });
-      } else {
-        this.insertOrUpdateEntrys(insertArr, updateArr, arrCount);
-      }
-    },
     //
     insertOrUpdateEntrys(insertArr, updateArr, arrCount) {
-      // if (arrCount.toLongNum > 0) {
-      //   // 存在超长
-      //   message.warn("存在超长数据，请检查！");
-      //   // return;
-      // }
       this.loading = true;
       let params = {
         taskID: this.task.id,
@@ -1179,14 +985,18 @@ export default {
       let messageTextParts = [];
 
       console.log("arrCount", arrCount);
-      if (arrCount.toLongNum > 0) {
-        let toLongNumText = `字符长度超限${arrCount.toLongNum}条`;
-        messageTextParts.push(toLongNumText);
+      if (arrCount.errorNum > 0) {
+        let errorNumText = `校验不通过${arrCount.errorNum}条`;
+        messageTextParts.push(errorNumText);
       }
-      if (arrCount.specialNum > 0) {
-        let specialNumText = `特殊字符不一致${arrCount.specialNum}条`;
-        messageTextParts.push(specialNumText);
-      }
+      // if (arrCount.toLongNum > 0) {
+      //   let toLongNumText = `字符长度超限${arrCount.toLongNum}条`;
+      //   messageTextParts.push(toLongNumText);
+      // }
+      // if (arrCount.specialNum > 0) {
+      //   let specialNumText = `特殊字符不一致${arrCount.specialNum}条`;
+      //   messageTextParts.push(specialNumText);
+      // }
 
       if (arrCount.addNum > 0) {
         // 新增
@@ -1205,18 +1015,12 @@ export default {
             }
 
             // 从 insertArr 中移除保存失败的数据
-            const successfulInsertArr = filter_arr(insertArr, res.data.list);
+            const acArr = filter_arr(insertArr, res.data.list);
             // 从 this.dataSource 中移除保存成功的数据
-            this.dataSource = filter_arr(this.dataSource, successfulInsertArr);
+            this.dataSource = filter_arr(this.dataSource, acArr);
             // 从this.selectedRows 中移除保存成功的数据
-            this.selectedRows = filter_arr(
-              this.selectedRows,
-              successfulInsertArr
-            );
-            this.selectedRowKeys = filter_arr_keys(
-              this.selectedRowKeys,
-              successfulInsertArr
-            );
+            this.selectedRows = filter_arr(this.selectedRows, acArr);
+            this.selectedRowKeys = filter_arr_keys(this.selectedRowKeys, acArr);
           })
           .catch((err) => {
             console.log("新增失败", err);
@@ -1244,18 +1048,12 @@ export default {
             // console.log("arrCount", arrCount);
 
             // 从 updateArr 中移除保存失败的数据
-            const successfulUpdateArr = filter_arr(updateArr, res.data.list);
+            const acArr = filter_arr(updateArr, res.data.list);
             // 从 this.dataSource 中移除保存成功的数据
-            this.dataSource = filter_arr(this.dataSource, successfulUpdateArr);
+            this.dataSource = filter_arr(this.dataSource, acArr);
             // 从this.selectedRows 中移除保存成功的数据
-            this.selectedRows = filter_arr(
-              this.selectedRows,
-              successfulUpdateArr
-            );
-            this.selectedRowKeys = filter_arr_keys(
-              this.selectedRowKeys,
-              successfulUpdateArr
-            );
+            this.selectedRows = filter_arr(this.selectedRows, acArr);
+            this.selectedRowKeys = filter_arr_keys(this.selectedRowKeys, acArr);
           })
           .catch((err) => {
             message.error("2", err.message);
@@ -1264,7 +1062,7 @@ export default {
       }
 
       Promise.all(promises)
-        .then(() => {
+        .then(async () => {
           if (messageTextParts.length > 0) {
             message.success("数据已保存！" + messageTextParts.join("，"));
           }
@@ -1275,6 +1073,15 @@ export default {
           this.selectedRowIndex = null;
           if (this.dataSource.length === 0) {
             this.handleClose();
+          } else {
+            try {
+              // 校验当前页数据的长度
+              await verifyArray_workbench_page(
+                this.pagination,
+                this.task.transMap.value,
+                this
+              );
+            } catch (err) {}
           }
         })
         .finally(() => {
@@ -1916,7 +1723,7 @@ export default {
             this.loading = false;
             this.importBtnLoading = false;
             // 校验当前页数据的长度
-            verifyCurrentPageData(
+            verifyArray_workbench_page(
               this.pagination,
               this.task.transMap.value,
               this
@@ -2140,62 +1947,20 @@ export default {
     // 添加表格行点击事件
     customRow(record, index) {
       return {
-        onDblclick: (event) => {
+        onDblclick: async (event) => {
           if (this.editableData.hasOwnProperty(record.id)) {
             // 当前行在编辑状态
             return;
           }
-          this.editableData[record.id] = cloneDeep(
-            this.dataSource.filter((item) => record.id === item.id)[0]
+          // 打开编辑态;设置校验规则(工作台只为翻译列配置)
+          await openSetEdit(record, [this.task.transMap.value], this);
+          // 使用校验规则-翻译列
+          useRefRules(
+            this.$refs,
+            `form${record.id.replaceAll("-", "")}${this.task.transMap.value}`
           );
-          // 设置校验规则
-          this.rules[record.id] = {
-            entry: [
-              { validator: this.vilidFildLength(record, "chinese") },
-              { required: true, message: "请输入!" },
-            ],
-          };
-          this.rules[record.id][this.task.transMap.value] = [
-            {
-              validator: this.vilidFildLength(record, this.task.transMap.value),
-            },
-          ];
           this.showEditOperation(); // 显示编辑操作列
         },
-      };
-    },
-    // 校验输入数据的长度
-    vilidFildLength(record, language) {
-      return (rule, value) => {
-        let type = "";
-        if (language === "chinese") {
-          type = "maxByte";
-        } else {
-          type = "foreignMaxByte";
-        }
-        let maxLength = null;
-        if (
-          this.classifyLimit[record.classfy1] === undefined ||
-          this.classifyLimit[record.classfy1] === null
-        ) {
-          if (record.maxLength != null && record.maxLength != "") {
-            maxLength = record.maxLength;
-          } else {
-            return Promise.resolve();
-          }
-        } else {
-          maxLength = this.classifyLimit[record.classfy1][type];
-        }
-        if (maxLength === undefined || maxLength === null || maxLength === 0) {
-          return Promise.resolve();
-        }
-        // 获取输入数据的长度
-        // let length = common.byteLength(value);
-        let length = byteLength(value);
-        if (length > maxLength) {
-          return Promise.reject("允许最大字符数为" + maxLength + "！");
-        }
-        return Promise.resolve();
       };
     },
     // 编辑-保存
@@ -2204,39 +1969,10 @@ export default {
         if (record.hasOwnProperty(key) && value != null && value !== "") {
           // 如果record中存在该键，并且值不为空，则更新record
           record[key] = value;
+          delete this.editableData[record.id];
+          this.hideEditOperation();
         }
       }
-
-      // 生成表单引用的键名
-      const formRefKey = `form${record.id.replaceAll("-", "")}${
-        this.task.transMap.value
-      }`;
-      const formRef = this.$refs[formRefKey];
-
-      // 检查表单引用是否存在
-      if (formRef) {
-        // 长度校验
-        formRef
-          .validate()
-          .then(() => {
-            if (record[this.task.transMap.value] != null) {
-              // 翻译存在  则状态为待审核状态
-              record[this.task.transMap.state] = "1";
-            }
-          })
-          .catch((err) => {
-            message.error("11", err.message);
-          });
-      } else {
-        console.log(
-          "未找到对应的表单验证器",
-          formRef,
-          this.task.transMap.value
-        );
-        message.error("未找到对应的表单验证器");
-      }
-      delete this.editableData[record.id];
-      this.hideEditOperation();
     },
     // 取消编辑
     cancel(record) {
@@ -2433,7 +2169,11 @@ export default {
       this.pagination.pageSize = pageSize;
 
       // 校验当前页数据的长度
-      verifyCurrentPageData(this.pagination, this.task.transMap.value, this);
+      verifyArray_workbench_page(
+        this.pagination,
+        this.task.transMap.value,
+        this
+      );
     },
     // 语言切换
     filterLanguageChange() {
@@ -2476,20 +2216,7 @@ export default {
           filters.entrySource && item.entrySource.includes(filters.entrySource)
         );
       });
-      this.filteredData = this.intersection(isExistData, sourceData);
-    },
-    // 两个数组取并集
-    intersection(nums1, nums2) {
-      if (nums1.length === 0) {
-        return nums2;
-      }
-      if (nums2.length === 0) {
-        return nums1;
-      }
-      let a = new Set(nums1);
-      let b = new Set(nums2);
-      let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
-      return arr;
+      this.filteredData = Array.from(new Set([...isExistData,...sourceData]));
     },
     // 清空表格筛选条件
     clearFilters() {

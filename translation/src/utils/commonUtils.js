@@ -3,6 +3,7 @@ import { message } from "ant-design-vue";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
+import { async } from './commonUtils';
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
@@ -502,7 +503,6 @@ export function setRefRules(vm, record, cols) {
  */
 export function validateRefRules(record, vm, colName, language) {
   return async (rule, value) => {
-    // console.log("校验长度", this.classifyLimit, record);
     const maxLength = getMaxLength(record, vm, colName);
     let length = byteLength(value);
     if (maxLength && length > maxLength) {
@@ -534,82 +534,26 @@ export function validateRefRules(record, vm, colName, language) {
 }
 
 /**
- * 校验当前页数据的翻译长度
+ * 校验词条数组（工作台场景）-当前页数据版
+ * 1.-保存前（区分通过/不通过校验词条）
+ * 2.-不通过的打开编辑态
  * @param {Object} pagination - 分页信息对象，包含 `current`（当前页码）和 `pageSize`（每页显示数量）属性
  * @param {string} language - 当前语言类型，用于指定要校验的翻译字段
  * @param {Object} vm - Vue 实例对象，包含 `dataSource`（数据源）等属性
  */
-export function verifyCurrentPageData(pagination, language, vm) {
+export async function verifyArray_workbench_page(pagination, language, vm,
+  verifyMethods = ["toLong", "special"]) {
   let data = vm.dataSource.slice(
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
   );
-  verifyTranslationLength(data, language, vm);
+  await verifyArray_workbench(vm, data, language, verifyMethods);
 }
 
 /**
- * 校验翻译长度，统计超长记录数量，并将超长记录设为编辑状态进行表单校验
- * @param {Array} array - 待校验的记录数组
- * @param {Object} editData - 编辑状态的数据对象
- * @param {string} language - 当前语言类型
- * @param {Object} vm - Vue 实例对象
- * @returns {number} - 超长记录的数量
- */
-export async function verifyTranslationLength(array, language, vm,
-  verifyMethods = ["toLong", "special"]) {
-  let flag = 0;
-  const promises = [];
-
-  for (const record of array) {
-    // const maxLength = getMaxLength(record, vm);
-    // if (maxLength === null) continue;
-
-    // const text = vm.editableData[record.id]?.[language] || record[language];
-    // if (byteLength(text) > maxLength) {
-    //   // console.log("超长记录:", record);
-    //   flag++;
-    //   promises.push(handleExceedLength(record, language, vm));
-    // }
-    // // else {
-    // //   console.log("不长记录:", record);
-    // // }
-
-    let error = false;
-    const translate = vm.editableData[record.id]?.[language] || record[language];
-    if (verifyMethods.includes("toLong")) {
-      console.log("长度比较", record)
-      const maxLength = getMaxLength(record, vm);
-      console.log("maxlength:", record, translate, maxLength, byteLength(translate), byteLength(translate) > maxLength)
-      error = error || (byteLength(translate) > maxLength);
-    }
-    if (verifyMethods.includes("special")) {
-      const datas = [
-        {
-          id: record.id,
-          entry: record.entry,
-          translate: translate,
-        },
-      ];
-      try {
-        const res = await checkSykEntryBeforeSave(datas);//调用后端接口
-        const specialCharNum = res.data?.length ?? 0;
-        error = error || (specialCharNum > 0);
-      } catch (err) { }
-    }
-    if (error) {
-      flag++;
-      promises.push(handleExceedLength(record, language, vm));
-    }
-
-  }
-
-  await Promise.all(promises);
-  console.log("报错数量：", flag)
-  return flag;
-}
-
-/**
- * 校验词条数组（工作台场景）-保存前（区分通过/不通过校验词条）-不通过的打开编辑态
+ * 校验词条数组（工作台场景）
+ * 1.-保存前（区分通过/不通过校验词条）
+ * 2.-不通过的打开编辑态
  * @param {Object} vm - Vue 实例对象
  * @param {Array<Object>} array - 待校验的词条数组
  * @param {string} language - 编辑数据用任务语种存储了起来：english,chinese,...，
@@ -625,7 +569,8 @@ export async function verifyTranslationLength(array, language, vm,
 export async function verifyArray_workbench(vm, array, language,
   verifyMethods = ["toLong", "special"]) {
   let arr = {
-    acceptIds: new Set(),
+    acceptIds: new Set(),// 所有校验通过
+    errorIds: new Set(),// 所有校验不通过
     toLongIds: new Set(),// 校验长度
     specialIds: new Set(),// 校验特殊字符
   };
@@ -639,6 +584,7 @@ export async function verifyArray_workbench(vm, array, language,
     };
     datas.push(data);
     if (verifyMethods.includes("toLong")) {// 校验长度
+      // console.log("校验长度",data)
       if (data.maxLength && byteLength(data.translate) > data.maxLength) {
         arr.toLongIds.add(record.id);
       }
@@ -657,16 +603,22 @@ export async function verifyArray_workbench(vm, array, language,
       arr.acceptIds.add(record.id);// 记录通过校验的词条id
     }
     else {
-      await addEdit(record, language, vm);// 打开编辑态，只为翻译列配置校验规则
-      useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${language}`);// 只校验翻译列
+      // 注意：单条验证会遍历触发checkSykEntryBeforeSave，不要整个dataSource都遍历，一次遍历检查当前页的表单校验即可
+      arr.errorIds.add(record.id);
+      // 打开编辑态;设置校验规则(工作台只为翻译列配置)
+      await openSetEdit(record, [language], vm);
+      // 使用校验规则-翻译列
+      useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${language}`);
     }
   }
-  console.log("函数内", arr)
+  // console.log("函数内", arr)
   return arr;
 }
 
 /**
- * 校验词条（词条管理场景）-保存前（是否通过）-不通过的打开编辑态
+ * 校验词条（词条管理场景）
+ * 1.-保存前（是否通过）
+ * 2.-不通过就打开编辑态
  * @param {Object} vm - Vue 实例对象
  * @param {Object} record - 待校验的词条（新增/修改/复制）
  * @param {Array<string>} colList - 新增/修改词条需要同时校验多列：[entry, english，chinese,...]
@@ -717,7 +669,7 @@ export async function verifyRecord_entry(vm, record, colList,
   if (flag) {
     return true;
   } else {
-    await addEdits(record, colList, vm); // 打开编辑态，为多列配置校验规则
+    await openSetEdit(record, colList, vm); // 打开编辑态，为多列配置校验规则
     for (col of colList) {// 对应的每一列都校验一遍
       useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${col}`);
     }
@@ -726,9 +678,31 @@ export async function verifyRecord_entry(vm, record, colList,
 }
 
 /**
- * 获取记录的最大长度
+ * 将指定记录设置为编辑状态，并为其配置校验规则
+ * - 需要放到函数里使用，展开来用会报错找不到表单引用
+ * - 原名：addEdit
+ * @param {Object} record - 需要设置为编辑状态的记录对象
+ * @param {Array<string>} cols - 需要设置校验规则的列名数组
+ * 1. 工作台：翻译列为指定语言，如["english"]
+ * 2. 词条管理：多列，如["entry", "english", "chinese"]
+ * @param {Object} vm - Vue 实例对象
+ * @returns {Promise} - 一个立即解决的 Promise 对象
+ */
+export function openSetEdit(record, cols, vm) {
+  // 打开编辑态
+  vm.editableData[record.id] = vm.editableData[record.id] || cloneDeep(record);
+  // 设置校验规则
+  setRefRules(vm, record, cols)
+  return Promise.resolve();
+}
+
+/**
+ * 获取记录指定列（词条/翻译）的最大长度
  * @param {Object} record - 当前记录对象
  * @param {Object} vm - Vue 实例对象
+ * @param {String} colName - 两种最大长度
+ * 1. 词条："maxByte"；
+ * 2. 翻译（具体语言english,chinese,...）:"foreignMaxByte"
  * @returns {number|null} - 最大长度，如果不存在则返回 null
  */
 export function getMaxLength(record, vm, colName = "foreignMaxByte") {
@@ -745,164 +719,6 @@ export function getMaxLength(record, vm, colName = "foreignMaxByte") {
     // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
     return vm.classifyLimit?.[record.classfy1]?.maxByte || null;
   }
-}
-
-/**
- * 处理翻译长度超过限制的记录，将其设为编辑状态并进行表单校验
- * @param {Object} record - 当前记录对象
- * @param {string} language - 当前语言类型
- * @param {Object} vm - Vue 实例对象
- * @returns {Promise<void>}
- */
-export async function handleExceedLength(record, language, vm) {
-  await addEdit(record, language, vm);
-  const formRef = vm.$refs[`form${record.id.replaceAll('-', '')}${language}`];
-  if (formRef) {
-    try {
-      console.log("编辑态-表单验证")
-      await formRef.validate();
-    } catch (err) {
-      // 可根据实际需求添加错误处理逻辑
-    }
-  }
-}
-
-/**
- * 将指定记录设置为编辑状态，并为其配置校验规则
- * @param {Object} record - 需要设置为编辑状态的记录对象
- * @param {Array<string>} cols - 需要设置校验规则的字段名数组，如 ["entry", "english", "chinese"]
- * @param {Object} vm - Vue 实例对象
- * @returns {Promise} - 一个立即解决的 Promise 对象
- */
-export function addEdits(record, cols, vm) {
-  vm.editableData[record.id] = vm.editableData[record.id] || cloneDeep(record);// 确保 vm.editableData 中有对应的记录（变成编辑态了）
-  console.log("打开编辑态")
-  setRefRules(vm, record, cols)
-  return Promise.resolve();
-}
-
-/**
- * 将指定记录设置为编辑状态，并为其配置校验规则
- * @param {Object} record - 需要设置为编辑状态的记录对象
- * @param {string} language - 当前语言类型
- * @param {Object} vm - Vue 实例对象
- * @returns {Promise} - 一个立即解决的 Promise 对象
- */
-export function addEdit(record, language, vm) {
-  vm.editableData[record.id] = vm.editableData[record.id] || cloneDeep(record);// 确保 vm.editableData 中有对应的记录（变成编辑态了）
-  console.log("打开编辑态")
-  // console.log("设置编辑状态:", vm.editableData);
-  // 设置校验规则
-  // vm.rules[record.id] = {
-  //   entry: [
-  //     { validator: validFieldLength(record, "chinese", vm) },
-  //     { required: true, message: "请输入!" },
-  //   ],
-  // };
-  // vm.rules[record.id][language] = [
-  //   { validator: validFieldLength(record, language, vm) },
-  // ];
-  setRefRules(vm, record, [language])
-  return Promise.resolve();
-}
-
-/**
- * 校验翻译长度的函数，返回一个验证器函数，用于表单验证规则
- * @param {Object} record - 当前行的数据记录对象
- * @param {string} language - 语言类型，用于确定验证类型
- * @param {Object} vm - Vue 实例，包含分类限制信息
- * @returns {Function} - 验证器函数，接受 rule 和 value 作为参数
- */
-export function validFieldLength(record, language, vm) {
-  return (rule, value) => {
-    const type = language === "chinese" ? "maxByte" : "foreignMaxByte";
-    const maxLength = getFieldMaxLength(record, vm, type);
-
-    if (maxLength === null) {
-      return Promise.resolve();
-    }
-
-    const length = byteLength(value);
-    return length > maxLength
-      ? Promise.reject(`允许最大字符数为${maxLength}！validFieldLength`)
-      : Promise.resolve();
-  };
-}
-
-/**
- * 获取字段的最大长度
- * @param {Object} record - 当前记录对象
- * @param {Object} vm - Vue 实例对象
- * @param {string} type - 长度类型，如 'maxByte' 或 'foreignMaxByte'
- * @returns {number|null} - 最大长度，如果不存在则返回 null
- */
-export function getFieldMaxLength(record, vm, type) {
-  if (!vm.classifyLimit?.[record.classfy1]) {
-    return record.maxLength || null;
-  }
-  return vm.classifyLimit[record.classfy1][type];
-}
-
-/**
- * 验证输入字段长度的函数，返回一个验证器函数，用于表单验证规则
- * @param {Object} limitMap - 包含分类限制信息的映射对象
- * @param {Object} record - 当前行的数据记录对象
- * @param {string} language - 语言类型，用于确定验证类型
- * @returns {Function} - 验证器函数，接受 rule 和 value 作为参数
- */
-export function vilidFildLength(limitMap, record, language) {
-  // 返回一个验证器函数，用于表单验证规则
-  return (rule, value) => {
-    // 初始化验证类型变量
-    let type = "";
-    // 根据语言类型确定验证类型
-    if (language === "chinese") {
-      // 中文使用 maxByte 验证
-      type = "maxByte";
-    } else {
-      // 其他语言使用 foreignMaxByte 验证
-      type = "foreignMaxByte";
-    }
-    // 初始化最大长度变量
-    let maxLength = null;
-    // 检查 limitMap 中是否存在当前分类的限制信息
-    if (
-      limitMap[record.classfy1] === undefined ||
-      limitMap[record.classfy1] === null
-    ) {
-      // 如果 limitMap 中没有当前分类的限制信息
-      if (record.maxLength != null && record.maxLength != "") {
-        // 如果记录中有最大长度信息，则使用该信息
-        maxLength = record.maxLength;
-      } else {
-        // 如果记录中也没有最大长度信息，则验证通过
-        return Promise.resolve();
-      }
-    } else {
-      // 如果 limitMap 中有当前分类的限制信息，则使用该信息
-      maxLength = limitMap[record.classfy1][type];
-    }
-    // 检查最大长度是否有效
-    if (
-      maxLength === undefined ||
-      maxLength === "" ||
-      maxLength === null ||
-      maxLength === 0
-    ) {
-      // 如果最大长度无效，则验证通过
-      return Promise.resolve();
-    }
-    // 获取输入数据的字节长度
-    // let length = common.byteLength(value);
-    let length = byteLength(value);
-    // 检查输入数据的长度是否超过最大长度
-    if (length > maxLength) {
-      // 如果超过最大长度，则验证失败，返回错误信息
-      return Promise.reject("允许最大字符数为" + maxLength + "！vilidFildLength");
-    }
-    // 如果输入数据的长度未超过最大长度，则验证通过
-    return Promise.resolve();
-  };
 }
 
 /**
