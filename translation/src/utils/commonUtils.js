@@ -449,16 +449,16 @@ export async function useRefRules(refs, refName) {
   const formRef = refs[refName];
   if (formRef) {
     try {
-      console.log("进入表单验证", formRef, formRef.validate)
+      // console.log("进入表单验证", formRef, formRef.validate)
       await formRef.validate(); // 双击打开编辑框时设置的校验规则
       return Promise.resolve();
     } catch (err) {
-      console.log("验证失败", err);// 不弹窗，通过ref提示
+      // console.log("验证失败", err);// 不弹窗，通过ref提示
       return Promise.reject(`编辑-保存校验失败:${err.errorFields[0].errors}`);
     }
   }
   else {
-    console.log("没有formRef")
+    // console.log("没有formRef")
     return Promise.reject(new Error(`未找到 ref 名称为 "${refName}" 的表单引用`));
   }
 }
@@ -547,7 +547,7 @@ export async function verifyArray_workbench_page(pagination, language, vm,
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
   );
-  console.log("当前页校验",data)
+  // console.log("当前页校验", data)
   await verifyArray_workbench(vm, data, language, verifyMethods);
 }
 
@@ -671,8 +671,10 @@ export async function verifyRecord_entry(vm, record, colList,
     return true;
   } else {
     await openSetEdit(record, colList, vm); // 打开编辑态，为多列配置校验规则
-    for (col of colList) {// 对应的每一列都校验一遍
-      useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${col}`);
+    for (const col of colList) {// 对应的每一列都校验一遍
+      if (record[col]) {
+        useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${col}`);
+      }
     }
     return false;
   }

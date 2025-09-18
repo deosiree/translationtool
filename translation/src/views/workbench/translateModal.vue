@@ -1019,7 +1019,6 @@ export default {
           this.assistedTranslation(record); // 辅助翻译
         },
         onDblclick: async (event) => {
-          console.log("双击了", event);
           if (this.editableData.hasOwnProperty(record.id)) {
             // 当前行在编辑状态
             return;
@@ -1057,7 +1056,7 @@ export default {
         delete this.editableData[record.id];
         this.hideEditOperation();
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         message.warn(err);
       }
     },

@@ -423,6 +423,7 @@ import {
   getMaxLength,
   setRefRules,
   useRefRules,
+  openSetEdit,
 } from "@/utils/commonUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 export default {
@@ -830,7 +831,8 @@ export default {
             : this.product.key,
       };
       // console.log("查询产品的所有版本", this.product);
-      getVersionByName(params).then((res) => {// 接口有问题，获取不到值
+      getVersionByName(params).then((res) => {
+        // 接口有问题，获取不到值
         this.productVersions = res.data.list;
         // if(this.productVersions.length > 0){
         //     this.currentVersion = this.productVersions[0].id
@@ -991,28 +993,43 @@ export default {
         //         _this.setTableHeight()
         //     }, 300);
         // },
-        onDblclick: (event) => {
+        onDblclick: async (event) => {
           // clearTimeout(this.timer)
           if (this.editableData.hasOwnProperty(record.id)) {
             // 当前行在编辑状态
             return;
           }
           if (this.edit) {
-            this.editableData[record.id] = cloneDeep(
-              this.dataSource.filter((item) => record.id === item.id)[0]
+            // 打开编辑态;设置校验规则(词条管理为多列配置)
+            await openSetEdit(
+              record,
+              ["entry", ...commonParam.langValList],
+              this
             );
-            // 设置校验规则
-            // this.rules[record.id] = {};
-            // this.rules[record.id]["entry"] = [
-            //   { validator: this.vilidFildLength(record, "maxByte") },
-            //   { required: true, message: "请输入!" },
-            // ];
-            // commonParam.langValList.forEach((item) => {
-            //   this.rules[record.id][item] = [
-            //     { validator: this.vilidFildLength(record, "foreignMaxByte") },
-            //   ];
-            // });
-            setRefRules(this, record, ["entry", ...commonParam.langValList]);
+            for (const col of ["entry", ...commonParam.langValList]) {
+              // 对应的每一列都校验一遍
+              if (record[col]) {
+                useRefRules(
+                  this.$refs,
+                  `form${record.id.replaceAll("-", "")}${col}`
+                );
+              }
+            }
+            // this.editableData[record.id] = cloneDeep(
+            //   this.dataSource.filter((item) => record.id === item.id)[0]
+            // );
+            // // 设置校验规则
+            // // this.rules[record.id] = {};
+            // // this.rules[record.id]["entry"] = [
+            // //   { validator: this.vilidFildLength(record, "maxByte") },
+            // //   { required: true, message: "请输入!" },
+            // // ];
+            // // commonParam.langValList.forEach((item) => {
+            // //   this.rules[record.id][item] = [
+            // //     { validator: this.vilidFildLength(record, "foreignMaxByte") },
+            // //   ];
+            // // });
+            // setRefRules(this, record, ["entry", ...commonParam.langValList]);
 
             // 获取表格操作行的classify2Option
             this.getRowClassify2Option(record);
@@ -1020,42 +1037,42 @@ export default {
         },
       };
     },
-    // 校验输入数据的长度
-    vilidFildLength(record, colName) {
-      return (rule, value) => {
-        // console.log("校验长度", this.classifyLimit, record);
-        const maxLength = getMaxLength(record, this, colName);
-        // let type = "";
-        // if (language === "chinese") {
-        //   type = "maxByte";
-        // } else {
-        //   type = "foreignMaxByte";
-        // }
-        // let maxLength = null;
-        // if (!this.classifyLimit[record.classfy1]) {
-        //   if (record.maxLength != null && record.maxLength != "") {
-        //     maxLength = record.maxLength;
-        //   } else {
-        //     return Promise.resolve();
-        //   }
-        // } else {
-        //   maxLength = this.classifyLimit[record.classfy1][type];
-        // }
-        // if (!maxLength || maxLength === "") {
-        //   return Promise.resolve();
-        // }
-        // 获取输入数据的长度
-        // let length = common.byteLength(value);
-        let length = byteLength(value);
-        if (maxLength && length > maxLength) {
-          console.log("报错", maxLength);
-          return Promise.reject(
-            "允许最大字符数为" + maxLength + "！\n(1中文=2字符)"
-          );
-        }
-        return Promise.resolve();
-      };
-    },
+    // // 校验输入数据的长度
+    // vilidFildLength(record, colName) {
+    //   return (rule, value) => {
+    //     // console.log("校验长度", this.classifyLimit, record);
+    //     const maxLength = getMaxLength(record, this, colName);
+    //     // let type = "";
+    //     // if (language === "chinese") {
+    //     //   type = "maxByte";
+    //     // } else {
+    //     //   type = "foreignMaxByte";
+    //     // }
+    //     // let maxLength = null;
+    //     // if (!this.classifyLimit[record.classfy1]) {
+    //     //   if (record.maxLength != null && record.maxLength != "") {
+    //     //     maxLength = record.maxLength;
+    //     //   } else {
+    //     //     return Promise.resolve();
+    //     //   }
+    //     // } else {
+    //     //   maxLength = this.classifyLimit[record.classfy1][type];
+    //     // }
+    //     // if (!maxLength || maxLength === "") {
+    //     //   return Promise.resolve();
+    //     // }
+    //     // 获取输入数据的长度
+    //     // let length = common.byteLength(value);
+    //     let length = byteLength(value);
+    //     if (maxLength && length > maxLength) {
+    //       console.log("报错", maxLength);
+    //       return Promise.reject(
+    //         "允许最大字符数为" + maxLength + "！\n(1中文=2字符)"
+    //       );
+    //     }
+    //     return Promise.resolve();
+    //   };
+    // },
     // 详情
     entryDetails(record) {
       this.selectedRowIndex = record.id;
@@ -1081,7 +1098,8 @@ export default {
       this.setTableHeight();
       // console.log(this.currentEntry)
     },
-    deleteEntry() {// 删除按钮已封，this.productVersions获取不到版本表的所有信息
+    deleteEntry() {
+      // 删除按钮已封，this.productVersions获取不到版本表的所有信息
       if (this.selectedRowKeys.length === 0) {
         return;
       }

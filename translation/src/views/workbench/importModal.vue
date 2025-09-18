@@ -830,9 +830,6 @@ export default {
       this.task.transMap = commonParam.languageMap[this.task.translateType];
       this.setTranslateColumn();
     },
-    // exportFields(newval, oldval) {
-    //   console.log("newval", newval);
-    // },
   },
   methods: {
     // 全选导出字段方法
@@ -898,7 +895,6 @@ export default {
       const verifyMethods = this.rulesOptions
         .filter((option) => option.checked)
         .map((option) => option.key);
-      console.log("选择校验方法", verifyMethods);
       arr = await verifyArray_workbench(
         this,
         this.selectedRows,
@@ -916,7 +912,6 @@ export default {
         updateNum: 0,
         updateChildNum: 0,
       };
-      console.log("检验后的结果",arrCount)
       // 2.保存编辑框中的所有信息
       for (let key in this.editableData) {
         if (this.selectedRowKeys.includes(key)) {
@@ -1003,7 +998,6 @@ export default {
       const promises = [];
       let messageTextParts = [];
 
-      console.log("arrCount", arrCount);
       if (arrCount.errorNum > 0) {
         let errorNumText = `校验不通过${arrCount.errorNum}条`;
         messageTextParts.push(errorNumText);
@@ -1748,7 +1742,6 @@ export default {
               this.task.transMap.value,
               this
             );
-            console.log("当前页数据校验结果!");
           });
       } else {
         this.loading = false;
@@ -1865,10 +1858,6 @@ export default {
           tables.push(item);
         }
       });
-      // console.log("nodes:",nodes)
-      // console.log("apps:",apps)
-      // console.log("dbs:",dbs)
-      // console.log("tables:",tables)
       this.dataSource = [];
       let params = {
         taskID: this.task.id,
