@@ -7,6 +7,7 @@
         <div class="taskItem">产品名称：{{task.productName}}</div>
         <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
         <div class="taskItem">翻译语种：{{task.translateType}}</div>
+        <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
       </div>
       <div class="platformBox">
         <div style="width:100%;">
@@ -474,6 +475,7 @@
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import { add, cloneDeep, iteratee } from "lodash-es";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
@@ -570,6 +572,7 @@ export default {
     UpOutlined,
     InfoCircleOutlined,
     Dict,
+    RulesDropdown,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
     },
@@ -787,6 +790,10 @@ export default {
         { label: "excel", value: "excel" },
         { label: "csv", value: "csv" },
       ],
+      rulesOptions: [
+        { key: "toLong", label: "校验字符长度", checked: true },
+        { key: "special", label: "校验特殊字符", checked: false }, // %1翻成% 1
+      ],
     };
   },
 
@@ -887,7 +894,17 @@ export default {
         toLongIds: new Set(), // 校验长度
         specialIds: new Set(), // 校验特殊字符
       };
-      arr = await verifyArray_workbench(this, this.selectedRows, currentLang);
+      // 1.保存前校验
+      const verifyMethods = this.rulesOptions
+        .filter((option) => option.checked)
+        .map((option) => option.key);
+      console.log("选择校验方法", verifyMethods);
+      arr = await verifyArray_workbench(
+        this,
+        this.selectedRows,
+        currentLang,
+        verifyMethods
+      );
       let arrCount = {
         updateArr: [],
         insertArr: [],
@@ -899,8 +916,8 @@ export default {
         updateNum: 0,
         updateChildNum: 0,
       };
-
-      // 保存编辑框中的所有信息
+      console.log("检验后的结果",arrCount)
+      // 2.保存编辑框中的所有信息
       for (let key in this.editableData) {
         if (this.selectedRowKeys.includes(key)) {
           let entry = this.dataSource.find((item) => item.id === key);
@@ -917,6 +934,7 @@ export default {
         return;
       }
       this.saveLoading = true;
+      // 3.修改状态
       for (const record of this.selectedRows) {
         if (arr.acceptIds.has(record.id)) {
           if (
@@ -947,6 +965,7 @@ export default {
           }
         }
       }
+      // 4.更新词条;弹窗;校验当前页数据
       if (hasNoInter) {
         Modal.confirm({
           title:
@@ -1071,11 +1090,12 @@ export default {
           this.selectedRows = [];
           this.selectedRowKeys = [];
           this.selectedRowIndex = null;
+          // 无数据则关闭弹窗；有数据则检验当前页
           if (this.dataSource.length === 0) {
             this.handleClose();
           } else {
             try {
-              // 校验当前页数据的长度
+              // 校验当前页数据
               await verifyArray_workbench_page(
                 this.pagination,
                 this.task.transMap.value,

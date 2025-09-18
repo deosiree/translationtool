@@ -741,7 +741,6 @@ export default {
       const verifyMethods = this.rulesOptions
         .filter((option) => option.checked)
         .map((option) => option.key);
-      console.log("选择校验方法", verifyMethods);
       arr = await verifyArray_workbench(
         this,
         this.selectedRows,
@@ -816,7 +815,7 @@ export default {
           this.loading = false;
         });
 
-      // 6.弹窗,校验当前页数据
+      // 6.弹窗
       if (messageTextParts.length > 0) {
         message.success("已更新翻译！" + messageTextParts.join("，"));
         // console.log("弹窗信息",messageTextParts)
