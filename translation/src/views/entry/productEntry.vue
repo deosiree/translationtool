@@ -19,13 +19,14 @@
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
             </a-form-item>
             <a-form-item label="一级分类" name="classfy1" style="margin-top: 8px">
-              <a-input v-model:value="search.classfy1" placeholder="请输入一级分类"></a-input>
+              <a-select v-model:value="search.classfy1" mode="tags" placeholder="请输入一级分类" :fieldNames="{label:'title',value:'title'}"
+                :options='classify1Option' allowClear :maxTagTextLength="3" :maxTagCount="1">
+              </a-select>
             </a-form-item>
             <a-form-item label="二级分类" name="classfy2" style="margin-top: 8px">
-              <a-input v-model:value="search.classfy2" placeholder="请输入二级分类"></a-input>
-              <!-- <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'
-                allowClear>
-              </a-select> -->
+              <a-select v-model:value="search.classfy2" mode="tags" placeholder="请输入二级分类" :fieldNames="{label:'title',value:'title'}"
+                :options='classify2Option' allowClear :maxTagTextLength="3" :maxTagCount="1">
+              </a-select>
             </a-form-item>
             <a-form-item label="词条来源" name="entrySource" style="margin-top: 8px">
               <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
@@ -483,8 +484,8 @@ export default {
         abbr: "",
         partOfSpeech: "",
         translateType: null,
-        classfy1: null,
-        classfy2: null,
+        classfy1: [],
+        classfy2: [],
         entryState: null,
         tag: "",
         entrySource: "",
@@ -672,7 +673,6 @@ export default {
       createVisible: false,
       rules: {},
       batchSelectFlag: false,
-      classifyLimit: {},
       classify1Option: [],
       secondClassifyVisible: false,
       classify2Option: [],
@@ -704,7 +704,6 @@ export default {
       this.setTableHeight();
       this.product = this.currentProduct;
       this.getLanguage();
-      this.init();
       // 读取本地存储的用户偏好
       getColPref("colPref-productEntry", 200, this);
     });
@@ -714,24 +713,32 @@ export default {
       this.box = newval;
       this.setTableHeight();
     },
-    currentProduct(newval, oldval) {
-      this.currentVersion = null;
-      this.product = newval;
-      this.showOperationArea = false;
-      this.pagination.current = 1;
-      // this.selectEntry = [];
-      // this.selectedRowKeys = [];
-      // this.selectedRows = [];
-      this.pageChange(this.pagination.current, this.pagination.pageSize); // 切换产品时第一页的已选未显示
-      this.init();
-      // console.log("产品切换了",newval,this.selectedRows,this.selectedRowKeys)
-      let classifyLimit = {};
-      this.classify1Option = [];
-      newval.children.forEach((item) => {
-        classifyLimit[item.title] = item;
-        this.classify1Option.push(item);
-      });
-      this.classifyLimit = classifyLimit;
+    currentProduct: {
+      handler(newval, oldval) {
+        this.currentVersion = null;
+        this.product = newval;
+        this.showOperationArea = false;
+        this.pagination.current = 1;
+        // this.selectEntry = [];
+        // this.selectedRowKeys = [];
+        // this.selectedRows = [];
+        this.pageChange(
+          this.pagination.current,
+          this.pagination.pageSize,
+          null
+        ); // 切换产品时第一页的已选未显示(初始化版分页)
+        this.init();
+      },
+      deep: true, // 添加深度监听配置
+    },
+    "search.classfy1": function (newValue) {
+      this.selectSecondClassify(); // 获取二级分类
+      // if (newValue && newValue.length) {
+      //   this.selectSecondClassify(); // 获取二级分类
+      // } else {
+      //   this.classify2Option = [];
+      //   this.search.classfy2 = [];
+      // }
     },
     productEdit(newval, oldval) {
       this.edit = newval;
@@ -768,38 +775,16 @@ export default {
         this.search.endTime = null;
       }
     },
-    product: {
-      handler(newval, oldval) {
-        console.log("产品发生变化", newval, newval.type);
-        if (newval.type === "module") {
-          this.search.classfy1 = newval.title;
-        }
-      },
-      deep: true, // 添加深度监听配置
-    },
-    "search.classfy1": function (newValue) {
-      if (newValue) {
-        let params = {
-          parentId: newValue.key,
-        };
-        getSecondClassify(params).then((res) => {
-          // this.classify2Option = res.data.list;
-          console.log(`这是${newValue}对应的二级分类`, res.data.list);
-          // 有问题：监控-测试产品-一级分类：外部输出信号 (中26，外24)-无二级分类：功率/计量的输出
-          // 而且输入什么一级分类，好像返回的二级分类都是全部的二级分类
-        });
-      } else {
-        this.classify2Option = [];
-      }
-    },
   },
   unmounted() {},
   methods: {
-    init() {
-      this.getProductVersion();
-      this.getEntryByVersion(true); // isInit=true
+    async init() {
+      // 获取一级分类
+      await this.selectFirstClassify();
+      // 查询词条
+      await this.getEntryByVersion(true); // isInit=true
+      // 设置表的高度
       this.setTableHeight();
-      this.selectSecondClassify();
     },
     format(text) {
       return text.replace(/\n/g, "\\n");
@@ -816,7 +801,7 @@ export default {
       this.$nextTick(() => {
         // 设置列表父元素高度
         let searchHeight = this.$refs.search.$el.offsetHeight;
-        const len = 84;
+        const len = 84; //124会少一行
         try {
           let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
           this.dataHeight = this.box - searchHeight - operationAreaHeight - len;
@@ -858,7 +843,6 @@ export default {
             ? this.product.parentId
             : this.product.key,
       };
-      // console.log("查询产品的所有版本", this.product);
       getVersionByName(params).then((res) => {
         // 接口有问题，获取不到值
         this.productVersions = res.data.list;
@@ -921,7 +905,7 @@ export default {
         update: this.search.update,
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
-      // console.log("data:",data)
+      // console.log("data:", data);
       if (!this.currentVersion) {
         data.productID =
           this.product.type === "module"
@@ -937,7 +921,11 @@ export default {
         }
       });
       let params = {
-        classfyID: this.product.key,
+        classfyID:
+          this.product.type === "module"
+            ? this.product.parentId
+            : this.product.key, // 模块就使用对应产品的classfyID进行查询
+        // classfyID: this.product.key,
         translateType: this.search.language,
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
@@ -1066,42 +1054,6 @@ export default {
         },
       };
     },
-    // // 校验输入数据的长度
-    // vilidFildLength(record, colName) {
-    //   return (rule, value) => {
-    //     // console.log("校验长度", this.classifyLimit, record);
-    //     const maxLength = getMaxLength(record, this, colName);
-    //     // let type = "";
-    //     // if (language === "chinese") {
-    //     //   type = "maxByte";
-    //     // } else {
-    //     //   type = "foreignMaxByte";
-    //     // }
-    //     // let maxLength = null;
-    //     // if (!this.classifyLimit[record.classfy1]) {
-    //     //   if (record.maxLength != null && record.maxLength != "") {
-    //     //     maxLength = record.maxLength;
-    //     //   } else {
-    //     //     return Promise.resolve();
-    //     //   }
-    //     // } else {
-    //     //   maxLength = this.classifyLimit[record.classfy1][type];
-    //     // }
-    //     // if (!maxLength || maxLength === "") {
-    //     //   return Promise.resolve();
-    //     // }
-    //     // 获取输入数据的长度
-    //     // let length = common.byteLength(value);
-    //     let length = byteLength(value);
-    //     if (maxLength && length > maxLength) {
-    //       console.log("报错", maxLength);
-    //       return Promise.reject(
-    //         "允许最大字符数为" + maxLength + "！\n(1中文=2字符)"
-    //       );
-    //     }
-    //     return Promise.resolve();
-    //   };
-    // },
     // 详情
     entryDetails(record) {
       this.selectedRowIndex = record.id;
@@ -1190,7 +1142,6 @@ export default {
           // 新增词条/升级词条
           addSingleEntry(this.editableData[id]).then((res) => {
             message.success("新增成功!");
-            // this.getEntryByVersion()
             let index = this.dataSource.findIndex((item) => item.id === id);
             this.dataSource.splice(index, 1);
             this.dataSource.splice(index, 0, res.data);
@@ -1343,7 +1294,8 @@ export default {
         abbr: "",
         partOfSpeech: "",
         translateType: null,
-        classfy2: null,
+        classfy1: [],
+        classfy2: [],
         entryState: null,
         tag: "",
         entrySource: "",
@@ -1491,7 +1443,6 @@ export default {
         pageSize: -1,
       };
       this.loading = true;
-      // console.log("params1", params);
       getEntryByClassfy(params, data)
         .then((res) => {
           this.selectedRowKeys = [];
@@ -1603,6 +1554,23 @@ export default {
       this.editableData[copyEntry.id] = copyEntry;
       this.getRowClassify2Option(copyEntry);
     },
+    // 获取一级分类
+    selectFirstClassify() {
+      // 重置一级分类、二级分类
+      this.search.classfy1 = [];
+      this.classify1Option = [];
+      this.search.classfy2 = [];
+      this.classify2Option = [];
+      // 更新一级分类
+      if (this.product.type === "module") {
+        this.classify1Option = [this.product]; // 可选项只有当前产品
+        this.search.classfy1 = [this.product.title]; // 已选项默认为当前产品的名称
+      } else if (this.product.type === "product") {
+        this.product.children.forEach((item) => {
+          this.classify1Option.push(item);
+        });
+      }
+    },
     // 二级分类管理
     setSecondClassify() {
       this.secondClassifyVisible = true;
@@ -1615,16 +1583,70 @@ export default {
     },
     // 获取二级分类
     selectSecondClassify() {
-      if (this.product.type != "module") {
+      // if (this.product.type != "module") {
+      //   this.classify2Option = [];
+      //   return;
+      // }
+      // let params = {
+      //   parentId: this.product.key,
+      // };
+      // getSecondClassify(params).then((res) => {
+      //   this.classify2Option = res.data.list;
+      //   console.log(
+      //     this.product.key,
+      //     `这是${this.product.title}对应的二级分类3`,
+      //     res.data.list
+      //   );
+      // });
+
+      this.classify2Option = [];
+      if (this.search.classfy1 && this.search.classfy1.length > 0) {
+        const classfy1Set = new Set(this.search.classfy1);
+        const matchedItems = this.classify1Option.filter((item) =>
+          Array.from(classfy1Set).some((classfy1) =>
+            classfy1.includes(item.title)
+          )
+        );
+        const requestedParentIds = new Set();
+        const requests = [];
+        matchedItems.forEach((item) => {
+          if (!requestedParentIds.has(item.key)) {
+            requestedParentIds.add(item.key);
+            requests.push(
+              getSecondClassify({ parentId: item.key })
+                .then((res) => ({ res, item }))
+                .catch((error) => {
+                  console.error(`获取${item.title}的二级分类失败:`, error);
+                  return { res: { data: { list: [] } }, item };
+                })
+            );
+          }
+        });
+
+        // 并行处理所有请求
+        Promise.all(requests).then((results) => {
+          // 合并所有结果
+          const classify2Set = results.reduce((acc, { res, item }) => {
+            res.data.list.forEach((subItem) => {
+              acc.add(subItem.name);
+            });
+            return acc;
+          }, new Set());
+
+          // 二级分类名称去重
+          Array.from(classify2Set).forEach((item) => {
+            this.classify2Option.push({ title: item });
+          });
+          // 根据一级分类去除已选二级分类
+          this.search.classfy2 = this.search.classfy2.filter(
+            (value) => value && classify2Set.has(value)
+          );
+        });
+      } else {
+        // 一级分类为空，则清空二级分类
         this.classify2Option = [];
-        return;
+        this.search.classfy2 = [];
       }
-      let params = {
-        parentId: this.product.key,
-      };
-      getSecondClassify(params).then((res) => {
-        this.classify2Option = res.data.list;
-      });
     },
     // 获取表格当前操作行的Classify2Option
     getRowClassify2Option(record) {
@@ -1673,30 +1695,6 @@ export default {
     dictionaryClose() {
       this.dictionaryVisible = false;
     },
-    // 刷新翻译长度限制
-    refresh(product) {
-      let params = {
-        type: "module",
-      };
-      if (product && product.type === "module") {
-        params.parentId = product.parentId;
-      } else if (product && product.type === "product") {
-        params.parentId = product.key;
-      } else if (product && product.type === "classify") {
-        return;
-      }
-      getClassfy(params)
-        .then((res) => {
-          let classifyLimit = {};
-          res.data.list.forEach((item) => {
-            classifyLimit[item.title] = item;
-          });
-          this.classifyLimit = classifyLimit;
-        })
-        .catch((err) => {
-          message.err(err.message);
-        });
-    },
     // 记录用户偏好
     recordPartiality(data) {
       updateUserPartiality(data).then((res) => {});
@@ -1734,12 +1732,13 @@ export default {
       );
     },
     // 分页切换
-    pageChange(page, pageSize) {
+    pageChange(page, pageSize, refreshFn = this.getEntryByVersion) {
       pageChange(
         this,
         page,
         pageSize,
-        this.getEntryByVersion,
+        // this.getEntryByVersion,
+        refreshFn,
         "selectEntry",
         false,
         this.accurSearch
