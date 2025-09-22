@@ -315,10 +315,40 @@
             and t1.product_id in( <foreach collection="productidList" item="productid" separator="," >#{productid}</foreach>)
         </if>
         <if test="entryInfoEntity.classfy1 != null and entryInfoEntity.classfy1   != ''">
-            and t2.classfy1 = #{entryInfoEntity.classfy1,jdbcType=VARCHAR}
+            <if test = "!entryInfoEntity.classfy1.isEmpty()">
+                and
+                <foreach item = "item" collection = "entryInfoEntity.classfy1" separator = "or" open = "(" close = ")">
+                    <choose>
+                        <when test = "item != null and item != ''">
+                            t2.classfy1 like CONCAT('%',#{item},'%') 
+                        </when>
+                        <when test = "item == ''">
+                            t2.classfy1 = ""
+                        </when>
+                        <otherwise>
+                            t2.classfy1 is null
+                        </otherwise>
+                    </choose>
+                </foreach>
+            </if>
         </if>
         <if test="entryInfoEntity.classfy2 != null and entryInfoEntity.classfy2   != ''">
-            and t2.classfy2 = #{entryInfoEntity.classfy2,jdbcType=VARCHAR}
+            <if test= "!entryInfoEntity.classfy2.isEmpty()">
+                and
+                <foreach item = "item" collection = "entryInfoEntity.classfy2" separator = "or" open = "(" close = ")">
+                    <choose>
+                        <when test = "item != null and item != ''">
+                            t2.classfy2 like CONCAT('%',#{item},'%') 
+                        </when>
+                        <when test = "item == ''">
+                            t2.classfy2 = ""
+                        </when>
+                        <otherwise>
+                            t2.classfy2 is null
+                        </otherwise>
+                    </choose>
+                </foreach>
+            </if>
         </if>
 
         <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
@@ -455,6 +485,9 @@
                     and t2.di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
                 </otherwise>
             </choose>
+        </if>
+        <if test = "entryInfoEntity.update != null and entryInfoEntity.update != ''">
+            and t2.update like CONCAT('%',#{entryInfoEntity.update,jdbcType = VARCHAR},'%')
         </if>
 
         order by t2.tag,t2.id

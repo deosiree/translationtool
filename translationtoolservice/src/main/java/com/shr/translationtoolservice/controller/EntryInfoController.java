@@ -230,7 +230,7 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("获取分类词条")
     @CrossOrigin
     @Token
-    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntity entryInfoEntityTemplate,
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(@RequestBody EntryInfoEntityQO entryInfoEntityTemplate,
                                                                               @RequestParam(value = "classfyID") String classfyID,
                                                                                  String translateType,
                                                                               @RequestParam(value = "accurate[]",required = false) Set<String> totalMatchSet,

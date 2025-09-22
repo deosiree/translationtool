@@ -2508,7 +2508,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
-    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime){
+    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime){
         List<String> productidList = new ArrayList<>();
         //一级分类查询
         // if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
@@ -2559,7 +2559,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities.subList(offset, toIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : toIndex);
     }
 
-    public List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntity entryInfoEntityTemplate,String translateType){
+    public List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntityQO entryInfoEntityTemplate,String translateType){
 
         if (CollectionUtils.isEmpty(entryInfoEntities)){
             return entryInfoEntities;
@@ -2591,43 +2591,43 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
 
-    @Override
-    public int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity ,String classfyID ,String translateType) {
-        List<String> productidList = new ArrayList<>();
-        getProductClassfyList(classfyID,productidList);
-        //查询当前分类及其所有子分类,如果没有则说明当前分类是最底层分类（产品）
-        if (CollectionUtils.isEmpty(productidList)){
-            log.error("当前分类不存在或者没有子分类");
-            return 0;
-        }
-        List<EntryInfoEntity> res = new ArrayList<>();
-        List<EntryInfoEntity> entryInfoEntities =  entryInfoMapper.getEntryByClassfyTotal(entryInfoEntity,productidList);
+    // @Override
+    // public int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity ,String classfyID ,String translateType) {
+    //     List<String> productidList = new ArrayList<>();
+    //     getProductClassfyList(classfyID,productidList);
+    //     //查询当前分类及其所有子分类,如果没有则说明当前分类是最底层分类（产品）
+    //     if (CollectionUtils.isEmpty(productidList)){
+    //         log.error("当前分类不存在或者没有子分类");
+    //         return 0;
+    //     }
+    //     List<EntryInfoEntity> res = new ArrayList<>();
+    //     List<EntryInfoEntity> entryInfoEntities =  entryInfoMapper.getEntryByClassfyTotal(entryInfoEntity,productidList);
 
-        if (CollectionUtils.isEmpty(entryInfoEntities)){
-            return 0;
-        }
-        //使用countdownlunch线程处理entryInfoEntities
-        if (StringUtils.isNotBlank(translateType)) {
-            putEntryTransInfo(entryInfoEntities,entryInfoEntity,res,translateType);
-        }else {
-            return entryInfoEntities.size();
-        }
+    //     if (CollectionUtils.isEmpty(entryInfoEntities)){
+    //         return 0;
+    //     }
+    //     //使用countdownlunch线程处理entryInfoEntities
+    //     if (StringUtils.isNotBlank(translateType)) {
+    //         putEntryTransInfo(entryInfoEntities,entryInfoEntity,res,translateType);
+    //     }else {
+    //         return entryInfoEntities.size();
+    //     }
 
-     /*   for (EntryInfoEntity entryEntity : entryInfoEntities) {
-            TranslateEntity translateEntity = translateMapper.selectById(entryEntity.getEnTransId());
+    //  /*   for (EntryInfoEntity entryEntity : entryInfoEntities) {
+    //         TranslateEntity translateEntity = translateMapper.selectById(entryEntity.getEnTransId());
 
-            if (Objects.nonNull(translateEntity)) {
-                entryEntity.setEnglishTranslateState(translateEntity.getTranslateState());
-            }else {
-                entryEntity.setEnglishTranslateState("0");
-            }
-            if (StringUtils.isNotBlank(entryInfoEntity.getEnglishTranslateState()) && !entryInfoEntity.getEnglishTranslateState().equals(entryEntity.getEnglishTranslateState())){
-                res.remove(entryEntity);
-            }
-        }*/
+    //         if (Objects.nonNull(translateEntity)) {
+    //             entryEntity.setEnglishTranslateState(translateEntity.getTranslateState());
+    //         }else {
+    //             entryEntity.setEnglishTranslateState("0");
+    //         }
+    //         if (StringUtils.isNotBlank(entryInfoEntity.getEnglishTranslateState()) && !entryInfoEntity.getEnglishTranslateState().equals(entryEntity.getEnglishTranslateState())){
+    //             res.remove(entryEntity);
+    //         }
+    //     }*/
 
-        return res.size();
-    }
+    //     return res.size();
+    // }
 
 
     @Override
@@ -3566,7 +3566,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
      * @param res   存放满足条件的词条
      * @param translateType
      */
-    private void putEntryTransInfo(List<EntryInfoEntity> entryInfoEntities, EntryInfoEntity entryInfoEntity, List<EntryInfoEntity> res,String translateType) {
+    private void putEntryTransInfo(List<EntryInfoEntity> entryInfoEntities, EntryInfoEntityQO entryInfoEntity, List<EntryInfoEntity> res,String translateType) {
             /*
              * 添加一个锁，保证线程安全
              */

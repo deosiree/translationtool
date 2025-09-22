@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.vo.EntryInfoEntityQO;
 import com.shr.translationtoolservice.entity.vo.TsVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
@@ -69,7 +70,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<String> getUsedDicByTaskID(@Param("taskID")String taskID);
 
-    List<EntryInfoEntity> getEntryByClassfy(@Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,
+    List<EntryInfoEntity> getEntryByClassfy(@Param("entryInfoEntity")EntryInfoEntityQO entryInfoEntity,
                                             @Param("productidList")List<String> productidList,
                                             @Param("clearMatchSet") Set<String> clearMatchSet,
                                             @Param("offset") Integer offset,
