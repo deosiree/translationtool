@@ -18,11 +18,14 @@
             <a-form-item label="tag" name="tag" style="margin-top: 8px">
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
             </a-form-item>
+            <a-form-item label="一级分类" name="classfy1" style="margin-top: 8px">
+              <a-input v-model:value="search.classfy1" placeholder="请输入一级分类"></a-input>
+            </a-form-item>
             <a-form-item label="二级分类" name="classfy2" style="margin-top: 8px">
-              <!-- <a-input v-model:value="search.classfy2" placeholder="请输入内容"></a-input> -->
-              <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'
+              <a-input v-model:value="search.classfy2" placeholder="请输入二级分类"></a-input>
+              <!-- <a-select v-model:value="search.classfy2" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='classify2Option'
                 allowClear>
-              </a-select>
+              </a-select> -->
             </a-form-item>
             <a-form-item label="词条来源" name="entrySource" style="margin-top: 8px">
               <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
@@ -480,6 +483,7 @@ export default {
         abbr: "",
         partOfSpeech: "",
         translateType: null,
+        classfy1: null,
         classfy2: null,
         entryState: null,
         tag: "",
@@ -764,6 +768,30 @@ export default {
         this.search.endTime = null;
       }
     },
+    product: {
+      handler(newval, oldval) {
+        console.log("产品发生变化", newval, newval.type);
+        if (newval.type === "module") {
+          this.search.classfy1 = newval.title;
+        }
+      },
+      deep: true, // 添加深度监听配置
+    },
+    "search.classfy1": function (newValue) {
+      if (newValue) {
+        let params = {
+          parentId: newValue.key,
+        };
+        getSecondClassify(params).then((res) => {
+          // this.classify2Option = res.data.list;
+          console.log(`这是${newValue}对应的二级分类`, res.data.list);
+          // 有问题：监控-测试产品-一级分类：外部输出信号 (中26，外24)-无二级分类：功率/计量的输出
+          // 而且输入什么一级分类，好像返回的二级分类都是全部的二级分类
+        });
+      } else {
+        this.classify2Option = [];
+      }
+    },
   },
   unmounted() {},
   methods: {
@@ -882,8 +910,9 @@ export default {
       let data = {
         abbr: this.search.abbr,
         entry: this.search.entry,
+        classfy1: this.search.classfy1,
         classfy2: this.search.classfy2,
-        classfy1: this.product.type === "module" ? this.product.title : "",
+        // classfy1: this.product.type === "module" ? this.product.title : "",
         entryState: this.search.entryState,
         tag: this.search.tag,
         entrySource: this.search.entrySource,
@@ -1431,8 +1460,9 @@ export default {
       let data = {
         abbr: this.search.abbr,
         entry: this.search.entry,
+        classfy1: this.search.classfy1,
         classfy2: this.search.classfy2,
-        classfy1: this.product.type === "module" ? this.product.title : "",
+        // classfy1: this.product.type === "module" ? this.product.title : "",
         entryState: this.search.entryState,
         tag: this.search.tag,
         entrySource: this.search.entrySource,
