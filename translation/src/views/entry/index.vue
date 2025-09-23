@@ -167,13 +167,13 @@ export default {
     // 查询分类树
     getClassTree() {
       let params = {
-        department: this.$store.state.admin ? "" : this.user.department,
+        // department: this.$store.state.admin ? "" : this.user.department,// 分类树改结构了，所以返回有误，且分类树的权限由管理员变为了超管，由前端来判断分类树的展示
+        department: "",
         className: this.keyWords,
       };
       getClassTree(params)
         .then((res) => {
           this.treeData = res.data.list;
-          // console.log("分类树", this.treeData);
           this.getClassTreeByUsed();
         })
         .catch((err) => {
