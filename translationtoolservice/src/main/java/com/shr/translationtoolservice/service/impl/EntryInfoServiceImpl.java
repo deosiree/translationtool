@@ -1036,8 +1036,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
             }else if(fileName.endsWith(".xml")){
                 if(departmentType.equals("装置开发部")){
-                    /* 目前通用平台部xml导入是可视化平台项目需要，如果后续有其他的项目需要，则需要改变判断逻辑 */
-                    entryInfoEntities = XMLUtils.parseXML(multipartFile.getInputStream(),XMLUtils.XMLHandlerForEquipment.class);
+                    String template = request.getParameter("templateType");
+                    if(template == null){
+                        throw new Exception("请确定xml采用何种模板");
+                    }
+                    if(template.equals("可视化词条")){
+                        entryInfoEntities = XMLUtils.parseXML(multipartFile.getInputStream(),XMLUtils.XMLHandlerForEquipment.class);
+                    }else if(template.equals("装置辞典")){
+                        entryInfoEntities = XMLUtils.parseXML(multipartFile.getInputStream(), XMLUtils.XMLHandlerForEquipment2.class);
+                    }else{
+                        throw new Exception("当前不支持该版本的xml导入: " + template);
+                    }
                     zzEntryHandleForXML(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }else{
                     throw new Exception("暂不支持XML导入");

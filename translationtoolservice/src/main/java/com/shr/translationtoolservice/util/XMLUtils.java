@@ -8,6 +8,7 @@ import java.util.*;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 
+import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.parsers.*;
@@ -89,6 +90,62 @@ public class XMLUtils {
         }
     
         
+    }
+
+    public static class XMLHandlerForEquipment2 extends XMLHandler{
+
+        @Override
+        public List<EntryInfoEntity> handleInternal(DocumentManager documentManager) {
+            // TODO Auto-generated method stub
+            List<EntryInfoEntity> entities = new ArrayList<>();
+            Document document = documentManager.getDocument();
+            if(document == null){
+                throw new NullPointerException("document为null");
+            }
+            NodeList nodeList = document.getElementsByTagName("ITEM");
+            for(int i = 0 ; i < nodeList.getLength() ; i ++ ){
+                Node node = nodeList.item(i);
+                NamedNodeMap attributes = node.getAttributes();
+                Node entry = attributes.getNamedItem("abbr");   // abbr写到entry字段上
+                Node cnDesc = attributes.getNamedItem("cn_desc");
+                String chinese = cnDesc.getTextContent();
+                Node enDesc = attributes.getNamedItem("en_desc");
+                String english = enDesc.getTextContent();
+                Node esDesc = attributes.getNamedItem("es_desc");
+                String spanish = esDesc.getTextContent();
+                Node ruDesc = attributes.getNamedItem("ru_desc");
+                String russian = ruDesc.getTextContent();
+
+                EntryInfoEntity entity = new EntryInfoEntity();
+                entity.setEntry(entry.getTextContent());
+                /* 写中文翻译 */
+                entity.setChinese(chinese);
+                entity.setZhCharLength(chinese.length());
+                entity.setChineseTranslateState(StringUtils.isEmpty(chinese) ? ConstantInterface.UNTRANSLATED : ConstantInterface.TRANSLATED);
+
+                /* 写英文翻译 */
+                entity.setEnglish(english);
+                entity.setEnCharLength(english.length());
+                entity.setEnglishTranslateState(StringUtils.isEmpty(english) ? ConstantInterface.UNTRANSLATED : ConstantInterface.TRANSLATED);
+
+                /* 写西班牙语 */
+                entity.setSpanish(spanish);
+                entity.setSpaCharLength(spanish.length());
+                entity.setSpanishTranslateState(StringUtils.isEmpty(spanish) ? ConstantInterface.UNTRANSLATED : ConstantInterface.TRANSLATED);
+
+                /* 写俄文翻译 */
+                entity.setRussian(russian);
+                entity.setRuCharLength(russian.length());
+                entity.setRussianTranslateState(StringUtils.isEmpty(russian) ? ConstantInterface.UNTRANSLATED : ConstantInterface.TRANSLATED);
+
+
+                entity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+                entities.add(entity);
+            }
+            return entities;
+        }
+
+
     }
 
     public static List<EntryInfoEntity> parseXML(InputStream ins){
