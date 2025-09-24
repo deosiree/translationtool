@@ -72,7 +72,7 @@
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
-      <template v-slot:label>
+      <template v-if="isProduct()" v-slot:label>
         产品版本： <a-select v-model:value="currentVersion" style="width: 150px" placeholder="请选择版本" :options='productVersions'
           :fieldNames="{label:'name',value:'id'}" size="small" @change="changeVersion" allowClear>
         </a-select>
@@ -89,7 +89,7 @@
           </a-badge>
 
           <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
-          <a-button type="primary" size="small" @click="addEntry">
+          <a-button v-if="isProduct()" type="primary" size="small" @click="addEntry">
             <template #icon>
               <PlusOutlined />
             </template>新增
@@ -97,8 +97,7 @@
           <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
           <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
-          <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin">二级分类管理</a-button>
-          <!-- <a-button type="primary" size="small" v-if="admin" @click="importEntry">导入</a-button> -->
+          <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin&&isProduct()">二级分类管理</a-button>
           <ImportButton @importSuccess="refreshTable" v-if="admin" :translateTypes="translateTypes" size="small" buttonTitle="更新翻译" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
@@ -1137,8 +1136,8 @@ export default {
       this.setTableHeight();
       // console.log(this.currentEntry)
     },
+    // 删除按钮
     deleteEntry() {
-      // 删除按钮已封，this.productVersions获取不到版本表的所有信息
       if (this.selectedRowKeys.length === 0) {
         return;
       }
@@ -1440,6 +1439,10 @@ export default {
     },
     clickInput(event) {
       event.stopPropagation();
+    },
+    // 判断当前状态树是否是产品及以下（以便封掉部门级使用不了的按钮）
+    isProduct() {
+      return this.product.type == "product" || this.product.type == "module";
     },
     // 批量选择
     createVersion() {
