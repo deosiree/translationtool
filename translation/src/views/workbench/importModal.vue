@@ -1532,6 +1532,7 @@ export default {
       // 定义公共处理函数
       const handleCommonOperations = (data) => {
         // console.log("data数据", data);
+        this.dataSource = []; // 清空数据
         if (data.length > 0) {
           this.dataSource = data;
           this.sortArray(this.dataSource, "isExist");
@@ -1554,8 +1555,8 @@ export default {
               }
             }
           });
-          this.allData = this.dataSource;
         }
+        this.allData = this.dataSource;
       };
 
       // 生成通用 params 的函数

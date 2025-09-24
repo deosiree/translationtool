@@ -137,9 +137,11 @@ export default {
       needGit: false,// 是否需要git推送
       xml_temp: false,// 临时修改一下xml的样式(现已置false，改回去了)
       templateType: [
-        { label: '新模板', value: '新模板' },
-        { label: '旧模板', value: '旧模板' },
-        { label: '通用模板', value: '通用模板' }
+        { label: 'csv新模板', value: '新模板' },
+        { label: 'csv旧模板', value: '旧模板' },
+        { label: 'csv通用模板', value: '通用模板' },
+        { label: 'xml可视化词条', value: '可视化词条' },
+        { label: 'xml装置辞典', value: '装置辞典' },
       ],
       value: "zz",
     },
