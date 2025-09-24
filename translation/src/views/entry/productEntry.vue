@@ -487,7 +487,7 @@ export default {
         translateType: null,
         classfy1: [],
         classfy2: [],
-        entryState: null,
+        entryState: "3", // 默认搜索“已审核”
         tag: "",
         entrySource: "",
         language: null,
@@ -839,7 +839,7 @@ export default {
       // 获取一级分类
       await this.selectFirstClassify();
       // 查询产品的所有版本,并查询词条
-      await this.getProductVersion({isInit: true, accurate: []});
+      await this.getProductVersion({ isInit: true, accurate: [] });
       // // 查询词条
       // await this.getEntryByVersion(true); // isInit=true
       // 设置表的高度
@@ -891,7 +891,7 @@ export default {
       return className;
     },
     // 查询产品的所有版本
-    getProductVersion(searchparams={isInit: false, accurate: []}) {
+    getProductVersion(searchparams = { isInit: false, accurate: [] }) {
       if (Object.keys(this.product).length === 0) {
         return;
       }
@@ -904,13 +904,13 @@ export default {
       };
       getVersionByName(params).then((res) => {
         this.productVersions = res.data.list;
-        if(this.productVersions.length > 0){
-            this.currentVersion = this.productVersions[0].id
-        }else{
-            this.currentVersion = null
+        if (this.productVersions.length > 0) {
+          this.currentVersion = this.productVersions[0].id;
+        } else {
+          this.currentVersion = null;
         }
         // 获取版本下的词条
-        this.getEntryByVersion(searchparams.isInit,searchparams.accurate)
+        this.getEntryByVersion(searchparams.isInit, searchparams.accurate);
       });
     },
     // 条件查询
@@ -1354,7 +1354,7 @@ export default {
         translateType: null,
         classfy1: [],
         classfy2: [],
-        entryState: null,
+        entryState: "3", // 默认搜索“已审核”
         tag: "",
         entrySource: "",
         language: null,
@@ -1366,6 +1366,7 @@ export default {
         startTime: null,
         endTime: null,
         diFileName: null,
+        update: null,
       };
       // this.getEntryByVersion();
       this.conditionalQuery();
