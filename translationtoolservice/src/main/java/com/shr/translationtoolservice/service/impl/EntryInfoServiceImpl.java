@@ -4118,13 +4118,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
             setTranslate(entryInfoEntity, ConstantInterface.CHINESE, department);
-        } else if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
             setTranslate(entryInfoEntity, ConstantInterface.ENGLISH, department);
-        } else if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
             setTranslate(entryInfoEntity, ConstantInterface.SPANISH, department);
-        } else if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
             setTranslate(entryInfoEntity, ConstantInterface.FRENCH, department);
-        } else if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
+        } 
+        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
             setTranslate(entryInfoEntity, ConstantInterface.RUSSIAN, department);
         }
 
