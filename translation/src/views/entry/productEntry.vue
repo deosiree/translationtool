@@ -352,9 +352,10 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product" :selectedRowKeys="selectedRowKeys"
-    :selectedRows="selectedRows" @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event"
-    @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
+  <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product"
+    :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
+    @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable"
+    @cancelCreate="cancelCreate" />
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
@@ -722,11 +723,11 @@ export default {
         // 切换前判断上个产品是否有已选词条
         if (oldval.title) {
           const changedNum =
-            this.selectEntry.length - this.selectedProducts.totalNum;// 上一次切换中变化的词条数
+            this.selectEntry.length - this.selectedProducts.totalNum; // 上一次切换中变化的词条数
           // console.log("changedNum =", changedNum);
           this.selectedProducts.totalNum += changedNum;
           const productID =
-            oldval.type === "module" ? oldval.parentId : oldval.key;// 产品的ID
+            oldval.type === "module" ? oldval.parentId : oldval.key; // 产品的ID
           if (this.selectedProducts.products.has(productID)) {
             const selectedNum =
               this.selectedProducts.products.get(productID) + changedNum;
@@ -761,7 +762,7 @@ export default {
                 `不新增${oldval.title}产品，已选词条数量变化为：${changedNum},error`,
                 this.selectedProducts
               );
-            } 
+            }
             // else {
             //   console.log(
             //     `不新增${oldval.title}产品，已选词条数量变化为：${changedNum}`,
@@ -837,8 +838,10 @@ export default {
     async init() {
       // 获取一级分类
       await this.selectFirstClassify();
-      // 查询词条
-      await this.getEntryByVersion(true); // isInit=true
+      // 查询产品的所有版本,并查询词条
+      await this.getProductVersion({isInit: true, accurate: []});
+      // // 查询词条
+      // await this.getEntryByVersion(true); // isInit=true
       // 设置表的高度
       this.setTableHeight();
     },
@@ -888,7 +891,7 @@ export default {
       return className;
     },
     // 查询产品的所有版本
-    getProductVersion() {
+    getProductVersion(searchparams={isInit: false, accurate: []}) {
       if (Object.keys(this.product).length === 0) {
         return;
       }
@@ -900,15 +903,14 @@ export default {
             : this.product.key,
       };
       getVersionByName(params).then((res) => {
-        // 接口有问题，获取不到值
         this.productVersions = res.data.list;
-        // if(this.productVersions.length > 0){
-        //     this.currentVersion = this.productVersions[0].id
-        // }else{
-        //     this.currentVersion = null
-        // }
+        if(this.productVersions.length > 0){
+            this.currentVersion = this.productVersions[0].id
+        }else{
+            this.currentVersion = null
+        }
         // 获取版本下的词条
-        // this.getEntryByVersion()
+        this.getEntryByVersion(searchparams.isInit,searchparams.accurate)
       });
     },
     // 条件查询
