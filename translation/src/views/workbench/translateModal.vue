@@ -571,7 +571,7 @@ export default {
       }, // 当前翻译语种的其他信息
       rulesOptions: [
         { key: "toLong", label: "校验字符长度", checked: true },
-        { key: "special", label: "校验特殊字符", checked: false }, // %1翻成% 1
+        { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
       ],
       overlayStyle: workbenchParams.overlayStyle, // 展示列
       checkedColumn: workbenchParams.checkedColumn, // 展示列切换
