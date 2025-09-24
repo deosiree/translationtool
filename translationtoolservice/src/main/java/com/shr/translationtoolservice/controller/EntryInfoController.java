@@ -959,6 +959,24 @@ public class EntryInfoController extends BaseController {
         return checkResult(entryInfoService.setInfoByEntryList(entryInfoEntities,translateType,writeType,tag,comment,fileName,i18nUrl));
     }
 
+    @PostMapping("/forrbiddenEntry")
+    @ApiOperation("禁用词条")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> forrbiddenEntry(@RequestBody List<EntryInfoEntityQO> entryInfoEntities){
+
+
+        boolean isSuccess = entryInfoService.forrbiddenEntry(entryInfoEntities);
+        if(isSuccess){
+            return ok("已成功禁用" + entryInfoEntities.size() + "个词条");
+        }else{
+            return error(null,"禁用词条失败");
+        }
+
+    }
+
+    // public HttpResponse
+
     @Autowired
     TranslateMapper translateMapper;
     @Autowired

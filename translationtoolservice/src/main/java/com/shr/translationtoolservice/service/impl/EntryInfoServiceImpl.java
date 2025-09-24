@@ -2528,6 +2528,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             log.error("当前分类不存在或者没有子分类");
           return null;
         }*/
+        /* 无法查到禁用的词条，在where里面写的 */
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList,clearMatchSet, -1,-1);
         boolean hasStartTime = (startTime != null && startTime != "");
         boolean hasEndTime = (endTime != null && endTime != "");
@@ -4277,6 +4278,16 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         // entityTemplate.
         return entities;
+    }
+
+    @Override
+    public boolean forrbiddenEntry(List<EntryInfoEntityQO> entryInfoEntities) {
+        // TODO Auto-generated method stub
+        int updateCount = entryInfoMapper.forrbiddenEntry(entryInfoEntities.stream().map(EntryInfoEntityQO::getId).collect(Collectors.toList()));
+        if(updateCount != entryInfoEntities.size()){
+            return false;
+        }
+        return true;
     }
 
 
