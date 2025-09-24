@@ -2,20 +2,11 @@
   <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :showCancel="false" :fullFlag="true" cancelText="取消" okText="创建产品版本"
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div style="width:100%;height:515px">
-      <!-- <a-form
-            :model="search"
-            layout="inline"
-            autocomplete="off"
-            ref="formRef"
-            >
-                <a-form-item
-                label="版本名称"
-                name="versionName"
-                :rules="[{ required: true, message: '请输入版本名称!' }]"
-                >
-                    <a-input v-model:value="search.versionName" placeholder="请输入版本名称"></a-input>
-                </a-form-item>
-            </a-form> -->
+      <!-- <a-form :model="search" layout="inline" autocomplete="off" ref="formRef">
+        <a-form-item label="版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
+          <a-input v-model:value="search.versionName" placeholder="请输入版本名称"></a-input>
+        </a-form-item>
+      </a-form> -->
       <div class="table">
         <div>已选词条：</div>
         <a-config-provider :locale="locale">
@@ -266,6 +257,13 @@ export default {
     selectedRows: {
       type: Array,
       default: () => [],
+    },
+    selectedProducts: {
+      type: Object,
+      default: () => ({
+        products: new Map(),
+        totalNum: 0,
+      }),
     },
   },
 
@@ -581,11 +579,36 @@ export default {
     },
     // 提交词条审核
     examine() {
-      this.operateVisible = true;
-      setModalAriaHidden(this, document);
-      this.operateWidth = "50%";
-      this.title = "选择任务";
-      this.getTaskList();
+      // 判断是否可以选择任务
+      const productID =
+        this.product.type === "module"
+          ? this.product.parentId
+          : this.product.key; // 产品的ID
+      const products = this.selectedProducts.products;
+      if (
+        products.size == 0 ||
+        (products.size == 1 && products.has(productID))
+      ) {
+        // 只有这两种情况可以-1.切换记录中无其他产品2.切换记录中有且只有本产品
+        this.operateVisible = true;
+        setModalAriaHidden(this, document);
+        this.operateWidth = "50%";
+        this.title = "选择任务";
+        this.getTaskList();
+      } else {
+        // console.log("存在非本产品的已选词条，不能选择任务。");
+        Modal.confirm({
+          title: "存在非本产品的已选词条，不能选择任务。",
+          icon: createVNode(ExclamationCircleOutlined),
+          content: "",
+          okText: "是",
+          cancelText: "否",
+          style: { top: "30%" },
+          onOk: () => {},
+          onCancel: () => {},
+        });
+      }
+      console.log(this.product, productID, products);
     },
     // 回写
     writeBackFun() {

@@ -352,7 +352,7 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :dataSource="selectEntry" :currentProduct="product" :selectedRowKeys="selectedRowKeys"
+  <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product" :selectedRowKeys="selectedRowKeys"
     :selectedRows="selectedRows" @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event"
     @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
 
@@ -660,6 +660,10 @@ export default {
       selectedRowKeys: [],
       selectedRows: [],
       selectedRowIndex: null,
+      selectedProducts: {
+        products: new Map(),
+        totalNum: 0,
+      },
       currentEntry: {},
       showOperationArea: false,
       operationAreaTitle: "详情信息",
@@ -669,7 +673,7 @@ export default {
       editVisible: false,
       editEntry: [],
       createVersionFlag: false,
-      selectEntry: [],
+      selectEntry: [], // 已选词条（可能会跨产品，还涉及了分页）
       createVisible: false,
       rules: {},
       batchSelectFlag: false,
@@ -715,13 +719,65 @@ export default {
     },
     currentProduct: {
       handler(newval, oldval) {
+        // 切换前判断上个产品是否有已选词条
+        if (oldval.title) {
+          const changedNum =
+            this.selectEntry.length - this.selectedProducts.totalNum;// 上一次切换中变化的词条数
+          // console.log("changedNum =", changedNum);
+          this.selectedProducts.totalNum += changedNum;
+          const productID =
+            oldval.type === "module" ? oldval.parentId : oldval.key;// 产品的ID
+          if (this.selectedProducts.products.has(productID)) {
+            const selectedNum =
+              this.selectedProducts.products.get(productID) + changedNum;
+            // console.log("当前数量", selectedNum);
+            if (selectedNum > 0) {
+              this.selectedProducts.products.set(productID, selectedNum);
+              // console.log(
+              //   `${oldval.title}产品存在，已选词条数量变化为：${selectedNum}`,
+              //   this.selectedProducts
+              // );
+            } else if (selectedNum == 0) {
+              this.selectedProducts.products.delete(productID);
+              // console.log(
+              //   `${oldval.title}产品存在，已选词条数量变化为0,已删除`,
+              //   this.selectedProducts
+              // );
+            } else {
+              console.log(
+                `${oldval.title}产品存在，已选词条数量<0,有问题`,
+                this.selectedProducts
+              );
+            }
+          } else {
+            if (changedNum > 0) {
+              this.selectedProducts.products.set(productID, changedNum);
+              // console.log(
+              //   `新增${oldval.title}产品，已选词条数量变化为：${changedNum}`,
+              //   this.selectedProducts
+              // );
+            } else if (changedNum < 0) {
+              console.log(
+                `不新增${oldval.title}产品，已选词条数量变化为：${changedNum},error`,
+                this.selectedProducts
+              );
+            } 
+            // else {
+            //   console.log(
+            //     `不新增${oldval.title}产品，已选词条数量变化为：${changedNum}`,
+            //     this.selectedProducts
+            //   );
+            // }
+          }
+        }
+        // 切换后的初始化
         this.currentVersion = null;
         this.product = newval;
         this.showOperationArea = false;
         this.pagination.current = 1;
-        // this.selectEntry = [];
-        // this.selectedRowKeys = [];
-        // this.selectedRows = [];
+        // this.selectEntry = [];// 存在跨产品，所以不归零
+        this.selectedRowKeys = [];
+        this.selectedRows = [];
         this.pageChange(
           this.pagination.current,
           this.pagination.pageSize,
@@ -1382,7 +1438,7 @@ export default {
     clickInput(event) {
       event.stopPropagation();
     },
-    // 创建版本
+    // 批量选择
     createVersion() {
       this.createVersionFlag = true;
       // this.selectEntry = [];
@@ -1461,11 +1517,15 @@ export default {
           this.selectAllLoading = false;
         });
     },
-    // 取消创建版本
+    // 取消批量选择
     cancelCreate() {
       this.selectEntry = [];
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      this.selectedProducts = {
+        products: new Map(),
+        totalNum: 0,
+      };
       this.createVersionFlag = false;
       this.createVisible = false;
       this.batchSelectFlag = false;
@@ -1716,6 +1776,7 @@ export default {
     // 复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
       onSelectChange(this, selectedRowKeys, selectedRows);
+      console.log("选择事件", this.selectEntry.length);
     },
     // 复选框点击事件
     onSelect(record, selected) {
@@ -1730,6 +1791,7 @@ export default {
         changeRows,
         this.createVersionFlag
       );
+      console.log("全选事件", this.selectedRows.length);
     },
     // 分页切换
     pageChange(page, pageSize, refreshFn = this.getEntryByVersion) {
