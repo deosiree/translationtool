@@ -1776,7 +1776,6 @@ export default {
     // 复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {
       onSelectChange(this, selectedRowKeys, selectedRows);
-      console.log("选择事件", this.selectEntry.length);
     },
     // 复选框点击事件
     onSelect(record, selected) {
@@ -1791,7 +1790,6 @@ export default {
         changeRows,
         this.createVersionFlag
       );
-      console.log("全选事件", this.selectedRows.length);
     },
     // 分页切换
     pageChange(page, pageSize, refreshFn = this.getEntryByVersion) {

@@ -608,7 +608,7 @@ export default {
           onCancel: () => {},
         });
       }
-      console.log(this.product, productID, products);
+      // console.log(this.product, productID, products);
     },
     // 回写
     writeBackFun() {
