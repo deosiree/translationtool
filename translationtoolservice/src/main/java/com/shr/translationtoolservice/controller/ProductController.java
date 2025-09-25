@@ -144,9 +144,13 @@ public class ProductController extends BaseController {
         if (StringUtils.isBlank(productId)) {
             return null;
         }
-        UserProductEntity result = productService.getUserProduct(productId, request);
-
-        return checkResult(result);
+        try {
+            UserProductEntity result = productService.getUserProduct(productId, request);
+            return ok(result);    
+        } catch (Exception e) {
+            // TODO: handle exception
+            return error(null, e.getMessage());
+        }
 
     }
 
