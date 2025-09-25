@@ -88,17 +88,9 @@
               <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
                 :scroll="tableHeight" :pagination='false' :loading="loading" :rowClassName="getRowClassName" ref="taskTable"
                 @resizeColumn="handleResizeColumn" :customRow="customRow">
-                <template #bodyCell="{ column, record }">
+                <template #bodyCell="{ column, record,text }">
                   <template v-if="column.dataIndex === 'state'">
-                    <template v-if="record.state === '0'">
-                      <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                    </template>
-                    <template v-if="record.state > '0' && record.state < '6'">
-                      <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
-                    </template>
-                    <template v-if="record.state === '6'">
-                      <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
-                    </template>
+                    <TaskStateBadge type="sum" :taskState="text" />
                   </template>
                   <template v-if="column.dataIndex === 'operation'">
                     <div class="editable-row-operations">
@@ -143,6 +135,7 @@
 import Modal from "@/components/modal/index.vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
+import TaskStateBadge from "@/components/stateBadge/taskStateBadge.vue";
 import VersionModal from "@/views/entry/versionModal.vue";
 import {
   SearchOutlined,
@@ -182,6 +175,7 @@ export default {
     PlusSquareOutlined,
     InfoCircleOutlined,
     Modal,
+    TaskStateBadge,
   },
   emits: ["viewEntry"],
   props: {

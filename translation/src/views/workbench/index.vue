@@ -86,27 +86,7 @@
                   ref="workTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'state'">
-                      <template v-if="record.state === '0'">
-                        <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                      </template>
-                      <template v-else-if="record.state === '1'">
-                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">词条待导入</span>
-                      </template>
-                      <template v-else-if="record.state === '2'">
-                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">词条待审核</span>
-                      </template>
-                      <template v-else-if="record.state === '3'">
-                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">词条待翻译</span>
-                      </template>
-                      <template v-else-if="record.state === '4'">
-                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">翻译待审核</span>
-                      </template>
-                      <template v-else-if="record.state === '5'">
-                        <a-badge color="#FBB31F" /><span style="color:#FBB31F">待导出</span>
-                      </template>
-                      <template v-else>
-                        <a-badge color="#36BF7D" /><span style="color:#36BF7D">已完成</span>
-                      </template>
+                      <TaskStateBadge type="normal" :taskState="text" />
                     </template>
                     <template v-if="column.dataIndex === 'name'">
                       <span style="position: relative; display: inline-block;">
@@ -153,6 +133,7 @@ import SearchForm from "@/components/search/searchForm.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
 import TimeLine from "@/components/timeLine/index.vue";
+import TaskStateBadge from "@/components/stateBadge/taskStateBadge.vue";
 import ImportModal from "@/views/workbench/importModal.vue";
 import ExamineModal from "@/views/workbench/examineModal.vue";
 import TranslateModal from "@/views/workbench/translateModal.vue";
@@ -172,6 +153,7 @@ export default {
     DataBox,
     OperationArea,
     TimeLine,
+    TaskStateBadge,
     ImportModal,
     ExamineModal,
     TranslateModal,

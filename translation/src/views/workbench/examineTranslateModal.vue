@@ -104,41 +104,14 @@
               </span>
             </div>
           </template>
-          <template v-if="translateStateList.includes(column.dataIndex)">
-            <template v-if="record[column.dataIndex] === '0'">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '1'">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '2'">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '3'">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-            </template>
+          <template v-if="column.dataIndex === 'isExist'">
+            <IsExistBadge :isExist="text" />
           </template>
           <template v-if="column.dataIndex === 'entryState'">
-            <template v-if="record.entryState === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.entryState === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-            </template>
-            <template v-if="record.entryState === 2">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record.entryState === 3">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-            </template>
+            <EntryStateBadge :entryState="text" />
           </template>
-          <template v-if="column.dataIndex === 'isExist'">
-            <template v-if="record.isExist === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.isExist === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
-            </template>
+          <template v-if="translateStateList.includes(column.dataIndex)">
+            <TransStateBadge :translateState="text" />
           </template>
           <template v-else-if="column.dataIndex === 'operation'">
             <div class="editable-row-operations">
@@ -215,6 +188,9 @@
 <script>
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
+import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -252,6 +228,9 @@ export default {
     CaretDownOutlined,
     CaretRightOutlined,
     SettingOutlined,
+    IsExistBadge,
+    EntryStateBadge,
+    TransStateBadge,
   },
   emits: ["handleClose", "handleOK"],
   props: {

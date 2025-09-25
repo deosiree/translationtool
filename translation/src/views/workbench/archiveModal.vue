@@ -13,9 +13,11 @@
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">词条状态：</span>
         <a-select v-model:value="entryState" size="small" style="width: 300px" placeholder="请选择" allowClear>
-          <a-select-option value="1">待审核</a-select-option>
+          <a-select-option value="0">新建</a-select-option>
+          <a-select-option value="1">审核中</a-select-option>
           <a-select-option value="2">审核不通过</a-select-option>
           <a-select-option value="3">已审核</a-select-option>
+          <a-select-option value=-1>禁用</a-select-option>
         </a-select>
         <span style="margin-left:10px">翻译状态：</span>
         <a-select v-model:value="translateState" size="small" style="width: 300px" placeholder="请选择" allowClear>
@@ -52,46 +54,18 @@
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                 ]
             }" ref="archiveTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
-        <template #bodyCell="{ column, record,text }">
+        <template #bodyCell="{ column,text }">
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
           <template v-if="column.dataIndex === 'isExist'">
-            <template v-if="record.isExist === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.isExist === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
-            </template>
+            <IsExistBadge :isExist="text" />
           </template>
           <template v-if="column.dataIndex === 'entryState'">
-            <template v-if="record.entryState === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.entryState === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-            </template>
-            <template v-if="record.entryState === 2">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record.entryState === 3">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-            </template>
+            <EntryStateBadge :entryState="text" />
           </template>
-          <template
-            v-if="translateStateList.includes(column.dataIndex)">
-            <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '1'">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">未审核</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '2'">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '3'">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">审核通过</span>
-            </template>
+          <template v-if="translateStateList.includes(column.dataIndex)">
+            <TransStateBadge :translateState="text" />
           </template>
         </template>
         <template #expandIcon="props">
@@ -144,6 +118,9 @@
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import { getEntryInfoList, getI18nAdress } from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
@@ -181,6 +158,9 @@ export default {
     SearchOutlined,
     ExclamationCircleOutlined,
     CustomModal,
+    IsExistBadge,
+    EntryStateBadge,
+    TransStateBadge,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
@@ -339,14 +319,17 @@ export default {
             "entry",
             "translate",
           ].includes(item.value)
-      ),// 移除固定列对应的配置项
-      translateStateList: [...commonParam.langTranslateStateList, "translateState"],
+      ), // 移除固定列对应的配置项
+      translateStateList: [
+        ...commonParam.langTranslateStateList,
+        "translateState",
+      ],
       user: null, // 当前用户的相关信息
       currentDepartment: {
         label: "部门名称",
         importTypes: [],
         value: "name",
-        ops:new Set(),
+        ops: new Set(),
       }, // 当前用户所在部门的相关信息
       state: {
         searchText: "",

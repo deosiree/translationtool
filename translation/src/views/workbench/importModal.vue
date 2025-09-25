@@ -328,40 +328,13 @@
             </div>
           </template>
           <template v-if="column.dataIndex === 'isExist'">
-            <template v-if="record.isExist === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.isExist === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">已存在</span>
-            </template>
+            <IsExistBadge :isExist="text" />
           </template>
           <template v-if="column.dataIndex === 'entryState'">
-            <template v-if="record.entryState === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.entryState === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-            </template>
-            <template v-if="record.entryState === 2">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record.entryState === 3">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-            </template>
+            <EntryStateBadge :entryState="text" />
           </template>
           <template v-if="translateStateList.includes(column.dataIndex)">
-            <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '1'">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">未审核</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '2'">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '3'">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">审核通过</span>
-            </template>
+            <TransStateBadge :translateState="text" />
           </template>
           <template v-if="column.dataIndex === 'tag'">
             <div>
@@ -476,6 +449,9 @@ import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
+import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { add, cloneDeep, iteratee } from "lodash-es";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
@@ -573,6 +549,9 @@ export default {
     InfoCircleOutlined,
     Dict,
     RulesDropdown,
+    IsExistBadge,
+    EntryStateBadge,
+    TransStateBadge,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
     },
@@ -781,7 +760,7 @@ export default {
         label: "部门名称",
         importTypes: [],
         value: "name",
-        ops:new Set(),
+        ops: new Set(),
       }, // 当前用户所在部门的相关信息
       departmentList: commonParam.departmentList, // 当前用户所在部门
       templateTypes: null,
@@ -819,7 +798,7 @@ export default {
       this.templateObj.type = this.currentDepartment.value;
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
       // 获取IP地址
-      if (this.currentDepartment.ops.has('needWriteBack')) this.getIPs();
+      if (this.currentDepartment.ops.has("needWriteBack")) this.getIPs();
       // 读取本地存储的用户偏好
       getColPref("colPref-importModal", 100, this);
     });
@@ -1226,7 +1205,7 @@ export default {
     // 数据类型选择事件
     dataTypeChange() {
       // 获取IP地址
-      if (this.currentDepartment.ops.has('needWriteBack')) {
+      if (this.currentDepartment.ops.has("needWriteBack")) {
         // this.getIPs();// mounted时已获取
         if (this.ip === null || this.ip === undefined || this.ip === "") {
           message.info("请选择IP！");
@@ -1340,7 +1319,7 @@ export default {
     // 获取数据库节点信息
     getAllNode() {
       // 获取IP地址
-      if (this.currentDepartment.ops.has('needWriteBack')) {
+      if (this.currentDepartment.ops.has("needWriteBack")) {
         // this.getIPs();// mounted时已获取
         if (this.ip === null || this.ip === undefined || this.ip === "") {
           message.info("请选择IP！");

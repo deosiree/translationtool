@@ -6,34 +6,12 @@
         <a-table class="ant-table-striped" :columns="columns" :data-source="currentData" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="secondClassifyTable"
           bordered>
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record,text }">
             <template v-if="column.dataIndex === 'entryState'">
-              <template v-if="record.entryState === 0">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-              </template>
-              <template v-if="record.entryState === 1">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-              </template>
-              <template v-if="record.entryState === 2">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record.entryState === 3">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <EntryStateBadge :entryState="text" />
             </template>
             <template v-if="column.dataIndex === 'translateState'">
-              <template v-if="record[column.dataIndex] === '0'">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '1'">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '2'">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '3'">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <TransStateBadge :translateState="text" />
             </template>
             <!--tag列 -->
             <template v-if="column.dataIndex === 'tag'">
@@ -52,6 +30,8 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import {
   CheckOutlined,
@@ -69,6 +49,8 @@ export default {
     EditOutlined,
     CloseOutlined,
     ExclamationCircleOutlined,
+    EntryStateBadge,
+    TransStateBadge,
   },
   emits: ["relationClose"],
   props: {

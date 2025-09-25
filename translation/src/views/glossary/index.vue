@@ -36,8 +36,8 @@
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-          <BatchSelectButton v-if="!isGetSykEntry&&!isCheckSameEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
-            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
+          <BatchSelectButton v-if="!isGetSykEntry&&!isCheckSameEntry" :size="'middle'" :columns="columns" :dataSource="dataSource"
+            :getSearch="getSearch" v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
             v-model:selectedRows="selectedRows" v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag"
             v-model:batchSelectVisible="batchSelectVisible" />
 
@@ -65,7 +65,7 @@
             :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="glossaryTable"
             @resizeColumn="handleResizeColumn"
             :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll} : null">
-            <template #bodyCell="{ column, record,text}">
+            <template #bodyCell="{ column, record, text}">
               <template v-if="column.dataIndex === 'translate'">
                 <div>
                   <template v-if="editableData[record.id]">
@@ -78,18 +78,7 @@
                 </div>
               </template>
               <template v-if="column.dataIndex === 'translateState'">
-                <template v-if="record[column.dataIndex] === '0'">
-                  <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-                </template>
-                <template v-if="record[column.dataIndex] === '1'">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-                </template>
-                <template v-if="record[column.dataIndex] === '2'">
-                  <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-                </template>
-                <template v-if="record[column.dataIndex] === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                </template>
+                <TransStateBadge :translateState="text" />
               </template>
               <template v-if="column.dataIndex === 'operation'">
                 <div class="editable-row-operations">
@@ -117,6 +106,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import { cloneDeep, flatMap } from "lodash-es";
@@ -162,6 +152,7 @@ export default {
     DataBox,
     ResetButton,
     BatchSelectButton,
+    TransStateBadge,
     RelationModal,
     PlusOutlined,
     DeleteOutlined,
@@ -382,7 +373,7 @@ export default {
         }
         if (newVal && newVal !== "checkSameEntry") {
           this.isCheckSameEntry = false;
-        }else{
+        } else {
           this.isCheckSameEntry = true;
         }
       },
@@ -651,7 +642,8 @@ export default {
     // 分页切换
     pageChange(page, pageSize) {
       // console.log("pageChange", page, pageSize, );
-      if (this.isGetSykEntry||this.isCheckSameEntry)// 条件查询||查重自检时，根据分页信息回调查询函数
+      if (this.isGetSykEntry || this.isCheckSameEntry)
+        // 条件查询||查重自检时，根据分页信息回调查询函数
         // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
       // 需要回调查询接口，否则一次查询出所有数据，对前端压力太大了，所以每次分页查询只查询当前页的数据

@@ -28,32 +28,10 @@
               <span>{{ record[this.translate] }}</span>
             </template>
             <template v-if="column.dataIndex === 'translateState'">
-              <template v-if="record[this.translateState] === '0'">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-              </template>
-              <template v-if="record[this.translateState] === '1'">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-              </template>
-              <template v-if="record[this.translateState] === '2'">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[this.translateState] === '3'">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <TransStateBadge :translateState="text" />
             </template>
             <template v-if="['publicState', 'entryState'].includes(column.dataIndex)">
-              <template v-if="[0, '0'].includes(record[this.publicState])">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-              </template>
-              <template v-if="record[this.publicState] === 1">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-              </template>
-              <template v-if="record[this.publicState] === 2">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[this.publicState] === 3">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <EntryStateBadge :entryState="text" />
             </template>
             <template v-if="column.dataIndex === 'operation'">
               <a-button type="primary" danger size="small" @click.stop="handleDelete(record)">删除</a-button>
@@ -67,10 +45,16 @@
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import { deleteEntryInfo } from "@/http/api/entryManage";
 import commonParam from "@/utils/commonParam.js";
 export default {
+  components: {
+    EntryStateBadge,
+    TransStateBadge,
+  },
   emits: ["relationClose"],
   props: {
     visible: {
@@ -216,7 +200,7 @@ export default {
     // 针对单一词条的删除按钮
     handleDelete(record) {
       this.loading = true;
-      deleteEntryInfo([record.id],{tableName:"t_entry_info"})
+      deleteEntryInfo([record.id], { tableName: "t_entry_info" })
         .then((res) => {
           if (res.code === 200) {
             message.success("删除成功");

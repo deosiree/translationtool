@@ -73,7 +73,6 @@
       <template v-slot:data>
         <div style="width:100%;position: absolute;">
           <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
-
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" :row-key="record => record.id" :scroll="tableHeight"
               :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn"
@@ -84,62 +83,41 @@
                     <a-form-item label=" " :name="[index, column.dataIndex]" :rules="rules[column.dataIndex]">
                       <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
                     </a-form-item>
-
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
                 </template>
                 <!-- <template v-if="'department' === column.dataIndex">
-                                    <template v-if="editableData[record.id]">
-                                        <a-select
-                                        v-model:value="editableData[record.id][column.dataIndex]"
-                                        style="width: 100%"
-                                        placeholder="请选择"
-                                        :options='departments'
-                                        @click="clickInput"
-                                        @change="changeDepartment(record)"
-                                        >
-                                        </a-select>
-                                    </template>
-                                    <template v-else>
-                                        {{ text }}
-                                    </template>
-                                </template> -->
+                  <template v-if="editableData[record.id]">
+                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择" :options='departments'
+                      @click="clickInput" @change="changeDepartment(record)">
+                    </a-select>
+                  </template>
+                  <template v-else>
+                    {{ text }}
+                  </template>
+                </template> -->
                 <template v-if="'productName' === column.dataIndex">
                   <template v-if="editableData[record.id]">
                     <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
-                      <!-- <a-select
-                                            v-model:value="editableData[record.id]['productId']"
-                                            style="width: 85%"
-                                            placeholder="请选择"
-                                            :options='options[record.id]["products"]'
-                                            :fieldNames='{label:"name",value:"id"}'
-                                            @click="clickInput"
-                                            @change="changeProduct(record)"
-                                            >
-                                            </a-select> -->
+                      <!-- <a-select v-model:value="editableData[record.id]['productId']" style="width: 85%" placeholder="请选择"
+                        :options='options[record.id]["products"]' :fieldNames='{label:"name",value:"id"}' @click="clickInput"
+                        @change="changeProduct(record)">
+                      </a-select> -->
                       <a-tree-select v-model:value="editableData[record.id]['productId']" v-model:searchValue="searchValue" show-search
                         style="width: 85%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto',minWidth: '400px' }" placeholder="请选择" allow-clear
                         tree-default-expand-all :tree-data="options[record.id]['products']" tree-node-filter-prop="title"
                         :fieldNames="{children:'children', label:'title', value: 'key'}" :treeDefaultExpandAll="false" @click="clickInput"
                         @change="changeProduct(record)">
                         <!-- <template #title="{ title }">
-                                                    <template
-                                                        v-for="(fragment, i) in title
-                                                            .toString()
-                                                            .split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))"
-                                                        >
-                                                        <span
-                                                            v-if="fragment.toLowerCase() === searchValue.toLowerCase()"
-                                                            :key="i"
-                                                            style="color: #08c"
-                                                        >
-                                                            {{ fragment }}
-                                                        </span>
-                                                        <template v-else>{{ fragment }}</template>
-                                                        </template>
-                                                </template> -->
+                          <template v-for="(fragment, i) in title.toString().split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))">
+                            <span v-if="fragment.toLowerCase() === searchValue.toLowerCase()" :key="i" style="color: #08c">
+                              {{ fragment }}
+                            </span>
+                            <template v-else>{{ fragment }}</template>
+                          </template>
+                        </template> -->
                       </a-tree-select>
                       <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)" />
                     </a-form-item>
@@ -151,16 +129,11 @@
                 <template v-if="'versionName' === column.dataIndex">
                   <template v-if="editableData[record.id]">
                     <!-- <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
-                                            <a-select
-                                            v-model:value="editableData[record.id]['versionId']"
-                                            style="width: 85%"
-                                            placeholder="请选择"
-                                            :options='options[record.id]["versions"]'
-                                            @click="clickInput"
-                                            >
-                                            </a-select>
-                                            <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)"/>
-                                        </a-form-item> -->
+                      <a-select v-model:value="editableData[record.id]['versionId']" style="width: 85%" placeholder="请选择"
+                        :options='options[record.id]["versions"]' @click="clickInput">
+                      </a-select>
+                      <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)" />
+                    </a-form-item> -->
                     <a-select v-model:value="editableData[record.id]['versionId']" allowClear style="width: 85%" placeholder="请选择"
                       :options='options[record.id]["versions"]' @click="clickInput">
                     </a-select>
@@ -217,22 +190,13 @@
                         :options='translateTypes' :fieldNames="{label:'name',value:'name'}" @click="clickInput" allowClear>
                       </a-select>
                     </a-form-item>
-
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
                 </template>
                 <template v-if="column.dataIndex === 'state'">
-                  <template v-if="record.state === '0'">
-                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                  </template>
-                  <template v-if="record.state > '0' && record.state < '6'">
-                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
-                  </template>
-                  <template v-if="record.state === '6'">
-                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已归档</span>
-                  </template>
+                  <TaskStateBadge type="sum" :taskState="text" />
                 </template>
                 <template v-if="['description'].includes(column.dataIndex)">
                   <template v-if="editableData[record.id]">
@@ -247,8 +211,8 @@
                     <span v-if="editableData[record.id]">
                       <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
                       <!-- <a-popconfirm title="是否取消?" ok-text='是' cancel-text='否' @confirm="cancel">
-                                                <a-button type="primary" ghost size="small" danger>取消</a-button>
-                                            </a-popconfirm> -->
+                        <a-button type="primary" ghost size="small" danger>取消</a-button>
+                      </a-popconfirm> -->
                       <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
                     </span>
                     <span v-else>
@@ -279,6 +243,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
 import TimeLine from "@/components/timeLine/index.vue";
+import TaskStateBadge from "@/components/stateBadge/taskStateBadge.vue";
 import ProductModal from "@/views/task/productModal.vue";
 import VersionModal from "@/views/task/versionModal.vue";
 // import commen from "@/views/entry/common.js";
@@ -314,6 +279,7 @@ export default {
     DataBox,
     OperationArea,
     TimeLine,
+    TaskStateBadge,
     ProductModal,
     VersionModal,
     PlusOutlined,
@@ -646,7 +612,7 @@ export default {
     },
     //新增
     handleAdd() {
-      this.pagination.current = 1;// 重置分页
+      this.pagination.current = 1; // 重置分页
       const newData = {
         id: `new${this.dataSource.length + 1}`,
         name: "",
@@ -732,7 +698,7 @@ export default {
               this.searchTaskInfo();
             })
             .catch((err) => {
-              message.error("复制失败！",err.message);
+              message.error("复制失败！", err.message);
               this.loading = false;
             });
         } else {

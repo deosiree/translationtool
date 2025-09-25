@@ -13,6 +13,7 @@
                 <a-select-option value="1">审核中</a-select-option>
                 <a-select-option value="2">审核不通过</a-select-option>
                 <a-select-option value="3">已审核</a-select-option>
+                <a-select-option value=-1>禁用</a-select-option>
               </a-select>
             </a-form-item>
             <a-form-item label="tag" name="tag" style="margin-top: 8px">
@@ -63,7 +64,9 @@
             </a-form-item>
           </a-row>
           <a-row style="width:100%" class="search-row" justify="end">
-            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+            <a-button type="primary" size="middle" danger @click="reset" style="margin:0 8px">显示禁用</a-button>
+            <a-button type="primary" size="middle" class="yellowBtn" @click="reset" style="margin:0 8px">隐藏禁用</a-button>
+            <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin:0 8px">重置</a-button>
             <a-button type="primary" size="middle" @click="conditionalQuery" style="margin:0 8px">查询</a-button>
             <AccurSearchButton @update:accurSearch="accurSearch=$event" :fieldOptions="exportFields" @searchFunction="conditionalQuery($event)"
               size="middle" buttonTitle="全量查询" />
@@ -218,33 +221,11 @@
                   </div>
                 </template>
                 <template v-if="column.dataIndex === 'entryState'">
-                  <template v-if="record.entryState === 0">
-                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                  </template>
-                  <template v-if="record.entryState === 1">
-                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-                  </template>
-                  <template v-if="record.entryState === 2">
-                    <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-                  </template>
-                  <template v-if="record.entryState === 3">
-                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                  </template>
+                  <EntryStateBadge :entryState="text" />
                 </template>
                 <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
                 <template v-if="langTranslateStateList.includes(column.dataIndex)">
-                  <template v-if="record[column.dataIndex] === '0'">
-                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-                  </template>
-                  <template v-if="record[column.dataIndex] === '1'">
-                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-                  </template>
-                  <template v-if="record[column.dataIndex] === '2'">
-                    <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-                  </template>
-                  <template v-if="record[column.dataIndex] === '3'">
-                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                  </template>
+                  <TransStateBadge :translateState="text" />
                 </template>
                 <template v-if="column.dataIndex === 'operation'">
                   <div class="editable-row-operations">
@@ -351,8 +332,8 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :currentDepartment="currentDepartment" :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product"
-    :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
+  <CreateVersionModal :visible="createVisible" :currentDepartment="currentDepartment" :selectedProducts="selectedProducts" :dataSource="selectEntry"
+    :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
     @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable"
     @cancelCreate="cancelCreate" />
 
@@ -369,6 +350,8 @@ import OperationArea from "@/components/operationArea/index.vue";
 import ImportButton from "@/components/Button/importButton.vue";
 import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -430,6 +413,7 @@ import {
   openSetEdit,
 } from "@/utils/commonUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
+import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
 export default {
   components: {
     CustomModal,
@@ -439,6 +423,8 @@ export default {
     ImportButton,
     AccurSearchButton,
     GitCommitButton,
+    EntryStateBadge,
+    TransStateBadge,
     EditReason,
     CreateVersionModal,
     SecondClassify,

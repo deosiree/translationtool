@@ -136,18 +136,7 @@
               </div>
             </template>
             <template v-if="translateStateList.includes(column.dataIndex)">
-              <template v-if="record[column.dataIndex] === '0'">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '1'">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '2'">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '3'">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <TransStateBadge :translateState="text" />
             </template>
             <template v-if="column.dataIndex === 'editOperation'">
               <div class="editable-row-operations">
@@ -326,6 +315,8 @@
 <script>
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -378,7 +369,6 @@ import commonParam, {
   entryParams,
   workbenchParams,
 } from "@/utils/commonParam.js";
-import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 export default {
   components: {
     Modal,
@@ -387,9 +377,10 @@ export default {
     InfoCircleOutlined,
     DownOutlined,
     SettingOutlined,
-    RulesDropdown,
     CheckOutlined,
     CloseOutlined,
+    RulesDropdown,
+    TransStateBadge,
   },
   emits: ["handleClose", "handleOK"],
   props: {
@@ -828,11 +819,7 @@ export default {
       } else {
         try {
           // 校验当前页数据的长度
-          await verifyArray_workbench_page(
-            this.pagination,
-            currentLang,
-            this
-          );
+          await verifyArray_workbench_page(this.pagination, currentLang, this);
         } catch (err) {}
       }
     },

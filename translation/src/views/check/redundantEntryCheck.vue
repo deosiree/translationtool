@@ -4,28 +4,6 @@
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <!-- <a-form-item label="词条" name="entry">
-            <a-input v-model:value="search.entry" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
-          </a-form-item>
-          <a-form-item label="词条状态" name="state">
-            <a-select v-model:value="search.entryState" style="width: 186px" placeholder="请选择" size="small" :options='entryStates' @click="clickInput"
-              allowClear></a-select>
-          </a-form-item>
-          <a-form-item label="tag" name="tag">
-            <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
-          </a-form-item>
-          <a-form-item label="二级分类" name="classfy2">
-            <a-select v-model:value="search.classfy2" style="width: 186px" placeholder="请选择" size="small" :fieldNames="{label:'name',value:'name'}"
-              :options='classify2Option' @click="clickInput" allowClear></a-select>
-          </a-form-item>
-
-          <a-form-item label="翻译状态" name="translateState">
-            <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择" :options='translateStates' size="small"
-              @click="clickInput" allowClear></a-select>
-          </a-form-item>
-          <a-form-item label="翻译结果" name="translate">
-            <a-input v-model:value="search.translate" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
-          </a-form-item> -->
           <a-form-item label="i18n" name="i18n">
             <a-select v-model:value="search.i18nURL" :options="i18nOptions" placeholder="请选择i18n" allowClear></a-select>
           </a-form-item>
@@ -52,11 +30,6 @@
     </SearchBox>
     <!-- 数据展示框组件 -->
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
-      <!-- <template v-slot:label>
-        产品版本： <a-select v-model:value="currentVersion" allowClear style="width: 150px" placeholder="请选择版本" :options='productVersions'
-          :fieldNames="{label:'name',value:'id'}" size="small" @click="clickInput">
-        </a-select>
-      </template> -->
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
           <a-button type="primary" size="small" @click="selectAllEntry">选择全部</a-button>
@@ -96,35 +69,12 @@
               :row-key="record => record.id" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
               ref="redundantEntryCheckTable" @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
-              <template #bodyCell="{ column, record }">
+              <template #bodyCell="{ column, record,text }">
                 <template v-if="column.dataIndex === 'entryState'">
-                  <template v-if="record.entryState === 0">
-                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                  </template>
-                  <template v-if="record.entryState === 1">
-                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-                  </template>
-                  <template v-if="record.entryState === 2">
-                    <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-                  </template>
-                  <template v-if="record.entryState === 3">
-                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                  </template>
+                  <EntryStateBadge :entryState="text" />
                 </template>
-                <template
-                  v-if="['translateState', 'englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
-                  <template v-if="record[column.dataIndex] === '0'">
-                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-                  </template>
-                  <template v-if="record[column.dataIndex] === '1'">
-                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-                  </template>
-                  <template v-if="record[column.dataIndex] === '2'">
-                    <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-                  </template>
-                  <template v-if="record[column.dataIndex] === '3'">
-                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-                  </template>
+                <template v-if="translateStateList.includes(column.dataIndex)">
+                  <TransStateBadge :translateState="text" />
                 </template>
 
                 <!--tag列 -->
@@ -177,8 +127,9 @@
 import "@/assets/style/common.less";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
-import stateBadge from "@/components/stateBadge/index.vue";
 import BatchSelectModal from "@/views/check/redundantBatchSelectModal.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { getLanguage } from "@/http/api/translate";
 import { getSecondClassify } from "@/http/api/secondClassify";
 import { getI18nAdress } from "@/http/api/workbench";
@@ -194,7 +145,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import { redundantTableParams } from "@/utils/commonParam.js";
+import commonParam, { redundantTableParams } from "@/utils/commonParam.js";
 import {
   clickInput,
   setTableHeight,
@@ -214,12 +165,13 @@ export default {
   components: {
     SearchBox,
     DataBox,
-    stateBadge,
     BatchSelectModal,
     SettingOutlined,
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
+    EntryStateBadge,
+    TransStateBadge,
   },
   data() {
     return {
@@ -344,12 +296,6 @@ export default {
       ], // 词条状态
       classify2Option: [], // 二级分类
       translateTypes: [], // 翻译语言
-      translateStates: [
-        { label: "未翻译", value: "0" },
-        { label: "待审核", value: "1" },
-        { label: "审核不通过", value: "2" },
-        { label: "已审核", value: "3" },
-      ], // 翻译状态
       entrySources: [], // 词条来源
       updates: [], // 修改人
       currentVersion: null, // 当前产品版本
@@ -378,6 +324,10 @@ export default {
       checkboxList: redundantTableParams.checkboxList,
       checkedColumn: redundantTableParams.checkedColumn,
       batchSelectVisible: false,
+      translateStateList: [
+        ...commonParam.langTranslateStateList,
+        "translateState",
+      ],
     };
   },
   mounted() {
