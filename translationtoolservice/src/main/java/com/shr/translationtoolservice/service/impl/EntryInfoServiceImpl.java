@@ -4268,9 +4268,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public boolean forrbiddenEntry(List<EntryInfoEntityQO> entryInfoEntities) {
+    public boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities) {
         // TODO Auto-generated method stub
-        int updateCount = entryInfoMapper.forrbiddenEntry(entryInfoEntities.stream().map(EntryInfoEntityQO::getId).collect(Collectors.toList()));
+        int updateCount = entryInfoMapper.forrbiddenEntry(entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
         if(updateCount != entryInfoEntities.size()){
             return false;
         }

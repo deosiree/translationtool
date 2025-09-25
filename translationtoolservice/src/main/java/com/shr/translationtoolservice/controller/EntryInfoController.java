@@ -1007,7 +1007,7 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("禁用词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> forrbiddenEntry(@RequestBody List<EntryInfoEntityQO> entryInfoEntities){
+    public HttpResponse<String> forrbiddenEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities){
 
 
         boolean isSuccess = entryInfoService.forrbiddenEntry(entryInfoEntities);
