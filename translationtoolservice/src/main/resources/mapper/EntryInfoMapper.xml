@@ -304,7 +304,7 @@
         left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
         left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
-        where t2.is_delete = 0 and t2.entry_state != -1
+        where t2.is_delete = 0
         <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
             and t1.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
         </if>
