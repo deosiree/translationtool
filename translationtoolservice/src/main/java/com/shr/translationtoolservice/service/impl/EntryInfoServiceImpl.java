@@ -1492,20 +1492,46 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         return id;
     }
-    
-    private List<EntryInfoEntityForExcel> postProcessEntryInfoForExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO){
-        List<EntryInfoEntityForExcel> entryInfoEntities = excelExportVO.getEntryInfoEntities();
-        if(entryInfoEntities == null){
-            EntryInfoEntity template = excelExportVO.getEntryInfoEntity();
-            if(template != null){
-                List<EntryInfoEntity> entities = entryInfoMapper.getEntryInfo(template);   
-                entryInfoEntities = new ArrayList<>(entities.stream().map(EntryInfoEntityForExcel::convertFromEntryInfoEntity).collect(Collectors.toList()));
-            }else{
-                throw new RuntimeException("在没有提供要导出的词条的情况下没有提供要查询的词条需要符合的条件,无法获取要导出的词条");
-            }
+
+    @Override
+    public void getEntryInfoEntityForExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO){
+        List<EntryInfoEntityForExcel> entityForExcels = excelExportVO.getEntryInfoEntities();
+        if(entityForExcels != null){
+            /* 如果已经提供要导出的词条, 那么就不用从库里查找要导出的词条 */
+            return;
         }
-        if(entryInfoEntities.isEmpty()){
-            return entryInfoEntities;
+        EntryInfoEntity template = excelExportVO.getEntryInfoEntity();
+        if(template != null){
+            List<EntryInfoEntity> entities = entryInfoMapper.getEntryInfo(template);   
+            List<EntryInfoEntityForExcel> entryInfoEntities = new ArrayList<>(entities.stream().map(EntryInfoEntityForExcel::convertFromEntryInfoEntity).collect(Collectors.toList()));
+            excelExportVO.setEntryInfoEntities(entryInfoEntities);
+        }else{
+            throw new RuntimeException("在没有提供要导出的词条的情况下没有提供要查询的词条需要符合的条件,无法获取要导出的词条");
+        }
+
+    }
+
+    @Override
+    public List<EntryInfoEntityForExcel> filterEntryInfoBeforeExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO){
+        Predicate<EntryInfoEntityForExcel> predicate = excelExportVO.getPredicate();
+        if(predicate == null){
+            return null;
+        }
+        List<EntryInfoEntityForExcel> entryInfoEntityForExcels = excelExportVO.getEntryInfoEntities();
+        if(entryInfoEntityForExcels == null){
+            return null;
+        }
+        return entryInfoEntityForExcels.stream().filter(predicate).collect(Collectors.toList());
+
+    }
+
+    
+    @Override
+    public void postProcessEntryInfoForExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO){
+        List<EntryInfoEntityForExcel> entryInfoEntities = excelExportVO.getEntryInfoEntities();
+
+        if(entryInfoEntities == null || entryInfoEntities.isEmpty()){
+            return;
         }
         Map<String,EntryClassify> entryClassifyMap = new HashMap<>();
 
@@ -1528,12 +1554,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 item.setForeignMaxLength(foreignMaxByte != null ? String.valueOf(foreignMaxByte) : null);
             }
         }
-        return entryInfoEntities;
+        return;
     }
 
     @Override
-    public void entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,HttpServletRequest request, HttpServletResponse response, String taskID) {
+    public boolean entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, String taskID) {
 
+        if(excelExportVO == null || buffer == null){
+            return false;
+        }
         List<String> columnNames = excelExportVO.getColumnNames();
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
         Date date = new Date();
@@ -1544,64 +1573,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             taskEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
 
         }
-        List<EntryInfoEntityForExcel> entryInfoEntities = null;
-        try {
-            entryInfoEntities = postProcessEntryInfoForExport(excelExportVO);            
-        } catch (Exception e) {
-            String message = e.getMessage();
-            log.error(message);
-            // 不导出excel
-            entryInfoEntities = new ArrayList<>();
-        }
-
+        List<EntryInfoEntityForExcel> entryInfoEntities = excelExportVO.getEntryInfoEntities();
         // processEntryInfo(entryInfoEntities, columnNames, excelName, taskEntity);
         processEntryInfo(entryInfoEntities, columnNames, taskEntity);
 
-       /* for (EntryInfoEntity entryInfoEntity1 : entryInfoEntities) {
-            if (Objects.isNull(taskEntity)) {
-                QueryWrapper<ProductRelationEntity> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("entry_id", entryInfoEntity1.getId());
-                List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(queryWrapper);
-                String versionID = productRelationEntities.get(0).getVersionId();
-                String productID = productRelationEntities.get(0).getProductId();
-                if (StringUtils.isNotBlank(versionID)) {
-                    entryInfoEntity1.setVersionID(versionID);
-                    VersionEntity versionByID = versionMapper.getVersionByID(versionID);
-                    entryInfoEntity1.setVersionName(versionByID.getName());
-                }
-                if (StringUtils.isNotBlank(productID)) {
-                    entryInfoEntity1.setProductID(productID);
-                    ProductEntity productEntity = productMapper.selectById(productID);
-                    entryInfoEntity1.setProductName(productEntity.getName());
-                }
-            } else {
-                String versionID = taskEntity.getVersionId();
-                if (StringUtils.isNotBlank(versionID)) {
-                    entryInfoEntity1.setVersionID(versionID);
-                    VersionEntity versionByID = versionMapper.getVersionByID(versionID);
-                    entryInfoEntity1.setVersionName(versionByID.getName());
-                }
-                String productId = taskEntity.getProductId();
-                if (StringUtils.isNotBlank(productId)) {
-                    entryInfoEntity1.setProductID(productId);
-                    ProductEntity productEntity = productMapper.selectById(productId);
-                    entryInfoEntity1.setProductName(productEntity.getName());
-                }
-            }
-
-
-        }*/
-        // List<String> exportFields = new ArrayList<>();
-        // for (String column : columnNames) {
-        //     exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get(column));
-
-        // }
-        // excelUtils.getWorkBook(entryInfoEntities, response, exportFields, columnNames, excelName);
-        buildExportedFiles(buffer,entryInfoEntities,request, columnNames, excelName);
-        return;
+        buildExportedFiles(buffer,entryInfoEntities,excelExportVO.getExportFileType(), columnNames, excelName);
+        return true;
     }
 
-    private void buildExportedFiles(ByteArrayOutputStream buffer,List<EntryInfoEntityForExcel> entities,HttpServletRequest request,List<String> columnNames,String excelName){
+    private void buildExportedFiles(ByteArrayOutputStream buffer,List<EntryInfoEntityForExcel> entities,String exportFileType,List<String> columnNames,String excelName){
         if(buffer == null){
             throw new NullPointerException("buffer == null");
         }
@@ -1614,7 +1594,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             exportFields.add(fieldName);
 
         }
-        String exportFileType = request.getParameter("exportType");
         if(exportFileType == null){
             exportFileType = "excel";
         }
@@ -1627,7 +1606,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     columnNames.add("id");
                     exportFields.add(ConstantInterface.EXCEL_LIST_NAME_MAP().get("id"));
                 }
-                List<String> contentLines = excelUtils.exportEntitiesToCSV(entities,EntryInfoEntityForExcel.class, exportFields, columnNames,excelName);
+                List<String> contentLines = excelUtils.exportEntitiesToCSV(entities,EntryInfoEntityForExcel.class, exportFields, columnNames);
                 /* outputstream流必须在header之后写 */
                 for(String entityLine : contentLines){
                     buffer.write(entityLine.getBytes(charsetName));
@@ -1650,6 +1629,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
      * @param taskEntity
      */
     private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities,List<String> columnNames,TaskInfoEntity taskEntity){
+        if(entryInfoEntities == null){
+            return;
+        }
         Map<String,EntryInfoEntity> entryInfoEntitiesIDMap = entryInfoEntities.stream().collect(Collectors.toMap(EntryInfoEntity::getId, EntryInfoEntity -> EntryInfoEntity));
         /*
          * 可能出现的情况

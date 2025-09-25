@@ -477,6 +477,36 @@ public class EntryInfoController extends BaseController {
                               HttpServletResponse response) {
         entryInfoService.versionExport(versionID, response, translateType);
     }
+    @PostMapping("/checkBeforeExportEntry")
+    @ApiOperation("在导出词条前进行检查")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel<EntryInfoEntityForExcel>> checkBeforeExportEntry(@RequestBody ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,HttpServletRequest request){
+        /* 校验是否有不符合规定的词条，如果存在，就返回异常提示不能导出，并提供有异常的词条 */
+        String department = JWTTokenUtils.getDepartment(request.getHeader("token"));
+        if(department.equals("装置开发部")){
+            excelExportVO.setPredicate(new Predicate<EntryInfoEntityForExcel>() {
+
+                @Override
+                public boolean test(EntryInfoEntityForExcel t) {
+                    // TODO Auto-generated method stub
+                    return t.getEntryState() < 3;
+                }
+                
+            });
+        }
+        List<EntryInfoEntityForExcel> problematicEntryInfos = entryInfoService.filterEntryInfoBeforeExport(excelExportVO);
+        ResponseListModel<EntryInfoEntityForExcel> responseListModel = new ResponseListModel<>();
+        if(problematicEntryInfos != null){
+            responseListModel.setList(problematicEntryInfos);
+            responseListModel.setTotalNum(problematicEntryInfos.size());
+        }else{
+            responseListModel.setList(new ArrayList<>());
+            responseListModel.setTotalNum(0);
+        }
+
+        return ok(responseListModel);
+    }
 
     @PostMapping("/entryExportByCondition")
     @ApiOperation("导出词条（版本，任务，产品）")
@@ -486,6 +516,7 @@ public class EntryInfoController extends BaseController {
                                        HttpServletResponse response,  String taskID) {
         ByteArrayOutputStream buffer = null;
         String charsetName = "UTF-8";
+        HttpResponse<List<EntryInfoEntityForExcel>> exceptionResponse = new HttpResponse<>();
         try {
             String excelNamePrefix = URLEncoder.encode(excelExportVO.getExcelName(), charsetName);
             String exportFileType = request.getParameter("exportType");
@@ -494,6 +525,7 @@ public class EntryInfoController extends BaseController {
             }
             Date date = new Date(); 
             String excelName = excelNamePrefix + "_" + LocalTimeUtils.formatForExportFile.format(date);
+            /* 设定导出的文件类型 */
             if(exportFileType.equals("excel")){
                 response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".xlsx");
             }else if(exportFileType.equals("csv")){
@@ -501,8 +533,14 @@ public class EntryInfoController extends BaseController {
             }else{
                 throw new RuntimeException("提供的exportFileType不支持: " + exportFileType);
             }
+            excelExportVO.setExportFileType(exportFileType);
+            /* 判断是否没有提供导出的词条,如果没有，则根据提供的词条查询条件，在库里查询要导出的词条 */
+            entryInfoService.getEntryInfoEntityForExport(excelExportVO);
+            /* 预处理将要导出的词条 */
+            entryInfoService.postProcessEntryInfoForExport(excelExportVO);   
+            /* 导出词条 */
             buffer = new ByteArrayOutputStream();
-            entryInfoService.entryExportByCondition(buffer,excelExportVO,request,response,taskID); 
+            entryInfoService.entryExportByCondition(buffer,excelExportVO,taskID); 
             response.setContentType("application/octet-stream;charset=UTF-8");
             response.addHeader("Pargam", "no-cache");
             response.addHeader("Cache-Control", "no-cache");
@@ -514,12 +552,12 @@ public class EntryInfoController extends BaseController {
                 /* 保证原子性 */
                 response.reset();
                 response.setHeader("content-type", "application/json");
-                Map<String,String> messages = new HashMap<>();
-                messages.put("code", "500");
-                messages.put("message", e.getMessage());
+                exceptionResponse.setCode(HttpResponse.Type.ERROR.getVal());
+                exceptionResponse.setType(HttpResponse.Type.ERROR);
+                exceptionResponse.setMessage(e.getMessage());
                 Gson gson = new Gson();
                 try {
-                    response.getOutputStream().write(gson.toJson(messages).getBytes(charsetName));
+                    response.getOutputStream().write(gson.toJson(exceptionResponse).getBytes(charsetName));
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block
                     log.error("向响应体中写入数据时报错", e1);
