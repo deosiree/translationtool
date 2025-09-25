@@ -104,7 +104,6 @@ export function deleteEntryInfoByID(params, data) {
     params,
     data
   });
-
 }
 
 // 删除任务中的词条

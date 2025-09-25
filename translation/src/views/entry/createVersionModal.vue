@@ -86,6 +86,7 @@
       <a-button @click="cancelCreate">关闭</a-button>
       <a-button type="primary" @click="writeBackFun">回写</a-button>
       <a-button type="primary" danger @click="deleteEntrys">删除</a-button>
+      <a-button type="primary" danger @click="forrbiddenEntrys">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions="fieldOptions" size="middle" buttonTitle="导出" />
       <!-- <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
@@ -197,6 +198,7 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { deleteEntryInfoByID, getI18nAdress } from "@/http/api/workbench.js";
+import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
 import {
   createVersionByEntry,
   addProductRelation,
@@ -882,6 +884,23 @@ export default {
         .catch((err) => {
           message.error("提交失败！", err.message);
         });
+    },
+    // 禁用词条
+    forrbiddenEntrys() {
+      Modal.confirm({
+        title: "是否确定禁用?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          forbiddenEntryInfo(this.dataSource).then((res) => {
+            this.$emit("createClose");
+            this.$emit("cancelCreate");
+            this.$emit("refresh");
+          });
+        },
+      });
     },
     // 删除词条
     deleteEntrys() {

@@ -117,6 +117,15 @@ export function updateEntryInfo(data, params) {
   });
 }
 
+// 禁用词条
+export function forbiddenEntryInfo(data) {
+  return request({
+    url: "/entryInfo/forrbiddenEntry",
+    method: "POST",
+    data
+  });
+}
+
 // 查询公共库数据
 export function getPublicEntry(data, params) {
   return request({
