@@ -39,7 +39,10 @@ import { create } from "xmlbuilder2";
 // import builder from "xmlbuilder"; // 注意：这是 xmlbuilder 的常见导入方式
 import { ref } from "vue";
 import CustomModal from "@/components/modal/index.vue";
-import { entryExportByCondition } from "@/http/api/download";
+import {
+  entryExportByCondition,
+  checkBeforeExportEntry,
+} from "@/http/api/download";
 import {
   queryUserPartiality,
   updateUserPartiality,
@@ -98,7 +101,7 @@ export default {
         importTypes: [],
         value: "name",
         xml_temp: false,
-        ops:new Set(),
+        ops: new Set(),
       }, // 当前用户所在部门的相关信息
     };
   },
@@ -396,39 +399,44 @@ export default {
             entryInfoEntities: this.dataSource,
             excelName: "词条导出",
           };
-          const res = await entryExportByCondition(data, params);
-          // console.log("res:", res);
-          // console.log("res.headers:", res.headers);
-          let fileName = res.headers["content-disposition"]
-            .split(";")[1]
-            .split("filename=")[1];
-
-          let contentType = res.headers["content-type"];
-          // 去除字符编码信息
-          contentType = contentType.split(";")[0];
-
-          // 导出文件
-          const blob = new Blob([res.data], { type: contentType });
-          if (choosePath && this.fileHandle) {
-            // 更新建议文件名
-            const writable = await this.fileHandle.createWritable();
-            await writable.write(blob);
-            await writable.close();
+          let accept_ = await checkBeforeExportEntry(data, params);
+          if (accept_.data.list.length != 0) {
+            message.warning("导出失败：存在审核未结束的词条");
           } else {
-            await this.handleFileSave(
-              blob,
-              decodeURI(fileName),
-              [
-                {
-                  description:
-                    exportType === "excel" ? "Excel 文件" : "CSV 文件",
-                  accept: {
-                    [contentType]: [exportType === "excel" ? ".xlsx" : ".csv"],
+            const res = await entryExportByCondition(data, params);
+            let fileName = res.headers["content-disposition"]
+              .split(";")[1]
+              .split("filename=")[1];
+
+            let contentType = res.headers["content-type"];
+            // 去除字符编码信息
+            contentType = contentType.split(";")[0];
+
+            // 导出文件
+            const blob = new Blob([res.data], { type: contentType });
+            if (choosePath && this.fileHandle) {
+              // 更新建议文件名
+              const writable = await this.fileHandle.createWritable();
+              await writable.write(blob);
+              await writable.close();
+            } else {
+              await this.handleFileSave(
+                blob,
+                decodeURI(fileName),
+                [
+                  {
+                    description:
+                      exportType === "excel" ? "Excel 文件" : "CSV 文件",
+                    accept: {
+                      [contentType]: [
+                        exportType === "excel" ? ".xlsx" : ".csv",
+                      ],
+                    },
                   },
-                },
-              ],
-              choosePath
-            );
+                ],
+                choosePath
+              );
+            }
           }
         }
         this.$emit("operateClose");
