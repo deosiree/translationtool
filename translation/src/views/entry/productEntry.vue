@@ -351,7 +351,7 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product"
+  <CreateVersionModal :visible="createVisible" :currentDepartment="currentDepartment" :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product"
     :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
     @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable"
     @cancelCreate="cancelCreate" />

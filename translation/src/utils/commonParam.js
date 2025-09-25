@@ -120,16 +120,16 @@ export default {
       label: "通用平台部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
-      ops: new Set(["needWriteBack", "needGit", "needexamine"]),
+      ops: new Set(["needWriteBack", "needGit", "needExamine"]),
       // -needWriteBack是否需要回写；
       // -needGit是否需要git推送（词条管理）; 
-      // -needexamine是否需要提交词条审核（词条管理-已选词条）
+      // -needExamine是否需要提交词条审核（词条管理-已选词条）
     },
     "监控系统部": {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "jk",
-      ops: new Set(["needWriteBack", "needGit", "needexamine"]),
+      ops: new Set(["needWriteBack", "needGit", "needExamine"]),
     },
     "装置开发部": {
       label: "装置开发部",
@@ -143,7 +143,7 @@ export default {
         { label: 'xml装置辞典', value: '装置辞典' },
       ],
       value: "zz",
-      ops: new Set(["needexamine"]),
+      ops: new Set(["needExamine"]),
     },
     "人工智能部": {
       label: "人工智能部",
@@ -161,7 +161,7 @@ export default {
       label: "默认部门",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "default",
-      ops: new Set(["needWriteBack", "needGit", "needexamine"]),
+      ops: new Set(["needWriteBack", "needGit", "needExamine"]),
     }
   },
   departmentList: [

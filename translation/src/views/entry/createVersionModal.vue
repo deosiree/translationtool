@@ -90,7 +90,8 @@
       <!-- <a-button type="primary" @click="exportExcel">导出Excel</a-button>
       <a-button type="primary" @click="exportXml">导出XML</a-button>
       <a-button type="primary" @click="exportCSV">导出CSV</a-button> -->
-      <a-button type="primary" @click="examine" v-if="user.department === '装置开发部'">提交词条审核</a-button>
+      <!-- v-if="user.department === '装置开发部'" -->
+      <a-button type="primary" @click="examine" v-if="currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
     </template>
   </CustomModal>
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
@@ -264,6 +265,14 @@ export default {
         products: new Map(),
         totalNum: 0,
       }),
+    },
+    currentDepartment: {
+      type: Object,
+      default: () => ({
+        label: "部门名称",
+        value: "name",
+        ops: new Set(),
+      }), // 当前用户所在部门的相关信息
     },
   },
 
