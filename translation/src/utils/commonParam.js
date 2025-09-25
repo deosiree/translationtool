@@ -119,22 +119,21 @@ export default {
     "通用平台部": {
       label: "通用平台部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
-      needWriteBack: true,// 是否需要回写
-      needGit: true,// 是否需要git推送
       value: "common",
+      ops: new Set(["needWriteBack", "needGit", "needexamine"]),
+      // -needWriteBack是否需要回写；
+      // -needGit是否需要git推送（词条管理）; 
+      // -needexamine是否需要提交词条审核（词条管理-已选词条）
     },
     "监控系统部": {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
-      needWriteBack: true,// 是否需要回写
-      needGit: true,// 是否需要git推送
       value: "jk",
+      ops: new Set(["needWriteBack", "needGit", "needexamine"]),
     },
     "装置开发部": {
       label: "装置开发部",
       importTypes: ["file"],// 导入类型
-      needWriteBack: false,// 是否需要回写
-      needGit: false,// 是否需要git推送
       xml_temp: false,// 临时修改一下xml的样式(现已置false，改回去了)
       templateType: [
         { label: 'csv新模板', value: '新模板' },
@@ -144,27 +143,25 @@ export default {
         { label: 'xml装置辞典', value: '装置辞典' },
       ],
       value: "zz",
+      ops: new Set(["needexamine"]),
     },
     "人工智能部": {
       label: "人工智能部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
-      needWriteBack: false,// 是否需要回写
-      needGit: false,// 是否需要git推送
       value: "zn",// 瞎写的
+      ops: new Set([]),
     },
     "柔性输电系统部": {
       label: "柔性输电系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
-      needWriteBack: false,// 是否需要回写
-      needGit: false,// 是否需要git推送
       value: "rx",// 瞎写的
+      ops: new Set([]),
     },
     "default": {
       label: "默认部门",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
-      needWriteBack: true,// 是否需要回写
-      needGit: false,// 是否需要git推送
       value: "default",
+      ops: new Set(["needWriteBack", "needGit", "needexamine"]),
     }
   },
   departmentList: [

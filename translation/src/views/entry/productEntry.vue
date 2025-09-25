@@ -79,7 +79,7 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="currentDepartment.needGit" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
+          <GitCommitButton v-if="currentDepartment.ops.has('needGit')" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
 
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
@@ -473,7 +473,7 @@ export default {
       currentDepartment: {
         label: "部门名称",
         value: "name",
-        needGit: false,
+        ops: new Set(),
       }, // 当前用户所在部门的相关信息
       admin: false,
       edit: false, // 用户对该产品是否有编辑权限

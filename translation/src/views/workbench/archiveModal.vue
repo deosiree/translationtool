@@ -127,8 +127,8 @@
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
-      <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.needWriteBack">归档</a-button>
-      <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.needWriteBack">结束任务</a-button>
+      <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.ops.has('needWriteBack')">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.ops.has('needWriteBack')">结束任务</a-button>
     </template>
   </CustomModal>
   <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"
@@ -345,8 +345,8 @@ export default {
       currentDepartment: {
         label: "部门名称",
         importTypes: [],
-        needWriteBack: false,
         value: "name",
+        ops:new Set(),
       }, // 当前用户所在部门的相关信息
       state: {
         searchText: "",

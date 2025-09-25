@@ -22,7 +22,7 @@
                 <a-radio v-if="currentDepartment.importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
               </a-radio-group>
             </a-form-item>
-            <a-form-item v-if="currentDepartment.needWriteBack" label="IP">
+            <a-form-item v-if="currentDepartment.ops.has('needWriteBack')" label="IP">
               <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
             </a-form-item>
           </a-form>
@@ -41,7 +41,7 @@
             <a-col :span="8">
               <a-row type="flex" align="middle" justify="space-between">
                 <a-col :flex="1">
-                  <a-form-item v-if="currentDepartment.needWriteBack" label="回写辞典" name="diFileName">
+                  <a-form-item v-if="currentDepartment.ops.has('needWriteBack')" label="回写辞典" name="diFileName">
                     <a-select v-model:value="filediFileName" allowClear placeholder="请选择回写辞典目录" style="width:70%" :options="dictionaryOptions"
                       size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
                     </a-select>
@@ -780,8 +780,8 @@ export default {
       currentDepartment: {
         label: "部门名称",
         importTypes: [],
-        needWriteBack: false,
         value: "name",
+        ops:new Set(),
       }, // 当前用户所在部门的相关信息
       departmentList: commonParam.departmentList, // 当前用户所在部门
       templateTypes: null,
@@ -819,7 +819,7 @@ export default {
       this.templateObj.type = this.currentDepartment.value;
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
       // 获取IP地址
-      if (this.currentDepartment.needWriteBack) this.getIPs();
+      if (this.currentDepartment.ops.has('needWriteBack')) this.getIPs();
       // 读取本地存储的用户偏好
       getColPref("colPref-importModal", 100, this);
     });
@@ -1226,7 +1226,7 @@ export default {
     // 数据类型选择事件
     dataTypeChange() {
       // 获取IP地址
-      if (this.currentDepartment.needWriteBack) {
+      if (this.currentDepartment.ops.has('needWriteBack')) {
         // this.getIPs();// mounted时已获取
         if (this.ip === null || this.ip === undefined || this.ip === "") {
           message.info("请选择IP！");
@@ -1340,7 +1340,7 @@ export default {
     // 获取数据库节点信息
     getAllNode() {
       // 获取IP地址
-      if (this.currentDepartment.needWriteBack) {
+      if (this.currentDepartment.ops.has('needWriteBack')) {
         // this.getIPs();// mounted时已获取
         if (this.ip === null || this.ip === undefined || this.ip === "") {
           message.info("请选择IP！");

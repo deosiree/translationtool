@@ -96,9 +96,9 @@ export default {
       currentDepartment: {
         label: "部门名称",
         importTypes: [],
-        needWriteBack: false,
         value: "name",
         xml_temp: false,
+        ops:new Set(),
       }, // 当前用户所在部门的相关信息
     };
   },
