@@ -1860,7 +1860,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
             }
             TranslateEntity translateEntity = new TranslateEntity();
-            String transID = commonUtils.getUUID();
+            String transID = null;
             translateEntity.setEntry(relationEntity.getEntry());
             List<TranslateEntity> translateEntityList = new ArrayList<>();
 
@@ -1879,6 +1879,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                        transID = translateEntityList.get(0).getId();
                        relationEntity.setZhTransId(transID);
                    }else {
+                       transID = commonUtils.getUUID();
                        relationEntity.setZhTransId(transID);
                        translateEntity.setTranslateState("1");
                        translateEntity.setId(transID);
@@ -1905,6 +1906,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                        transID = translateEntityList.get(0).getId();
                        relationEntity.setEnTransId(transID);
                    }else {
+                       transID = commonUtils.getUUID();
                        relationEntity.setEnTransId(transID);
                        translateEntity.setTranslateState("1");
                        translateEntity.setId(transID);
@@ -1932,6 +1934,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         transID = translateEntityList.get(0).getId();
                         relationEntity.setRuTransId(transID);
                     }else {
+                        transID = commonUtils.getUUID();
                         relationEntity.setRuTransId(transID);
                         translateEntity.setTranslateState("1");
                         translateEntity.setId(transID);
@@ -1959,6 +1962,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         transID = translateEntityList.get(0).getId();
                         relationEntity.setSpaTransId(transID);
                     }else {
+                        transID = commonUtils.getUUID();
                         relationEntity.setSpaTransId(transID);
                         translateEntity.setTranslateState("1");
                         translateEntity.setId(transID);
@@ -1986,6 +1990,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         transID = translateEntityList.get(0).getId();
                         relationEntity.setFraTransId(transID);
                     }else {
+                        transID = commonUtils.getUUID();
                         relationEntity.setFraTransId(transID);
                         translateEntity.setTranslateState("1");
                         translateEntity.setId(transID);
