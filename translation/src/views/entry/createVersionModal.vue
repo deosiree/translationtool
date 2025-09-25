@@ -85,7 +85,7 @@
     <template v-slot:leftBottomBtn>
       <a-button @click="cancelCreate">关闭</a-button>
       <a-button type="primary" @click="writeBackFun">回写</a-button>
-      <a-button type="primary" danger @click="deleteEntrys">删除</a-button>
+      <a-button type="primary" danger @click="deleteEntrys" v-if="$store.state.admin">删除</a-button>
       <a-button type="primary" danger @click="forrbiddenEntrys">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions="fieldOptions" size="middle" buttonTitle="导出" />
       <!-- <a-button type="primary" @click="exportExcel">导出Excel</a-button>
