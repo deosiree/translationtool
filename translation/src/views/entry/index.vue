@@ -181,7 +181,7 @@ export default {
         });
     },
     // 根据用户权限限制状态树的展示
-    getClassTreeByUsed() {
+    async getClassTreeByUsed() {
       let treeScoped = ["公共库"]; // 状态树可展示的字段
       if (this.user.roleName.includes("超级管理员"))
         treeScoped = commonParam.treeScoped.map((item) => item.title);
@@ -191,7 +191,7 @@ export default {
       let treeData = cloneDeep(this.treeData);
       let treeDataScoped = [];
       // 遍历树数据，根据部门名过滤
-      treeDataScoped = treeData.filter((company) => {
+      treeDataScoped = await treeData.filter((company) => {
         // 如果有公司信息（如：“公共库”）
         if (treeScoped.includes(company.title)) return true;
         if (company.children) {
@@ -204,8 +204,117 @@ export default {
         }
         return false;
       });
+      // if (!this.$store.state.admin) {
+      //   // 管理员可以看到所有产品 ,非管理员还需要过滤无查看权限的产品
+      //   let adminTreeData = cloneDeep(treeDataScoped);
+      //   treeDataScoped = [];
+      //   for (const companyData of adminTreeData) {
+      //     if (companyData.title == "公共库") {
+      //       treeDataScoped.push(companyData);
+      //       continue;
+      //     }
+      //     // console.log(`进入公司的过滤`, companyData.children);
+      //     // 公司->部门
+      //     const company_children = [];
+      //     for (const departmentData of companyData.children) {
+      //       // console.log(`进入部门过滤`, departmentData.children);
+      //       // 部门->分类
+      //       const depart_children = [];
+      //       for (let classifyData of departmentData.children) {
+      //         if (classifyData.title == "公共库") {
+      //           depart_children.push(classifyData);
+      //           continue;
+      //         }
+      //         if (classifyData.type == "classify") {
+      //           classifyData = await this.filterClassify(
+      //             classifyData,
+      //             treeScoped
+      //           );
+      //           if (classifyData.children.length > 0) {
+      //             depart_children.push(classifyData); // 分类->部门
+      //             // console.log("部门增加分类：", classifyData, depart_children);
+      //           }
+      //         } else if (classifyData.type == "product") {
+      //           const depart_product = await this.filterProduct(classifyData);
+      //           // console.log("产品过滤结果2：", depart_product);
+      //           if (depart_product.canKeep) {
+      //             depart_children.push(depart_product.node); // 产品->部门
+      //             // console.log("部门增加产品：", depart_product);
+      //           }
+      //         }
+      //       }
+      //       if (depart_children.length > 0) {
+      //         departmentData.children = depart_children;
+      //         company_children.push(departmentData); // 部门->公司
+      //       }
+      //       // console.log("部门的分类变更为：", departmentData);
+      //     }
+      //     companyData.children = company_children;
+      //     // console.log("公司的分类变更为：", companyData.children, companyData);
+      //     if (companyData.children.length > 0) {
+      //       treeDataScoped.push(companyData); // 公司->状态树
+      //     }
+      //   }
+      // }
       this.treeData = treeDataScoped;
       // console.log("过滤后的分类树", this.treeData);
+    },
+    // 根据读写权限过滤分类级的状态树（非管理员）
+    async filterClassify(classify, treeScoped) {
+      // console.log(`开始过滤分类：${classify.title}`, classify);
+      const filterData = cloneDeep(classify);
+      // 1. 处理所有子节点：返回 { canKeep: 是否保留, node: 处理后的节点 }
+      const processedChildren = await Promise.all(
+        filterData.children.map(async (node) => {
+          if (node.type === "classify") {
+            // 递归过滤子分类
+            const filteredSubClassify = await this.filterClassify(
+              node,
+              treeScoped
+            );
+            // 保留条件：过滤后的子分类仍有子节点（或根据需求调整，比如自身权限）
+            const canKeep = filteredSubClassify.children.length > 0;
+            return { canKeep: canKeep, node: filteredSubClassify };
+          } else if (node.type === "product") {
+            let res_ = await this.filterProduct(node);
+            // console.log("产品过滤结果：", res_);
+            return res_;
+          }
+          // 其他类型默认不保留
+          return { canKeep: false, node };
+        })
+      );
+
+      // console.log("过滤前的节点结构", processedChildren);
+      // 2. 过滤出需要保留的节点，并还原为原始节点结构
+      filterData.children = [];
+      for (const child of processedChildren) {
+        if (child.canKeep) {
+          filterData.children.push(child.node);
+        }
+      }
+      // console.log("过滤后的分类：", filterData);
+      return filterData;
+    },
+    // 根据读写权限过滤产品级的状态树（非管理员）
+    async filterProduct(product) {
+      // console.log(`开始过滤产品：${product.title}`, product);
+      // 保留条件：产品能被查看
+      let filterProductRes = { canKeep: false, node: product };
+      if (!this.$store.state.admin) {
+        filterProductRes.canKeep = await getUserProduct({
+          productId: product.key,
+        })
+          .then((res) => {
+            return res.data && res.data.read === 1;
+          })
+          .catch((err) => {
+            // console.log(`请联系管理员增加该产品的查看权限。`, product);
+            return false;
+          });
+      }
+      // console.log(product.title, "能否被查看", filterProductRes);
+      return filterProductRes;
     },
     classifyClose(closeFlag) {
       this.classifyVisible = false;
@@ -213,7 +322,7 @@ export default {
         // 如果只是close的话，不用重新获取树和刷新页面
         this.getClassTree();
         this.$refs.productEntry.refresh(this.currentClickProduct);
-      } else console.log("没进close");
+      } else console.log("没进close，不用重新获取树和刷新页面");
     },
     updateClose() {
       this.updateVisible = false;
@@ -347,18 +456,34 @@ export default {
     },
     // 查询产品 用户是否可编辑
     getproductIsEdit(productId) {
-      if (this.$store.state.admin) {
-        this.productEdit = true;
-      } else {
-        let params = { productId: productId };
-        getUserProduct(params).then((res) => {
-          if (res.data && res.data.write === 1) {
+      // 统一返回 Promise
+      return new Promise((resolve, reject) => {
+        try {
+          if (this.$store.state.admin) {
             this.productEdit = true;
+            resolve(true);
           } else {
-            this.productEdit = false;
+            let params = { productId: productId };
+            getUserProduct(params)
+              .then((res) => {
+                if (res.data && res.data.write === 1) {
+                  this.productEdit = true;
+                  resolve(true);
+                } else {
+                  this.productEdit = false;
+                  resolve(false);
+                }
+              })
+              .catch((err) => {
+                // console.log("请联系管理员增加该产品的编辑权限。");
+                reject(err);
+              });
           }
-        });
-      }
+        } catch (error) {
+          // 捕获同步代码中的错误
+          reject(error);
+        }
+      });
     },
     // 分类拖拽
     onDragEnter(info) {
