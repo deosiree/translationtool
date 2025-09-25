@@ -51,6 +51,8 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity>  importExcle(MultipartFile multipartFile,String taskID);
 
+    boolean checkBeforeAddSingleEntry(EntryInfoEntity entryInfoEntity,String department);
+
     EntryInfoEntity addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request);
 
     TranslateEntities translate(String name, String type,String visualRange);

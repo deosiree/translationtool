@@ -4290,6 +4290,18 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return true;
     }
 
+    @Override
+    public boolean checkBeforeAddSingleEntry(EntryInfoEntity entryInfoEntity,String department) {
+        // TODO Auto-generated method stub
+        if(department.equals("装置开发部")){
+            String classfy2 = entryInfoEntity.getClassfy2();
+            return StringUtils.isNotBlank(classfy2);
+        }else{
+            return true;
+        }
+        
+    }
+
 
 
 

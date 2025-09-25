@@ -364,10 +364,16 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Token
     @Transactional
-    public HttpResponse<EntryInfoEntity> addSingleEntry(@RequestBody EntryInfoEntity entryInfoEntity,
-                                               HttpServletRequest request) {
-        //tableName = "t_version_202311";
-        return checkResult(entryInfoService.addSingleEntry(entryInfoEntity, request));
+    public HttpResponse<EntryInfoEntity> addSingleEntry(@RequestBody EntryInfoEntity entryInfoEntity,HttpServletRequest request) {
+                        
+        String department = JWTTokenUtils.getDepartment(request.getHeader("token"));
+
+        boolean isLegal = entryInfoService.checkBeforeAddSingleEntry(entryInfoEntity,department);
+        if(!isLegal){
+            return error(entryInfoEntity, "当前词条不符合规范,请检查词条的二级分类是否为空字符串");
+        }
+        EntryInfoEntity savedEntity = entryInfoService.addSingleEntry(entryInfoEntity, request);
+        return ok(savedEntity);
     }
 
     @PostMapping("/updateEntryTemp")
