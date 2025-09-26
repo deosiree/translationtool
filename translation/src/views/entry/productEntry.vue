@@ -330,9 +330,8 @@
   </div>
   <CreateVersionModal :visible="createVisible" :currentDepartment="currentDepartment" :selectedProducts="selectedProducts" :dataSource="selectEntry"
     :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
-    @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event" 
-    @update:selectedProducts="selectedProducts = $event" @createClose="createClose" @refresh="refreshTable"
-    @cancelCreate="cancelCreate" />
+    @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event"
+    @update:selectedProducts="selectedProducts = $event" @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product" @dictionaryClose="dictionaryClose" />
@@ -643,8 +642,8 @@ export default {
       selectedRows: [],
       selectedRowIndex: null,
       selectedProducts: {
-        products: new Map(),// 切换到当前产品前的已选词条的产品记录
-        totalNum: 0,// 切换到当前产品前的已选词条总数
+        products: new Map(), // 切换到当前产品前的已选词条的产品记录
+        totalNum: 0, // 切换到当前产品前的已选词条总数
       },
       currentEntry: {},
       showOperationArea: false,
@@ -668,6 +667,7 @@ export default {
       filters: null,
       accurSearch: [], // 用于分页时的查询参数
       showForbbiden: false, // 显示/隐藏禁用
+      classifyLimit: {},
     };
   },
   created() {},
@@ -1111,6 +1111,23 @@ export default {
         },
       };
     },
+    // 获得限制长度[遍历分类级-产品级-模块级]
+    getClassfy(PID) {
+      let params = {
+        parentId: PID,
+        type: "module",
+      };
+      getClassfy(params)
+        .then((res) => {
+          this.classifyLimit = {};
+          res.data.list.forEach((element) => {
+            this.classifyLimit[element.title] = element;
+          });
+        })
+        .catch((err) => {
+          message.err(err.message);
+        });
+    },
     // 详情
     entryDetails(record) {
       this.selectedRowIndex = record.id;
@@ -1534,8 +1551,8 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedProducts = {
-        products: new Map(),// 切换到当前产品前的已选词条的产品记录
-        totalNum: 0,// 切换到当前产品前的已选词条总数
+        products: new Map(), // 切换到当前产品前的已选词条的产品记录
+        totalNum: 0, // 切换到当前产品前的已选词条总数
       };
       this.createVersionFlag = false;
       this.createVisible = false;
@@ -1636,10 +1653,12 @@ export default {
       if (this.product.type === "module") {
         this.classify1Option = [this.product]; // 可选项只有当前产品
         this.search.classfy1 = [this.product.title]; // 已选项默认为当前产品的名称
+        this.getClassfy(this.product.parentId); // 获取当前模块的限制长度
       } else if (this.product.type === "product") {
         this.product.children.forEach((item) => {
           this.classify1Option.push(item);
         });
+        this.getClassfy(this.product.key); // 获取当前产品的限制长度
       }
     },
     // 二级分类管理
