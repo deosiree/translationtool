@@ -18,7 +18,7 @@ public class LocalTimeUtils {
 
     public static DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
     /* 导出的excel、csv对应时间单元格的内容格式 */
-    public static DateFormat formatForFile = new SimpleDateFormat("yyyy-MM-dd HH:mm:sss");
+    public static DateFormat formatForFile = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static DateFormat formatForExportFile = new SimpleDateFormat("yyyyMMddhhmmss");
     public static DateFormat format2ForFile = new SimpleDateFormat("yyyy/MM/dd HH:mm:sss");

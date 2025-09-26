@@ -1332,7 +1332,8 @@ public class ExcelUtils {
                     } else if (fieldValue instanceof Number) {
                         dataCell.setCellValue(((Number) fieldValue).doubleValue());
                     } else if (fieldValue instanceof Date) {
-                        dataCell.setCellValue((Date) fieldValue);
+                        String dateString = LocalTimeUtils.formatForFile.format(fieldValue);
+                        dataCell.setCellValue(dateString);
                     } else if (fieldValue instanceof Boolean) {
                         dataCell.setCellValue((Boolean) fieldValue);
                     } else {
