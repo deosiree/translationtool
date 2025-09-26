@@ -16,8 +16,8 @@
               <template v-if="column.dataIndex === 'entryState'">
                 <EntryStateBadge :entryState="text" />
               </template>
-              <template
-                v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
+              <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
+              <template v-if="langTranslateStateList.includes(column.dataIndex)">
                 <TransStateBadge :translateState="text" />
               </template>
               <template v-if="column.dataIndex === 'operation'">
@@ -66,17 +66,12 @@
       <a-button type="primary" danger @click="deleteEntrys" v-if="$store.state.admin">删除</a-button>
       <a-button type="primary" danger @click="forrbiddenEntrys">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions="fieldOptions" size="middle" buttonTitle="导出" />
-      <!-- <a-button type="primary" @click="exportExcel">导出Excel</a-button>
-      <a-button type="primary" @click="exportXml">导出XML</a-button>
-      <a-button type="primary" @click="exportCSV">导出CSV</a-button> -->
-      <!-- v-if="user.department === '装置开发部'" -->
       <a-button type="primary" @click="examine" v-if="currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
     </template>
   </CustomModal>
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
     @afterClose="afterOperateClose">
     <div style="width:100%;height:100%">
-
       <a-form v-if="title === '创建版本'" :model="version" autocomplete="off" ref="versionForm" :label-col="{ span: 6 }">
         <a-form-item label="产品版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
           <a-input v-model:value="version.versionName" placeholder="请输入版本名称"></a-input>
@@ -85,14 +80,6 @@
           <a-textarea v-model:value="version.remarks" placeholder="请输入备注" :rows="4" />
         </a-form-item>
       </a-form>
-      <!-- <a-spin :spinning="exportLoading">
-        <a-form v-if="title === '导出'||title === '导出CSV'" :model="exportClass" autocomplete="off" ref="exportForm" :label-col="{ span: 4 }">
-          <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
-            <a-select mode="multiple" v-model:value="exportClass.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
-              placeholder="请选择" allowClear></a-select>
-          </a-form-item>
-        </a-form>
-      </a-spin> -->
       <div class="table" v-if="title === '选择任务'">
         <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource" :row-selection='taskRowSelection'
           :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
@@ -141,18 +128,12 @@
               <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
             </a-tooltip>
           </a-form-item>
-          <!-- <a-form-item
-                label="回写Tag"
-                name="isTag"
-                >
-                    <a-switch v-model:checked="writeBack.isTag" checked-children="是" un-checked-children="否" />
-                </a-form-item>
-                <a-form-item
-                label="回写来源"
-                name="isComment"
-                >
-                    <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
-                </a-form-item> -->
+          <!-- <a-form-item label="回写Tag" name="isTag">
+            <a-switch v-model:checked="writeBack.isTag" checked-children="是" un-checked-children="否" />
+          </a-form-item>
+          <a-form-item label="回写来源" name="isComment">
+            <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
+          </a-form-item> -->
 
         </a-form>
       </a-spin>
@@ -196,7 +177,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import { entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/utils/commonParam.js";
 import {
   pageChange,
   getColPref,
@@ -379,7 +360,7 @@ export default {
       writeBack: {
         language: cachedLanguages
           ? JSON.parse(cachedLanguages)
-          : ["英文", "俄文", "西文", "法文"], // 默认全选或从缓存读取
+          : commonParam.langNameList, // 默认全选或从缓存读取["英文", "俄文", "西文", "法文"]
         type: "DEFAUT",
         label: "",
         file: null,
@@ -392,6 +373,7 @@ export default {
       },
       writeBackLoading: false,
       ipOptions: [],
+      langTranslateStateList: commonParam.langTranslateStateList,
     };
   },
 

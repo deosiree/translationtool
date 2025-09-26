@@ -12,11 +12,7 @@
         词条：
         <a-textarea v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' :auto-size="{ minRows: 1 }" />
         <span style="margin-left:10px">词条状态：</span>
-        <a-select v-model:value="entryState" size="small" style="width: 300px" allowClear>
-          <a-select-option value="1">待审核</a-select-option>
-          <a-select-option value="2">审核不通过</a-select-option>
-          <a-select-option value="3">审核通过</a-select-option>
-        </a-select>
+        <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'" :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
@@ -189,6 +185,7 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
+import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
@@ -232,6 +229,7 @@ export default {
     SearchOutlined,
     InfoCircleOutlined,
     CustomModal,
+    EntryStateSelect,
     IsExistBadge,
     EntryStateBadge,
     TransStateBadge,
@@ -415,7 +413,6 @@ export default {
       },
     };
   },
-
   created() {},
   mounted() {
     this.task = this.currentTask;

@@ -23,9 +23,8 @@
                 <a-col :span="12">
                   <div class="inline-left-align">
                     <span>翻译状态：</span>
-                    <a-select v-model:value="search.translateState" style="width: 150px" placeholder="请选择" :options='translateStates' size="small"
-                      @click="clickInput" allowClear>
-                    </a-select>
+                    <TransStateSelect :entryState="search.translateState" @update:translateState="search.translateState = $event" :size="'small'"
+                      :style="'width: 150px'" :filter="new Set(['3'])" />
                   </div>
                 </a-col>
                 <a-col :span="12">
@@ -316,6 +315,7 @@
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep } from "lodash-es";
 import {
@@ -380,6 +380,7 @@ export default {
     CheckOutlined,
     CloseOutlined,
     RulesDropdown,
+    TransStateSelect,
     TransStateBadge,
   },
   emits: ["handleClose", "handleOK"],
@@ -506,12 +507,6 @@ export default {
         specialIds: new Set(),
         redHighlightIds: new Set(),
       },
-      translateStates: [
-        { label: "未翻译", value: "0" },
-        { label: "待审核", value: "1" },
-        { label: "审核不通过", value: "2" },
-        // { label: "已审核", value: "3" },
-      ], // 翻译状态
       editableData: {},
       pagination: {
         pageSizeOptions: ["20", "50", "100"],

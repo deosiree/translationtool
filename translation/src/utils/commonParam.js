@@ -120,6 +120,7 @@ export default {
       label: "通用平台部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
+      classfyID:"1",
       ops: new Set(["needWriteBack", "needGit", "needExamine"]),
       // -needWriteBack是否需要回写；
       // -needGit是否需要git推送（词条管理）; 
@@ -129,6 +130,7 @@ export default {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "jk",
+      classfyID:"6",
       ops: new Set(["needWriteBack", "needGit", "needExamine"]),
     },
     "装置开发部": {
@@ -143,7 +145,9 @@ export default {
         { label: 'xml装置辞典', value: '装置辞典' },
       ],
       value: "zz",
-      ops: new Set(["needExamine"]),
+      classfyID:"2",
+      ops: new Set(["needExamine", "entryState3"]),
+      // -entryState3默认词条审核状态为“已审核”
     },
     "人工智能部": {
       label: "人工智能部",
@@ -155,13 +159,15 @@ export default {
       label: "柔性输电系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "rx",// 瞎写的
+      classfyID:"101",
       ops: new Set([]),
     },
     "default": {
-      label: "默认部门",
+      label: "公共库",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "default",
-      ops: new Set(["needWriteBack", "needGit", "needExamine"]),
+      classfyID:"3",
+      ops: new Set([]),
     }
   },
   departmentList: [
@@ -186,7 +192,7 @@ export default {
       value: "rx"
     },
     {
-      label: "默认部门",
+      label: "公共库",
       value: "default"
     }
   ],

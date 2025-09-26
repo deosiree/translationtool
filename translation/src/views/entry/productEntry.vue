@@ -8,13 +8,8 @@
               <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
             </a-form-item>
             <a-form-item label="词条状态" name="state" style="margin-top: 8px">
-              <a-select v-model:value="search.entryState" placeholder="请选择" allowClear>
-                <a-select-option value="0">新建</a-select-option>
-                <a-select-option value="1">审核中</a-select-option>
-                <a-select-option value="2">审核不通过</a-select-option>
-                <a-select-option value="3">已审核</a-select-option>
-                <a-select-option value=-1>禁用</a-select-option>
-              </a-select>
+              <EntryStateSelect :entryState="search.entryState" @update:entryState="search.entryState = $event" :showForbbiden="showForbbiden"
+                @update:showForbbiden="showForbbiden = $event" />
             </a-form-item>
             <a-form-item label="tag" name="tag" style="margin-top: 8px">
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
@@ -38,8 +33,7 @@
               </a-select>
             </a-form-item>
             <a-form-item label="翻译状态" name="translateState" style="margin-top: 8px">
-              <a-select v-model:value="search.translateState" placeholder="请选择" :options='translateStates' allowClear>
-              </a-select>
+              <TransStateSelect :entryState="search.translateState" @update:translateState="search.translateState = $event" />
             </a-form-item>
             <a-form-item label="翻译结果" name="translate" style="margin-top: 8px">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
@@ -64,8 +58,10 @@
             </a-form-item>
           </a-row>
           <a-row style="width:100%" class="search-row" justify="end">
-            <a-button type="primary" size="middle" danger @click="reset" style="margin:0 8px">显示禁用</a-button>
-            <a-button type="primary" size="middle" class="yellowBtn" @click="reset" style="margin:0 8px">隐藏禁用</a-button>
+            <a-button type="primary" size="middle" :danger="!showForbbiden" :class="{ yellowBtn: showForbbiden }" @click="changeForbbiden"
+              style="margin:0 8px" v-if="admin">
+              {{ showForbbiden ? '隐藏禁用' : '显示禁用' }}
+            </a-button>
             <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin:0 8px">重置</a-button>
             <a-button type="primary" size="middle" @click="conditionalQuery" style="margin:0 8px">查询</a-button>
             <AccurSearchButton @update:accurSearch="accurSearch=$event" :fieldOptions="exportFields" @searchFunction="conditionalQuery($event)"
@@ -350,6 +346,8 @@ import OperationArea from "@/components/operationArea/index.vue";
 import ImportButton from "@/components/Button/importButton.vue";
 import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
+import EntryStateSelect from "@/components/select/entryStateSelect.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import EditReason from "@/views/entry/editReason.vue";
@@ -423,6 +421,8 @@ export default {
     ImportButton,
     AccurSearchButton,
     GitCommitButton,
+    EntryStateSelect,
+    TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
     EditReason,
@@ -472,7 +472,8 @@ export default {
         translateType: null,
         classfy1: [],
         classfy2: [],
-        entryState: "3", // 默认搜索“已审核”
+        entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
+        entryState: null, // 查询条件中的词条状态
         tag: "",
         entrySource: "",
         language: null,
@@ -493,12 +494,6 @@ export default {
         "翻译结果",
         "Comment",
         "辞典名称",
-      ],
-      translateStates: [
-        { label: "未翻译", value: "0" },
-        { label: "待审核", value: "1" },
-        { label: "审核不通过", value: "2" },
-        { label: "已审核", value: "3" },
       ],
       translateTypes: [],
       tableTitle: "词条列表",
@@ -671,7 +666,7 @@ export default {
       selectAllLoading: false,
       filters: null,
       accurSearch: [], // 用于分页时的查询参数
-      accurOrNot: false, // 是否是精确查询
+      showForbbiden: false, // 显示/隐藏禁用
     };
   },
   created() {},
@@ -687,12 +682,16 @@ export default {
       } else {
         this.currentDepartment = commonParam.departmentMap["default"];
       }
+      this.search.entryState = this.currentDepartment.ops.has("entryState3")
+        ? "3"
+        : null;
       this.admin = this.$store.state.admin;
       //保证初次传的值给到
       this.box = this.boxHeight;
       this.edit = this.productEdit;
       this.setTableHeight();
       this.product = this.currentProduct;
+
       this.getLanguage();
       // 读取本地存储的用户偏好
       getColPref("colPref-productEntry", 200, this);
@@ -840,6 +839,17 @@ export default {
         this.translateTypes = res.data.list;
       });
     },
+    // 切换显示/隐藏禁用
+    changeForbbiden() {
+      console.log("切换");
+      this.showForbbiden = this.showForbbiden ? false : true;
+      if (this.showForbbiden) {
+        this.search.entryState_ = [0, 1, 2, 3, -1];
+      } else {
+        this.search.entryState_ = [0, 1, 2, 3];
+      }
+      this.getEntryByVersion();
+    },
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
@@ -889,11 +899,12 @@ export default {
       };
       getVersionByName(params).then((res) => {
         this.productVersions = res.data.list;
-        if (this.productVersions.length > 0) {
-          this.currentVersion = this.productVersions[0].id;
-        } else {
-          this.currentVersion = null;
-        }
+        // // 当前产品版本设置为第一个版本
+        // if (this.productVersions.length > 0) {
+        //   this.currentVersion = this.productVersions[0].id;
+        // } else {
+        //   this.currentVersion = null;
+        // }
         // 获取版本下的词条
         this.getEntryByVersion(searchparams.isInit, searchparams.accurate);
       });
@@ -940,7 +951,10 @@ export default {
         classfy1: this.search.classfy1,
         classfy2: this.search.classfy2,
         // classfy1: this.product.type === "module" ? this.product.title : "",
-        entryState: this.search.entryState,
+        entryState:
+          this.search.entryState == null
+            ? this.search.entryState_
+            : [this.search.entryState],
         tag: this.search.tag,
         entrySource: this.search.entrySource,
         comment: this.search.comment,
@@ -1339,7 +1353,8 @@ export default {
         translateType: null,
         classfy1: [],
         classfy2: [],
-        entryState: "3", // 默认搜索“已审核”
+        entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
+        entryState: this.currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
         tag: "",
         entrySource: "",
         language: null,
@@ -1353,6 +1368,7 @@ export default {
         diFileName: null,
         update: null,
       };
+      this.showForbbiden = false; // 默认不显示禁用
       // this.getEntryByVersion();
       this.conditionalQuery();
     },
@@ -1463,7 +1479,10 @@ export default {
         classfy1: this.search.classfy1,
         classfy2: this.search.classfy2,
         // classfy1: this.product.type === "module" ? this.product.title : "",
-        entryState: this.search.entryState,
+        entryState:
+          this.search.entryState == null
+            ? this.search.entryState_
+            : [this.search.entryState],
         tag: this.search.tag,
         entrySource: this.search.entrySource,
       };

@@ -15,8 +15,8 @@
             </a-select>
           </a-form-item>
           <a-form-item label="翻译状态" name="translateState">
-            <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择翻译状态" :options='translateStates' allowClear>
-            </a-select>
+            <TransStateSelect :entryState="search.translateState" @update:translateState="search.translateState = $event" :style="'width: 186px'"
+              :placeholder="'请选择翻译状态'" />
           </a-form-item>
           <a-form-item label="可见范围" name="visualRange">
             <a-select v-model:value="search.visualRange" style="width: 186px" placeholder="请选择可见范围" :options='visualRanges' allowClear>
@@ -106,6 +106,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import { updateUserPartiality } from "@/http/api/userPartiality";
@@ -144,7 +145,7 @@ import {
   setModalAriaHidden,
   getSearch,
 } from "@/utils/commonUtils";
-import { glossaryParams } from "@/utils/commonParam.js";
+import commonParam, { glossaryParams } from "@/utils/commonParam.js";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
@@ -152,6 +153,7 @@ export default {
     DataBox,
     ResetButton,
     BatchSelectButton,
+    TransStateSelect,
     TransStateBadge,
     RelationModal,
     PlusOutlined,
@@ -176,18 +178,10 @@ export default {
         searchType: null,
       },
       lastSearch: {}, // 存储上一次的查询条件
-      translateStates: [
-        { label: "未翻译", value: "0" },
-        { label: "待审核", value: "1" },
-        { label: "审核不通过", value: "2" },
-        { label: "已审核", value: "3" },
-      ],
-      visualRanges: [
-        { label: "通用平台部", value: "通用平台部" },
-        { label: "监控系统部", value: "监控系统部" },
-        { label: "装置开发部", value: "装置开发部" },
-        { label: "柔性输电系统部", value: "柔性输电系统部" },
-      ],
+      visualRanges: Object.values(commonParam.departmentMap).map(dept => ({
+        label: dept.label,
+        value: dept.label
+      })),
       searchTypes: [
         { label: "格式校验", value: "checkSykEntry" },
         { label: "空挂术语", value: "getSykNotUsed" },

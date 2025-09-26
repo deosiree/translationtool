@@ -281,19 +281,10 @@ export default {
       ],
       dataSource: [], // 表格数据
       i18nOptions: [], // i18n状态
-      classfyIDs: [
-        { label: "通用平台部", value: "1" },
-        { label: "柔性输电系统部", value: "101" },
-        { label: "装置开发部", value: "2" },
-        { label: "监控系统部", value: "6" },
-        { label: "公共库", value: "3" },
-      ], // 词条状态
-      entryStates: [
-        { label: "新建", value: "0" },
-        { label: "审核中", value: "1" },
-        { label: "审核不通过", value: "2" },
-        { label: "已审核", value: "3" },
-      ], // 词条状态
+      classfyIDs: Object.values(commonParam.departmentMap).map(dept => ({
+        label: dept.label,
+        value: dept.classfyID
+      })), // 词条状态
       classify2Option: [], // 二级分类
       translateTypes: [], // 翻译语言
       entrySources: [], // 词条来源

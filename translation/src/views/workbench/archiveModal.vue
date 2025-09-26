@@ -12,20 +12,9 @@
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">词条状态：</span>
-        <a-select v-model:value="entryState" size="small" style="width: 300px" placeholder="请选择" allowClear>
-          <a-select-option value="0">新建</a-select-option>
-          <a-select-option value="1">审核中</a-select-option>
-          <a-select-option value="2">审核不通过</a-select-option>
-          <a-select-option value="3">已审核</a-select-option>
-          <a-select-option value=-1>禁用</a-select-option>
-        </a-select>
+        <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'" />
         <span style="margin-left:10px">翻译状态：</span>
-        <a-select v-model:value="translateState" size="small" style="width: 300px" placeholder="请选择" allowClear>
-          <a-select-option value="0">未翻译</a-select-option>
-          <a-select-option value="1">未审核</a-select-option>
-          <a-select-option value="2">审核不通过</a-select-option>
-          <a-select-option value="3">已审核</a-select-option>
-        </a-select>
+        <TransStateSelect :entryState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>
@@ -119,6 +108,8 @@
 <script>
 import CustomModal from "@/components/modal/index.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
+import EntryStateSelect from "@/components/select/entryStateSelect.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep, iteratee } from "lodash-es";
@@ -159,6 +150,8 @@ export default {
     ExclamationCircleOutlined,
     CustomModal,
     IsExistBadge,
+    EntryStateSelect,
+    TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
   },

@@ -31,11 +31,7 @@
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">翻译状态：</span>
-        <a-select v-model:value="translateState" allowClear size="small" style="width: 300px" placeholder='请选择'>
-          <a-select-option value="1">待审核</a-select-option>
-          <a-select-option value="2">审核不通过</a-select-option>
-          <a-select-option value="3">审核通过</a-select-option>
-        </a-select>
+        <TransStateSelect :entryState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
@@ -188,6 +184,7 @@
 <script>
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
@@ -228,6 +225,7 @@ export default {
     CaretDownOutlined,
     CaretRightOutlined,
     SettingOutlined,
+    TransStateSelect,
     IsExistBadge,
     EntryStateBadge,
     TransStateBadge,
