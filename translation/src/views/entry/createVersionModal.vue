@@ -183,6 +183,7 @@ import {
   getColPref,
   setModalAriaHidden,
 } from "@/utils/commonUtils";
+import { cloneDeep } from "lodash-es";
 export default {
   components: {
     CustomModal,
@@ -204,6 +205,7 @@ export default {
     "update:dataSource", // 添加 update:dataSource 事件
     "update:selectedRowKeys", // 添加 update:selectedRowKeys 事件
     "update:selectedRows", // 添加 update:selectedRows 事件
+    "update:selectedProducts",
   ],
   props: {
     visible: {
@@ -357,9 +359,9 @@ export default {
       ],
       taskDataSource: [],
       selectedTaskRows: [],
-      langOptions:Object.values(commonParam.languageMap).map(lang => ({
+      langOptions: Object.values(commonParam.languageMap).map((lang) => ({
         label: lang.name,
-        value: lang.name
+        value: lang.name,
       })),
       writeBack: {
         language: cachedLanguages
@@ -480,9 +482,26 @@ export default {
       const newSelectedRows = this.selectedRows.filter((item) => {
         return item.id != record.id;
       });
-      this.$emit("update:dataSource", newdataSource); // 重新更新dataSource，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
-      this.$emit("update:selectedRowKeys", newSelectedRowKeys); // 重新更新selectedRowKeys，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
-      this.$emit("update:selectedRows", newSelectedRows); // 重新更新selectedRows，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+      let newSelectedProducts = cloneDeep(this.selectedProducts);
+      const pID =
+        this.product.type == "module"
+          ? this.product.parentId
+          : this.product.key;
+      // 重新更新，触发table重新渲染，已选词条列表会自动更新，不需要重新请求接口获取数据了，减少接口调用次数，提升性能
+      this.$emit("update:dataSource", newdataSource); //
+      this.$emit("update:selectedRowKeys", newSelectedRowKeys);
+      this.$emit("update:selectedRows", newSelectedRows);
+      if (newSelectedProducts.products.size > 0 && record.productID != pID) {
+        newSelectedProducts.totalNum--; // 切换前的和已选词条不同步,需要手动更新
+        const num = newSelectedProducts.products.get(record.productID) - 1;
+        if (num != 0) newSelectedProducts.products.set(record.productID, num);
+        else newSelectedProducts.products.delete(record.productID);
+        this.$emit("update:selectedProducts", newSelectedProducts);
+        // console.log("去除的不是本产品的词条", newSelectedProducts, num);
+      } 
+      // else {
+      //   console.log("去除的是本产品的词条", newSelectedProducts);
+      // }
     },
     handleClose() {
       this.$emit("createClose");
@@ -575,7 +594,7 @@ export default {
         this.title = "选择任务";
         this.getTaskList();
       } else {
-        // console.log("存在非本产品的已选词条，不能选择任务。");
+        // console.log(products, this.product, "非本产品:", productID);
         Modal.confirm({
           title: "存在非本产品的已选词条，不能选择任务。",
           icon: createVNode(ExclamationCircleOutlined),
@@ -587,7 +606,6 @@ export default {
           onCancel: () => {},
         });
       }
-      // console.log(this.product, productID, products);
     },
     // 回写
     writeBackFun() {
@@ -730,83 +748,6 @@ export default {
           this.submitExamine();
         }
       }
-      // else if (this.title === "导出") {
-      //   this.exportLoading = true;
-      //   this.$refs.exportForm.validate().then(() => {
-      //     // 导出接口
-      //     let fields = ["id"].concat(this.exportClass.field);
-      //     let data = {
-      //       columnNames: fields,
-      //       entryInfoEntities: this.dataSource,
-      //       excelName: "词条导出",
-      //     };
-      //     let params = {
-      //       exportType: "excel",
-      //     };
-      //     entryExportByCondition(data, params)
-      //       .then((res) => {
-      //         let fileName = res.headers["content-disposition"]
-      //           .split(";")[1]
-      //           .split("filename=")[1];
-      //         let contentType = res.headers["content-type"];
-      //         const blob = new Blob([res.data], { type: contentType });
-      //         const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
-      //         a.download = decodeURI(fileName);
-      //         a.href = window.URL.createObjectURL(blob);
-      //         a.click();
-      //         a.remove();
-      //         window.URL.revokeObjectURL(a.href);
-      //         this.operateVisible = false;
-      //         this.$emit("createClose");
-      //         this.$emit("cancelCreate");
-      //       })
-      //       .finally(() => {
-      //         this.exportLoading = false;
-      //       });
-      //     // 记录偏好
-      //     this.exportFieldChange(this.exportClass.field);
-      //   });
-      // }
-      // else if (this.title === "导出CSV") {
-      //   this.exportLoading = true;
-      //   this.$refs.exportForm.validate().then(() => {
-      //     // 导出接口
-      //     let fields = ["id"].concat(this.exportClass.field);
-      //     let data = {
-      //       columnNames: fields,
-      //       entryInfoEntities: this.dataSource,
-      //       excelName: "词条导出",
-      //     };
-      //     let params = {
-      //       exportType: "csv",
-      //     };
-      //     entryExportByCondition(data, params)
-      //       .then((res) => {
-      //         // console.log("导出结果:", res);
-      //         let fileName =
-      //           res.headers["content-disposition"]
-      //             .split(";")[1]
-      //             .split("filename=")[1]
-      //             .split(".")[0] + ".csv"; //把xlsx改名为csv
-      //         let contentType = "text/csv;charset=utf-8";
-      //         const blob = new Blob([res.data], { type: contentType });
-      //         const a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
-      //         a.download = decodeURI(fileName);
-      //         a.href = window.URL.createObjectURL(blob);
-      //         a.click();
-      //         a.remove();
-      //         window.URL.revokeObjectURL(a.href);
-      //         this.operateVisible = false;
-      //         this.$emit("createClose");
-      //         this.$emit("cancelCreate");
-      //       })
-      //       .finally(() => {
-      //         this.exportLoading = false;
-      //       });
-      //     // 记录偏好
-      //     this.exportFieldChange(this.exportClass.field);
-      //   });
-      // }
     },
     // 提交词条审核
     submitExamine() {

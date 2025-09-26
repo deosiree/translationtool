@@ -330,7 +330,8 @@
   </div>
   <CreateVersionModal :visible="createVisible" :currentDepartment="currentDepartment" :selectedProducts="selectedProducts" :dataSource="selectEntry"
     :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
-    @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event" @createClose="createClose" @refresh="refreshTable"
+    @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event" 
+    @update:selectedProducts="selectedProducts = $event" @createClose="createClose" @refresh="refreshTable"
     @cancelCreate="cancelCreate" />
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product" @secondClassifyClose="secondClassifyClose" />
@@ -642,8 +643,8 @@ export default {
       selectedRows: [],
       selectedRowIndex: null,
       selectedProducts: {
-        products: new Map(),
-        totalNum: 0,
+        products: new Map(),// 切换到当前产品前的已选词条的产品记录
+        totalNum: 0,// 切换到当前产品前的已选词条总数
       },
       currentEntry: {},
       showOperationArea: false,
@@ -841,7 +842,6 @@ export default {
     },
     // 切换显示/隐藏禁用
     changeForbbiden() {
-      console.log("切换");
       this.showForbbiden = this.showForbbiden ? false : true;
       if (this.showForbbiden) {
         this.search.entryState_ = [0, 1, 2, 3, -1];
@@ -1534,8 +1534,8 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedProducts = {
-        products: new Map(),
-        totalNum: 0,
+        products: new Map(),// 切换到当前产品前的已选词条的产品记录
+        totalNum: 0,// 切换到当前产品前的已选词条总数
       };
       this.createVersionFlag = false;
       this.createVisible = false;
