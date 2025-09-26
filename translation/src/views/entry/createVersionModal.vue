@@ -94,12 +94,12 @@
           </a-form-item>
           <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择回写语言!' }]">
             <!-- 修改为多选 -->
-            <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
+            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择" @change="languageChange" allowClear>
               <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->
-              <a-select-option value="英文">英文</a-select-option>
+              <!-- <a-select-option value="英文">英文</a-select-option>
               <a-select-option value="俄文">俄文</a-select-option>
               <a-select-option value="西文">西文</a-select-option>
-              <a-select-option value="法文">法文</a-select-option>
+              <a-select-option value="法文">法文</a-select-option> -->
             </a-select>
           </a-form-item>
           <a-form-item label="回写类型" name="type">
@@ -357,10 +357,14 @@ export default {
       ],
       taskDataSource: [],
       selectedTaskRows: [],
+      langOptions:Object.values(commonParam.languageMap).map(lang => ({
+        label: lang.name,
+        value: lang.name
+      })),
       writeBack: {
         language: cachedLanguages
           ? JSON.parse(cachedLanguages)
-          : commonParam.langNameList, // 默认全选或从缓存读取["英文", "俄文", "西文", "法文"]
+          : commonParam.langNameList, // 默认全选或从缓存读取["英文", "俄文", "西文", "法文"]commonParam.langNameList
         type: "DEFAUT",
         label: "",
         file: null,
