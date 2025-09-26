@@ -61,7 +61,7 @@ export default {
       type: Array,
       required: true,
     },
-    fieldOptions: {
+    fieldOptions_: {
       type: Array,
       required: true,
     },
@@ -103,10 +103,23 @@ export default {
         xml_temp: false,
         ops: new Set(),
       }, // 当前用户所在部门的相关信息
+      fieldOptions: {},
     };
   },
   mounted() {
     this.$nextTick(() => {
+      // 排除导出字段中不能包含的列名（excel只能更新翻译，其他列改不了，而且不能传id列）
+      // "修改人"(目前更新接口不能自动修改修改人，只能在打开编辑后保存，来记录修改人与修改时间)
+      const filterColNames = [
+        "英文翻译id",
+        "俄文翻译id",
+        "西文翻译id",
+        "法文翻译id",
+        "中文翻译id",
+      ];
+      this.fieldOptions = this.fieldOptions_.filter(
+        (item) => !filterColNames.includes(item.label)
+      );
       // 获取当前用户信息
       this.user = this.$store.state.user;
       // 获取当前用户所在部门的相关信息
@@ -239,12 +252,12 @@ export default {
           // 自动转义并生成xml文件
           const itemDataList = [];
           uniqueEntries.forEach((item) => {
-            console.log(
-              "法国",
-              item,
-              this.exportModal.local_desc,
-              item[this.exportModal.local_desc]
-            );
+            // console.log(
+            //   "法国",
+            //   item,
+            //   this.exportModal.local_desc,
+            //   item[this.exportModal.local_desc]
+            // );
             const itemData = {
               abbr: item.entry != null ? item.entry : "",
               cn_desc: item.chinese != null ? item.chinese : "",
@@ -309,7 +322,7 @@ export default {
 
           // // 生成格式化 XML 字符串
           // const xmlString = xml.end({ pretty: true, indent: "  " });
-          console.log("生成的 XML 内容：\n", xmlString); // 关键：输出检查
+          // console.log("生成的 XML 内容：\n", xmlString); // 关键：输出检查
 
           // 创建 Blob 对象（类型为 XML）
           const blob = new Blob([xmlString], { type: "application/xml" });

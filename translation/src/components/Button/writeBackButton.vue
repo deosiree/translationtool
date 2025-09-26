@@ -10,12 +10,12 @@
           </a-form-item>
           <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择回写语言!' }]">
             <!-- 修改为多选 -->
-            <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" @change="languageChange" allowClear>
+            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择" @change="languageChange" allowClear>
               <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->
-              <a-select-option value="英文">英文</a-select-option>
+              <!-- <a-select-option value="英文">英文</a-select-option>
               <a-select-option value="俄文">俄文</a-select-option>
               <a-select-option value="西文">西文</a-select-option>
-              <a-select-option value="法文">法文</a-select-option>
+              <a-select-option value="法文">法文</a-select-option> -->
             </a-select>
           </a-form-item>
           <a-form-item label="回写类型" name="type">
@@ -105,10 +105,14 @@ export default {
     // 从本地缓存读取用户偏好
     const cachedLanguages = localStorage.getItem("writeBackLanguages");
     return {
+      langOptions: Object.values(commonParam.languageMap).map((lang) => ({
+        label: lang.name,
+        value: lang.name,
+      })),
       writeBack: {
         language: cachedLanguages
           ? JSON.parse(cachedLanguages)
-          : ["英文", "俄文", "西文", "法文"], // 默认全选或从缓存读取
+          : commonParam.langNameList, // 默认全选或从缓存读取["英文", "俄文", "西文", "法文"]
         type: "DEFAUT",
         label: "",
         file: null,
@@ -327,9 +331,11 @@ export default {
         message.success(successmsg);
       }
       if (failedLanguages.length > 0) {
-        failedmsg += `以下语言回写失败：${failedLanguages.join(", ")},请手动git。`;
+        failedmsg += `以下语言回写失败：${failedLanguages.join(
+          ", "
+        )},请手动git。`;
         message.error(failedmsg);
-      } 
+      }
       this.loading = false;
 
       // 回写完成，开始执行git推送

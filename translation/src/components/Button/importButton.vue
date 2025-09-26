@@ -10,13 +10,13 @@
           </a-select>
         </a-form-item>
         <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="importModal.language" placeholder="请选择语言" :options='translateTypes' :fieldNames="{label:'name',value:'name'}"
-            allowClear>
+          <a-select mode="multiple" v-model:value="importModal.language" placeholder="请选择语言" :options='translateTypes'
+            :fieldNames="{label:'name',value:'name'}" allowClear>
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
           <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
-            @remove="removeFile" :disabled="!importModal.language || !importModal.importType">
+            @remove="removeFile" :disabled="!importModal.importType||(!this.importModal.language || this.importModal.language.length == 0)">
             <a-button type="primary" size="small" @click="getAccept">选择</a-button>
           </a-upload>
         </a-form-item>
@@ -55,7 +55,7 @@ export default {
       importLoading: false,
       importModal: {
         importFile: null,
-        language: null,
+        language: [],
         importType: null,
       },
       importTypes: [
@@ -92,15 +92,12 @@ export default {
       if (!this.$refs.importForm) return;
       this.$refs.importForm
         .validate()
-        .then(() => {
+        .then(async () => {
           this.importLoading = true;
           const formData = new FormData();
+          const promises = [];
+          const msg = { success: [], failed: [] };
           formData.append("file", this.importModal.importFile);
-          const params = {
-            transType: this.importModal.language,
-            // importType: this.importModal.importType,// 后端不需要这个参数
-          };
-
           // console.log("formData", formData);
           // console.log("file", this.importModal.importFile);
           // console.log("transType", this.importModal.language);
@@ -109,29 +106,55 @@ export default {
           // for (const [key, value] of formData.entries()) {
           //   console.log(`${key}: ${value}`);
           // }
+          function entryImportFn(lang, formData) {
+            // 每种翻译语言的导入
+            const params = {
+              transType: lang,
+              // importType: this.importModal.importType,// 后端不需要这个参数
+            };
+            return entryImportExcle(params, formData)
+              .then((res) => {
+                msg.success.push(lang);
+              })
+              .catch((err) => {
+                console.log("导入失败原因", err);
+                msg.success.push(lang);
+              });
+          }
 
-          entryImportExcle(params, formData)
-            .then((res) => {
-              message.success("导入成功！");
-              this.$emit("importSuccess");
+          for (const lang of this.importModal.language) {
+            promises.push(entryImportFn(lang, formData));
+          }
+          await Promise.allSettled(promises).then(() => {
+            this.$emit("importSuccess");
+            if (msg.success.length > 0) {
+              message.success(msg.success.join("，") + "导入成功！", 3);
+              // console.log(msg.success.join(","), "!");
+            }
+            if (msg.failed.length > 0) {
+              message.error(
+                msg.failed.join("，"),
+                `导入失败！注意，请使用在词条管理中导出的文件进行导入。`,
+                3
+              );
+            } else {
               this.importVisible = false;
-              this.importLoading = false;
-            })
-            .catch((err) => {
-              console.log("导入失败原因",err);
-              message.error(`导入失败！注意，请使用在词条管理中导出的文件进行导入`);
-              this.importLoading = false;
-            });
+            }
+          });
         })
         .catch((err) => {
-          message.error("未选择文件", err.message);
+          // console.log("未选择文件", err, this.importModal.language);
+          message.error("未选择文件", err);
+        })
+        .finally(() => {
+          this.importLoading = false;
         });
     },
     // 导入模态框关闭后回调
     importAfterClose() {
       this.importModal = {
         importFile: null,
-        language: null,
+        language: [],
         importType: null,
       };
       this.fileList = [];
@@ -165,7 +188,7 @@ export default {
         message.error("请选择文件类型！");
         return;
       }
-      if (!this.importModal.language) {
+      if (!this.importModal.language || this.importModal.language.length == 0) {
         message.error("请选择语言！");
         return;
       }
