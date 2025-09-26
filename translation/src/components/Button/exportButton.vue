@@ -47,7 +47,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import commonParam, { workbenchParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/utils/commonParam.js";
 import {
   setModalAriaHidden,
   getCurrentStringTime,
@@ -90,9 +90,9 @@ export default {
         { label: "csv", value: "csv" },
         { label: "xml", value: "xml" },
       ],
-      localDescOptions: workbenchParams.languageList.map((item) => ({
-        label: item.language,
-        value: item.code,
+      localDescOptions: commonParam.languageList.map((item) => ({
+        label: item.name,
+        value: item.value,
       })),
       fileHandle: null, // 新增，用于保存文件句柄
       user: null, // 当前用户的相关信息
@@ -103,7 +103,7 @@ export default {
         xml_temp: false,
         ops: new Set(),
       }, // 当前用户所在部门的相关信息
-      fieldOptions: {},
+      fieldOptions: entryParams.exportFields,
     };
   },
   mounted() {

@@ -404,7 +404,6 @@ export default {
     this.languageObj = commonParam.languageList.find(
       (it) => it.name === this.task.translateType
     );
-    // workbenchParams.languageMap[this.task.translateType].code
     this.$nextTick(() => {
       // 读取本地存储的用户偏好
       getColPref("colPref-examineTranslateModal", 100, this);

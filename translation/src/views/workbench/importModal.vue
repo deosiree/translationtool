@@ -825,7 +825,7 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex = this.task.transMap.value; // workbenchParams.languageMap[this.task.translateType].code
+          item.dataIndex = this.task.transMap.value;
         }
       });
     },

@@ -373,12 +373,11 @@ export default {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex =
-            workbenchParams.languageMap[this.task.translateType].code;
+            commonParam.languageMap[this.task.translateType].value;
         }
         if (item.title === "翻译状态") {
           item.dataIndex =
-            workbenchParams.languageMap[this.task.translateType].code +
-            "TranslateState";
+            commonParam.languageMap[this.task.translateType].state;
         }
       });
     },
@@ -422,9 +421,7 @@ export default {
       if (!data) {
         return;
       }
-      let code =
-        workbenchParams.languageMap[this.task.translateType].code +
-        "TranslateState";
+      let code =commonParam.languageMap[this.task.translateType].state;
       let flag = false;
       data.forEach((item) => {
         if (item.entryState != 3 || item[code] != 3) {

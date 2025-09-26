@@ -12,7 +12,8 @@
         词条：
         <a-textarea v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' :auto-size="{ minRows: 1 }" />
         <span style="margin-left:10px">词条状态：</span>
-        <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'" :filter="new Set(['0'])" />
+        <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'"
+          :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
@@ -438,8 +439,7 @@ export default {
     setTranslateColumn() {
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
-          item.dataIndex =
-            workbenchParams.languageMap[this.task.translateType].code;
+          item.dataIndex = this.task.transMap.value;
         }
       });
     },
