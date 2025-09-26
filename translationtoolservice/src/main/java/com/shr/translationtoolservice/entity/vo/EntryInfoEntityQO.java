@@ -110,7 +110,7 @@ public class EntryInfoEntityQO implements Serializable{
      * 3词条审核通过4已归档)
      */
     @TableField(value = "entry_state")
-    private Integer entryState;
+    private List<Integer> entryState;
 
     /**
      * 修改人
@@ -502,10 +502,10 @@ public class EntryInfoEntityQO implements Serializable{
     public void setEntrySource(String entrySource) {
         this.entrySource = entrySource;
     }
-    public Integer getEntryState() {
+    public List<Integer> getEntryState() {
         return entryState;
     }
-    public void setEntryState(Integer entryState) {
+    public void setEntryState(List<Integer> entryState) {
         this.entryState = entryState;
     }
     public String getUpdate() {
