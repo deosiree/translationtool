@@ -70,7 +70,7 @@ export default {
     this.$nextTick(() => {
       // 获取当前用户信息
       this.user = this.$store.state.user;
-      console.log("当前用户信息", this.commitMsg.userName);
+      // console.log("当前用户信息", this.commitMsg.userName);
 
       // 获取当前用户所在部门的相关信息
       if (
