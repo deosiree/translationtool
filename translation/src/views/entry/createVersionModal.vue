@@ -592,7 +592,7 @@ export default {
         setModalAriaHidden(this, document);
         this.operateWidth = "50%";
         this.title = "选择任务";
-        this.getTaskList();
+        this.getTaskList(productID);
       } else {
         // console.log(products, this.product, "非本产品:", productID);
         Modal.confirm({
@@ -616,13 +616,13 @@ export default {
       this.getIPs();
     },
     // 获取该产品下的任务
-    getTaskList() {
+    getTaskList(productID) {
       let params = {
         pageIndex: -1,
         pageSize: -1,
       };
       let data = {
-        productId: this.product.key,
+        productId: productID,
         state: "1,2,3,4,5",
       };
       searchTaskInfo(data, params).then((res) => {
