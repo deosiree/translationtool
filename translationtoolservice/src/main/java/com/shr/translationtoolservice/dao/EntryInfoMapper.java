@@ -95,7 +95,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
         @Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
 
 
-    int forrbiddenEntry(@Param("idList") List<String> idList);
+    int forrbiddenEntry(@Param("idList") Set<String> idList);
 
 }
 

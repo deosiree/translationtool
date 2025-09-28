@@ -1007,10 +1007,10 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("禁用词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> forrbiddenEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities){
+    public HttpResponse<String> forrbiddenEntry(@RequestBody List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request){
 
 
-        boolean isSuccess = entryInfoService.forrbiddenEntry(entryInfoEntities);
+        boolean isSuccess = entryInfoService.forrbiddenEntry(entryInfoEntities,request);
         if(isSuccess){
             return ok("已成功禁用" + entryInfoEntities.size() + "个词条");
         }else{

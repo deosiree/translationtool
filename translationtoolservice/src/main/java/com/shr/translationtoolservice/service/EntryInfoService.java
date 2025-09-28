@@ -144,6 +144,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
     /* 禁用词条 */
-    boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities);
+    boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request);
 
 }

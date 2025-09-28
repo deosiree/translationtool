@@ -4268,12 +4268,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities) {
+    public boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request) {
         // TODO Auto-generated method stub
-        int updateCount = entryInfoMapper.forrbiddenEntry(entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
+        Set<String> idList = entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toSet());
+        int updateCount = entryInfoMapper.forrbiddenEntry(idList);
         if(updateCount != entryInfoEntities.size()){
             return false;
         }
+        List<EntryInfoEntity> entities = entryInfoMapper.getEntryByIDs(idList);
+        String token = request.getHeader("token");
+        String user = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+        Date date = new Date(System.currentTimeMillis());
+        String info = "用户: \"" + user + "\"(" + department +")在" + LocalTimeUtils.formatForFile.format(date) + "(UTC-8)禁用该词条";
+        for(EntryInfoEntity entity : entities){
+            String remark = entity.getRemark();
+            EntryInfoEntity newEntity = new EntryInfoEntity();
+            newEntity.setRemark(remark != null ? remark + "," + info : info);
+            newEntity.setId(entity.getId());
+            String result =  this.updateEntryInfo(newEntity,request,info);
+            if(!result.equals(ConstantInterface.OK_STR)){
+                log.warn("禁用词条时更新备注信息存在异常,异常信息为: " + result);
+            }
+        }
+        
         return true;
     }
 

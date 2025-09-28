@@ -6,6 +6,7 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +25,11 @@ public class LocalTimeUtils {
     public static DateFormat format2ForFile = new SimpleDateFormat("yyyy/MM/dd HH:mm:sss");
     
     public static DateFormat format3ForFile = new SimpleDateFormat("yyyy/MM/dd");
+
+    static{
+
+        LocalTimeUtils.formatForFile.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
+    }
 
 
     public Date getBeijingTime() {
