@@ -51,7 +51,6 @@ export default {
       handler(newVal) {
         // 处理 options 变化
         this.$emit("update:options", newVal);
-        console.log("options 变化:", newVal);
       },
     },
   },

@@ -91,7 +91,7 @@
     <template v-slot:leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
       <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.ops.has('needWriteBack')">归档</a-button>
-      <a-button type="primary" ghost @click="placeOnFile2" v-if="!currentDepartment.ops.has('needWriteBack')">结束任务</a-button>
+      <a-button type="primary" ghost @click="placeOnFile2">结束任务</a-button>
     </template>
   </CustomModal>
   <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"

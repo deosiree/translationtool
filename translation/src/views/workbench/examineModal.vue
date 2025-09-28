@@ -7,6 +7,7 @@
         <div class="taskItem">产品名称：{{task.productName}}</div>
         <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
         <div class="taskItem">翻译语种：{{task.translateType}}</div>
+        <!-- <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown> -->
       </div>
       <div class="form">
         词条：
@@ -186,6 +187,7 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
@@ -230,6 +232,7 @@ export default {
     SearchOutlined,
     InfoCircleOutlined,
     CustomModal,
+    RulesDropdown,
     EntryStateSelect,
     IsExistBadge,
     EntryStateBadge,
@@ -376,6 +379,10 @@ export default {
       entryState: "1",
       selectedRowIndex: null,
       timer: null,
+      rulesOptions: [
+        { key: "toLong", label: "校验字符长度", checked: true },
+        { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
+      ],
       overlayStyle: workbenchParams.overlayStyle,
       checkedColumn: workbenchParams.checkedColumn,
       checkboxList: commonParam.checkboxList.filter(
@@ -388,14 +395,8 @@ export default {
             "translate",
           ].includes(item.value)
       ), // 移除固定列对应的配置项
-      editList_needValidate: commonParam.langValList, // 可编辑的列名集合(需要验证长度)
-      editList: [
-        ...commonParam.langInterList,
-        ...commonParam.langAudSugList,
-        "auditSuggess",
-        "diFileName",
-        "comment",
-      ], // 可编辑的列名集合
+      editList_needValidate: null, // 可编辑且需要表单校验的list(工作台只有任务的翻译语种可编辑,并且需要进行表单校验)
+      editList: null, // 可编辑的list
       translateStateList: [
         ...commonParam.langTranslateStateList,
         "translateState",
@@ -434,9 +435,22 @@ export default {
     // 释义覆盖翻译
     interpretation2value() {
       interpretation2value(this);
+      // const verifyMethods = this.rulesOptions
+      //   .filter((option) => option.checked)
+      //   .map((option) => option.key);
+      // interpretation2value_(this, this.task.transMap, verifyMethods);
     },
     // 设置翻译列展示的语言
     setTranslateColumn() {
+      // 设置翻译列可编辑&可校验
+      this.editList_needValidate = [this.task.transMap.value];
+      // 设置对应的翻译释义列可编辑
+      this.editList = [
+        this.task.transMap.interpretation,
+        "auditSuggess",
+        "diFileName",
+        "comment",
+      ];
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex = this.task.transMap.value;

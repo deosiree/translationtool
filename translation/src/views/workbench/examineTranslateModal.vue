@@ -31,7 +31,8 @@
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">翻译状态：</span>
-        <TransStateSelect :entryState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" :filter="new Set(['0'])" />
+        <TransStateSelect :entryState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'"
+          :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
@@ -389,8 +390,8 @@ export default {
           ].includes(item.value)
       ), // 移除固定列对应的配置项
       languageObj: null,
-      editList_needValidate: commonParam.langValList, // 可编辑的列名集合(需要验证长度)
-      editList: [...commonParam.langInterList, ...commonParam.langAudSugList], // 可编辑的列名集合
+      editList_needValidate: null, // 可编辑的列名集合(需要验证长度)
+      editList: null, // 可编辑的列名集合
       translateStateList: [
         ...commonParam.langTranslateStateList,
         "translateState",
@@ -421,6 +422,10 @@ export default {
   methods: {
     // 设置翻译列展示的语言
     setTranslateColumn() {
+      // 设置翻译列可编辑&可校验
+      this.editList_needValidate = [this.task.transMap.value];
+      // 设置对应的翻译释义列可编辑
+      this.editList = [this.task.transMap.interpretation, this.task.transMap.auditSuggest];
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex = this.languageObj.value;

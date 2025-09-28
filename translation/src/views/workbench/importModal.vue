@@ -327,15 +327,6 @@
               </template>
             </div>
           </template>
-          <template v-if="column.dataIndex === 'isExist'">
-            <IsExistBadge :isExist="text" />
-          </template>
-          <template v-if="column.dataIndex === 'entryState'">
-            <EntryStateBadge :entryState="text" />
-          </template>
-          <template v-if="translateStateList.includes(column.dataIndex)">
-            <TransStateBadge :translateState="text" />
-          </template>
           <template v-if="column.dataIndex === 'tag'">
             <div>
               <template v-if="editableData[record.id]">
@@ -348,7 +339,6 @@
                 </a-tooltip>
               </template>
               <template v-else>
-                <!-- {{ text }} -->
                 <span>
                   <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
@@ -356,6 +346,15 @@
                 </span>
               </template>
             </div>
+          </template>
+          <template v-if="column.dataIndex === 'isExist'">
+            <IsExistBadge :isExist="text" />
+          </template>
+          <template v-if="column.dataIndex === 'entryState'">
+            <EntryStateBadge :entryState="text" />
+          </template>
+          <template v-if="translateStateList.includes(column.dataIndex)">
+            <TransStateBadge :translateState="text" />
           </template>
           <!-- <template v-else-if="column.dataIndex === 'label'">
                         <div class="editable-row-operations">
@@ -722,8 +721,8 @@ export default {
             "translate",
           ].includes(item.value)
       ), // 移除固定列对应的配置项
-      editList_needValidate: ["translate", ...commonParam.langValList], // 可编辑的列名集合(需要表单校验)
-      editList: [...commonParam.langInterList, "comment"], // 可编辑的列名集合
+      editList_needValidate: null, // 可编辑且需要表单校验的list(工作台只有任务的翻译语种可编辑,并且需要进行表单校验)
+      editList: null, // 可编辑的list[...commonParam.langInterList, "comment"]
       translateStateList: [
         ...commonParam.langTranslateStateList,
         "translateState",
@@ -807,6 +806,7 @@ export default {
     currentTask(newval, oldval) {
       this.task = newval;
       this.task.transMap = commonParam.languageMap[this.task.translateType];
+      // 设置翻译列展示的语言
       this.setTranslateColumn();
     },
   },
@@ -823,6 +823,10 @@ export default {
     },
     // 设置翻译列展示的语言
     setTranslateColumn() {
+      // 设置翻译列可编辑&可校验
+      this.editList_needValidate = [this.task.transMap.value];
+      // 设置对应的翻译释义列可编辑
+      this.editList = [this.task.transMap.interpretation, "comment"];
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex = this.task.transMap.value;

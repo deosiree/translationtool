@@ -481,7 +481,7 @@ export default {
           align: "center",
           width: 100,
           resizable: true,
-          index: 14,
+          index: 22,
         },
         {
           title: "审核意见",
@@ -575,7 +575,7 @@ export default {
         label: item.label,
         value: item.label,
       })),
-      editList_needValidate: commonParam.langValList, // 可编辑的列名集合(需要验证长度)
+      editList_needValidate: null, // 可编辑且需要表单校验的list(工作台只有任务的翻译语种可编辑,并且需要进行表单校验)
       translateStateList: [
         ...commonParam.langTranslateStateList,
         "translateState",
@@ -599,6 +599,8 @@ export default {
   methods: {
     // 设置翻译列展示的语言
     setTranslateColumn() {
+      // 设置翻译列可编辑&可校验
+      this.editList_needValidate = [this.language.value];
       this.columns.forEach((item) => {
         if (item.title === "翻译") {
           item.dataIndex = this.language.value;
@@ -750,8 +752,19 @@ export default {
       // 2.保存编辑框中的所有信息
       for (let key in this.editableData) {
         if (this.selectedRowKeys.includes(key)) {
-          let entry = this.dataSource.find((item) => item.id === key);
-          entry = cloneDeep(this.editableData[key]);
+          // let entry = this.dataSource.find((item) => item.id === key);
+          // entry = cloneDeep(this.editableData[key]);
+          const itemIndex = this.dataSource.findIndex(
+            (item) => item.id === key
+          );
+          if (itemIndex !== -1) {
+            // 2. 用深拷贝后的editableData[key]替换dataSource中的项
+            // 普通数组/响应式数组（Vue3 reactive）：
+            console.log("替换的词条：",this.dataSource)
+            this.dataSource[itemIndex] = cloneDeep(this.editableData[key]);
+            // Vue3 ref数组：
+            // this.dataSource.value[itemIndex] = cloneDeep(this.editableData[key]);
+          }
           delete this.editableData[key];
         }
       }
