@@ -373,6 +373,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
+        if(StringUtils.isBlank(entryInfoEntity.getClassfy2())){
+            return "不允许二级分类更新为空字符串";
+        }
         Date date = new Date(System.currentTimeMillis());
         entryInfoEntity.setUpdate(userName);
         entryInfoEntity.setUpdateTime(date);

@@ -19,6 +19,8 @@ import io.github.resilience4j.core.lang.Nullable;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.poi.ss.formula.functions.T;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -394,10 +396,21 @@ public class EntryInfoController extends BaseController {
     @Transactional(propagation = Propagation.NESTED)
     @Token
     public HttpResponse<String> updateEntryInfo(@RequestBody EntryInfoEntity entryInfoEntity, HttpServletRequest request, String notes) {
+        try {
+            String result = entryInfoService.updateEntryInfo(entryInfoEntity, request, notes);
+            if(result.equals("不允许二级分类更新为空字符串")){
+                HttpResponse<String> httpResponse = new HttpResponse<>();
+                httpResponse.setCode(HttpResponse.Type.OK.getVal());
+                httpResponse.setType(HttpResponse.Type.ERROR);
+                httpResponse.setData(result);
+                return httpResponse;
+            }
+            return checkResult(result);            
+        } catch (Exception e) {
+            // TODO: handle exception
+            return error(null, e.getMessage());
+        }
 
-        String result = entryInfoService.updateEntryInfo(entryInfoEntity, request, notes);
-
-        return checkResult(result);
     }
 
 

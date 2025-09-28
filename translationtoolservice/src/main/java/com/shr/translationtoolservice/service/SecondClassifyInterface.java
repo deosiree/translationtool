@@ -16,7 +16,7 @@ public interface SecondClassifyInterface {
 
     List<SecondClassify> getSecondClassify(SecondClassify secondClassify);
 
-    Integer updateSecondClassify(SecondClassify secondClassify);
+    String updateSecondClassify(SecondClassify secondClassify);
 
     Integer deleteSecondClassify(List<String> id);
 }
