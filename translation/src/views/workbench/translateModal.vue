@@ -555,10 +555,7 @@ export default {
         auditSuggest: "", // XX审核意见
         transIdName: "",
       }, // 当前翻译语种的其他信息
-      rulesOptions: [
-        { key: "toLong", label: "校验字符长度", checked: true },
-        { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
-      ],
+      rulesOptions: commonParam.rulesOptions,
       overlayStyle: workbenchParams.overlayStyle, // 展示列
       checkedColumn: workbenchParams.checkedColumn, // 展示列切换
       checkboxList: commonParam.checkboxList.filter(

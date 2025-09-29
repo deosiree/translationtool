@@ -91,7 +91,7 @@ export default {
   langInterList: default_languageList.map(item => item.interpretation),
   languageMap: default_languageMap,
   checkboxList: [
-    {label:'存在状态',value:'isExist',index:1},
+    { label: '存在状态', value: 'isExist', index: 1 },
     // {label:'翻译状态',value:'translateState',index:2},
     // {label:'审核状态',value:'state',index:3},// (前端以前写的是state,我觉得写的不严谨，查了后端，后端表里没定义审核状态)
     // {label:'词条',value:'entry',index:4},
@@ -119,7 +119,7 @@ export default {
     { label: "数据库记录ID", value: "dbRID", index: 26 },
     // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语言动态锁定的
     // {label:'词条状态',value:'entryState',index:19},
-  ],
+  ],//展示列
   departmentMap: {
     "通用平台部": {
       label: "通用平台部",
@@ -233,7 +233,11 @@ export default {
     {
       title: "公共库",
     }
-  ]
+  ],// 公司->部门的状态树分布
+  rulesOptions: [
+    { key: "toLong", label: "校验字符长度", checked: true },
+    { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
+  ],// 表单校验规则
 };
 
 // 2.tableParam如下：

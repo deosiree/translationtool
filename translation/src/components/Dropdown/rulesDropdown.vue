@@ -23,6 +23,7 @@
 </template>
 <script>
 import { DownOutlined } from "@ant-design/icons-vue";
+import commonParam from "@/utils/commonParam.js";
 export default {
   components: {
     DownOutlined,
@@ -35,10 +36,7 @@ export default {
     },
     options: {
       type: Array,
-      default: () => [
-        { key: "verify-length", label: "校验字符长度", checked: true },
-        { key: "check-entry", label: "校验特殊字符", checked: false },
-      ],
+      default: () => commonParam.rulesOptions,
     },
   },
   data() {
@@ -51,6 +49,7 @@ export default {
       handler(newVal) {
         // 处理 options 变化
         this.$emit("update:options", newVal);
+        console.log("校验规则发生变化",newVal)
       },
     },
   },

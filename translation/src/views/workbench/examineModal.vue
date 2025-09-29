@@ -379,10 +379,7 @@ export default {
       entryState: "1",
       selectedRowIndex: null,
       timer: null,
-      rulesOptions: [
-        { key: "toLong", label: "校验字符长度", checked: true },
-        { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
-      ],
+      rulesOptions: commonParam.rulesOptions,
       overlayStyle: workbenchParams.overlayStyle,
       checkedColumn: workbenchParams.checkedColumn,
       checkboxList: commonParam.checkboxList.filter(

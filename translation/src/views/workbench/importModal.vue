@@ -269,6 +269,7 @@
           <a-radio value="英文">英文</a-radio>
         </a-radio-group>
         <div style="margin-left:auto">
+          <CoverButton :dataSource="dataSource" size="middle" buttonTitle="释义覆盖翻译" />
           <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -451,6 +452,7 @@ import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import CoverButton from "@/components/Button/coverButton/inter2value.vue"
 import { add, cloneDeep, iteratee } from "lodash-es";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
@@ -551,6 +553,7 @@ export default {
     IsExistBadge,
     EntryStateBadge,
     TransStateBadge,
+    CoverButton,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
     },
@@ -768,10 +771,7 @@ export default {
         { label: "excel", value: "excel" },
         { label: "csv", value: "csv" },
       ],
-      rulesOptions: [
-        { key: "toLong", label: "校验字符长度", checked: true },
-        { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
-      ],
+      rulesOptions: commonParam.rulesOptions,
     };
   },
 
