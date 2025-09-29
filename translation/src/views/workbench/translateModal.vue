@@ -23,7 +23,7 @@
                 <a-col :span="12">
                   <div class="inline-left-align">
                     <span>翻译状态：</span>
-                    <TransStateSelect :entryState="search.translateState" @update:translateState="search.translateState = $event" :size="'small'"
+                    <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" :size="'small'"
                       :style="'width: 150px'" :filter="new Set(['3'])" />
                   </div>
                 </a-col>

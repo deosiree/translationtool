@@ -33,7 +33,7 @@
               </a-select>
             </a-form-item>
             <a-form-item label="翻译状态" name="translateState" style="margin-top: 8px">
-              <TransStateSelect :entryState="search.translateState" @update:translateState="search.translateState = $event" />
+              <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" />
             </a-form-item>
             <a-form-item label="翻译结果" name="translate" style="margin-top: 8px">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>

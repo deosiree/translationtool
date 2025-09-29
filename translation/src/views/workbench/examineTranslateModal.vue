@@ -31,7 +31,7 @@
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">翻译状态：</span>
-        <TransStateSelect :entryState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'"
+        <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'"
           :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->

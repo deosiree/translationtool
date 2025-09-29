@@ -14,7 +14,7 @@
         <span style="margin-left:10px">词条状态：</span>
         <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'" />
         <span style="margin-left:10px">翻译状态：</span>
-        <TransStateSelect :entryState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
+        <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>

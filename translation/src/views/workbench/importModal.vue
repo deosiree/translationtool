@@ -269,7 +269,7 @@
           <a-radio value="英文">英文</a-radio>
         </a-radio-group>
         <div style="margin-left:auto">
-          <CoverButton :dataSource="dataSource" size="middle" buttonTitle="释义覆盖翻译" />
+          <!-- <CoverButton :dataSource="dataSource" size="middle" buttonTitle="释义覆盖翻译" /> -->
           <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>

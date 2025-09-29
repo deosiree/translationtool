@@ -15,7 +15,7 @@
             </a-select>
           </a-form-item>
           <a-form-item label="翻译状态" name="translateState">
-            <TransStateSelect :entryState="search.translateState" @update:translateState="search.translateState = $event" :style="'width: 186px'"
+            <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" :style="'width: 186px'"
               :placeholder="'请选择翻译状态'" />
           </a-form-item>
           <a-form-item label="可见范围" name="visualRange">
