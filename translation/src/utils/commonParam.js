@@ -91,7 +91,7 @@ export default {
   langInterList: default_languageList.map(item => item.interpretation),
   languageMap: default_languageMap,
   checkboxList: [
-    // {label:'存在状态',value:'isExist',index:1},
+    {label:'存在状态',value:'isExist',index:1},
     // {label:'翻译状态',value:'translateState',index:2},
     // {label:'审核状态',value:'state',index:3},// (前端以前写的是state,我觉得写的不严谨，查了后端，后端表里没定义审核状态)
     // {label:'词条',value:'entry',index:4},
@@ -238,6 +238,7 @@ export default {
 
 // 2.tableParam如下：
 const entry_checkboxList = [
+  // {label:'存在状态',value:'isExist',index:1},
   // { label: "词条状态", value: "entryState", index: 1 },
   // { label: "词条", value: "entry", index: 2 },
   { label: 'tag', value: 'tag', index: 3 },
