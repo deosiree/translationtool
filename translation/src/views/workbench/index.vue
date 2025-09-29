@@ -145,7 +145,7 @@ import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setTableHeight, setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -504,22 +504,7 @@ export default {
     },
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight - 32;
-        } catch (error) {
-          this.dataHeight = box - searchHeight - 32;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
+        setTableHeight(this, 8, 174, 32);
       });
     },
     // 获取待办事项和已办事项数量

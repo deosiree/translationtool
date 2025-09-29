@@ -271,7 +271,7 @@ import { getVersion } from "@/http/api/productVersion";
 import { getRoleUserByDepartment, getDepartments } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
 import { getClassTree } from "@/http/api/entryManage";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setTableHeight, setModalAriaHidden } from "@/utils/commonUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -490,24 +490,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
+        setTableHeight(this, 8, 166, 0);
       });
     },
     // 获取执行部门

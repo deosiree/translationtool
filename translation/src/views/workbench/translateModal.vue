@@ -760,7 +760,6 @@ export default {
           if (itemIndex !== -1) {
             // 2. 用深拷贝后的editableData[key]替换dataSource中的项
             // 普通数组/响应式数组（Vue3 reactive）：
-            console.log("替换的词条：",this.dataSource)
             this.dataSource[itemIndex] = cloneDeep(this.editableData[key]);
             // Vue3 ref数组：
             // this.dataSource.value[itemIndex] = cloneDeep(this.editableData[key]);

@@ -563,18 +563,6 @@ export default {
       position: absolute;
       bottom: 16px;
       // border: 1px solid red;
-
-      &:hover {
-        /* Firefox 浏览器 */
-        scrollbar-width: auto; /* auto | thin | none */
-        scrollbar-color: #888 #f1f1f1; /* 滑块颜色 轨道颜色 */
-
-        /* Webkit 浏览器 (Chrome, Safari) */
-        &::-webkit-scrollbar {
-          width: auto; /* 垂直滚动条宽度 */
-          height: auto; /* 水平滚动条高度 */
-        }
-      }
     }
   }
 

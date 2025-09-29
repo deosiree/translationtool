@@ -115,6 +115,7 @@ import {
 import { getLanguage } from "@/http/api/translate";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
+import { setTableHeight } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -258,16 +259,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        this.dataHeight = this.box - searchHeight - 32;
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 110;
+        setTableHeight(this, 8, 126, 32, { ok: true, h: this.box });
       });
     },
     // 查询公共库数据

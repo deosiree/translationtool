@@ -151,7 +151,7 @@ import {
 } from "@/http/api/i18Server";
 import { getDictory, getI18nAdress } from "@/http/api/workbench";
 import { v4 as uuidv4 } from "uuid";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setTableHeight,setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -194,7 +194,11 @@ export default {
           align: "center",
           width: 60,
           customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
+            return (
+              text.index +
+              1 +
+              this.pagination.pageSize * (this.pagination.current - 1)
+            );
           },
         },
         { title: "词条", dataIndex: "source", width: 200 },
@@ -254,22 +258,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
+        setTableHeight(this, 8, 166);
       });
     },
     // 设置表格每一行的class
@@ -394,7 +383,7 @@ export default {
             node = {
               title: title,
               key: paras.slice(0, level + 1).join("/"),
-              selectable: (level+1) < parasLen ? false : true, //不能选中
+              selectable: level + 1 < parasLen ? false : true, //不能选中
               children: [],
             };
             currentLevel.push(node);
@@ -434,7 +423,7 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          message.error("查询失败！",err.message);
+          message.error("查询失败！", err.message);
         });
     },
     reset() {
@@ -468,7 +457,7 @@ export default {
           this.getDictionarys();
         })
         .catch((err) => {
-          message.error("删除失败！",err.message);
+          message.error("删除失败！", err.message);
         });
     },
     // 清空辞典
@@ -483,7 +472,7 @@ export default {
           this.queryDictronary();
         })
         .catch((err) => {
-          message.error("清空失败！",err.message);
+          message.error("清空失败！", err.message);
         });
     },
     // 辞典生效
@@ -497,7 +486,7 @@ export default {
           this.queryDictronary();
         })
         .catch((err) => {
-          message.error("生效失败！",err.message);
+          message.error("生效失败！", err.message);
         });
     },
     onSelectChange(selectedRowKeys, selectedRows) {
@@ -536,7 +525,7 @@ export default {
               _this.selectedRows = [];
             })
             .catch((err) => {
-              message.error("删除失败！",err.message);
+              message.error("删除失败！", err.message);
             });
         },
         onCancel() {},

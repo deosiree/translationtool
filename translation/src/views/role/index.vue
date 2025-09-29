@@ -97,6 +97,7 @@ import { TreeSelect } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import { getRoleAndMenu, changeRoleAndMenu, getMenu } from "@/http/api/user";
+import { setTableHeight } from "@/utils/commonUtils";
 export default {
   components: {
     PlusOutlined,
@@ -175,18 +176,7 @@ export default {
     },
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        this.dataHeight = box - searchHeight;
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 110;
-
-        // console.log(this.tableHeight.y)
+        setTableHeight(this, 8, 126, 0);
       });
     },
     getRole() {

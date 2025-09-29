@@ -164,7 +164,7 @@ import {
 } from "@/http/api/userPartiality";
 import { message } from "ant-design-vue";
 import { entryParams as tableParam } from "@/utils/commonParam.js";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden,setTableHeight } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -368,16 +368,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        this.dataHeight = this.box - searchHeight - 104;
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 110;
+        setTableHeight(this, 8, 126, 104, { ok: true, h: this.box });
       });
     },
     // 设置表格每一行的class

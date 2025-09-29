@@ -409,6 +409,7 @@ import {
   setRefRules,
   useRefRules,
   openSetEdit,
+  setTableHeight,
 } from "@/utils/commonUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
@@ -853,21 +854,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        const len = 84; //124会少一行
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = this.box - searchHeight - operationAreaHeight - len;
-        } catch (error) {
-          this.dataHeight = this.box - searchHeight - len;
-        }
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight - 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
+        setTableHeight(this, -8, 166, 84, { ok: true, h: this.box });
       });
     },
     // 设置表格每一行的class

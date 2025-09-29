@@ -934,19 +934,19 @@ export function clickInput(vm, event) {
  * 动态设置表格高度
  * @param {VueInstance} vm - Vue 实例
  * @param {number} buttonHeightBias - 按钮高度的偏移量，默认值为 8
- * @param {number} tableHeightBias - 表格高度的偏移量，默认值为 150
+ * @param {number} tableHeightBias - 表格高度的偏移量，默认值为 150(滚动条变宽了，+8)
  */
-export function setTableHeight(vm, buttonHeightBias = 8, tableHeightBias = 150, dataHeightBias = 0) {
+export function setTableHeight(vm, buttonHeightBias = 8, tableHeightBias = 158, dataHeightBias = 0, hasboxHeight = { ok: false, h: 0 }) {
   vm.$nextTick(() => {
     // 设置列表父元素高度
-    let box = vm.$refs.box.offsetHeight;
-    let searchHeight = vm.$refs.search.$el.offsetHeight;
-    try {
-      let operationAreaHeight = vm.$refs.operationArea.$el.offsetHeight;
-      vm.dataHeight = box - searchHeight - operationAreaHeight - dataHeightBias;
-    } catch (error) {
-      vm.dataHeight = box - searchHeight - dataHeightBias;
-    }
+    const searchHeight = vm.$refs.search.$el.offsetHeight;
+    let box = 0;
+    if (!hasboxHeight.ok)
+      box = vm.$refs.box.offsetHeight;
+    else
+      box = hasboxHeight.h;
+    const operationAreaHeight = vm.$refs.operationArea?.$el?.offsetHeight ?? 0;
+    vm.dataHeight = box - searchHeight - dataHeightBias - operationAreaHeight;
 
     // 设置表格高度
     let buttonHeight = 0;
