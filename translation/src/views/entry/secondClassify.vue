@@ -215,16 +215,26 @@ export default {
       if (id.startsWith("new")) {
         // 新增
         addSecondClassify(this.editableData[id]).then((res) => {
-          message.success("新增成功！");
-          this.getSecondClassify();
-          delete this.editableData[id];
+          if (res.type == "ERROR") {
+            console.log(res.data);
+            message.warning(`新增失败，${res.data}`);
+          } else {
+            message.success("新增成功！");
+            this.getSecondClassify();
+            delete this.editableData[id];
+          }
         });
       } else {
         // 编辑
         updateSecondClassify(this.editableData[id]).then((res) => {
-          message.success("编辑成功！");
-          this.getSecondClassify();
-          delete this.editableData[id];
+          if (res.type == "ERROR") {
+            console.log(res.data);
+            message.warning(`编辑失败，${res.data}`);
+          } else {
+            message.success("编辑成功！");
+            this.getSecondClassify();
+            delete this.editableData[id];
+          }
         });
       }
     },
