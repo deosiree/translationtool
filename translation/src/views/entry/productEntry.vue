@@ -1067,9 +1067,11 @@ export default {
               ["entry", ...commonParam.langValList],
               this
             );
+            let cols = new Set(this.columns.map((item) => item.dataIndex));
             for (const col of ["entry", ...commonParam.langValList]) {
               // 对应的每一列都校验一遍
-              if (record[col]) {
+              if (record[col] && cols.has(col)) {
+                // 对应列有值且展示了对应列（展示的才有表单引用）
                 useRefRules(
                   this.$refs,
                   `form${record.id.replaceAll("-", "")}${col}`
