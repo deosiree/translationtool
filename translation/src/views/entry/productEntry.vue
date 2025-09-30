@@ -628,11 +628,11 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      overlayStyle: entryParams.overlayStyle,
-      checkboxList: entryParams.checkboxList,
+      overlayStyle: entryParams.overlayStyle,// 展示列样式
+      checkboxList: entryParams.checkboxList,// 展示列可选的值
       checkedColumn: cachedDisplayColumn
         ? cachedDisplayColumn.split(",")
-        : entryParams.checkedColumn,
+        : [],// 展示列已选的值
       inputColumn: entryParams.inputColumn,
       translateColumn: entryParams.translateColumn,
       commonParam: commonParam,
@@ -1380,7 +1380,14 @@ export default {
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn("colPref-productEntry", 200, checkedValue, this);
+      changeColumn(
+        "colPref-productEntry",
+        200,
+        checkedValue,
+        this,
+        false,
+        commonParam.checkboxList
+      );
       // this.checkedColumn = checkedValue;
 
       // this.checkboxList.forEach((value) => {

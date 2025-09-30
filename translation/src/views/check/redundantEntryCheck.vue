@@ -281,9 +281,9 @@ export default {
       ],
       dataSource: [], // 表格数据
       i18nOptions: [], // i18n状态
-      classfyIDs: Object.values(commonParam.departmentMap).map(dept => ({
+      classfyIDs: Object.values(commonParam.departmentMap).map((dept) => ({
         label: dept.label,
-        value: dept.classfyID
+        value: dept.classfyID,
       })), // 词条状态
       classify2Option: [], // 二级分类
       translateTypes: [], // 翻译语言
@@ -311,9 +311,9 @@ export default {
       },
       pageChangeSearch: {},
       hasRedundantRls: false, // 是否有冗余词条的结果
-      overlayStyle: redundantTableParams.overlayStyle, // 展示列相关
-      checkboxList: redundantTableParams.checkboxList,
-      checkedColumn: redundantTableParams.checkedColumn,
+      overlayStyle: redundantTableParams.overlayStyle, // 展示列样式
+      checkboxList: redundantTableParams.checkboxList, // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值
       batchSelectVisible: false,
       translateStateList: [
         ...commonParam.langTranslateStateList,

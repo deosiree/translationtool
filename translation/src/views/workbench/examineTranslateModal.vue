@@ -257,96 +257,7 @@ export default {
       tableHeight: { x: "max-content", y: 415 },
       // tableHeight: { x: "100%", y: 415 },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          width: 50,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 200,
-          resizable: true,
-          fixed: "left",
-          index: 1,
-          // 添加 sorter 属性实现排序功能
-          sorter: (a, b) => a.entry.localeCompare(b.entry),
-          sortDirections: ["ascend", "descend"],
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState", // 动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          // fixed: "left",
-          index: 3,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate", // 动态的
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 5,
-          // 添加 sorter 属性实现排序功能
-          sorter: (a, b) => a.entry.localeCompare(b.entry),
-          sortDirections: ["ascend", "descend"],
-        },
-        {
-          title: "tag",
-          dataIndex: "tag",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 6,
-        },
-        {
-          title: "comment",
-          dataIndex: "comment",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 7,
-        },
-        {
-          title: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 14,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "this.languageObj.auditSuggest", // 动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          fixed: "right",
-          index: 99,
-        },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          align: "center",
-          width: 130,
-          resizable: true,
-          fixed: "right",
-          index: 100,
-        },
-      ],
+      columns: [],
       dataSource: [],
       allData: [],
       pagination: {
@@ -377,19 +288,9 @@ export default {
       rejectReason: {
         reason: "",
       },
-      overlayStyle: workbenchParams.overlayStyle,
-      checkedColumn: ["abbr", "tag"],
-      checkboxList: commonParam.checkboxList.filter(
-        (item) =>
-          ![
-            "isExist",
-            "translateState",
-            "entryState",
-            "entry",
-            "translate",
-          ].includes(item.value)
-      ), // 移除固定列对应的配置项
-      languageObj: null,
+      overlayStyle: workbenchParams.overlayStyle, // 展示列样式
+      checkboxList: [], // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值
       editList_needValidate: null, // 可编辑的列名集合(需要验证长度)
       editList: null, // 可编辑的列名集合
       translateStateList: [
@@ -400,44 +301,149 @@ export default {
   },
 
   created() {},
-  mounted() {
-    this.task = this.currentTask;
-    this.languageObj = commonParam.languageList.find(
-      (it) => it.name === this.task.translateType
-    );
-    this.$nextTick(() => {
-      // 读取本地存储的用户偏好
-      getColPref("colPref-examineTranslateModal", 100, this);
-    });
-  },
+  mounted() {},
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.languageObj = commonParam.languageList.find(
-        (it) => it.name === this.task.translateType
-      );
-      this.setTranslateColumn();
+      this.task.transMap = commonParam.languageMap[this.task.translateType];
+    },
+    visible: {
+      async handler(newVal) {
+        // console.log("打开工作台-翻译审核", newVal);
+        if (newVal) {
+          this.$nextTick(() => {
+            // 1.设置翻译列展示的语言
+            // 设置翻译列可编辑&可校验
+            this.editList_needValidate = [this.task.transMap.value];
+            // 设置对应的翻译释义列可编辑
+            this.editList = [
+              this.task.transMap.interpretation,
+              this.task.transMap.auditSuggest,
+            ];
+            // 移除翻译列和固定列对应的展示项
+            this.checkboxList = commonParam.checkboxList.filter(
+              (item) =>
+                ![
+                  "isExist",
+                  "translateState",
+                  "entryState",
+                  "entry",
+                  "translate",
+                  this.task.transMap.value,
+                  this.task.transMap.interpretation,
+                ].includes(item.value)
+            );
+            // 赋值：当前列的默认值
+            this.columns = [
+              {
+                title: "序号",
+                dataIndex: "index",
+                width: 50,
+                customRender: (text, record, index, column) => {
+                  return (
+                    text.index +
+                    1 +
+                    this.pagination.pageSize * (this.pagination.current - 1)
+                  );
+                },
+                fixed: "left",
+                index: 0,
+              },
+              {
+                title: "词条",
+                dataIndex: "entry",
+                align: "center",
+                width: 200,
+                resizable: true,
+                fixed: "left",
+                index: 1,
+                // 添加 sorter 属性实现排序功能
+                sorter: (a, b) => a.entry.localeCompare(b.entry),
+                sortDirections: ["ascend", "descend"],
+              },
+              {
+                title: "翻译状态",
+                dataIndex: "translateState", // 动态的
+                align: "center",
+                width: 100,
+                resizable: true,
+                // fixed: "left",
+                index: 3,
+              },
+              {
+                title: "翻译",
+                dataIndex: "translate", // 动态的
+                align: "center",
+                width: 200,
+                resizable: true,
+                index: 5,
+                // 添加 sorter 属性实现排序功能
+                sorter: (a, b) => a.entry.localeCompare(b.entry),
+                sortDirections: ["ascend", "descend"],
+              },
+              {
+                title: "tag",
+                dataIndex: "tag",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 7,
+              },
+              {
+                title: "comment",
+                dataIndex: "comment",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 8,
+              },
+              {
+                title: "abbr",
+                dataIndex: "abbr",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 23,
+              },
+              {
+                title: "审核意见",
+                dataIndex: "this.task.transMap.auditSuggest", // 动态的
+                align: "center",
+                width: 100,
+                resizable: true,
+                fixed: "right",
+                index: 99,
+              },
+              {
+                title: "操作",
+                dataIndex: "operation",
+                align: "center",
+                width: 130,
+                resizable: true,
+                fixed: "right",
+                index: 100,
+              },
+            ];
+            // 读取本地存储的用户偏好
+            getColPref("colPref-examineTranslateModal", 100, this);
+            // 设置翻译列展示的语言
+            this.columns.forEach((item) => {
+              if (item.title === "翻译") {
+                item.dataIndex = this.task.transMap.value;
+              }
+              if (item.title === "翻译状态") {
+                item.dataIndex = this.task.transMap.state;
+              }
+              if (item.title === "审核意见") {
+                item.dataIndex = this.task.transMap.auditSuggest;
+              }
+            });
+          });
+        }
+      },
     },
   },
   methods: {
-    // 设置翻译列展示的语言
-    setTranslateColumn() {
-      // 设置翻译列可编辑&可校验
-      this.editList_needValidate = [this.task.transMap.value];
-      // 设置对应的翻译释义列可编辑
-      this.editList = [this.task.transMap.interpretation, this.task.transMap.auditSuggest];
-      this.columns.forEach((item) => {
-        if (item.title === "翻译") {
-          item.dataIndex = this.languageObj.value;
-        }
-        if (item.title === "翻译状态") {
-          item.dataIndex = this.languageObj.state;
-        }
-        if (item.title === "审核意见") {
-          item.dataIndex = this.languageObj.auditSuggest;
-        }
-      });
-    },
     // 获取待审核词条
     getTaskEntry() {
       let params = {
@@ -451,14 +457,14 @@ export default {
           ? ["1"]
           : [this.translateState];
 
-      let auditSuggest = this.languageObj.auditSuggest;
+      let auditSuggest = this.task.transMap.auditSuggest;
       getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
 
           this.dataSource.forEach((item) => {
             item.auditState = -1;
-            item[this.languageObj.auditSuggest] = ""; // 对应语言的审核意见清空
+            item[this.task.transMap.auditSuggest] = ""; // 对应语言的审核意见清空
           });
           // console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
           // this.allData = this.dataSource
@@ -478,10 +484,10 @@ export default {
       this.saveLoading = true;
       for (let key in this.editableData) {
         let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.languageObj.auditSuggest] =
-          this.editableData[key][this.languageObj.auditSuggest];
-        entry[this.languageObj.value] =
-          this.editableData[key][this.languageObj.value];
+        entry[this.task.transMap.auditSuggest] =
+          this.editableData[key][this.task.transMap.auditSuggest];
+        entry[this.task.transMap.value] =
+          this.editableData[key][this.task.transMap.value];
       }
       this.editableData = {};
 
@@ -494,11 +500,11 @@ export default {
         item.parentID = "";
         if (item.auditState === 0) {
           // 审核不通过
-          item[this.languageObj.state] = "2";
+          item[this.task.transMap.state] = "2";
           updateArr.push(item);
         } else if (item.auditState === 1) {
           // 审核通过
-          item[this.languageObj.state] = "3";
+          item[this.task.transMap.state] = "3";
           updateArr.push(item);
           okArr.push(item);
         }
@@ -625,9 +631,9 @@ export default {
               { required: true, message: "请输入!" },
             ],
           };
-          this.rules[record.id][this.languageObj.value] = [
+          this.rules[record.id][this.task.transMap.value] = [
             {
-              validator: this.vilidFildLength(record, this.languageObj.value),
+              validator: this.vilidFildLength(record, this.task.transMap.value),
             },
           ];
           this.showEditOperation(); // 显示编辑操作列
@@ -961,8 +967,8 @@ export default {
         }
         // 是否编辑中
         let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][this.languageObj.value]
-          : record[this.languageObj.value];
+          ? this.editableData[record.id][this.task.transMap.value]
+          : record[this.task.transMap.value];
         // if (common.byteLength(text) > maxLength) {
         if (byteLength(text) > maxLength) {
           flag++;
@@ -970,7 +976,7 @@ export default {
             eval(
               "this.$refs.form" +
                 record.id.replaceAll("-", "") +
-                this.languageObj.value
+                this.task.transMap.value
             )
               .validate()
               .then(() => {})
@@ -996,8 +1002,8 @@ export default {
           { required: true, message: "请输入!" },
         ],
       };
-      this.rules[record.id][this.languageObj.value] = [
-        { validator: this.vilidFildLength(record, this.languageObj.value) },
+      this.rules[record.id][this.task.transMap.value] = [
+        { validator: this.vilidFildLength(record, this.task.transMap.value) },
       ];
       return Promise.resolve();
     },
@@ -1043,7 +1049,7 @@ export default {
     rejectReasonOK() {
       this.selectedRows.forEach((item) => {
         item.auditState = 0;
-        item[this.languageObj.auditSuggest] = this.rejectReason.reason;
+        item[this.task.transMap.auditSuggest] = this.rejectReason.reason;
       });
       this.selectedRowKeys = [];
       this.selectedRows = [];

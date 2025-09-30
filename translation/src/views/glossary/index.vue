@@ -178,9 +178,9 @@ export default {
         searchType: null,
       },
       lastSearch: {}, // 存储上一次的查询条件
-      visualRanges: Object.values(commonParam.departmentMap).map(dept => ({
+      visualRanges: Object.values(commonParam.departmentMap).map((dept) => ({
         label: dept.label,
-        value: dept.label
+        value: dept.label,
       })),
       searchTypes: [
         { label: "格式校验", value: "checkSykEntry" },
@@ -319,9 +319,9 @@ export default {
       },
       relationVisible: false,
       relationData: [],
-      overlayStyle: glossaryParams.overlayStyle, // 展示列相关
-      checkboxList: glossaryParams.checkboxList,
-      checkedColumn: glossaryParams.checkedColumn,
+      overlayStyle: glossaryParams.overlayStyle, // 展示列样式
+      checkboxList: glossaryParams.checkboxList,// 展示列可选的值
+      checkedColumn: [],// 展示列已选的值
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
       isCheckSameEntry: false,
@@ -382,7 +382,14 @@ export default {
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn("colPref-glossary", 150, checkedValue, this);
+      changeColumn(
+        "colPref-glossary",
+        150,
+        checkedValue,
+        this,
+        false,
+        glossaryParams.checkboxList
+      );
     },
     // 获取翻译语言
     getLanguage() {

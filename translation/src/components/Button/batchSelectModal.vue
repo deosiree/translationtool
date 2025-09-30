@@ -82,15 +82,10 @@ export default {
     },
   },
   data() {
-    // 从本地缓存读取用户偏好
-    const cachedDisplayColumn = localStorage.getItem("colPref-glossary");
     return {
       locale: zh_CN,
       modalWidth: "60%",
       columns: [],
-      checkedColumn: cachedDisplayColumn
-        ? cachedDisplayColumn.split(",")
-        : glossaryParams.checkedColumn, // 展示列相关，少了会报错
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,

@@ -412,87 +412,7 @@ export default {
       // tableHeight: { x: "100%", y: 415 },
       tableHeight: { x: "max-content", y: 415 },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          width: 50,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 100,
-          resizable: true,
-          fixed: "left",
-          index: 1,
-          // 添加 sorter 属性实现排序功能
-          sorter: (a, b) => a.entry.localeCompare(b.entry),
-          sortDirections: ["ascend", "descend"],
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState", // 动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          // fixed: "left",
-          index: 3,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate", // 动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 5,
-          // 添加 sorter 属性实现排序功能
-          sorter: (a, b) => a.entry.localeCompare(b.entry),
-          sortDirections: ["ascend", "descend"],
-        },
-        {
-          title: "tag",
-          dataIndex: "tag",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 6,
-        },
-        {
-          title: "comment",
-          dataIndex: "comment",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 7,
-        },
-        {
-          title: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 22,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "this.language.auditSuggest", // 动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          fixed: "right",
-          index: 99,
-        },
-      ],
+      columns: [],
       dataSourceAll: [], // 所有数据
       dataSource: [], // 展示的数据（可能经历过过滤）
       selectedRowKeys: [],
@@ -556,18 +476,9 @@ export default {
         transIdName: "",
       }, // 当前翻译语种的其他信息
       rulesOptions: commonParam.rulesOptions,
-      overlayStyle: workbenchParams.overlayStyle, // 展示列
-      checkedColumn: workbenchParams.checkedColumn, // 展示列切换
-      checkboxList: commonParam.checkboxList.filter(
-        (item) =>
-          ![
-            "isExist",
-            "translateState",
-            "entryState",
-            "entry",
-            "translate",
-          ].includes(item.value)
-      ), // 移除固定列对应的配置项
+      overlayStyle: workbenchParams.overlayStyle, // 展示列样式
+      checkboxList: [], // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值workbenchParams.checkedColumn
       departments: commonParam.departmentList.map((item) => ({
         label: item.label,
         value: item.label,
@@ -586,7 +497,128 @@ export default {
         (it) => it.name === this.task.translateType
       );
       this.search.department = this.task.department; // 默认部门
-      this.setTranslateColumn();
+      // this.setTranslateColumn();
+    },
+    visible: {
+      async handler(newVal) {
+        // console.log("打开工作台-翻译", newVal);
+        if (newVal) {
+          this.$nextTick(() => {
+            // 3.设置翻译列展示的语言
+            // 设置翻译列可编辑&可校验
+            this.editList_needValidate = [this.language.value];
+            // 移除翻译列和固定列对应的展示项
+            this.checkboxList = commonParam.checkboxList.filter(
+              (item) =>
+                ![
+                  "isExist",
+                  "translateState",
+                  "entryState",
+                  "entry",
+                  "translate",
+                  this.task.transMap.value,
+                  this.task.transMap.interpretation,
+                ].includes(item.value)
+            );
+            // 赋值：当前列的默认值
+            this.columns = [
+              {
+                title: "序号",
+                dataIndex: "index",
+                width: 50,
+                customRender: (text, record, index, column) => {
+                  return (
+                    text.index +
+                    1 +
+                    this.pagination.pageSize * (this.pagination.current - 1)
+                  );
+                },
+                fixed: "left",
+                index: 0,
+              },
+              {
+                title: "词条",
+                dataIndex: "entry",
+                align: "center",
+                width: 100,
+                resizable: true,
+                fixed: "left",
+                index: 1,
+                // 添加 sorter 属性实现排序功能
+                sorter: (a, b) => a.entry.localeCompare(b.entry),
+                sortDirections: ["ascend", "descend"],
+              },
+              {
+                title: "翻译状态",
+                dataIndex: "translateState", // 动态的
+                align: "center",
+                width: 100,
+                resizable: true,
+                // fixed: "left",
+                index: 3,
+              },
+              {
+                title: "翻译",
+                dataIndex: "translate", // 动态的
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 5,
+                // 添加 sorter 属性实现排序功能
+                sorter: (a, b) => a.entry.localeCompare(b.entry),
+                sortDirections: ["ascend", "descend"],
+              },
+              {
+                title: "tag",
+                dataIndex: "tag",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 7,
+              },
+              {
+                title: "comment",
+                dataIndex: "comment",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 8,
+              },
+              {
+                title: "abbr",
+                dataIndex: "abbr",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 23,
+              },
+              {
+                title: "审核意见",
+                dataIndex: "this.language.auditSuggest", // 动态的
+                align: "center",
+                width: 100,
+                resizable: true,
+                fixed: "right",
+                index: 99,
+              },
+            ];
+            // 读取本地存储的用户偏好
+            getColPref("colPref-translateModal", 100, this);
+            // 设置翻译列展示的语言
+            this.columns.forEach((item) => {
+              if (item.title === "翻译") {
+                item.dataIndex = this.language.value;
+              }
+              if (item.title === "翻译状态") {
+                item.dataIndex = this.language.state;
+              }
+              if (item.title === "审核意见") {
+                item.dataIndex = this.language.auditSuggest;
+              }
+            });
+          });
+        }
+      },
     },
     redHighlightIds(newval, oldval) {
       // 强制更新表格，触发 customRow 重新渲染样式
@@ -594,22 +626,22 @@ export default {
     },
   },
   methods: {
-    // 设置翻译列展示的语言
-    setTranslateColumn() {
-      // 设置翻译列可编辑&可校验
-      this.editList_needValidate = [this.language.value];
-      this.columns.forEach((item) => {
-        if (item.title === "翻译") {
-          item.dataIndex = this.language.value;
-        }
-        if (item.title === "翻译状态") {
-          item.dataIndex = this.language.state;
-        }
-        if (item.title === "审核意见") {
-          item.dataIndex = this.language.auditSuggest;
-        }
-      });
-    },
+    // // 设置翻译列展示的语言
+    // setTranslateColumn() {
+    //   // 设置翻译列可编辑&可校验
+    //   this.editList_needValidate = [this.language.value];
+    //   this.columns.forEach((item) => {
+    //     if (item.title === "翻译") {
+    //       item.dataIndex = this.language.value;
+    //     }
+    //     if (item.title === "翻译状态") {
+    //       item.dataIndex = this.language.state;
+    //     }
+    //     if (item.title === "审核意见") {
+    //       item.dataIndex = this.language.auditSuggest;
+    //     }
+    //   });
+    // },
     dynamicSortFunction(a, b) {
       if (a[this.language.value] === null) {
         return -1;
@@ -677,7 +709,7 @@ export default {
       this.selectedRowIndex = null;
       this.allData = [];
       this.dataSource = [];
-      this.setTranslateColumn(); // 设置翻译列展示的语言
+      // this.setTranslateColumn(); // 设置翻译列展示的语言
       const params = {
         taskID: this.task.id,
         entryState: "3",
@@ -1737,13 +1769,12 @@ export default {
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
       changeColumn("colPref-translateModal", 100, checkedValue, this);
+      // console.log("checkedColumn", this.checkedColumn);
     },
   },
   mounted() {
     let _this = this;
     this.$nextTick(() => {
-      // 读取本地存储的用户偏好
-      getColPref("colPref-translateModal", 100, this);
       // this.init();
       window.onresize = function () {
         _this.setTableHeight();

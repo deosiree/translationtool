@@ -246,16 +246,12 @@ export default {
   data() {
     // 从本地缓存读取用户偏好
     const cachedLanguages = localStorage.getItem("writeBackLanguages");
-    const cachedDisplayColumn = localStorage.getItem("colPref-productEntry");
     return {
       locale: zh_CN,
       modalWidth: "60%",
       // tableHeight: { x: "100%", y: 395 },
       tableHeight: { x: "max-content", y: 395 },
       columns: [],
-      checkedColumn: cachedDisplayColumn
-        ? cachedDisplayColumn.split(",")
-        : entryParams.checkedColumn,
       version: {
         language: null,
         versionName: "",

@@ -181,112 +181,7 @@ export default {
       // tableHeight: { x: "100%", y: "415px" },
       tableHeight: { x: "max-content", y: "415px" },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          width: 50,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 200,
-          resizable: true,
-          fixed: "left",
-          index: 1,
-          // 添加 sorter 属性实现排序功能
-          sorter: (a, b) => a.entry.localeCompare(b.entry),
-          sortDirections: ["ascend", "descend"],
-        },
-        {
-          title: "存在状态",
-          dataIndex: "isExist",
-          align: "center",
-          width: 100,
-          resizable: true,
-          // fixed: "left",
-          index: 2,
-          filteredValue: null,
-          filters: [
-            { text: "已存在", value: 1 },
-            { text: "新建", value: 0 },
-          ],
-          onFilter: (value, record) => record.isExist === value,
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 100,
-          resizable: true,
-          // fixed: "left",
-          index: 3,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 5,
-          // 添加 sorter 属性实现排序功能
-          sorter: (a, b) => a.entry.localeCompare(b.entry),
-          sortDirections: ["ascend", "descend"],
-        },
-        {
-          title: "tag",
-          dataIndex: "tag",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 6,
-        },
-        {
-          title: "comment",
-          dataIndex: "comment",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 7,
-        },
-        {
-          title: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 100,
-          resizable: true,
-          index: 14,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "auditSuggess", // 动态的
-          // dataIndex: "this.languageList.auditSuggest", // 翻译、翻译审核都是动态的
-          align: "center",
-          width: 100,
-          resizable: true,
-          fixed: "right",
-          index: 99,
-        },
-        {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 100,
-          resizable: true,
-          fixed: "right",
-          index: 100,
-        },
-      ],
+      columns: [],
       dataSource: [],
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
@@ -301,18 +196,9 @@ export default {
       entryState: null,
       translateState: null,
       selectedRowIndex: null,
-      overlayStyle: workbenchParams.overlayStyle,
-      checkedColumn: workbenchParams.checkedColumn,
-      checkboxList: commonParam.checkboxList.filter(
-        (item) =>
-          ![
-            "isExist",
-            "translateState",
-            "entryState",
-            "entry",
-            "translate",
-          ].includes(item.value)
-      ), // 移除固定列对应的配置项
+      overlayStyle: workbenchParams.overlayStyle, // 展示列样式
+      checkboxList: [], // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值
       translateStateList: [
         ...commonParam.langTranslateStateList,
         "translateState",
@@ -344,10 +230,7 @@ export default {
   },
   created() {},
   mounted() {
-    this.task = this.currentTask;
     this.$nextTick(() => {
-      // 读取本地存储的用户偏好
-      getColPref("colPref-archiveModal", 100, this, true);
       // 获取当前用户信息
       this.user = this.$store.state.user;
       // 获取当前用户所在部门的相关信息
@@ -364,23 +247,153 @@ export default {
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.setTranslateColumn();
+      this.task.transMap = commonParam.languageMap[this.task.translateType];
+    },
+    visible: {
+      async handler(newVal) {
+        console.log("打开工作台-归档", newVal);
+        if (newVal) {
+          this.$nextTick(() => {
+            // 1.设置翻译列展示的语言
+            // 移除翻译列和固定列对应的展示项
+            this.checkboxList = commonParam.checkboxList.filter(
+              (item) =>
+                ![
+                  "isExist",
+                  "translateState",
+                  "entryState",
+                  "entry",
+                  "translate",
+                  this.task.transMap.value,
+                  this.task.transMap.interpretation,
+                ].includes(item.value)
+            );
+            // 赋值：当前列的默认值
+            this.columns = [
+              {
+                title: "序号",
+                dataIndex: "index",
+                width: 50,
+                customRender: (text, record, index, column) => {
+                  return (
+                    text.index +
+                    1 +
+                    this.pagination.pageSize * (this.pagination.current - 1)
+                  );
+                },
+                fixed: "left",
+                index: 0,
+              },
+              {
+                title: "词条",
+                dataIndex: "entry",
+                align: "center",
+                width: 200,
+                resizable: true,
+                fixed: "left",
+                index: 1,
+                // 添加 sorter 属性实现排序功能
+                sorter: (a, b) => a.entry.localeCompare(b.entry),
+                sortDirections: ["ascend", "descend"],
+              },
+              {
+                title: "存在状态",
+                dataIndex: "isExist",
+                align: "center",
+                width: 100,
+                resizable: true,
+                // fixed: "left",
+                index: 2,
+                filteredValue: null,
+                filters: [
+                  { text: "已存在", value: 1 },
+                  { text: "新建", value: 0 },
+                ],
+                onFilter: (value, record) => record.isExist === value,
+              },
+              {
+                title: "翻译状态",
+                dataIndex: "translateState",
+                align: "center",
+                width: 100,
+                resizable: true,
+                // fixed: "left",
+                index: 3,
+              },
+              {
+                title: "翻译",
+                dataIndex: "translate",
+                align: "center",
+                width: 200,
+                resizable: true,
+                index: 5,
+                // 添加 sorter 属性实现排序功能
+                sorter: (a, b) => a.entry.localeCompare(b.entry),
+                sortDirections: ["ascend", "descend"],
+              },
+              {
+                title: "tag",
+                dataIndex: "tag",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 6,
+              },
+              {
+                title: "comment",
+                dataIndex: "comment",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 7,
+              },
+              {
+                title: "abbr",
+                dataIndex: "abbr",
+                align: "center",
+                width: 100,
+                resizable: true,
+                index: 14,
+              },
+              {
+                title: "审核意见",
+                dataIndex: "auditSuggess", // 动态的
+                // dataIndex: "this.languageList.auditSuggest", // 翻译、翻译审核都是动态的
+                align: "center",
+                width: 100,
+                resizable: true,
+                fixed: "right",
+                index: 99,
+              },
+              {
+                title: "词条状态",
+                dataIndex: "entryState",
+                align: "center",
+                width: 100,
+                resizable: true,
+                fixed: "right",
+                index: 100,
+              },
+            ];
+            // 读取本地存储的用户偏好
+            getColPref("colPref-archiveModal", 100, this, true);
+            // 设置翻译列展示的语言
+            this.columns.forEach((item) => {
+              if (item.title === "翻译") {
+                item.dataIndex =
+                  commonParam.languageMap[this.task.translateType].value;
+              }
+              if (item.title === "翻译状态") {
+                item.dataIndex =
+                  commonParam.languageMap[this.task.translateType].state;
+              }
+            });
+          });
+        }
+      },
     },
   },
   methods: {
-    // 设置翻译列展示的语言
-    setTranslateColumn() {
-      this.columns.forEach((item) => {
-        if (item.title === "翻译") {
-          item.dataIndex =
-            commonParam.languageMap[this.task.translateType].value;
-        }
-        if (item.title === "翻译状态") {
-          item.dataIndex =
-            commonParam.languageMap[this.task.translateType].state;
-        }
-      });
-    },
     // 获取词条
     getTaskEntry() {
       let params = {
@@ -421,7 +434,7 @@ export default {
       if (!data) {
         return;
       }
-      let code =commonParam.languageMap[this.task.translateType].state;
+      let code = commonParam.languageMap[this.task.translateType].state;
       let flag = false;
       data.forEach((item) => {
         if (item.entryState != 3 || item[code] != 3) {

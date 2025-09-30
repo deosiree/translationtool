@@ -285,17 +285,17 @@ export function interpretation2value_all(vm) {
  * @param {Array} normalWidth - 表格列的默认宽度数组
  * @param {Object} vm - Vue 实例对象，包含 `checkedColumn` 和 `changeColumn` 方法
  * @param {boolean} needFilter - 是否需要过滤
- * @param {Object} tableParam - 表格参数对象，包含 `checkboxList` 属性(默认使用entryParams，比如术语库时就要使用glossaryParams了)
+ * @param {Object} tableParam - 表格参数对象checkboxList(默认使用entryParams.checkboxList，比如术语库时就要使用glossaryParams.checkboxList了)
  */
-export function getColPref(colPrefName, normalWidth, vm, needFilter = false, tableParam = entryParams) {
+export function getColPref(colPrefName, normalWidth, vm, needFilter = false, norm_checkboxList = entryParams.checkboxList) {
   // 读取本地存储的用户偏好
   const storedPreferences = localStorage.getItem(colPrefName);
-  // console.log("storedPreferences", storedPreferences)
+  // console.log(colPrefName, "偏好：", storedPreferences)
   if (storedPreferences) {
     const colPref_strList = JSON.parse(storedPreferences).displayColumn.split(",");
-    // console.log("colPref_strList", colPref_strList);
-    // 调用 changeColumn 方法更新列显示
-    changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = needFilter, tableParam = tableParam);
+    // console.log("读取用户列偏好时，同时更新列显示", colPref_strList, vm.columns);
+    // 读取用户列偏好时，调用 changeColumn 方法更新列显示
+    changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = needFilter, norm_checkboxList = norm_checkboxList);
   }
 }
 
@@ -306,9 +306,9 @@ export function getColPref(colPrefName, normalWidth, vm, needFilter = false, tab
  * @param {Array} checkedValue - 用户勾选的列值数组
  * @param {Object} vm - Vue 实例对象，包含 `checkedColumn`、`checkboxList`、`columns` 等属性
  * @param {boolean} needFilter - 是否需要过滤
- * @param {Object} tableParam - 表格参数对象，包含 `checkboxList` 属性(默认使用entryParams，比如术语库时就要使用glossaryParams了)
+ * @param {Object} tableParam - 表格参数对象checkboxList(默认使用entryParams.checkboxList，比如术语库时就要使用glossaryParams.checkboxList了)
  */
-export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = false, tableParam = entryParams) {
+export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, needFilter = false, norm_checkboxList = entryParams.checkboxList) {
   // 全部的展示列复选框vm.checkboxList
   // 勾选的展示列复选框vm.checkedColumn
   // 表格列的复选框vm.columns
@@ -317,6 +317,7 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, need
 
   if (vm.checkboxList && vm.checkboxList.length > 0 && vm.columns && vm.columns.length > 0) {// 如果有展示列，则要和列比较
     vm.checkboxList.forEach((value) => {
+      // console.log("要比较的展示列：", value)
       // 查找当前勾选列表中是否存在该列
       let checkedIndex = vm.checkedColumn.findIndex(
         (item) => item === value.value
@@ -352,9 +353,9 @@ export function changeColumn(colPrefName, normalWidth, colPref_strList, vm, need
       if (vm.columns.some(col => col.dataIndex === colPref_strList[i])) {
         continue; // 如果列已经存在，则跳过
       }
-      // console.log("没有展示列：", colPref_strList)
+      // console.log(colPrefName, "没有展示列：", colPref_strList, norm_checkboxList,"生成新列：", colPref_strList[i])
       // 使用 find 方法查找对应的 checkboxList 项
-      const col = tableParam.checkboxList.find(item => item.value === colPref_strList[i]);
+      const col = norm_checkboxList.find(item => item.value === colPref_strList[i]);
       // console.log("col:", col, "colPref_strList[i]", colPref_strList[i], colPref_strList, colPref_strList.length);
       const newCol = createColumn(col, normalWidth, needFilter = needFilter);
       vm.columns.splice(-1, 0, newCol);
@@ -817,16 +818,16 @@ export function openSetEdit(record, cols, vm) {
  */
 export function getMaxLength(record, vm, colName = "foreignMaxByte") {
   if (!record.classfy1) {
-    // console.log("无一级分类", record)
+    console.log("无一级分类", record)
     return record.maxLength || null;
   }
-  // console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
+  console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
   if (colName == "foreignMaxByte") {
-    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
+    console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
     return vm.classifyLimit?.[record.classfy1]?.foreignMaxByte || null;
   }
   else if (colName == "maxByte") {
-    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
+    console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
     return vm.classifyLimit?.[record.classfy1]?.maxByte || null;
   }
 }
