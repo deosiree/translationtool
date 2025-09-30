@@ -7,6 +7,10 @@
   // position: absolute;
 }
 
+.ant-table-header {
+  margin-right: 12px; // 加宽滚动条后，纵向滚动条的宽度补偿
+}
+
 .ant-btn-background-ghost span {
   font-size: 12px;
 }
@@ -18,17 +22,23 @@
 // 表格宽度（全局）
 .ant-table-striped .ant-table-cell {
   padding: 10px;
-}// 列名
+}
+
+// 列名
 
 .ant-table-striped tr td.ant-table-cell {
   padding: 2px;
-}// 单元格
+}
+
+// 单元格
 
 // 全局滚动条样式 - 应用于所有可滚动元素
 // Firefox 浏览器
 * {
-  scrollbar-width: auto; /* auto | thin | none */
-  scrollbar-color: #dddddd #f1f1f1; /* 滑块颜色 轨道颜色 */
+  scrollbar-width: auto;
+  /* auto | thin | none */
+  scrollbar-color: #dddddd #f1f1f1;
+  /* 滑块颜色 轨道颜色 */
 }
 
 // 表格滚动条样式
