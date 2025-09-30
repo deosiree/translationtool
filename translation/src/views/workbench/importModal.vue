@@ -452,7 +452,7 @@ import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
-import CoverButton from "@/components/Button/coverButton/inter2value.vue"
+import CoverButton from "@/components/Button/coverButton/inter2value.vue";
 import { add, cloneDeep, iteratee } from "lodash-es";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
@@ -866,6 +866,7 @@ export default {
     },
     // 保存词条
     async saveEntrys() {
+      this.saveLoading = true;
       const currentLang = this.task.transMap.value;
       let hasNoInter = false;
       let arr = {
@@ -874,7 +875,23 @@ export default {
         toLongIds: new Set(), // 校验长度
         specialIds: new Set(), // 校验特殊字符
       };
-      // 1.保存前校验
+      // 1.保存编辑框中的所有信息
+      for (let key in this.editableData) {
+        if (this.selectedRowKeys.includes(key)) {
+          let entry = this.dataSource.find((item) => item.id === key);
+          entry = cloneDeep(this.editableData[key]);
+
+          if (entry[currentLang] != null) {
+            // 翻译存在  则状态为待审核状态
+            entry[this.task.transMap.state] = "1";
+          }
+          delete this.editableData[key];
+        }
+      }
+      if (this.allData.length === 0) {
+        return;
+      }
+      // 2.保存前校验
       const verifyMethods = this.rulesOptions
         .filter((option) => option.checked)
         .map((option) => option.key);
@@ -895,23 +912,6 @@ export default {
         updateNum: 0,
         updateChildNum: 0,
       };
-      // 2.保存编辑框中的所有信息
-      for (let key in this.editableData) {
-        if (this.selectedRowKeys.includes(key)) {
-          let entry = this.dataSource.find((item) => item.id === key);
-          entry = cloneDeep(this.editableData[key]);
-
-          if (entry[currentLang] != null) {
-            // 翻译存在  则状态为待审核状态
-            entry[this.task.transMap.state] = "1";
-          }
-          delete this.editableData[key];
-        }
-      }
-      if (this.allData.length === 0) {
-        return;
-      }
-      this.saveLoading = true;
       // 3.修改状态
       for (const record of this.selectedRows) {
         if (arr.acceptIds.has(record.id)) {

@@ -722,7 +722,27 @@ export default {
         toLongIds: new Set(), // 校验长度
         specialIds: new Set(), // 校验特殊字符
       };
-      // 1.保存前校验
+
+      // 1.保存编辑框中的所有信息
+      for (let key in this.editableData) {
+        if (this.selectedRowKeys.includes(key)) {
+          // let entry = this.dataSource.find((item) => item.id === key);
+          // entry = cloneDeep(this.editableData[key]);
+          const itemIndex = this.dataSource.findIndex(
+            (item) => item.id === key
+          );
+          if (itemIndex !== -1) {
+            // 2. 用深拷贝后的editableData[key]替换dataSource中的项
+            // 普通数组/响应式数组（Vue3 reactive）：
+            this.dataSource[itemIndex] = cloneDeep(this.editableData[key]);
+            // Vue3 ref数组：
+            // this.dataSource.value[itemIndex] = cloneDeep(this.editableData[key]);
+          }
+          delete this.editableData[key];
+        }
+      }
+
+      // 2.保存前校验
       const verifyMethods = this.rulesOptions
         .filter((option) => option.checked)
         .map((option) => option.key);
@@ -744,25 +764,6 @@ export default {
       if (arrCount.errorNum > 0) {
         let errorNumText = `校验不通过${arrCount.errorNum}条`;
         messageTextParts.push(errorNumText);
-      }
-
-      // 2.保存编辑框中的所有信息
-      for (let key in this.editableData) {
-        if (this.selectedRowKeys.includes(key)) {
-          // let entry = this.dataSource.find((item) => item.id === key);
-          // entry = cloneDeep(this.editableData[key]);
-          const itemIndex = this.dataSource.findIndex(
-            (item) => item.id === key
-          );
-          if (itemIndex !== -1) {
-            // 2. 用深拷贝后的editableData[key]替换dataSource中的项
-            // 普通数组/响应式数组（Vue3 reactive）：
-            this.dataSource[itemIndex] = cloneDeep(this.editableData[key]);
-            // Vue3 ref数组：
-            // this.dataSource.value[itemIndex] = cloneDeep(this.editableData[key]);
-          }
-          delete this.editableData[key];
-        }
       }
 
       // 3.更新选中词条
