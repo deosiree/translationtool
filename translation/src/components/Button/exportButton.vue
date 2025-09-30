@@ -452,7 +452,6 @@ export default {
             }
           }
         }
-        this.$emit("operateClose");
         this.exportVisible = false;
         // 记录偏好
         this.exportFieldChange(this.exportModal.field);

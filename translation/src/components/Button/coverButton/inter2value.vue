@@ -6,7 +6,7 @@
       <a-form ref="coverForm" :model="coverModal">
 
         <!-- 将name改为与coverModal中的属性名匹配 -->
-        <a-form-item label="覆盖语种" name="langs" :rules="[{ required: true, message: '请选择!' }]">
+        <a-form-item label="覆盖语种" name="langs" :rules="[{ required: true, message: '请选择覆盖语种！' }]">
           <div style="display: flex; justify-content: space-between;">
             <a-select mode="multiple" v-model:value="coverModal.langs" :options='langsOptions' placeholder="请选择覆盖语种" allowClear
               style="flex: 1; margin-right: 8px;" />
@@ -34,15 +34,9 @@
 
 <script>
 import { message } from "ant-design-vue";
-import { create } from "xmlbuilder2";
-// import builder from "xmlbuilder"; // 注意：这是 xmlbuilder 的常见导入方式
 import { ref } from "vue";
 import CustomModal from "@/components/modal/index.vue";
-import {
-  queryUserPartiality,
-  updateUserPartiality,
-} from "@/http/api/userPartiality";
-import commonParam, { entryParams } from "@/utils/commonParam.js";
+import commonParam from "@/utils/commonParam.js";
 import {
   setModalAriaHidden,
   getCurrentStringTime,
@@ -85,7 +79,7 @@ export default {
       },
       langsOptions: commonParam.languageList.map((item) => ({
         label: item.name,
-        value: item.value,
+        value: item.name,
       })),
       rulesOptions: commonParam.rulesOptions.map((item) => ({
         label: item.label,
@@ -125,8 +119,6 @@ export default {
         toLongIds: new Set(), // 校验长度
         specialIds: new Set(), // 校验特殊字符
       };
-      let newDataSource = cloneDeep(this.dataSource);
-      let newEditableData = {};
       setModalAriaHidden(this, document);
       // console.log("获取用户偏好前：导出字段", this.coverModal);
       // 1.读取本地存储的用户偏好
@@ -153,38 +145,6 @@ export default {
       //   }
       // });
       // console.log("获取用户偏好后：导出字段", this.coverModal);
-
-      console.log("写入数据：", newDataSource);
-
-      // 1.保存编辑框中的所有信息
-      for (let key in this.editableData) {
-        let entry = newDataSource.find((item) => item.id === key);
-        entry = cloneDeep(this.editableData[key]);
-
-        if (entry[currentLang] != null) {
-          // 翻译存在  则状态为待审核状态
-          entry[this.task.transMap.state] = "1";
-        }
-      }
-      // 2.校验翻译列
-      arr = await verifyArray_workbench(
-        this,
-        newDataSource,
-        this.translate,
-        this.coverModal.rules
-      );
-      console.log("arr", arr);
-      let arrCount = {
-        updateArr: [],
-        insertArr: [],
-        toLongNum: arr.toLongIds.size,
-        specialNum: arr.specialIds.size,
-        errorNum: arr.errorIds.size,
-        addNum: 0,
-        addChildNum: 0,
-        updateNum: 0,
-        updateChildNum: 0,
-      };
     },
     // 全选覆盖语言方法
     selectAllLangs() {
@@ -197,15 +157,54 @@ export default {
     // 导出-确认
     async handleOK() {
       try {
-        if (!this.coverModal.langs || this.coverModal.langs.length == 0) {
-          message.error("请选择指定覆盖语言！");
-          return;
+        // 1.表单校验（必须选择覆盖语言）
+        await this.$refs.coverForm.validate();
+
+        let newDataSource = cloneDeep(this.dataSource);
+        let newEditableData = {};
+        console.log("写入数据：", newDataSource);
+
+        // 2.保存编辑框中的所有信息
+        console.log("编辑框数据：", this.editableData);
+        for (let key in this.editableData) {
+          const index = newDataSource.findIndex((item) => item.id === key);
+          // newDataSource.splice(index, 1);
+          // newDataSource.splice(index, 0, this.editableData[key]);
+          newDataSource[index] = cloneDeep(this.editableData[key]);
         }
+        console.log("保存编辑框后数据：", newDataSource);
 
-        await this.$refs.coverForm.validate(); // 表单校验
+        // 3.释义覆盖翻译
+        for (let item of newDataSource) {
+          for (let lang of this.coverModal.langs) {
+            const transMap = commonParam.languageMap[lang];
+            if (item[transMap.interpretation] != null) {
+              item[transMap.value] = item[transMap.interpretation];
+            }
+          }
+        }
+        console.log("释义覆盖后数据：", newDataSource);
 
-        this.$emit("operateClose");
-        this.coverVisible = false;
+        // // 4.校验翻译列
+        // arr = await verifyArray_workbench(
+        //   this,
+        //   newDataSource,
+        //   this.translate,
+        //   this.coverModal.rules
+        // );
+        // console.log("arr", arr);
+        // let arrCount = {
+        //   updateArr: [],
+        //   insertArr: [],
+        //   toLongNum: arr.toLongIds.size,
+        //   specialNum: arr.specialIds.size,
+        //   errorNum: arr.errorIds.size,
+        //   addNum: 0,
+        //   addChildNum: 0,
+        //   updateNum: 0,
+        //   updateChildNum: 0,
+        // };
+
         // 记录偏好
         // this.coverFieldChange();//（后端写死了固定几列，所以我自定义的存不进去）
         localStorage.setItem(
@@ -222,13 +221,17 @@ export default {
         //   rules: this.coverModal.rules.join(","),
         // };
         // localStorage.setItem("cover_inter2value", JSON.stringify(json)); // localStorage存储用户偏好
-
       } catch (error) {
         if (!(error.name === "AbortError")) {
-          console.log("覆盖失败原因", error);
-          message.error(`覆盖失败: ${error.message || error}`);
+          console.log(
+            "覆盖失败原因",
+            error,
+            error.errorFields[0].errors.join("，")
+          );
+          message.error(error.errorFields[0].errors.join("，"));
         }
       } finally {
+        this.coverVisible = false;
       }
     },
     // // 记录用户偏好（后端写死了固定几列，所以我自定义的存不进去）

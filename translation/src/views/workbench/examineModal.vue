@@ -508,26 +508,36 @@ export default {
     },
     handleOK() {
       for (let key in this.editableData) {
-        let entry = this.dataSource.find((item) => item.id === key);
-        entry.auditSuggess = this.editableData[key].auditSuggess;
-        entry[this.task.transMap.value] =
-          this.editableData[key][this.task.transMap.value];
-        commonParam.languageList.forEach((item) => {
-          if (this.editableData[key][item.interpretation]) {
-            entry[item.interpretation] =
-              this.editableData[key][item.interpretation];
+        // let entry = this.dataSource.find((item) => item.id === key);
+        // entry.auditSuggess = this.editableData[key].auditSuggess;
+        // entry[this.task.transMap.value] =
+        //   this.editableData[key][this.task.transMap.value];
+        // commonParam.languageList.forEach((item) => {
+        //   if (this.editableData[key][item.interpretation]) {
+        //     entry[item.interpretation] =
+        //       this.editableData[key][item.interpretation];
+        //   }
+        // }); // 遍历存储外语释义
+
+        // entry.chineseInterpretation =
+        //   this.editableData[key].chineseInterpretation;
+        // entry.tag = this.editableData[key].tag;
+        // entry.diFileName = this.editableData[key].diFileName;
+        // entry.comment = this.editableData[key].comment;
+
+        // if (entry[this.task.transMap.value] != null) {
+        //   // 翻译存在  则状态为待审核状态
+        //   entry[this.task.transMap.state] = "1";
+        // }
+
+        // 保存编辑框中的所有信息
+        const index = this.dataSource.findIndex((item) => item.id === key);
+        if (index != -1) {
+          if (this.editableData[key][this.task.transMap.value] != null) {
+            // 翻译存在  则状态为待审核状态
+            this.editableData[key][this.task.transMap.state] = "1";
           }
-        }); // 遍历存储外语释义
-
-        entry.chineseInterpretation =
-          this.editableData[key].chineseInterpretation;
-        entry.tag = this.editableData[key].tag;
-        entry.diFileName = this.editableData[key].diFileName;
-        entry.comment = this.editableData[key].comment;
-
-        if (entry[this.task.transMap.value] != null) {
-          // 翻译存在  则状态为待审核状态
-          entry[this.task.transMap.state] = "1";
+          this.dataSource[index] = cloneDeep(this.editableData[key]);
         }
       }
       this.editableData = {};

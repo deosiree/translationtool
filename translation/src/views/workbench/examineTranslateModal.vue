@@ -483,11 +483,17 @@ export default {
       this.loading = true;
       this.saveLoading = true;
       for (let key in this.editableData) {
-        let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.task.transMap.auditSuggest] =
-          this.editableData[key][this.task.transMap.auditSuggest];
-        entry[this.task.transMap.value] =
-          this.editableData[key][this.task.transMap.value];
+        // let entry = this.dataSource.find((item) => item.id === key);
+        // entry[this.task.transMap.auditSuggest] =
+        //   this.editableData[key][this.task.transMap.auditSuggest];
+        // entry[this.task.transMap.value] =
+        //   this.editableData[key][this.task.transMap.value];
+
+        // 保存编辑框中的所有信息
+        const index = this.dataSource.findIndex((item) => item.id === key);
+        if (index != -1) {
+          this.dataSource[index] = cloneDeep(this.editableData[key]);
+        }
       }
       this.editableData = {};
 

@@ -904,13 +904,24 @@ export default {
       // 1.保存编辑框中的所有信息
       for (let key in this.editableData) {
         if (this.selectedRowKeys.includes(key)) {
-          let entry = this.dataSource.find((item) => item.id === key);
-          entry = cloneDeep(this.editableData[key]);
+          // let entry = this.dataSource.find((item) => item.id === key);
+          // entry = cloneDeep(this.editableData[key]);
 
-          if (entry[currentLang] != null) {
-            // 翻译存在  则状态为待审核状态
-            entry[this.task.transMap.state] = "1";
+          // if (entry[currentLang] != null) {
+          //   // 翻译存在  则状态为待审核状态
+          //   entry[this.task.transMap.state] = "1";
+          // }
+
+          // 保存编辑框中的所有信息
+          const index = this.dataSource.findIndex((item) => item.id === key);
+          if (index != -1) {
+            if (this.editableData[key][currentLang] != null) {
+              // 翻译存在  则状态为待审核状态
+              this.editableData[key][currentLang] = "1";
+            }
+            this.dataSource[index] = cloneDeep(this.editableData[key]);
           }
+
           delete this.editableData[key];
         }
       }
