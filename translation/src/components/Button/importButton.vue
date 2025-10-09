@@ -22,17 +22,25 @@
         </a-form-item>
       </a-form>
     </div>
+    <template #leftBottomBtn>
+      <ExportButton v-if="exportDataSource.length > 0" :dataSource="exportDataSource" :fieldOptions_="fieldOptions" :defaultStatusCheck="false"
+        size="middle" buttonTitle="导出更新失败的词条文件" @afterClose="exportClose" />
+    </template>
   </CustomModal>
 </template>
 
 <script>
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
+import ExportButton from "@/components/Button/exportButton.vue";
 import { entryImportExcle } from "@/http/api/entryManage";
 import { setModalAriaHidden } from "@/utils/commonUtils";
+import commonParam, { entryParams } from "@/utils/commonParam.js";
+import { cloneDeep } from "lodash-es";
 export default {
   components: {
     CustomModal, // 注册 CustomModal 组件
+    ExportButton,
   },
   emits: ["importSuccess"],
   props: {
@@ -64,6 +72,8 @@ export default {
       ],
       accept: null,
       fileList: [],
+      exportDataSource: [], // 存储更新失败的词条
+      fieldOptions: entryParams.exportFields,
     };
   },
   watch: {
@@ -94,9 +104,12 @@ export default {
         .validate()
         .then(async () => {
           this.importLoading = true;
+          let exportDataMap = new Map(
+            this.exportDataSource.map((item) => [item.id, item])
+          ); // 不同语种触发更新失败时，需要记录上一次的失败词条，以便后续补充
           const formData = new FormData();
           const promises = [];
-          const msg = { success: [], failed: [] };
+          const msg = { success: [], failed: new Map() };
           formData.append("file", this.importModal.importFile);
           // console.log("formData", formData);
           // console.log("file", this.importModal.importFile);
@@ -106,7 +119,7 @@ export default {
           // for (const [key, value] of formData.entries()) {
           //   console.log(`${key}: ${value}`);
           // }
-          function entryImportFn(lang, formData) {
+          const entryImportFn = (lang, formData) => {
             // 每种翻译语言的导入
             const params = {
               transType: lang,
@@ -114,13 +127,38 @@ export default {
             };
             return entryImportExcle(params, formData)
               .then((res) => {
-                msg.success.push(lang);
+                if (res.type != "ERROR") {
+                  msg.success.push(lang);
+                } else {
+                  if (!msg.failed.has(res.message)) {
+                    msg.failed.set(res.message, []);
+                  }
+                  msg.failed.get(res.message).push(lang);
+                  res.data.list.forEach((item) => {
+                    if (!exportDataMap.has(item.id)) {
+                      exportDataMap.set(item.id, item);
+                    }
+                  });
+                }
               })
               .catch((err) => {
                 console.log("导入失败原因", err);
-                msg.success.push(lang);
+                let errRes = "";
+                if (typeof err === "string") {
+                  errRes = err;
+                } else {
+                  errRes = "请使用在词条管理中导出的文件进行导入";
+                }
+                if (!msg.failed.has(errRes)) {
+                  msg.failed.set(errRes, []);
+                }
+                msg.failed.get(errRes).push(lang);
+              })
+              .finally(() => {
+                this.exportDataSource = Array.from(exportDataMap.values());
+                // console.log("更新失败的词条", this.exportDataSource);
               });
-          }
+          };
 
           for (const lang of this.importModal.language) {
             promises.push(entryImportFn(lang, formData));
@@ -131,12 +169,18 @@ export default {
               message.success(msg.success.join("，") + "导入成功！", 3);
               // console.log(msg.success.join(","), "!");
             }
-            if (msg.failed.length > 0) {
-              message.error(
-                msg.failed.join("，"),
-                `导入失败！注意，请使用在词条管理中导出的文件进行导入。`,
-                3
-              );
+            if (msg.failed.size > 0) {
+              function formatMapToString(mapObj) {
+                const result = [];
+                mapObj.forEach((valueArray, key) => {
+                  const valueStr = valueArray.join(",");
+                  result.push(`${key}：${valueStr}`);
+                });
+                return result.join("；");
+              }
+              const failedStr = "导入失败！" + formatMapToString(msg.failed);
+              // console.log(failedStr,msg.failed);
+              message.error(failedStr, 3);
             } else {
               this.importVisible = false;
             }
@@ -207,6 +251,12 @@ export default {
         }
         return Promise.resolve();
       };
+    },
+    // 关闭导出失败模态框
+    exportClose() {
+      this.importClose();
+      this.exportDataSource = []; //清空更新失败的词条记录
+      // console.log("更新失败的词条被清空后", this.exportDataSource);
     },
   },
 };

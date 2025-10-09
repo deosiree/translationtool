@@ -1,7 +1,8 @@
 <template>
   <a-button type="primary" @click="showExportModal" :size="size">{{ buttonTitle }}</a-button>
 
-  <CustomModal :modalTitle="buttonTitle" width="500px" :visible="exportVisible" :showCancel="false" :showOk="false" @handleClose="handleClose">
+  <CustomModal :modalTitle="buttonTitle" width="60%" :visible="exportVisible" :showCancel="false" :showOk="false" @handleClose="handleClose"
+    :afterClose="afterClose">
     <div class="content">
       <a-form ref="exportForm" :model="exportModal">
         <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择!' }]">
@@ -22,6 +23,9 @@
         <a-form-item label="指定local语言" name="local_desc" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="exportModal.local_desc" placeholder="请选择语言" :options='localDescOptions' allowClear>
           </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-checkbox v-model:checked="statusCheck">只能导出已审核</a-checkbox>
         </a-form-item>
       </a-form>
     </div>
@@ -56,6 +60,7 @@ export default {
   components: {
     CustomModal,
   },
+  emits: ["afterClose"],
   props: {
     dataSource: {
       type: Array,
@@ -73,6 +78,10 @@ export default {
       type: String,
       default: "导出",
     },
+    defaultStatusCheck: {
+      type: Boolean,
+      default: true,
+    }, // 默认只能导出已审核词条
   },
   data() {
     return {
@@ -104,6 +113,7 @@ export default {
         ops: new Set(),
       }, // 当前用户所在部门的相关信息
       fieldOptions: entryParams.exportFields,
+      statusCheck: this.defaultStatusCheck, // 使用prop值作为初始值( props 不应该被组件内部直接修改)
     };
   },
   mounted() {
@@ -412,10 +422,15 @@ export default {
             entryInfoEntities: this.dataSource,
             excelName: "词条导出",
           };
-          let accept_ = await checkBeforeExportEntry(data, params);
-          if (accept_.data.list.length != 0) {
-            message.warning("导出失败：存在审核未结束的词条");
-          } else {
+          let accept_ = [];
+          if (this.statusCheck) {
+            // 只能导出已审核，需要检查是否有审核未结束的词条
+            accept_ = await checkBeforeExportEntry(data, params);
+            if (accept_.data.list.length != 0) {
+              message.warning("导出失败：存在审核未结束的词条");
+            }
+          }
+          if (!this.statusCheck || accept_.data.list.length == 0) {
             const res = await entryExportByCondition(data, params);
             let fileName = res.headers["content-disposition"]
               .split(";")[1]
@@ -505,6 +520,10 @@ export default {
     // 关闭导出模态框
     handleClose() {
       this.exportVisible = false;
+    },
+    // 关闭模态框后
+    afterClose() {
+      this.$emit("afterClose");
     },
   },
 };

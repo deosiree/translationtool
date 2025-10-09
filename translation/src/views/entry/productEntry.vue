@@ -628,11 +628,9 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      overlayStyle: entryParams.overlayStyle,// 展示列样式
-      checkboxList: entryParams.checkboxList,// 展示列可选的值
-      checkedColumn: cachedDisplayColumn
-        ? cachedDisplayColumn.split(",")
-        : [],// 展示列已选的值
+      overlayStyle: entryParams.overlayStyle, // 展示列样式
+      checkboxList: entryParams.checkboxList, // 展示列可选的值
+      checkedColumn: cachedDisplayColumn ? cachedDisplayColumn.split(",") : [], // 展示列已选的值
       inputColumn: entryParams.inputColumn,
       translateColumn: entryParams.translateColumn,
       commonParam: commonParam,
@@ -1481,6 +1479,8 @@ export default {
     },
     // 选择全部词条
     selectAllEntry() {
+      console.log("选择全部，模块级不灵");
+
       // 获取所有的词条
       if (Object.keys(this.product).length === 0) {
         return;
