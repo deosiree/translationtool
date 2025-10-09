@@ -1033,8 +1033,10 @@ export default {
     customRow(record, index) {
       return {
         onClick: (event) => {
-          this.selectedRowIndex = record.id;
-          this.assistedTranslation(record); // 辅助翻译
+          if (record.id != this.selectedRowIndex) {// 没选其他词条就不重新执行辅助翻译
+            this.selectedRowIndex = record.id;
+            this.assistedTranslation(record); // 辅助翻译
+          }
         },
         onDblclick: async (event) => {
           if (this.editableData.hasOwnProperty(record.id)) {
@@ -1291,8 +1293,16 @@ export default {
         priority: this.preTran.priority,
       };
       this.loading = true;
-      // 将 编辑数据对应 的 dataSource 的翻译都变成空，以便被预翻译覆盖
-      this.dataSource.forEach((item) => {
+      let dataPreTranslate = null;
+      if (this.selectedRows.length == 0) {
+        // 勾选为空，就翻译所有词条
+        dataPreTranslate = this.dataSource;
+      } else {
+        // 有勾选的词条，就翻译勾选
+        dataPreTranslate = this.selectedRows;
+      }
+      // 将 预翻译数据 翻译都变成空，以便被预翻译覆盖
+      dataPreTranslate.forEach((item) => {
         if (
           Object.keys(this.editableData).some(
             (key) => this.editableData[key].id === item.id
@@ -1302,14 +1312,14 @@ export default {
         }
       });
       this.editableData = []; // 取消所有编辑状态
-      preTranslate(params, this.dataSource)
+      preTranslate(params, dataPreTranslate)
         .then((res) => {
-          // 更新 dataSource 中的翻译数据
-          this.dataSource = res.data.list.map((item) => {
+          // 更新 预翻译数据 中的翻译数据
+          dataPreTranslate = res.data.list.map((item) => {
             item.translate = item[this.language.value];
             return item;
           });
-          this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
+          this.updateNewByOld(this.allData, dataPreTranslate); // 也更新一下全量数据
         })
         .catch((err) => {
           message.error("预翻译失败！", err.message);
