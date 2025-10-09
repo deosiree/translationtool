@@ -22,7 +22,9 @@
         <a-button type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
-        <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
+        <CoverButton :translate="task.translateType" :dataSource="dataSource" :oldEditableData="editableData"
+          @update:oldEditableData="editableData=$event" size="small" buttonTitle="释义覆盖翻译" style="margin-left:8px" />
+        <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>
             <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
@@ -192,6 +194,7 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import CoverButton from "@/components/Button/coverButton/inter2value.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -237,6 +240,7 @@ export default {
     IsExistBadge,
     EntryStateBadge,
     TransStateBadge,
+    CoverButton,
   },
   emits: ["handleClose", "handleOK"],
   props: {

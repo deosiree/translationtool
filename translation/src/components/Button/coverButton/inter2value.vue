@@ -1,5 +1,5 @@
 <template>
-  <a-button type="primary" @click="showCoverModal" :size="size">{{ buttonTitle }}</a-button>
+  <a-button type="primary" @click="showCoverModal" :size="size" :style="style">{{ buttonTitle }}</a-button>
 
   <CustomModal :modalTitle="buttonTitle" width="500px" :visible="coverVisible" :showCancel="false" :showOk="false" @handleClose="handleClose">
     <div class="content">
@@ -34,20 +34,15 @@
 
 <script>
 import { message } from "ant-design-vue";
-import { ref } from "vue";
 import CustomModal from "@/components/modal/index.vue";
 import commonParam from "@/utils/commonParam.js";
-import {
-  setModalAriaHidden,
-  getCurrentStringTime,
-  verifyArray_workbench,
-} from "@/utils/commonUtils.js";
+import { setModalAriaHidden } from "@/utils/commonUtils.js";
 import { cloneDeep } from "lodash-es";
 export default {
   components: {
     CustomModal,
   },
-  emits: ["update:dataSource", "update:editableData"],
+  emits: ["update:oldEditableData"],
   props: {
     translate: {
       type: String,
@@ -56,13 +51,17 @@ export default {
       type: Array,
       required: true,
     },
-    editableData: {
+    oldEditableData: {
       type: Object,
       required: true,
     },
     size: {
       type: String,
       default: "small",
+    },
+    style: {
+      type: Object,
+      default: () => ({}),
     },
     buttonTitle: {
       type: String,
@@ -93,6 +92,7 @@ export default {
         xml_temp: false,
         ops: new Set(),
       }, // 当前用户所在部门的相关信息
+      editableData: {},
     };
   },
   mounted() {
@@ -113,12 +113,6 @@ export default {
   methods: {
     async showCoverModal() {
       this.coverVisible = true;
-      let arr = {
-        acceptIds: new Set(), // 所有校验通过
-        errorIds: new Set(), // 所有校验不通过
-        toLongIds: new Set(), // 校验长度
-        specialIds: new Set(), // 校验特殊字符
-      };
       setModalAriaHidden(this, document);
       // console.log("获取用户偏好前：导出字段", this.coverModal);
       // 1.读取本地存储的用户偏好
@@ -161,49 +155,39 @@ export default {
         await this.$refs.coverForm.validate();
 
         let newDataSource = cloneDeep(this.dataSource);
-        let newEditableData = {};
-        console.log("写入数据：", newDataSource);
+        // console.log("写入数据：", newDataSource);
 
         // 2.保存编辑框中的所有信息
-        console.log("编辑框数据：", this.editableData);
+        this.editableData = cloneDeep(this.oldEditableData);
         for (let key in this.editableData) {
-          const index = newDataSource.findIndex((item) => item.id === key);
-          // newDataSource.splice(index, 1);
-          // newDataSource.splice(index, 0, this.editableData[key]);
+          const index = this.dataSource.findIndex((item) => item.id === key);
+          // this.editableData.splice(index, 1);
+          // this.editableData.splice(index, 0, this.editableData[key]);
           newDataSource[index] = cloneDeep(this.editableData[key]);
         }
-        console.log("保存编辑框后数据：", newDataSource);
+        // console.log(
+        //   "保存编辑框后数据：",
+        //   this.editableData,
+        //   this.oldEditableData,
+        //   this.dataSource
+        // );
 
-        // 3.释义覆盖翻译
+        // 3.释义覆盖翻译（存到编辑框中）
         for (let item of newDataSource) {
           for (let lang of this.coverModal.langs) {
             const transMap = commonParam.languageMap[lang];
             if (item[transMap.interpretation] != null) {
-              item[transMap.value] = item[transMap.interpretation];
+              // item[transMap.value] = item[transMap.interpretation];// 存到newDataSource了
+              if (!this.editableData[item.id]) {
+                this.editableData[item.id] = item;
+              }
+              this.editableData[item.id][transMap.value] =
+                item[transMap.interpretation];
             }
           }
         }
-        console.log("释义覆盖后数据：", newDataSource);
-
-        // // 4.校验翻译列
-        // arr = await verifyArray_workbench(
-        //   this,
-        //   newDataSource,
-        //   this.translate,
-        //   this.coverModal.rules
-        // );
-        // console.log("arr", arr);
-        // let arrCount = {
-        //   updateArr: [],
-        //   insertArr: [],
-        //   toLongNum: arr.toLongIds.size,
-        //   specialNum: arr.specialIds.size,
-        //   errorNum: arr.errorIds.size,
-        //   addNum: 0,
-        //   addChildNum: 0,
-        //   updateNum: 0,
-        //   updateChildNum: 0,
-        // };
+        // console.log("释义覆盖后数据：", this.editableData);
+        this.$emit("update:oldEditableData", this.editableData); // 存为编辑框，会自动进行校验
 
         // 记录偏好
         // this.coverFieldChange();//（后端写死了固定几列，所以我自定义的存不进去）
@@ -223,12 +207,8 @@ export default {
         // localStorage.setItem("cover_inter2value", JSON.stringify(json)); // localStorage存储用户偏好
       } catch (error) {
         if (!(error.name === "AbortError")) {
-          console.log(
-            "覆盖失败原因",
-            error,
-            error.errorFields[0].errors.join("，")
-          );
-          message.error(error.errorFields[0].errors.join("，"));
+          console.log("覆盖失败原因", error);
+          message.error(error); //.errorFields[0].errors.join("，")
         }
       } finally {
         this.coverVisible = false;

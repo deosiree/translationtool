@@ -818,16 +818,16 @@ export function openSetEdit(record, cols, vm) {
  */
 export function getMaxLength(record, vm, colName = "foreignMaxByte") {
   if (!record.classfy1) {
-    console.log("无一级分类", record)
+    // console.log("无一级分类", record)
     return record.maxLength || null;
   }
-  console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
+  // console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
   if (colName == "foreignMaxByte") {
-    console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
+    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
     return vm.classifyLimit?.[record.classfy1]?.foreignMaxByte || null;
   }
   else if (colName == "maxByte") {
-    console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
+    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
     return vm.classifyLimit?.[record.classfy1]?.maxByte || null;
   }
 }

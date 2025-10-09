@@ -269,9 +269,9 @@
           <a-radio value="英文">英文</a-radio>
         </a-radio-group>
         <div style="margin-left:auto">
-          <!-- <CoverButton :translate="task.translateType" :dataSource="dataSource" :editableData="editableData" @update:dataSource="dataSource=$event"
-            @update:editableData="editableData=$event" size="middle" buttonTitle="释义覆盖翻译" /> -->
-          <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button>
+          <CoverButton :translate="task.translateType" :dataSource="dataSource" :oldEditableData="editableData"
+            @update:oldEditableData="editableData=$event" size="small" buttonTitle="释义覆盖翻译" />
+          <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
               <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
@@ -1757,7 +1757,7 @@ export default {
           .finally(() => {
             this.loading = false;
             this.importBtnLoading = false;
-            // 校验当前页数据的长度
+            // 校验当前页数据
             verifyArray_workbench_page(
               this.pagination,
               this.task.transMap.value,
