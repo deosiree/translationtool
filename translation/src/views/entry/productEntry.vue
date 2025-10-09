@@ -1479,8 +1479,6 @@ export default {
     },
     // 选择全部词条
     selectAllEntry() {
-      console.log("选择全部，模块级不灵");
-
       // 获取所有的词条
       if (Object.keys(this.product).length === 0) {
         return;
@@ -1514,7 +1512,10 @@ export default {
         }
       });
       let params = {
-        classfyID: this.product.key,
+        classfyID:
+          this.product.type === "module"
+            ? this.product.parentId
+            : this.product.key,
         translateType: this.search.language,
         startTime: this.search.startTime,
         endTime: this.search.endTime,
