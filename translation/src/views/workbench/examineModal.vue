@@ -23,7 +23,8 @@
         <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
                 <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
         <CoverButton :translate="task.translateType" :dataSource="dataSource" :oldEditableData="editableData"
-          @update:oldEditableData="editableData=$event" size="small" buttonTitle="释义覆盖翻译" style="margin-left:8px" />
+          @update:oldEditableData="editableData=$event" @showEditOperation="showEditOperation" size="small" buttonTitle="释义覆盖翻译"
+          style="margin-left:8px" />
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>

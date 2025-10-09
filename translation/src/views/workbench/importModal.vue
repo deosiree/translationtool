@@ -270,7 +270,7 @@
         </a-radio-group>
         <div style="margin-left:auto">
           <CoverButton :translate="task.translateType" :dataSource="dataSource" :oldEditableData="editableData"
-            @update:oldEditableData="editableData=$event" size="small" buttonTitle="释义覆盖翻译" />
+            @update:oldEditableData="editableData=$event" @showEditOperation="showEditOperation" size="small" buttonTitle="释义覆盖翻译" />
           <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
