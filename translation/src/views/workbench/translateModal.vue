@@ -1033,7 +1033,8 @@ export default {
     customRow(record, index) {
       return {
         onClick: (event) => {
-          if (record.id != this.selectedRowIndex) {// 没选其他词条就不重新执行辅助翻译
+          if (record.id != this.selectedRowIndex) {
+            // 没选其他词条就不重新执行辅助翻译
             this.selectedRowIndex = record.id;
             this.assistedTranslation(record); // 辅助翻译
           }
@@ -1274,7 +1275,8 @@ export default {
       Old.forEach((item) => {
         const index = idToIndexMap.get(item.id);
         if (index !== undefined) {
-          New[index] = item;
+          // 使用Object.assign合并属性，确保Vue能检测到变化
+          Object.assign(New[index], item);
         }
       });
     },
@@ -1292,7 +1294,6 @@ export default {
         taskID: this.task.id,
         priority: this.preTran.priority,
       };
-      this.loading = true;
       let dataPreTranslate = null;
       if (this.selectedRows.length == 0) {
         // 勾选为空，就翻译所有词条
@@ -1301,6 +1302,7 @@ export default {
         // 有勾选的词条，就翻译勾选
         dataPreTranslate = this.selectedRows;
       }
+      this.loading = true;
       // 将 预翻译数据 翻译都变成空，以便被预翻译覆盖
       dataPreTranslate.forEach((item) => {
         if (
