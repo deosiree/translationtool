@@ -18,6 +18,7 @@ import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
+import com.shr.translationtoolservice.util.analyze.impl.BatchMaxLengthTranslateAnalyzer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -2116,14 +2117,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public String importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
+    public Collection<EntryInfoEntity> importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
 
-        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
+        Collection<EntryInfoEntity> entryEntitys = new ArrayList<>();
         String token = request.getHeader("token");
         String department = JWTTokenUtils.getDepartment(token);
 
         //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
-        
+        List<EntryInfoEntity> problematicEntryInfoEntities = new ArrayList<>();
         try {
             if(multipartFile.getOriginalFilename().endsWith(".csv")){
                 entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
@@ -2131,7 +2132,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
             }
             if (CollectionUtils.isEmpty(entryEntitys)) {
-                return null;
+                return problematicEntryInfoEntities;
             }
             for (EntryInfoEntity entryInfoEntity1 : entryEntitys) {
                 if (entryInfoEntity1.getEntry() != null && entryInfoEntity1.getEntry().equals("字节顺序")){
@@ -2311,6 +2312,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         break;
 
                 }
+            
+                
+            }
+        
+            /* 校验导入的翻译是否超过了最大字符长度,仅警告用户存在问题 */
+            BatchMaxLengthTranslateAnalyzer batchMaxLengthTranslateAnalyzer = new BatchMaxLengthTranslateAnalyzer(entryInfoMapper,productRelationMapper,entryClassifyMapper);
+            batchMaxLengthTranslateAnalyzer.addLanguageType(transType);
+            boolean isNotOK = batchMaxLengthTranslateAnalyzer.analyze(entryEntitys);
+            if(isNotOK){
+                /* 存在翻译超过了对应的字符限制 */
+                problematicEntryInfoEntities.addAll(batchMaxLengthTranslateAnalyzer.getProblematicEntryInfoEntities());
             }
         } catch (Exception e) {
             log.error(null,e);
@@ -2319,7 +2331,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
 
 
-        return ConstantInterface.OK_STR;
+        return problematicEntryInfoEntities;
 
     }
 

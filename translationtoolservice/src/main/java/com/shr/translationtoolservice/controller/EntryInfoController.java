@@ -293,12 +293,26 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional
     //new
-    public HttpResponse<String> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,
                                                           HttpServletRequest httpServletRequest
     ) {
         try {
-            String re = entryInfoService.importTransExcle(multipartFile, httpServletRequest,transType);
-            return checkResult(re);   
+            Collection<EntryInfoEntity> collection = entryInfoService.importTransExcle(multipartFile, httpServletRequest,transType);
+            ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
+            responseListModel.setList(collection);
+            responseListModel.setTotalNum(collection.size());
+            HttpResponse<ResponseListModel<EntryInfoEntity>> responseResult = new HttpResponse<>();
+            responseResult.setCode(HttpResponse.Type.OK.getVal());
+            responseResult.setData(responseListModel);
+            if(collection != null && !collection.isEmpty()){
+                responseResult.setType(HttpResponse.Type.ERROR);
+                responseResult.setMessage("词条翻译更新成功,部分翻译字符数超过设定的最大外文字符数,请检查核对后自行修改");
+            }else{
+                responseResult.setType(HttpResponse.Type.OK);
+                responseResult.setMessage("词条翻译更新成功");
+            }
+
+            return responseResult;
         } catch (Exception e) {
             return error(null, e.getMessage());
             // TODO: handle exception

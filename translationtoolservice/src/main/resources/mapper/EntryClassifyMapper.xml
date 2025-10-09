@@ -273,4 +273,19 @@
         </foreach>
         );
     </update>
+
+    <select id="getEntryClassfyDOByIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entry_classify 
+        <where>
+            is_delete = 0
+            <if test = "classfies != null and !classfies.isEmpty()">
+                and parent_id in 
+                <foreach collection="classfies" item="classfy" index="index" separator="," open = "(" close = ")">
+                #{classfy,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+    </select>
 </mapper>

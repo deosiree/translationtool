@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
 
-    String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
+    Collection<EntryInfoEntity> importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
 
     List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 
