@@ -79,10 +79,12 @@
             </template>
             <template v-slot:data>
               <div style="width:100%;position: absolute;">
-                <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
-                  :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
-                  :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
-                  ref="workTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
+                <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll,
+                    selections:[
+                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
+                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
+                    ]}" :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading"
+                  :rowClassName="getRowClassName" ref="workTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'state'">
                       <TaskStateBadge type="normal" :taskState="text" />
@@ -141,7 +143,12 @@ import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
-import { setTableHeight, setModalAriaHidden } from "@/utils/commonUtils";
+import {
+  setTableHeight,
+  setModalAriaHidden,
+  selectAllEntry,
+  clearAllEntry,
+} from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -163,6 +170,7 @@ export default {
       // 汉化包
       locale: locale,
       toDoNum: 0,
+      toDoTasks: [],// 待办任务列表(便于全部选择)
       finishNum: 0,
       labelCol: { style: { width: "84px" } },
       lastSearch: {},
@@ -410,7 +418,7 @@ export default {
         }
       }
     },
-    // 表格全选/反选框点击事件
+    // 表格全选/反选框点击事件（当前页）
     onSelectAll(selected, selectedRows, changeRows) {
       if (this.createVersionFlag) {
         if (selected) {
@@ -423,6 +431,17 @@ export default {
           });
         }
       }
+    },
+    // 复选框全选事件
+    selectAllEntry() {
+      this.toDoTasks.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+      });
+    },
+    //复选框反选事件
+    clearAllEntry() {
+      clearAllEntry(this);
     },
     getRowClassName(record, index) {
       let className = null;
@@ -512,6 +531,7 @@ export default {
       // 待办事项
       getToDoTaskInfo(params, {}).then((res) => {
         this.toDoNum = res.data.totalNum;
+        this.toDoTasks = res.data.list;
       });
       // 已办事项
       getFinishTaskInfo(params, {}).then((res) => {
@@ -637,7 +657,6 @@ export default {
       // 刷新词条数量
       this.$refs.timeLineRef.initEntryCount();
     },
-
     // 归档
     archiveEntry() {
       this.archiveVisible = true;
