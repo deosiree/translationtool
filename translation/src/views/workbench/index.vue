@@ -78,13 +78,15 @@
               </div>
             </template>
             <template v-slot:data>
+              <!-- , onChange: onSelectChange -->
               <div style="width:100%;position: absolute;">
-                <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll,
+                <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
+                  :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child"
+                  ref="workTable" @resizeColumn="handleResizeColumn" :row-selection=" { selectedRowKeys: selectedRowKeys,onSelect:onSelect,onSelectAll:onSelectAll, onChange: onSelectChange,
                     selections:[
                         {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                         {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]}" :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading"
-                  :rowClassName="getRowClassName" ref="workTable" @resizeColumn="handleResizeColumn" :customRow="customRow">
+                    ]}" :customRow="customRow">
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'state'">
                       <TaskStateBadge type="normal" :taskState="text" />
@@ -148,6 +150,7 @@ import {
   setModalAriaHidden,
   selectAllEntry,
   clearAllEntry,
+  pageChange,
 } from "@/utils/commonUtils";
 export default {
   components: {
@@ -268,6 +271,7 @@ export default {
       selectedRows: [],
       selectedRowKeys: [],
       selectedRowIndex: null,
+      selectEntry: new Map(), // 已选任务
       selectedLanguage: null, // 新增：用于存储用户选择的语种
       translateTypes: [], // 新增：下拉框的语种选项
       translateTypeVisible: false, // 新增：控制语种选择弹窗的显示与隐藏
@@ -391,7 +395,7 @@ export default {
             msg.updateErr.push(task.name);
             return { task, success: false, error };
           });
-      });// 单条更新任务，批量循环调用
+      }); // 单条更新任务，批量循环调用
       Promise.allSettled(promises)
         .then((results) => {
           // console.log("所有任务处理完成");
@@ -443,48 +447,55 @@ export default {
     cancelTranslateType() {
       this.translateTypeVisible = false; // 关闭弹窗
     },
-    // 表格复选框选择事件
+    // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
+      // this.selectedRowKeys = selectedRowKeys;
+      // this.selectedRows = selectedRows;
+      // onSelect(单选/取选)、onSelectAll(全选/反选)后，更新selectedRows、selectedRowKeys
+      this.selectedRows = [...this.selectEntry.values()];
+      this.selectedRowKeys = [...this.selectEntry.keys()]; // selectEntryList.map((item) => item.id);
+      // console.log("表格复选框选择事件", this.selectedRows);
     },
     // 表格复选框点击事件
     onSelect(record, selected) {
-      if (this.createVersionFlag) {
-        // 创建版本时使用
-        if (selected) {
-          this.selectEntry.push(record);
-        } else {
-          this.selectEntry = this.selectEntry.filter((item) => {
-            return item.id !== record.id;
-          });
-        }
+      if (selected) {
+        this.selectEntry.set(record.id, record);
+      } else {
+        this.selectEntry.delete(record.id);
       }
+      // console.log("表格复选框点击事件", record, selected);
     },
     // 表格全选/反选框点击事件（当前页）
     onSelectAll(selected, selectedRows, changeRows) {
-      if (this.createVersionFlag) {
-        if (selected) {
-          this.selectEntry = this.selectEntry.concat(changeRows);
-        } else {
-          changeRows.forEach((item) => {
-            this.selectEntry = this.selectEntry.filter((entry) => {
-              return entry !== item;
-            });
-          });
-        }
+      if (selected) {
+        changeRows.forEach((item) => {
+          this.selectEntry.set(item.id, item);
+        });
+      } else {
+        changeRows.forEach((item) => {
+          this.selectEntry.delete(item.id);
+        });
       }
+      // console.log(
+      //   "表格全选/反选框点击事件",
+      //   selected,
+      //   selectedRows, // 全选->取选当前页数据时，这个是5个undefined
+      //   changeRows
+      // );
     },
     // 复选框全选事件
     selectAllEntry() {
       this.toDoTasks.forEach((item) => {
         this.selectedRowKeys.push(item.id);
         this.selectedRows.push(item);
+        this.selectEntry.set(item.id, item);
       });
     },
     //复选框反选事件
     clearAllEntry() {
-      clearAllEntry(this);
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectEntry.clear();
     },
     getRowClassName(record, index) {
       let className = null;
