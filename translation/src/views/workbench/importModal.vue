@@ -22,7 +22,7 @@
                 <a-radio v-if="currentDepartment.importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
               </a-radio-group>
             </a-form-item>
-            <a-form-item v-if="currentDepartment.ops.has('needWriteBack')" label="IP">
+            <a-form-item v-if="currentDepartment.ops.has('needIP')" label="IP">
               <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
             </a-form-item>
           </a-form>
@@ -41,7 +41,7 @@
             <a-col :span="8">
               <a-row type="flex" align="middle" justify="space-between">
                 <a-col :flex="1">
-                  <a-form-item v-if="currentDepartment.ops.has('needWriteBack')" label="回写辞典" name="diFileName">
+                  <a-form-item v-if="currentDepartment.ops.has('needIP')" label="回写辞典" name="diFileName">
                     <a-select v-model:value="filediFileName" allowClear placeholder="请选择回写辞典目录" style="width:70%" :options="dictionaryOptions"
                       size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
                     </a-select>
@@ -739,9 +739,7 @@ export default {
               this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
 
             // 2.获取IP地址
-            if (this.currentDepartment.ops.has("needWriteBack")) {
-              this.getIPs();
-            }
+            this.getIPs();
 
             // 3.设置翻译列展示的语种
             // 设置翻译列可编辑&可校验
@@ -1245,13 +1243,10 @@ export default {
     },
     // 数据类型选择事件
     dataTypeChange() {
-      // 获取IP地址
-      if (this.currentDepartment.ops.has("needWriteBack")) {
-        // this.getIPs();// mounted时已获取
-        if (this.ip === null || this.ip === undefined || this.ip === "") {
-          message.info("请选择IP！");
-          return;
-        }
+      // 获取IP地址的表单校验
+      if (this.ip === null || this.ip === undefined || this.ip === "") {
+        message.info("请选择IP！");
+        return;
       }
 
       this.dataSource = [];
@@ -1359,13 +1354,10 @@ export default {
     },
     // 获取数据库节点信息
     getAllNode() {
-      // 获取IP地址
-      if (this.currentDepartment.ops.has("needWriteBack")) {
-        // this.getIPs();// mounted时已获取
-        if (this.ip === null || this.ip === undefined || this.ip === "") {
-          message.info("请选择IP！");
-          return;
-        }
+      // 获取IP地址的表单校验
+      if (this.ip === null || this.ip === undefined || this.ip === "") {
+        message.info("请选择IP！");
+        return;
       }
       let params = {
         i18nUrl: this.ip,
@@ -2308,21 +2300,23 @@ export default {
     },
     // 获取i18服务器ip
     getIPs() {
-      this.ips = [];
-      getI18nAdress().then((res) => {
-        res.data.list.forEach((item) => {
-          let ip = {
-            label: item.ip,
-            value: item.ip,
-          };
-          // if(item.state === '1'){
-          //     this.ip = item.ip
-          // }
-          this.ips.push(ip);
-        });
+      if (this.currentDepartment.ops.has("needIP")) {
+        this.ips = [];
+        getI18nAdress().then((res) => {
+          res.data.list.forEach((item) => {
+            let ip = {
+              label: item.ip,
+              value: item.ip,
+            };
+            // if(item.state === '1'){
+            //     this.ip = item.ip
+            // }
+            this.ips.push(ip);
+          });
 
-        // this.getDictionary()
-      });
+          // this.getDictionary()
+        });
+      }
     },
     // ip change事件
     ipChange(value) {

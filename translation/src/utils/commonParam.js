@@ -126,9 +126,15 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needWriteBack", "needGit", "needExamine"]),
-      // -needWriteBack是否需要回写；
-      // -needGit是否需要git推送（词条管理）; 
+      ops: new Set(["needIP", "needExamine"]),
+      // -needIP是否需要IP地址(凡是包含ip的都同理）
+      // -----1.工作台-导入：IP的显示与获取、回写辞典
+      // -----2.工作台-归档，归档；
+      // -----3.词条管理-已选词条：回写；
+      // -----4.词条管理-右键-更新；
+      // -----5.词条管理-右键-冗余校验（已被封）;
+      // -----6.git推送（词条管理）;
+      // -----7.配置管理-辞典管理；
       // -needExamine是否需要提交词条审核（词条管理-已选词条）
     },
     "监控系统部": {
@@ -136,7 +142,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "jk",
       classfyID: "6",
-      ops: new Set(["needWriteBack", "needGit", "needExamine"]),
+      ops: new Set(["needIP", "needExamine"]),
     },
     "装置开发部": {
       label: "装置开发部",

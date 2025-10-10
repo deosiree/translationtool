@@ -19,8 +19,8 @@
                 <span v-else>{{ title }}</span>
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
-                    <a-menu-item @click="update(treeKey)">更新</a-menu-item>
-                    <!-- <a-menu-item @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
+                    <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="update(treeKey)">更新</a-menu-item>
+                    <!-- <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -115,6 +115,11 @@ export default {
       name: "entry",
       boxFlex: "240px",
       user: {},
+      currentDepartment: {
+        label: "部门名称",
+        value: "name",
+        ops: new Set(),
+      }, // 当前用户所在部门的相关信息
       boxHeight: 0,
       keyWords: "",
       isProduct: true,
@@ -138,9 +143,18 @@ export default {
     };
   },
   mounted() {
-    this.user = this.$store.state.user;
     let _this = this;
     this.$nextTick(() => {
+      this.user = this.$store.state.user;
+      // 获取当前用户所在部门的相关信息
+      if (
+        Object.keys(commonParam.departmentMap).includes(this.user.department)
+      ) {
+        this.currentDepartment =
+          commonParam.departmentMap[this.user.department];
+      } else {
+        this.currentDepartment = commonParam.departmentMap["default"];
+      }
       this.init();
       _this.boxHeight = _this.$refs.box.offsetHeight;
       /** 控制table的高度 */

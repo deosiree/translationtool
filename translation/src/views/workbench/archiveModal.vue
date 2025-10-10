@@ -90,7 +90,7 @@
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
-      <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.ops.has('needWriteBack')">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.ops.has('needIP')">归档</a-button>
       <a-button type="primary" ghost @click="placeOnFile2">结束任务</a-button>
     </template>
   </CustomModal>

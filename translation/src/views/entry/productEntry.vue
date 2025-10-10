@@ -78,7 +78,7 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="currentDepartment.ops.has('needGit')" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
+          <GitCommitButton v-if="currentDepartment.ops.has('needIP')" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
           <a-button type="primary" size="small" @click="cancelCreate" class="yellowBtn" v-if="createVersionFlag">取消选择</a-button>
