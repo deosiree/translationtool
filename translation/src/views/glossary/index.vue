@@ -320,8 +320,8 @@ export default {
       relationVisible: false,
       relationData: [],
       overlayStyle: glossaryParams.overlayStyle, // 展示列样式
-      checkboxList: glossaryParams.checkboxList,// 展示列可选的值
-      checkedColumn: [],// 展示列已选的值
+      checkboxList: glossaryParams.checkboxList, // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
       isCheckSameEntry: false,
@@ -662,6 +662,10 @@ export default {
   height: 100%;
   padding: 16px;
   // border: 1px solid red;
+  /* 换行后每个表单项的间距 */
+  & :deep(.search .form .ant-row) {
+    margin-bottom: 8px !important;
+  }
 }
 </style>
 <style lang="less">

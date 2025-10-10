@@ -1,7 +1,32 @@
 <template>
   <div class="box" ref="box">
     <div class="left">
-      <div class="title"><span>用户权限查询：</span></div>
+      <SearchBox ref="search" @change="setTableHeight" defaultTitleName="用户权限查询">
+        <template v-slot:form>
+          <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
+            <a-form-item label="用户名" name="userName">
+              <a-input v-model:value="search.userName" allowClear placeholder="请输入用户名" style="width:200px"></a-input>
+            </a-form-item>
+            <a-form-item label="角色" name="roleName">
+              <a-input v-model:value="search.roleName" allowClear placeholder="请输入角色" style="width:200px"></a-input>
+            </a-form-item>
+            <a-form-item label="部门" name="department">
+              <a-input v-model:value="search.department" allowClear placeholder="请输入部门" style="width:200px"></a-input>
+            </a-form-item>
+          </a-form>
+        </template>
+        <template v-slot:operate>
+          <a-button type="primary" size="middle" @click="queryUser">查询</a-button>
+        </template>
+      </SearchBox>
+      <DataBox title="用户列表" height="setTableHeight" :showOperate="true">
+        <template v-slot:data>
+          <a-table class="ant-table-striped" :columns="userColumns" :data-source="userDataSource" :scroll="tableHeight_left" :pagination='false'
+            :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="userTable" bordered>
+          </a-table>
+        </template>
+      </DataBox>
+      <!-- <div class="title"><span>用户权限查询：</span></div>
       <div class="content" ref="content">
         <div class="searchBox" ref="search">
           <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off">
@@ -23,7 +48,7 @@
         <a-table class="ant-table-striped" :columns="userColumns" :data-source="userDataSource" :scroll="tableHeight" :pagination='false'
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="userTable" bordered>
         </a-table>
-      </div>
+      </div> -->
     </div>
     <div class="right">
       <div class="title"><span>用户权限配置：</span></div>
@@ -70,6 +95,8 @@
 </template>
 <script>
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons-vue";
+import SearchBox from "@/components/search/searchBox.vue";
+import DataBox from "@/components/dataBox/index.vue";
 import {
   getUserPermission,
   getUserInfo,
@@ -82,6 +109,8 @@ export default {
   components: {
     CaretDownOutlined,
     CaretRightOutlined,
+    SearchBox,
+    DataBox,
   },
   data() {
     return {
@@ -91,14 +120,15 @@ export default {
         roleName: "",
         department: "",
       },
-      // tableHeight: { x:'100%',y: 0 },
-      tableHeight: { x: "max-content", y: 0 },
+      tableHeight_left: { x: "100%", y: 0 },
+      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "max-content", y: 0 },
       userColumns: [
         {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 70,
+          width: 50,
           customRender: (text, record, index, column) => {
             return text.index + 1;
           },
@@ -107,20 +137,24 @@ export default {
           title: "用户名",
           dataIndex: "userName",
           align: "center",
-          width: "20%",
+          width: "10%",
         },
         {
           title: "部门",
           dataIndex: "department",
           align: "center",
-          width: "20%",
+          width: "18%",
         },
-        { title: "角色", dataIndex: "roleNames", align: "center" },
+        {
+          title: "角色",
+          dataIndex: "roleNames",
+          align: "center",
+        },
       ],
       userDataSource: [],
       keyWords: "",
       authorColumns: [
-        { title: "用户名", dataIndex: "name", width: "20%" },
+        { title: "用户名", dataIndex: "name", align: "center", width: "20%" },
         { title: "管理员", dataIndex: "admin", align: "center", width: "20%" },
         { title: "开发员", dataIndex: "developer", align: "center" },
         { title: "词条审核员", dataIndex: "entryReviewer", align: "center" },
@@ -134,6 +168,7 @@ export default {
       authorDataSource: [],
       changeAuthor: {},
       loading: false,
+      labelCol: { style: { width: "84px" } },
     };
   },
   mounted() {
@@ -162,6 +197,7 @@ export default {
         let box = this.$refs.box.offsetHeight;
         let search = this.$refs.search.offsetHeight;
         this.tableHeight.y = box - search - 170;
+        this.tableHeight_left.y = box - search - 220; //170
       });
     },
     // 查询用户
@@ -275,6 +311,10 @@ export default {
   // border:1px solid #DCDCDC;
   display: flex;
   flex-direction: row;
+  /* 换行后每个表单项的间距 */
+  & :deep(.search .form .ant-row) {
+    margin-bottom: 8px !important;
+  }
 
   .left {
     width: 50%;
@@ -345,6 +385,10 @@ export default {
       gap: 16px;
       align-self: stretch;
       // border: 1px solid red;
+      /* 换行后每个表单项的间距 */
+      & :deep(.ant-row) {
+        margin-bottom: 8px !important;
+      }
     }
   }
 }

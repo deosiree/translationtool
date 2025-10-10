@@ -1,36 +1,35 @@
 <template>
   <div class="box" ref="box">
-    <SearchBox ref="search" :operate="false" @change="setTableHeight">
+    <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <!-- <a-form-item
-                label="用户名"
-                name="userName"
-                style="width:20%"
-                >
-                    <a-input v-model:value="search.userName" placeholder="请输入任务名称"></a-input>
-                </a-form-item> -->
+          <!-- <a-form-item label="用户名" name="userName" style="width:20%">
+            <a-input v-model:value="search.userName" placeholder="请输入任务名称"></a-input>
+          </a-form-item> -->
           <a-form-item label="角色" name="roleName" style="width:20%">
             <a-input v-model:value="search.roleName" placeholder="请输入任务名称"></a-input>
           </a-form-item>
-          <!-- <a-form-item
-                label="部门"
-                name="department"
-                style="width:20%"
-                >
-                    <a-input v-model:value="search.department" placeholder="请输入任务名称"></a-input>
-                </a-form-item> -->
-          <a-form-item>
+          <!-- <a-form-item label="部门" name="department" style="width:20%">
+            <a-input v-model:value="search.department" placeholder="请输入任务名称"></a-input>
+          </a-form-item> -->
+          <!-- <a-form-item>
             <a-button type="primary" size="middle" @click="getRole">查询</a-button>
-          </a-form-item>
+          </a-form-item> -->
         </a-form>
+      </template>
+      <template v-slot:operate>
+        <a-button type="primary" size="middle" @click="getRole">查询</a-button>
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:8px">
-          <!-- <a-button type="primary" size="small"><template #icon><PlusOutlined /></template>新增</a-button>
-                <a-button type="primary" size="small"><template #icon><DeleteOutlined /></template>删除</a-button> -->
+          <!-- <a-button type="primary" size="small">
+            <template #icon><PlusOutlined /></template>新增
+          </a-button>
+          <a-button type="primary" size="small">
+            <template #icon><DeleteOutlined /></template>删除
+          </a-button> -->
           <a-button type="primary" size="small" @click="batchSave"><template #icon>
               <SaveOutlined />
             </template>保存</a-button>
@@ -48,14 +47,8 @@
                     <a-tree-select v-model:value="editableData[record.id]['menuId']" style="width: 90%" :tree-data="menus" tree-checkable
                       :show-checked-strategy="SHOW_ALL" :fieldNames="{label:'menuName',value:'id'}" :treeCheckStrictly="true" placeholder="请选择"
                       tree-node-filter-prop="label" />
-                    <!-- <a-select
-                                    v-model:value="editableData[record.id]['menuId']"
-                                    :options="menusList"
-                                    mode="multiple"
-                                    placeholder="请选择"
-                                    :fieldNames="{label:'menuName',value:'id'}"
-                                    style="width: 90%"
-                                    ></a-select> -->
+                    <!-- <a-select v-model:value="editableData[record.id]['menuId']" :options="menusList" mode="multiple" placeholder="请选择"
+                      :fieldNames="{label:'menuName',value:'id'}" style="width: 90%"></a-select> -->
                     <a-tooltip placement="top">
                       <template #title>
                         <span>保存</span>

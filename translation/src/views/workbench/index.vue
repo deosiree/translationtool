@@ -19,13 +19,13 @@
           </div>
         </a-card>
         <!-- <a-card hoverable :class="activeCard === 3 ? 'exportCard activeExportCard' : 'exportCard'">
-                    <div class="title">可导出词条</div>
-                    <div class="logo"><img src="../../assets/workIcon/export.png"/></div>
-                    <div class="data">
-                        <span>20</span><span>条</span>
-                        <a-button type="primary" ghost size="small" @click="clickCard(3)">查看</a-button>
-                    </div>
-                </a-card> -->
+          <div class="title">可导出词条</div>
+          <div class="logo"><img src="../../assets/workIcon/export.png" /></div>
+          <div class="data">
+            <span>20</span><span>条</span>
+            <a-button type="primary" ghost size="small" @click="clickCard(3)">查看</a-button>
+          </div>
+        </a-card> -->
       </a-col>
       <a-col flex="auto">
         <div class="dataBox">
@@ -49,12 +49,9 @@
                 <a-form-item label="创建人" name="creator">
                   <a-input v-model:value="search.creator" placeholder="请输入创建人"></a-input>
                 </a-form-item>
-                <!-- <a-form-item
-                                label="词条审核员"
-                                name="auditor"
-                                >
-                                    <a-input v-model:value="search.auditor" placeholder="请输入词条审核员" </a-input>
-                                </a-form-item> -->
+                <!-- <a-form-item label="词条审核员" name="auditor">
+                  <a-input v-model:value="search.auditor" placeholder="请输入词条审核员" </a-input>
+                </a-form-item> -->
               </a-form>
             </template>
             <template v-slot:operate>
@@ -118,13 +115,10 @@
   <ImportModal ref="import" :visible="importVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" @handleClose="importClose" />
   <ExamineModal ref="examine" :visible="examineVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" :modalTitle="examineTitle"
     @handleClose="examineClose" />
-  />
   <TranslateModal ref="translate" :visible="translateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
     @handleClose="translateClose" />
-  />
   <ExamineTranslateModal ref="examineTranslate" :visible="examineTranslateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
     @handleClose="examineTranslateClose" />
-  />
   <ArchiveModal ref="archiveModalRef" :visible="archiveVisible" :currentTask="currentTask" @handleClose="archiveClose" @refresh="refreshTask" />
 </template>
 <script>
@@ -763,6 +757,10 @@ export default {
   position: absolute;
   height: 100%;
   width: 100%;
+  /* 换行后每个表单项的间距 */
+  & :deep(.search .form .ant-row) {
+    margin-bottom: 8px !important;
+  }
 }
 .ant-card {
   width: 100%;

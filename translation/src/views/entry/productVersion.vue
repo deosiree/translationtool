@@ -164,7 +164,7 @@ import {
 } from "@/http/api/userPartiality";
 import { message } from "ant-design-vue";
 import { entryParams as tableParam } from "@/utils/commonParam.js";
-import { setModalAriaHidden,setTableHeight } from "@/utils/commonUtils";
+import { setModalAriaHidden, setTableHeight } from "@/utils/commonUtils";
 export default {
   components: {
     SearchBox,
@@ -733,6 +733,10 @@ export default {
     // border: 1px solid#DCDCDC;
     border-left: none;
     width: calc(100% - 240px);
+    /* 换行后每个表单项的间距 */
+    & :deep(.search .form .ant-row) {
+      margin-bottom: 8px !important;
+    }
   }
 }
 .treeIcon {
