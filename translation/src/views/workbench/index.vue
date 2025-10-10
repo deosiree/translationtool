@@ -596,6 +596,7 @@ export default {
     query() {
       this.pageChangeSearch = this.search;
       this.getTask();
+      this.clearAllEntry(); //清空已选
     },
     // 获取任务
     getTask() {
@@ -740,6 +741,7 @@ export default {
       };
       this.pageChangeSearch = this.search;
       this.getTask();
+      this.clearAllEntry(); //清空已选
     },
     // 分页切换
     pageChange(page, pageSize) {
