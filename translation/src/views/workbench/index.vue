@@ -170,7 +170,7 @@ export default {
       // 汉化包
       locale: locale,
       toDoNum: 0,
-      toDoTasks: [],// 待办任务列表(便于全部选择)
+      toDoTasks: [], // 待办任务列表(便于全部选择)
       finishNum: 0,
       labelCol: { style: { width: "84px" } },
       lastSearch: {},
@@ -370,24 +370,67 @@ export default {
         message.warning("请选择一种语种");
         return;
       }
-      // 单条更新任务，批量循环调用
+      const update1Tasks = []; //需要更改的任务列表
+      const msg = { update1: [], update2: [], updateSuc: [], updateErr: [] };
+      // 区分需要更改的和已经更改了的
       for (const task of this.selectedRows) {
         if (task.translateType != this.selectedLanguage) {
           task.translateType = this.selectedLanguage;
-          updateTaskInfo(task).then((res) => {
-            this.showOperationArea = false;
-            this.init();
-            message.success(
-              `“${task.name}”的翻译语种已更改为${task.translateType}！`
-            );
-            // console.log("当前翻译语种", this.selectedLanguage,task);
-          });
+          update1Tasks.push(task);
         } else {
-          message.success(
-            `“${task.name}”的翻译语种已为${task.translateType}，无需更改。`
-          );
+          msg.update2.push(task.name);
         }
       }
+      const promises = update1Tasks.map((task) => {
+        return updateTaskInfo(task)
+          .then((result) => {
+            msg.update1.push(task.name);
+            return { task, success: true, result };
+          })
+          .catch((error) => {
+            msg.updateErr.push(task.name);
+            return { task, success: false, error };
+          });
+      });// 单条更新任务，批量循环调用
+      Promise.allSettled(promises)
+        .then((results) => {
+          // console.log("所有任务处理完成");
+          // const successfulTasks = results.filter(
+          //   (result) => result.status === "fulfilled"
+          // );
+          // const failedTasks = results.filter(
+          //   (result) => result.status === "rejected"
+          // );
+          // console.log(
+          //   `成功任务数: ${successfulTasks.length}, 失败任务数: ${failedTasks.length}`
+          // );
+
+          // console.log("打印信息", msg);
+          if (msg.update1.length > 0)
+            msg.updateSuc.push(`成功更改：${msg.update1.join("、")}`);
+          if (msg.update2.length > 0)
+            msg.updateSuc.push(`无需更改：${msg.update2.join("、")}`);
+          if (msg.updateSuc.length > 0) {
+            const msg_str = `成功${
+              msg.update1.length + msg.update2.length
+            }条！${msg.updateSuc.join("；")}`;
+            message.success(msg_str);
+          }
+          if (msg.updateErr.length > 0) {
+            const msg_str = `更新${
+              msg.updateErr.length
+            }条任务失败：${msg.updateErr.join("、")}。`;
+            message.error(msg_str);
+          }
+        })
+        .catch((error) => {
+          // 这里处理Promise.allSettled本身可能出现的错误（通常很少见）
+          console.error("处理所有任务时发生错误", error);
+        })
+        .finally(() => {
+          this.showOperationArea = false;
+          this.init();
+        });
 
       // 更新完成后刷新任务列表
       this.selectedRows = [];
