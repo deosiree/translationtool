@@ -182,7 +182,7 @@ export default {
         tag: "", //tag
         classfy2: null, //二级分类
         entrySource: "", //词性来源
-        translateType: null, //翻译语言
+        translateType: null, //翻译语种
         translateState: null, //翻译状态
         translate: "", //翻译结果
         i18nURL: null,
@@ -286,7 +286,7 @@ export default {
         value: dept.classfyID,
       })), // 词条状态
       classify2Option: [], // 二级分类
-      translateTypes: [], // 翻译语言
+      translateTypes: [], // 翻译语种
       entrySources: [], // 词条来源
       updates: [], // 修改人
       currentVersion: null, // 当前产品版本
@@ -351,7 +351,7 @@ export default {
       // this.getSecondClassify();
       // this.getProductVersions();
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {

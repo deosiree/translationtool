@@ -10,7 +10,7 @@
           <a-form-item label="翻译" name="translate">
             <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
           </a-form-item>
-          <a-form-item label="翻译语言" name="type">
+          <a-form-item label="翻译语种" name="type">
             <a-select v-model:value="search.type" style="width: 186px" placeholder="请选择内容" :options='translateTypes'
               :fieldNames="{label:'name',value:'name'}" allowClear>
             </a-select>
@@ -176,7 +176,7 @@ export default {
           resizable: true,
         },
         {
-          title: "翻译语言",
+          title: "翻译语种",
           dataIndex: "type",
           align: "center",
           width: 180,
@@ -234,7 +234,7 @@ export default {
       this.getLanguage();
       this.getCommonEntry();
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {

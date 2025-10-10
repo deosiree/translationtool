@@ -9,8 +9,8 @@
           <a-select v-model:value="importModal.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
           </a-select>
         </a-form-item>
-        <a-form-item label="语言" name="language" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select mode="multiple" v-model:value="importModal.language" placeholder="请选择语言" :options='translateTypes'
+        <a-form-item label="语种" name="language" :rules="[{ required: true, message: '请选择!' }]">
+          <a-select mode="multiple" v-model:value="importModal.language" placeholder="请选择语种" :options='translateTypes'
             :fieldNames="{label:'name',value:'name'}" allowClear>
           </a-select>
         </a-form-item>
@@ -120,7 +120,7 @@ export default {
           //   console.log(`${key}: ${value}`);
           // }
           const entryImportFn = (lang, formData) => {
-            // 每种翻译语言的导入
+            // 每种翻译语种的导入
             const params = {
               transType: lang,
               // importType: this.importModal.importType,// 后端不需要这个参数
@@ -233,7 +233,7 @@ export default {
         return;
       }
       if (!this.importModal.language || this.importModal.language.length == 0) {
-        message.error("请选择语言！");
+        message.error("请选择语种！");
         return;
       }
       for (let key in this.importTypes) {

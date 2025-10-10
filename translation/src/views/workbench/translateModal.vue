@@ -504,7 +504,7 @@ export default {
         // console.log("打开工作台-翻译", newVal);
         if (newVal) {
           this.$nextTick(() => {
-            // 3.设置翻译列展示的语言
+            // 3.设置翻译列展示的语种
             // 设置翻译列可编辑&可校验
             this.editList_needValidate = [this.language.value];
             // 移除翻译列和固定列对应的展示项
@@ -604,7 +604,7 @@ export default {
             ];
             // 读取本地存储的用户偏好
             getColPref("colPref-translateModal", 100, this);
-            // 设置翻译列展示的语言
+            // 设置翻译列展示的语种
             this.columns.forEach((item) => {
               if (item.title === "翻译") {
                 item.dataIndex = this.language.value;
@@ -626,7 +626,7 @@ export default {
     },
   },
   methods: {
-    // // 设置翻译列展示的语言
+    // // 设置翻译列展示的语种
     // setTranslateColumn() {
     //   // 设置翻译列可编辑&可校验
     //   this.editList_needValidate = [this.language.value];
@@ -709,7 +709,7 @@ export default {
       this.selectedRowIndex = null;
       this.allData = [];
       this.dataSource = [];
-      // this.setTranslateColumn(); // 设置翻译列展示的语言
+      // this.setTranslateColumn(); // 设置翻译列展示的语种
       const params = {
         taskID: this.task.id,
         entryState: "3",

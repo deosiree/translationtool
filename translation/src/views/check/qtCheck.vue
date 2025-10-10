@@ -135,7 +135,7 @@ export default {
           index: 1,
         },
         {
-          title: "异常的翻译语言",
+          title: "异常的翻译语种",
           dataIndex: "type",
           align: "center",
           width: 200,

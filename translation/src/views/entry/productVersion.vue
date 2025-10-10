@@ -114,7 +114,7 @@
     @afterClose="exportAfterClose">
     <div class="content">
       <a-form ref="formRef" name="custom-validation" :model="exportModal">
-        <!-- <a-form-item label="翻译语言" name="language">
+        <!-- <a-form-item label="翻译语种" name="language">
                     <a-select
                     v-model:value="exportModal.language"
                     placeholder="请选择内容"
@@ -355,7 +355,7 @@ export default {
       this.getTaskList();
       this.setTableHeight();
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {

@@ -126,12 +126,12 @@ export function filter_arr_keys(filterSource, arr) {
 
 /**
  * 释义替换翻译（对应语种）（暂时不重要，没改完）
- * 将选中行的释义字段替换为对应语言的值，并更新数据源
+ * 将选中行的释义字段替换为对应语种的值，并更新数据源
  * @param {Object} vm - Vue 实例对象
  * @param {Array} vm.selectedRows - 选中的行数据数组
  * @param {Array} vm.dataSource - 表格数据源数组
  * @param {Array} vm.allData - 所有数据数组
- * @param {Object} commonParam - 公共参数对象，包含语言列表
+ * @param {Object} commonParam - 公共参数对象，包含语种列表
  * @returns {void}
  */
 export async function interpretation2value_(vm, langMap, verifyMethods = ["toLong", "special"]) {
@@ -147,7 +147,7 @@ export async function interpretation2value_(vm, langMap, verifyMethods = ["toLon
   vm.selectedRows.forEach((record) => {
     // 修改编辑态内容
     if (record.hasOwnProperty(langInter)) {
-      // 替换释义为对应语言的值
+      // 替换释义为对应语种的值
       record[langValue] = record[langInter];
     }
   });
@@ -185,23 +185,23 @@ export async function interpretation2value_(vm, langMap, verifyMethods = ["toLon
 
 /**
  * 释义替换翻译(兼容性)
- * 将选中行的释义字段替换为对应语言的值，并更新数据源
+ * 将选中行的释义字段替换为对应语种的值，并更新数据源
  * @param {Object} vm - Vue 实例对象
  * @param {Array} vm.selectedRows - 选中的行数据数组
  * @param {Array} vm.dataSource - 表格数据源数组
  * @param {Array} vm.allData - 所有数据数组
- * @param {Object} commonParam - 公共参数对象，包含语言列表
+ * @param {Object} commonParam - 公共参数对象，包含语种列表
  * @returns {void}
  */
 export function interpretation2value(vm) {
   // 遍历选中的行
   vm.selectedRows.forEach((row) => {
-    // 遍历语言列表
+    // 遍历语种列表
     commonParam.languageList.forEach((lang) => {
       const langValue = lang.value;
       const interpretationKey = lang.interpretation;
       if (row.hasOwnProperty(interpretationKey)) {
-        // 替换释义为对应语言的值
+        // 替换释义为对应语种的值
         row[langValue] = row[interpretationKey];
       }
     });
@@ -233,23 +233,23 @@ export function interpretation2value(vm) {
 
 /**
  * 释义替换翻译(所有语种)
- * 将选中行的释义字段替换为对应语言的值，并更新数据源
+ * 将选中行的释义字段替换为对应语种的值，并更新数据源
  * @param {Object} vm - Vue 实例对象
  * @param {Array} vm.selectedRows - 选中的行数据数组
  * @param {Array} vm.dataSource - 表格数据源数组
  * @param {Array} vm.allData - 所有数据数组
- * @param {Object} commonParam - 公共参数对象，包含语言列表
+ * @param {Object} commonParam - 公共参数对象，包含语种列表
  * @returns {void}
  */
 export function interpretation2value_all(vm) {
   // 遍历选中的行
   vm.selectedRows.forEach((row) => {
-    // 遍历语言列表
+    // 遍历语种列表
     commonParam.languageList.forEach((lang) => {
       const langValue = lang.value;
       const interpretationKey = lang.interpretation;
       if (row.hasOwnProperty(interpretationKey)) {
-        // 替换释义为对应语言的值
+        // 替换释义为对应语种的值
         row[langValue] = row[interpretationKey];
       }
     });
@@ -606,7 +606,7 @@ export function setRefRules(vm, record, cols) {
  * @param {Object} vm - Vue 组件实例，需包含 rules 对象用于存储校验规则（如 this.rules = {}）
  * @param {Object} record - 当前数据记录，包含字段如 id, entry 等
  * @param {string} colName - 当前校验的字段类型，比如 "maxByte" 或 "foreignMaxByte"，用于区分校验策略
- * @param {string} language - 当前校验的语言类型，如english,chinese
+ * @param {string} language - 当前校验的语种类型，如english,chinese
  * @returns {(rule: any, value: any) => Promise<void>} - 返回一个异步校验函数，符合 Element Plus 的 validator 要求
  */
 export function validateRefRules(record, vm, colName, language) {
@@ -646,7 +646,7 @@ export function validateRefRules(record, vm, colName, language) {
  * 1.-保存前（区分通过/不通过校验词条）
  * 2.-不通过的打开编辑态
  * @param {Object} pagination - 分页信息对象，包含 `current`（当前页码）和 `pageSize`（每页显示数量）属性
- * @param {string} language - 当前语言类型，用于指定要校验的翻译字段
+ * @param {string} language - 当前语种类型，用于指定要校验的翻译字段
  * @param {Object} vm - Vue 实例对象，包含 `dataSource`（数据源）等属性
  */
 export async function verifyArray_workbench_page(pagination, language, vm,
@@ -794,7 +794,7 @@ export async function verifyRecord_entry(vm, record, colList,
  * - 原名：addEdit
  * @param {Object} record - 需要设置为编辑状态的记录对象
  * @param {Array<string>} cols - 需要设置校验规则的列名数组
- * 1. 工作台：翻译列为指定语言，如["english"]
+ * 1. 工作台：翻译列为指定语种，如["english"]
  * 2. 词条管理：多列，如["entry", "english", "chinese"]
  * @param {Object} vm - Vue 实例对象
  * @returns {Promise} - 一个立即解决的 Promise 对象
@@ -813,7 +813,7 @@ export function openSetEdit(record, cols, vm) {
  * @param {Object} vm - Vue 实例对象
  * @param {String} colName - 两种最大长度
  * 1. 词条："maxByte"；
- * 2. 翻译（具体语言english,chinese,...）:"foreignMaxByte"
+ * 2. 翻译（具体语种english,chinese,...）:"foreignMaxByte"
  * @returns {number|null} - 最大长度，如果不存在则返回 null
  */
 export function getMaxLength(record, vm, colName = "foreignMaxByte") {

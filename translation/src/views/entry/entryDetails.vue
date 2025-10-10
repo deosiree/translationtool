@@ -375,7 +375,7 @@ export default {
                 // console.log('error', err);
             });
         },
-        // 获取语言列表
+        // 获取语种列表
         getLanguage(){
             getLanguage().then((res) => {
                 let language = {}
@@ -468,7 +468,7 @@ export default {
                 // 取消选中
                 this.checked[index][language] = false
             }else{
-                // 选中时 将其他已选中的该语言翻译变为未选中  然后选中点击的翻译
+                // 选中时 将其他已选中的该语种翻译变为未选中  然后选中点击的翻译
                 for (let i in this.checked) {
                     this.checked[i][language] = false
                 }

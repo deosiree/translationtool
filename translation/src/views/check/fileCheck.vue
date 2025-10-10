@@ -125,7 +125,7 @@ export default {
       ],
       moduleNames: [],
       questionTypes: [],
-      translateTypes: [], // 翻译语言
+      translateTypes: [], // 翻译语种
       labelCol: { style: { width: "84px" } },
       tableTitle: "校验日志",
       dataHeight: 400,

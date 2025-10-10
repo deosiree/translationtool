@@ -184,7 +184,7 @@ export function importExcle(data) {
     });
 }
 
-// 获取语言表
+// 获取语种表
 export function getLanguage() {
     return request({
         url: "/entry/getLanguage",
@@ -192,7 +192,7 @@ export function getLanguage() {
     });
 }
 
-// 获取语言表
+// 获取语种表
 export function getTranslatedEntry(params) {
     return request({
         url: "/entry/getTranslatedEntry",

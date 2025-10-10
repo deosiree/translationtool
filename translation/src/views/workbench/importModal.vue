@@ -262,7 +262,7 @@
             <DeleteOutlined />
           </template>删除
         </a-button>
-        <span style="margin-left:10px">过滤语言：</span>
+        <span style="margin-left:10px">过滤语种：</span>
         <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
           <a-radio value="全部">全部</a-radio>
           <a-radio value="中文">中文</a-radio>
@@ -743,7 +743,7 @@ export default {
               this.getIPs();
             }
 
-            // 3.设置翻译列展示的语言
+            // 3.设置翻译列展示的语种
             // 设置翻译列可编辑&可校验
             this.editList_needValidate = [this.task.transMap.value];
             // 设置对应的翻译释义列可编辑
@@ -835,7 +835,7 @@ export default {
             ];
             // 读取本地存储的用户偏好
             getColPref("colPref-importModal", 100, this);
-            // 设置翻译列展示的语言
+            // 设置翻译列展示的语种
             this.columns.forEach((item) => {
               if (item.title === "翻译") {
                 item.dataIndex = this.task.transMap.value;
@@ -2212,7 +2212,7 @@ export default {
         this
       );
     },
-    // 语言切换
+    // 语种切换
     filterLanguageChange() {
       if (this.filterLanguage === "全部") {
         this.dataSource = this.allData;

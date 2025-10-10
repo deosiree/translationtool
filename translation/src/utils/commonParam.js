@@ -117,7 +117,7 @@ export default {
     { label: '外文字符上限', value: 'foreignMaxByte', index: 24 },
     { label: "来源表名", value: "srcTabName", index: 25 },
     { label: "数据库记录ID", value: "dbRID", index: 26 },
-    // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语言动态锁定的
+    // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语种动态锁定的
     // {label:'词条状态',value:'entryState',index:19},
   ],//展示列
   departmentMap: {

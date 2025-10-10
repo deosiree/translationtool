@@ -117,7 +117,7 @@ export function deleteEntryInfoByTaskID(params, data) {
 
 }
 
-// 过滤语言
+// 过滤语种
 export function filterSourceLanguage(params, data) {
   return request({
     url: "/workbench/filterSourceLanguage",

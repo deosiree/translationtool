@@ -27,7 +27,7 @@
             <a-form-item label="词条来源" name="entrySource" style="margin-top: 8px">
               <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item label="翻译语言" name="language" style="margin-top: 8px">
+            <a-form-item label="翻译语种" name="language" style="margin-top: 8px">
               <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
                 allowClear>
               </a-select>
@@ -832,7 +832,7 @@ export default {
     format(text) {
       return text.replace(/\n/g, "\\n");
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {
@@ -927,7 +927,7 @@ export default {
         (this.search.translate != "" || this.search.translateState != null) &&
         !this.search.language
       ) {
-        message.info("请选择翻译语言！");
+        message.info("请选择翻译语种！");
         return;
       }
       let data = {

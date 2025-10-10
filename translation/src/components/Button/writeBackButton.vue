@@ -8,7 +8,7 @@
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
             <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
           </a-form-item>
-          <a-form-item label="回写语言" name="language" :rules="[{ required: true, message: '请选择回写语言!' }]">
+          <a-form-item label="回写语种" name="language" :rules="[{ required: true, message: '请选择回写语种!' }]">
             <!-- 修改为多选 -->
             <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择" @change="languageChange" allowClear>
               <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->
@@ -196,11 +196,11 @@ export default {
         });
       });
     },
-    // 回写语言change事件
+    // 回写语种change事件
     languageChange() {
       if (this.writeBack.type === "TS") {
         this.writeBack.fileOptions = [];
-        // 遍历选中的语言，获取对应的 ts 文件列表
+        // 遍历选中的语种，获取对应的 ts 文件列表
         this.writeBack.language.forEach((language) => {
           this.getTsFile(language);
         });
@@ -230,10 +230,10 @@ export default {
           this.writeBack.language === null ||
           this.writeBack.language === ""
         ) {
-          message.warn("请选择回写语言！");
+          message.warn("请选择回写语种！");
           return;
         }
-        // 遍历选中的语言，获取对应的 ts 文件列表
+        // 遍历选中的语种，获取对应的 ts 文件列表
         this.writeBack.language.forEach((language) => {
           this.getTsFile(language);
         });
@@ -294,7 +294,7 @@ export default {
         return;
       }
       if (this.writeBack.language.length === 0) {
-        message.error("请选择回写语言！");
+        message.error("请选择回写语种！");
         return;
       }
       if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
@@ -309,7 +309,7 @@ export default {
       await this.$refs.contentForm.validate();
 
       this.loading = true;
-      // 遍历选中的语言列表，依次执行回写操作
+      // 遍历选中的语种列表，依次执行回写操作
       for (const language of this.writeBack.language) {
         let params = {
           translateType: language,
@@ -327,11 +327,11 @@ export default {
         }
       }
       if (successLanguages.length > 0) {
-        successmsg += `以下语言回写成功：${successLanguages.join(", ")}。`;
+        successmsg += `以下语种回写成功：${successLanguages.join(", ")}。`;
         message.success(successmsg);
       }
       if (failedLanguages.length > 0) {
-        failedmsg += `以下语言回写失败：${failedLanguages.join(
+        failedmsg += `以下语种回写失败：${failedLanguages.join(
           ", "
         )},请手动git。`;
         message.error(failedmsg);

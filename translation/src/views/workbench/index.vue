@@ -39,7 +39,9 @@
                   <a-input v-model:value="search.productName" placeholder="请输入产品名称"></a-input>
                 </a-form-item>
                 <a-form-item label="翻译语种" name="translateType">
-                  <a-input v-model:value="search.translateType" placeholder="请输入翻译语种"></a-input>
+                  <a-select v-model:value="search.translateType" placeholder="请选择翻译语种" :fieldNames="{label:'name',value:'name'}"
+                    :options='translateTypes' allowClear>
+                  </a-select>
                 </a-form-item>
                 <a-form-item label="执行部门" name="department">
                   <a-input v-model:value="search.department" placeholder="请输入执行部门"></a-input>
@@ -64,7 +66,7 @@
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px">
                 <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
-                <a-modal style="width: 320px;" class="choiceLang" centered title="选择语言" :visible="translateTypeVisible" @ok="confirmTranslateType"
+                <a-modal style="width: 320px;" class="choiceLang" centered title="选择语种" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
                   <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
                     :fieldNames="{label:'name',value:'name'}" allowClear>
@@ -173,7 +175,7 @@ export default {
       search: {
         name: "",
         productName: "",
-        translateType: "",
+        translateType: null,
         department: "",
         auditor: "",
         creator: "",
@@ -264,9 +266,9 @@ export default {
       selectedRows: [],
       selectedRowKeys: [],
       selectedRowIndex: null,
-      selectedLanguage: null, // 新增：用于存储用户选择的语言
-      translateTypes: [], // 新增：下拉框的语言选项
-      translateTypeVisible: false, // 新增：控制语言选择弹窗的显示与隐藏
+      selectedLanguage: null, // 新增：用于存储用户选择的语种
+      translateTypes: [], // 新增：下拉框的语种选项
+      translateTypeVisible: false, // 新增：控制语种选择弹窗的显示与隐藏
       currentTask: {},
       timeLineBtn: true,
       activeCard: 1,
@@ -341,12 +343,12 @@ export default {
         return false;
       }
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {
         this.translateTypes = res.data.list;
-        // console.log("翻译语言:", res.data.list);
+        // console.log("翻译语种:", res.data.list);
       });
     },
     // 更改翻译语种
@@ -355,15 +357,15 @@ export default {
         message.warning("请至少选择一条任务");
         return;
       }
-      this.translateTypeVisible = true; // 显示语言选择弹窗
+      this.translateTypeVisible = true; // 显示语种选择弹窗
       setModalAriaHidden(this, document);
-      this.selectedLanguage = null; // 重置选择的语言
+      this.selectedLanguage = null; // 重置选择的语种
     },
     // 点击 confirm确认 按钮后会发生下面的操作（弹窗）
     async confirmTranslateType() {
       if (!this.selectedLanguage) {
-        // 未选择语言
-        message.warning("请选择一种语言");
+        // 未选择语种
+        message.warning("请选择一种语种");
         return;
       }
       // 单条更新任务，批量循环调用

@@ -325,7 +325,7 @@ export default {
         // console.log("打开工作台-词条审核", newVal);
         if (newVal) {
           this.$nextTick(() => {
-            // 1.设置翻译列展示的语言
+            // 1.设置翻译列展示的语种
             // 设置翻译列可编辑&可校验
             this.editList_needValidate = [this.task.transMap.value];
             // 设置对应的翻译释义列可编辑
@@ -455,7 +455,7 @@ export default {
             ];
             // 读取本地存储的用户偏好
             getColPref("colPref-examineModal", 100, this);
-            // 设置翻译列展示的语言
+            // 设置翻译列展示的语种
             this.columns.forEach((item) => {
               if (item.title === "翻译") {
                 item.dataIndex = this.task.transMap.value;
@@ -817,7 +817,7 @@ export default {
     },
     // 校验输入数据的长度
     vilidFildLength(record, language) {
-      // console.log("校验语言：",language)
+      // console.log("校验语种：",language)
       return (rule, value) => {
         let type = "";
         if (language === "chinese") {

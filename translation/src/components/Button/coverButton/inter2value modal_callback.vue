@@ -141,7 +141,7 @@ export default {
       // });
       // console.log("获取用户偏好后：导出字段", this.coverModal);
     },
-    // 全选覆盖语言方法
+    // 全选覆盖语种方法
     selectAllLangs() {
       this.coverModal.langs = this.langsOptions.map((item) => item.value);
     },
@@ -152,7 +152,7 @@ export default {
     // 导出-确认
     async handleOK() {
       try {
-        // 1.表单校验（必须选择覆盖语言）
+        // 1.表单校验（必须选择覆盖语种）
         await this.$refs.coverForm.validate();
 
         let newDataSource = cloneDeep(this.dataSource);

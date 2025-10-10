@@ -13,7 +13,7 @@
         </a-tag>
       </div>
       <div>
-        翻译语言：
+        翻译语种：
         <span class="value">{{dataSource.tsProblemsType}}</span>
       </div>
     </div>

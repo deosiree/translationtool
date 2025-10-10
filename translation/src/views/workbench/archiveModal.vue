@@ -254,7 +254,7 @@ export default {
         console.log("打开工作台-归档", newVal);
         if (newVal) {
           this.$nextTick(() => {
-            // 1.设置翻译列展示的语言
+            // 1.设置翻译列展示的语种
             // 移除翻译列和固定列对应的展示项
             this.checkboxList = commonParam.checkboxList.filter(
               (item) =>
@@ -377,7 +377,7 @@ export default {
             ];
             // 读取本地存储的用户偏好
             getColPref("colPref-archiveModal", 100, this, true);
-            // 设置翻译列展示的语言
+            // 设置翻译列展示的语种
             this.columns.forEach((item) => {
               if (item.title === "翻译") {
                 item.dataIndex =

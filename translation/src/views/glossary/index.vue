@@ -391,7 +391,7 @@ export default {
         glossaryParams.checkboxList
       );
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {

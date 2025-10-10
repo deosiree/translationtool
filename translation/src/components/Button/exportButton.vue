@@ -20,8 +20,8 @@
         <a-form-item label="文件名称" name="xml_name" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请输入文件名!' }]">
           <a-input v-model:value="exportModal.xml_name" placeholder="请输入文件名"></a-input>
         </a-form-item>
-        <a-form-item label="指定local语言" name="local_desc" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="exportModal.local_desc" placeholder="请选择语言" :options='localDescOptions' allowClear>
+        <a-form-item label="指定local语种" name="local_desc" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请选择!' }]">
+          <a-select v-model:value="exportModal.local_desc" placeholder="请选择语种" :options='localDescOptions' allowClear>
           </a-select>
         </a-form-item>
         <a-form-item>
@@ -197,7 +197,7 @@ export default {
           this.exportModal.exportType === "xml" &&
           !this.exportModal.local_desc
         ) {
-          message.error("请选择指定local语言！");
+          message.error("请选择指定local语种！");
           return;
         }
 
