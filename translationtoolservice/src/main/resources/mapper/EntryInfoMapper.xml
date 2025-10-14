@@ -354,7 +354,7 @@
         <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
             <choose>
                 <when test = "clearMatchSet.contains('词条')">
-                    and t2.entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
+                    and BINARY t2.entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
                 </when>
                 <otherwise>
                     and t2.entry like CONCAT('%',#{entryInfoEntity.entry,jdbcType=VARCHAR},'%')
@@ -1234,22 +1234,22 @@
        t1.*
         from t_entry_info t1 left join t_product_relation t2 on t1.id = t2.entry_id
         where t1.is_delete =0
-         and t1.entry =  #{entryInfoEntity.entry,jdbcType=VARCHAR} and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
+         and BINARY t1.entry =  #{entryInfoEntity.entry,jdbcType=VARCHAR} and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
         <if test="entryInfoEntity.abbr != null ">
-            and t1.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+            and BINARY t1.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
         </if>
         <if test=" entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'TS' or entryInfoEntity.importType == 'ENUM'">
-            and t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+            and BINARY t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
         </if>
 
         <if test="entryInfoEntity.tag != null ">
-            and t1.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
+            and BINARY t1.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.comment != null">
-            and t1.comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
+            and BINARY t1.comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.importType == 'DB' or entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'ENUM'">
-            and t1.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
+            and BINARY t1.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
         </if>
 
     </select>
@@ -1262,10 +1262,10 @@
         where t1.is_delete =0
          and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
         <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
-            and source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR}
+            and BINARY source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR}
         </if>
         <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
-            and db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+            and BINARY db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
         </if>
 
     </select>
@@ -1278,7 +1278,7 @@
         where t1.is_delete =0
          and t2.product_id =  #{entryInfoEntity.productID,jdbcType=VARCHAR}
         <if test="entryInfoEntity.entry != null and entryInfoEntity.entry != ''">
-            and entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
+            and BINARY entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
         </if>
     </select>
 
@@ -1451,11 +1451,11 @@
         left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
         left JOIN t_translate t7 ON t2.spa_trans_id = t7.id
         where 
-            t2.entry = #{tsVo.entry,jdbcType=VARCHAR}
+            BINARY t2.entry = #{tsVo.entry,jdbcType=VARCHAR}
         and 
-            t2.comment = #{tsVo.comment,jdbcType=VARCHAR}
+            BINARY t2.comment = #{tsVo.comment,jdbcType=VARCHAR}
         and 
-            t2.tag = #{tsVo.tag,jdbcType=VARCHAR}
+            BINARY t2.tag = #{tsVo.tag,jdbcType=VARCHAR}
         and t2.is_delete = 0
     </select>
 
@@ -1530,7 +1530,7 @@
                 and info.entry is null
             </when>
             <otherwise>
-                and
+                and BINARY
                 info.entry = #{entryInfoEntity.entry,jdbcType =VARCHAR}
             </otherwise>
         </choose>
@@ -1552,7 +1552,7 @@
                 and info.tag is null
             </when>
             <otherwise>
-                and
+                and BINARY
                 info.tag = #{entryInfoEntity.tag,jdbcType =VARCHAR}
             </otherwise>
         </choose>
@@ -1563,7 +1563,7 @@
                 and info.classfy2 is null
             </when>
             <otherwise>
-                and
+                and BINARY
                 info.classfy2 = #{entryInfoEntity.classfy2,jdbcType =VARCHAR}
             </otherwise>
         </choose>
@@ -1574,7 +1574,7 @@
                 and info.entry_source is null
             </when>
             <otherwise>
-                and
+                and BINARY
                 info.entry_source = #{entryInfoEntity.entrySource,jdbcType =VARCHAR}
             </otherwise>
         </choose>
@@ -1607,7 +1607,7 @@
                 and trans.translate is null
             </when>
             <otherwise>
-            and
+            and BINARY
             trans.translate = #{translateEntity.translate,jdbcType =VARCHAR}
             </otherwise>
         </choose>
