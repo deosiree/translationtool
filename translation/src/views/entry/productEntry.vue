@@ -802,8 +802,8 @@ export default {
     "search.endTime_": function (newValue) {
       if (newValue) {
         this.search.endTime = `${newValue.$y}-${newValue.$M + 1}-${
-          newValue.$D
-        }`; // 格式化日期为 YYYY-MM-DD 格式;
+          newValue.$D + 1
+        }`; // 格式化日期为 YYYY-MM-DD 格式;（结束日期+1，以达到当天的24:00的效果）
         if (this.search.startTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("结束时间不能小于开始时间！");
