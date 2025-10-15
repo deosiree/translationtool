@@ -119,8 +119,8 @@ export default {
       dataSource: [], // 表格数据
       i18nURLs: [
         {
-          label: "http://10.17.14.115:18001",
-          value: "http://10.17.14.115:18001",
+          label: "http://10.17.196.115:18001",
+          value: "http://10.17.196.115:18001",
         },
       ],
       moduleNames: [],
