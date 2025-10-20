@@ -149,9 +149,9 @@ export default {
       importTypes: ["file"],// 导入类型
       xml_temp: false,// 临时修改一下xml的样式(现已置false，改回去了)
       templateType: [
-        { label: 'csv新模板', value: '新模板' },
-        { label: 'csv旧模板', value: '旧模板' },
-        { label: 'csv通用模板', value: '通用模板' },
+        { label: 'excel新模板', value: '新模板' },
+        { label: 'excel旧模板', value: '旧模板' },
+        { label: 'excel通用模板', value: '通用模板' },
         { label: 'xml可视化词条', value: '可视化词条' },
         { label: 'xml装置辞典', value: '装置辞典' },
       ],
