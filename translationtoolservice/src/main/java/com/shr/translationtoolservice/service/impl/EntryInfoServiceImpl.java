@@ -1267,8 +1267,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private void zzEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
         Date date = new Date(System.currentTimeMillis());
         for(EntryInfoEntity entryInfoEntity : entryEntitys){
-            entryInfoEntity.setEntry(entryInfoEntity.getAbbr());
-            entryInfoEntity.setEntryLength(entryInfoEntity.getAbbr().length());
+            entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
             entryInfoEntity.setIsDelete(0);
             if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
                 entryInfoEntity.setUpdate(userName);
