@@ -604,7 +604,7 @@ export default {
       },
       selectedRowKeys: [],
       selectedRows: [],
-      accept: ".xls,.xlsx,.csv",
+      accept: ".xls,.xlsx,.csv,.xml",
       tsOptions: [],
       selectTitle: "",
       tsFile: {
