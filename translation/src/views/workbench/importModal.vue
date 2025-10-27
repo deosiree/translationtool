@@ -1581,6 +1581,10 @@ export default {
           ...extraParams,
         };
       };
+      const closeLoading = () => {
+        this.loading = false;
+        this.importBtnLoading = false;
+      };
 
       // // 处理异步请求的通用函数
       // const handleAsyncRequest = (
@@ -1605,7 +1609,8 @@ export default {
       //     });
       // };
 
-      let asyncTask;
+      let asyncTask = false,
+        otherFn = false;
 
       if (this.dataType === "file") {
         // 文件
@@ -1640,6 +1645,7 @@ export default {
         // TS
         const params = getCommonParams();
         asyncTask = handleAsyncRequest(
+          closeLoading,
           this.$refs.tsFormRef,
           getTsWords,
           params,
@@ -1647,69 +1653,76 @@ export default {
         );
       } else if (this.dataType === "database") {
         // 实时库
+        otherFn = true;
         if (this.dataLibrary.type === "field") {
           // 实时库-对象数据（原 字段）
-          // asyncTask = this.$refs.fieldFormRef
-          //   .validate()
-          //   .then(() => {
-          //     return new Promise((resolve) => {
-          //       this.getFieldData();
-          //       resolve([]);
-          //     });
-          //   })
-          //   .catch((err) => {
-          //     // message.error(err.message);// 校验参数未通过，不提示错误信息
-          //     return [];
-          //   });
-          asyncTask = handleAsyncRequest(
-            this.$refs.fieldFormRef,
-            this.getFieldData,
-            null,
-            null,
-            null
-          );
+          asyncTask = this.$refs.fieldFormRef
+            .validate()
+            .then(() => {
+              return new Promise((resolve) => {
+                this.getFieldData();
+                resolve([]);
+              });
+            })
+            .catch((err) => {
+              // message.error(err.message);// 校验参数未通过，不提示错误信息
+              closeLoading();
+              return [];
+            });
+          // asyncTask = handleAsyncRequest(
+          // closeLoading,
+          //   this.$refs.fieldFormRef,
+          //   this.getFieldData,
+          //   null,
+          //   null,
+          //   null
+          // );
         } else if (this.dataLibrary.type === "alias") {
           // 实时库-元数据
-          // asyncTask = this.$refs.aliasFormRef
-          //   .validate()
-          //   .then(() => {
-          //     return new Promise((resolve) => {
-          //       this.getAlias();
-          //       resolve([]);
-          //     });
-          //   })
-          //   .catch((err) => {
-          //     message.error("7", err.message);
-          //     return [];
-          //   });
-          asyncTask = handleAsyncRequest(
-            this.$refs.aliasFormRef,
-            this.getAlias,
-            null,
-            null,
-            null
-          );
+          asyncTask = this.$refs.aliasFormRef
+            .validate()
+            .then(() => {
+              return new Promise((resolve) => {
+                this.getAlias();
+                resolve([]);
+              });
+            })
+            .catch((err) => {
+              // message.error("7", err.message);
+              closeLoading();
+              return [];
+            });
+          // asyncTask = handleAsyncRequest(
+          // closeLoading,
+          //   this.$refs.aliasFormRef,
+          //   this.getAlias,
+          //   null,
+          //   null,
+          //   null
+          // );
         } else if (this.dataLibrary.type === "allData") {
           // 实时库-全量
-          // asyncTask = this.$refs.allDataFormRef
-          //   .validate()
-          //   .then(() => {
-          //     return new Promise((resolve) => {
-          //       this.batchImportDatabase();
-          //       resolve([]);
-          //     });
-          //   })
-          //   .catch((err) => {
-          //     message.error("8", err.message);
-          //     return [];
-          //   });
-          asyncTask = handleAsyncRequest(
-            this.$refs.allDataFormRef,
-            this.batchImportDatabase,
-            null,
-            null,
-            null
-          );
+          asyncTask = this.$refs.allDataFormRef
+            .validate()
+            .then(() => {
+              return new Promise((resolve) => {
+                this.batchImportDatabase();
+                resolve([]);
+              });
+            })
+            .catch((err) => {
+              // message.error("8", err.message);
+              closeLoading();
+              return [];
+            });
+          // asyncTask = handleAsyncRequest(
+          // closeLoading,
+          //   this.$refs.allDataFormRef,
+          //   this.batchImportDatabase,
+          //   null,
+          //   null,
+          //   null
+          // );
         }
       } else if (this.dataType === "dictionary") {
         // 辞典
@@ -1717,6 +1730,7 @@ export default {
           transType: this.task.translateType,
         });
         asyncTask = handleAsyncRequest(
+          closeLoading,
           this.$refs.dictSelectRef,
           importDictionaryEntry,
           params,
@@ -1726,6 +1740,7 @@ export default {
         // 配置文件
         const params = getCommonParams({ diFileName: "" });
         asyncTask = handleAsyncRequest(
+          closeLoading,
           this.$refs.configFormRef,
           getConfigEntry,
           params,
@@ -1735,6 +1750,7 @@ export default {
         // 枚举文件
         const params = getCommonParams({ diFileName: "" });
         asyncTask = handleAsyncRequest(
+          closeLoading,
           this.$refs.enumFormRef,
           getEnumEntry,
           params,
@@ -1747,18 +1763,19 @@ export default {
             handleCommonOperations(data);
           })
           .finally(() => {
-            this.loading = false;
-            this.importBtnLoading = false;
-            // 校验当前页数据
-            verifyArray_workbench_page(
-              this.pagination,
-              this.task.transMap.value,
-              this
-            );
+            if (!otherFn) {
+              // 不进去其他函数（即非实时库）
+              closeLoading();
+              // 校验当前页数据
+              verifyArray_workbench_page(
+                this.pagination,
+                this.task.transMap.value,
+                this
+              );
+            }
           });
       } else {
-        this.loading = false;
-        this.importBtnLoading = false;
+        closeLoading();
       }
     },
     sortArray(arr, key) {
@@ -1801,17 +1818,19 @@ export default {
           this.dataSource = res.data.list;
           this.sortArray(this.dataSource, "isExist");
           this.allData = this.dataSource;
-          // this.loading = false;
-          // this.importBtnLoading = false;
         })
         .catch((err) => {
-          // this.loading = false;
-          // this.importBtnLoading = false;
           message.error("数据获取失败！", err.message);
+        })
+        .finally(() => {
+          this.loading = false;
+          this.importBtnLoading = false;
         });
     },
     // 获取别名
     async getAlias() {
+      this.loading = true;
+      this.importBtnLoading = true;
       let table = this.treeData.find(
         (item) => item.id === this.dataLibrary.table
       );
@@ -1832,13 +1851,13 @@ export default {
           this.dataSource = res.data.list;
           this.sortArray(this.dataSource, "isExist");
           this.allData = this.dataSource;
-          // this.loading = false;
-          // this.importBtnLoading = false;
         })
         .catch((err) => {
-          // this.loading = false;
-          // this.importBtnLoading = false;
           message.error("数据获取失败！", err.message);
+        })
+        .finally(() => {
+          this.loading = false;
+          this.importBtnLoading = false;
         });
     },
     // 批量导入数据库
@@ -1962,8 +1981,8 @@ export default {
 
       // 等待所有请求完成后更新加载状态
       Promise.all(promises).finally(() => {
-        // this.loading = false;
-        // this.importBtnLoading = false;
+        this.loading = false;
+        this.importBtnLoading = false;
       });
     },
     // 添加表格行点击事件

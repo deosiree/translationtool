@@ -15,10 +15,19 @@ const requestDelId = [];// 存储删除请求的id，用于保留loading状态
  * @param {*} [data=null] - 可选参数，传递给 getDataFn 的额外数据
  * @returns {Promise<Array>} - 返回一个 Promise，解析为数据列表数组，如果出错则返回空数组
  */
-export async function handleAsyncRequest(validateRef, getDataFn, params = null, data = null, returnParams = 'data.list') {
+export async function handleAsyncRequest(closeLoading, validateRef, getDataFn, params = null, data = null, returnParams = 'data.list') {
   try {
-    // // 执行表单验证
-    // await validateRef.validate();
+    // 执行表单验证
+    await validateRef.validate();
+    console.log("表单验证结果", validateRef.validate());
+  }
+  catch (err) {
+    // 数据获取失败，提示错误信息
+    // console.log("表单校验失败！", err.message, closeLoading);
+    closeLoading();
+    return [];
+  }
+  try {
     // 调用 getDataFn 并等待其结果
     const res = await getDataFn(params, data);
     if (returnParams) {
