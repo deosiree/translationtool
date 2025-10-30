@@ -26,12 +26,6 @@
           @update:oldEditableData="editableData=$event" @showEditOperation="showEditOperation" size="small" buttonTitle="释义覆盖翻译"
           style="margin-left:8px" />
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
-        <span style="margin-left:10px">过滤语种：</span>
-        <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
-          <a-radio value="全部">全部</a-radio>
-          <a-radio value="中文">中文</a-radio>
-          <a-radio value="英文">英文</a-radio>
-        </a-radio-group>
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>
             <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
@@ -48,6 +42,14 @@
               <SettingOutlined />
             </template>展示列</a-button>
         </a-popover>
+      </div>
+      <div class="select"> 
+        <span>过滤语种：</span>
+        <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
+          <a-radio value="全部">全部</a-radio>
+          <a-radio value="中文">中文</a-radio>
+          <a-radio value="英文">英文</a-radio>
+        </a-radio-group>
       </div>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-selection="{ selectedRowKeys: selectedRowKeys, 
                 onChange: onSelectChange,
@@ -510,7 +512,7 @@ export default {
               this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
             // console.log("打印词条", item);
           });
-          this.allData = this.dataSource
+          this.allData = this.dataSource;
           this.loading = false;
           // this.select()
         })
@@ -967,7 +969,7 @@ export default {
         this.selectedRows[0].children = children;
       }
 
-      this.allData = this.dataSource
+      this.allData = this.dataSource;
       this.selectedRowKeys = [];
       this.selectedRows = [];
     },
@@ -999,7 +1001,7 @@ export default {
           this.dataSource.splice(index + 1, 0, item);
         }
       });
-      this.allData = this.dataSource
+      this.allData = this.dataSource;
       this.selectedRowKeys = [];
       this.selectedRows = [];
     },
