@@ -26,6 +26,12 @@
           @update:oldEditableData="editableData=$event" @showEditOperation="showEditOperation" size="small" buttonTitle="释义覆盖翻译"
           style="margin-left:8px" />
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
+        <span style="margin-left:10px">过滤语种：</span>
+        <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
+          <a-radio value="全部">全部</a-radio>
+          <a-radio value="中文">中文</a-radio>
+          <a-radio value="英文">英文</a-radio>
+        </a-radio-group>
         <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
           <template #content>
             <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
@@ -203,6 +209,7 @@ import {
   getEntryInfoList,
   updateEntryList,
   deleteEntryInfoByTaskID,
+  filterSourceLanguage,
 } from "@/http/api/workbench";
 import {
   CheckOutlined,
@@ -311,6 +318,8 @@ export default {
       rejectReason: {
         reason: "",
       },
+      filterLanguage: null,
+      filterSource: [],
     };
   },
   created() {},
@@ -501,7 +510,7 @@ export default {
               this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
             // console.log("打印词条", item);
           });
-          // this.allData = this.dataSource
+          this.allData = this.dataSource
           this.loading = false;
           // this.select()
         })
@@ -710,9 +719,18 @@ export default {
     },
     // 模糊查询
     select() {
-      this.dataSource = this.allData.filter((item) =>
-        item.entry.includes(this.keyWords)
-      );
+      // this.dataSource = this.allData.filter((item) =>
+      //   item.entry.includes(this.keyWords)
+      // );
+      if (this.filterLanguage === null) {
+        this.dataSource = this.allData.filter((item) =>
+          item.entry.includes(this.keyWords)
+        );
+      } else {
+        this.dataSource = this.filterSource.filter((item) =>
+          item.entry.includes(this.keyWords)
+        );
+      }
     },
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys;
@@ -949,7 +967,7 @@ export default {
         this.selectedRows[0].children = children;
       }
 
-      // this.allData = this.dataSource
+      this.allData = this.dataSource
       this.selectedRowKeys = [];
       this.selectedRows = [];
     },
@@ -981,7 +999,7 @@ export default {
           this.dataSource.splice(index + 1, 0, item);
         }
       });
-      // this.allData = this.dataSource
+      this.allData = this.dataSource
       this.selectedRowKeys = [];
       this.selectedRows = [];
     },
@@ -1077,6 +1095,28 @@ export default {
         }
       });
       this.verifyTranslationLength(arr);
+    },
+    // 语种切换
+    filterLanguageChange() {
+      if (this.filterLanguage === "全部") {
+        this.dataSource = this.allData;
+        this.filterSource = this.allData;
+      } else {
+        let params = {
+          languageType: this.filterLanguage,
+        };
+        this.loading = true;
+        filterSourceLanguage(params, this.allData)
+          .then((res) => {
+            this.dataSource = res.data.list;
+            this.filterSource = res.data.list;
+            this.loading = false;
+          })
+          .catch((err) => {
+            this.loading = false;
+            message.error("12", err.message);
+          });
+      }
     },
     // 全选
     selectAll() {
