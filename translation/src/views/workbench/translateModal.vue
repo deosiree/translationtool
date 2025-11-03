@@ -232,7 +232,7 @@
               <div class="suggentItem" @click="suggestClick(item.title,item.id)">
                 <div class="tran">
                   <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
-                  <span>{{item.title}}</span>
+                  <span>{{item.title}}（{{item.updateTime}}）</span>
                 </div>
                 <div class="tips">
                   {{item.tips}}
@@ -1132,7 +1132,6 @@ export default {
 
       translate(params)
         .then((res) => {
-          // console.log("辅助翻译", res.data);
           this.suggest = {
             local: [],
             web: [],
@@ -1151,6 +1150,7 @@ export default {
                   tips: element.source,
                   type: "local",
                   id: item.id,
+                  updateTime: item.createTime,
                 };
                 this.suggest.local.push(suggent);
               });
@@ -1173,6 +1173,7 @@ export default {
                   tips: element.source,
                   type: type,
                   id: item.id,
+                  updateTime: item.creatTime,
                 };
                 this.suggest.web.push(suggent);
               });
