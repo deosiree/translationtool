@@ -43,7 +43,7 @@
             </template>展示列</a-button>
         </a-popover>
       </div>
-      <div class="select"> 
+      <div class="select">
         <span>过滤语种：</span>
         <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
           <a-radio value="全部">全部</a-radio>
@@ -744,15 +744,22 @@ export default {
       if (record.parentID) {
         return;
       }
+      let state = 1; // 审核通过
       if (record.auditState === 1) {
         // 取消选择
-        record.auditState = -1;
-      } else {
-        record.auditState = 1;
+        state = -1;
+      }
+      record.auditState = state;
+      if (this.editableData[record.id]) {
+        // 同样要修改编辑态的审核状态
+        this.editableData[record.id].auditState = state;
       }
       if (record.children && record.children.length > 0) {
         record.children.forEach((child) => {
           child.auditState = record.auditState;
+          if (this.editableData[child.id]) {
+            this.editableData[child.id].auditState = record.auditState;
+          }
         });
       }
     },
@@ -762,14 +769,22 @@ export default {
       if (record.parentID) {
         return;
       }
-      if (record.auditState === 0) {
-        record.auditState = -1;
-      } else {
-        record.auditState = 0;
+      let state = 0; // 审核不通过
+      if (record.auditState === 1) {
+        // 取消选择
+        state = -1;
+      }
+      record.auditState = state;
+      if (this.editableData[record.id]) {
+        // 同样要修改编辑态的审核状态
+        this.editableData[record.id].auditState = state;
       }
       if (record.children && record.children.length > 0) {
         record.children.forEach((child) => {
           child.auditState = record.auditState;
+          if (this.editableData[child.id]) {
+            this.editableData[child.id].auditState = record.auditState;
+          }
         });
       }
     },
