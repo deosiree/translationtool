@@ -54,7 +54,9 @@ public class PercentageAnalyzer implements TranslateAnalyzer<AnalyzeSample> {
             return false;
         }
         List<String> entryPlaceHolders = acquirePlaceHolder(entry);
+        entryPlaceHolders.sort(comparator);
         List<String> translatePlaceHolders = acquirePlaceHolder(translate);
+        translatePlaceHolders.sort(comparator);
         return !entryPlaceHolders.equals(translatePlaceHolders);
        
     }
