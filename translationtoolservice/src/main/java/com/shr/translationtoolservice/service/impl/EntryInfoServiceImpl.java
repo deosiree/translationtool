@@ -2530,6 +2530,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
           return null;
         }*/
         /* 无法查到禁用的词条，在where里面写的 */
+        entryInfoEntityTemplate.setEntry(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntry()));
+        entryInfoEntityTemplate.setChinese(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getChinese()));
+        entryInfoEntityTemplate.setEnglish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEnglish()));
+        entryInfoEntityTemplate.setSpanish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getSpanish()));
+        entryInfoEntityTemplate.setFrench(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getFrench()));
+        entryInfoEntityTemplate.setRussian(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getRussian()));
         List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList,clearMatchSet, -1,-1);
         boolean hasStartTime = (startTime != null && startTime != "");
         boolean hasEndTime = (endTime != null && endTime != "");
