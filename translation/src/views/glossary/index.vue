@@ -9,6 +9,9 @@
           <a-form-item label="翻译" name="translate">
             <a-input v-model:value="search.translate" placeholder="请输入翻译"></a-input>
           </a-form-item>
+          <a-form-item label="翻译过滤" name="filter_translate">
+            <a-input v-model:value="search.filter_translate" placeholder="请输入翻译"></a-input>
+          </a-form-item>
           <a-form-item label="翻译类型" name="type">
             <a-select v-model:value="search.type" style="width: 186px" placeholder="请选择翻译类型" :options='translateTypes'
               :fieldNames="{label:'name',value:'name'}" allowClear>
@@ -176,6 +179,7 @@ export default {
         state: null,
         visualRange: null,
         searchType: null,
+        filter_translate: null, // 翻译过滤字段
       },
       lastSearch: {}, // 存储上一次的查询条件
       visualRanges: Object.values(commonParam.departmentMap).map((dept) => ({
@@ -437,6 +441,7 @@ export default {
           pageIndex: this.pagination.current,
           pageSize: this.pagination.pageSize,
           requestId: `${option}-${Date.now().toString(16)}`,
+          // translateType: this.search.type,
         },
         data: this.search,
         lastRequestId: this.requestId, // 获取上一次的请求对象requestId

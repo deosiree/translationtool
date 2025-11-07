@@ -363,6 +363,24 @@ const entry_exportFields = [
   // { label: "词条标签", value: "entryLabel", index: 60 },
   { label: "abbr", value: "abbr", index: 99 },
 ];
+const entry_searchConditionList = [
+  { label: '词条', value: 'entry', index: 1 },
+    { label: '词条状态', value: 'state', index: 2 },
+  { label: 'tag', value: 'tag', index: 3 },
+  { label: '一级分类', value: 'classfy1', index: 4 },
+  { label: '二级分类', value: 'classfy2', index: 5 },
+  { label: '词条来源', value: 'entrySource', index: 6 },
+  { label: '翻译语种', value: 'language', index: 7 },
+  { label: '翻译状态', value: 'translateState', index: 8 },
+  { label: '翻译结果', value: 'translate', index: 9 },
+  { label: '翻译过滤', value: 'filter_translate', index: 10 },
+  { label: 'Comment', value: 'comment', index: 11 },
+  { label: '辞典名称', value: 'diFileName', index: 12 },
+  { label: '开始时间', value: 'startTime', index: 13 },
+  { label: '结束时间', value: 'endTime', index: 14 },
+  { label: '修改人', value: 'update', index: 15 },
+];// 查询条件列表
+const entry_checkedSearchCondition = entry_searchConditionList.map(item => item.value);// 默认选中所有查询条件
 export const entryParams = {
   checkboxList: entry_checkboxList,
   inputColumn: ["abbr", "entryLength", "partOfSpeech", "remark", "diFileName", "comment"].concat(default_languageList.map(item => item.interpretation)),
@@ -376,6 +394,8 @@ export const entryParams = {
     boxShadow: '0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%)'
   },
   exportFields: entry_exportFields,
+  searchConditionList: entry_searchConditionList,
+  checkedSearchCondition: entry_checkedSearchCondition,
 }
 
 // 3.glossaryParams如下：

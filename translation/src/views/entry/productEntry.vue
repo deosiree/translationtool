@@ -4,60 +4,63 @@
       <template v-slot:form>
         <a-form :model="search" layout="inline" autocomplete="off" :label-col="labelCol">
           <a-row style="width:100%" class="search-row">
-            <a-form-item label="词条" name="entry" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('entry')" label="词条" name="entry" style="margin-top: 8px">
               <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
             </a-form-item>
-            <a-form-item label="词条状态" name="state" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('state')" label="词条状态" name="state" style="margin-top: 8px">
               <EntryStateSelect :entryState="search.entryState" @update:entryState="search.entryState = $event" :showForbbiden="showForbbiden"
                 @update:showForbbiden="showForbbiden = $event" />
             </a-form-item>
-            <a-form-item label="tag" name="tag" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('tag')" label="tag" name="tag" style="margin-top: 8px">
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item label="一级分类" name="classfy1" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('classfy1')" label="一级分类" name="classfy1" style="margin-top: 8px">
               <a-select v-model:value="search.classfy1" mode="tags" placeholder="请输入一级分类" :fieldNames="{label:'title',value:'title'}"
                 :options='classify1Option' allowClear :maxTagTextLength="3" :maxTagCount="1">
               </a-select>
             </a-form-item>
-            <a-form-item label="二级分类" name="classfy2" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('classfy2')" label="二级分类" name="classfy2" style="margin-top: 8px">
               <a-select v-model:value="search.classfy2" mode="tags" placeholder="请输入二级分类" :fieldNames="{label:'title',value:'title'}"
                 :options='classify2Option' allowClear :maxTagTextLength="3" :maxTagCount="1">
               </a-select>
             </a-form-item>
-            <a-form-item label="词条来源" name="entrySource" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource" style="margin-top: 8px">
               <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item label="翻译语种" name="language" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language" style="margin-top: 8px">
               <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
                 allowClear>
               </a-select>
             </a-form-item>
-            <a-form-item label="翻译状态" name="translateState" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('translateState')" label="翻译状态" name="translateState" style="margin-top: 8px">
               <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" />
             </a-form-item>
-            <a-form-item label="翻译结果" name="translate" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('translate')" label="翻译结果" name="translate" style="margin-top: 8px">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
+            </a-form-item>
+            <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate" style="margin-top: 8px">
+              <a-input v-model:value="search.filter_translate" placeholder="请输入内容"></a-input>
             </a-form-item>
             <!-- <a-form-item label="翻译释义" name="interpretation" style="margin-top: 8px">
               <a-input v-model:value="search.interpretation" placeholder="请输入内容"></a-input>
             </a-form-item> -->
-            <a-form-item label="comment" name="comment" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('comment')" label="comment" name="comment" style="margin-top: 8px">
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item label="辞典名称" name="diFileName" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName" style="margin-top: 8px">
               <a-input v-model:value="search.diFileName" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item label="开始时间" name="startTime" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime" style="margin-top: 8px">
               <a-date-picker v-model:value="search.startTime_" />
             </a-form-item>
-            <a-form-item label="结束时间" name="endTime" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('endTime')" label="结束时间" name="endTime" style="margin-top: 8px">
               <a-date-picker v-model:value="search.endTime_" />
             </a-form-item>
-            <a-form-item label="修改人" name="update" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('update')" label="修改人" name="update" style="margin-top: 8px">
               <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
             </a-form-item>
           </a-row>
-          <a-row style="width:100%" class="search-row" justify="end">
+          <a-row style="width:100%;margin-top:8px" class="search-row" justify="end">
             <a-button type="primary" size="middle" :danger="!showForbbiden" :class="{ yellowBtn: showForbbiden }" @click="changeForbbiden"
               style="margin:0 8px" v-if="admin">
               {{ showForbbiden ? '隐藏禁用' : '显示禁用' }}
@@ -66,6 +69,23 @@
             <a-button type="primary" size="middle" @click="conditionalQuery" style="margin:0 8px">查询</a-button>
             <AccurSearchButton @update:accurSearch="accurSearch=$event" :fieldOptions="exportFields" @searchFunction="conditionalQuery($event)"
               size="middle" buttonTitle="全量查询" />
+
+            <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+              <template #content>
+                <a-checkbox-group v-model:value="checkedSearchCondition" @change="changeSearchCondition">
+                  <a-row v-for="item in searchConditionList" :key="item.value">
+                    <a-col :span="24">
+                      <a-checkbox :value="item.value">
+                        {{ item.label }}
+                      </a-checkbox>
+                    </a-col>
+                  </a-row>
+                </a-checkbox-group>
+              </template>
+              <a-button type="primary" size="middle" style="margin:0 8px" ghost><template #icon>
+                  <SettingOutlined />
+                </template>展示条件</a-button>
+            </a-popover>
           </a-row>
         </a-form>
       </template>
@@ -452,6 +472,9 @@ export default {
   data() {
     // 从本地缓存读取展示列偏好
     const cachedDisplayColumn = localStorage.getItem("colPref-productEntry");
+    const cachedSearchCondition = localStorage.getItem(
+      "searchCondition-productEntry"
+    );
     return {
       locale: zhCN,
       box: 0,
@@ -479,6 +502,7 @@ export default {
         language: null,
         translateState: null,
         translate: "",
+        filter_translate: "",
         comment: "",
         startTime_: null, // 时间戳格式
         endTime_: null, // 时间戳格式
@@ -487,6 +511,10 @@ export default {
         diFileName: null,
         update: null,
       },
+      searchConditionList: entryParams.searchConditionList,
+      checkedSearchCondition: cachedSearchCondition
+        ? JSON.parse(cachedSearchCondition).displayColumn.split(",")
+        : entryParams.checkedSearchCondition, // (可选)显示的查询条件框
       exportFields: [
         "词条",
         "tag",
@@ -629,7 +657,9 @@ export default {
       },
       overlayStyle: entryParams.overlayStyle, // 展示列样式
       checkboxList: entryParams.checkboxList, // 展示列可选的值
-      checkedColumn: cachedDisplayColumn ? cachedDisplayColumn.split(",") : [], // 展示列已选的值
+      checkedColumn: cachedDisplayColumn
+        ? JSON.parse(cachedDisplayColumn).displayColumn.split(",")
+        : [], // 展示列已选的值
       inputColumn: entryParams.inputColumn,
       translateColumn: entryParams.translateColumn,
       commonParam: commonParam,
@@ -944,6 +974,7 @@ export default {
         comment: this.search.comment,
         diFileName: this.search.diFileName,
         update: this.search.update,
+        filter_translate: this.search.filter_translate, // 翻译结果过滤
       };
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:", data);
@@ -1363,6 +1394,7 @@ export default {
         language: null,
         translateState: null,
         translate: "",
+        filter_translate: "",
         comment: "",
         startTime_: null, // 时间戳格式
         endTime_: null, // 时间戳格式
@@ -1374,6 +1406,17 @@ export default {
       this.showForbbiden = false; // 默认不显示禁用
       // this.getEntryByVersion();
       this.conditionalQuery();
+    },
+    // 展示条件切换并保存用户偏好
+    changeSearchCondition(checkedValue) {
+      changeColumn(
+        "searchCondition-productEntry",
+        200,
+        checkedValue,
+        this,
+        false,
+        entryParams.searchConditionList
+      );
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
@@ -1495,6 +1538,10 @@ export default {
             : [this.search.entryState],
         tag: this.search.tag,
         entrySource: this.search.entrySource,
+        comment: this.search.comment,
+        diFileName: this.search.diFileName,
+        update: this.search.update,
+        filter_translate: this.search.filter_translate, // 翻译结果过滤
       };
       if (!this.currentVersion) {
         data.productID =
