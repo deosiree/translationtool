@@ -38,9 +38,9 @@
             <a-form-item v-if="checkedSearchCondition.includes('translate')" label="翻译结果" name="translate" style="margin-top: 8px">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate" style="margin-top: 8px">
+            <!-- <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate" style="margin-top: 8px">
               <a-input v-model:value="search.filter_translate" placeholder="请输入内容"></a-input>
-            </a-form-item>
+            </a-form-item> -->
             <!-- <a-form-item label="翻译释义" name="interpretation" style="margin-top: 8px">
               <a-input v-model:value="search.interpretation" placeholder="请输入内容"></a-input>
             </a-form-item> -->
