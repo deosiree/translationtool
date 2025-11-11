@@ -670,11 +670,21 @@ export default {
     },
     // 结束任务按钮点击事件
     placeOnFile2() {
-      this.task.state = "6";
-      this.task.endTime = getCurrentFormattedTime();
-      updateTaskInfo(this.task).then((res) => {
-        message.success("已结束任务！（词条状态更新为'已归档'）");
-        this.$emit("refresh");
+      Modal.confirm({
+        title: "是否结束任务？",
+        content: '词条状态将更新为"已归档"',
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          this.task.state = "6";
+          this.task.endTime = getCurrentFormattedTime();
+          updateTaskInfo(this.task).then((res) => {
+            message.success("已结束任务！（词条状态更新为'已归档'）");
+            this.$emit("refresh");
+          });
+        },
       });
     },
     ipSelectAfterClose() {
