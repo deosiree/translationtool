@@ -149,6 +149,7 @@ public class I18nServiceImpl implements I18nService {
                 }
             }
         }*/
+        StringBuilder builder = new StringBuilder();
             //写入i18 ts
             if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
                 for (String fileName : tsEntryInfoMap.keySet()) {
@@ -161,8 +162,9 @@ public class I18nServiceImpl implements I18nService {
                     if (StringUtils.isBlank(s)) {
                         return ErrorCodeList.I18N_SERVER_ERROR + fileName;
                     } else if (!s.equals("true")) {
-                        ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR + fileName);
-                        return ErrorCodeList.UPDATE_TS_ERROR + fileName;
+                        builder.append("文件: " + fileName + "更新失败");
+                        // ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR + fileName);
+                        // return ErrorCodeList.UPDATE_TS_ERROR + fileName;
                     }
                 }
                 // jsonObject.put("entry", tsEntryInfoMap);
@@ -180,8 +182,8 @@ public class I18nServiceImpl implements I18nService {
 
             }
 
-
-        return ConstantInterface.OK_STR;
+        String extrasInfos = builder.toString();
+        return extrasInfos.isEmpty()? ConstantInterface.OK_STR  : "部分更新成功" + "额外信息: " + extrasInfos;
     }
 
     private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, boolean tag
