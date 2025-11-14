@@ -62,7 +62,7 @@
           </a-row>
           <a-row style="width:100%;margin-top:8px" class="search-row" justify="end">
             <a-button type="primary" size="middle" :danger="!showForbbiden" :class="{ yellowBtn: showForbbiden }" @click="changeForbbiden"
-              style="margin:0 8px" v-if="admin&&currentDepartment.ops.has('needForbidden')">
+              style="margin:0 8px" v-if="admin">
               {{ showForbbiden ? '隐藏禁用' : '显示禁用' }}
             </a-button>
             <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin:0 8px">重置</a-button>
