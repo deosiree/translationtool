@@ -126,7 +126,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needIP", "needExamine"]),
+      ops: new Set(["needIP", "needExamine", "needDelete"]),
       // -needIP是否需要IP地址(凡是包含ip的都同理）
       // -----1.工作台-导入：IP的显示与获取、回写辞典
       // -----2.工作台-归档，归档；
@@ -136,13 +136,14 @@ export default {
       // -----6.git推送（词条管理）;
       // -----7.配置管理-辞典管理；
       // -needExamine是否需要提交词条审核（词条管理-已选词条）
+      // -needDelete是否需要删除词条（词条管理-已选词条）
     },
     "监控系统部": {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "jk",
       classfyID: "6",
-      ops: new Set(["needIP", "needExamine"]),
+      ops: new Set(["needIP", "needExamine", "needDelete"]),
     },
     "装置开发部": {
       label: "装置开发部",
@@ -157,8 +158,9 @@ export default {
       ],
       value: "zz",
       classfyID: "2",
-      ops: new Set(["needExamine", "entryState3"]),
+      ops: new Set(["needExamine", "entryState3", "needForbidden"]),
       // -entryState3默认词条审核状态为“已审核”
+      // -needForbidden是否需要禁用词条（词条管理-已选词条）
     },
     "人工智能部": {
       label: "人工智能部",
