@@ -2,7 +2,7 @@
   <!-- 用计算属性entryState_代替直接修改prop(子组件不能直接修改父组件传递的 prop​​) -->
   <a-select v-model:value="entryState_" placeholder="请选择" :size="size" :style="style" @click="clickInput" allowClear>
     <a-select-option value="0" v-if="!filter.has('0')">新建</a-select-option>
-    <a-select-option value="1" v-if="!filter.has('1')">审核中</a-select-option>
+    <a-select-option value="1" v-if="!filter.has('1')">待审核</a-select-option>
     <a-select-option value="2" v-if="!filter.has('2')">审核不通过</a-select-option>
     <a-select-option value="3" v-if="!filter.has('3')">已审核</a-select-option>
     <a-select-option value=-1 v-if="showForbbiden_&&!filter.has(-1)">禁用</a-select-option>
