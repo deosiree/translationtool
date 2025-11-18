@@ -950,7 +950,17 @@ export default {
       }
 
       // 3.修改状态
-      for (const record of this.selectedRows) {
+      // 去除this.selectedRows中的子词条，因为父词条中已经包含了
+      const childRowIDs = new Set(
+        this.selectedRows
+          .filter((item) => item.children && item.children.length > 0)
+          .flatMap((item) => item.children.map((child) => child.id))
+      );
+      const selectFatherRows = this.selectedRows.filter(
+        (item) => !childRowIDs.has(item.id)
+      );
+      //this.selectedRows是把父子词条都平铺开了，以便显示选中状态
+      for (const record of selectFatherRows) {
         if (arr.acceptIds.has(record.id)) {
           if (
             !hasNoInter &&
