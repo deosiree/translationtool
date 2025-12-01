@@ -8,6 +8,52 @@ const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
 /**
+ * 根据节点key获取状态路径
+ * @description 递归遍历树形数据结构，查找指定key的节点并返回从根节点到该节点的完整路径
+ * @param {Array} treeData - 树形数据数组，每个节点包含key、title和可选的children属性
+ * @param {string|number} targetKey - 要查找的目标节点的key值
+ * @param {Array} path - 可选参数，当前路径数组，默认为空数组
+ * @returns {Array|null} 找到目标节点时返回包含路径title的数组，未找到时返回null
+ * @example
+ * // 示例树结构
+ * const tree = [
+ *   { key: '1', title: '根节点', children: [
+ *     { key: '2', title: '子节点1' },
+ *     { key: '3', title: '子节点2', children: [
+ *       { key: '4', title: '孙节点1' }
+ *     ]}
+ *   ]}
+ * ];
+ * // 获取key为'4'的节点路径
+ * const path = getPathByKey(tree, '4'); // 返回 ['根节点', '子节点2', '孙节点1']
+ */
+export function getPathByKey(treeData, targetKey, path = []) {
+  for (const node of treeData) {
+    // 创建当前路径副本并添加当前节点
+    const currentPath = [...path, node.title];
+
+    // 如果找到目标节点，返回完整路径
+    if (node.key === targetKey) {
+      return currentPath;
+    }
+
+    // 如果当前节点有子节点，递归搜索
+    if (node.children && node.children.length > 0) {
+      const foundPath = getPathByKey(
+        node.children,
+        targetKey,
+        currentPath
+      );
+      if (foundPath) {
+        return foundPath;
+      }
+    }
+  }
+  // 未找到目标节点
+  return null;
+};
+
+/**
  * 处理异步请求的通用函数
  * @param {Object} validateRef - 表单验证引用对象，用于调用 validate 方法进行表单验证
  * @param {Function} getDataFn - 获取数据的异步函数，接收 params 和 data 作为参数

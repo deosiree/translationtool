@@ -33,6 +33,8 @@
                       <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="deleteClassify(treeKey,type)">删除
                       </a-popconfirm>
                     </a-menu-item>
+                    <a-menu-item v-if="currentDepartment.ops.has('needIP') && type =='classify'"
+                      @click="copyVersion(treeKey)">拷贝所有(用于版本归档)</a-menu-item>
                   </a-menu>
                 </template>
               </a-dropdown>
@@ -68,6 +70,8 @@
     @redundantClose="redundantClose" style="width:700px;" />
   <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
     @updateClose="updateClose" style="width:700px;" />
+  <CopyVersionModal ref="copyModal" :originalNode="currentClickProduct" :visible="copyVisible" :modalTitle="classifyModalTitle"
+    :copyClassfyID="copyClassfyID" @copyClose="copyClose" style="width:700px;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
@@ -85,6 +89,7 @@ import ClassifyModal from "@/views/entry/classifyModal.vue";
 import ProductAuthorityModal from "@/views/entry/productAuthorityModal.vue";
 import UpdateModal from "@/views/entry/updateModal.vue";
 import RedundantModal from "@/views/entry/redundantModal.vue";
+import CopyVersionModal from "@/views/entry/copyVersionModal.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
@@ -109,6 +114,7 @@ export default {
     ProductAuthorityModal,
     UpdateModal,
     RedundantModal,
+    CopyVersionModal,
   },
   data() {
     return {
@@ -132,6 +138,8 @@ export default {
       updateClassfyID: "", // 传参给子组件，让子组件调用http请求
       redundantVisible: false,
       redundantClassfyID: "",
+      copyVisible: false,
+      copyClassfyID: "", // 传参给子组件，让子组件调用http请求
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -344,6 +352,9 @@ export default {
     redundantClose() {
       this.redundantVisible = false;
     },
+    copyClose() {
+      this.copyVisible = false;
+    },
     // 更新
     update(treeKey) {
       this.classifyModalTitle = "更新详情";
@@ -351,10 +362,18 @@ export default {
       this.updateVisible = true; // 显示弹窗
       setModalAriaHidden(this, document);
     },
+    // 冗余校验
     redundantCheck(treeKey) {
       this.classifyModalTitle = "冗余校验";
       this.redundantClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
       this.redundantVisible = true; // 显示弹窗
+      setModalAriaHidden(this, document);
+    },
+    // 拷贝所有（用于版本归档）
+    copyVersion(treeKey) {
+      this.classifyModalTitle = "拷贝所有（用于版本归档）";
+      this.copyClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
+      this.copyVisible = true; // 显示弹窗
       setModalAriaHidden(this, document);
     },
     // 新增分类或产品
@@ -467,6 +486,16 @@ export default {
       const treeKey = e.node.dataRef.key;
       // console.log("classfyID",treeKey);
       this.selectedTreeKeys = [treeKey];
+
+      // 模拟左键点击的参数结构，调用clickTree方法更新节点信息
+      // 创建一个模拟的e对象，包含与clickTree方法兼容的结构
+      const mockClickEvent = {
+        selected: false, // 右键点击时不需要选中状态切换
+        node: e.node, // 使用相同的节点对象
+      };
+
+      // 调用clickTree方法处理节点信息更新
+      this.clickTree([treeKey], mockClickEvent);
     },
     // 查询产品 用户是否可编辑
     getproductIsEdit(productId) {

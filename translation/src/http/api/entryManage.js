@@ -257,3 +257,12 @@ export function getEntryByClassfy(params, data) {
     data
   });
 }
+
+// 版本归档-拷贝分类
+export function copyEntryClassify(params) {
+  return request({
+    url: "/entryInfo/copyEntryClassify",
+    method: "POST",
+    params
+  });
+}
