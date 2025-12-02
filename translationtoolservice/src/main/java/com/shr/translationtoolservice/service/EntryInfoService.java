@@ -56,6 +56,8 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     EntryInfoEntity addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request);
 
+    EntryInfoEntity copyEntry(EntryInfoEntity entryInfoEntity,HttpServletRequest request);
+
     TranslateEntities translate(String name, String type,String visualRange);
 
     String updateEntryTemp(List<EntryTempEntity> entryTempEntities, HttpServletRequest request);
@@ -136,7 +138,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime);
+    EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize);
 
     List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
 

@@ -241,17 +241,19 @@ public class EntryInfoController extends BaseController {
                                                                               @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                                               @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
         ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
-        List<EntryInfoEntity> originalEntryInfoEntities = new ArrayList<>();
+    
         if(totalMatchSet == null) totalMatchSet = new HashSet<>();
         // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
-        originalEntryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate,totalMatchSet, classfyID,startTime,endTime);
-        List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
+        EntryInfoVO entryInfoVO = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate,totalMatchSet, classfyID,startTime,endTime,pageIndex,pageSize);
+        // List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoVO.getEntryInfoEntities();
         // responseListModel.setList(entryInfoEntities);
-        responseListModel.setTotalNum(entryInfoEntities.size());
+        responseListModel.setTotalNum(entryInfoVO.getTotalSize());
         //全选跳过汇总
         if (pageIndex != -1 && pageSize != -1) {
             // responseListModel.setTotalNum(entryInfoService.getEntryByClassfTotal(entryInfoEntity,classfyID,translateType));
-            List<EntryInfoEntity> results = entryInfoService.onPage(entryInfoEntities, pageIndex, pageSize);
+            // List<EntryInfoEntity> results = entryInfoService.onPage(entryInfoEntities, pageIndex, pageSize);
+            List<EntryInfoEntity> results = entryInfoEntities;
             for(EntryInfoEntity result: results){
                 if(StringUtils.isBlank(result.getEnTransId())){
                     result.setEnglishTranslateState("0");
@@ -639,8 +641,6 @@ public class EntryInfoController extends BaseController {
     
     private AtomicReference<String> currentCachedId = new AtomicReference<>(null);
     
-    @Autowired
-    private ResponseMapper responseMapper;
 
     private ReentrantLock lock = new ReentrantLock(true);
 

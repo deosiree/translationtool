@@ -21,6 +21,8 @@ import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
 import com.shr.translationtoolservice.util.analyze.impl.BatchMaxLengthTranslateAnalyzer;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.ibatis.annotations.Param;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
@@ -2518,7 +2520,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
-    public List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime){
+    public EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize){
         List<String> productidList = new ArrayList<>();
         //一级分类查询
         // if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
@@ -2536,24 +2538,77 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         entryInfoEntityTemplate.setSpanish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getSpanish()));
         entryInfoEntityTemplate.setFrench(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getFrench()));
         entryInfoEntityTemplate.setRussian(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getRussian()));
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList,clearMatchSet, -1,-1);
-        boolean hasStartTime = (startTime != null && startTime != "");
-        boolean hasEndTime = (endTime != null && endTime != "");
-        DateFormat format = LocalTimeUtils.format;
-        
-        try {
-            if(hasStartTime && hasEndTime){
-                return LocalTimeUtils.filterEntryInfoByTime(entryInfoEntities, format.parse(startTime), format.parse(endTime));
-            }else if(hasStartTime){
-                return LocalTimeUtils.filterEntryInfoAfterTime(entryInfoEntities, format.parse(startTime));
-            }else if(hasEndTime){
-                return LocalTimeUtils.filterEntryInfoBeforeTime(entryInfoEntities, format.parse(endTime));
-            }else{
-                return entryInfoEntities;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+        /*  */
+        Set<String> productIDs = new HashSet<>(); 
+        Set<String> taskIDs = new HashSet<>();
+        Set<String> versionIDs = new HashSet<>();
+
+        productIDs.addAll(productidList);
+
+
+        List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectEntryInfosByProductRelationEntity(productIDs, taskIDs, versionIDs,-1,-1);
+        List<String> matchedIDsFromProductRelation = selectEntryInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
+        if(matchedIDsFromProductRelation.isEmpty()){
+            EntryInfoVO entryInfoVO = new EntryInfoVO();
+            entryInfoVO.setEntryInfoEntities(new ArrayList<>());
+            entryInfoVO.setTotalSize(0);
+            return entryInfoVO;
         }
+        Set<String> matchedIDsFromEntryInfos = entryInfoMapper.selectEntryInfoIDsByConditions(matchedIDsFromProductRelation, entryInfoEntityTemplate, clearMatchSet,startTime,endTime);
+        if(matchedIDsFromEntryInfos.isEmpty()){
+            EntryInfoVO entryInfoVO = new EntryInfoVO();
+            entryInfoVO.setEntryInfoEntities(new ArrayList<>());
+            entryInfoVO.setTotalSize(0);
+            return entryInfoVO;
+        }
+        // SHOW PROCESSLIST
+        List<String> matchedIDsFromTranslateInfos = entryInfoMapper.selectEntryInfoIDsByTranslateInfos(entryInfoEntityTemplate, matchedIDsFromEntryInfos, clearMatchSet).stream().collect(Collectors.toList());
+        if(matchedIDsFromTranslateInfos.isEmpty()){
+            EntryInfoVO entryInfoVO = new EntryInfoVO();
+            entryInfoVO.setEntryInfoEntities(new ArrayList<>());
+            entryInfoVO.setTotalSize(0);
+            return entryInfoVO;
+        }
+      
+        int offset = 0; 
+        if (commonUtils.checkPage(pageIndex, pageSize)) {
+            offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
+        }
+        if(offset < 0){
+            String errorMessage = "offset不能小于0,当前offset: " + offset;
+            throw new RuntimeException(errorMessage);
+        }  
+        int toIndex = offset + pageSize;
+        if(toIndex < offset){
+            String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
+            log.error(errorMessage);
+            throw new RuntimeException(errorMessage);
+        }
+
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset, toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex));
+        EntryInfoVO entryInfoVO = new EntryInfoVO();
+        entryInfoVO.setEntryInfoEntities(entryInfoEntities);
+        entryInfoVO.setTotalSize(matchedIDsFromTranslateInfos.size());
+        return entryInfoVO;
+        // List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList,clearMatchSet, -1,-1);
+        // boolean hasStartTime = (startTime != null && startTime != "");
+        // boolean hasEndTime = (endTime != null && endTime != "");
+        // DateFormat format = LocalTimeUtils.format;
+        
+        // try {
+        //     if(hasStartTime && hasEndTime){
+        //         return LocalTimeUtils.filterEntryInfoByTime(entryInfoEntities, format.parse(startTime), format.parse(endTime));
+        //     }else if(hasStartTime){
+        //         return LocalTimeUtils.filterEntryInfoAfterTime(entryInfoEntities, format.parse(startTime));
+        //     }else if(hasEndTime){
+        //         return LocalTimeUtils.filterEntryInfoBeforeTime(entryInfoEntities, format.parse(endTime));
+        //     }else{
+        //         return entryInfoEntities;
+        //     }
+        // } catch (Exception e) {
+        //     throw new RuntimeException(e);
+        // }
         
     }
 
@@ -4150,6 +4205,48 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
 
 
+        ProductRelationEntity productRelationEntity = new ProductRelationEntity();
+        productRelationEntity.setId(commonUtils.getUUID());
+        productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
+        productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
+        productRelationEntity.setProductId(entryInfoEntity.getProductID());
+        productRelationEntity.setEntryId(entryInfoEntity.getId());
+        productRelationMapper.insert(productRelationEntity);
+
+        int insert = entryInfoMapper.insert(entryInfoEntity);
+        if (insert != 1) {
+            return null;
+        }
+        return entryInfoEntity;
+    }
+
+    @Override
+    public EntryInfoEntity copyEntry(EntryInfoEntity entryInfoEntity,HttpServletRequest request){
+        String id = commonUtils.getUUID();
+        entryInfoEntity.setId(id);
+        String token = request.getHeader("token");
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+        Date date = new Date(System.currentTimeMillis());
+        entryInfoEntity.setUpdate(userName);
+        entryInfoEntity.setUpdateTime(date);
+        entryInfoEntity.setEntryState(0);
+        entryInfoEntity.setIsDelete(0);
+        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+            setTranslate(entryInfoEntity, ConstantInterface.CHINESE, department);
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+            setTranslate(entryInfoEntity, ConstantInterface.ENGLISH, department);
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
+            setTranslate(entryInfoEntity, ConstantInterface.SPANISH, department);
+        }
+        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
+            setTranslate(entryInfoEntity, ConstantInterface.FRENCH, department);
+        } 
+        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
+            setTranslate(entryInfoEntity, ConstantInterface.RUSSIAN, department);
+        }
         ProductRelationEntity productRelationEntity = new ProductRelationEntity();
         productRelationEntity.setId(commonUtils.getUUID());
         productRelationEntity.setTaskId(entryInfoEntity.getTaskId());

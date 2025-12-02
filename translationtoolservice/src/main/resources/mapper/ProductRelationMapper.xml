@@ -92,4 +92,33 @@
             #{id,jdbcType=VARCHAR}
         </foreach>
     </select>
+
+
+    <select id = "selectEntryInfosByProductRelationEntity" resultMap = "BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_product_relation
+        <where> 
+            <if test = "productIDs != null and !productIDs.isEmpty()">
+                and product_id in
+                <foreach item = "productID" collection = "productIDs" separator = "," open = "(" close = ")">
+                    #{productID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "taskIDs != null and !taskIDs.isEmpty()">
+                and task_id in
+                <foreach item = "taskID" collection = "taskIDs" separator = "," open = "(" close = ")">
+                    #{taskID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "versionIDs != null and !versionIDs.isEmpty()">
+                and version_id in
+                <foreach item = "versionID" collection = "versionIDs" separator = "," open = "(" close = ")">
+                    #{versionID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+        </where>    
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
 </mapper>

@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @Entity com.shr.translationtoolservice.entity.ProductRelationEntity
@@ -29,6 +30,14 @@ public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity>
      * @return
      */
     List<ProductRelationEntity> getProductionRelation(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
+
+    List<ProductRelationEntity> selectEntryInfosByProductRelationEntity(
+        @Param("productIDs") Set<String> productIDs,
+        @Param("taskIDs") Set<String> taskIDs,
+        @Param("versionIDs") Set<String> versionIDs,
+        @Param("limit") Integer limit,
+        @Param("offset") Integer offset
+    );
 
     void deleteByVersionID(List<String> idList);
 
