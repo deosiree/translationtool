@@ -2545,8 +2545,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         Set<String> versionIDs = new HashSet<>();
 
         productIDs.addAll(productidList);
-
-
+        /*
+            1. 存在t_entry_info字段的条件，存在t_translate字段的条件
+            2. 存在t_entry_info字段的条件，不存在t_translate字段的条件
+            3. 不存在t_entry_info字段的条件，存在t_translate字段的条件
+            4. 不存在t_entry_info字段的条件，不存在t_translate字段的条件
+         */
         List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectEntryInfosByProductRelationEntity(productIDs, taskIDs, versionIDs,-1,-1);
         List<String> matchedIDsFromProductRelation = selectEntryInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
         if(matchedIDsFromProductRelation.isEmpty()){
@@ -2601,23 +2605,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoVO.setTotalSize(0);
             return entryInfoVO;
         }
-      
-        int offset = 0; 
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
+        int offset;
+        int toIndex;
+        if(pageIndex <= 0 || pageSize <= 0){
+            /* 全查 */
+            offset = 0;
+            toIndex = matchedIDsFromTranslateInfos.size();
+        }else{
+            offset = 0;
+            if (commonUtils.checkPage(pageIndex, pageSize)) {
+                offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
+            }
+            if(offset < 0){
+                String errorMessage = "offset不能小于0,当前offset: " + offset;
+                throw new RuntimeException(errorMessage);
+            }  
+            toIndex = offset + pageSize;
+            if(toIndex < offset){
+                String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
+                log.error(errorMessage);
+                throw new RuntimeException(errorMessage);
+            }
+            toIndex = toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex;
         }
-        if(offset < 0){
-            String errorMessage = "offset不能小于0,当前offset: " + offset;
-            throw new RuntimeException(errorMessage);
-        }  
-        int toIndex = offset + pageSize;
-        if(toIndex < offset){
-            String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
-            log.error(errorMessage);
-            throw new RuntimeException(errorMessage);
-        }
-
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset, toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex));
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset,toIndex));
         EntryInfoVO entryInfoVO = new EntryInfoVO();
         entryInfoVO.setEntryInfoEntities(entryInfoEntities);
         entryInfoVO.setTotalSize(matchedIDsFromTranslateInfos.size());
@@ -2693,44 +2704,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
-
-    // @Override
-    // public int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity ,String classfyID ,String translateType) {
-    //     List<String> productidList = new ArrayList<>();
-    //     getProductClassfyList(classfyID,productidList);
-    //     //查询当前分类及其所有子分类,如果没有则说明当前分类是最底层分类（产品）
-    //     if (CollectionUtils.isEmpty(productidList)){
-    //         log.error("当前分类不存在或者没有子分类");
-    //         return 0;
-    //     }
-    //     List<EntryInfoEntity> res = new ArrayList<>();
-    //     List<EntryInfoEntity> entryInfoEntities =  entryInfoMapper.getEntryByClassfyTotal(entryInfoEntity,productidList);
-
-    //     if (CollectionUtils.isEmpty(entryInfoEntities)){
-    //         return 0;
-    //     }
-    //     //使用countdownlunch线程处理entryInfoEntities
-    //     if (StringUtils.isNotBlank(translateType)) {
-    //         putEntryTransInfo(entryInfoEntities,entryInfoEntity,res,translateType);
-    //     }else {
-    //         return entryInfoEntities.size();
-    //     }
-
-    //  /*   for (EntryInfoEntity entryEntity : entryInfoEntities) {
-    //         TranslateEntity translateEntity = translateMapper.selectById(entryEntity.getEnTransId());
-
-    //         if (Objects.nonNull(translateEntity)) {
-    //             entryEntity.setEnglishTranslateState(translateEntity.getTranslateState());
-    //         }else {
-    //             entryEntity.setEnglishTranslateState("0");
-    //         }
-    //         if (StringUtils.isNotBlank(entryInfoEntity.getEnglishTranslateState()) && !entryInfoEntity.getEnglishTranslateState().equals(entryEntity.getEnglishTranslateState())){
-    //             res.remove(entryEntity);
-    //         }
-    //     }*/
-
-    //     return res.size();
-    // }
 
 
     @Override
