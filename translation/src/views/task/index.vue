@@ -646,6 +646,7 @@ export default {
       if (!falg) {
         return;
       }
+      this.editableData[id].creator = this.user.userName; // 创建人应该随着当前用户走
       if (id.startsWith("new")) {
         // 新增
         let data = [this.editableData[id]];
@@ -814,6 +815,7 @@ export default {
               item.upgrade = 1;
               item.state = "0";
               let currentDate = this.getCurrentDate();
+              item.creator = this.user.userName; // 创建人应该随着当前用户走
               item.createTime = currentDate;
               item.endTime = null;
               item.entryAutiorStartTime = null;
@@ -1072,26 +1074,31 @@ export default {
       }
 
       let _this = this;
-      Modal.confirm({
-        title: "是否使用原任务已导入的词条?",
-        icon: createVNode(ExclamationCircleOutlined),
-        content: "",
-        okText: "是",
-        cancelText: "否",
-        style: { top: "30%" },
-        onOk() {
-          // console.log('OK');
-          copyIds.forEach((item) => {
-            _this.copyTaskEntry[item] = 1;
-          });
-        },
-        onCancel() {
-          // console.log('Cancel');
-          copyIds.forEach((item) => {
-            _this.copyTaskEntry[item] = 0;
-          });
-        },
+      // 使用原任务已导入的词条-后端查询复杂度nm，会缓冲池爆掉，暂时封掉该方法
+      // Modal.confirm({
+      //   title: "是否使用原任务已导入的词条?",
+      //   icon: createVNode(ExclamationCircleOutlined),
+      //   content: "",
+      //   okText: "是",
+      //   cancelText: "否",
+      //   style: { top: "30%" },
+      //   onOk() {
+      //     // console.log('OK');
+      //     copyIds.forEach((item) => {
+      //       _this.copyTaskEntry[item] = 1;
+      //     });
+      //   },
+      //   onCancel() {
+      //     // console.log('Cancel');
+      //     copyIds.forEach((item) => {
+      //       _this.copyTaskEntry[item] = 0;
+      //     });
+      //   },
+      // });
+      copyIds.forEach((item) => {
+        _this.copyTaskEntry[item] = 0;
       });
+
 
       this.copyNumber = 1;
       this.selectedRowKeys = [];
