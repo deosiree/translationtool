@@ -90,7 +90,7 @@ export default {
             // this.classify.key = uuidv4();// 前端加key，可能会重复
             // 产品表添加产品
             let data = {
-              id: this.classify.key,
+              // id: this.classify.key,
               name: this.classify.title,
               parentId: this.classify.parentId,
               codeBranch: this.classify.codeBranch,
