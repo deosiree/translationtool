@@ -2555,14 +2555,45 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             entryInfoVO.setTotalSize(0);
             return entryInfoVO;
         }
-        Set<String> matchedIDsFromEntryInfos = entryInfoMapper.selectEntryInfoIDsByConditions(matchedIDsFromProductRelation, entryInfoEntityTemplate, clearMatchSet,startTime,endTime);
+        /* 处理时差 */
+        String targetStartTimeStr =  null;  // 数据库是按照GMT-6存的，所以转换时区
+        String targetEndTimeStr = null;
+
+        SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
+        parser.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 指定解析时的时区
+        // 2. 格式化：转为西六区（America/Chicago）时间
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        formatter.setTimeZone(TimeZone.getTimeZone("America/Chicago")); // 目标时区
+
+        if(StringUtils.isNotBlank(startTime)){
+            // Date startDate = null;
+            try {
+                Date localStartDate = parser.parse(startTime); // 解析为东八区的2025-12-01 00:00:00
+                targetStartTimeStr = formatter.format(localStartDate);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                log.error("解析起始查询时间异常", e);
+            }
+            
+        }
+        if(StringUtils.isNotBlank(endTime)){
+            // Date endDate = null;
+            try {
+                Date localEndDate = parser.parse(endTime); // 解析为东八区的2025-12-01 00:00:00
+                targetEndTimeStr = formatter.format(localEndDate);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                log.error("解析末尾查询时间异常", e);
+            }
+        }        
+        Set<String> matchedIDsFromEntryInfos = entryInfoMapper.selectEntryInfoIDsByConditions(matchedIDsFromProductRelation, entryInfoEntityTemplate, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
         if(matchedIDsFromEntryInfos.isEmpty()){
             EntryInfoVO entryInfoVO = new EntryInfoVO();
             entryInfoVO.setEntryInfoEntities(new ArrayList<>());
             entryInfoVO.setTotalSize(0);
             return entryInfoVO;
         }
-        // SHOW PROCESSLIST
+        
         List<String> matchedIDsFromTranslateInfos = entryInfoMapper.selectEntryInfoIDsByTranslateInfos(entryInfoEntityTemplate, matchedIDsFromEntryInfos, clearMatchSet).stream().collect(Collectors.toList());
         if(matchedIDsFromTranslateInfos.isEmpty()){
             EntryInfoVO entryInfoVO = new EntryInfoVO();
