@@ -107,15 +107,16 @@
           </a-badge>
 
           <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
-          <a-button v-if="isProduct()" type="primary" size="small" @click="addEntry">
+          <a-button type="primary" size="small" :disabled="!isProduct()" @click="addEntry">
             <template #icon>
               <PlusOutlined />
             </template>新增
           </a-button>
+
           <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
           <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
-          <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin&&isProduct()">二级分类管理</a-button>
+          <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin" :disabled="!isProduct()">二级分类管理</a-button>
           <ImportButton @importSuccess="refreshTable" v-if="admin" :translateTypes="translateTypes" size="small" buttonTitle="更新翻译" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
