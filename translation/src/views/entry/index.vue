@@ -33,7 +33,7 @@
                       <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="deleteClassify(treeKey,type)">删除
                       </a-popconfirm>
                     </a-menu-item>
-                    <a-menu-item v-if="currentDepartment.ops.has('needIP') && type =='classify'"
+                    <a-menu-item v-if="currentDepartment.ops.has('dev') &&currentDepartment.ops.has('needIP') && type =='classify'"
                       @click="createBranch(treeKey)">分支新建</a-menu-item>
                   </a-menu>
                 </template>
@@ -71,9 +71,9 @@
   <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
     @updateClose="updateClose" style="width:700px;" />
   <CreateBranchModal ref="createBranchModal" :treeNode="currentClickProduct" :visible="createBranchVisible" :modalTitle="classifyModalTitle"
-    :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:1000px;" />
-  <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass" :treeNode="currentClickProduct"
-    @classifyClose="classifyClose" />
+    :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:70%;" />
+  <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
+    :treeNode="currentClickProduct" @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
 </template>
 <script>

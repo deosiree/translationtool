@@ -126,7 +126,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needIP", "needExamine", "needDelete"]),
+      ops: new Set(["needIP", "needExamine", "needDelete", "dev"]),
       // -needIP是否需要IP地址(凡是包含ip的都同理）
       // -----1.工作台-导入：IP的显示与获取、回写辞典
       // -----2.工作台-归档，归档；
@@ -138,6 +138,7 @@ export default {
       // -----8.词条管理-右键-拷贝所有（用于版本归档）；
       // -needExamine是否需要提交词条审核（词条管理-已选词条）
       // -needDelete是否需要删除词条（词条管理-已选词条）
+      // -dev正在开发中的功能，暂时只放开给平台部
     },
     "监控系统部": {
       label: "监控系统部",
@@ -368,7 +369,7 @@ const entry_exportFields = [
 ];
 const entry_searchConditionList = [
   { label: '词条', value: 'entry', index: 1 },
-    { label: '词条状态', value: 'state', index: 2 },
+  { label: '词条状态', value: 'state', index: 2 },
   { label: 'tag', value: 'tag', index: 3 },
   { label: '一级分类', value: 'classfy1', index: 4 },
   { label: '二级分类', value: 'classfy2', index: 5 },

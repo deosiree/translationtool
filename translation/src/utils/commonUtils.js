@@ -8,6 +8,15 @@ const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 // 每个函数都带有JSDoc注释，用于描述函数的功能、参数和返回值
 
 /**
+ * @description 随机抛出任务创建异常，用于测试异常处理
+ */
+export async function randomError(msg = '随机任务创建失败测试', prob = 0.5) {
+  if (Math.random() < prob) {
+    throw new Error(msg);
+  }
+};
+
+/**
  * 根据节点key获取状态路径
  * @description 递归遍历树形数据结构，查找指定key的节点并返回从根节点到该节点的完整路径
  * @param {Array} treeData - 树形数据数组，每个节点包含key、title和可选的children属性
