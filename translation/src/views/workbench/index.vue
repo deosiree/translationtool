@@ -349,6 +349,8 @@ export default {
       // console.log("偏好：", storedDisplay, localStorage);
       if (storedDisplay) {
         this.isTreeOr2D = JSON.parse(storedDisplay);
+        if (this.isTreeOr2D == "tree") this.pageChange(1, 100);
+        else this.pageChange(1, 20);
       }
       this.init();
 
@@ -372,6 +374,8 @@ export default {
             "display-workbenchIndex",
             JSON.stringify(newVal)
           ); // 存储用户偏好
+          if (newVal == "tree") this.pageChange(1, 100);
+          else this.pageChange(1, 20);
         }
       },
       immediate: true,
