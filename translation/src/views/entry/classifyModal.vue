@@ -1,13 +1,16 @@
 <template>
-  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle" @handleClose="handleClose" @handleOK="handleOK"
+  <Modal :modalWidth="modalWidth" :visible="visible" :modalTitle="modalTitle" @handleClose="handleClose" @handleOK="handleOK" :okLoading="loading"
     @afterClose="afterClose">
     <div class="content">
       <a-form ref="formRef" name="custom-validation" autocomplete='off' :model="classify" :label-col="labelCol">
         <a-form-item label="名称" name="title" :rules="[{ required: true, message: '请输入名称!' }]">
           <a-input v-model:value="classify.title" placeholder="请输入内容"></a-input>
         </a-form-item>
-        <a-form-item v-if="modalTitle === '添加产品' || modalTitle === '编辑产品'" label="版本" name="title" :rules="[{ message: '请输入版本(对应代码分支)!' }]">
+        <a-form-item v-if="modalTitle === '添加产品' || modalTitle === '编辑产品'" label="版本" name="codeBranch" :rules="[{ message: '请输入版本(对应代码分支)!' }]">
           <a-input v-model:value="classify.codeBranch" placeholder="请输入版本(对应代码分支)"></a-input>
+        </a-form-item>
+        <a-form-item v-if="modalTitle === '编辑分类'" label="批量修改版本" name="codeBranchs">
+          <a-input v-model:value="classify.codeBranch" placeholder="批量修改其中所有产品的版本" style="width:100%"></a-input>
         </a-form-item>
         <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="词条字符数" name="maxByte">
           <a-input-number v-model:value="classify.maxByte" placeholder="请输入词条最大字符数" style="width:100%"></a-input-number>
@@ -39,10 +42,11 @@ export default {
       type: String,
     },
     currentClass: {},
+    treeNode: {},
   },
   data() {
     return {
-      labelCol: { style: { width: "80px" } },
+      labelCol: { style: { width: "100px" } },
       modalWidth: "400px",
       classify: {
         title: "",
@@ -50,6 +54,7 @@ export default {
         foreignMaxByte: "",
         codeBranch: "",
       },
+      loading: false,
     };
   },
 
@@ -63,61 +68,78 @@ export default {
     },
   },
   methods: {
+    // 遍历treeNodes，批量修改其中所有的产品
+    async batchUpdateClassify(treeNodes) {
+      for (const child of treeNodes) {
+        const params = {
+          key: child.key,
+          codeBranch: this.classify.codeBranch,
+        };
+        try {
+          await updateEntryClassfy(params);
+        } catch (error) {
+          console.error("更新产品失败:", error, child);
+        }
+        await this.batchUpdateClassify(child.children);
+      }
+    },
     handleClose() {
       this.$emit("classifyClose", true);
     },
-    handleOK() {
-      this.$refs.formRef
-        .validate()
-        .then(() => {
+    async handleOK() {
+      try {
+        this.loading = true;
+
+        await this.$refs.formRef.validate();
+
+        if (this.modalTitle === "添加分类" || this.modalTitle === "添加模块") {
+          await addEntryClassfy(this.classify);
+          message.success("新增成功！");
+        } else if (
+          this.modalTitle === "编辑分类" ||
+          this.modalTitle === "编辑模块"
+        ) {
+          // 第一步：先完成批量修改所有产品版本
           if (
-            this.modalTitle === "添加分类" ||
-            this.modalTitle === "添加模块"
+            this.modalTitle === "编辑分类" &&
+            this.treeNode &&
+            this.treeNode.children
           ) {
-            addEntryClassfy(this.classify).then((res) => {
-              message.success("新增成功！");
-              this.$emit("classifyClose");
-            });
-          } else if (
-            this.modalTitle === "编辑分类" ||
-            this.modalTitle === "编辑模块"
-          ) {
-            updateEntryClassfy(this.classify).then((res) => {
-              message.success("编辑成功！");
-              this.$emit("classifyClose");
-            });
-          } else if (this.modalTitle === "添加产品") {
-            // this.classify.key = uuidv4();// 前端加key，可能会重复
-            // 产品表添加产品
-            let data = {
-              // id: this.classify.key,
-              name: this.classify.title,
-              parentId: this.classify.parentId,
-              codeBranch: this.classify.codeBranch,
-            };
-            addProduct(data).then((res) => {
-              // 分类表添加产品
-              addEntryClassfy(this.classify).then((res) => {
-                message.success("添加成功！");
-                this.$emit("classifyClose");
-              });
-            });
-          } else if (this.modalTitle === "编辑产品") {
-            updateEntryClassfy(this.classify).then((res) => {});
-            let data = {
-              id: this.classify.key,
-              name: this.classify.title,
-              codeBranch: this.classify.codeBranch,
-            };
-            updateProduct(data).then((res) => {
-              message.success("编辑成功！");
-              this.$emit("classifyClose");
-            });
+            console.log("批量修改产品版本", this.classify, this.treeNode);
+            await this.batchUpdateClassify(this.treeNode.children);
           }
-        })
-        .catch((err) => {
-          // console.log('error', err);
-        });
+          // 第二步：再执行当前分类的修改
+          await updateEntryClassfy(this.classify);
+          message.success("编辑成功！");
+        } else if (this.modalTitle === "添加产品") {
+          // this.classify.key = uuidv4();// 前端加key，可能会重复
+          let data = {
+            // id: this.classify.key,
+            name: this.classify.title,
+            parentId: this.classify.parentId,
+            codeBranch: this.classify.codeBranch,
+          };
+          // 产品表添加产品
+          await addProduct(data);
+          // 分类表添加产品
+          await addEntryClassfy(this.classify);
+          message.success("添加成功！");
+        } else if (this.modalTitle === "编辑产品") {
+          await updateEntryClassfy(this.classify);
+          let data = {
+            id: this.classify.key,
+            name: this.classify.title,
+            codeBranch: this.classify.codeBranch,
+          };
+          await updateProduct(data);
+          message.success("编辑成功！");
+        }
+        this.$emit("classifyClose");
+      } catch (err) {
+        console.error("验证失败或操作错误:", err);
+      } finally {
+        this.loading = false;
+      }
     },
     afterClose() {
       this.classify.title = "";

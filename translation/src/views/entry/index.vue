@@ -10,7 +10,7 @@
         <div class="productTree">
           <a-tree v-if="treeBoxOpen" show-icon v-model:expandedKeys="expandedKeys" :defaultExpandAll="true" :selectedKeys="selectedTreeKeys"
             :tree-data="treeData" @select="clickTree" @rightClick="rightClickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop">
-            <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte}">
+            <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte,codeBranch}">
               <a-dropdown :trigger="['contextmenu']">
                 <span v-if="type === 'common'" style="color: #001fb8">{{ title }}</span>
                 <span v-else-if="type === 'classify'" style="color: #7d7d7d">{{ title }}</span>
@@ -28,13 +28,13 @@
                     <a-menu-item v-if="type === 'product'" @click="productAuthority(treeKey)">权限设置</a-menu-item>
                     <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey,'module')">添加模块</a-menu-item>
                     <a-menu-item v-if="type !='department' && type !='common'"
-                      @click="editClassify(treeKey, title, type,maxByte,foreignMaxByte)">编辑</a-menu-item>
+                      @click="editClassify(treeKey, title, type,maxByte,foreignMaxByte,codeBranch)">编辑</a-menu-item>
                     <a-menu-item v-if="type !='department' && type !='common'">
                       <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="deleteClassify(treeKey,type)">删除
                       </a-popconfirm>
                     </a-menu-item>
                     <a-menu-item v-if="currentDepartment.ops.has('needIP') && type =='classify'"
-                      @click="copyVersion(treeKey)">拷贝所有(用于版本归档)</a-menu-item>
+                      @click="createBranch(treeKey)">分支新建</a-menu-item>
                   </a-menu>
                 </template>
               </a-dropdown>
@@ -70,9 +70,9 @@
     @redundantClose="redundantClose" style="width:700px;" />
   <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
     @updateClose="updateClose" style="width:700px;" />
-  <CopyVersionModal ref="copyModal" :originalNode="currentClickProduct" :visible="copyVisible" :modalTitle="classifyModalTitle"
-    :copyClassfyID="copyClassfyID" @copyClose="copyClose" style="width:700px;" />
-  <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
+  <CreateBranchModal ref="createBranchModal" :treeNode="currentClickProduct" :visible="createBranchVisible" :modalTitle="classifyModalTitle"
+    :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:1000px;" />
+  <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass" :treeNode="currentClickProduct"
     @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
 </template>
@@ -89,7 +89,7 @@ import ClassifyModal from "@/views/entry/classifyModal.vue";
 import ProductAuthorityModal from "@/views/entry/productAuthorityModal.vue";
 import UpdateModal from "@/views/entry/updateModal.vue";
 import RedundantModal from "@/views/entry/redundantModal.vue";
-import CopyVersionModal from "@/views/entry/copyVersionModal.vue";
+import CreateBranchModal from "@/views/entry/createBranchModal.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
@@ -114,7 +114,7 @@ export default {
     ProductAuthorityModal,
     UpdateModal,
     RedundantModal,
-    CopyVersionModal,
+    CreateBranchModal,
   },
   data() {
     return {
@@ -138,8 +138,8 @@ export default {
       updateClassfyID: "", // 传参给子组件，让子组件调用http请求
       redundantVisible: false,
       redundantClassfyID: "",
-      copyVisible: false,
-      copyClassfyID: "", // 传参给子组件，让子组件调用http请求
+      createBranchVisible: false,
+      createBranchClassfyID: "", // 传参给子组件，让子组件调用http请求
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -343,7 +343,8 @@ export default {
       if (!closeFlag) {
         // 如果只是close的话，不用重新获取树和刷新页面
         this.getClassTree();
-        this.$refs.productEntry.refresh(this.currentClickProduct);
+        // console.log("close",this.currentClickProduct)
+        // this.$refs.productEntry.refresh(this.currentClickProduct);
       } else console.log("没进close，不用重新获取树和刷新页面");
     },
     updateClose() {
@@ -352,8 +353,8 @@ export default {
     redundantClose() {
       this.redundantVisible = false;
     },
-    copyClose() {
-      this.copyVisible = false;
+    createBranchClose() {
+      this.createBranchVisible = false;
     },
     // 更新
     update(treeKey) {
@@ -369,11 +370,11 @@ export default {
       this.redundantVisible = true; // 显示弹窗
       setModalAriaHidden(this, document);
     },
-    // 拷贝所有（用于版本归档）
-    copyVersion(treeKey) {
-      this.classifyModalTitle = "拷贝所有（用于版本归档）";
-      this.copyClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
-      this.copyVisible = true; // 显示弹窗
+    // 分支新建
+    createBranch(treeKey) {
+      this.classifyModalTitle = "分支新建";
+      this.createBranchClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
+      this.createBranchVisible = true; // 显示弹窗
       setModalAriaHidden(this, document);
     },
     // 新增分类或产品
@@ -394,12 +395,13 @@ export default {
       }
     },
     // 编辑分类或产品
-    editClassify(treeKey, title, type, maxByte, foreignMaxByte) {
+    editClassify(treeKey, title, type, maxByte, foreignMaxByte, codeBranch) {
       this.currentClass = {
         key: treeKey,
         title: title,
         maxByte: maxByte,
         foreignMaxByte: foreignMaxByte,
+        codeBranch: codeBranch,
       };
       this.classifyVisible = true;
       setModalAriaHidden(this, document);
