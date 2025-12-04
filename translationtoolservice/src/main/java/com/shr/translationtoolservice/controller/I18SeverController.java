@@ -853,7 +853,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setTaskId(taskID);
                     entryInfoEntity.setTag(dictionaryVo.getTag());
-                    entryInfoEntity.setEntryLabel(dictionaryVo.getComments());
+                    entryInfoEntity.setComment(dictionaryVo.getComments());
                     entryInfoEntity.setImportType(ConstantInterface.DI);
                     entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setEntryState(1);
