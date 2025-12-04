@@ -73,7 +73,7 @@ export default {
       for (const child of treeNodes) {
         const params = {
           key: child.key,
-          codeBranch: this.classify.codeBranch,
+          codeBranch: this.classify.codeBranch,// 暂时只修改codeBranch
         };
         try {
           await updateEntryClassfy(params);
@@ -105,7 +105,7 @@ export default {
             this.treeNode &&
             this.treeNode.children
           ) {
-            console.log("批量修改产品版本", this.classify, this.treeNode);
+            // console.log("批量修改产品版本", this.classify, this.treeNode);
             await this.batchUpdateClassify(this.treeNode.children);
           }
           // 第二步：再执行当前分类的修改
