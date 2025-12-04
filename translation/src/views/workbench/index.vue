@@ -62,6 +62,8 @@
           <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px">
+                <a-button type="primary" size="middle" style="margin-right:8px;" @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
+                  {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
                 <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语种" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
@@ -88,6 +90,11 @@
                         {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                     ]}" :customRow="customRow">
                   <template #bodyCell="{ column, record, text }">
+                    <template v-if="column.dataIndex === 'index'&&isTreeOr2D=='tree'&&record.isBranch">
+                      <span style="color:blue;">
+                        {{ text }}
+                      </span>
+                    </template>
                     <template v-if="column.dataIndex === 'state'">
                       <TaskStateBadge type="normal" :taskState="text" />
                     </template>
@@ -97,6 +104,19 @@
                         <a-badge color="#ff0000" v-if="record.isHighlighted" style="position: absolute;top: -9px;right: -9px;z-index: 1;" />
                       </span>
                     </template>
+                  </template>
+                  <template #expandIcon="props">
+                    <span v-if="props.record.child != null && props.record.child.length > 0">
+                      <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
+                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand);}">
+                        <CaretDownOutlined /> <!-- 展开状态的向下三角形图标 -->
+                      </div>
+                      <div v-else style="display: inline-block; margin-right: 10px"
+                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand);}">
+                        <CaretRightOutlined /> <!-- 收起状态的向右三角形图标 -->
+                      </div>
+                    </span>
+                    <span v-else style="margin-right:23px"></span> <!-- 无子记录时的占位 -->
                   </template>
                 </a-table>
               </div>
@@ -139,7 +159,11 @@ import ExamineModal from "@/views/workbench/examineModal.vue";
 import TranslateModal from "@/views/workbench/translateModal.vue";
 import ExamineTranslateModal from "@/views/workbench/examineTranslateModal.vue";
 import ArchiveModal from "@/views/workbench/archiveModal.vue";
-import { SendOutlined } from "@ant-design/icons-vue";
+import {
+  SendOutlined,
+  CaretDownOutlined,
+  CaretRightOutlined,
+} from "@ant-design/icons-vue";
 import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
@@ -152,6 +176,7 @@ import {
   clearAllEntry,
   pageChange,
 } from "@/utils/commonUtils";
+import { getProduct } from "@/http/api/product";
 export default {
   components: {
     SearchBox,
@@ -166,6 +191,8 @@ export default {
     ExamineTranslateModal,
     ArchiveModal,
     SendOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined,
   },
   data() {
     return {
@@ -188,21 +215,33 @@ export default {
       tableHeight: { x: "max-content", y: 0 },
       // tableHeight: { x: "100%", y: 0 },
       loading: false,
+      currentPageBranch: 0, // 当前页的分支数量
       columns: [
         {
           title: "序号",
           dataIndex: "index",
           align: "center",
           width: 40,
-          customRender: (text) => {
-            const currentIndex =
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1);
-            return currentIndex;
+          customRender: (record) => {
+            if (this.isTreeOr2D != "tree") {
+              const currentIndex =
+                record.index +
+                1 +
+                this.pagination.pageSize * (this.pagination.current - 1);
+              return currentIndex;
+            }
           },
           fixed: "left",
           index: 0.1,
+        },
+        {
+          title: "分支",
+          dataIndex: "codeBranch",
+          align: "center",
+          width: 100,
+          fixed: "left",
+          resizable: true,
+          index: 0.5,
         },
         {
           title: "任务名称",
@@ -241,7 +280,7 @@ export default {
           index: 4,
         },
         {
-          title: "任务描述",
+          title: "描述",
           dataIndex: "description",
           align: "center",
           width: 100,
@@ -290,6 +329,7 @@ export default {
       examineTranslateVisible: false,
       archiveVisible: false,
       classifyLimit: {},
+      isTreeOr2D: null, // 树展示（层级）/平铺展示
       pagination: {
         showSizeChanger: true,
         total: 0,
@@ -304,7 +344,14 @@ export default {
   mounted() {
     let _this = this;
     this.$nextTick(() => {
+      // 读取本地存储的用户偏好
+      const storedDisplay = localStorage.getItem("display-workbenchIndex");
+      // console.log("偏好：", storedDisplay, localStorage);
+      if (storedDisplay) {
+        this.isTreeOr2D = JSON.parse(storedDisplay);
+      }
       this.init();
+
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -316,7 +363,65 @@ export default {
     //注销window.onresize事件
     window.onresize = null;
   },
+  watch: {
+    isTreeOr2D: {
+      handler(newVal, oldVal) {
+        if (newVal != null && newVal !== oldVal) {
+          this.query();
+          localStorage.setItem(
+            "display-workbenchIndex",
+            JSON.stringify(newVal)
+          ); // 存储用户偏好
+        }
+      },
+      immediate: true,
+    },
+  },
   methods: {
+    // 处理分支展开/折叠事件
+    async handleBranchExpand(record, isExpanded, event, onExpand) {
+      // 阻止事件冒泡，避免触发其他点击事件
+      if (event) {
+        event.stopPropagation();
+      }
+
+      // 设置加载状态
+      this.loading = true;
+
+      // 调用正确的onExpand函数（通过props传递进来的）
+      if (typeof onExpand === "function") {
+        onExpand(record, event);
+      }
+
+      // 在展开时计算该分支下任务的未完成状态
+      if (
+        !isExpanded &&
+        record.isBranch &&
+        record.child &&
+        record.child.length > 0
+      ) {
+        let hasPendingTask = false;
+
+        // 遍历该分支下的所有任务
+        for (const task of record.child) {
+          // 如果任务已经计算过状态，不再重复计算
+          if (task.isHighlighted === undefined) {
+            task.isHighlighted = await this.getTaskPending(task.id);
+          }
+
+          // 如果有任何一个任务有未完成词条，标记分支有未完成任务
+          if (task.isHighlighted) {
+            hasPendingTask = true;
+          }
+        }
+
+        // 更新分支节点的高亮状态
+        record.isHighlighted = hasPendingTask;
+      }
+
+      // 清除加载状态
+      this.loading = false;
+    },
     // 获取词条数量
     async getTaskPending(taskID) {
       function fetch(params, data) {
@@ -354,7 +459,6 @@ export default {
       let data = {};
       getLanguage(data).then((res) => {
         this.translateTypes = res.data.list;
-        // console.log("翻译语种:", res.data.list);
       });
     },
     // 更改翻译语种
@@ -378,6 +482,7 @@ export default {
       const msg = { update1: [], update2: [], updateSuc: [], updateErr: [] };
       // 区分需要更改的和已经更改了的
       for (const task of this.selectedRows) {
+        if (task.isBranch) continue;
         if (task.translateType != this.selectedLanguage) {
           task.translateType = this.selectedLanguage;
           update1Tasks.push(task);
@@ -463,6 +568,19 @@ export default {
       } else {
         this.selectEntry.delete(record.id);
       }
+
+      if (record.isBranch) {
+        if (selected) {
+          record.child.forEach((item) => {
+            this.selectEntry.set(item.id, item);
+          });
+        } else {
+          record.child.forEach((item) => {
+            this.selectEntry.delete(item.id);
+          });
+        }
+      }
+
       // console.log("表格复选框点击事件", record, selected);
     },
     // 表格全选/反选框点击事件（当前页）
@@ -499,14 +617,18 @@ export default {
     },
     getRowClassName(record, index) {
       let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
+      if (record.isBranch) {
+        className = "branch-row";
       } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
+        if (index % 2 === 1) {
+          className = "table-striped";
+          if (this.selectedRowIndex === record.id) {
+            className = className + " highlighted-row";
+          }
+        } else {
+          if (this.selectedRowIndex === record.id) {
+            className = "highlighted-row";
+          }
         }
       }
       return className;
@@ -514,6 +636,7 @@ export default {
     customRow(record, index) {
       return {
         onClick: (event) => {
+          if (record.isBranch) return;
           this.selectedRowIndex = record.id;
           this.showOperationArea = true;
           this.setTableHeight();
@@ -586,6 +709,7 @@ export default {
       getToDoTaskInfo(params, {}).then((res) => {
         this.toDoNum = res.data.totalNum;
         this.toDoTasks = res.data.list;
+        // console.log("需要查询是否完成的任务1", this.toDoTasks);
       });
       // 已办事项
       getFinishTaskInfo(params, {}).then((res) => {
@@ -610,12 +734,21 @@ export default {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
-      if (this.activeCard === 1) {
-        // 待办事项
-        getToDoTaskInfo(params, data)
-          .then(async (res) => {
-            this.dataSource = res.data.list;
-            this.pagination.total = res.data.totalNum;
+      const api = this.activeCard === 1 ? getToDoTaskInfo : getFinishTaskInfo;
+
+      api(params, data)
+        .then(async (res) => {
+          // console.log("需要查询是否完成的任务2", res.data.list);
+          const taskList = res.data.list;
+          this.pagination.total = res.data.totalNum;
+
+          if (this.isTreeOr2D == "tree") {
+            // 层级展示
+            this.dataSource = this.buildTreeData(taskList);
+          } else {
+            // 平铺展示
+            this.dataSource = taskList;
+            // 太卡了先不用
             for (const item of this.dataSource) {
               if (await this.getTaskPending(item.id)) {
                 item.isHighlighted = true;
@@ -623,27 +756,64 @@ export default {
                 item.isHighlighted = false;
               }
             }
-          })
-          .catch((err) => {
-            message.error("数据获取失败！", err.message);
-          })
-          .finally(() => {
-            this.loading = false;
-          });
-      } else if (this.activeCard === 2) {
-        // 已办事项
-        getFinishTaskInfo(params, data)
-          .then((res) => {
-            this.dataSource = res.data.list;
-            this.pagination.total = res.data.totalNum;
-          })
-          .catch((err) => {
-            message.error("数据获取失败！", err.message);
-          })
-          .finally(() => {
-            this.loading = false;
-          });
+          }
+        })
+        .catch((err) => {
+          message.error("数据获取失败！", err.message);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    // 构建树结构数据
+    buildTreeData(taskList) {
+      const branchMap = new Map();
+
+      // 按codeBranch分组
+      taskList.forEach((task, index) => {
+        task.index = index;
+        task.isHighlighted = undefined; // 初始化为undefined
+        const branchKey = task.codeBranch || "无分支";
+
+        if (!branchMap.has(branchKey)) {
+          branchMap.set(branchKey, []);
+        }
+        branchMap.get(branchKey).push(task);
+      });
+
+      // 构建树结构
+      const treeData = [];
+      branchMap.forEach((tasks, branchName) => {
+        // 创建分支节点
+        const branchNode = {
+          id: `branch_${branchName}`,
+          codeBranch: branchName,
+          isBranch: true,
+          isHighlighted: undefined, // 分支节点也初始化为undefined
+          productName: "",
+          versionName: "",
+          translateType: "",
+          description: `共${tasks.length}个任务`,
+          creator: "",
+          deliveryTime: "",
+          child: tasks, // 子节点为该分支下的所有任务
+        };
+        treeData.push(branchNode);
+      });
+
+      // 按分支名称排序，将'无分支'放在最后
+      treeData.sort((a, b) => {
+        if (a.codeBranch === "无分支") return 1;
+        if (b.codeBranch === "无分支") return -1;
+        return a.codeBranch.localeCompare(b.codeBranch);
+      });
+      for (let i = 0; i < treeData.length; i++) {
+        treeData[i].index = i + 1;
+        for (let j = 0; j < treeData[i].child.length; j++) {
+          treeData[i].child[j].index = j + 1;
+        }
       }
+      return treeData;
     },
     checkSearchChange() {
       // 检测查询条件是否发生变化
@@ -747,7 +917,7 @@ export default {
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
-
+      this.currentPageBranch = 0;
       this.getTaskByCondition(this.pageChangeSearch);
     },
   },
@@ -893,5 +1063,9 @@ export default {
 }
 .red-text {
   color: red;
+}
+:deep(.branch-row) {
+  color: blue !important;
+  font-weight: bold;
 }
 </style>
