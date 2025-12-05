@@ -34,7 +34,9 @@
                       </a-popconfirm>
                     </a-menu-item>
                     <a-menu-item v-if="currentDepartment.ops.has('dev') &&currentDepartment.ops.has('needIP') && type =='classify'"
-                      @click="createBranch(treeKey)">分支新建</a-menu-item>
+                      @click="createBranch(treeKey)" :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
+                      分支新建{{createbranchStatus=='执行中'?'(执行中)':''}}
+                    </a-menu-item>
                   </a-menu>
                 </template>
               </a-dropdown>
@@ -100,7 +102,7 @@ import {
 } from "@/http/api/entryManage";
 import { deleteProduct, getUserProduct } from "@/http/api/product";
 import { message } from "ant-design-vue";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden, randomMsg } from "@/utils/commonUtils";
 import commonParam from "@/utils/commonParam";
 export default {
   components: {
@@ -140,6 +142,7 @@ export default {
       redundantClassfyID: "",
       createBranchVisible: false,
       createBranchClassfyID: "", // 传参给子组件，让子组件调用http请求
+      createbranchStatus: "未执行", // 查询分支新建状态
       classifyModalTitle: "",
       currentClass: {},
       currentClickProduct: {},
@@ -483,7 +486,10 @@ export default {
       }
     },
     // 目录树右击事件
-    rightClickTree(e) {
+    async rightClickTree(e) {
+      // 阻止浏览器默认右键菜单
+      e.event.preventDefault();
+
       // console.log("触发右击事件", e);
       const treeKey = e.node.dataRef.key;
       // console.log("classfyID",treeKey);
@@ -498,6 +504,24 @@ export default {
 
       // 调用clickTree方法处理节点信息更新
       this.clickTree([treeKey], mockClickEvent);
+
+      // 若是分类，执行一个查询分支新建状态的函数
+      if (e.node.dataRef.type === "classify") {
+        await this.getCreateBranchStatus(treeKey);
+      }
+    },
+    async getCreateBranchStatus(treeKey) {
+      // 查询分支新建状态
+      // 随机返回执行中或未执行
+      this.createbranchStatus = await randomMsg(["执行中", "未执行"], [0.5]);
+      console.log("分支新建状态", this.createbranchStatus);
+      // getBranchStatus({ treeKey: treeKey })
+      //   .then((res) => {
+      //     this.createbranchStatus = res.data;
+      //   })
+      //   .catch((err) => {
+      //     console.log("查询分支新建状态失败", err);
+      //   });
     },
     // 查询产品 用户是否可编辑
     getproductIsEdit(productId) {

@@ -21,7 +21,7 @@
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="createBranchTable" bordered :pagination='pagination'
           :loading="loading" :customRow="customRow">
           <template #bodyCell="{ column, text, record }">
-            <template v-if="['name','title'].includes(column.dataIndex)">
+            <template v-if="['name','title', 'versionName'].includes(column.dataIndex)">
               <template v-if="editableData[record.id]">
                 <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0"
                   @pressEnter="save(record.id)" />
@@ -30,7 +30,7 @@
                 {{ text }}
               </template>
             </template>
-            <template v-if="['developer','entryAuditor','translator','translationAuditor','translateType'].includes(column.dataIndex)">
+            <template v-else-if="['developer','entryAuditor','translator','translationAuditor','translateType'].includes(column.dataIndex)">
               <template v-if="editableData[record.id]">
                 <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                   :options='options[record.id][column.dataIndex]' @click="clickInput" allowClear>
@@ -58,10 +58,12 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
+import VersionModal from "@/views/task/versionModal.vue";
 import { message } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import { getRoleUserByDepartment } from "@/http/api/user";
 import { createProductByLang } from "@/http/api/entryManage";
+import { createVersion } from "@/http/api/productVersion";
 import { createTaskByLang } from "@/http/api/task";
 import commonParam from "@/utils/commonParam";
 import { v4 as uuidv4 } from "uuid";
@@ -70,6 +72,7 @@ import { cloneDeep } from "lodash-es";
 export default {
   components: {
     Modal,
+    VersionModal,
   },
   emits: ["createBranchClose"],
   props: {
@@ -172,6 +175,13 @@ export default {
           width: 80,
         },
         {
+          title: "产品版本",
+          dataIndex: "versionName",
+          align: "center",
+          width: 80,
+          resizable: true,
+        },
+        {
           title: "操作",
           dataIndex: "operation",
           align: "center",
@@ -185,7 +195,7 @@ export default {
         ["enum", "枚举"],
         ["config", "配置文件"],
         ["ts", "工具-ts"],
-        ["dic", "工具-dic"],
+        ["tr", "工具-tr"],
       ],
       dataSource: [], // 展示列=任务信息+产品信息
       taskSource: [],
@@ -304,8 +314,6 @@ export default {
             // 当前行在编辑状态
             return;
           }
-          // 获取选择菜单数据
-          this.getOptions(record);
 
           this.edit(record);
         },
@@ -313,96 +321,12 @@ export default {
     },
     // 编辑
     edit(record) {
+      // 获取选择菜单数据
+      this.getOptions(record);
+
       this.editableData[record.id] = cloneDeep(
         this.dataSource.filter((item) => record.id === item.id)[0]
       );
-    },
-    checkTask(id) {
-      //1、开发员和词条审核员必须成对出现
-      //2、翻译员和翻译审核员必须成对出现
-      //3、(开发员、词条审核员) 和 (翻译员、翻译审核员) 必须出现一对
-      let newTask = this.editableData[id];
-      function isEmptyString(value) {
-        return value === null || value === "" || value === undefined;
-      }
-      if (
-        !isEmptyString(newTask.developer) &&
-        isEmptyString(newTask.entryAuditor)
-      ) {
-        message.info("请选择词条审核员！");
-        return false;
-      }
-      if (
-        !isEmptyString(newTask.entryAuditor) &&
-        isEmptyString(newTask.developer)
-      ) {
-        message.info("请选择开发员！");
-        return false;
-      }
-      if (
-        !isEmptyString(newTask.translator) &&
-        isEmptyString(newTask.translationAuditor)
-      ) {
-        message.info("请选择翻译审核员！");
-        return false;
-      }
-      if (
-        !isEmptyString(newTask.translationAuditor) &&
-        isEmptyString(newTask.translator)
-      ) {
-        message.info("请选择翻译员！");
-        return false;
-      }
-      if (
-        isEmptyString(newTask.translationAuditor) &&
-        isEmptyString(newTask.translator) &&
-        isEmptyString(newTask.developer) &&
-        isEmptyString(newTask.entryAuditor)
-      ) {
-        message.info("请选择操作人员！");
-        return false;
-      }
-      return true;
-    },
-    // 保存
-    save(id) {
-      // 保存前校验
-      let falg = this.checkTask(id);
-      if (!falg) {
-        return;
-      }
-
-      let index = this.dataSource.findIndex((item) => item.id === id);
-      if (index !== -1) {
-        this.dataSource[index] = this.editableData[id];
-        // 只同步productSource已有的属性
-        for (let key of ["title", "codeBranch"]) {
-          this.productSource[index][key] = this.editableData[id][key];
-        }
-        // 只同步taskSource已有的属性
-        for (let key of [
-          "name",
-          "codeBranch",
-          "developer",
-          "entryAuditor",
-          "translator",
-          "translationAuditor",
-          "translateType",
-        ]) {
-          this.taskSource[index][key] = this.editableData[id][key];
-        }
-      }
-      console.log(
-        "保存值",
-        this.dataSource,
-        this.taskSource,
-        this.productSource
-      );
-      this.cancel(id);
-    },
-    // 取消
-    cancel(id) {
-      delete this.editableData[id];
     },
     // 获取可编辑行下拉菜单的选项
     getOptions(record) {
@@ -470,9 +394,133 @@ export default {
       });
       // console.log(this.options);
     },
+    // 保存
+    save(id) {
+      // 保存前校验
+      let falg = this.checkTask(id);
+      if (!falg) {
+        return;
+      }
+
+      let index = this.dataSource.findIndex((item) => item.id === id);
+      if (index !== -1) {
+        this.dataSource[index] = this.editableData[id];
+        // 只同步productSource已有的属性
+        for (let key of ["title", "codeBranch"]) {
+          this.productSource[index][key] = this.editableData[id][key];
+        }
+        // 只同步taskSource已有的属性
+        for (let key of [
+          "name",
+          "codeBranch",
+          "developer",
+          "entryAuditor",
+          "translator",
+          "translationAuditor",
+          "translateType",
+          "versionName",
+        ]) {
+          this.taskSource[index][key] = this.editableData[id][key];
+        }
+      }
+      console.log(
+        "保存值",
+        this.dataSource,
+        this.taskSource,
+        this.productSource
+      );
+      this.cancel(id);
+    },
+    checkTask(id) {
+      //1、开发员和词条审核员必须成对出现
+      //2、翻译员和翻译审核员必须成对出现
+      //3、(开发员、词条审核员) 和 (翻译员、翻译审核员) 必须出现一对
+      let newTask = this.editableData[id];
+      function isEmptyString(value) {
+        return value === null || value === "" || value === undefined;
+      }
+      if (
+        !isEmptyString(newTask.developer) &&
+        isEmptyString(newTask.entryAuditor)
+      ) {
+        message.info("请选择词条审核员！");
+        return false;
+      }
+      if (
+        !isEmptyString(newTask.entryAuditor) &&
+        isEmptyString(newTask.developer)
+      ) {
+        message.info("请选择开发员！");
+        return false;
+      }
+      if (
+        !isEmptyString(newTask.translator) &&
+        isEmptyString(newTask.translationAuditor)
+      ) {
+        message.info("请选择翻译审核员！");
+        return false;
+      }
+      if (
+        !isEmptyString(newTask.translationAuditor) &&
+        isEmptyString(newTask.translator)
+      ) {
+        message.info("请选择翻译员！");
+        return false;
+      }
+      if (
+        isEmptyString(newTask.translationAuditor) &&
+        isEmptyString(newTask.translator) &&
+        isEmptyString(newTask.developer) &&
+        isEmptyString(newTask.entryAuditor)
+      ) {
+        message.info("请选择操作人员！");
+        return false;
+      }
+      return true;
+    },
+    // 取消
+    cancel(id) {
+      delete this.editableData[id];
+    },
+    // 添加版本
+    addVersion(record) {
+      console.log("添加版本", record);
+      // let productId = this.editableData[record.id].productId;
+      // if (productId === null || productId === "" || productId === undefined) {
+      //   message.info("请先选择产品！");
+      //   return;
+      // }
+      // this.addProductTask = this.editableData[record.id];
+      // this.addProductTask.allVersions = this.options[record.id].versions;
+      // this.addVersionVisible = true;
+      // setModalAriaHidden(this, document);
+
+      // let data = {
+      //   name: this.version.name,
+      //   details: this.version.details,// details备注
+      //   productId: this.record.productId,
+      // };
+      // createVersion(data).then((res) => {
+      //   message.success("添加成功！");
+      //   this.$emit("versionOk", this.record);
+      // });
+    },
     async handleOK() {
-      // 1.创建产品，返回产品id
+      if (!this.ip) {
+        message.info("请选择lang文档的ip地址！");
+        return;
+      }
+      if (!this.codeBranch) {
+        message.info("请输入分支名称！");
+        return;
+      }
+      if (this.translateTypes.length == 0) {
+        message.info("请选择至少选择一种导入语种！");
+        return;
+      }
+
       try {
+        // 1.创建产品，返回产品id
         this.productIds = ["1", "2", "3", "4", "5", "6"];
         await randomError("创建产品失败");
         console.log(
@@ -485,7 +533,28 @@ export default {
         //   this.productIds = res.data.list;
         // });
 
-        // 2.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
+        // 2.若某产品写入版本名称，则需创建版本
+        for (let i = 0; i < this.dataSource.length; i++) {
+          const verName = this.dataSource[i].versionName;
+          if (verName) {
+            const versionData = {
+              name: verName,
+              details: "",
+              productId: this.productIds[i],
+            };
+            await randomError("创建产品版本失败");
+            const verId = uuidv4();
+            this.dataSource[i].versionId = verId;
+            this.taskSource[i].versionId = verId;
+            console.log("创建产品版本成功", this.dataSource, this.taskSource);
+            // await createVersion(versionData).then((res) => {
+            //   this.dataSource[i].versionId = res.data;
+            //   this.taskSource[i].versionId = res.data;
+            // });
+          }
+        }
+
+        // 3.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
         const link_map = new Map();
         for (let i = 0; i < this.linkList.length; i++) {
           const srcDIR = this.linkList[i][0];
@@ -504,9 +573,9 @@ export default {
 
         // 3.执行完毕重新初始化并关闭窗口
         this.handleClose();
-      } catch(err) {
+      } catch (err) {
         message.error(`分支创建失败：${err}`);
-        console.log("分支创建失败",err);
+        console.log("分支创建失败", err);
       }
     },
     handleClose() {
