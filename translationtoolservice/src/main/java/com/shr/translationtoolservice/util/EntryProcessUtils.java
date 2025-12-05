@@ -3,6 +3,8 @@ package com.shr.translationtoolservice.util;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.entity.TranslateEntity;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -20,7 +22,6 @@ import java.util.*;
 @Component
 public class EntryProcessUtils {
 
-
     private final TranslateMapper translateMapper;
 
     public EntryProcessUtils(TranslateMapper translateMapper) {
@@ -35,35 +36,45 @@ public class EntryProcessUtils {
             switch (translateType){
                 case ConstantInterface.CHINESE:
                     if (StringUtils.isNotBlank(entryInfoEntity.getZhTransId())){
-                        translate = translateMapper.selectById(entryInfoEntity.getZhTransId()).getTranslate();
+                        TranslateEntity translateEntitiy = translateMapper.selectById(entryInfoEntity.getZhTransId());
+                        if(translateEntitiy != null)
+                            translate = translateEntitiy.getTranslate();
                     }else {
                         translate = entryInfoEntity.getChinese();
                     }
                     break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isNotBlank(entryInfoEntity.getEnTransId())){
-                        translate = translateMapper.selectById(entryInfoEntity.getEnTransId()).getTranslate();
+                        TranslateEntity translateEntitiy = translateMapper.selectById(entryInfoEntity.getEnTransId());
+                        if(translateEntitiy != null)
+                            translate = translateEntitiy.getTranslate();
                     }else {
                         translate = entryInfoEntity.getEnglish();
                     }
                     break;
                 case ConstantInterface.SPANISH:
                     if (StringUtils.isNotBlank(entryInfoEntity.getSpaTransId())){
-                        translate = translateMapper.selectById(entryInfoEntity.getSpaTransId()).getTranslate();
+                        TranslateEntity translateEntitiy = translateMapper.selectById(entryInfoEntity.getSpaTransId());
+                        if(translateEntitiy != null)
+                            translate = translateEntitiy.getTranslate();
                     }else {
                         translate = entryInfoEntity.getSpanish();
                     }
                     break;
                 case ConstantInterface.RUSSIAN:
                     if (StringUtils.isNotBlank(entryInfoEntity.getRuTransId())){
-                        translate = translateMapper.selectById(entryInfoEntity.getRuTransId()).getTranslate();
+                        TranslateEntity translateEntitiy = translateMapper.selectById(entryInfoEntity.getRuTransId());
+                        if(translateEntitiy != null)
+                            translate = translateEntitiy.getTranslate();
                     }else {
                         translate = entryInfoEntity.getRussian();
                     }
                     break;
                 case ConstantInterface.FRENCH:
                     if (StringUtils.isNotBlank(entryInfoEntity.getFraTransId())){
-                        translate = translateMapper.selectById(entryInfoEntity.getFraTransId()).getTranslate();
+                        TranslateEntity translateEntitiy = translateMapper.selectById(entryInfoEntity.getFraTransId());
+                        if(translateEntitiy != null)
+                            translate = translateEntitiy.getTranslate();
                     }else {
                         translate = entryInfoEntity.getFrench();
                     }
