@@ -555,16 +555,16 @@ export default {
         }
 
         // 3.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
-        const link_map = new Map();
+        let link_str = "";
         for (let i = 0; i < this.linkList.length; i++) {
           const srcDIR = this.linkList[i][0];
           const srcTask = this.taskSource[i]["name"];
           this.taskSource[i]["productId"] = this.productIds[i]; // 把任务对应的产品信息写入
-          link_map.set(srcTask, srcDIR);
+          link_str = link_str + `${srcTask}: ${srcDIR};`;
         }
         const params = {
           ip: this.ip,
-          link: link_map,
+          link: link_str,
           translateTypes: this.translateTypes,
         };
         await randomError("创建任务失败");
