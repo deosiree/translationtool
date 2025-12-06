@@ -1718,7 +1718,7 @@
                 </choose>
             </if>
             <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr   != ''">
-                and abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+                and BINARY abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
             </if>
             <if test="entryInfoEntity.entryState != null and !entryInfoEntity.entryState.isEmpty()">
                 and entry_state in 
@@ -1732,7 +1732,7 @@
             <if test="entryInfoEntity.tag != null and entryInfoEntity.tag   != ''">
                 <choose>
                     <when test = "clearMatchSet.contains('tag')">
-                        and tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
+                        and BINARY tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
                         and tag like CONCAT('%',#{entryInfoEntity.tag,jdbcType=VARCHAR},'%')
@@ -1742,7 +1742,7 @@
             <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
                 <choose>
                     <when test = "clearMatchSet.contains('词条来源')">
-                        and entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+                        and BINARY entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
                         and entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
@@ -1755,7 +1755,7 @@
             <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
                 <choose>
                     <when test = "clearMatchSet.contains('Comment')">
-                        and comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
+                        and BINARY comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
                         and comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
@@ -1776,7 +1776,7 @@
             <if test="entryInfoEntity.diFileName != null and entryInfoEntity.diFileName != '' ">
                 <choose>
                     <when test = "clearMatchSet.contains('辞典名称')">
-                        and di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
+                        and BINARY di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
                         and di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
@@ -1807,19 +1807,34 @@
     <select id = "selectEntryInfoIDsByTranslateInfos" resultType = "java.lang.String">
         SELECT info.id as info_id 
         <choose>
-            <when test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
+            <when test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
             </when>
-            <when test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
+            <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+            </when>
+            <when test="entryInfoEntity.english != null and entryInfoEntity.english != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+            </when>
+            <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
             </when>
             <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
             </when>
+            <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+            </when>
             <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
             </when>
+            <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+            </when>
             <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+            </when>
+            <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
             </when>
             <otherwise>
@@ -1838,7 +1853,7 @@
                     and trans.delete_state = 0 and trans.`type` = '中文'
                     <choose>
                         <when test = "clearMatchSet.contains('翻译结果')">
-                            and trans.translate = #{entryInfoEntity.chinese,jdbcType=VARCHAR}
+                            and BINARY trans.translate = #{entryInfoEntity.chinese,jdbcType=VARCHAR}
                         </when>
                         <otherwise>
                             and trans.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
@@ -1848,11 +1863,14 @@
                         and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
                     </if>
                 </when>
+                <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                    and trans.delete_state = 0 and trans.`type` = '中文' and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                </when>
                 <when test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
                     and trans.delete_state = 0 and trans.`type` = '英文'
                     <choose>
                         <when test = "clearMatchSet.contains('翻译结果')">
-                            and trans.translate = #{entryInfoEntity.english,jdbcType=VARCHAR}
+                            and BINARY trans.translate = #{entryInfoEntity.english,jdbcType=VARCHAR}
                         </when>
                         <otherwise>
                             and trans.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
@@ -1862,11 +1880,14 @@
                         and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
                     </if>
                 </when>
+                <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                    and trans.delete_state = 0 and trans.`type` = '英文' and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                </when>
                 <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
                     and trans.delete_state = 0 and trans.`type` = '俄文'
                     <choose>
                         <when test = "clearMatchSet.contains('翻译结果')">
-                            and trans.translate = #{entryInfoEntity.russian,jdbcType=VARCHAR}
+                            and BINARY trans.translate = #{entryInfoEntity.russian,jdbcType=VARCHAR}
                         </when>
                         <otherwise>
                             and trans.translate  like CONCAT('%',#{entryInfoEntity.russian,jdbcType=VARCHAR},'%')
@@ -1876,11 +1897,14 @@
                         and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
                     </if>
                 </when>
+                <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                    and trans.delete_state = 0 and trans.`type` = '俄文' and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                </when>
                 <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
                     and trans.delete_state = 0 and trans.`type` = '法文'
                     <choose>
                         <when test = "clearMatchSet.contains('翻译结果')">
-                            and trans.translate = #{entryInfoEntity.french,jdbcType=VARCHAR}
+                            and BINARY trans.translate = #{entryInfoEntity.french,jdbcType=VARCHAR}
                         </when>
                         <otherwise>
                             and trans.translate  like CONCAT('%',#{entryInfoEntity.french,jdbcType=VARCHAR},'%')
@@ -1890,11 +1914,14 @@
                         and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
                     </if>
                 </when>
+                <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                    and trans.delete_state = 0 and trans.`type` = '法文' and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                </when>
                 <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
                     and trans.delete_state = 0 and trans.`type` = '西文'
                     <choose>
                         <when test = "clearMatchSet.contains('翻译结果')">
-                            and trans.translate = #{entryInfoEntity.spanish,jdbcType=VARCHAR}
+                            and BINARY trans.translate = #{entryInfoEntity.spanish,jdbcType=VARCHAR}
                         </when>
                         <otherwise>
                             and trans.translate  like CONCAT('%',#{entryInfoEntity.spanish,jdbcType=VARCHAR},'%')
@@ -1903,6 +1930,9 @@
                     <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
                         and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
                     </if>
+                </when>
+                <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                    and trans.delete_state = 0 and trans.`type` = '西文' and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
                 </when>
                 <otherwise>
             
