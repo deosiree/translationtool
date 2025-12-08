@@ -112,9 +112,9 @@ export default {
           await updateEntryClassfy(this.classify);
           message.success("编辑成功！");
         } else if (this.modalTitle === "添加产品") {
-          // this.classify.key = uuidv4();// 前端加key，可能会重复
+          this.classify.key = uuidv4();// 后端需要，不传会报错(前端加key，可能会重复)
           let data = {
-            // id: this.classify.key,
+            id: this.classify.key,
             name: this.classify.title,
             parentId: this.classify.parentId,
             codeBranch: this.classify.codeBranch,
