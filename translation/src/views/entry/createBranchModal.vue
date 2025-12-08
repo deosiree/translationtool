@@ -251,6 +251,10 @@ export default {
           };
           this.ipOptions.push(ip);
         });
+        this.ipOptions.push({
+          label: "http://10.17.77.34:18099/",
+          value: "http://10.17.77.34:18099/",
+        });
       });
     },
     // 回写语种change事件
@@ -521,17 +525,21 @@ export default {
 
       try {
         // 1.创建产品，返回产品id
-        this.productIds = ["1", "2", "3", "4", "5", "6"];
-        await randomError("创建产品失败");
-        console.log(
-          "创建产品成功",
-          this.productSource,
-          "return",
-          this.productIds
-        );
-        // await createProductByLang(this.productSource).then((res) => {
-        //   this.productIds = res.data.list;
-        // });
+        // this.productIds = ["1", "2", "3", "4", "5", "6"];
+        // await randomError("创建产品失败");
+        // console.log(
+        //   "创建产品成功",
+        //   this.productSource,
+        //   "return",
+        //   this.productIds
+        // );
+        await createProductByLang(this.productSource).then((res) => {
+          for (let i = 0; i < res.data.length; i++) {
+            this.productSource[i]["id"] = res.data[i]["id"]; // 把任务对应的产品信息写入
+            this.taskSource[i]["productId"] = res.data[i]["id"]; // 把任务对应的产品信息写入
+          }
+          console.log("创建产品成功", this.productSource);
+        });
 
         // 2.若某产品写入版本名称，则需创建版本
         for (let i = 0; i < this.dataSource.length; i++) {
@@ -540,17 +548,22 @@ export default {
             const versionData = {
               name: verName,
               details: "",
-              productId: this.productIds[i],
+              productId: this.productSource[i]["id"],
             };
-            await randomError("创建产品版本失败");
-            const verId = uuidv4();
-            this.dataSource[i].versionId = verId;
-            this.taskSource[i].versionId = verId;
-            console.log("创建产品版本成功", this.dataSource, this.taskSource);
-            // await createVersion(versionData).then((res) => {
-            //   this.dataSource[i].versionId = res.data;
-            //   this.taskSource[i].versionId = res.data;
-            // });
+            // await randomError("创建产品版本失败");
+            // const verId = uuidv4();
+            // this.dataSource[i].versionId = verId;
+            // this.taskSource[i].versionId = verId;
+            await createVersion(versionData).then((res) => {
+              this.dataSource[i].versionId = res.data;
+              this.taskSource[i].versionId = res.data;
+              console.log(
+                "创建产品版本成功",
+                res,
+                this.dataSource,
+                this.taskSource
+              );
+            });
           }
         }
 
@@ -559,28 +572,29 @@ export default {
         for (let i = 0; i < this.linkList.length; i++) {
           const srcDIR = this.linkList[i][0];
           const srcTask = this.taskSource[i]["name"];
-          this.taskSource[i]["productId"] = this.productIds[i]; // 把任务对应的产品信息写入
-          link_str = link_str + `${srcTask}: ${srcDIR};`;
+          link_str = link_str + `${srcTask}: ${srcDIR},`;
         }
         const params = {
           ip: this.ip,
-          link: link_str,
+          link: `{${link_str.slice(0, -1)}}`,
           translateTypes: this.translateTypes,
         };
-        await randomError("创建任务失败");
-        console.log("创建任务成功", params, this.taskSource);
-        // await createTaskByLang(params, this.taskSource).then((res) => {});
+        console.log("translateTypes", params);
+        // await randomError("创建任务失败");
+        await createTaskByLang(params, this.taskSource).then((res) => {
+          console.log("创建任务成功", params, this.taskSource, "return", res);
+        });
 
         // 3.执行完毕重新初始化并关闭窗口
-        this.handleClose();
+        this.handleClose(true);
       } catch (err) {
         message.error(`分支创建失败：${err}`);
         console.log("分支创建失败", err);
       }
     },
-    handleClose() {
+    handleClose(scflag = false) {
       this.init();
-      this.$emit("createBranchClose");
+      this.$emit("createBranchClose", scflag);
     },
     // 分页切换
     pageChange(page, pageSize) {

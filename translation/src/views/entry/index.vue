@@ -356,7 +356,14 @@ export default {
     redundantClose() {
       this.redundantVisible = false;
     },
-    createBranchClose() {
+    createBranchClose(scflag) {
+      if (scflag) {
+        // 如果创建成功，重新获取树和刷新页面
+        this.getClassTree();
+        message.success("分支创建执行成功，正在拷贝lang中词条");
+      } else {
+        console.log("分支创建执行失败，不用重新获取树和刷新页面");
+      }
       this.createBranchVisible = false;
     },
     // 更新
@@ -513,8 +520,10 @@ export default {
     async getCreateBranchStatus(treeKey) {
       // 查询分支新建状态
       // 随机返回执行中或未执行
-      this.createbranchStatus = await randomMsg(["执行中", "未执行"], [0.5]);
-      console.log("分支新建状态", this.createbranchStatus);
+      this.createbranchStatus = "未执行";
+      // this.createbranchStatus = await randomMsg(["执行中", "未执行"], [0.5]);
+      // console.log("分支新建状态", this.createbranchStatus);
+
       // getBranchStatus({ treeKey: treeKey })
       //   .then((res) => {
       //     this.createbranchStatus = res.data;

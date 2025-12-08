@@ -268,12 +268,10 @@ export function copyEntryClassify(params) {
 }
 
 // 分支新建-批量新增产品（基于lang文档传递对应的6个新建产品的信息-前端行为）
-export function createProductByLang(params, data) {
-  return { data: { list: ["1", "2"] } };
-  // return request({
-  //   url: "/entryInfo/createProductByLang",
-  //   method: "POST",
-  //   params,
-  //   data
-  // });
+export function createProductByLang(data) {
+  return request({
+    url: "/entryInfo/createProductByLang",
+    method: "POST",
+    data
+  });
 }

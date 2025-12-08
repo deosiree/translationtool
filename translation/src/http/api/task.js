@@ -77,11 +77,11 @@ export function taskCreateNewLanguageTask(params, data) {
 }
 
 // 分支新建-基于lang文档新增任务，写入词条并修改任务状态(下发-流程中)、词条状态(有翻译-已审核、无翻译-新建)
-export function createTaskByLang(data) {
-  return { data: { list: ["1", "2", "3", "4", "5", "6"] } };
-  // return request({
-  //     url: "/taskManage/createTaskByLang",
-  //     method: "POST", 
-  //     data
-  // });
+export function createTaskByLang(params, data) {
+  return request({
+    url: "/taskManage/createTaskByLang",
+    method: "POST",
+    params,
+    data
+  });
 }
