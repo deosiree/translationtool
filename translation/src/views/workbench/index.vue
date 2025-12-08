@@ -108,11 +108,11 @@
                   <template #expandIcon="props">
                     <span v-if="props.record.child != null && props.record.child.length > 0">
                       <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
-                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand);}">
+                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand, props);}">
                         <CaretDownOutlined /> <!-- 展开状态的向下三角形图标 -->
                       </div>
                       <div v-else style="display: inline-block; margin-right: 10px"
-                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand);}">
+                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand, props);}">
                         <CaretRightOutlined /> <!-- 收起状态的向右三角形图标 -->
                       </div>
                     </span>
@@ -339,6 +339,7 @@ export default {
         onChange: this.pageChange,
       },
       pageChangeSearch: {},
+      expandSource: [], // 记录展开了的分支信息
     };
   },
   mounted() {
@@ -383,7 +384,7 @@ export default {
   },
   methods: {
     // 处理分支展开/折叠事件
-    async handleBranchExpand(record, isExpanded, event, onExpand) {
+    async handleBranchExpand(record, isExpanded, event, onExpand, props) {
       // 阻止事件冒泡，避免触发其他点击事件
       if (event) {
         event.stopPropagation();
@@ -397,34 +398,53 @@ export default {
         onExpand(record, event);
       }
 
-      // 在展开时计算该分支下任务的未完成状态
-      if (
-        !isExpanded &&
-        record.isBranch &&
-        record.child &&
-        record.child.length > 0
-      ) {
-        let hasPendingTask = false;
-
-        // 遍历该分支下的所有任务
-        for (const task of record.child) {
-          // 如果任务已经计算过状态，不再重复计算
-          if (task.isHighlighted === undefined) {
-            task.isHighlighted = await this.getTaskPending(task.id);
-          }
-
-          // 如果有任何一个任务有未完成词条，标记分支有未完成任务
-          if (task.isHighlighted) {
-            hasPendingTask = true;
-          }
-        }
-
-        // 更新分支节点的高亮状态
-        record.isHighlighted = hasPendingTask;
+      // 记录展开状态的props（用于查询时重新计算状态）
+      if (isExpanded) {
+        // 折叠时，从记录中移除
+        this.expandSource = this.expandSource.filter(
+          (item) => item.id !== record.id
+        );
+      } else {
+        // 展开时，添加到记录中
+        this.expandSource.push({
+          id: record.id,
+          record: record,
+          isExpanded: true,
+        });
       }
+
+      // 在展开时计算该分支下任务的未完成状态
+      await this.getBranchPending();
 
       // 清除加载状态
       this.loading = false;
+    },
+    // 获取展开的分支的任务执行状态
+    async getBranchPending() {
+      for (let i = 0; i < this.expandSource.length; i++) {
+        let branch = this.expandSource[i].record;
+        let datai = this.dataSource.findIndex((item) => item.id == branch.id);
+        if (branch.child && branch.child.length > 0) {
+          let hasPendingTask = false;
+
+          // 遍历该分支下的所有任务
+          for (let j = 0; j < branch.child.length; j++) {
+            const isHL = await this.getTaskPending(branch.child[j].id);
+            branch.child[j].isHighlighted = isHL;
+            this.dataSource[datai].child[j].isHighlighted = isHL;
+            // 但是切换到下一页时会有问题，封掉这个功能
+
+            // 如果有任何一个任务有未完成词条，标记分支有未完成任务
+            if (branch.child[j].isHighlighted) {
+              hasPendingTask = true;
+            }
+          }
+
+          // 更新分支节点的高亮状态
+          branch.isHighlighted = hasPendingTask;
+          this.dataSource[datai].isHighlighted = hasPendingTask;
+        }
+      }
     },
     // 获取词条数量
     async getTaskPending(taskID) {
@@ -731,7 +751,7 @@ export default {
       this.getTaskByCondition(this.search);
     },
     // 根据条件获取任务
-    getTaskByCondition(data) {
+    async getTaskByCondition(data) {
       this.loading = true;
       this.checkSearchChange();
       let params = {
@@ -749,6 +769,7 @@ export default {
           if (this.isTreeOr2D == "tree") {
             // 层级展示
             this.dataSource = this.buildTreeData(taskList);
+            await this.getBranchPending();
           } else {
             // 平铺展示
             this.dataSource = taskList;
