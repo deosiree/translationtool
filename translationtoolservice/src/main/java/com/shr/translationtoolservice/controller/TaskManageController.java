@@ -1,24 +1,24 @@
 package com.shr.translationtoolservice.controller;
 
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.common.Token;
-import com.shr.translationtoolservice.dao.EntryTempMapper;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.TaskInfoService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +39,7 @@ public class TaskManageController extends BaseController {
     @Autowired
     private CommonUtils commonUtils;
 
-    @Autowired
-    private EntryTempMapper entryTempMapper;
+
 
     //查询任务信息
     @PostMapping("/searchTaskInfo")
@@ -129,8 +128,9 @@ public class TaskManageController extends BaseController {
     public HttpResponse<ResponseListModel> getToDoTaskInfo(HttpServletRequest request ,@RequestBody TaskInfoEntity taskInfoEntity,
                                                            @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
-        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
+        /* 添加codeBranch属性，把view对象修改一下 */
+        ResponseListModel<TaskInfoEntityVO> result = new ResponseListModel<>();
+        List<TaskInfoEntityVO> taskInfoEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
             taskInfoEntities = taskInfoService.getToDoTaskInfo(offset, pageSize, request,taskInfoEntity);

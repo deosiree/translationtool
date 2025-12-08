@@ -1,10 +1,10 @@
 package com.shr.translationtoolservice.service.impl;
 
-import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
@@ -98,7 +98,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-        public String addTaskInfoList(List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
+    public String addTaskInfoList(List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
 
         String token = request.getHeader("token");
 
@@ -201,23 +201,28 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-    public List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
+    public List<TaskInfoEntityVO> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
 
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         List<TaskInfoEntity> taskInfos = taskInfoMapper.getTaskInfoByUserName(userName, offset, pageSize, taskInfoEntity);
+        List<TaskInfoEntityVO> taskInfoVOs = new ArrayList<>();
         for (TaskInfoEntity taskInfo : taskInfos){
-                 EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
-             if (Objects.nonNull(entryClassify)){
-                 EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
-                 if (Objects.nonNull(parentClassfy)){
-                     taskInfo.setClassifyName(parentClassfy.getTitle());
-                 }
-             }
-
+            TaskInfoEntityVO taskInfoEntityVO = new TaskInfoEntityVO();
+            BeanUtils.copyProperties(taskInfo,taskInfoEntityVO);
+            EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
+            if (Objects.nonNull(entryClassify)){
+                EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
+                if (Objects.nonNull(parentClassfy)){
+                    taskInfo.setClassifyName(parentClassfy.getTitle());
+                }
+        
+                taskInfoEntityVO.setCodeBranch(entryClassify.getCodeBranch());
+            }
+            taskInfoVOs.add(taskInfoEntityVO);
         }
 
-        return taskInfos;
+        return taskInfoVOs;
     }
 
     @Override

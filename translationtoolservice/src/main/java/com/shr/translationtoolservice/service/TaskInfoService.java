@@ -1,7 +1,9 @@
 package com.shr.translationtoolservice.service;
 
 import com.shr.translationtoolservice.entity.EntryTempEntity;
+import com.shr.translationtoolservice.entity.ProductEntity;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
+import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 
@@ -29,7 +31,7 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
 
     List<TaskInfoEntity> getTaskInfoByVersion(TaskInfoEntity taskInfoEntity, int offset, Integer pageSize);
 
-    List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity);
+    List<TaskInfoEntityVO> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
     int getToDoTaskInfoTotal(HttpServletRequest request,TaskInfoEntity taskInfoEntity);
 
