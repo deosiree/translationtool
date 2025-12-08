@@ -205,7 +205,7 @@ public class SykServiceImpl implements SykService {
                         continue;
                     }
                     sykEntryVO.setClassify(entryClassfyByParentId.getTitle());
-
+                    sykEntryVO.setComment(entity.getComment());
                     sykEntryVO.setAbbr(entity.getAbbr());
                     sykEntryVO.setEntrySource(entity.getEntrySource());
                     sykEntryVO.setDiName(entity.getDiFileName());
