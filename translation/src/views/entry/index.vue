@@ -101,6 +101,7 @@ import {
   getEntrysourceListByClassfy,
 } from "@/http/api/entryManage";
 import { deleteProduct, getUserProduct } from "@/http/api/product";
+import { getLangDirImportTaskState } from "@/http/api/backendInfo";
 import { message } from "ant-design-vue";
 import { setModalAriaHidden, randomMsg } from "@/utils/commonUtils";
 import commonParam from "@/utils/commonParam";
@@ -524,13 +525,28 @@ export default {
       // this.createbranchStatus = await randomMsg(["执行中", "未执行"], [0.5]);
       // console.log("分支新建状态", this.createbranchStatus);
 
-      // getBranchStatus({ treeKey: treeKey })
-      //   .then((res) => {
-      //     this.createbranchStatus = res.data;
-      //   })
-      //   .catch((err) => {
-      //     console.log("查询分支新建状态失败", err);
-      //   });
+      getLangDirImportTaskState({ id: treeKey })
+        .then((res) => {
+          // this.createbranchStatus = res.data;
+          console.log("执行状态", res);
+          switch (res.data) {
+            case "0":
+              this.createbranchStatus = "未执行";
+              break;
+            case "1":
+              this.createbranchStatus = "执行中";
+              break;
+            case "2":
+              this.createbranchStatus = "执行失败";
+              message.error("‘分支新建’执行失败");
+              break;
+            default:
+              this.createbranchStatus = "未知状态";
+          }
+        })
+        .catch((err) => {
+          console.log("查询分支新建状态失败", err);
+        });
     },
     // 查询产品 用户是否可编辑
     getproductIsEdit(productId) {
