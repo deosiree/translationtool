@@ -74,6 +74,15 @@
         <result property="dbRID" column="db_record_id" jdbcType="VARCHAR"/>
     </resultMap>
 
+
+    <resultMap id = "EntryInfoEntityDOMap" type = "com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO">
+        <association property = "entity" resultMap = "BaseResultMap" javaType = "com.shr.translationtoolservice.entity.EntryInfoEntity"></association>
+        <collection property = "translateEntities" javaType = "java.util.ArrayList" ofType = "com.shr.translationtoolservice.entity.TranslateEntity" 
+            column = "enTransID=en_trans_id,ruTransID=ru_trans_id,zhTransID=zh_trans_id,fraTransID=fra_trans_id,spaTransID=spa_trans_id" 
+            select = "com.shr.translationtoolservice.dao.TranslateMapper.selectMutilTypeTranslatesByTransID">
+        </collection>
+    </resultMap>
+
     <sql id="Base_Column_List">
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
@@ -1629,29 +1638,6 @@
     </update>
 
 
-    <select id = "selectEntryInfosByIDs" resultMap = "BaseResultMap">
-        select distinct<include refid="Base_t2_Column_List"/>,
-        t3.translate as english,t3.translate_state as englishTranslateState,t3.public_state as englishPublicState,
-        t6.translate as russian,t6.translate_state as russianTranslateState,t6.public_state as russianPublicState,
-        t4.translate as french,t4.translate_state as frenchTranslateState,t4.public_state as frenchPublicState,
-        t5.translate as spanish,t5.translate_state as spanishTranslateState,t5.public_state as spanishPublicState,
-        t7.translate as chinese,t7.translate_state as chineseTranslateState,t7.public_state as chinesePublicState
-        from ( t_product_relation t1 right join t_entry_info t2 on t1.entry_id = t2.id)
-        left JOIN t_translate t3 ON t2.en_trans_id = t3.id
-        left JOIN t_translate t6 ON t2.ru_trans_id = t6.id
-        left JOIN t_translate t4 ON t2.fra_trans_id = t4.id
-        left JOIN t_translate t5 ON t2.spa_trans_id = t5.id
-        left JOIN t_translate t7 ON t2.zh_trans_id = t7.id
-        <where>
-            t2.is_delete = 0 
-            <if test = "ids != null and !ids.isEmpty()">
-                and t2.id in 
-                <foreach item = "id" collection = "ids" separator = "," open = "(" close = ")">
-                    #{id,jdbcType = VARCHAR}
-                </foreach>
-            </if>
-        </where>
-    </select>
 
 
     <select id = "selectEntryInfoIDsByConditions" resultType = "java.lang.String">
@@ -1938,21 +1924,34 @@
             
                 </otherwise>
             </choose>
-
-       <!-- <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState   != ''">
-            and t6.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
-        </if>
-        <if test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState   != ''">
-            and t3.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
-        </if>
-        <if test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState   != ''">
-            and t4.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
-        </if>
-        <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState   != ''">
-            and t5.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
-        </if>-->
         </where>
     </select>
 
+    <select id = "selectEntryInfosByIDs" resultMap = "EntryInfoEntityDOMap">
+        select 
+        id,abbr,entry,
+        entry_length,chinese_interpretation,english_interpretation,
+        russian_interpretation,french_interpretation,spanish_interpretation,
+        entry_source,entry_state,`update`,
+        update_time,version_id,entry_label,tag,
+        part_of_speech,classify_id,remark,is_public,
+        import_type,write_type,entry_version_type,parent_id,
+        di_file_name,classfy1,classfy2,comment,source_table,db_record_id,
+        en_trans_id,zh_trans_id,ru_trans_id,fra_trans_id,spa_trans_id
+        from t_entry_info 
+        <where>
+            <choose>
+                <when test = "entryIDs != null and !entryIDs.isEmpty()">
+                    id in 
+                    <foreach item = "entryID" collection = "entryIDs" open = "(" close = ")" separator = ",">
+                        #{entryID}
+                    </foreach>
+                </when>
+                <otherwise>
+                    1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
     
 </mapper>

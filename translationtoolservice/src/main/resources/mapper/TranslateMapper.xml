@@ -359,4 +359,33 @@
             LIMIT #{limit} OFFSET #{offset}
         </if>
     </select>
+
+    <select id="selectTranslatesByIDs" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_translate 
+        <where>
+            delete_state =0 and public_state = 0
+            and id in 
+            <choose>
+                <when test = "ids != null and !ids.isEmpty()">
+                    id in 
+                    <foreach item = "id" collection = "ids" separator = "," open = "(" close = ")">
+                        #{id}
+                    </foreach>
+                </when>
+                <otherwise>
+                    1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="selectMutilTypeTranslatesByTransID" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_translate 
+        <where>
+            delete_state =0 and public_state = 0
+            and id in (#{enTransID},#{ruTransID},#{spaTransID},#{fraTransID},#{zhTransID})
+        </where>
+    </select>
 </mapper>

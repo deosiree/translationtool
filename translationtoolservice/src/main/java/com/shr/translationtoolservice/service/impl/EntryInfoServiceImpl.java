@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.entity.vo.WorkBenchVO.EntryImportFileTypeVO;
 import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
@@ -52,7 +53,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -135,6 +138,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private EntryVersionMapper entryVersionMapper;
+
+    private ThreadPoolExecutor executor = new ThreadPoolExecutor(30, 50, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
     @Override
     public List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer pageIndex, Integer pageSize) {
@@ -2628,30 +2633,75 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             toIndex = toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex;
         }
-        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset,toIndex));
+        List<EntryInfoEntityDO> entryInfoEntities = this.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset,toIndex),executor);
         EntryInfoVO entryInfoVO = new EntryInfoVO();
-        entryInfoVO.setEntryInfoEntities(entryInfoEntities);
+        entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
+            @Override
+            public EntryInfoEntity apply(EntryInfoEntityDO t) {
+                // TODO Auto-generated method stub
+                return EntryInfoEntityDO.convertFromEntity(t);
+            }
+        }).collect(Collectors.toList()));
         entryInfoVO.setTotalSize(matchedIDsFromTranslateInfos.size());
         return entryInfoVO;
-        // List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.getEntryByClassfy(entryInfoEntityTemplate, productidList,clearMatchSet, -1,-1);
-        // boolean hasStartTime = (startTime != null && startTime != "");
-        // boolean hasEndTime = (endTime != null && endTime != "");
-        // DateFormat format = LocalTimeUtils.format;
+
         
-        // try {
-        //     if(hasStartTime && hasEndTime){
-        //         return LocalTimeUtils.filterEntryInfoByTime(entryInfoEntities, format.parse(startTime), format.parse(endTime));
-        //     }else if(hasStartTime){
-        //         return LocalTimeUtils.filterEntryInfoAfterTime(entryInfoEntities, format.parse(startTime));
-        //     }else if(hasEndTime){
-        //         return LocalTimeUtils.filterEntryInfoBeforeTime(entryInfoEntities, format.parse(endTime));
-        //     }else{
-        //         return entryInfoEntities;
-        //     }
-        // } catch (Exception e) {
-        //     throw new RuntimeException(e);
-        // }
-        
+    }
+
+    protected List<EntryInfoEntityDO> selectEntryInfosByIDs(List<String> ids,ThreadPoolExecutor executor){
+        if(executor == null){
+            return entryInfoMapper.selectEntryInfosByIDs(ids);
+        }
+        int totalNum = ids.size();
+        int batchSize = 100;
+        int taskNumber = (totalNum + batchSize - 1) / batchSize;
+        log.info(String.format("任务分片共%s个", String.valueOf(taskNumber)));
+        CountDownLatch countDownLatch = new CountDownLatch((totalNum + batchSize - 1) / batchSize);
+        Set<String> errorMessages = new HashSet<>();
+        Queue<EntryInfoEntityDO> entryInfoEntities = new LinkedBlockingQueue<>(); // 并发
+        for(int idx = 0 ; idx < totalNum ; idx += batchSize){
+            int currentIdx = idx;
+            int endIdx = Math.min(currentIdx + batchSize, totalNum);
+            List<String> batchList = ids.subList(currentIdx, endIdx);
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO Auto-generated method stub
+                    try {
+                        // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
+                        List<EntryInfoEntityDO> _entities = entryInfoMapper.selectEntryInfosByIDs(batchList);
+                        entryInfoEntities.addAll(_entities);
+                    } catch (Exception e) {
+                        // 日志记录：建议用日志框架（SLF4J），这里简化打印
+                        log.error("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage(),e);
+                        errorMessages.add("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage());
+                    } finally {
+                        // 计数器减1（无论任务成功失败，都要计数）
+                        countDownLatch.countDown();
+                    }
+                }
+            });
+            
+        }
+        try {
+            // 4. 同步等待所有任务执行完成（根据业务需求选择：如果需要等待结果，就加这行；如果纯异步，可去掉）
+            // 超时时间：避免无限等待（根据业务调整，比如1小时）
+            boolean allDone = countDownLatch.await(3, TimeUnit.HOURS);
+            if (!allDone) {
+
+                throw new RuntimeException("部分分片任务执行超时，可能存在未完成的任务");
+            } else {
+                log.info(String.format("所有分片任务执行完成,成功的共%s,失败的共%s", String.valueOf(taskNumber - errorMessages.size()),String.valueOf(errorMessages.size())));
+                if(!errorMessages.isEmpty()){
+                    throw new RuntimeException("插入数据时出现异常, 异常信息为: " + errorMessages.toString());
+                }
+                return entryInfoEntities.stream().collect(Collectors.toList());
+            }
+        } catch (InterruptedException e) {
+            log.warn("等待任务执行时被中断：" + e.getMessage());
+            Thread.currentThread().interrupt(); // 恢复中断状态
+            throw new RuntimeException(e);
+        }
     }
 
     public List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize){
