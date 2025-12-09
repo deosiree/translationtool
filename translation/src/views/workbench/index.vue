@@ -422,16 +422,23 @@ export default {
     // 获取展开的分支的任务执行状态
     async getBranchPending() {
       for (let i = 0; i < this.expandSource.length; i++) {
+        let datai = this.dataSource.findIndex(
+          (item) => item.id == this.expandSource[i].id
+        );
+        this.expandSource[i].record = this.dataSource[datai];// 保证expandSource和dataSource一致
         let branch = this.expandSource[i].record;
-        let datai = this.dataSource.findIndex((item) => item.id == branch.id);
+
+        // console.log("比较：", branch, this.dataSource[datai]);
         if (branch.child && branch.child.length > 0) {
           let hasPendingTask = false;
 
           // 遍历该分支下的所有任务
           for (let j = 0; j < branch.child.length; j++) {
+            // console.log("分类信息", branch.child[j], branch.child[j].id);
             const isHL = await this.getTaskPending(branch.child[j].id);
             branch.child[j].isHighlighted = isHL;
-            this.dataSource[datai].child[j].isHighlighted = isHL;
+            // this.dataSource[datai].child[j].isHighlighted = isHL;
+
             // 但是切换到下一页时会有问题，封掉这个功能
 
             // 如果有任何一个任务有未完成词条，标记分支有未完成任务
@@ -442,7 +449,7 @@ export default {
 
           // 更新分支节点的高亮状态
           branch.isHighlighted = hasPendingTask;
-          this.dataSource[datai].isHighlighted = hasPendingTask;
+          // this.dataSource[datai].isHighlighted = hasPendingTask;
         }
       }
     },
@@ -769,7 +776,15 @@ export default {
           if (this.isTreeOr2D == "tree") {
             // 层级展示
             this.dataSource = this.buildTreeData(taskList);
-            await this.getBranchPending();
+            // 使用$nextTick确保DOM更新后再执行getBranchPending
+            this.$nextTick(async () => {
+              // console.log(
+              //   "根据条件获取任务,重新创建的treeData",
+              //   this.dataSource,
+              //   this.expandSource
+              // );
+              await this.getBranchPending();
+            });
           } else {
             // 平铺展示
             this.dataSource = taskList;
