@@ -109,7 +109,8 @@ export default {
           align: "center",
           width: 200,
         },
-        { title: "TAG", dataIndex: "tag", align: "center", width: 200 },
+        { title: "Tag", dataIndex: "tag", align: "center", width: 200 },
+        { title: "comment", dataIndex: "comment", align: "center", width: 200 },
         {
           title: "版本",
           dataIndex: "versionName",
