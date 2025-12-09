@@ -17,8 +17,9 @@
     </div>
     <template #leftBottomBtn>
       <a-button key="back" @click="handleClose">取消</a-button>
-      <a-button type="primary" @click="commitOK" :loading="loading">commit</a-button>
-      <a-button type="primary" @click="pushOK" :loading="loading">push</a-button>
+      <a-button type="primary" @click="commitOK" :loading="loading">提交</a-button>
+      <a-button type="primary" @click="pushOK" :loading="loading">推送</a-button>
+      <a-button type="primary" @click="commitPushOK" :loading="loading">提交并推送</a-button>
     </template>
   </CustomModal>
 </template>
@@ -59,7 +60,7 @@ export default {
       commitMsg: {
         ip: null,
         branch: null,
-        versionName: "",
+        versionName: "update",
         userName: this.$store.state.user.userName,
       },
       visible: false,
@@ -147,8 +148,8 @@ export default {
         branch: this.commitMsg.branch,
         versionName:
           this.commitMsg.versionName == ""
-            ? this.commitMsg.userName
-            : this.commitMsg.userName + "-" + this.commitMsg.versionName,
+            ? `User:${this.commitMsg.userName}`
+            : `${this.commitMsg.versionName}(User:${this.commitMsg.userName})`,
       };
       console.log("导出参数", params);
       this.loading = true;
@@ -189,6 +190,11 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+    // commit+push
+    async commitPushOK() {
+      await this.commitOK();
+      await this.pushOK();
     },
     // 关闭导出模态框
     handleClose() {
