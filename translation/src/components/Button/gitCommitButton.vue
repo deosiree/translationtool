@@ -107,7 +107,7 @@ export default {
     getIPs() {
       this.ipOptions = [];
       getI18nAdress().then((res) => {
-        console.log("获取i18n服务器ip", res);
+        // console.log("获取i18n服务器ip", res);
         res.data.list.forEach((item) => {
           let ip = {
             label: item.ip,
@@ -121,7 +121,7 @@ export default {
     getBranches() {
       this.branchOptions = [];
       getBranches({ ip: this.commitMsg.ip }).then((res) => {
-        console.log("获取ip分支结果", res);
+        // console.log("获取ip分支结果", res);
         res.data.list.forEach((item) => {
           let branch = {
             label: item,
@@ -143,22 +143,25 @@ export default {
         return;
       }
       await this.$refs.contentForm.validate();
+      let vsName = this.commitMsg.versionName + "(";
+      if (this.commitMsg.userName) {
+        vsName += `User:${this.commitMsg.userName};`;
+      }
+      vsName += `IP:${this.commitMsg.ip})`;
+
       let params = {
         ip: this.commitMsg.ip,
         branch: this.commitMsg.branch,
-        versionName:
-          this.commitMsg.versionName == ""
-            ? `User:${this.commitMsg.userName}`
-            : `${this.commitMsg.versionName}(User:${this.commitMsg.userName})`,
+        versionName: vsName,
       };
-      console.log("导出参数", params);
+      // console.log("导出参数", params);
       this.loading = true;
       await gitCommit(params)
         .then((res) => {
           message.success("commit提交成功");
         })
         .catch((error) => {
-          message.error(`commit提交失败: ${error.message || error}`);
+          console.log("commit提交失败", error);
         })
         .finally(() => {
           this.loading = false;
@@ -185,7 +188,7 @@ export default {
           message.success("push推送成功");
         })
         .catch((error) => {
-          message.error(`push推送失败: ${error.message || error}`);
+          console.log("push推送失败", error);
         })
         .finally(() => {
           this.loading = false;
@@ -193,8 +196,43 @@ export default {
     },
     // commit+push
     async commitPushOK() {
-      await this.commitOK();
-      await this.pushOK();
+      if (!this.commitMsg.ip) {
+        message.error("请选择IP！");
+        return;
+      }
+      if (!this.commitMsg.branch) {
+        message.error("请选择分支！");
+        return;
+      }
+      await this.$refs.contentForm.validate();
+
+      this.loading = true;
+
+      try {
+        let vsName = this.commitMsg.versionName + " (";
+        if (this.commitMsg.userName) {
+          vsName += `User: ${this.commitMsg.userName}; `;
+        }
+        vsName += `IP: ${this.commitMsg.ip})`;
+
+        let commitParams = {
+          ip: this.commitMsg.ip,
+          branch: this.commitMsg.branch,
+          versionName: vsName,
+        };
+        await gitCommit(commitParams);
+        message.success("commit提交成功");
+
+        let pushParams = {
+          ip: this.commitMsg.ip,
+        };
+        await gitPush(pushParams);
+        message.success("push推送成功");
+      } catch (error) {
+        console.log("操作失败", error);
+      } finally {
+        this.loading = false;
+      }
     },
     // 关闭导出模态框
     handleClose() {
