@@ -1086,6 +1086,19 @@ public class EntryInfoController extends BaseController {
         }
     }
 
+    @PostMapping("/getEntrySourcesByClassify")
+    @ApiOperation("获取一个词条分类下所有的词条来源")
+    @CrossOrigin
+    public HttpResponse<Set<String>> getEntrySourcesByClassify(@RequestParam("classifyID") String classifyID){
+        try {
+            Set<String> entrySourcesByClassify = entryInfoService.getEntrySourcesByClassify(classifyID);     
+            return ok(entrySourcesByClassify);       
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
+    }
+
 
     @Autowired
     TranslateMapper translateMapper;

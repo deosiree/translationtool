@@ -114,6 +114,11 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     Set<EntryInfoReplicateCheckVO> newGetEntryInfoExists(@Param("checkConditions") Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs);
 
+    Set<String> selectEntrySourcesByIDs(@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs);
+
+    Set<String> selectGroupByColumnsByIDs(@Param("column") String columnName,@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs);
+
+
 }
 
 

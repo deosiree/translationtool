@@ -4484,6 +4484,20 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         
     }
 
+    @Override
+    public Set<String> getEntrySourcesByClassify(String classifyID) {
+        // TODO Auto-generated method stub
+        if(classifyID == null){
+            return new HashSet<>();
+        }
+        List<String> productIDs = new ArrayList<>();
+        getProductClassfyList(classifyID, productIDs);
+        if(productIDs.isEmpty()){
+            return new HashSet<>();
+        }
+        return entryInfoMapper.selectEntrySourcesByIDs(productIDs.stream().collect(Collectors.toSet()),null);
+    }
+
 
 
 

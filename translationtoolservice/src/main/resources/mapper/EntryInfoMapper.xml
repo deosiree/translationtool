@@ -1279,7 +1279,7 @@
 
     </select>
 
-   <select id="getExistEntryListForEquipment" resultMap="BaseResultMap">
+    <select id="getExistEntryListForEquipment" resultMap="BaseResultMap">
 
         select
         t1.*
@@ -1295,7 +1295,7 @@
 
     </select>
 
-   <select id="getExistEntryListForXML" resultMap="BaseResultMap">
+    <select id="getExistEntryListForXML" resultMap="BaseResultMap">
 
         select
         t1.*
@@ -2132,5 +2132,33 @@
             </choose>
         </where>
     </select>
+
+    <sql id = "selectGroupByColumnsByIDs">
     
+        select ${column} from t_entry_info
+        <if test = "productIDs != null and !productIDs.isEmpty()">
+            inner join t_product_relation on t_entry_info.id = t_product_relation.entry_id
+        </if>
+        <where>
+            t_entry_info.is_delete = 0
+            <if test = "entryIDs != null and !entryIDs.isEmpty()">
+                and t_entry_info.id in 
+                <foreach item = "entryID" collection = "entryIDs" open = "(" close = ")" separator = ",">
+                    #{entryID}
+                </foreach>
+            </if>
+            <if test = "productIDs != null and !productIDs.isEmpty()">
+                and t_product_relation.product_id in
+                <foreach item = "productID" collection = "productIDs" open = "(" close = ")" separator = ",">
+                    #{productID}
+                </foreach>
+            </if>
+        </where>
+        group by ${column}
+    </sql>
+    
+    <select id = "selectEntrySourcesByIDs" resultType = "java.lang.String">
+        <include refid = "selectGroupByColumnsByIDs"><property name = "column" value = "entry_source"></property></include>
+    </select>
+
 </mapper>

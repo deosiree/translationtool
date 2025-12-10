@@ -151,4 +151,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     /* 禁用词条 */
     boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request);
 
+    Set<String> getEntrySourcesByClassify(String classifID);
+
 }
