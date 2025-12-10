@@ -31,7 +31,8 @@ public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity>
      */
     List<ProductRelationEntity> getProductionRelation(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);
 
-    List<ProductRelationEntity> selectEntryInfosByProductRelationEntity(
+    List<ProductRelationEntity> selectInfosByProductRelationEntity(
+        @Param("entryIDs") Set<String> entryIDs,
         @Param("productIDs") Set<String> productIDs,
         @Param("taskIDs") Set<String> taskIDs,
         @Param("versionIDs") Set<String> versionIDs,

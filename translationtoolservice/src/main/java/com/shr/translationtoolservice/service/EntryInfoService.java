@@ -72,6 +72,8 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
 
+    List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,String userName,String department);
+
 
     String addEntryAudit(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
 

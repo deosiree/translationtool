@@ -20,6 +20,16 @@
         <result property="lastUseTime" column="last_use_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
+    <resultMap id = "translateEntitiyReplicateCheckVOMap" type = "com.shr.translationtoolservice.entity.vo.TranslateEntitiyReplicateCheckVO">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="entry" column="entry" jdbcType="VARCHAR"/>
+        <result property="translate" column="translate" jdbcType="VARCHAR"/>
+        <result property="translateType" column="type" jdbcType="VARCHAR"/>
+        <result property="visualRange" column="visual_range" jdbcType="VARCHAR"/>
+        <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
+        <result property="latestUseTime" column="last_use_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
     <sql id="Base_Column_List">
         id,entry,`translate`,
         `unique`,remark,`type`,
@@ -358,6 +368,134 @@
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
+    </select>
+
+    <select id="newGetRepTrans" resultMap="translateEntitiyReplicateCheckVOMap">
+        select  
+            id as id,
+            translate as translate,
+            entry as entry,
+            `type` as `type`,
+            visual_range as visual_range,
+            translate_state as translate_state,
+            last_use_time as last_use_time
+        from t_translate
+        where delete_state = 0
+        <!-- 关键：用IN条件匹配多字段组合，替代UNION ALL -->
+        and (
+            <foreach item="conditionVO" collection="conditionVOs" separator="OR">
+                (
+                    <!-- entry匹配：非空则等于，空则为NULL -->
+                    <choose>
+                        <when test="conditionVO.entry != null">
+                            BINARY entry = #{conditionVO.entry,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            entry IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- type匹配 -->
+                    <choose>
+                        <when test="conditionVO.translateType != null">
+                            BINARY `type` = #{conditionVO.translateType,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            `type` IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- visual_range匹配 -->
+                    <choose>
+                        <when test="conditionVO.visualRange != null">
+                            BINARY visual_range = #{conditionVO.visualRange,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            visual_range IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- translate匹配 -->
+                    <choose>
+                        <when test="conditionVO.translate != null">
+                            BINARY translate = #{conditionVO.translate,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            translate IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- translate_state匹配 -->
+                    <choose>
+                        <when test="conditionVO.translateState != null">
+                            BINARY translate_state = #{conditionVO.translateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            translate_state IS NULL
+                        </otherwise>
+                    </choose>
+                )
+            </foreach>
+        )
+        <!-- 空集合时返回空结果，避免SQL语法错误 -->
+        <if test="conditionVOs == null or conditionVOs.isEmpty()">
+            AND 1 = 0
+        </if>
+    </select>
+
+    <select id = "selectTransIDByConditions" resultType = "java.lang.String">
+        select id from t_translate
+
+        <where>
+            <choose>
+                <when test = "entry != null">
+                    and BINARY entry = #{entry}
+                </when>
+                <otherwise>
+                    and entry is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "translate != null">
+                    and BINARY translate = #{translate}
+                </when>
+                <otherwise>
+                    and translate is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "translateType != null">
+                    and BINARY `type` = #{translateType}
+                </when>
+                <otherwise>
+                    and `type` is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "visualRange != null">
+                    and BINARY visual_range = #{visualRange}
+                </when>
+                <otherwise>
+                    and visual_range is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "translateState != null">
+                    and BINARY translate_state = #{translateState}
+                </when>
+                <otherwise>
+                    and translate_state is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "latestUseTime != null">
+                    and BINARY last_use_time = #{latestUseTime}
+                </when>
+                <otherwise>
+                    and last_use_time is NULL
+                </otherwise>
+            </choose>
+        </where>
     </select>
 
     <select id="selectTranslatesByIDs" resultMap="BaseResultMap">

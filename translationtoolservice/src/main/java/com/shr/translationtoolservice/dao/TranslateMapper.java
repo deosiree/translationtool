@@ -1,6 +1,7 @@
 package com.shr.translationtoolservice.dao;
 
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.vo.TranslateEntitiyReplicateCheckVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -47,6 +48,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
     int insertTranslate(@Param("translateEntity") TranslateEntity translateEntity);
     List<TranslateEntity> getTransForCheckSykEntry(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
     List<TranslateEntity> getTransForSykNotUsed(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
+
+    List<TranslateEntitiyReplicateCheckVO> newGetRepTrans(@Param("conditionVOs") Set<TranslateEntitiyReplicateCheckVO> translateEntitiyReplicateCheckVOs);
 
 }
 

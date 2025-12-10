@@ -4,6 +4,7 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO;
 import com.shr.translationtoolservice.entity.vo.EntryInfoEntityQO;
+import com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO;
 import com.shr.translationtoolservice.entity.vo.TsVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
@@ -110,6 +111,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     Set<String> selectEntryInfoIDsByTranslateInfos(@Param("entryInfoEntity")EntryInfoEntityQO entryInfoEntity,@Param("ids") Set<String> entryInfoIDs,@Param("clearMatchSet") Set<String> clearMatchSet);
 
+
+    Set<EntryInfoReplicateCheckVO> newGetEntryInfoExists(@Param("checkConditions") Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs);
 
 }
 

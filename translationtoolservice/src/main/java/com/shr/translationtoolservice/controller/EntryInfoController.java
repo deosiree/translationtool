@@ -1046,7 +1046,46 @@ public class EntryInfoController extends BaseController {
 
     }
 
-    // public HttpResponse
+    @PostMapping("/createProductByLang")
+    @ApiOperation("批量创建产品")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<List<ProductEntity>> createProductForImportLangDir(@RequestBody(required = true) List<EntryClassify> entryClassifies,HttpServletRequest request){
+
+        /** 实际用的 */
+        StringBuilder builder = new StringBuilder();
+        List<ProductEntity> productEntities = new ArrayList<>();
+        for(EntryClassify entryClassify : entryClassifies){
+            /* 预处理 */
+            String id = commonUtils.getUUID();
+            entryClassify.setKey(id);
+            entryClassify.setType("product");
+            entryClassify.setIsDelete(0);
+            /* 创建产品词条分类 */
+            String addClassifyMessage = entryClassifyService.addEntryClassfy(entryClassify, request);
+            if(!addClassifyMessage.equals(ConstantInterface.OK_STR)){
+                builder.append(String.format("创建产品词条分类时出现异常, 异常的产品名为: %s",entryClassify.getTitle()));
+            }
+            /* 创建产品信息 */
+            ProductEntity productEntity = new ProductEntity();
+            productEntity.setId(id);
+            productEntity.setIsDelete(0);
+            productEntity.setName(entryClassify.getTitle());
+            productEntity.setParentId(entryClassify.getParentId());
+            String addProductMessage = productService.addProduct(productEntity, request);
+            if(!addProductMessage.equals(ConstantInterface.OK_STR)){
+                builder.append(String.format("创建产品时出现异常, 异常的产品名为: %s", productEntity.getName()));
+            }
+            productEntities.add(productEntity);
+        }
+        String errorMessage = builder.toString();
+        if(StringUtils.isNotBlank(errorMessage)){
+            return error(null, errorMessage);
+        }else{
+            return ok(productEntities);
+        }
+    }
+
 
     @Autowired
     TranslateMapper translateMapper;

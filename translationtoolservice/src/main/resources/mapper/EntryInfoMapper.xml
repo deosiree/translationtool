@@ -74,6 +74,22 @@
         <result property="dbRID" column="db_record_id" jdbcType="VARCHAR"/>
     </resultMap>
 
+    <resultMap id="replicateCheckVOResultMap" type="com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO">
+        <result property = "entry" column = "entry" jdbcType = "VARCHAR"></result>
+        <result property = "productID" column = "product_id" jdbcType = "VARCHAR"></result>
+        <result property = "tag" column = "tag" jdbcType = "VARCHAR"></result>
+        <result property = "comment" column = "comment" jdbcType = "VARCHAR"></result>
+        <result property = "abbr" column = "abbr" jdbcType = "VARCHAR"></result>
+        <result property = "importType" column = "import_type" jdbcType = "VARCHAR"></result>
+        <result property = "entrySource" column = "entry_source" jdbcType = "VARCHAR"></result>
+        <result property = "diFileName" column = "di_file_name" jdbcType = "VARCHAR"></result>
+        <result property = "maxEntryVersion" column = "max_entry_version" jdbcType = "VARCHAR"></result>
+        <collection property = "entryInfoIDsForMaxEntryVersion" ofType = "java.lang.String" 
+            column = "entry=entry, productID=product_id, tag=tag, comment=comment, 
+            abbr=abbr, importType=import_type, entrySource=entry_source, diFileName=di_file_name, entryVersion=max_entry_version" 
+            select = "com.shr.translationtoolservice.dao.EntryInfoMapper.selectEntryVersionTypeByEntryVersion">
+        </collection>
+    </resultMap>
 
     <resultMap id = "EntryInfoEntityDOMap" type = "com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO">
         <association property = "entity" resultMap = "BaseResultMap" javaType = "com.shr.translationtoolservice.entity.EntryInfoEntity"></association>
@@ -1695,7 +1711,7 @@
 
             <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
                 <choose>
-                    <when test = "clearMatchSet.contains('词条')">
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('词条')">
                         and BINARY entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
@@ -1717,7 +1733,7 @@
             </if>
             <if test="entryInfoEntity.tag != null and entryInfoEntity.tag   != ''">
                 <choose>
-                    <when test = "clearMatchSet.contains('tag')">
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('tag')">
                         and BINARY tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
@@ -1727,7 +1743,7 @@
             </if>
             <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
                 <choose>
-                    <when test = "clearMatchSet.contains('词条来源')">
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('词条来源')">
                         and BINARY entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
@@ -1740,7 +1756,7 @@
             </if>
             <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
                 <choose>
-                    <when test = "clearMatchSet.contains('Comment')">
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('Comment')">
                         and BINARY comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
@@ -1761,7 +1777,7 @@
             </if>
             <if test="entryInfoEntity.diFileName != null and entryInfoEntity.diFileName != '' ">
                 <choose>
-                    <when test = "clearMatchSet.contains('辞典名称')">
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('辞典名称')">
                         and BINARY di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
                     </when>
                     <otherwise>
@@ -1924,9 +1940,172 @@
             
                 </otherwise>
             </choose>
+
         </where>
     </select>
 
+
+    <select id = "newGetEntryInfoExists" resultMap= "replicateCheckVOResultMap">
+       select
+        t1.entry as entry,
+        t2.product_id as product_id,
+        t1.tag as tag,
+        t1.comment as comment,
+        t1.abbr as abbr,
+        t1.import_type as import_type,
+        t1.entry_source as entry_source,
+        t1.di_file_name as di_file_name,
+        max(t1.entry_version) as max_entry_version
+        from t_entry_info t1 left join t_product_relation t2 on t1.id = t2.entry_id
+        <where>
+        t1.is_delete =0
+        <choose>
+            <when test = "checkConditions != null and !checkConditions.isEmpty()">
+                and
+                <foreach item = "vo" collection = "checkConditions" separator = "or">
+                    (
+                        BINARY t1.entry =  #{vo.entry,jdbcType=VARCHAR} and t2.product_id =  #{vo.productID,jdbcType=VARCHAR}
+                        
+                        <choose>
+                            <when test="vo.abbr != null ">
+                                and BINARY t1.abbr = #{vo.abbr,jdbcType=VARCHAR}
+                            </when>          
+                            <otherwise>
+                                and t1.abbr is NULL
+                            </otherwise>              
+                        </choose>
+                        <if test="vo.importType == 'CONFIG' or vo.importType == 'DI' or vo.importType == 'TS' or vo.importType == 'ENUM'">
+                            <choose>
+                                <when test="vo.entrySource != null ">
+                                    and BINARY t1.entry_source = #{vo.entrySource,jdbcType=VARCHAR}
+                                </when>          
+                                <otherwise>
+                                    and t1.entry_source is NULL
+                                </otherwise>              
+                            </choose>
+                        </if>
+                        <choose>
+                            <when test="vo.tag != null ">
+                                and BINARY t1.tag = #{vo.tag,jdbcType=VARCHAR}
+                            </when>
+                            <otherwise>
+                                and t1.tag is NULL
+                            </otherwise>    
+                        </choose>
+                        <choose>
+                            <when test="vo.comment != null">
+                                and BINARY t1.comment = #{vo.comment,jdbcType=VARCHAR}
+                            </when>
+                            <otherwise>
+                                and t1.comment is NULL
+                            </otherwise>
+                        </choose>
+
+
+                        <if test="vo.importType == 'DB' or vo.importType == 'CONFIG' or vo.importType == 'DI' or vo.importType == 'ENUM'">
+                            <choose>
+                                <when test="vo.diFileName != null">
+                                    and BINARY t1.di_file_name = #{vo.diFileName,jdbcType=VARCHAR}
+                                </when>
+                                <otherwise>
+                                    and t1.di_file_name is NULL
+                                </otherwise>
+                            </choose>
+
+                        </if>
+                    )
+                </foreach>            
+            </when>
+            <otherwise>
+                and 1 = 0
+            </otherwise>        
+        </choose>
+
+
+        </where>
+        group by t1.entry,t2.product_id,t1.tag,t1.comment,t1.abbr,t1.import_type,t1.entry_source,t1.di_file_name
+        
+
+    </select>
+
+    <select id = "selectEntryVersionTypeByEntryVersion" resultType = "java.lang.String">
+
+        select entry_version_type from t_entry_info inner join t_product_relation on t_entry_info.id = t_product_relation.entry_id
+        <where>
+            <choose>
+                <when test = "entry != null">
+                    and t_entry_info.entry = #{entry}
+                </when>
+                <otherwise>
+                    and t_entry_info.entry is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "productID != null">
+                    and t_product_relation.product_id = #{productID}
+                </when>
+                <otherwise>
+                    and t_product_relation.product_id is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "tag != null">
+                    and t_entry_info.tag = #{tag}
+                </when>
+                <otherwise>
+                    and t_entry_info.tag is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "comment != null">
+                    and t_entry_info.comment = #{comment}
+                </when>
+                <otherwise>
+                    and t_entry_info.comment is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "abbr != null">
+                    and t_entry_info.abbr = #{abbr}
+                </when>
+                <otherwise>
+                    and t_entry_info.abbr is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "importType != null">
+                    and t_entry_info.import_type = #{importType}
+                </when>
+                <otherwise>
+                    and t_entry_info.import_type is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "entrySource != null">
+                    and t_entry_info.entry_source = #{entrySource}
+                </when>
+                <otherwise>
+                    and t_entry_info.entry_source is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "diFileName != null">
+                    and t_entry_info.di_file_name = #{diFileName}
+                </when>
+                <otherwise>
+                    and t_entry_info.di_file_name is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "entryVersion != null">
+                    and t_entry_info.entry_version = #{entryVersion}
+                </when>
+                <otherwise>
+                    and t_entry_info.entry_version is NULL
+                </otherwise>
+            </choose>
+        </where>
+    </select>
     <select id = "selectEntryInfosByIDs" resultMap = "EntryInfoEntityDOMap">
         select 
         id,abbr,entry,

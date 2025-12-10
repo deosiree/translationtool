@@ -94,24 +94,39 @@
     </select>
 
 
-    <select id = "selectEntryInfosByProductRelationEntity" resultMap = "BaseResultMap">
-        select <include refid="Base_Column_List"/>
-        from t_product_relation
+    <select id = "selectInfosByProductRelationEntity" resultMap = "BaseResultMap">
+        select 
+            t_product_relation.id as id,
+            t_product_relation.entry_id as entry_id,
+            t_product_relation.version_id as version_id,
+            t_product_relation.product_id as product_id,
+            t_product_relation.task_id as task_id
+        from t_product_relation 
+        <if test = "entryIDs != null and !entryIDs.isEmpty()">
+            inner join t_entry_info on t_entry_info.id = t_product_relation.entry_id
+        </if>
         <where> 
+            <if test = "entryIDs != null and !entryIDs.isEmpty()">
+                t_entry_info.is_delete = 0
+                and t_product_relation.entry_id in
+                <foreach item = "entryID" collection = "entryIDs" separator = "," open = "(" close = ")">
+                    #{entryID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
             <if test = "productIDs != null and !productIDs.isEmpty()">
-                and product_id in
+                and t_product_relation.product_id in
                 <foreach item = "productID" collection = "productIDs" separator = "," open = "(" close = ")">
                     #{productID,jdbcType = VARCHAR}
                 </foreach>
             </if>
             <if test = "taskIDs != null and !taskIDs.isEmpty()">
-                and task_id in
+                and t_product_relation.task_id in
                 <foreach item = "taskID" collection = "taskIDs" separator = "," open = "(" close = ")">
                     #{taskID,jdbcType = VARCHAR}
                 </foreach>
             </if>
             <if test = "versionIDs != null and !versionIDs.isEmpty()">
-                and version_id in
+                and t_product_relation.version_id in
                 <foreach item = "versionID" collection = "versionIDs" separator = "," open = "(" close = ")">
                     #{versionID,jdbcType = VARCHAR}
                 </foreach>

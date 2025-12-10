@@ -1332,13 +1332,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Override
     @Transactional
-    //用is_exist 区分 已存在和新词条，已存在升级词条版本在插入
-    public List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request) {
-        long start = System.currentTimeMillis();
-        int insert = 0;
+    public List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID,HttpServletRequest request) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
+        return this.insertEntry(entryInfoEntities, taskID, userName, department);
+    }
+
+    @Override
+    @Transactional
+    //用is_exist 区分 已存在和新词条，已存在升级词条版本在插入
+    public List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities, String taskID, String userName,String department) {
+        long start = System.currentTimeMillis();
+        int insert = 0;
 
         TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
 
@@ -2556,7 +2562,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             3. 不存在t_entry_info字段的条件，存在t_translate字段的条件
             4. 不存在t_entry_info字段的条件，不存在t_translate字段的条件
          */
-        List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectEntryInfosByProductRelationEntity(productIDs, taskIDs, versionIDs,-1,-1);
+        List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectInfosByProductRelationEntity(null,productIDs, taskIDs, versionIDs,-1,-1);
         List<String> matchedIDsFromProductRelation = selectEntryInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
         if(matchedIDsFromProductRelation.isEmpty()){
             EntryInfoVO entryInfoVO = new EntryInfoVO();
