@@ -26,6 +26,9 @@
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource" style="margin-top: 8px">
               <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
+              <!-- <a-select v-model:value="search.entrySource" mode="tags" placeholder="请输入词条来源" :options="[{label:'1',value:'1'},{label:'2',value:'2'}]">
+              </a-select> -->
+              <!-- :options="options" @change="handleChange" -->
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language" style="margin-top: 8px">
               <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
@@ -499,7 +502,7 @@ export default {
         entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
         entryState: null, // 查询条件中的词条状态
         tag: "",
-        entrySource: "",
+        entrySource: null,
         language: null,
         translateState: null,
         translate: "",
@@ -816,9 +819,12 @@ export default {
     },
     "search.startTime_": function (newValue) {
       if (newValue) {
-        this.search.startTime = newValue.$y+"-"+
-        (newValue.$M + 1).toString().padStart(2, "0")+"-"+
-        newValue.$D.toString().padStart(2, "0"); // 格式化日期为 YYYY-MM-DD 格式
+        this.search.startTime =
+          newValue.$y +
+          "-" +
+          (newValue.$M + 1).toString().padStart(2, "0") +
+          "-" +
+          newValue.$D.toString().padStart(2, "0"); // 格式化日期为 YYYY-MM-DD 格式
         if (this.search.endTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("开始时间不能大于结束时间！");
@@ -832,9 +838,12 @@ export default {
     },
     "search.endTime_": function (newValue) {
       if (newValue) {
-        this.search.endTime = newValue.$y+"-"+
-        (newValue.$M + 1).toString().padStart(2, "0")+"-"+
-        (newValue.$D + 1).toString().padStart(2, "0"); // 结束日期+1，以达到当天的24:00的效果）
+        this.search.endTime =
+          newValue.$y +
+          "-" +
+          (newValue.$M + 1).toString().padStart(2, "0") +
+          "-" +
+          (newValue.$D + 1).toString().padStart(2, "0"); // 结束日期+1，以达到当天的24:00的效果）
         if (this.search.startTime_) {
           if (this.search.startTime_ > this.search.endTime_) {
             message.error("结束时间不能小于开始时间！");
@@ -1391,7 +1400,7 @@ export default {
         entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
         entryState: this.currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
         tag: "",
-        entrySource: "",
+        entrySource: null,
         language: null,
         translateState: null,
         translate: "",

@@ -65,6 +65,7 @@ import { getRoleUserByDepartment } from "@/http/api/user";
 import { createProductByLang } from "@/http/api/entryManage";
 import { createVersion } from "@/http/api/productVersion";
 import { createTaskByLang } from "@/http/api/task";
+import { deleteEntryClassfy } from "@/http/api/entryManage";
 import commonParam from "@/utils/commonParam";
 import { v4 as uuidv4 } from "uuid";
 import { setModalAriaHidden, randomError } from "@/utils/commonUtils";
@@ -202,7 +203,6 @@ export default {
       productSource: [],
       editableData: {},
       loading: false,
-      productIds: [], // 创建产品后返回的产品id列表
       pagination: {
         showSizeChanger: true,
         total: 0,
@@ -238,7 +238,6 @@ export default {
       this.dataSource = [];
       this.taskSource = [];
       this.productSource = [];
-      this.productIds = [];
     },
     // 获取i18服务器ip
     getIPs() {
@@ -250,10 +249,6 @@ export default {
             value: item.ip,
           };
           this.ipOptions.push(ip);
-        });
-        this.ipOptions.push({
-          label: "http://10.17.77.34:18099/",
-          value: "http://10.17.77.34:18099/",
         });
       });
     },
@@ -346,7 +341,6 @@ export default {
       };
       getRoleUserByDepartment(params).then((res) => {
         let data = res.data;
-        // console.log("部门下的人员信息data", data);
         if (data.DEVELOPER) {
           let developer = [];
           data.DEVELOPER.forEach((item) => {
@@ -396,7 +390,6 @@ export default {
           this.options[record.id].translatorAuditor = translateAuditor;
         }
       });
-      // console.log(this.options);
     },
     // 保存
     save(id) {
@@ -427,12 +420,6 @@ export default {
           this.taskSource[index][key] = this.editableData[id][key];
         }
       }
-      console.log(
-        "保存值",
-        this.dataSource,
-        this.taskSource,
-        this.productSource
-      );
       this.cancel(id);
     },
     checkTask(id) {
@@ -486,29 +473,6 @@ export default {
     cancel(id) {
       delete this.editableData[id];
     },
-    // 添加版本
-    addVersion(record) {
-      console.log("添加版本", record);
-      // let productId = this.editableData[record.id].productId;
-      // if (productId === null || productId === "" || productId === undefined) {
-      //   message.info("请先选择产品！");
-      //   return;
-      // }
-      // this.addProductTask = this.editableData[record.id];
-      // this.addProductTask.allVersions = this.options[record.id].versions;
-      // this.addVersionVisible = true;
-      // setModalAriaHidden(this, document);
-
-      // let data = {
-      //   name: this.version.name,
-      //   details: this.version.details,// details备注
-      //   productId: this.record.productId,
-      // };
-      // createVersion(data).then((res) => {
-      //   message.success("添加成功！");
-      //   this.$emit("versionOk", this.record);
-      // });
-    },
     async handleOK() {
       if (!this.ip) {
         message.info("请选择lang文档的ip地址！");
@@ -525,20 +489,13 @@ export default {
 
       try {
         // 1.创建产品，返回产品id
-        // this.productIds = ["1", "2", "3", "4", "5", "6"];
-        // await randomError("创建产品失败");
-        // console.log(
-        //   "创建产品成功",
-        //   this.productSource,
-        //   "return",
-        //   this.productIds
-        // );
+        const productIds = [];
         await createProductByLang(this.productSource).then((res) => {
           for (let i = 0; i < res.data.length; i++) {
             this.productSource[i]["id"] = res.data[i]["id"]; // 把任务对应的产品信息写入
             this.taskSource[i]["productId"] = res.data[i]["id"]; // 把任务对应的产品信息写入
+            productIds.push(res.data[i]["id"]);
           }
-          console.log("创建产品成功", this.productSource);
         });
 
         // 2.若某产品写入版本名称，则需创建版本
@@ -550,19 +507,9 @@ export default {
               details: "",
               productId: this.productSource[i]["id"],
             };
-            // await randomError("创建产品版本失败");
-            // const verId = uuidv4();
-            // this.dataSource[i].versionId = verId;
-            // this.taskSource[i].versionId = verId;
             await createVersion(versionData).then((res) => {
               this.dataSource[i].versionId = res.data;
               this.taskSource[i].versionId = res.data;
-              console.log(
-                "创建产品版本成功",
-                res,
-                this.dataSource,
-                this.taskSource
-              );
             });
           }
         }
@@ -576,17 +523,27 @@ export default {
         }
         const params = {
           ip: this.ip,
+          parentId: this.treeNode.key,
           link: `{${link_str.slice(0, -1)}}`,
           translateTypes: this.translateTypes,
         };
-        console.log("translateTypes", params);
-        // await randomError("创建任务失败");
-        await createTaskByLang(params, this.taskSource).then((res) => {
-          console.log("创建任务成功", params, this.taskSource, "return", res);
-        });
-
-        // 3.执行完毕重新初始化并关闭窗口
-        this.handleClose(true);
+        await createTaskByLang(params, this.taskSource)
+          .then((res) => {
+            // 4.执行完毕重新初始化并关闭窗口
+            this.handleClose(true);
+          })
+          .catch((err) => {
+            message.error(`创建任务失败：${err}`);
+            console.log("创建任务失败", err);
+            // 如果任务创建失败，前端执行删除产品
+            deleteEntryClassfy(productIds).catch((err) => {
+              message.error(`删除分类失败：${err}`);
+              console.log("删除分类失败", err);
+            }).finally(() => {
+              // 4.执行完毕重新初始化并关闭窗口
+              this.handleClose(false);
+            });
+          });
       } catch (err) {
         message.error(`分支创建失败：${err}`);
         console.log("分支创建失败", err);

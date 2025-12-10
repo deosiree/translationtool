@@ -9,7 +9,8 @@
         </a-input>
         <div class="productTree">
           <a-tree v-if="treeBoxOpen" show-icon v-model:expandedKeys="expandedKeys" :defaultExpandAll="true" :selectedKeys="selectedTreeKeys"
-            :tree-data="treeData" @select="clickTree" @rightClick="rightClickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop">
+            :tree-data="treeData" @select="clickTree" @rightClick="rightClickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop"
+            @expand="onExpandTree">
             <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte,codeBranch}">
               <a-dropdown :trigger="['contextmenu']">
                 <span v-if="type === 'common'" style="color: #001fb8">{{ title }}</span>
@@ -20,7 +21,7 @@
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
                     <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="update(treeKey)">更新</a-menu-item>
-                    <!-- <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
+                    <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -184,7 +185,13 @@ export default {
       this.getClassTree();
       // this.getTreeHeight()
     },
-
+    // 在methods中添加onExpandTree方法
+    onExpandTree(expandedKeys, { expanded, node }) {
+      // 展开状态树时，如果是分类节点，执行查询分支新建状态的函数
+      if (expanded && node.dataRef.type === "classify") {
+        this.getCreateBranchStatus(node.dataRef.key);
+      }
+    },
     // 计算树高度
     getTreeHeight() {
       let treeBox = this.$refs.treeBox.$el.offsetHeight;
@@ -230,58 +237,6 @@ export default {
         }
         return false;
       });
-      // if (!this.$store.state.admin) {
-      //   // 管理员可以看到所有产品 ,非管理员还需要过滤无查看权限的产品
-      //   let adminTreeData = cloneDeep(treeDataScoped);
-      //   treeDataScoped = [];
-      //   for (const companyData of adminTreeData) {
-      //     if (companyData.title == "公共库") {
-      //       treeDataScoped.push(companyData);
-      //       continue;
-      //     }
-      //     // console.log(`进入公司的过滤`, companyData.children);
-      //     // 公司->部门
-      //     const company_children = [];
-      //     for (const departmentData of companyData.children) {
-      //       // console.log(`进入部门过滤`, departmentData.children);
-      //       // 部门->分类
-      //       const depart_children = [];
-      //       for (let classifyData of departmentData.children) {
-      //         if (classifyData.title == "公共库") {
-      //           depart_children.push(classifyData);
-      //           continue;
-      //         }
-      //         if (classifyData.type == "classify") {
-      //           classifyData = await this.filterClassify(
-      //             classifyData,
-      //             treeScoped
-      //           );
-      //           if (classifyData.children.length > 0) {
-      //             depart_children.push(classifyData); // 分类->部门
-      //             // console.log("部门增加分类：", classifyData, depart_children);
-      //           }
-      //         } else if (classifyData.type == "product") {
-      //           const depart_product = await this.filterProduct(classifyData);
-      //           // console.log("产品过滤结果2：", depart_product);
-      //           if (depart_product.canKeep) {
-      //             depart_children.push(depart_product.node); // 产品->部门
-      //             // console.log("部门增加产品：", depart_product);
-      //           }
-      //         }
-      //       }
-      //       if (depart_children.length > 0) {
-      //         departmentData.children = depart_children;
-      //         company_children.push(departmentData); // 部门->公司
-      //       }
-      //       // console.log("部门的分类变更为：", departmentData);
-      //     }
-      //     companyData.children = company_children;
-      //     // console.log("公司的分类变更为：", companyData.children, companyData);
-      //     if (companyData.children.length > 0) {
-      //       treeDataScoped.push(companyData); // 公司->状态树
-      //     }
-      //   }
-      // }
       this.treeData = treeDataScoped;
       // console.log("过滤后的分类树", this.treeData);
     },
@@ -518,18 +473,11 @@ export default {
         await this.getCreateBranchStatus(treeKey);
       }
     },
+    // 查询分支新建状态
     async getCreateBranchStatus(treeKey) {
-      // 查询分支新建状态
-      // 随机返回执行中或未执行
-      this.createbranchStatus = "未执行";
-      // this.createbranchStatus = await randomMsg(["执行中", "未执行"], [0.5]);
-      // console.log("分支新建状态", this.createbranchStatus);
-
       getLangDirImportTaskState({ id: treeKey })
         .then((res) => {
-          // this.createbranchStatus = res.data;
-          console.log("执行状态", res);
-          switch (res.data) {
+          switch (res.data.state) {
             case "0":
               this.createbranchStatus = "未执行";
               break;
@@ -539,6 +487,15 @@ export default {
             case "2":
               this.createbranchStatus = "执行失败";
               message.error("‘分支新建’执行失败");
+              // 如果分支新建失败，前端执行删除产品
+              deleteEntryClassfy(res.data.productIDs)
+                .then((res) => {
+                  this.getClassTree();
+                })
+                .catch((err) => {
+                  message.error(`删除分类失败：${err}`);
+                  console.log("删除分类失败", err);
+                });
               break;
             default:
               this.createbranchStatus = "未知状态";
