@@ -62,7 +62,8 @@
           <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px">
-                <a-button type="primary" size="middle" style="margin-right:8px;" @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
+                <a-button v-if="currentDepartment.ops.has('needBranch')" type="primary" size="middle" style="margin-right:8px;"
+                  @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
                   {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
                 <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语种" :visible="translateTypeVisible" @ok="confirmTranslateType"
@@ -169,6 +170,7 @@ import { getClassfy } from "@/http/api/entryManage";
 import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
+import { getProduct } from "@/http/api/product";
 import {
   setTableHeight,
   setModalAriaHidden,
@@ -176,7 +178,7 @@ import {
   clearAllEntry,
   pageChange,
 } from "@/utils/commonUtils";
-import { getProduct } from "@/http/api/product";
+import commonParam from "@/utils/commonParam";
 export default {
   components: {
     SearchBox,
@@ -233,15 +235,6 @@ export default {
           },
           fixed: "left",
           index: 0.1,
-        },
-        {
-          title: "分支",
-          dataIndex: "codeBranch",
-          align: "center",
-          width: 100,
-          fixed: "left",
-          resizable: true,
-          index: 0.5,
         },
         {
           title: "任务名称",
@@ -340,18 +333,49 @@ export default {
       },
       pageChangeSearch: {},
       expandSource: [], // 记录展开了的分支信息
+      user: {},
+      currentDepartment: {
+        label: "部门名称",
+        value: "name",
+        ops: new Set(),
+      }, // 当前用户所在部门的相关信息
     };
   },
   mounted() {
     let _this = this;
     this.$nextTick(() => {
-      // 读取本地存储的用户偏好
-      const storedDisplay = localStorage.getItem("display-workbenchIndex");
-      // console.log("偏好：", storedDisplay, localStorage);
-      if (storedDisplay) {
-        this.isTreeOr2D = JSON.parse(storedDisplay);
-        if (this.isTreeOr2D == "tree") this.pageChange(1, 100);
-        else this.pageChange(1, 20);
+      this.user = this.$store.state.user;
+      // 获取当前用户所在部门的相关信息
+      if (
+        Object.keys(commonParam.departmentMap).includes(this.user.department)
+      ) {
+        this.currentDepartment =
+          commonParam.departmentMap[this.user.department];
+      } else {
+        this.currentDepartment = commonParam.departmentMap["default"];
+      }
+      if (!this.currentDepartment.ops.has("needBranch")) {
+        this.isTreeOr2D = "2D";
+      } else {
+        // 增加分支列
+        this.columns.splice(1, 0, {
+          title: "分支",
+          dataIndex: "codeBranch",
+          align: "center",
+          width: 100,
+          fixed: "left",
+          resizable: true,
+          index: 0.5,
+        });
+
+        // 读取本地存储的用户偏好
+        const storedDisplay = localStorage.getItem("display-workbenchIndex");
+        // console.log("偏好：", storedDisplay, localStorage);
+        if (storedDisplay) {
+          this.isTreeOr2D = JSON.parse(storedDisplay);
+          if (this.isTreeOr2D == "tree") this.pageChange(1, 100);
+          else this.pageChange(1, 20);
+        }
       }
       this.init();
 
@@ -369,7 +393,11 @@ export default {
   watch: {
     isTreeOr2D: {
       handler(newVal, oldVal) {
-        if (newVal != null && newVal !== oldVal) {
+        if (
+          this.currentDepartment.ops.has("needBranch") &&
+          newVal != null &&
+          newVal !== oldVal
+        ) {
           this.query();
           localStorage.setItem(
             "display-workbenchIndex",
@@ -425,7 +453,7 @@ export default {
         let datai = this.dataSource.findIndex(
           (item) => item.id == this.expandSource[i].id
         );
-        this.expandSource[i].record = this.dataSource[datai];// 保证expandSource和dataSource一致
+        this.expandSource[i].record = this.dataSource[datai]; // 保证expandSource和dataSource一致
         let branch = this.expandSource[i].record;
 
         // console.log("比较：", branch, this.dataSource[datai]);

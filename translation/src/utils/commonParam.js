@@ -126,7 +126,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needIP", "needExamine", "needDelete", "dev"]),
+      ops: new Set(["needIP", "needExamine", "needDelete","needBranch", "dev"]),
       // -needIP是否需要IP地址(凡是包含ip的都同理）
       // -----1.工作台-导入：IP的显示与获取、回写辞典
       // -----2.工作台-归档，归档；
@@ -135,9 +135,14 @@ export default {
       // -----5.词条管理-右键-冗余校验（已被封）;
       // -----6.git推送（词条管理）;
       // -----7.配置管理-辞典管理；
-      // -----8.词条管理-右键-拷贝所有（用于版本归档）；
+      // -----8.词条管理-右键-拷贝所有（用于版本归档）（该功能为分支新建前身，已删）；
       // -needExamine是否需要提交词条审核（词条管理-已选词条）
       // -needDelete是否需要删除词条（词条管理-已选词条）
+      // -needBranch是否需要分支新建（用于管理产品的版本）
+      // -1.词条管理-右键-分支新建
+      // -2.词条管理-右键-冗余校验
+      // -3.词条管理-classifyModal:分类的编辑-批量修改归档分支；产品的编辑-修改归档分支
+      // -4.工作台-平铺展示，分支列
       // -dev正在开发中的功能，暂时只放开给平台部
     },
     "监控系统部": {

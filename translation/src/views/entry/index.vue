@@ -21,7 +21,6 @@
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
                     <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="update(treeKey)">更新</a-menu-item>
-                    <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -34,10 +33,11 @@
                       <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="deleteClassify(treeKey,type)">删除
                       </a-popconfirm>
                     </a-menu-item>
-                    <a-menu-item v-if="currentDepartment.ops.has('dev') &&currentDepartment.ops.has('needIP') && type =='classify'"
-                      @click="createBranch(treeKey)" :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
+                    <a-menu-item v-if="currentDepartment.ops.has('needBranch') && type =='classify'" @click="createBranch(treeKey)"
+                      :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
                       分支新建{{createbranchStatus=='执行中'?'(执行中)':''}}
                     </a-menu-item>
+                    <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item>
                   </a-menu>
                 </template>
               </a-dropdown>
