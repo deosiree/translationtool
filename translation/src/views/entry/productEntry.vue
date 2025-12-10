@@ -25,10 +25,9 @@
               </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource" style="margin-top: 8px">
-              <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input>
-              <!-- <a-select v-model:value="search.entrySource" mode="tags" placeholder="请输入词条来源" :options="[{label:'1',value:'1'},{label:'2',value:'2'}]">
-              </a-select> -->
-              <!-- :options="options" @change="handleChange" -->
+              <!-- <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input> -->
+              <a-select v-model:value="search.entrySource" show-search placeholder="请输入词条来源" :options="entrySourceOptions" allowClear>
+              </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language" style="margin-top: 8px">
               <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
@@ -391,6 +390,7 @@ import {
   getClassfy,
   entryImportExcle,
   getEntryByClassfy,
+  getEntrySourcesByClassify,
 } from "@/http/api/entryManage";
 import { getSecondClassify } from "@/http/api/secondClassify";
 import {
@@ -700,6 +700,7 @@ export default {
       accurSearch: [], // 用于分页时的查询参数
       showForbbiden: false, // 显示/隐藏禁用
       classifyLimit: {},
+      entrySourceOptions: [], // 词条来源下拉框
     };
   },
   created() {},
@@ -791,6 +792,13 @@ export default {
         // 切换后的初始化
         this.currentVersion = null;
         this.product = newval;
+        // 查询产品的所有词条来源
+        getEntrySourcesByClassify({ classifyID: newval.key }).then((res) => {
+          this.entrySourceOptions = res.data.map((item) => ({
+            label: item,
+            value: item,
+          }));
+        });
         this.showOperationArea = false;
         this.pagination.current = 1;
         // this.selectEntry = [];// 存在跨产品，所以不归零
@@ -862,7 +870,9 @@ export default {
       // 获取一级分类
       await this.selectFirstClassify();
       // 查询产品的所有版本,并查询词条
-      await this.getProductVersion({ isInit: true, accurate: [] });
+      if (this.product.type == "product") {
+        await this.getProductVersion({ isInit: true, accurate: [] });
+      }
       // // 查询词条
       // await this.getEntryByVersion(true); // isInit=true
       // 设置表的高度

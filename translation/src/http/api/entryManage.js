@@ -275,3 +275,12 @@ export function createProductByLang(data) {
     data
   });
 }
+
+// 查询指定产品的词条来源
+export function getEntrySourcesByClassify(params) {
+  return request({
+    url: "/entryInfo/getEntrySourcesByClassify",
+    method: "POST",
+    params
+  });
+}
