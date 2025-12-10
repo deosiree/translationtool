@@ -61,8 +61,11 @@
           </SearchBox>
           <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
-              <div ref="button" v-if="true" style="margin-bottom:8px">
-                <a-button v-if="currentDepartment.ops.has('needBranch')" type="primary" size="middle" style="margin-right:8px;"
+              <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
+                <BatchSelectButton v-if="currentDepartment.ops.has('needBranch')" :size="'middle'" :getSearch="query"
+                  v-model:batchSelectFlag="batchSelectFlag" v-model:selectEntry="selectEntry" v-model:selectedRows="selectedRows"
+                  v-model:selectedRowKeys="selectedRowKeys" />
+                <a-button v-if="currentDepartment.ops.has('needBranch')" type="primary" size="middle"
                   @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
                   {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
                 <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
@@ -85,11 +88,11 @@
               <div style="width:100%;position: absolute;">
                 <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
                   :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child"
-                  ref="workTable" @resizeColumn="handleResizeColumn" :row-selection=" { selectedRowKeys: selectedRowKeys,onSelect:onSelect,onSelectAll:onSelectAll, onChange: onSelectChange,
-                    selections:[
+                  ref="workTable" @resizeColumn="handleResizeColumn" :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys,onSelect:onSelect,onSelectAll:onSelectAll, onChange: onSelectChange,
+                    selections:isTreeOr2D=='tree'?null:[
                         {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                         {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]}" :customRow="customRow">
+                    ]}:null" :customRow="customRow">
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'index'&&isTreeOr2D=='tree'&&record.isBranch">
                       <span style="color:blue;">
@@ -160,6 +163,7 @@ import ExamineModal from "@/views/workbench/examineModal.vue";
 import TranslateModal from "@/views/workbench/translateModal.vue";
 import ExamineTranslateModal from "@/views/workbench/examineTranslateModal.vue";
 import ArchiveModal from "@/views/workbench/archiveModal.vue";
+import BatchSelectButton from "@/components/Button/batchArchive/button.vue";
 import {
   SendOutlined,
   CaretDownOutlined,
@@ -192,6 +196,7 @@ export default {
     TranslateModal,
     ExamineTranslateModal,
     ArchiveModal,
+    BatchSelectButton,
     SendOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
@@ -339,6 +344,8 @@ export default {
         value: "name",
         ops: new Set(),
       }, // 当前用户所在部门的相关信息
+      batchSelectFlag: false, // 批量选择的显示（全选/反选）
+      batchSelectVisible: false,
     };
   },
   mounted() {
@@ -777,6 +784,7 @@ export default {
     },
     // 查询按钮点击事件
     query() {
+      this.batchSelectFlag = false;
       this.pageChangeSearch = this.search;
       this.getTask();
       this.clearAllEntry(); //清空已选
