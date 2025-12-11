@@ -1829,31 +1829,66 @@
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
             </when>
             <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
-                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+                <choose>
+                    <when test = "entryInfoEntity.chineseTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
             </when>
             <when test="entryInfoEntity.english != null and entryInfoEntity.english != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
             </when>
             <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
-                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+                <choose>
+                    <when test = "entryInfoEntity.englishTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
             </when>
             <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
             </when>
             <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
-                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+                <choose>
+                    <when test = "entryInfoEntity.russianTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
             </when>
             <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
             </when>
             <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
-                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+                <choose>
+                    <when test = "entryInfoEntity.frenchTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
             </when>
             <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
                 FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
             </when>
             <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
-                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+                <choose>
+                    <when test = "entryInfoEntity.spanishTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
             </when>
             <otherwise>
                 FROM t_entry_info as info
@@ -1882,7 +1917,14 @@
                     </if>
                 </when>
                 <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
-                    and trans.delete_state = 0 and trans.`type` = '中文' and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                    <choose>
+                        <when test = "entryInfoEntity.chineseTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '中文' and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.zh_trans_id is NULL
+                        </otherwise>
+                    </choose>
                 </when>
                 <when test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
                     and trans.delete_state = 0 and trans.`type` = '英文'
@@ -1899,7 +1941,14 @@
                     </if>
                 </when>
                 <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
-                    and trans.delete_state = 0 and trans.`type` = '英文' and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                    <choose>
+                        <when test = "entryInfoEntity.englishTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '英文' and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.en_trans_id is NULL
+                        </otherwise>
+                    </choose>
                 </when>
                 <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
                     and trans.delete_state = 0 and trans.`type` = '俄文'
@@ -1916,7 +1965,14 @@
                     </if>
                 </when>
                 <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
-                    and trans.delete_state = 0 and trans.`type` = '俄文' and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                    <choose>
+                        <when test = "entryInfoEntity.russianTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '俄文' and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.ru_trans_id is NULL
+                        </otherwise>
+                    </choose>
                 </when>
                 <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
                     and trans.delete_state = 0 and trans.`type` = '法文'
@@ -1933,7 +1989,14 @@
                     </if>
                 </when>
                 <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
-                    and trans.delete_state = 0 and trans.`type` = '法文' and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                    <choose>
+                        <when test = "entryInfoEntity.frenchTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '法文' and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.fra_trans_id is NULL
+                        </otherwise>
+                    </choose>
                 </when>
                 <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
                     and trans.delete_state = 0 and trans.`type` = '西文'
@@ -1950,7 +2013,14 @@
                     </if>
                 </when>
                 <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
-                    and trans.delete_state = 0 and trans.`type` = '西文' and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+                    <choose>
+                        <when test = "entryInfoEntity.spanishTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '西文' and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.spa_trans_id is NULL
+                        </otherwise>
+                    </choose>
                 </when>
                 <otherwise>
             
