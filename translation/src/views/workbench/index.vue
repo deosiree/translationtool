@@ -384,10 +384,16 @@ export default {
         const storedDisplay = localStorage.getItem("display-workbenchIndex");
         if (storedDisplay) {
           this.isTreeOr2D = JSON.parse(storedDisplay);
-          if (this.isTreeOr2D == "tree") this.pageChange(1, 100);
-          else {
+          if (this.isTreeOr2D == "tree") {
             if (
-              this.pagination.current != 1 &&
+              this.pagination.current != 1 ||
+              this.pagination.pageSize != 100
+            ) {
+              this.pageChange(1, 100);
+            }
+          } else {
+            if (
+              this.pagination.current != 1 ||
               this.pagination.pageSize != 20
             ) {
               this.pageChange(1, 20);
@@ -420,10 +426,16 @@ export default {
             "display-workbenchIndex",
             JSON.stringify(newVal)
           ); // 存储用户偏好
-          if (newVal == "tree") this.pageChange(1, 100);
-          else {
+          if (newVal == "tree") {
             if (
-              this.pagination.current != 1 &&
+              this.pagination.current != 1 ||
+              this.pagination.pageSize != 100
+            ) {
+              this.pageChange(1, 100);
+            }
+          } else {
+            if (
+              this.pagination.current != 1 ||
               this.pagination.pageSize != 20
             ) {
               this.pageChange(1, 20);
