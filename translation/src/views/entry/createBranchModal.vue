@@ -30,7 +30,7 @@
                 {{ text }}
               </template>
             </template>
-            <template v-else-if="['developer','entryAuditor','translator','translationAuditor','translateType'].includes(column.dataIndex)">
+            <template v-else-if="['developer','entryAuditor','translator','translationAuditor','translateType','creator'].includes(column.dataIndex)">
               <template v-if="editableData[record.id]">
                 <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                   :options='options[record.id][column.dataIndex]' @click="clickInput" allowClear>
@@ -170,6 +170,12 @@ export default {
           width: 100,
         },
         {
+          title: "任务管理员",
+          dataIndex: "creator",
+          align: "center",
+          width: 100,
+        },
+        {
           title: "翻译语种",
           dataIndex: "translateType",
           align: "center",
@@ -274,7 +280,7 @@ export default {
       const newTask = {
         state: "0",
         department: this.user.department,
-        creator: this.user.userName, // 创建人-归档
+        creator: this.user.userName, // 任务管理员-创建人-归档
         developer: this.user.userName, // 开发员
         entryAuditor: this.user.userName, // 词条审核员
         translator: this.user.userName, // 翻译员
@@ -341,6 +347,7 @@ export default {
       };
       getRoleUserByDepartment(params).then((res) => {
         let data = res.data;
+        console.log("getOptions", data);
         if (data.DEVELOPER) {
           let developer = [];
           data.DEVELOPER.forEach((item) => {
@@ -352,18 +359,19 @@ export default {
           });
           developer.push({ label: "无", value: "" });
           this.options[record.id].developer = developer;
+          this.options[record.id].creator = developer; // 任务管理员-创建人-归档，没有data.CREATOR，所以这边我借用了开发者的options
         }
         if (data.ENTRY_AUDITOR) {
-          let auditor = [];
+          let entryAuditor = [];
           data.ENTRY_AUDITOR.forEach((item) => {
             let op = {
               label: item.userName,
               value: item.userName,
             };
-            auditor.push(op);
+            entryAuditor.push(op);
           });
-          auditor.push({ label: "无", value: "" });
-          this.options[record.id].entryAuditor = auditor;
+          entryAuditor.push({ label: "无", value: "" });
+          this.options[record.id].entryAuditor = entryAuditor;
         }
         if (data.TRANSLATOR) {
           let translateor = [];
@@ -378,16 +386,16 @@ export default {
           this.options[record.id].translator = translateor;
         }
         if (data.TRANSLATE_AUDITOR) {
-          let translateAuditor = [];
+          let translationAuditor = [];
           data.TRANSLATE_AUDITOR.forEach((item) => {
             let op = {
               label: item.userName,
               value: item.userName,
             };
-            translateAuditor.push(op);
+            translationAuditor.push(op);
           });
-          translateAuditor.push({ label: "无", value: "" });
-          this.options[record.id].translatorAuditor = translateAuditor;
+          translationAuditor.push({ label: "无", value: "" });
+          this.options[record.id].translationAuditor = translationAuditor;
         }
       });
     },
@@ -429,6 +437,10 @@ export default {
       let newTask = this.editableData[id];
       function isEmptyString(value) {
         return value === null || value === "" || value === undefined;
+      }
+      if (isEmptyString(newTask.creator)) {
+        message.info("请选择任务管理员（创建人，控制工作台-归档阶段）！");
+        return false;
       }
       if (
         !isEmptyString(newTask.developer) &&
@@ -536,13 +548,15 @@ export default {
             message.error(`创建任务失败：${err}`);
             console.log("创建任务失败", err);
             // 如果任务创建失败，前端执行删除产品
-            deleteEntryClassfy(productIds).catch((err) => {
-              message.error(`删除分类失败：${err}`);
-              console.log("删除分类失败", err);
-            }).finally(() => {
-              // 4.执行完毕重新初始化并关闭窗口
-              this.handleClose(false);
-            });
+            deleteEntryClassfy(productIds)
+              .catch((err) => {
+                message.error(`删除分类失败：${err}`);
+                console.log("删除分类失败", err);
+              })
+              .finally(() => {
+                // 4.执行完毕重新初始化并关闭窗口
+                this.handleClose(false);
+              });
           });
       } catch (err) {
         message.error(`分支创建失败：${err}`);

@@ -17,14 +17,17 @@
           <a-form-item label="开发员" name="developer">
             <a-input v-model:value="search.developer" placeholder="请输入开发员" size="small"></a-input>
           </a-form-item>
-          <a-form-item label="词条审核员" name="auditor">
-            <a-input v-model:value="search.auditor" placeholder="请输入词条审核员" size="small"></a-input>
+          <a-form-item label="词条审核员" name="entryAuditor">
+            <a-input v-model:value="search.entryAuditor" placeholder="请输入词条审核员" size="small"></a-input>
           </a-form-item>
           <a-form-item label="翻译员" name="translator">
             <a-input v-model:value="search.translator" placeholder="请输入翻译员" size="small"></a-input>
           </a-form-item>
           <a-form-item label="翻译审核员" name="translationAuditor">
             <a-input v-model:value="search.translationAuditor" placeholder="请输入翻译审核员" size="small"></a-input>
+          </a-form-item>
+          <a-form-item label="任务管理员" name="creator">
+            <a-input v-model:value="search.creator" placeholder="请输入任务管理员(归档)" size="small"></a-input>
           </a-form-item>
           <a-form-item label="翻译语种" name="language">
             <a-select v-model:value="search.translateType" style="width: 186px" placeholder="请选择翻译语种" :options='translateTypes'
@@ -91,6 +94,14 @@
                     {{ text }}
                   </template>
                 </template>
+                <template v-else-if="['description'].includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]">
+                    <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
+                  </template>
+                  <template v-else>
+                    {{ text }}
+                  </template>
+                </template>
                 <!-- <template v-if="'department' === column.dataIndex">
                   <template v-if="editableData[record.id]">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择" :options='departments'
@@ -101,8 +112,8 @@
                     {{ text }}
                   </template>
                 </template> -->
-                <template v-if="'productName' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
+                <template v-else-if="'productName' === column.dataIndex">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
                     <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
                       <!-- <a-select v-model:value="editableData[record.id]['productId']" style="width: 85%" placeholder="请选择"
                         :options='options[record.id]["products"]' :fieldNames='{label:"name",value:"id"}' @click="clickInput"
@@ -129,8 +140,8 @@
                     {{ text }}
                   </template>
                 </template>
-                <template v-if="'versionName' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
+                <template v-else-if="'versionName' === column.dataIndex">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
                     <!-- <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
                       <a-select v-model:value="editableData[record.id]['versionId']" style="width: 85%" placeholder="请选择"
                         :options='options[record.id]["versions"]' @click="clickInput">
@@ -146,68 +157,29 @@
                     {{ text }}
                   </template>
                 </template>
-                <template v-if="'developer' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
+                <template v-else-if="['developer','entryAuditor','translator','translationAuditor','translateType'].includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["developers"]' @click="clickInput" allowClear>
+                      :options='options[record.id][column.dataIndex]' @click="clickInput" allowClear>
                     </a-select>
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
                 </template>
-                <template v-if="'entryAuditor' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
+                <!-- 创建人不可编辑，在复制和创建时会填写当前用户，只有超管可以编辑 -->
+                <template v-else-if="['creator'].includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]&&isAdmin">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["entryAuditors"]' @click="clickInput" allowClear>
+                      :options='options[record.id][column.dataIndex]' @click="clickInput" allowClear>
                     </a-select>
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
                 </template>
-                <template v-if="'translator' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
-                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["translators"]' @click="clickInput" allowClear>
-                    </a-select>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'translationAuditor' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
-                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["translatorAuditors"]' @click="clickInput" allowClear>
-                    </a-select>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'translateType' === column.dataIndex">
-                  <template v-if="editableData[record.id]&&!isSubmit">
-                    <a-form-item label=" " :name="[index, 'translateType']" :rules="rules[column.dataIndex]">
-                      <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                        :options='translateTypes' :fieldNames="{label:'name',value:'name'}" @click="clickInput" allowClear>
-                      </a-select>
-                    </a-form-item>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="column.dataIndex === 'state'">
+                <template v-else-if="column.dataIndex === 'state'">
                   <TaskStateBadge type="sum" :taskState="text" />
-                </template>
-                <template v-if="['description'].includes(column.dataIndex)">
-                  <template v-if="editableData[record.id]">
-                    <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
                 </template>
                 <template v-else-if="column.dataIndex === 'operation'">
                   <div class="editable-row-operations">
@@ -308,9 +280,10 @@ export default {
         department: null,
         state: null,
         developer: "",
-        auditor: "",
+        entryAuditor: "",
         translator: "",
         translationAuditor: "",
+        creator: "",
       },
       tableTitle: "任务列表",
       dataHeight: 400,
@@ -392,6 +365,12 @@ export default {
           width: 150,
         },
         {
+          title: "任务管理员",
+          dataIndex: "creator",
+          align: "center",
+          width: 150,
+        },
+        {
           title: "任务描述",
           dataIndex: "description",
           align: "center",
@@ -466,7 +445,6 @@ export default {
         onChange: this.pageChange,
       },
       pageChangeSearch: {},
-      isSubmit: false,
     };
   },
   mounted() {
@@ -525,16 +503,16 @@ export default {
       this.searchTaskInfo();
     },
     // 获取任务列表
-    searchTaskInfo() {
-      this.searchTaskByCondition(this.search);
+    async searchTaskInfo() {
+      await this.searchTaskByCondition(this.search);
     },
-    searchTaskByCondition(data) {
+    async searchTaskByCondition(data) {
       this.loading = true;
       let params = {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
-      searchTaskInfo(data, params)
+      await searchTaskInfo(data, params)
         .then((res) => {
           this.dataSource = res.data.list;
           this.loading = false;
@@ -589,14 +567,13 @@ export default {
             // 当前行在编辑状态
             return;
           }
-          if (record.state != "0" && record.state != "6") {
-            message.info("当前任务已下发，不可编辑！");
-            this.isSubmit = true;
-            this.edit(record);
-          } else if (record.state === "6") {
+          // 0-待分配 1-待开发员确认 2-待词条审核员确认 3-待翻译员确认 4-待翻译审核员确认 5-已完成 6-已归档
+          if (record.state === "6") {
             message.info("当前任务已归档，不可编辑！");
-          } else if (record.state === "0") {
-            this.isSubmit = false;
+          } else {
+            if (record.state != "0") {
+              console.log("当前任务已下发，不可编辑使用人员！");
+            }
             this.edit(record);
           }
         },
@@ -610,6 +587,15 @@ export default {
         name: "",
         state: "0",
         department: this.user.department,
+        creator: this.user.userName, // 任务管理员-创建人-归档
+        developer: this.user.userName, // 开发员
+        entryAuditor: this.user.userName, // 词条审核员
+        translator: this.user.userName, // 翻译员
+        translationAuditor: this.user.userName, // 翻译审核员
+        translateType: "英文",
+        versionId: null,
+        versionName: null,
+        isSubmit: false,
       };
       this.options[newData.id] = {
         products: [],
@@ -635,6 +621,11 @@ export default {
       this.editableData[record.id] = cloneDeep(
         this.dataSource.filter((item) => record.id === item.id)[0]
       );
+      if (record.state === "0") {
+        this.editableData[record.id].isSubmit = false;
+      } else {
+        this.editableData[record.id].isSubmit = true;
+      }
     },
     // 保存
     save(id) {
@@ -655,7 +646,6 @@ export default {
       if (!falg) {
         return;
       }
-      this.editableData[id].creator = this.user.userName; // 创建人应该随着当前用户走
       if (id.startsWith("new")) {
         // 新增
         let data = [this.editableData[id]];
@@ -761,14 +751,13 @@ export default {
     },
 
     // 批量保存
-    batchSave() {
+    async batchSave() {
       // 校验必填字段
-      this.$refs.tableFormRef.validate().then(() => {
-        // 保存
-        this.batchSaveEntry();
-      });
+      await this.$refs.tableFormRef.validate();
+      // 保存
+      await this.batchSaveEntry();
     },
-    batchSaveEntry() {
+    async batchSaveEntry() {
       let add = [];
       let edit = [];
       let copy = [];
@@ -796,51 +785,70 @@ export default {
         okText: "确定",
         cancelText: "取消",
         style: { top: "30%" },
-        onOk: () => {
+        onOk: async () => {
+          this.loading = true;
+          const promises = [];
+          // 新增接口
           if (add.length > 0) {
-            // 新增接口
-            addTaskInfos(add).then((res) => {
-              // this.searchTaskInfo()
-              delete this.editableData[item.id];
+            add.forEach((item) => {
+              promises.push(
+                addTaskInfos(item).then((res) => {
+                  delete this.editableData[item.id];
+                })
+              );
             });
           }
+          // 修改接口
           if (edit.length > 0) {
-            // 修改接口
             edit.forEach((item) => {
-              updateTaskInfo(item).then((res) => {
-                delete this.editableData[item.id];
-              });
+              promises.push(
+                updateTaskInfo(item).then((res) => {
+                  delete this.editableData[item.id];
+                })
+              );
             });
           }
           if (copy.length > 0) {
-            this.loading = true;
+            const currentDate = await this.getCurrentDate();
             copy.forEach((item) => {
-              let first = item.id.indexOf("_");
-              let end = item.id.lastIndexOf("_");
-              let copyTaskId = item.id.substring(first + 1, end);
-              let params = {
-                taskID: copyTaskId,
-              };
-              item.upgrade = 1;
-              item.state = "0";
-              let currentDate = this.getCurrentDate();
-              item.creator = this.user.userName; // 创建人应该随着当前用户走
-              item.createTime = currentDate;
-              item.endTime = null;
-              item.entryAutiorStartTime = null;
-              item.translationAuditorStartTime = null;
-              item.translateStartTime = null;
-              item.deliveryTime = null;
-              taskCreateNewLanguageTask(params, item).then((res) => {
-                delete this.copyTaskEntry[id];
-                delete this.editableData[id];
-              });
+              promises.push(
+                (async () => {
+                  let first = item.id.indexOf("_");
+                  let end = item.id.lastIndexOf("_");
+                  let copyTaskId = item.id.substring(first + 1, end);
+                  let params = {
+                    taskID: copyTaskId,
+                  };
+
+                  item.upgrade = 1;
+                  item.state = "0";
+                  item.createTime = currentDate;
+                  item.endTime = null;
+                  item.entryAutiorStartTime = null;
+                  item.translationAuditorStartTime = null;
+                  item.translateStartTime = null;
+                  item.deliveryTime = null;
+
+                  await taskCreateNewLanguageTask(params, item);
+                  delete this.copyTaskEntry[item.id];
+                  delete this.editableData[item.id];
+                })()
+              );
             });
+          }
+
+          try {
+            // 等待所有异步操作完成
+            await Promise.all(promises);
+            // 重新加载数据
+            await this.searchTaskInfo();
+            this.editableData = {};
+            message.success("保存成功！");
+          } catch (error) {
+            message.error("保存失败：" + error.message);
+          } finally {
             this.loading = false;
           }
-          this.searchTaskInfo();
-          message.success("保存成功！");
-          this.editableData = {};
         },
       });
     },
@@ -1013,19 +1021,20 @@ export default {
             developer.push(op);
           });
           developer.push({ label: "无", value: "" });
-          this.options[record.id].developers = developer;
+          this.options[record.id].developer = developer;
+          this.options[record.id].creator = developer; // 任务管理员-创建人-归档，没有data.CREATOR，所以这边我借用了开发者的options
         }
         if (data.ENTRY_AUDITOR) {
-          let auditor = [];
+          let entryAuditor = [];
           data.ENTRY_AUDITOR.forEach((item) => {
             let op = {
               label: item.userName,
               value: item.userName,
             };
-            auditor.push(op);
+            entryAuditor.push(op);
           });
-          auditor.push({ label: "无", value: "" });
-          this.options[record.id].entryAuditors = auditor;
+          entryAuditor.push({ label: "无", value: "" });
+          this.options[record.id].entryAuditor = entryAuditor;
         }
         if (data.TRANSLATOR) {
           let translateor = [];
@@ -1037,19 +1046,19 @@ export default {
             translateor.push(op);
           });
           translateor.push({ label: "无", value: "" });
-          this.options[record.id].translators = translateor;
+          this.options[record.id].translator = translateor;
         }
         if (data.TRANSLATE_AUDITOR) {
-          let translateAuditor = [];
+          let translationAuditor = [];
           data.TRANSLATE_AUDITOR.forEach((item) => {
             let op = {
               label: item.userName,
               value: item.userName,
             };
-            translateAuditor.push(op);
+            translationAuditor.push(op);
           });
-          translateAuditor.push({ label: "无", value: "" });
-          this.options[record.id].translatorAuditors = translateAuditor;
+          translationAuditor.push({ label: "无", value: "" });
+          this.options[record.id].translationAuditor = translationAuditor;
         }
       });
       // console.log(this.options)
@@ -1094,6 +1103,9 @@ export default {
         copyTask.deliveryTime = null;
         copyTask.createTime = getCurrentFormattedTime();
         copyTask.endTime = null;
+        copyTask.creator = this.user.userName; // 任务管理员-创建人-归档
+        copyTask.isSubmit = false;
+
         this.dataSource.unshift(copyTask);
         this.options[id] = {
           products: [],
@@ -1193,9 +1205,10 @@ export default {
         department: null,
         state: null,
         developer: "",
-        auditor: "",
+        entryAuditor: "",
         translator: "",
         translationAuditor: "",
+        creator: "",
       };
       this.pageChangeSearch = this.search;
       this.searchTaskInfo();
