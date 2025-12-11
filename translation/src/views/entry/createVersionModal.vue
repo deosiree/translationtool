@@ -494,7 +494,7 @@ export default {
         else newSelectedProducts.products.delete(record.productID);
         this.$emit("update:selectedProducts", newSelectedProducts);
         // console.log("去除的不是本产品的词条", newSelectedProducts, num);
-      } 
+      }
       // else {
       //   console.log("去除的是本产品的词条", newSelectedProducts);
       // }
@@ -629,120 +629,126 @@ export default {
     operateClose() {
       this.operateVisible = false;
     },
-    operateOk() {
-      if (this.title === "创建版本") {
-        this.$refs.versionForm.validate().then(() => {
+    async operateOk() {
+      try {
+        if (this.title === "创建版本") {
+          // 验证表单
+          await this.$refs.versionForm.validate();
+
           // TODO 创建版本接口
           let params = {
             productID: this.product.key,
             versionName: this.version.versionName,
             common: this.version.remarks,
           };
-          createVersionByEntry(params, this.dataSource)
-            .then((res) => {
-              message.success("创建版本完成！");
-              this.operateVisible = false;
-              this.$emit("createClose");
-              this.$emit("cancelCreate");
-            })
-            .catch((err) => {
-              message.error("创建失败！", err.message);
-            });
-        });
-      } else if (this.title === "回写") {
-        if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
-          message.info("请选择" + this.writeBack.label + "!");
-          return;
-        }
-        this.$refs.writeBack
-          .validate()
-          .then(async () => {
-            this.writeBackLoading = true;
-            let successLanguages = [];
-            let failedLanguages = [];
+          await createVersionByEntry(params, this.dataSource);
 
-            // 遍历选中的语种列表，依次执行回写操作
-            for (const language of this.writeBack.language) {
-              let params = {
-                translateType: language,
-                isTag: this.writeBack.isTag ? 1 : 0,
-                isComment: this.writeBack.isComment ? 1 : 0,
-                writeType: this.writeBack.type,
-                fileName: this.writeBack.file,
-                i18nUrl: this.writeBack.ip,
-              };
-              try {
-                await writeBack(params, this.dataSource);
-                successLanguages.push(language);
-              } catch (err) {
-                failedLanguages.push(`${language}: ${err.message}`);
-              }
-            }
-
-            let messageText = "";
-            if (successLanguages.length > 0) {
-              messageText += `以下语种回写成功：${successLanguages.join(
-                ", "
-              )}。`;
-            }
-            if (failedLanguages.length > 0) {
-              messageText += `以下语种回写失败：${failedLanguages.join(
-                ", "
-              )}。`;
-            }
-
-            if (successLanguages.length > 0) {
-              message.success(messageText);
-            } else {
-              message.error(messageText);
-            }
-
-            this.operateVisible = false;
-            this.$emit("createClose");
-            this.$emit("cancelCreate");
-          })
-          .finally(() => {
-            this.writeBackLoading = false;
-            this.loading = false;
-          })
-          .catch((err) => {
-            // message.error("1",err.message);
-          });
-      } else if (this.title === "选择任务") {
-        //提交词条审核
-        if (this.selectedTaskRows.length === 0) {
-          message.warn("请选择任务！");
-          return;
-        }
-        // 判断词条中是否含有 中文释义和英文释义都不存在的词条
-        let notInterpretation = [];
-        this.dataSource.forEach((item) => {
-          if (
-            (item.englishInterpretation === null ||
-              item.englishInterpretation === "") &&
-            (item.chineseInterpretation === null ||
-              item.chineseInterpretation === "")
-          ) {
-            notInterpretation.push(item);
+          message.success("创建版本完成！");
+        } else if (this.title === "回写") {
+          if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
+            message.info("请选择" + this.writeBack.label + "!");
+            return;
           }
-        });
-        if (notInterpretation.length > 0) {
-          Modal.confirm({
-            title:
-              "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
-            icon: createVNode(ExclamationCircleOutlined),
-            content: "",
-            okText: "是",
-            cancelText: "否",
-            style: { top: "30%" },
-            onOk: () => {
-              this.submitExamine();
-            },
-            onCancel: () => {},
+
+          // 验证表单
+          await this.$refs.writeBack.validate();
+
+          this.writeBackLoading = true;
+          let successLanguages = [];
+          let failedLanguages = [];
+          let successmsg = "";
+          let failedmsg = "";
+          const promises = [];
+
+          // 遍历选中的语种列表，依次执行回写操作
+          for (const language of this.writeBack.language) {
+            let params = {
+              translateType: language,
+              isTag: this.writeBack.isTag ? 1 : 0,
+              isComment: this.writeBack.isComment ? 1 : 0,
+              writeType: this.writeBack.type,
+              fileName: this.writeBack.file,
+              i18nUrl: this.writeBack.ip,
+            };
+            promises.push(writeBack(params, this.dataSource));
+            console.log("promises.push", params, language);
+          }
+
+          await Promise.allSettled(promises).then((rls) => {
+            console.log("rls", rls);
+            rls.forEach((item, index) => {
+              if (item.status === "rejected") {
+                failedLanguages.push(
+                  `${this.writeBack.language[index]}: ${item.data}`
+                );
+              } else {
+                if (item.value.data != "OK") {
+                  failedLanguages.push(`${this.writeBack.language[index]}`);
+                  console.log("item.value.data", item.value.data, item);
+                  const lastIndex = item.value.data.lastIndexOf("！");
+                  if (lastIndex !== -1) {
+                    failedmsg = item.value.data.substring(0, lastIndex + 1);
+                  } else {
+                    failedmsg = item.value.data;
+                  }
+                } else {
+                  successLanguages.push(this.writeBack.language[index]);
+                }
+              }
+            });
           });
-        } else {
-          this.submitExamine();
+
+          if (successLanguages.length > 0) {
+            successmsg += `以下语种回写成功：${successLanguages.join(", ")}。`;
+            message.success(successmsg);
+          }
+          if (failedLanguages.length > 0) {
+            failedmsg += `以下语种回写失败：${failedLanguages.join(", ")}。`;
+            message.error(failedmsg);
+          }
+          this.writeBackLoading = false;
+        } else if (this.title === "选择任务") {
+          //提交词条审核
+          if (this.selectedTaskRows.length === 0) {
+            message.warn("请选择任务！");
+            return;
+          }
+          // 判断词条中是否含有 中文释义和英文释义都不存在的词条
+          let notInterpretation = [];
+          this.dataSource.forEach((item) => {
+            if (
+              (item.englishInterpretation === null ||
+                item.englishInterpretation === "") &&
+              (item.chineseInterpretation === null ||
+                item.chineseInterpretation === "")
+            ) {
+              notInterpretation.push(item);
+            }
+          });
+          if (notInterpretation.length > 0) {
+            Modal.confirm({
+              title:
+                "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
+              icon: createVNode(ExclamationCircleOutlined),
+              content: "",
+              okText: "是",
+              cancelText: "否",
+              style: { top: "30%" },
+              onOk: () => {
+                this.submitExamine();
+              },
+              onCancel: () => {},
+            });
+          } else {
+            this.submitExamine();
+          }
         }
+      } catch (err) {
+        console.log("操作失败:", err);
+      } finally {
+        this.operateVisible = false;
+        this.$emit("createClose");
+        this.$emit("cancelCreate");
       }
     },
     // 提交词条审核

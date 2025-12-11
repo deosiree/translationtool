@@ -309,6 +309,7 @@ export default {
       await this.$refs.contentForm.validate();
 
       this.loading = true;
+      const promises = [];
       // 遍历选中的语种列表，依次执行回写操作
       for (const language of this.writeBack.language) {
         let params = {
@@ -319,21 +320,33 @@ export default {
           fileName: this.writeBack.file,
           i18nUrl: this.writeBack.ip,
         };
-        try {
-          await writeBack(params, this.dataSource);
-          successLanguages.push(language);
-        } catch (err) {
-          failedLanguages.push(`${language}: ${err.message}`);
-        }
+        promises.push(writeBack(params, this.dataSource));
+        console.log("promises.push", params, language);
       }
+      await Promise.allSettled(promises).then((rls) => {
+        console.log("rls", rls);
+        rls.forEach((item, index) => {
+          if (item.status === "rejected") {
+            failedLanguages.push(
+              `${this.writeBack.language[index]}: ${item.data}`
+            );
+          } else {
+            if (item.data != "") {
+              failedLanguages.push(
+                `${this.writeBack.language[index]}: ${item.data}`
+              );
+            } else {
+              successLanguages.push(this.writeBack.language[index]);
+            }
+          }
+        });
+      });
       if (successLanguages.length > 0) {
         successmsg += `以下语种回写成功：${successLanguages.join(", ")}。`;
         message.success(successmsg);
       }
       if (failedLanguages.length > 0) {
-        failedmsg += `以下语种回写失败：${failedLanguages.join(
-          ", "
-        )},请手动git。`;
+        failedmsg += `以下语种回写失败：${failedLanguages.join(", ")}。`;
         message.error(failedmsg);
       }
       this.loading = false;
