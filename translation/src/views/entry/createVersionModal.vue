@@ -671,11 +671,9 @@ export default {
               i18nUrl: this.writeBack.ip,
             };
             promises.push(writeBack(params, this.dataSource));
-            console.log("promises.push", params, language);
           }
 
           await Promise.allSettled(promises).then((rls) => {
-            console.log("rls", rls);
             rls.forEach((item, index) => {
               if (item.status === "rejected") {
                 failedLanguages.push(
@@ -684,7 +682,6 @@ export default {
               } else {
                 if (item.value.data != "OK") {
                   failedLanguages.push(`${this.writeBack.language[index]}`);
-                  console.log("item.value.data", item.value.data, item);
                   const lastIndex = item.value.data.lastIndexOf("！");
                   if (lastIndex !== -1) {
                     failedmsg = item.value.data.substring(0, lastIndex + 1);
