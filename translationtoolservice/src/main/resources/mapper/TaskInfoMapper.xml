@@ -15,7 +15,7 @@
         <result property="entryAuditor" column="entry_auditor" jdbcType="VARCHAR"/>
         <result property="translator" column="translator" jdbcType="VARCHAR"/>
         <result property="translationAuditor" column="translation_auditor" jdbcType="VARCHAR"/>
-        <result property="description" column=" description" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
         <result property="state" column="state" jdbcType="VARCHAR"/>
         <result property="versionId" column="version_id" jdbcType="VARCHAR"/>
         <result property="importTime" column="import_time" jdbcType="TIMESTAMP"/>
