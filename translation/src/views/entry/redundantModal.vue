@@ -140,8 +140,9 @@ export default {
       checkNotUseEntry({
         // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
         // i18nUrl: "http://10.17.43.20:18099/",
+        i18nURL: this.i18nURL,
+        // classfyID: "1",
         classfyID: this.redundantClassfyID,
-        i18nUrl: this.i18nURL,
       })
         .then((res) => {
           // 都放到.then内，可以确保执行顺序
@@ -176,7 +177,8 @@ export default {
           // console.log("error", error);
           if (error.status == 200) {
             // message.error(`请求失败: ${error.data.operationObject}`);
-            if (error.data.list) {// 不知道为什么error中也能有error.status==200的情况
+            if (error.data.list) {
+              // 不知道为什么error中也能有error.status==200的情况
               // 设置默认全选
               this.redundantEntries = Object.values(error.data.list);
               // console.log("newDataSource", this.redundantEntries);

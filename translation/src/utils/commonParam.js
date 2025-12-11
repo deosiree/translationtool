@@ -90,7 +90,7 @@ export default {
   langAudSugList: default_languageList.map(item => item.auditSuggest),
   langInterList: default_languageList.map(item => item.interpretation),
   languageMap: default_languageMap,
-  checkboxList: [
+  checkboxList: [// 工作台-展示列
     { label: '存在状态', value: 'isExist', index: 1 },
     // {label:'翻译状态',value:'translateState',index:2},
     // {label:'审核状态',value:'state',index:3},// (前端以前写的是state,我觉得写的不严谨，查了后端，后端表里没定义审核状态)
@@ -119,14 +119,14 @@ export default {
     { label: "数据库记录ID", value: "dbRID", index: 26 },
     // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语种动态锁定的
     // {label:'词条状态',value:'entryState',index:19},
-  ],//展示列
+  ],
   departmentMap: {
     "通用平台部": {
       label: "通用平台部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needIP", "needExamine", "needDelete","needBranch", "dev"]),
+      ops: new Set(["needIP", "needExamine", "needDelete", "needBranch", "dev"]),
       // -needIP是否需要IP地址(凡是包含ip的都同理）
       // -----1.工作台-导入：IP的显示与获取、回写辞典
       // -----2.工作台-归档，归档；
@@ -138,12 +138,13 @@ export default {
       // -needExamine是否需要提交词条审核（词条管理-已选词条）
       // -needDelete是否需要删除词条（词条管理-已选词条）
       // -needBranch是否需要分支新建（用于管理产品的版本）
-      // -1.词条管理-右键-分支新建
-      // -2.词条管理-右键-冗余校验
-      // -3.词条管理-classifyModal:分类的编辑-批量修改归档分支；产品的编辑-修改归档分支
-      // -4.工作台-平铺展示，分支列
-      // -5.工作台-批量选择，
-      // -5.1.工作台-批量选择，勾选后才显示多选按钮（平铺有下三角可全部选择/反选；层级无全部选择）
+      // -----1.词条管理-右键-分支新建
+      // -----2.词条管理-右键-冗余校验（该功能为校验类型-冗余校验前身，已删）；
+      // -----3.词条管理-classifyModal:分类的编辑-批量修改归档分支；产品的编辑-修改归档分支
+      // -----4.工作台-平铺展示，分支列
+      // -----5.工作台-批量选择，
+      // --------5.1.工作台-批量选择，勾选后才显示多选按钮（平铺有下三角可全部选择/反选；层级无全部选择）
+      // -----6.词条管理-查询条件-校验类型，（其他部门没有，默认为条件查询）
       // -dev正在开发中的功能，暂时只放开给平台部
     },
     "监控系统部": {
@@ -257,6 +258,7 @@ export default {
 };
 
 // 2.tableParam如下：
+// 词条管理的展示列
 const entry_checkboxList = [
   // {label:'存在状态',value:'isExist',index:1},
   // { label: "词条状态", value: "entryState", index: 1 },
@@ -316,6 +318,7 @@ const entry_checkboxList = [
   { label: "词条标签", value: "entryLabel", index: 60 },
   { label: "abbr", value: "abbr", index: 99 },
 ];
+// 导出词条的字段属性
 const entry_exportFields = [
   { label: "词条", value: "entry", index: 2 },
   { label: 'tag', value: 'tag', index: 3 },
@@ -373,6 +376,7 @@ const entry_exportFields = [
   // { label: "词条标签", value: "entryLabel", index: 60 },
   { label: "abbr", value: "abbr", index: 99 },
 ];
+// 词条管理-查询条件的展示列
 const entry_searchConditionList = [
   { label: '词条', value: 'entry', index: 1 },
   { label: '词条状态', value: 'state', index: 2 },
@@ -389,7 +393,8 @@ const entry_searchConditionList = [
   { label: '开始时间', value: 'startTime', index: 13 },
   { label: '结束时间', value: 'endTime', index: 14 },
   { label: '修改人', value: 'update', index: 15 },
-];// 查询条件列表
+  { label: '校验类型', value: 'searchType', index: 16 },
+];
 const entry_checkedSearchCondition = entry_searchConditionList.map(item => item.value);// 默认选中所有查询条件
 export const entryParams = {
   checkboxList: entry_checkboxList,
@@ -409,6 +414,7 @@ export const entryParams = {
 }
 
 // 3.glossaryParams如下：
+// 术语库的展示列
 export const glossaryParams = {
   checkboxList: [
     { label: "词条", value: "entry", index: 1 },
@@ -437,17 +443,17 @@ export const glossaryParams = {
 
 // 4.workbenchParams如下：
 export const workbenchParams = {
-  checkboxList: [
-    { label: 'tag', value: 'tag', index: 3 },
-    { label: "Comment", value: "comment", index: 4 },
-    { label: "英文释义", value: "englishInterpretation", index: 5 },
-    { label: "中文释义", value: "chineseInterpretation", index: 6 },
-    { label: "一级分类", value: "classfy1", index: 7 },
-    { label: "二级分类", value: "classfy2", index: 8 },
-    { label: "词条来源", value: "entrySource", index: 9 },
-    { label: "回写辞典", value: "diFileName", index: 10 },
-    { label: "abbr", value: "abbr", index: 11 },
-  ],
+  // checkboxList: [
+  //   { label: 'tag', value: 'tag', index: 3 },
+  //   { label: "Comment", value: "comment", index: 4 },
+  //   { label: "英文释义", value: "englishInterpretation", index: 5 },
+  //   { label: "中文释义", value: "chineseInterpretation", index: 6 },
+  //   { label: "一级分类", value: "classfy1", index: 7 },
+  //   { label: "二级分类", value: "classfy2", index: 8 },
+  //   { label: "词条来源", value: "entrySource", index: 9 },
+  //   { label: "回写辞典", value: "diFileName", index: 10 },
+  //   { label: "abbr", value: "abbr", index: 11 },
+  // ],
   overlayStyle: {
     maxHeight: '300px',
     overflowY: 'scroll',
@@ -461,6 +467,7 @@ export const workbenchParams = {
 }
 
 // 5.redundantTableParams如下：
+// 翻译校验-冗余词条校验的展示列
 export const redundantTableParams = {
   checkboxList: [
     { label: "词条", value: "entry", index: 1 },

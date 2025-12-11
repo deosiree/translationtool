@@ -1,6 +1,6 @@
 <template>
   <!-- 修改按钮文本为全量查询 -->
-  <a-button type="primary" @click="showSearchModal" :size="size" style="margin:0 8px">{{ buttonTitle }}</a-button>
+  <a-button type="primary" @click="showSearchModal" :size="size">{{ buttonTitle }}</a-button>
 
   <CustomModal :modalTitle="buttonTitle" width="500px" :visible="searchVisible" :showCancel="false" :showOk="false" @handleClose="handleClose">
     <div class="content">

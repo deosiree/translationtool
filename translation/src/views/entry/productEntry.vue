@@ -3,75 +3,83 @@
     <SearchBox ref="search" @change="setTableHeight" :operate="false">
       <template v-slot:form>
         <a-form :model="search" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-row style="width:100%" class="search-row">
-            <a-form-item v-if="checkedSearchCondition.includes('entry')" label="词条" name="entry" style="margin-top: 8px">
+          <a-row class="search-row" style="width:100%;display:flex;gap:8px">
+            <a-form-item v-if="checkedSearchCondition.includes('entry')" label="词条" name="entry">
               <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('state')" label="词条状态" name="state" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('state')" label="词条状态" name="state">
               <EntryStateSelect :entryState="search.entryState" @update:entryState="search.entryState = $event" :showForbbiden="showForbbiden"
                 @update:showForbbiden="showForbbiden = $event" />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('tag')" label="tag" name="tag" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('tag')" label="tag" name="tag">
               <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('classfy1')" label="一级分类" name="classfy1" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('classfy1')" label="一级分类" name="classfy1">
               <a-select v-model:value="search.classfy1" mode="tags" placeholder="请输入一级分类" :fieldNames="{label:'title',value:'title'}"
                 :options='classify1Option' allowClear :maxTagTextLength="3" :maxTagCount="1">
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('classfy2')" label="二级分类" name="classfy2" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('classfy2')" label="二级分类" name="classfy2">
               <a-select v-model:value="search.classfy2" mode="tags" placeholder="请输入二级分类" :fieldNames="{label:'title',value:'title'}"
                 :options='classify2Option' allowClear :maxTagTextLength="3" :maxTagCount="1">
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource">
               <!-- <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input> -->
               <a-select v-model:value="search.entrySource" show-search placeholder="请输入词条来源" :options="entrySourceOptions" allowClear>
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language">
               <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{label:'name',value:'name'}" :options='translateTypes'
                 allowClear>
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('translateState')" label="翻译状态" name="translateState" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('translateState')" label="翻译状态" name="translateState">
               <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('translate')" label="翻译结果" name="translate" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('translate')" label="翻译结果" name="translate">
               <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <!-- <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate" style="margin-top: 8px">
+            <!-- <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate">
               <a-input v-model:value="search.filter_translate" placeholder="请输入内容"></a-input>
             </a-form-item> -->
-            <!-- <a-form-item label="翻译释义" name="interpretation" style="margin-top: 8px">
+            <!-- <a-form-item label="翻译释义" name="interpretation">
               <a-input v-model:value="search.interpretation" placeholder="请输入内容"></a-input>
             </a-form-item> -->
-            <a-form-item v-if="checkedSearchCondition.includes('comment')" label="comment" name="comment" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('comment')" label="comment" name="comment">
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName">
               <a-input v-model:value="search.diFileName" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime" style="margin-top: 8px">
-              <a-date-picker v-model:value="search.startTime_" />
+            <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime">
+              <a-date-picker v-model:value="search.startTime_" style="width:186px" />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('endTime')" label="结束时间" name="endTime" style="margin-top: 8px">
-              <a-date-picker v-model:value="search.endTime_" />
+            <a-form-item v-if="checkedSearchCondition.includes('endTime')" label="结束时间" name="endTime">
+              <a-date-picker v-model:value="search.endTime_" style="width:186px" />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('update')" label="修改人" name="update" style="margin-top: 8px">
+            <a-form-item v-if="checkedSearchCondition.includes('update')" label="修改人" name="update">
               <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
             </a-form-item>
+            <a-form-item v-if="checkedSearchCondition.includes('searchType')&&currentDepartment.ops.has('needBranch')" label="校验类型" name="searchType">
+              <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型" :options='searchTypes' allowClear>
+              </a-select>
+            </a-form-item>
+            <a-form-item v-if="search.searchType == 'checkNotUseEntry'" label="i18nURL" name="i18nURL">
+              <a-select v-model:value="search.i18nURL" style="width: 186px" placeholder="请选择i18nURL" :options='ipOptions' allowClear>
+              </a-select>
+            </a-form-item>
           </a-row>
-          <a-row style="width:100%;margin-top:8px" class="search-row" justify="end">
-            <a-button type="primary" size="middle" :danger="!showForbbiden" :class="{ yellowBtn: showForbbiden }" @click="changeForbbiden"
-              style="margin:0 8px" v-if="admin">
+          <a-row style="width:100%;margin-top:8px;display:flex;gap:8px;" class="search-row" justify="end">
+            <a-button type="primary" size="middle" v-if="admin" :danger="!showForbbiden" :class="{ yellowBtn: showForbbiden }"
+              @click="changeForbbiden">
               {{ showForbbiden ? '隐藏禁用' : '显示禁用' }}
             </a-button>
-            <a-button type="primary" size="middle" class="resetBtn" @click="reset" style="margin:0 8px">重置</a-button>
-            <a-button type="primary" size="middle" @click="conditionalQuery" style="margin:0 8px">查询</a-button>
-            <AccurSearchButton @update:accurSearch="accurSearch=$event" :fieldOptions="exportFields" @searchFunction="conditionalQuery($event)"
-              size="middle" buttonTitle="全量查询" />
-
+            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
+            <a-button type="primary" size="middle" @click="conditionalQuery">查询</a-button>
+            <AccurSearchButton v-if="!search.searchType||search.searchType == 'getEntryByClassfy'" size="middle" buttonTitle="全量查询"
+              :fieldOptions="exportFields" @update:accurSearch="accurSearch=$event" @searchFunction="conditionalQuery($event)" />
+            <a-button type="primary" size="middle" class="yellowBtn" v-if="search.hasRedundantRls" @click="reGetCheckNotUseEntry">重新查询</a-button>
             <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
               <template #content>
                 <a-checkbox-group v-model:value="checkedSearchCondition" @change="changeSearchCondition">
@@ -84,7 +92,7 @@
                   </a-row>
                 </a-checkbox-group>
               </template>
-              <a-button type="primary" size="middle" style="margin:0 8px" ghost><template #icon>
+              <a-button type="primary" size="middle" ghost><template #icon>
                   <SettingOutlined />
                 </template>展示条件</a-button>
             </a-popover>
@@ -383,7 +391,6 @@ import { getLanguage } from "@/http/api/translate";
 import { getProductVersion } from "@/http/api/product";
 import { getVersionByName } from "@/http/api/productVersion";
 import {
-  getEntryByVersion,
   deleteEntryInfo,
   updatePublicEntry,
   addSingleEntry,
@@ -397,6 +404,8 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
+import { getI18nAdress } from "@/http/api/workbench";
+import { getCheckNotUseEntry, checkNotUseEntry } from "@/http/api/check";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -514,6 +523,9 @@ export default {
         endTime: null,
         diFileName: null,
         update: null,
+        searchType: null,
+        i18nURL: null,
+        hasRedundantRls: false, // 是否有冗余词条校验结果,有的话显示按钮“重新查询”
       },
       searchConditionList: entryParams.searchConditionList,
       checkedSearchCondition: cachedSearchCondition
@@ -552,13 +564,22 @@ export default {
           index: 0,
         },
         {
+          title: "词条状态",
+          dataIndex: "entryState",
+          align: "center",
+          width: 130,
+          resizable: true,
+          fixed: "left",
+          index: 1,
+        },
+        {
           title: "词条",
           dataIndex: "entry",
           align: "center",
           width: 160,
           resizable: true,
           fixed: "left",
-          index: 1,
+          index: 2,
           // // 添加筛选功能(但是查询做了分页，只能获得当前页的数据)
           // customFilterDropdown: true, // 使用自定义筛选下拉框
           // filteredValue: null, // 初始状态下没有筛选条件
@@ -566,14 +587,6 @@ export default {
           //   // 精确匹配，不忽略大小写
           //   return record.entry.toString() === filterValue;
           // },
-        },
-        {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 2,
         },
         {
           title: "tag",
@@ -584,7 +597,7 @@ export default {
           index: 3,
         },
         {
-          title: "Comment",
+          title: "comment",
           dataIndex: "comment",
           align: "center",
           width: 130,
@@ -605,7 +618,7 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
-          index: 10,
+          index: 12,
         },
         {
           title: "俄文翻译",
@@ -613,7 +626,7 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
-          index: 16,
+          index: 15,
         },
         {
           title: "西文翻译",
@@ -621,7 +634,7 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
-          index: 20,
+          index: 18,
         },
         {
           title: "法文翻译",
@@ -629,7 +642,7 @@ export default {
           align: "center",
           width: 180,
           resizable: true,
-          index: 23,
+          index: 21,
         },
         {
           title: "abbr",
@@ -701,6 +714,11 @@ export default {
       showForbbiden: false, // 显示/隐藏禁用
       classifyLimit: {},
       entrySourceOptions: [], // 词条来源下拉框
+      searchTypes: [
+        { label: "冗余词条校验", value: "checkNotUseEntry" },
+        { label: "条件查询", value: "getEntryByClassfy" },
+      ],
+      ipOptions: {},
     };
   },
   created() {},
@@ -873,8 +891,11 @@ export default {
       if (this.product.type == "product") {
         await this.getProductVersion({ isInit: true, accurate: [] });
       }
-      // // 查询词条
-      // await this.getEntryByVersion(true); // isInit=true
+      // 查询i18nURL
+      await this.getI18nAdress();
+      // 查询词条
+      // await this.getEntryByClassfy(true); // isInit=true
+      await this.conditionalQuery([], true);
       // 设置表的高度
       this.setTableHeight();
     },
@@ -888,6 +909,19 @@ export default {
         this.translateTypes = res.data.list;
       });
     },
+    // 获取i18服务器ip
+    getI18nAdress() {
+      this.ipOptions = [];
+      getI18nAdress().then((res) => {
+        res.data.list.forEach((item) => {
+          let ip = {
+            label: item.ip,
+            value: item.ip,
+          };
+          this.ipOptions.push(ip);
+        });
+      });
+    },
     // 切换显示/隐藏禁用
     changeForbbiden() {
       this.showForbbiden = this.showForbbiden ? false : true;
@@ -896,7 +930,7 @@ export default {
       } else {
         this.search.entryState_ = [0, 1, 2, 3];
       }
-      this.getEntryByVersion();
+      this.getEntryByClassfy();
     },
     // 动态设置表格高度
     setTableHeight() {
@@ -940,11 +974,11 @@ export default {
         //   this.currentVersion = null;
         // }
         // 获取版本下的词条
-        this.getEntryByVersion(searchparams.isInit, searchparams.accurate);
+        this.getEntryByClassfy(searchparams.isInit, searchparams.accurate);
       });
     },
     // 条件查询
-    conditionalQuery(accurate = []) {
+    conditionalQuery(accurate = [], isInit = false) {
       // 将页码变为第一页
       this.pagination.current = 1;
       // this.selectedRowKeys = [];
@@ -952,16 +986,29 @@ export default {
       // this.selectEntry = [];
       // this.createVersionFlag = false;
       // this.batchSelectFlag = false;
-      if (accurate.length > 0) this.accurSearch = accurate;
-      else this.accurSearch = [];
-      this.getEntryByVersion(false, this.accurSearch);
+
+      // 接口方法集合
+      if (
+        !this.search.searchType ||
+        this.search.searchType == "getEntryByClassfy"
+      ) {
+        // 条件查询
+        if (accurate.length > 0) this.accurSearch = accurate;
+        else this.accurSearch = [];
+        this.getEntryByClassfy(isInit, this.accurSearch);
+      } else if (this.search.searchType == "checkNotUseEntry") {
+        // 冗余校验查询
+        this.getCheckNotUseEntry();
+      } else {
+        console.log("未执行查询", this.search.searchType);
+      }
     },
     /**
-     * 获取版本词条
+     * 条件查询：根据一级分类（即状态树key）获取词条
      * isInit：是否是点击状态树的首次（部门级不用查询）；
      * accurate：是否全量查询
      */
-    getEntryByVersion(isInit = false, accurate = []) {
+    getEntryByClassfy(isInit = false, accurate = []) {
       if (isInit) {
         if (this.product.type == "department") {
           this.dataSource = [];
@@ -1029,6 +1076,7 @@ export default {
         params.accurate = accurate;
       }
       this.loading = true;
+      // 获取对应分类的词条
       getEntryByClassfy(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
@@ -1049,6 +1097,82 @@ export default {
       getEntryClassfy(params).then((res) => {
         this.entryClassfy = res.data;
       });
+    },
+    // 查询冗余词条校验状态
+    async getCheckNotUseEntry() {
+      if (!this.search.i18nURL) {
+        message.info("请选择i18nURL！");
+        return;
+      }
+      this.loading = true;
+      let params = {
+        i18nURL: this.search.i18nURL,
+        classfyID: this.currentProduct.key,
+      };
+      await getCheckNotUseEntry(params).then(async (res) => {
+        if (res.data.state === 1) {
+          // 有结果
+          this.search.hasRedundantRls = true; // 显示“重新执行”
+          this.dataSource = res.data.list;
+        } else if (res.data.state === 2) {
+          // 有结果
+          this.search.hasRedundantRls = true; // 显示“重新执行”
+          message.info(`任务执行异常`, 1);
+        } else if (res.data.state === 0) {
+          // 没结果没执行
+          message.info("查询无结果,开始校验", 1);
+          await checkNotUseEntry(params).catch((err) => {
+            console.log("冗余校验执行失败", err);
+          }); // 没执行所以需要执行
+        } else if (res.data.state === 3) {
+          // 没结果有执行
+          message.info("查询无结果,正在校验", 1);
+        }
+      });
+      this.loading = false;
+    },
+    // 重新查询冗余词条校验状态
+    async reGetCheckNotUseEntry() {
+      if (!this.search.i18nURL) {
+        message.info("请选择i18nURL！");
+        return;
+      }
+      this.loading = true;
+      let params = {
+        i18nURL: this.search.i18nURL,
+        classfyID: this.currentProduct.key,
+      };
+      await checkNotUseEntry(params)
+        .then(async (res) => {
+          await getCheckNotUseEntry(params).then(async (res) => {
+            if (res.data.state === 3) {
+              // 没结果有执行
+              this.search.hasRedundantRls = false; // 隐藏“重新执行”
+              message.info("正在重新校验中", 1);
+            } else {
+              let state = "";
+              switch (res.data.state) {
+                case 0:
+                  state = "不在执行中";
+                  break;
+                case 1:
+                  state = "有结果";
+                  break;
+                case 2:
+                  state = "任务执行异常";
+                  break;
+                default:
+                  state = "未知状态";
+                  break;
+              }
+              message.info(`重新校验失败,任务状态：${state}`, 1);
+            }
+          });
+        })
+        .catch((err) => {
+          console.log("冗余校验执行失败", err);
+        });
+      this.loading = false;
     },
     // 组装表格数据
     assemblyTableData(data) {
@@ -1086,7 +1210,7 @@ export default {
       }
       this.pagination.current = 1;
       // 查询版本词条
-      this.getEntryByVersion(false, this.accurSearch);
+      this.getEntryByClassfy(false, this.accurSearch);
     },
 
     // 添加表格行点击事件
@@ -1210,7 +1334,7 @@ export default {
           };
           deleteEntryInfo(this.selectedRowKeys, params).then((res) => {
             message.success("删除成功！");
-            this.getEntryByVersion(false, this.accurSearch);
+            this.getEntryByClassfy(false, this.accurSearch);
             this.selectedRowKeys = [];
             this.selectedRows = [];
           });
@@ -1297,7 +1421,7 @@ export default {
       //       // 新增词条/升级词条
       //       addSingleEntry(this.editableData[id]).then((res) => {
       //         message.success("新增成功!");
-      //         // this.getEntryByVersion()
+      //         // this.getEntryByClassfy()
       //         let index = this.dataSource.findIndex((item) => item.id === id);
       //         this.dataSource.splice(index, 1);
       //         this.dataSource.splice(index, 0, res.data);
@@ -1344,7 +1468,7 @@ export default {
 
       this.editVisible = false;
       delete this.rowClassify2Option[entry.id];
-      this.getEntryByVersion(false, this.accurSearch);
+      this.getEntryByClassfy(false, this.accurSearch);
     },
     editClose() {
       this.editVisible = false;
@@ -1422,9 +1546,11 @@ export default {
         endTime: null,
         diFileName: null,
         update: null,
+        i18nURL: null,
+        hasRedundantRls: false,
       };
       this.showForbbiden = false; // 默认不显示禁用
-      // this.getEntryByVersion();
+      // this.getEntryByClassfy();
       this.conditionalQuery();
     },
     // 展示条件切换并保存用户偏好
@@ -1537,7 +1663,7 @@ export default {
       this.getProductVersion();
     },
     refreshTable() {
-      this.getEntryByVersion(false, this.accurSearch);
+      this.getEntryByClassfy(false, this.accurSearch);
     },
     // 选择全部词条
     selectAllEntry() {
@@ -1885,12 +2011,12 @@ export default {
       );
     },
     // 分页切换
-    pageChange(page, pageSize, refreshFn = this.getEntryByVersion) {
+    pageChange(page, pageSize, refreshFn = this.getEntryByClassfy) {
       pageChange(
         this,
         page,
         pageSize,
-        // this.getEntryByVersion,
+        // this.getEntryByClassfy,
         refreshFn,
         "selectEntry",
         false,

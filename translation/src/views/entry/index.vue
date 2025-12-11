@@ -37,7 +37,7 @@
                       :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
                       分支新建{{createbranchStatus=='执行中'?'(执行中)':''}}
                     </a-menu-item>
-                    <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item>
+                    <!-- <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
                   </a-menu>
                 </template>
               </a-dropdown>
@@ -69,8 +69,8 @@
       </a-col>
     </a-row>
   </div>
-  <RedundantModal ref="redundantModal" :visible="redundantVisible" :modalTitle="classifyModalTitle" :redundantClassfyID="redundantClassfyID"
-    @redundantClose="redundantClose" style="width:700px;" />
+  <!-- <RedundantModal ref="redundantModal" :visible="redundantVisible" :modalTitle="classifyModalTitle" :redundantClassfyID="redundantClassfyID"
+    @redundantClose="redundantClose" style="width:700px;" /> -->
   <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
     @updateClose="updateClose" style="width:700px;" />
   <CreateBranchModal ref="createBranchModal" :treeNode="currentClickProduct" :visible="createBranchVisible" :modalTitle="classifyModalTitle"
