@@ -103,10 +103,14 @@
                       <TaskStateBadge type="normal" :taskState="text" />
                     </template>
                     <template v-if="column.dataIndex === 'name'">
-                      <span style="position: relative; display: inline-block;">
+                      <!-- <span style="position: relative; display: inline-block;">
                         {{ text }}
                         <a-badge color="#ff0000" v-if="record.isHighlighted" style="position: absolute;top: -9px;right: -9px;z-index: 1;" />
-                      </span>
+                      </span> -->
+                      <div style="display: flex; gap: 5px;">
+                        <span>{{ text }}</span>
+                        <a-badge :count="record.num__total" :overflow-count="99" v-if="record.num__total>0" />
+                      </div>
                     </template>
                   </template>
                   <template #expandIcon="props">
@@ -463,8 +467,8 @@ export default {
         });
       }
 
-      // 在展开时计算该分支下任务的未完成状态
-      await this.getBranchPending();
+      // // 在展开时计算该分支下任务的未完成状态
+      // await this.getBranchPending();// 只获得展开分支的任务执行状态
 
       // 清除加载状态
       this.loading = false;
@@ -479,34 +483,26 @@ export default {
         let branch = this.expandSource[i].record;
 
         if (branch.child && branch.child.length > 0) {
-          // let hasPendingTask = false;
-
-          // 遍历该分支下的所有任务
-          const {tasks,totalNum} = await this.getTaskPending2(branch.child);
+          const { tasks, totalNum } = await this.getTaskPending(branch.child);
           branch.child = tasks;
-          branch.isHighlighted = totalNum > 0;
-
-          // for (let j = 0; j < branch.child.length; j++) {
-          //   const isHL = await this.getTaskPending(branch.child[j].id);
-          //   branch.child[j].isHighlighted = isHL;
-          //   // this.dataSource[datai].child[j].isHighlighted = isHL;
-
-          //   // 但是切换到下一页时会有问题，封掉这个功能
-
-          //   // 如果有任何一个任务有未完成词条，标记分支有未完成任务
-          //   if (branch.child[j].isHighlighted) {
-          //     hasPendingTask = true;
-          //   }
-          // }
-
-          // // 更新分支节点的高亮状态
-          // branch.isHighlighted = hasPendingTask;
-          // // this.dataSource[datai].isHighlighted = hasPendingTask;
+          branch.num__total = totalNum;
+        }
+      }
+    },
+    // 获取所有分支的任务执行状态
+    async getAllBranchPending() {
+      for (let i = 0; i < this.dataSource.length; i++) {
+        if (this.dataSource[i].child && this.dataSource[i].child.length > 0) {
+          const { tasks, totalNum } = await this.getTaskPending(
+            this.dataSource[i].child
+          );
+          this.dataSource[i].child = tasks;
+          this.dataSource[i].num__total = totalNum;
         }
       }
     },
     // 获取词条数量
-    async getTaskPending2(tasks) {
+    async getTaskPending(tasks) {
       const taskIds = tasks.map((item) => item.id);
       let totalTaskPendingNum = 0;
 
@@ -530,38 +526,6 @@ export default {
         }
       });
       return { tasks: tasks, totalNum: totalTaskPendingNum };
-    },
-    // 获取词条数量
-    async getTaskPending(taskID) {
-      function fetch(params, data) {
-        return getEntryInfoList(params, data)
-          .then((res) => {
-            return res.data.list.length > 0;
-          })
-          .catch((err) => {
-            message.error(err.message);
-            return false;
-          });
-      }
-      const entryStates = ["1", "2", "3", "3"];
-      const datas = [[], [], ["0", "2"], ["1"]];
-      const promises = [];
-
-      for (let i = 0; i < entryStates.length; i++) {
-        const params = {
-          taskID: taskID,
-          entryState: entryStates[i],
-          entry: "",
-        };
-        const data = datas[i];
-        promises.push(fetch(params, data));
-      }
-      try {
-        const results = await Promise.all(promises);
-        return results.some((result) => result);
-      } catch (error) {
-        return false;
-      }
     },
     // 获取翻译语种
     getLanguage() {
@@ -842,21 +806,13 @@ export default {
             // 层级展示
             this.dataSource = this.buildTreeData(taskList);
             // 使用$nextTick确保DOM更新后再执行getBranchPending
-            this.$nextTick(async () => {
-              await this.getBranchPending();
-            });
+            await new Promise((resolve) => this.$nextTick(resolve));
+            // await this.getBranchPending();// 只获得展开分支的任务执行状态
+            await this.getAllBranchPending(); // 获得所有分支的任务执行状态
           } else {
             // 平铺展示
-            const { tasks, _ } = await this.getTaskPending2(taskList);
+            const { tasks, _ } = await this.getTaskPending(taskList);
             this.dataSource = tasks;
-            // // 太卡了先不用
-            // for (const item of this.dataSource) {
-            //   if (await this.getTaskPending(item.id)) {
-            //     item.isHighlighted = true;
-            //   } else {
-            //     item.isHighlighted = false;
-            //   }
-            // }
           }
         })
         .catch((err) => {
