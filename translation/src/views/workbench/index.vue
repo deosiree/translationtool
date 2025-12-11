@@ -175,6 +175,7 @@ import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
 import { getProduct } from "@/http/api/product";
+import { getTaskPending } from "@/http/api/task";
 import {
   setTableHeight,
   setModalAriaHidden,
@@ -377,11 +378,17 @@ export default {
 
         // 读取本地存储的用户偏好
         const storedDisplay = localStorage.getItem("display-workbenchIndex");
-        // console.log("偏好：", storedDisplay, localStorage);
         if (storedDisplay) {
           this.isTreeOr2D = JSON.parse(storedDisplay);
           if (this.isTreeOr2D == "tree") this.pageChange(1, 100);
-          else this.pageChange(1, 20);
+          else {
+            if (
+              this.pagination.current != 1 &&
+              this.pagination.pageSize != 20
+            ) {
+              this.pageChange(1, 20);
+            }
+          }
         }
       }
       this.init();
@@ -405,13 +412,21 @@ export default {
           newVal != null &&
           newVal !== oldVal
         ) {
-          this.query();
           localStorage.setItem(
             "display-workbenchIndex",
             JSON.stringify(newVal)
           ); // 存储用户偏好
           if (newVal == "tree") this.pageChange(1, 100);
-          else this.pageChange(1, 20);
+          else {
+            if (
+              this.pagination.current != 1 &&
+              this.pagination.pageSize != 20
+            ) {
+              this.pageChange(1, 20);
+            } else {
+              this.query(); // 分页中自带查询，但是不修改分页信息时，刷新页面后需要手动查询一次
+            }
+          }
         }
       },
       immediate: true,
@@ -463,30 +478,58 @@ export default {
         this.expandSource[i].record = this.dataSource[datai]; // 保证expandSource和dataSource一致
         let branch = this.expandSource[i].record;
 
-        // console.log("比较：", branch, this.dataSource[datai]);
         if (branch.child && branch.child.length > 0) {
-          let hasPendingTask = false;
+          // let hasPendingTask = false;
 
           // 遍历该分支下的所有任务
-          for (let j = 0; j < branch.child.length; j++) {
-            // console.log("分类信息", branch.child[j], branch.child[j].id);
-            const isHL = await this.getTaskPending(branch.child[j].id);
-            branch.child[j].isHighlighted = isHL;
-            // this.dataSource[datai].child[j].isHighlighted = isHL;
+          const {tasks,totalNum} = await this.getTaskPending2(branch.child);
+          branch.child = tasks;
+          branch.isHighlighted = totalNum > 0;
 
-            // 但是切换到下一页时会有问题，封掉这个功能
+          // for (let j = 0; j < branch.child.length; j++) {
+          //   const isHL = await this.getTaskPending(branch.child[j].id);
+          //   branch.child[j].isHighlighted = isHL;
+          //   // this.dataSource[datai].child[j].isHighlighted = isHL;
 
-            // 如果有任何一个任务有未完成词条，标记分支有未完成任务
-            if (branch.child[j].isHighlighted) {
-              hasPendingTask = true;
-            }
-          }
+          //   // 但是切换到下一页时会有问题，封掉这个功能
 
-          // 更新分支节点的高亮状态
-          branch.isHighlighted = hasPendingTask;
-          // this.dataSource[datai].isHighlighted = hasPendingTask;
+          //   // 如果有任何一个任务有未完成词条，标记分支有未完成任务
+          //   if (branch.child[j].isHighlighted) {
+          //     hasPendingTask = true;
+          //   }
+          // }
+
+          // // 更新分支节点的高亮状态
+          // branch.isHighlighted = hasPendingTask;
+          // // this.dataSource[datai].isHighlighted = hasPendingTask;
         }
       }
+    },
+    // 获取词条数量
+    async getTaskPending2(tasks) {
+      const taskIds = tasks.map((item) => item.id);
+      let totalTaskPendingNum = 0;
+
+      await getTaskPending(taskIds).then((res) => {
+        for (let i = 0; i < res.data.length; i++) {
+          const item = res.data[i];
+          const taskIndex = tasks.findIndex((t) => t.id == item.taskID);
+          if (taskIndex !== -1) {
+            tasks[taskIndex].num__total = item.totalCounts;
+            tasks[taskIndex].num_entryExamine = item.entryExamineCounts;
+            tasks[taskIndex].num_import = item.importNum;
+            tasks[taskIndex].num_translate = item.translateCounts;
+            tasks[taskIndex].num_translateExamine = item.translateExamineCounts;
+            if (tasks[taskIndex].num__total > 0) {
+              tasks[taskIndex].isHighlighted = true;
+              totalTaskPendingNum += tasks[taskIndex].num__total;
+            } else {
+              tasks[taskIndex].isHighlighted = false;
+            }
+          }
+        }
+      });
+      return { tasks: tasks, totalNum: totalTaskPendingNum };
     },
     // 获取词条数量
     async getTaskPending(taskID) {
@@ -569,18 +612,6 @@ export default {
       }); // 单条更新任务，批量循环调用
       Promise.allSettled(promises)
         .then((results) => {
-          // console.log("所有任务处理完成");
-          // const successfulTasks = results.filter(
-          //   (result) => result.status === "fulfilled"
-          // );
-          // const failedTasks = results.filter(
-          //   (result) => result.status === "rejected"
-          // );
-          // console.log(
-          //   `成功任务数: ${successfulTasks.length}, 失败任务数: ${failedTasks.length}`
-          // );
-
-          // console.log("打印信息", msg);
           if (msg.update1.length > 0)
             msg.updateSuc.push(`成功更改：${msg.update1.join("、")}`);
           if (msg.update2.length > 0)
@@ -756,9 +787,9 @@ export default {
     },
     init() {
       this.setTableHeight();
-      this.getTask();
-      this.getTaskTotal();
       this.getLanguage();
+      this.getTaskTotal();
+      // this.getTask();// 分页pageChange中已经有调用了
     },
     setTableHeight() {
       this.$nextTick(() => {
@@ -802,10 +833,8 @@ export default {
         pageSize: this.pagination.pageSize,
       };
       const api = this.activeCard === 1 ? getToDoTaskInfo : getFinishTaskInfo;
-
       api(params, data)
         .then(async (res) => {
-          // console.log("需要查询是否完成的任务2", res.data.list);
           const taskList = res.data.list;
           this.pagination.total = res.data.totalNum;
 
@@ -814,24 +843,20 @@ export default {
             this.dataSource = this.buildTreeData(taskList);
             // 使用$nextTick确保DOM更新后再执行getBranchPending
             this.$nextTick(async () => {
-              // console.log(
-              //   "根据条件获取任务,重新创建的treeData",
-              //   this.dataSource,
-              //   this.expandSource
-              // );
               await this.getBranchPending();
             });
           } else {
             // 平铺展示
-            this.dataSource = taskList;
-            // 太卡了先不用
-            for (const item of this.dataSource) {
-              if (await this.getTaskPending(item.id)) {
-                item.isHighlighted = true;
-              } else {
-                item.isHighlighted = false;
-              }
-            }
+            const { tasks, _ } = await this.getTaskPending2(taskList);
+            this.dataSource = tasks;
+            // // 太卡了先不用
+            // for (const item of this.dataSource) {
+            //   if (await this.getTaskPending(item.id)) {
+            //     item.isHighlighted = true;
+            //   } else {
+            //     item.isHighlighted = false;
+            //   }
+            // }
           }
         })
         .catch((err) => {

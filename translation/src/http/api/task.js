@@ -85,3 +85,12 @@ export function createTaskByLang(params, data) {
     data
   });
 }
+
+// 获取指定任务的待处理词条数
+export function getTaskPending(data) {
+  return request({
+    url: "/taskManage/getTaskPending",
+    method: "POST",
+    data
+  });
+}
