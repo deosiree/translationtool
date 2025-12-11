@@ -45,6 +45,9 @@
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:8px">
+          <a-button type="primary" size="small" @click="deleteTaskByAdmin" danger v-if="isAdmin"><template #icon>
+              <DeleteOutlined />
+            </template>无限制删除</a-button>
           <a-button type="primary" size="small" @click="handleAdd"><template #icon>
               <PlusOutlined />
             </template>新增</a-button>
@@ -99,7 +102,7 @@
                   </template>
                 </template> -->
                 <template v-if="'productName' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
                       <!-- <a-select v-model:value="editableData[record.id]['productId']" style="width: 85%" placeholder="请选择"
                         :options='options[record.id]["products"]' :fieldNames='{label:"name",value:"id"}' @click="clickInput"
@@ -127,7 +130,7 @@
                   </template>
                 </template>
                 <template v-if="'versionName' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <!-- <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
                       <a-select v-model:value="editableData[record.id]['versionId']" style="width: 85%" placeholder="请选择"
                         :options='options[record.id]["versions"]' @click="clickInput">
@@ -144,7 +147,7 @@
                   </template>
                 </template>
                 <template v-if="'developer' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                       :options='options[record.id]["developers"]' @click="clickInput" allowClear>
                     </a-select>
@@ -154,7 +157,7 @@
                   </template>
                 </template>
                 <template v-if="'entryAuditor' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                       :options='options[record.id]["entryAuditors"]' @click="clickInput" allowClear>
                     </a-select>
@@ -164,7 +167,7 @@
                   </template>
                 </template>
                 <template v-if="'translator' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                       :options='options[record.id]["translators"]' @click="clickInput" allowClear>
                     </a-select>
@@ -174,7 +177,7 @@
                   </template>
                 </template>
                 <template v-if="'translationAuditor' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                       :options='options[record.id]["translatorAuditors"]' @click="clickInput" allowClear>
                     </a-select>
@@ -184,7 +187,7 @@
                   </template>
                 </template>
                 <template v-if="'translateType' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
+                  <template v-if="editableData[record.id]&&!isSubmit">
                     <a-form-item label=" " :name="[index, 'translateType']" :rules="rules[column.dataIndex]">
                       <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
                         :options='translateTypes' :fieldNames="{label:'name',value:'name'}" @click="clickInput" allowClear>
@@ -295,6 +298,7 @@ export default {
         userName: "",
         department: "",
       },
+      isAdmin: false,
       locale: locale,
       labelCol: { style: { width: "84px" } },
       search: {
@@ -462,6 +466,7 @@ export default {
         onChange: this.pageChange,
       },
       pageChangeSearch: {},
+      isSubmit: false,
     };
   },
   mounted() {
@@ -482,6 +487,7 @@ export default {
     // 初始化
     init() {
       this.user = this.$store.state.user;
+      this.isAdmin = this.user.roleName.includes("超级管理员");
       this.setTableHeight();
       this.searchTaskInfo();
       this.getDepartments();
@@ -585,9 +591,12 @@ export default {
           }
           if (record.state != "0" && record.state != "6") {
             message.info("当前任务已下发，不可编辑！");
+            this.isSubmit = true;
+            this.edit(record);
           } else if (record.state === "6") {
             message.info("当前任务已归档，不可编辑！");
           } else if (record.state === "0") {
+            this.isSubmit = false;
             this.edit(record);
           }
         },
@@ -849,6 +858,7 @@ export default {
         });
       }
     },
+    // 删除任务
     deleteTask() {
       if (this.selectedRowKeys.length === 0) {
         message.info("请选择需要删除的任务！");
@@ -862,6 +872,28 @@ export default {
       });
       if (flag) {
         message.error("已下发或已归档的任务不可删除！");
+        return;
+      }
+      Modal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "确定",
+        cancelText: "取消",
+        style: { top: "30%" },
+        onOk: () => {
+          deleteTaskInfo(this.selectedRowKeys).then((res) => {
+            message.success("删除成功！");
+            this.searchTaskInfo();
+            this.selectedRowKeys = [];
+            this.selectedRows = [];
+          });
+        },
+      });
+    },
+    // 无限制删除-仅限超管
+    deleteTaskByAdmin() {
+      if (this.selectedRowKeys.length === 0) {
+        message.info("请选择需要删除的任务！");
         return;
       }
       Modal.confirm({
@@ -1098,7 +1130,6 @@ export default {
       copyIds.forEach((item) => {
         _this.copyTaskEntry[item] = 0;
       });
-
 
       this.copyNumber = 1;
       this.selectedRowKeys = [];
