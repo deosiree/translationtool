@@ -61,7 +61,8 @@
             <a-form-item v-if="checkedSearchCondition.includes('update')" label="修改人" name="update">
               <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('searchType')&&currentDepartment.ops.has('needBranch')" label="校验类型" name="searchType">
+            <a-form-item v-if="checkedSearchCondition.includes('searchType')&&currentProduct.key&&currentDepartment.ops.has('needBranch')"
+              label="校验类型" name="searchType">
               <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型" :options='searchTypes' allowClear>
               </a-select>
             </a-form-item>
@@ -718,7 +719,7 @@ export default {
         { label: "冗余词条校验", value: "checkNotUseEntry" },
         { label: "条件查询", value: "getEntryByClassfy" },
       ],
-      ipOptions: {},
+      ipOptions: [],
     };
   },
   created() {},
@@ -1110,22 +1111,28 @@ export default {
         classfyID: this.currentProduct.key,
       };
       await getCheckNotUseEntry(params).then(async (res) => {
+        console.log("getCheckNotUseEntry:", res);
         if (res.data.state === 1) {
           // 有结果
           this.search.hasRedundantRls = true; // 显示“重新执行”
           this.dataSource = res.data.list;
+          this.pagination.total = res.data.totalNum;
         } else if (res.data.state === 2) {
-          // 有结果
+          // 有结果,但校验异常
           this.search.hasRedundantRls = true; // 显示“重新执行”
           message.info(`任务执行异常`, 1);
         } else if (res.data.state === 0) {
           // 没结果没执行
+          this.dataSource = [];
+          this.pagination.total = 0;
           message.info("查询无结果,开始校验", 1);
           await checkNotUseEntry(params).catch((err) => {
             console.log("冗余校验执行失败", err);
           }); // 没执行所以需要执行
         } else if (res.data.state === 3) {
           // 没结果有执行
+          this.dataSource = [];
+          this.pagination.total = 0;
           message.info("查询无结果,正在校验", 1);
         }
       });
@@ -1144,6 +1151,8 @@ export default {
       };
       await checkNotUseEntry(params)
         .then(async (res) => {
+          this.dataSource = [];
+          this.pagination.total = 0;
           await getCheckNotUseEntry(params).then(async (res) => {
             if (res.data.state === 3) {
               // 没结果有执行
