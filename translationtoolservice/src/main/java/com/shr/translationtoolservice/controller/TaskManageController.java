@@ -377,4 +377,20 @@ public class TaskManageController extends BaseController {
         return ok(backendTaskID);
         
     }
+
+    @PostMapping("/getTaskPending")
+    @ApiOperation("将不同文件的词条导入给不同的任务")
+    @CrossOrigin
+    public HttpResponse<List<TaskStateEntity>> countEntryTranslateStateForTasks(@RequestBody Set<String> taskIDs){
+        // Set<String> taskIDs = new HashSet<>();
+        try {
+            List<TaskStateEntity> taskStateEntities = taskInfoService.countEntryTranslateStateForTasks(taskIDs);
+            return ok(taskStateEntities);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return error(null,"系统服务异常");
+        }
+
+    }
+
 }

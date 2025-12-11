@@ -3,6 +3,7 @@ package com.shr.translationtoolservice.dao;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO;
+import com.shr.translationtoolservice.entity.DO.TaskStateEntityDO;
 import com.shr.translationtoolservice.entity.vo.EntryInfoEntityQO;
 import com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO;
 import com.shr.translationtoolservice.entity.vo.TsVo;
@@ -118,7 +119,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     Set<String> selectGroupByColumnsByIDs(@Param("column") String columnName,@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs);
 
-
+    List<TaskStateEntityDO> countEntryTranslateStateForTasks(@Param("taskIDs") Set<String> taskIDs);
 }
 
 

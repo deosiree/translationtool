@@ -4,6 +4,7 @@ import com.shr.translationtoolservice.entity.EntryTempEntity;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.shr.translationtoolservice.entity.TaskImportEntryEntity.TaskImportEntryVO;
 import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
+import com.shr.translationtoolservice.entity.TaskStateEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -88,7 +90,11 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
         List<String> targetLanguageTypes,
         String backendTaskID
     );
-
-
+    /**
+     * 获取各任务处于不同阶段的词条个数
+     * @param taskIDs
+     * @return
+     */
+    List<TaskStateEntity> countEntryTranslateStateForTasks(Set<String> taskIDs);
 
 }

@@ -99,6 +99,22 @@
         </collection>
     </resultMap>
 
+    <resultMap id="TaskStateEntityDOMap" 
+            type="com.shr.translationtoolservice.entity.DO.TaskStateEntityDO">
+  
+        <collection property="entryStateDOs" 
+                    javaType = "java.util.ArrayList"
+                    ofType="com.shr.translationtoolservice.entity.DO.TaskStateEntityDO$EntryStateDO"
+                    column = "taskID=task_id,translateType=translate_type"
+                    select = "countEntryStatesForTask">
+            
+            <id property="taskID" column="task_id"/>
+            <result property="entryState" column="entry_state"/>
+            <result property="counts" column="counts"/>
+        </collection>
+        
+    </resultMap>
+
     <sql id="Base_Column_List">
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
@@ -2161,4 +2177,88 @@
         <include refid = "selectGroupByColumnsByIDs"><property name = "column" value = "entry_source"></property></include>
     </select>
 
+    <select id = "countEntryTranslateStateForTasks" resultMap = "TaskStateEntityDOMap">
+        select id as task_id, translate_type from t_task_info
+        <where>
+            <choose>
+                <when test = "taskIDs != null and !taskIDs.isEmpty()">
+                    and id in 
+                    <foreach item = "taskID" collection = "taskIDs" open = "(" close = ")" separator = ",">
+                        #{taskID}                    
+                    </foreach>
+                </when>
+                <otherwise>
+                    and 1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+    
+
+    <select id = "countEntryStatesForTask" resultType = "com.shr.translationtoolservice.entity.DO.TaskStateEntityDO$EntryStateDO">
+
+        SELECT 
+        t_entry_info.entry_state,
+        t_translate.translate_state,
+        COUNT(*) as counts
+        FROM t_entry_info 
+        INNER JOIN t_product_relation on t_entry_info.id = t_product_relation.entry_id
+        <choose>
+            <when test = "translateType = '英文'">
+                INNER JOIN t_translate on t_translate.id = t_entry_info.en_trans_id 
+            </when>
+            <when test = "translateType = '中文'">
+                INNER JOIN t_translate on t_translate.id = t_entry_info.zh_trans_id 
+            </when>
+            <when test = "translateType = '俄文'">
+                INNER JOIN t_translate on t_translate.id = t_entry_info.ru_trans_id 
+            </when>
+            <when test = "translateType = '法文'">
+                INNER JOIN t_translate on t_translate.id = t_entry_info.fra_trans_id 
+            </when>
+            <when test = "translateType = '西文'">
+                INNER JOIN t_translate on t_translate.id = t_entry_info.spa_trans_id 
+            </when>
+            <otherwise>
+                INNER JOIN t_translate on 1 = 0
+            </otherwise>
+        </choose>
+        <where>
+            t_product_relation.task_id = #{taskID}
+        </where>
+        GROUP BY t_entry_info.entry_state,t_translate.translate_state
+        UNION ALL
+        SELECT 
+        t_entry_info.entry_state,
+        0 as translate_state,
+        COUNT(*) as counts
+        from t_entry_info
+        INNER JOIN t_product_relation on t_product_relation.entry_id = t_entry_info.id
+        <where>
+            and t_entry_info.is_delete = 0
+            and t_product_relation.task_id = #{taskID}
+            <choose>
+                <when test = "translateType = '英文'">
+                    and t_entry_info.en_trans_id is NULL
+                </when>
+                <when test = "translateType = '中文'">
+                    and t_entry_info.zh_trans_id is NULL
+                </when>
+                <when test = "translateType = '俄文'">
+                    and t_entry_info.ru_trans_id is NULL
+                </when>
+                <when test = "translateType = '法文'">
+                    and t_entry_info.fra_trans_id is NULL
+                </when>
+                <when test = "translateType = '西文'">
+                    and t_entry_info.spa_trans_id is NULL
+                </when>
+                <otherwise>
+                    and 1 = 0
+                </otherwise>
+            </choose>
+        </where>
+        GROUP BY t_entry_info.entry_state
+
+    </select>
 </mapper>

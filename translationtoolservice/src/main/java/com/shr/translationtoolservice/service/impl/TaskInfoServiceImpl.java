@@ -6,6 +6,7 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.TaskImportEntryEntity.TaskImportEntryVO;
 import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
+import com.shr.translationtoolservice.entity.DO.TaskStateEntityDO;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
@@ -1003,6 +1004,24 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         }
 
         return "任务全部完成";
+    }
+
+    @Override
+    public List<TaskStateEntity> countEntryTranslateStateForTasks(Set<String> taskIDs) {
+        // TODO Auto-generated method stub
+        List<TaskStateEntityDO> countEntryTranslateStateForTasks = entryInfoMapper.countEntryTranslateStateForTasks(taskIDs);
+
+        return countEntryTranslateStateForTasks.stream().map(new Function<TaskStateEntityDO,TaskStateEntity>() {
+
+            @Override
+            public TaskStateEntity apply(TaskStateEntityDO taskStateEntityDO) {
+                // TODO Auto-generated method stub
+                TaskStateEntity taskStateEntity = TaskStateEntity.convertFrom(taskStateEntityDO);
+    
+                return taskStateEntity;
+            }
+            
+        }).collect(Collectors.toList());
     }
 
 
