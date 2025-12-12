@@ -74,7 +74,7 @@
   <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
     @updateClose="updateClose" style="width:700px;" />
   <CreateBranchModal ref="createBranchModal" :treeNode="currentClickProduct" :visible="createBranchVisible" :modalTitle="classifyModalTitle"
-    :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:70%;" />
+    :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:90%;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     :treeNode="currentClickProduct" @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />

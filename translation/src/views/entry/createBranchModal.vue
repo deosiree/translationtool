@@ -42,8 +42,10 @@
             </template>
             <template v-else-if="column.dataIndex === 'operation'">
               <span v-if="editableData[record.id]">
-                <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
+                  <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
+                  <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                </div>
               </span>
               <span v-else>
                 <a-button type="primary" ghost size="small" @click.stop="edit(record)">编辑</a-button>
@@ -53,12 +55,83 @@
         </a-table>
       </div>
     </div>
+    <div class="other" style="padding:12px;background-color:#dbdbdb">
+      <div style="display:flex;align-items:center"><span>添加特殊处理的其他文件(不处理翻译，不创建任务)：</span></div>
+      <div class="otherSearchBox" style="padding:12px 0;display:flex;justify-content:space-between">
+        <div ref="otherSearch" style="display:flex;gap:8px">
+          <a-form ref="otherForm" name="custom-validation" layout="inline" autocomplete="off">
+            <!-- <a-form-item label="子分类名" name="sub-classify">
+                <a-input v-model:value="codeBranch" placeholder="所有其他文件将存入子分类中" :rules="[{ required: true, message: '请输入子分类名，所有其他文件将存入子分类中' }]"
+                  style="width: 400px;"></a-input>
+              </a-form-item> -->
+          </a-form>
+        </div>
+        <div ref="otherButton" style="display:flex;gap:8px">
+          <ImportButton size="small" buttonTitle="配置新增" :department="user.department" @configList="createOtherProduct" />
+          <a-button type="primary" size="small">
+            <template #icon>
+              <PlusOutlined />
+            </template>新增
+          </a-button>
+          <a-button type="primary" size="small" @click="otherDelete" danger>
+            <template #icon>
+              <DeleteOutlined />
+            </template>删除
+          </a-button>
+        </div>
+      </div>
+      <div class="table" style="display:flex;gap:8px">
+        <div style="width: 80%;">
+          <a-table ref="otherTable" bordered class="ant-table-striped" :columns="otherColumns" :customRow="otherCustomRow"
+            :dataSource="otherDataSource" :loading="otherLoading" :scroll="{x:'100%' , y: '180px'}" :pagination='otherPagination'
+            :row-key="record => record.id" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-selection="{ selectedRowKeys: otherSelectedRowKeys,onSelect:otherOnSelect,onSelectAll:otherOnSelectAll, onChange: otherOnSelectChange, selections:[
+                      {key:'selectAll',text:'全部选择',onSelect:otherSelectAllEntry},
+                      {key:'clearAll',text:'取消选择',onSelect:otherClearAllEntry}
+                  ]}" @resizeColumn="handleResizeColumn">
+            <template #bodyCell="{ column, text, record }">
+              <template v-if="['name','parentTitle','title', 'versionName'].includes(column.dataIndex)">
+                <template v-if="otherEditableData[record.id]">
+                  <a-input @click="clickInput" v-model:value="otherEditableData[record.id][column.dataIndex]" style="margin: -5px 0"
+                    @pressEnter="otherSave(record.id)" />
+                </template>
+                <template v-else>
+                  {{ text }}
+                </template>
+              </template>
+              <template v-else-if="column.dataIndex === 'operation'">
+                <span v-if="otherEditableData[record.id]">
+                  <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
+                    <a-button type="primary" ghost size="small" @click.stop="otherSave(record.id)">保存</a-button>
+                    <a-button type="primary" ghost size="small" danger @click.stop="otherCancel(record.id)">取消</a-button>
+                  </div>
+                </span>
+                <span v-else>
+                  <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
+                    <a-button type="primary" ghost size="small" @click.stop="otherEdit(record)">编辑</a-button>
+                    <a-button type="primary" ghost size="small" @click.stop="showSource(record)">词条来源</a-button>
+                    <!-- <div class="editable-row-operations">
+                    <DeleteOutlined style="color:#ff7070;font-size:16px" title="取消选择" />
+                  </div> -->
+                  </div>
+                </span>
+              </template>
+            </template>
+          </a-table>
+        </div>
+        <div style="width: 20%;">
+          <a-table ref="otherSourceTable" bordered class="ant-table-striped" :columns="otherSourceColumns" :dataSource="otherSourceDataSource"
+            :scroll="{x:'100%' , y: '180px'}" :pagination="false" @resizeColumn="handleResizeColumn">
+          </a-table>
+        </div>
+      </div>
+    </div>
   </Modal>
   <!-- </a-spin> -->
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
 import VersionModal from "@/views/task/versionModal.vue";
+import ImportButton from "@/components/Button/codeBranch/configImportButton.vue";
 import { message } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import { getRoleUserByDepartment } from "@/http/api/user";
@@ -70,10 +143,14 @@ import commonParam from "@/utils/commonParam";
 import { v4 as uuidv4 } from "uuid";
 import { setModalAriaHidden, randomError } from "@/utils/commonUtils";
 import { cloneDeep } from "lodash-es";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 export default {
   components: {
     Modal,
     VersionModal,
+    ImportButton,
+    PlusOutlined,
+    DeleteOutlined,
   },
   emits: ["createBranchClose"],
   props: {
@@ -217,6 +294,95 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
+      otherColumns: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 50,
+          customRender: (text) => {
+            const currentIndex =
+              text.index +
+              1 +
+              this.otherPagination.pageSize *
+                (this.otherPagination.current - 1);
+            return currentIndex;
+          },
+          fixed: "left",
+        },
+        {
+          title: "lang目录",
+          dataIndex: "link",
+          align: "center",
+          width: 80,
+          fixed: "left",
+          resizable: true,
+        },
+        {
+          title: "子分类名称",
+          dataIndex: "parentTitle",
+          align: "center",
+          width: 150,
+          resizable: true,
+        },
+        {
+          title: "产品名称",
+          dataIndex: "title",
+          align: "center",
+          width: 150,
+          resizable: true,
+        },
+        {
+          title: "产品版本",
+          dataIndex: "versionName",
+          align: "center",
+          width: 80,
+          resizable: true,
+        },
+        {
+          title: "操作",
+          dataIndex: "operation",
+          align: "center",
+          width: 100,
+          fixed: "right",
+        },
+      ],
+      otherDataSource: [],
+      otherParents: new Map(),
+      otherSelectedRows: [],
+      otherSelectedRowKeys: [],
+      otherSelectedRowIndex: null,
+      otherSelectEntry: new Map(), // 已选任务
+      otherPagination: {
+        showSizeChanger: true,
+        total: 0,
+        current: 1,
+        pageSize: 20,
+        showTotal: (total) => `共 ${total} 条`,
+        onChange: this.otherPageChange,
+      },
+      otherEditableData: {},
+      otherLoading: false,
+      otherSourceColumns: [
+        {
+          title: "序号",
+          dataIndex: "index",
+          align: "center",
+          width: 50,
+          customRender: (text) => {
+            return text.index + 1;
+          },
+          resizable: true,
+        },
+        {
+          title: "词条来源",
+          dataIndex: "file",
+          align: "center",
+          width: 150,
+          resizable: true,
+        },
+      ],
+      otherSourceDataSource: [],
     };
   },
   mounted() {
@@ -234,6 +400,7 @@ export default {
           // console.log("visible changed", newVal);
           this.codeBranch = this.treeNode.title;
           this.createTask();
+          // this.createOtherProduct(); // 根据默认配置创建特殊处理的lang产品
         }
       },
     },
@@ -305,6 +472,7 @@ export default {
           ...product,
           ...task,
           link: this.linkList[i][0],
+          ignore: [],
           index: i + 1,
         });
       }
@@ -574,6 +742,182 @@ export default {
     },
     clickInput(event) {
       event.stopPropagation();
+    },
+    // 事件处理函数
+    handleResizeColumn(w, col) {
+      col.width = w;
+    },
+    // ===============第二个表的相关函数========================================
+    // 根据默认配置创建特殊处理的lang产品
+    createOtherProduct(configList) {
+      const newProduct = {
+        parentTitle: "other",
+        parentId: this.treeNode.key,
+        codeBranch: this.codeBranch,
+        versionId: null,
+        versionName: null,
+      };
+      for (let i = 0; i < configList.length; i++) {
+        this.otherDataSource.push({
+          ...newProduct,
+          ...configList[i],
+          id: "mock_" + uuidv4(),
+        });
+
+        const currentLink = configList[i].link;
+        console.log("currentLink", currentLink);
+        const linkIndex = this.dataSource.findIndex(
+          (item) => item.link === currentLink
+        );
+        console.log("linkIndex", linkIndex);
+
+        if (linkIndex !== -1 && this.dataSource[linkIndex]) {
+          const data = this.dataSource[linkIndex];
+          if (data.ignore) {
+            data.ignore = data.ignore.concat(configList[i].files);
+          } else {
+            data.ignore = configList[i].files;
+          }
+        }
+      }
+
+      console.log("忽略的特殊处理文件", this.otherDataSource, this.dataSource);
+    },
+    // 添加第二个表的表格行点击事件
+    otherCustomRow(record, index) {
+      return {
+        onDblclick: (event) => {
+          // clearTimeout(this.timer)
+          // this.editableData[record.id] = cloneDeep(this.dataSource.filter(item => record.id === item.id)[0])
+          if (this.otherEditableData.hasOwnProperty(record.id)) {
+            // 当前行在编辑状态
+            return;
+          }
+
+          this.otherEdit(record);
+        },
+      };
+    },
+    // 编辑
+    otherEdit(record) {
+      this.otherEditableData[record.id] = cloneDeep(
+        this.otherDataSource.filter((item) => record.id === item.id)[0]
+      );
+    },
+    // 显示对应产品的词条来源
+    showSource(record) {
+      if (!record) {
+        this.otherSourceDataSource = [];
+      } else {
+        console.log("record.files", record.files);
+        this.otherSourceDataSource = record.files.map((item) => {
+          return {
+            id: item + uuidv4(),
+            file: item,
+          };
+        });
+      }
+    },
+    // 保存
+    otherSave(id) {
+      // 保存前校验
+      let index = this.otherDataSource.findIndex((item) => item.id === id);
+      if (!this.otherDataSource[index].link) {
+        message.error("请选择对应的lang目录！");
+        return;
+      }
+      if (!this.otherDataSource[index].parentTitle) {
+        message.error("请输入子分类名称！");
+        return;
+      }
+      if (!this.otherDataSource[index].title) {
+        message.error("请输入产品名称！");
+        return;
+      }
+      this.otherDataSource[index] = this.otherEditableData[id];
+
+      this.otherCancel(id);
+    },
+    // 第二个表的取消
+    otherCancel(id) {
+      delete this.otherEditableData[id];
+    },
+    // 批量删除选中的产品
+    otherDelete() {
+      this.otherSelectedRows.forEach((item) => {
+        this.otherDataSource = this.otherDataSource.filter((entry) => {
+          return entry !== item;
+        });
+      });
+      this.otherClearAllEntry();
+    },
+    // 表格复选框点击事件
+    otherOnSelect(record, selected) {
+      if (selected) {
+        this.otherSelectEntry.set(record.id, record);
+      } else {
+        this.otherSelectEntry.delete(record.id);
+      }
+
+      if (record.isBranch) {
+        if (selected) {
+          record.child.forEach((item) => {
+            this.selectEntry.set(item.id, item);
+          });
+        } else {
+          record.child.forEach((item) => {
+            this.otherSelectEntry.delete(item.id);
+          });
+        }
+      }
+
+      console.log("表格复选框点击事件", record, selected);
+    },
+    // 表格全选/反选框点击事件（当前页）
+    otherOnSelectAll(selected, selectedRows, changeRows) {
+      if (selected) {
+        changeRows.forEach((item) => {
+          this.otherSelectEntry.set(item.id, item);
+        });
+      } else {
+        changeRows.forEach((item) => {
+          this.otherSelectEntry.delete(item.id);
+        });
+      }
+      console.log(
+        "表格全选/反选框点击事件",
+        selected,
+        selectedRows, // 全选->取选当前页数据时，这个是5个undefined
+        changeRows
+      );
+    },
+    // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
+    otherOnSelectChange(selectedRowKeys, selectedRows) {
+      // this.selectedRowKeys = selectedRowKeys;
+      // this.selectedRows = selectedRows;
+      // onSelect(单选/取选)、onSelectAll(全选/反选)后，更新selectedRows、selectedRowKeys
+      this.otherSelectedRows = [...this.otherSelectEntry.values()];
+      this.otherSelectedRowKeys = [...this.otherSelectEntry.keys()]; // selectEntryList.map((item) => item.id);
+      console.log("表格复选框选择事件", this.otherSelectedRows);
+    },
+    // 复选框全选事件
+    otherSelectAllEntry() {
+      this.otherDataSource.forEach((item) => {
+        this.otherSelectedRowKeys.push(item.id);
+        this.otherSelectedRows.push(item);
+        this.otherSelectEntry.set(item.id, item);
+      });
+    },
+    //复选框反选事件
+    otherClearAllEntry() {
+      this.otherSelectedRowKeys = [];
+      this.otherSelectedRows = [];
+      this.otherSelectEntry.clear();
+    },
+    // 分页
+    otherPageChange(page, pageSize) {
+      this.otherPagination.current = page;
+      this.otherPagination.pageSize = pageSize;
     },
   },
 };
