@@ -493,7 +493,21 @@ export const redundantTableParams = {
 }
 
 // 6.createBranchModal分支新建的参数如下：
+const linkList = [
+  ["db", "数据库-元数据"],
+  ["meta", "数据库-对象数据"],
+  ["enum", "枚举"],
+  ["config", "配置文件"],
+  ["ts", "工具-ts"],
+  ["tr", "工具-tr"],
+];
+const linkOptions = linkList.map(item => ({
+  label: item[0],
+  value: item[0],
+}))
 export const createBranchParams = {
+  linkList: linkList,
+  linkOptions: linkOptions,
   otherConfig: {
     "通用平台部": {
       "develop": [{

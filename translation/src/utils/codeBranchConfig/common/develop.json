@@ -1,0 +1,517 @@
+[
+  {
+    "title": "",
+    "link": "",
+    "description": "前端方案不能用.json，因为前端JavaScript由于安全限制无法直接访问服务器文件系统"
+  },
+  {
+    "title": "tr/public",
+    "link": "tr",
+    "description": "[不导入文件](工具-tr"
+  },
+  {
+    "title": "apitesttool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "app_login",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "app_runing_status",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "cmd_sys_update",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "graphic_auto_drawing",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "graphic_base_data_check",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "graphic_curve_default_setting_plug",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "graphic_interface",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "graphic_subview_dialog",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "graphic_view_mgr",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_app_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_backup_config",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_console_api",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_crontab_editor",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_curve",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_db_designer",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_db_indexviewer",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_dict_moveto_filemgr",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_expand_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_force_start_tdb",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_general_advanced_configer",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_generate_license",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_calc_manager_edit",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_dbms",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_log",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_net",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_plat_log",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_sec",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_status",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_sys_module",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_check_sysmgr",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_file_local_clean",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_file_local_clean_drop",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_file_right_config",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_net_paramcfg",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_netmonitor",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_sdb_mgr",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_sec_selfcheck",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_syslog",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_sysrun_check",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_make_package_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_net_check",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_ops_backupmgr",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_sdb_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_smartSetup_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_sms_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_sys_check",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_sys_start_info",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_sys_update",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_system_config",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_tdb_con_query_dlg",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_text_compare",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_toolBox",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_tts_debug_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "gui_update_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "iasp_i18n",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "iasp_update_tool_api",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "libtool.so",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "old_hisdb_tool",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "saribbonbar",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "saribbonbar_origin",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "scui",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "syscfg_plug",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "window_manager_api",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "WindowManagerAPI",
+    "link": "ts",
+    "description": "[不导入文件](工具-ts"
+  },
+  {
+    "title": "calc_editor_tool_test",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "com_table_test",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "db_performance_test",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "db_selector_test",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_app_func_data_imp",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_app_func_imp",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_app_gui_event_imp",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_curve_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_graph_item_plugin_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_graph_menu_editor_plugin_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "graphic_graph_menu_viewer_plugin_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_app_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_comp_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_custom_frameless_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_db_selector_test",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_graphic_event_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_integrate_plugin_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_login_mgmt_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_manager_switch_login_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "gui_progress_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "login_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "net_client_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "pertesttool",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "tdb_publish_test_demo",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "test_identity",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "test_login_dialog_unit",
+    "link": "ts",
+    "description": "[测试文件](工具-ts"
+  },
+  {
+    "title": "assistant",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "designer",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "linguist",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qt",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qt_help",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qtbase",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qtconnectivity",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qtlocation",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qtmultimedia",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  },
+  {
+    "title": "qtwebsockets",
+    "link": "ts",
+    "description": "qt通用语言(工具-ts"
+  }
+]

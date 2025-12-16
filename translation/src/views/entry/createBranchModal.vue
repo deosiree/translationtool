@@ -56,7 +56,7 @@
       </div>
     </div>
     <div class="other" style="padding:12px;background-color:#dbdbdb">
-      <div style="display:flex;align-items:center"><span>添加特殊处理的其他文件(不处理翻译，不创建任务)：</span></div>
+      <div style="display:flex;align-items:center"><span>需要忽略的文件(不处理翻译，不创建任务，不导入词条)：</span></div>
       <div class="otherSearchBox" style="padding:12px 0;display:flex;justify-content:space-between">
         <div ref="otherSearch" style="display:flex;gap:8px">
           <a-form ref="otherForm" name="custom-validation" layout="inline" autocomplete="off">
@@ -68,11 +68,11 @@
         </div>
         <div ref="otherButton" style="display:flex;gap:8px">
           <ImportButton size="small" buttonTitle="配置新增" :department="user.department" @configList="createOtherProduct" />
-          <a-button type="primary" size="small">
+          <!-- <a-button type="primary" size="small" @click="addIgnore">
             <template #icon>
               <PlusOutlined />
             </template>新增
-          </a-button>
+          </a-button> -->
           <a-button type="primary" size="small" @click="otherDelete" danger>
             <template #icon>
               <DeleteOutlined />
@@ -81,7 +81,7 @@
         </div>
       </div>
       <div class="table" style="display:flex;gap:8px">
-        <div style="width: 80%;">
+        <div style="width: 100%;">
           <a-table ref="otherTable" bordered class="ant-table-striped" :columns="otherColumns" :customRow="otherCustomRow"
             :dataSource="otherDataSource" :loading="otherLoading" :scroll="{x:'100%' , y: '180px'}" :pagination='otherPagination'
             :row-key="record => record.id" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-selection="{ selectedRowKeys: otherSelectedRowKeys,onSelect:otherOnSelect,onSelectAll:otherOnSelectAll, onChange: otherOnSelectChange, selections:[
@@ -89,10 +89,25 @@
                       {key:'clearAll',text:'取消选择',onSelect:otherClearAllEntry}
                   ]}" @resizeColumn="handleResizeColumn">
             <template #bodyCell="{ column, text, record }">
-              <template v-if="['name','parentTitle','title', 'versionName'].includes(column.dataIndex)">
+              <!-- <template v-if="['name','parentTitle','subTitle','title', 'versionName'].includes(column.dataIndex)">
                 <template v-if="otherEditableData[record.id]">
                   <a-input @click="clickInput" v-model:value="otherEditableData[record.id][column.dataIndex]" style="margin: -5px 0"
                     @pressEnter="otherSave(record.id)" />
+                </template>
+                <template v-else>
+                  {{ text }}
+                </template>
+              </template> -->
+              <template v-if="['link','title'].includes(column.dataIndex)">
+                <template v-if="otherEditableData[record.id]">
+                  <template v-if="record.isNew && column.dataIndex=='link'">
+                    <a-select style="width: 100%" placeholder="请选择lang目录" allowClear :options="linkOptions" @pressEnter="otherSave(record.id)"
+                      @change="getIgnoreOptions(record)" v-model:value="otherEditableData[record.id][column.dataIndex]"></a-select>
+                  </template>
+                  <template v-if="column.dataIndex=='title'">
+                    <a-select style="width: 100%" placeholder="请选择要忽略的文件" allowClear :options="ignoreOptionsMap[record.id]||[]"
+                      @pressEnter="otherSave(record.id)" v-model:value="otherEditableData[record.id][column.dataIndex]"></a-select>
+                  </template>
                 </template>
                 <template v-else>
                   {{ text }}
@@ -108,7 +123,7 @@
                 <span v-else>
                   <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
                     <a-button type="primary" ghost size="small" @click.stop="otherEdit(record)">编辑</a-button>
-                    <a-button type="primary" ghost size="small" @click.stop="showSource(record)">词条来源</a-button>
+                    <!-- <a-button type="primary" ghost size="small" @click.stop="showSource(record)">词条来源</a-button> -->
                     <!-- <div class="editable-row-operations">
                     <DeleteOutlined style="color:#ff7070;font-size:16px" title="取消选择" />
                   </div> -->
@@ -118,11 +133,11 @@
             </template>
           </a-table>
         </div>
-        <div style="width: 20%;">
+        <!-- <div style="width: 20%;">
           <a-table ref="otherSourceTable" bordered class="ant-table-striped" :columns="otherSourceColumns" :dataSource="otherSourceDataSource"
             :scroll="{x:'100%' , y: '180px'}" :pagination="false" @resizeColumn="handleResizeColumn">
           </a-table>
-        </div>
+        </div> -->
       </div>
     </div>
   </Modal>
@@ -138,8 +153,8 @@ import { getRoleUserByDepartment } from "@/http/api/user";
 import { createProductByLang } from "@/http/api/entryManage";
 import { createVersion } from "@/http/api/productVersion";
 import { createTaskByLang } from "@/http/api/task";
-import { deleteEntryClassfy } from "@/http/api/entryManage";
-import commonParam from "@/utils/commonParam";
+import { deleteEntryClassfy, getSourceByLang } from "@/http/api/entryManage";
+import commonParam, { createBranchParams } from "@/utils/commonParam";
 import { v4 as uuidv4 } from "uuid";
 import { setModalAriaHidden, randomError } from "@/utils/commonUtils";
 import { cloneDeep } from "lodash-es";
@@ -273,14 +288,9 @@ export default {
           fixed: "right",
         },
       ],
-      linkList: [
-        ["db", "数据库-元数据"],
-        ["meta", "数据库-对象数据"],
-        ["enum", "枚举"],
-        ["config", "配置文件"],
-        ["ts", "工具-ts"],
-        ["tr", "工具-tr"],
-      ],
+      linkList: createBranchParams.linkList,
+      linkOptions: createBranchParams.linkOptions,
+      ignoreOptionsMap: {}, // 存储每个record的忽略文件选项
       dataSource: [], // 展示列=任务信息+产品信息
       taskSource: [],
       productSource: [],
@@ -318,27 +328,35 @@ export default {
           fixed: "left",
           resizable: true,
         },
+        // {
+        //   title: "分类名称",
+        //   dataIndex: "parentTitle",
+        //   align: "center",
+        //   width: 150,
+        //   resizable: true,
+        // },
+        // {
+        //   title: "子分类名称",
+        //   dataIndex: "subTitle",
+        //   align: "center",
+        //   width: 150,
+        //   resizable: true,
+        // },
         {
-          title: "子分类名称",
-          dataIndex: "parentTitle",
-          align: "center",
-          width: 150,
-          resizable: true,
-        },
-        {
-          title: "产品名称",
+          title: "词条来源",
+          // title: "产品名称",
           dataIndex: "title",
           align: "center",
           width: 150,
           resizable: true,
         },
-        {
-          title: "产品版本",
-          dataIndex: "versionName",
-          align: "center",
-          width: 80,
-          resizable: true,
-        },
+        // {
+        //   title: "产品版本",
+        //   dataIndex: "versionName",
+        //   align: "center",
+        //   width: 80,
+        //   resizable: true,
+        // },
         {
           title: "操作",
           dataIndex: "operation",
@@ -348,7 +366,10 @@ export default {
         },
       ],
       otherDataSource: [],
-      otherParents: new Map(),
+      otherParentSource: [], // 分类名称（存储createProductByLang入参）
+      otherSubSource: [], // 子分类名称（分类-子分类-产品，作为被忽略文件）
+      otherParents: new Map(), // 分类名称
+      otherSubs: new Map(), // 子分类名称（分类-子分类-产品，作为被忽略文件）
       otherSelectedRows: [],
       otherSelectedRowKeys: [],
       otherSelectedRowIndex: null,
@@ -678,54 +699,57 @@ export default {
           }
         });
 
-        // 2.若某产品写入版本名称，则需创建版本
-        for (let i = 0; i < this.dataSource.length; i++) {
-          const verName = this.dataSource[i].versionName;
-          if (verName) {
-            const versionData = {
-              name: verName,
-              details: "",
-              productId: this.productSource[i]["id"],
-            };
-            await createVersion(versionData).then((res) => {
-              this.dataSource[i].versionId = res.data;
-              this.taskSource[i].versionId = res.data;
-            });
-          }
-        }
+        // // 1.5 处理需要忽略的文件（创建一些空的产品，用于占位）
+        // await this.handleOthers();
 
-        // 3.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
-        let link_str = "";
-        for (let i = 0; i < this.linkList.length; i++) {
-          const srcDIR = this.linkList[i][0];
-          const srcTask = this.taskSource[i]["name"];
-          link_str = link_str + `${srcTask}: ${srcDIR},`;
-        }
-        const params = {
-          ip: this.ip,
-          parentId: this.treeNode.key,
-          link: `{${link_str.slice(0, -1)}}`,
-          translateTypes: this.translateTypes,
-        };
-        await createTaskByLang(params, this.taskSource)
-          .then((res) => {
-            // 4.执行完毕重新初始化并关闭窗口
-            this.handleClose(true);
-          })
-          .catch((err) => {
-            message.error(`创建任务失败：${err}`);
-            console.log("创建任务失败", err);
-            // 如果任务创建失败，前端执行删除产品
-            deleteEntryClassfy(productIds)
-              .catch((err) => {
-                message.error(`删除分类失败：${err}`);
-                console.log("删除分类失败", err);
-              })
-              .finally(() => {
-                // 4.执行完毕重新初始化并关闭窗口
-                this.handleClose(false);
-              });
-          });
+        // // 2.若某产品写入版本名称，则需创建版本
+        // for (let i = 0; i < this.dataSource.length; i++) {
+        //   const verName = this.dataSource[i].versionName;
+        //   if (verName) {
+        //     const versionData = {
+        //       name: verName,
+        //       details: "",
+        //       productId: this.productSource[i]["id"],
+        //     };
+        //     await createVersion(versionData).then((res) => {
+        //       this.dataSource[i].versionId = res.data;
+        //       this.taskSource[i].versionId = res.data;
+        //     });
+        //   }
+        // }
+
+        // // 3.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
+        // let link_str = "";
+        // for (let i = 0; i < this.linkList.length; i++) {
+        //   const srcDIR = this.linkList[i][0];
+        //   const srcTask = this.taskSource[i]["name"];
+        //   link_str = link_str + `${srcTask}: ${srcDIR},`;
+        // }
+        // const params = {
+        //   ip: this.ip,
+        //   parentId: this.treeNode.key,
+        //   link: `{${link_str.slice(0, -1)}}`,
+        //   translateTypes: this.translateTypes,
+        // };
+        // await createTaskByLang(params, this.taskSource)
+        //   .then((res) => {
+        //     // 4.执行完毕重新初始化并关闭窗口
+        //     this.handleClose(true);
+        //   })
+        //   .catch((err) => {
+        //     message.error(`创建任务失败：${err}`);
+        //     console.log("创建任务失败", err);
+        //     // 如果任务创建失败，前端执行删除产品
+        //     deleteEntryClassfy(productIds)
+        //       .catch((err) => {
+        //         message.error(`删除分类失败：${err}`);
+        //         console.log("删除分类失败", err);
+        //       })
+        //       .finally(() => {
+        //         // 4.执行完毕重新初始化并关闭窗口
+        //         this.handleClose(false);
+        //       });
+        //   });
       } catch (err) {
         message.error(`分支创建失败：${err}`);
         console.log("分支创建失败", err);
@@ -750,38 +774,124 @@ export default {
     // ===============第二个表的相关函数========================================
     // 根据默认配置创建特殊处理的lang产品
     createOtherProduct(configList) {
-      const newProduct = {
-        parentTitle: "other",
+      const comProduct = {
         parentId: this.treeNode.key,
+        // parentTitle: "other",
+        // parentTitleId: null, // 存产品id
+        // parentTitleKey: "mock_other_" + uuidv4(), // 存前端唯一字段
         codeBranch: this.codeBranch,
         versionId: null,
         versionName: null,
       };
+      // 记录parentTitleId
+      this.otherParentSource.push({
+        title: "other",
+        parentId: this.treeNode.key,
+        codeBranch: this.codeBranch,
+      });
+      this.otherParents.set("other", []);
+
+      let index = 0;
       for (let i = 0; i < configList.length; i++) {
-        this.otherDataSource.push({
-          ...newProduct,
-          ...configList[i],
-          id: "mock_" + uuidv4(),
-        });
+        // 不做创建忽略文件的产品/分类了
+        for (let j = 0; j < configList[i].files.length; j++) {
+          const newProduct = {
+            ...comProduct,
+            title: configList[i].files[j],
+            link: configList[i].link,
+            // subTitle: configList[i].title,
+            // subTitleId: null,
+            // subTitleKey: `mock_${configList[i].title}_${uuidv4()}`, // 存前端唯一字段
+            id: "mock_" + uuidv4(), // template中用的id，所以就不改成key了，改动有点大
+            index: index,
+          };
+          this.otherDataSource.push(newProduct);
 
-        const currentLink = configList[i].link;
-        console.log("currentLink", currentLink);
-        const linkIndex = this.dataSource.findIndex(
-          (item) => item.link === currentLink
-        );
-        console.log("linkIndex", linkIndex);
-
-        if (linkIndex !== -1 && this.dataSource[linkIndex]) {
-          const data = this.dataSource[linkIndex];
-          if (data.ignore) {
-            data.ignore = data.ignore.concat(configList[i].files);
-          } else {
-            data.ignore = configList[i].files;
-          }
+          // // 记录subTitleId
+          // if (!this.otherSubs.get(newProduct.subTitle)) {
+          //   // 记录parentTitleId
+          //   this.otherParents.get("other").push(newProduct.subTitleKey);
+          //   this.otherSubSource.push({
+          //     title: configList[i].title,
+          //     parentId: null, // 创建好产品后再遍历parents的value来写入
+          //     parentTitle: comProduct.parentTitle, //(用于回写)
+          //     codeBranch: this.codeBranch,
+          //   });
+          //   this.otherSubs.set(configList[i].title, [newProduct.id]);
+          // } else {
+          //   this.otherSubs.get(configList[i].title).push(newProduct.id);
+          // }
+          index++;
         }
+
+      //   const newProduct = {
+      //     ...comProduct,
+      //     ...configList[i],
+      //     id: "mock_" + uuidv4(),
+      //   };
+      //   this.otherDataSource.push(newProduct);
+
+      //   const currentLink = configList[i].link;
+      //   console.log("currentLink", currentLink);
+      //   const linkIndex = this.dataSource.findIndex(
+      //     (item) => item.link === currentLink
+      //   );
+      //   console.log("linkIndex", linkIndex);
+
+      //   if (linkIndex !== -1 && this.dataSource[linkIndex]) {
+      //     const data = this.dataSource[linkIndex];
+      //     if (data.ignore) {
+      //       data.ignore = data.ignore.concat(configList[i].files);
+      //     } else {
+      //       data.ignore = configList[i].files;
+      //     }
+      //   }
       }
 
       console.log("忽略的特殊处理文件", this.otherDataSource, this.dataSource);
+      // console.log("Parent", this.otherParentSource, this.otherParents);
+      // console.log("Sub", this.otherSubSource, this.otherSubs);
+    },
+    // 根据link和当前已被忽略的文件获取还可以忽略的文件选项
+    async getIgnoreOptions(record) {
+      if (!record || !record.link) return [];
+
+      await getSourceByLang(record.link)
+        .then(async (res) => {
+          const allFiles = res.data.list;
+          const ignoredFiles = this.dataSource
+            .filter((item) => item.link === record.link)
+            .map((item) => item.ignore); // 获取当前link下已被忽略的文件
+          const importFiles = allFiles.filter((item) => {
+            return !ignoredFiles.includes(item);
+          }); // 获取当前link下还可以忽略的文件
+          console.log("allFiles", allFiles);
+          console.log("ignoredFiles", ignoredFiles);
+          console.log("importFiles", importFiles);
+          this.ignoreOptionsMap[record.id] = importFiles.map((item) => ({
+            label: item,
+            value: item,
+          }));
+        })
+        .catch(() => {
+          console.log("获取忽略文件失败");
+          this.ignoreOptionsMap[record.id] = [];
+        });
+    },
+    // 新增需要忽略的文件
+    addIgnore() {
+      this.otherPagination.pageSize = this.otherPagination.pageSize + 1;
+      let newData = {
+        id: "ignore_" + uuidv4(),
+        parentId: this.treeNode.key,
+        link: null,
+        title: null,
+        isNew: true,
+      };
+
+      this.otherDataSource.splice(0, 0, newData);
+      this.otherEditableData[newData.id] = newData;
+      this.otherPageChange(1, 20);
     },
     // 添加第二个表的表格行点击事件
     otherCustomRow(record, index) {
@@ -803,6 +913,9 @@ export default {
       this.otherEditableData[record.id] = cloneDeep(
         this.otherDataSource.filter((item) => record.id === item.id)[0]
       );
+
+      // 编辑时获取忽略文件选项
+      this.getIgnoreOptions(record);
     },
     // 显示对应产品的词条来源
     showSource(record) {
@@ -822,24 +935,155 @@ export default {
     otherSave(id) {
       // 保存前校验
       let index = this.otherDataSource.findIndex((item) => item.id === id);
-      if (!this.otherDataSource[index].link) {
+      if (index === -1) {
+        message.error("请先添加产品！");
+        return;
+      }
+      console.log(
+        "待保存词条",
+        this.otherEditableData[id],
+        "旧词条",
+        this.otherDataSource[index]
+      );
+      if (!this.otherEditableData[id].link) {
         message.error("请选择对应的lang目录！");
         return;
       }
-      if (!this.otherDataSource[index].parentTitle) {
-        message.error("请输入子分类名称！");
+      // if (!this.otherEditableData[id].parentTitle) {
+      //   message.error("请输入分类名称！");
+      //   return;
+      // }
+      // if (!this.otherEditableData[id].subTitle) {
+      //   message.error("请输入子分类名称！");
+      //   return;
+      // }
+      if (!this.otherEditableData[id].title) {
+        message.error("请选择要忽略的文件！");
+        // message.error("请输入产品名称！");
         return;
       }
-      if (!this.otherDataSource[index].title) {
-        message.error("请输入产品名称！");
-        return;
-      }
+
       this.otherDataSource[index] = this.otherEditableData[id];
+      this.otherDataSource[index].isNew = false;
+
+      // // 保存新旧的分类&&子分类名称
+      // const pTitle_old = this.otherDataSource[index].parentTitle;
+      // const sTitle_old = this.otherDataSource[index].subTitle;
+      // const pTitle = this.otherEditableData[id].parentTitle;
+      // const sTitle = this.otherEditableData[id].subTitle;
+      // const pKey = this.otherDataSource[index].parentTitleKey;
+      // const sKey = this.otherDataSource[index].subTitleKey;
+      // let pIndex = this.otherParentSource.findIndex(
+      //   (item) => item.title === pTitle_old
+      // );
+      // let sIndex = this.otherSubSource.findIndex(
+      //   (item) => item.title === sTitle_old
+      // );
+
+      // // 分类名发生变化，更新parentTitleId
+      // if (pTitle != pTitle_old) {
+      //   // 更新子分类的parentTitle(用于回写)
+      //   this.otherSubSource[sIndex].parentTitle = pTitle;
+      //   // map:删除原来的subTitle
+      //   const plinkSub = this.otherParents.get(pTitle_old);
+      //   console.log("plinkSub", plinkSub);
+      //   if (
+      //     (plinkSub.length == 1 && plinkSub == sKey) ||
+      //     plinkSub.length == 0
+      //   ) {
+      //     this.otherParents.delete(pTitle_old);
+      //     // source:删除旧分类增加新分类：已无；否则就是还有旧分类，source不动
+      //     if (pIndex == -1) {
+      //       console.log("异常退出，pIndex不应该为-1", this.otherParentSource);
+      //       return;
+      //     }
+      //     this.otherParentSource[pIndex].title = pTitle;
+      //   } else {
+      //     this.otherParents.get(pTitle_old).splice(plinkSub.indexOf(sKey), 1);
+      //   }
+
+      //   // map:添加新的subTitle
+      //   if (!this.otherParents.has(pTitle)) {
+      //     this.otherParents.set(pTitle, [sKey]);
+      //     // source:原来没有该分类，增加新分类
+      //     const newParent = {
+      //       title: pTitle,
+      //       parentId: this.treeNode.key,
+      //       codeBranch: this.codeBranch,
+      //     };
+      //     this.otherParentSource.push(newParent);
+      //   } else {
+      //     this.otherParents.get(pTitle).push(sKey);
+      //   }
+
+      //   console.log(
+      //     "分类名发生变化",
+      //     this.otherParentSource,
+      //     this.otherParents
+      //   );
+      // }
+
+      // // 子分类名发生变化，更新subTitleId
+      // if (sTitle != sTitle_old) {
+      //   // map:删除原来的title
+      //   const slinkProb = this.otherSubs.get(sTitle_old);
+      //   console.log("slinkProb", slinkProb);
+      //   if (
+      //     (slinkProb.length == 1 && slinkProb == id) ||
+      //     slinkProb.length == 0
+      //   ) {
+      //     this.otherSubs.delete(sTitle_old);
+      //     // source:删除旧分类增加新分类：已无；否则就是还有旧分类，source不动
+      //     if (sIndex == -1) {
+      //       console.log("异常退出，sIndex不应该为-1", this.otherSubSource);
+      //       return;
+      //     }
+      //     this.otherSubSource[sIndex].title = sTitle;
+      //   } else {
+      //     this.otherSubs.get(sTitle_old).splice(slinkProb.indexOf(id), 1);
+      //   }
+
+      //   // map:添加新的subTitle
+      //   if (!this.otherSubs.has(sTitle)) {
+      //     this.otherSubs.set(sTitle, [id]);
+      //     // source:原来没有该分类，增加新分类
+      //     const newSub = {
+      //       title: sTitle,
+      //       parentId: null,
+      //       codeBranch: this.codeBranch,
+      //     };
+      //     this.otherSubSource.push(newSub);
+      //   } else {
+      //     this.otherSubs.get(sTitle).push(id);
+      //   }
+
+      //   console.log("子分类名发生变化", this.otherSubSource, this.otherSubs);
+      // }
 
       this.otherCancel(id);
     },
+    // handleOK确定执行创建任务前，先执行忽略文件的创建
+    async handleOthers() {
+      // 1.创建分类，返回分类id并回填到子分类的parentId中
+      await createProductByLang(this.otherParentSource).then((res) => {
+        const pIdMap = new Map();
+        for (let i = 0; i < res.data.length; i++) {
+          pIdMap.set(res.data[i]["title"], res.data[i]["id"]);
+        }
+        for (let sItem of this.otherSubSource) {
+          sItem.parentId = pIdMap.get(sItem.parentTitle);
+        }
+        console.log("分类创建完成", pIdMap, this.otherSubSource);
+      });
+    },
     // 第二个表的取消
     otherCancel(id) {
+      // 新建的取消要直接删掉
+      if (this.otherEditableData[id].isNew) {
+        this.otherDataSource = this.otherDataSource.filter((item) => {
+          return item.id !== id;
+        });
+      }
       delete this.otherEditableData[id];
     },
     // 批量删除选中的产品

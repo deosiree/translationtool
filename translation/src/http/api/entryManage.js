@@ -284,3 +284,21 @@ export function getEntrySourcesByClassify(params) {
     params
   });
 }
+
+// 分支新建-查询lang文档中的文件名称（词条来源全集=已导入的+未导入的）
+export function getSourceByLang(data) {
+  return Promise.resolve({
+    code: 200,
+    message: "成功",
+    data: {
+      list: [
+        "tr/public", "tr/public1", "tr/public2", "tr/public3", "tr/public4", "tr/public5"
+      ]
+    }
+  });
+  // return request({
+  //   url: "/entryInfo/getSourceByLang",
+  //   method: "POST",
+  //   data
+  // });
+}

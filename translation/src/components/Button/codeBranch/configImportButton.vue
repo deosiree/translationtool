@@ -61,7 +61,7 @@ export default {
         department: null,
         config: null,
       },
-      configJson: createBranchParams.otherConfig,
+      configJson: createBranchParams.otherConfig, // 前端方案：根据公共参数中定死的部门选项
       departmentOptions: [],
       configOptions: [],
       configMap: new Map(),
@@ -83,6 +83,7 @@ export default {
     async getDepartmentOptions() {
       this.importModal.department = this.department; // 默认当前用户所在部门
 
+      // 前端方案(提供给其他部门时要有后端写入/读取的方案)：根据公共参数中定死的部门选项
       this.departmentOptions = Object.keys(this.configJson).map((key) => ({
         label: key,
         value: key,
@@ -98,6 +99,7 @@ export default {
         return;
       }
 
+      // 前端方案(提供给其他部门时要有后端写入/读取的方案)：根据公共参数中定死的部门选项
       const configs = this.configJson[this.importModal.department];
       for (const [key, value] of Object.entries(configs)) {
         this.configOptions.push({
@@ -107,6 +109,7 @@ export default {
 
         this.configMap.set(key, value);
       }
+
 
       if (this.configOptions.length > 0) {
         this.importModal.config = this.configOptions[0].value; // 默认选择第一个配置（默认值develop）
