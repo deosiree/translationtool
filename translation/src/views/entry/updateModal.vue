@@ -225,6 +225,12 @@ export default {
           // console.log("taskSource", this.taskSource);
           this.taskVisible = true; // 先弹出其他弹窗
           setModalAriaHidden(this, document);
+        }).catch((error) => {
+          if (error.status == 200) {
+            message.error(`请求失败: ${error.data.operationObject}`);
+          } else {
+            console.log(`请求失败: ${error}`);
+          }
         });
       } else {
         this.init();

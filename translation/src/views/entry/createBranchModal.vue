@@ -432,6 +432,7 @@ export default {
       this.dataSource = [];
       this.taskSource = [];
       this.productSource = [];
+      this.otherDataSource = [];
     },
     // 获取i18服务器ip
     getIPs() {
@@ -486,6 +487,7 @@ export default {
           ...newTask,
           name: this.linkList[i][1],
           id: `createBranch${i}`,
+          ignore: [],
         };
         this.taskSource.push(task);
         this.productSource.push(product);
@@ -493,7 +495,6 @@ export default {
           ...product,
           ...task,
           link: this.linkList[i][0],
-          ignore: [],
           index: i + 1,
         });
       }
@@ -702,54 +703,55 @@ export default {
         // // 1.5 处理需要忽略的文件（创建一些空的产品，用于占位）
         // await this.handleOthers();
 
-        // // 2.若某产品写入版本名称，则需创建版本
-        // for (let i = 0; i < this.dataSource.length; i++) {
-        //   const verName = this.dataSource[i].versionName;
-        //   if (verName) {
-        //     const versionData = {
-        //       name: verName,
-        //       details: "",
-        //       productId: this.productSource[i]["id"],
-        //     };
-        //     await createVersion(versionData).then((res) => {
-        //       this.dataSource[i].versionId = res.data;
-        //       this.taskSource[i].versionId = res.data;
-        //     });
-        //   }
-        // }
+        // 2.若某产品写入版本名称，则需创建版本
+        for (let i = 0; i < this.dataSource.length; i++) {
+          const verName = this.dataSource[i].versionName;
+          if (verName) {
+            const versionData = {
+              name: verName,
+              details: "",
+              productId: this.productSource[i]["id"],
+            };
+            await createVersion(versionData).then((res) => {
+              this.dataSource[i].versionId = res.data;
+              this.taskSource[i].versionId = res.data;
+            });
+          }
+        }
 
-        // // 3.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
-        // let link_str = "";
-        // for (let i = 0; i < this.linkList.length; i++) {
-        //   const srcDIR = this.linkList[i][0];
-        //   const srcTask = this.taskSource[i]["name"];
-        //   link_str = link_str + `${srcTask}: ${srcDIR},`;
-        // }
-        // const params = {
-        //   ip: this.ip,
-        //   parentId: this.treeNode.key,
-        //   link: `{${link_str.slice(0, -1)}}`,
-        //   translateTypes: this.translateTypes,
-        // };
-        // await createTaskByLang(params, this.taskSource)
-        //   .then((res) => {
-        //     // 4.执行完毕重新初始化并关闭窗口
-        //     this.handleClose(true);
-        //   })
-        //   .catch((err) => {
-        //     message.error(`创建任务失败：${err}`);
-        //     console.log("创建任务失败", err);
-        //     // 如果任务创建失败，前端执行删除产品
-        //     deleteEntryClassfy(productIds)
-        //       .catch((err) => {
-        //         message.error(`删除分类失败：${err}`);
-        //         console.log("删除分类失败", err);
-        //       })
-        //       .finally(() => {
-        //         // 4.执行完毕重新初始化并关闭窗口
-        //         this.handleClose(false);
-        //       });
-        //   });
+        // 3.创建任务，该接口既实现任务的创建，又实现词条的导入，并且还会修改相应状态：任务-流程中，有翻译的词条-已审核，没翻译的词条-新建
+        let link_str = "";
+        for (let i = 0; i < this.linkList.length; i++) {
+          const srcDIR = this.linkList[i][0];
+          const srcTask = this.taskSource[i]["name"];
+          link_str = link_str + `${srcTask}: ${srcDIR},`;
+        }
+        const params = {
+          ip: this.ip,
+          parentId: this.treeNode.key,
+          link: `{${link_str.slice(0, -1)}}`,
+          translateTypes: this.translateTypes,
+        };
+        console.log("任务入参", params, "请求体", this.taskSource);
+        await createTaskByLang(params, this.taskSource)
+          .then((res) => {
+            // 4.执行完毕重新初始化并关闭窗口
+            this.handleClose(true);
+          })
+          .catch((err) => {
+            message.error(`创建任务失败：${err}`);
+            console.log("创建任务失败", err);
+            // 如果任务创建失败，前端执行删除产品
+            deleteEntryClassfy(productIds)
+              .catch((err) => {
+                message.error(`删除分类失败：${err}`);
+                console.log("删除分类失败", err);
+              })
+              .finally(() => {
+                // 4.执行完毕重新初始化并关闭窗口
+                this.handleClose(false);
+              });
+          });
       } catch (err) {
         message.error(`分支创建失败：${err}`);
         console.log("分支创建失败", err);
@@ -774,6 +776,62 @@ export default {
     // ===============第二个表的相关函数========================================
     // 根据默认配置创建特殊处理的lang产品
     createOtherProduct(configList) {
+      const comProduct = {
+        parentId: this.treeNode.key,
+        codeBranch: this.codeBranch,
+        versionId: null,
+        versionName: null,
+      };
+
+      let index = 0;
+      for (let i = 0; i < configList.length; i++) {
+        // 不做创建忽略文件的产品/分类了
+        for (let j = 0; j < configList[i].files.length; j++) {
+          const newProduct = {
+            ...comProduct,
+            title: configList[i].files[j],
+            link: configList[i].link,
+            id: "mock_" + uuidv4(), // template中用的id，所以就不改成key了，改动有点大
+            index: index,
+          };
+          this.otherDataSource.push(newProduct);
+          index++;
+        }
+
+        const currentLink = configList[i].link;
+        console.log("currentLink", currentLink);
+        const linkIndex = this.dataSource.findIndex(
+          (item) => item.link === currentLink
+        );
+        console.log("linkIndex", linkIndex);
+
+        if (linkIndex !== -1 && this.dataSource[linkIndex]) {
+          const data = this.dataSource[linkIndex];
+          if (data.ignore) {
+            data.ignore = data.ignore.concat(configList[i].files);
+          } else {
+            data.ignore = configList[i].files;
+          }
+          const task = this.taskSource[linkIndex];
+          if (task.ignore) {
+            this.taskSource[linkIndex].ignore = task.ignore.concat(
+              configList[i].files
+            );
+          } else {
+            this.taskSource[linkIndex].ignore = configList[i].files;
+          }
+        }
+      }
+
+      console.log(
+        "忽略的特殊处理文件",
+        this.otherDataSource,
+        this.dataSource,
+        this.taskSource
+      );
+    },
+    // 根据默认配置创建特殊处理的lang产品
+    createOtherProduct_old(configList) {
       const comProduct = {
         parentId: this.treeNode.key,
         // parentTitle: "other",
@@ -824,28 +882,34 @@ export default {
           index++;
         }
 
-      //   const newProduct = {
-      //     ...comProduct,
-      //     ...configList[i],
-      //     id: "mock_" + uuidv4(),
-      //   };
-      //   this.otherDataSource.push(newProduct);
+        //   const newProduct = {
+        //     ...comProduct,
+        //     ...configList[i],
+        //     id: "mock_" + uuidv4(),
+        //   };
+        //   this.otherDataSource.push(newProduct);
 
-      //   const currentLink = configList[i].link;
-      //   console.log("currentLink", currentLink);
-      //   const linkIndex = this.dataSource.findIndex(
-      //     (item) => item.link === currentLink
-      //   );
-      //   console.log("linkIndex", linkIndex);
+        const currentLink = configList[i].link;
+        console.log("currentLink", currentLink);
+        const linkIndex = this.dataSource.findIndex(
+          (item) => item.link === currentLink
+        );
+        console.log("linkIndex", linkIndex);
 
-      //   if (linkIndex !== -1 && this.dataSource[linkIndex]) {
-      //     const data = this.dataSource[linkIndex];
-      //     if (data.ignore) {
-      //       data.ignore = data.ignore.concat(configList[i].files);
-      //     } else {
-      //       data.ignore = configList[i].files;
-      //     }
-      //   }
+        if (linkIndex !== -1 && this.dataSource[linkIndex]) {
+          const data = this.dataSource[linkIndex];
+          if (data.ignore) {
+            data.ignore = data.ignore.concat(configList[i].files);
+          } else {
+            data.ignore = configList[i].files;
+          }
+          const task = this.taskSource[linkIndex];
+          if (task.ignore) {
+            task.ignore = task.ignore.concat(configList[i].files);
+          } else {
+            task.ignore = configList[i].files;
+          }
+        }
       }
 
       console.log("忽略的特殊处理文件", this.otherDataSource, this.dataSource);
