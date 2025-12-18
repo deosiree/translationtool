@@ -383,7 +383,7 @@ export default {
     TransStateSelect,
     TransStateBadge,
   },
-  emits: ["handleClose", "handleOK"],
+  emits: ["handleClose", "handleOK", "afterSave"],
   props: {
     visible: {
       type: Boolean,
@@ -718,6 +718,9 @@ export default {
       const data = ["0", "2"];
       await getEntryInfoList(params, data)
         .then((res) => {
+          // 更新成功：刷新所有任务的小红点
+          this.$emit("afterSave", this.currentTask);
+
           this.allData = res.data.list;
           if (this.allData.length > 0) {
             this.selectedRowIndex = this.allData[0].id;

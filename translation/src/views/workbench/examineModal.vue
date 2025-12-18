@@ -252,7 +252,7 @@ export default {
     TransStateBadge,
     CoverButton,
   },
-  emits: ["handleClose", "handleOK"],
+  emits: ["handleClose", "handleOK", "afterSave"],
   props: {
     visible: {
       type: Boolean,
@@ -499,6 +499,9 @@ export default {
       this.loading = true;
       getEntryInfoList(params, [])
         .then((res) => {
+          // 更新成功：刷新所有任务的小红点
+          this.$emit("afterSave", this.currentTask);
+
           this.dataSource = res.data.list;
           // 排序  将已存在的词条放到前面
           this.dataSource.sort(function (a, b) {

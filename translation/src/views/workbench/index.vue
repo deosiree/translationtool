@@ -144,13 +144,14 @@
     </a-row>
 
   </div>
-  <ImportModal ref="import" :visible="importVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" @handleClose="importClose" />
+  <ImportModal ref="import" :visible="importVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" @handleClose="importClose"
+    @afterSave="refreshCurrentTask" />
   <ExamineModal ref="examine" :visible="examineVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" :modalTitle="examineTitle"
-    @handleClose="examineClose" />
+    @handleClose="examineClose" @afterSave="refreshCurrentTask" />
   <TranslateModal ref="translate" :visible="translateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
     @handleClose="translateClose" />
   <ExamineTranslateModal ref="examineTranslate" :visible="examineTranslateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
-    @handleClose="examineTranslateClose" />
+    @handleClose="examineTranslateClose" @afterSave="refreshCurrentTask" />
   <ArchiveModal ref="archiveModalRef" :visible="archiveVisible" :currentTask="currentTask" @handleClose="archiveClose" @refresh="refreshTask" />
 </template>
 <script>
@@ -512,6 +513,7 @@ export default {
           this.dataSource[i].num__total = totalNum;
         }
       }
+      console.log("获取所有分支的任务执行状态", this.dataSource);
     },
     // 获取词条数量
     async getTaskPending(tasks) {
@@ -803,6 +805,7 @@ export default {
     // 根据条件获取任务
     async getTaskByCondition(data) {
       this.loading = true;
+      console.log("根据条件获取任务");
       this.checkSearchChange();
       let params = {
         pageIndex: this.pagination.current,
@@ -833,6 +836,49 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+    // 刷新当前任务的红点标红
+    async refreshCurrentTask(task) {
+      console.log("刷新当前任务的红点标红", task);
+      this.loading = true;
+
+      if (this.isTreeOr2D == "tree") {
+            // 层级展示
+      const oldNum_total = task.num__total;
+      const { tasks: updateTasks, totalNum } = await this.getTaskPending([task]);
+      const updatedTask = updateTasks[0];
+
+      // 使用id来查找任务所在的分支
+      let branchIndex = this.dataSource.findIndex((branch) => {
+        return (
+          branch.child && branch.child.some((t) => t.id === updatedTask.id)
+        );
+      });
+
+      if (branchIndex !== -1) {
+        // 更新分支中的任务
+        const taskIndex = this.dataSource[branchIndex].child.findIndex(
+          (t) => t.id === updatedTask.id
+        );
+        if (taskIndex !== -1) {
+          this.dataSource[branchIndex].child[taskIndex] = updatedTask;
+          this.dataSource[branchIndex].num__total += totalNum - oldNum_total;
+        }
+      } else {
+        console.log("没找到对应的分支名称");
+      }
+      }else{
+        // 平铺展示
+        const { tasks: updateTasks, totalNum } = await this.getTaskPending([task]);
+        const updatedTask = updateTasks[0];
+        // 使用id来查找任务所在的分支
+        let taskIndex = this.dataSource.findIndex((t) => t.id === updatedTask.id);
+        if (taskIndex !== -1) {
+          // 更新分支中的任务
+          this.dataSource[taskIndex] = updatedTask;
+        }
+      }
+      this.loading = false;
     },
     // 构建树结构数据
     buildTreeData(taskList) {

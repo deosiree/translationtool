@@ -559,7 +559,7 @@ export default {
       return attrs.vnodes;
     },
   },
-  emits: ["handleClose", "handleOK"],
+  emits: ["handleClose", "handleOK", "afterSave"],
   props: {
     visible: {
       type: Boolean,
@@ -1110,6 +1110,12 @@ export default {
             message.success("数据已保存！" + messageTextParts.join("，"));
           }
           this.allData = this.dataSource;
+
+          // 更新成功：刷新所有任务的小红点
+          this.$emit("afterSave", this.currentTask);
+          // 刷新无审核未通过的词条
+          this.initTaskEntry();
+
           // 清空选中
           this.selectedRows = [];
           this.selectedRowKeys = [];
@@ -1238,6 +1244,9 @@ export default {
           if (deleteID.length > 0) {
             deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteID).then(
               (res) => {
+                // 更新成功：刷新所有任务的小红点
+                this.$emit("afterSave", this.currentTask);
+
                 let text = `删除成功${delCount.num}条`;
                 if (delCount.childNum > 0) {
                   text += `(其中聚合的数据${delCount.childNum}条)`;
