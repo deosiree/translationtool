@@ -251,7 +251,7 @@ export default {
     },
     visible: {
       async handler(newVal) {
-        console.log("打开工作台-归档", newVal);
+        // console.log("打开工作台-归档", newVal);
         if (newVal) {
           this.$nextTick(() => {
             // 1.设置翻译列展示的语种

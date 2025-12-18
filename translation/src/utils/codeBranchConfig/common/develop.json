@@ -1,13 +1,13 @@
 [
   {
-    "title": "",
-    "link": "",
-    "description": "前端方案不能用.json，因为前端JavaScript由于安全限制无法直接访问服务器文件系统"
-  },
-  {
     "title": "tr/public",
     "link": "tr",
     "description": "[不导入文件](工具-tr"
+  },
+  {
+    "title": "i18n_tool",
+    "link": "ts",
+    "description": "[i18n文件](工具-ts"
   },
   {
     "title": "apitesttool",

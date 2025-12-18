@@ -870,7 +870,7 @@ export default {
         ) {
           if (record.maxLength != null && record.maxLength != "") {
             maxLength = record.maxLength;
-            console.log("maxLength = record.maxLength;", record);
+            // console.log("maxLength = record.maxLength;", record);
           } else {
             return Promise.resolve();
           }

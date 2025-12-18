@@ -67,6 +67,7 @@
           </a-form>
         </div>
         <div ref="otherButton" style="display:flex;gap:8px">
+          <AnalysisButton size="small" buttonTitle="读取配置" @configList="createOtherProductByAnalysis" />
           <ImportButton size="small" buttonTitle="配置新增" :department="user.department" @configList="createOtherProduct" />
           <!-- <a-button type="primary" size="small" @click="addIgnore">
             <template #icon>
@@ -147,6 +148,7 @@
 import Modal from "@/components/modal/index.vue";
 import VersionModal from "@/views/task/versionModal.vue";
 import ImportButton from "@/components/Button/codeBranch/configImportButton.vue";
+import AnalysisButton from "@/components/Button/codeBranch/configAnalysisButton.vue";
 import { message } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import { getRoleUserByDepartment } from "@/http/api/user";
@@ -164,6 +166,7 @@ export default {
     Modal,
     VersionModal,
     ImportButton,
+    AnalysisButton,
     PlusOutlined,
     DeleteOutlined,
   },
@@ -537,7 +540,7 @@ export default {
       };
       getRoleUserByDepartment(params).then((res) => {
         let data = res.data;
-        console.log("getOptions", data);
+        // console.log("getOptions", data);
         if (data.DEVELOPER) {
           let developer = [];
           data.DEVELOPER.forEach((item) => {
@@ -732,7 +735,7 @@ export default {
           link: `{${link_str.slice(0, -1)}}`,
           translateTypes: this.translateTypes,
         };
-        console.log("任务入参", params, "请求体", this.taskSource);
+        // console.log("任务入参", params, "请求体", this.taskSource);
         await createTaskByLang(params, this.taskSource)
           .then((res) => {
             // 4.执行完毕重新初始化并关闭窗口
@@ -774,6 +777,39 @@ export default {
       col.width = w;
     },
     // ===============第二个表的相关函数========================================
+    // 解析配置获取需要忽略的文件，写入otherDataSource中给用户展示（哪些文件不导入）
+    createOtherProductByAnalysis(configList) {
+      // console.log("解析配置获取需要忽略的文件", configList);
+      let ignoreMap = new Map();
+      for (let i = 0; i < configList.length; i++) {
+        const newProduct = {
+          ...configList[i],
+          id: "mock_" + uuidv4(),
+        };
+        this.otherDataSource.push(newProduct);
+        if (!ignoreMap.has(configList[i].link)) {
+          ignoreMap.set(configList[i].link, [configList[i].title]);
+        } else {
+          ignoreMap.get(configList[i].link).push(configList[i].title);
+        }
+      }
+      for (let i = 0; i < this.dataSource.length; i++) {
+        let ignore = [];
+        if (ignoreMap.has(this.dataSource[i].link)) {
+          ignore = ignoreMap.get(this.dataSource[i].link);
+        }
+        this.dataSource[i].ignore = ignore;
+        this.taskSource[i].ignore = ignore;
+      }
+
+      // console.log("忽略的特殊处理文件", this.otherDataSource);
+      // console.log(
+      //   "根据map增加ignore属性",
+      //   ignoreMap,
+      //   this.dataSource,
+      //   this.taskSource
+      // );
+    },
     // 根据默认配置创建特殊处理的lang产品
     createOtherProduct(configList) {
       const comProduct = {
@@ -799,11 +835,11 @@ export default {
         }
 
         const currentLink = configList[i].link;
-        console.log("currentLink", currentLink);
+        // console.log("currentLink", currentLink);
         const linkIndex = this.dataSource.findIndex(
           (item) => item.link === currentLink
         );
-        console.log("linkIndex", linkIndex);
+        // console.log("linkIndex", linkIndex);
 
         if (linkIndex !== -1 && this.dataSource[linkIndex]) {
           const data = this.dataSource[linkIndex];
@@ -823,12 +859,12 @@ export default {
         }
       }
 
-      console.log(
-        "忽略的特殊处理文件",
-        this.otherDataSource,
-        this.dataSource,
-        this.taskSource
-      );
+      // console.log(
+      //   "忽略的特殊处理文件",
+      //   this.otherDataSource,
+      //   this.dataSource,
+      //   this.taskSource
+      // );
     },
     // 根据默认配置创建特殊处理的lang产品
     createOtherProduct_old(configList) {
@@ -890,11 +926,11 @@ export default {
         //   this.otherDataSource.push(newProduct);
 
         const currentLink = configList[i].link;
-        console.log("currentLink", currentLink);
+        // console.log("currentLink", currentLink);
         const linkIndex = this.dataSource.findIndex(
           (item) => item.link === currentLink
         );
-        console.log("linkIndex", linkIndex);
+        // console.log("linkIndex", linkIndex);
 
         if (linkIndex !== -1 && this.dataSource[linkIndex]) {
           const data = this.dataSource[linkIndex];
@@ -912,7 +948,7 @@ export default {
         }
       }
 
-      console.log("忽略的特殊处理文件", this.otherDataSource, this.dataSource);
+      // console.log("忽略的特殊处理文件", this.otherDataSource, this.dataSource);
       // console.log("Parent", this.otherParentSource, this.otherParents);
       // console.log("Sub", this.otherSubSource, this.otherSubs);
     },
@@ -929,9 +965,9 @@ export default {
           const importFiles = allFiles.filter((item) => {
             return !ignoredFiles.includes(item);
           }); // 获取当前link下还可以忽略的文件
-          console.log("allFiles", allFiles);
-          console.log("ignoredFiles", ignoredFiles);
-          console.log("importFiles", importFiles);
+          // console.log("allFiles", allFiles);
+          // console.log("ignoredFiles", ignoredFiles);
+          // console.log("importFiles", importFiles);
           this.ignoreOptionsMap[record.id] = importFiles.map((item) => ({
             label: item,
             value: item,
@@ -986,7 +1022,7 @@ export default {
       if (!record) {
         this.otherSourceDataSource = [];
       } else {
-        console.log("record.files", record.files);
+        // console.log("record.files", record.files);
         this.otherSourceDataSource = record.files.map((item) => {
           return {
             id: item + uuidv4(),
@@ -1003,12 +1039,12 @@ export default {
         message.error("请先添加产品！");
         return;
       }
-      console.log(
-        "待保存词条",
-        this.otherEditableData[id],
-        "旧词条",
-        this.otherDataSource[index]
-      );
+      // console.log(
+      //   "待保存词条",
+      //   this.otherEditableData[id],
+      //   "旧词条",
+      //   this.otherDataSource[index]
+      // );
       if (!this.otherEditableData[id].link) {
         message.error("请选择对应的lang目录！");
         return;
@@ -1137,7 +1173,7 @@ export default {
         for (let sItem of this.otherSubSource) {
           sItem.parentId = pIdMap.get(sItem.parentTitle);
         }
-        console.log("分类创建完成", pIdMap, this.otherSubSource);
+        // console.log("分类创建完成", pIdMap, this.otherSubSource);
       });
     },
     // 第二个表的取消
@@ -1179,7 +1215,7 @@ export default {
         }
       }
 
-      console.log("表格复选框点击事件", record, selected);
+      // console.log("表格复选框点击事件", record, selected);
     },
     // 表格全选/反选框点击事件（当前页）
     otherOnSelectAll(selected, selectedRows, changeRows) {
@@ -1192,12 +1228,12 @@ export default {
           this.otherSelectEntry.delete(item.id);
         });
       }
-      console.log(
-        "表格全选/反选框点击事件",
-        selected,
-        selectedRows, // 全选->取选当前页数据时，这个是5个undefined
-        changeRows
-      );
+      // console.log(
+      //   "表格全选/反选框点击事件",
+      //   selected,
+      //   selectedRows, // 全选->取选当前页数据时，这个是5个undefined
+      //   changeRows
+      // );
     },
     // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
     otherOnSelectChange(selectedRowKeys, selectedRows) {
@@ -1206,7 +1242,7 @@ export default {
       // onSelect(单选/取选)、onSelectAll(全选/反选)后，更新selectedRows、selectedRowKeys
       this.otherSelectedRows = [...this.otherSelectEntry.values()];
       this.otherSelectedRowKeys = [...this.otherSelectEntry.keys()]; // selectEntryList.map((item) => item.id);
-      console.log("表格复选框选择事件", this.otherSelectedRows);
+      // console.log("表格复选框选择事件", this.otherSelectedRows);
     },
     // 复选框全选事件
     otherSelectAllEntry() {

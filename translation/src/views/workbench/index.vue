@@ -513,7 +513,7 @@ export default {
           this.dataSource[i].num__total = totalNum;
         }
       }
-      console.log("获取所有分支的任务执行状态", this.dataSource);
+      // console.log("获取所有分支的任务执行状态", this.dataSource);
     },
     // 获取词条数量
     async getTaskPending(tasks) {
@@ -805,7 +805,7 @@ export default {
     // 根据条件获取任务
     async getTaskByCondition(data) {
       this.loading = true;
-      console.log("根据条件获取任务");
+      // console.log("根据条件获取任务");
       this.checkSearchChange();
       let params = {
         pageIndex: this.pagination.current,
@@ -839,7 +839,7 @@ export default {
     },
     // 刷新当前任务的红点标红
     async refreshCurrentTask(task) {
-      console.log("刷新当前任务的红点标红", task);
+      // console.log("刷新当前任务的红点标红", task);
       this.loading = true;
 
       if (this.isTreeOr2D == "tree") {
