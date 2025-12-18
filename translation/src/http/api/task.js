@@ -94,3 +94,12 @@ export function getTaskPending(data) {
     data
   });
 }
+
+// 获取指定测试机的翻译仓中的所有文件
+export function getFileListUsingI18nServer(params) {
+  return request({
+    url: "/taskManage/getFileListUsingI18nServer",
+    method: "POST",
+    params
+  });
+}

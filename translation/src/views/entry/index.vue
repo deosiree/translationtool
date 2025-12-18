@@ -37,6 +37,9 @@
                       :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
                       分支新建{{createbranchStatus=='执行中'?'(执行中)':''}}
                     </a-menu-item>
+                    <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="entrySourceOpen(treeKey)" ref="entrySourceMenu">
+                      来源汇总{{createbranchStatus=='执行中'?'(执行中)':''}}
+                    </a-menu-item>
                     <!-- <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
                   </a-menu>
                 </template>
@@ -75,6 +78,8 @@
     @updateClose="updateClose" style="width:700px;" />
   <CreateBranchModal ref="createBranchModal" :treeNode="currentClickProduct" :visible="createBranchVisible" :modalTitle="classifyModalTitle"
     :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:90%;" />
+  <EntrySourceModal ref="entrySourceModal" :visible="entrySourceVisible" :modalTitle="classifyModalTitle" :currentClass="currentClickProduct"
+    @handleClose="entrySourceClose" style="width:100%;" />
   <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
     :treeNode="currentClickProduct" @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
@@ -93,6 +98,7 @@ import ProductAuthorityModal from "@/views/entry/productAuthorityModal.vue";
 import UpdateModal from "@/views/entry/updateModal.vue";
 import RedundantModal from "@/views/entry/redundantModal.vue";
 import CreateBranchModal from "@/views/entry/createBranchModal.vue";
+import EntrySourceModal from "@/components/Button/codeBranch/getEntrySrcModal.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
@@ -119,6 +125,7 @@ export default {
     UpdateModal,
     RedundantModal,
     CreateBranchModal,
+    EntrySourceModal,
   },
   data() {
     return {
@@ -144,6 +151,8 @@ export default {
       redundantClassfyID: "",
       createBranchVisible: false,
       createBranchClassfyID: "", // 传参给子组件，让子组件调用http请求
+      entrySourceVisible: false,
+      entrySourceClassfyID: "", // 传参给子组件，让子组件调用http请求
       createbranchStatus: "未执行", // 查询分支新建状态
       classifyModalTitle: "",
       currentClass: {},
@@ -322,6 +331,9 @@ export default {
       }
       this.createBranchVisible = false;
     },
+    entrySourceClose() {
+      this.entrySourceVisible = false;
+    },
     // 更新
     update(treeKey) {
       this.classifyModalTitle = "更新详情";
@@ -341,6 +353,13 @@ export default {
       this.classifyModalTitle = "分支新建";
       this.createBranchClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
       this.createBranchVisible = true; // 显示弹窗
+      setModalAriaHidden(this, document);
+    },
+    // 来源汇总
+    entrySourceOpen(treeKey) {
+      this.classifyModalTitle = "来源汇总";
+      this.entrySourceClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
+      this.entrySourceVisible = true; // 显示弹窗
       setModalAriaHidden(this, document);
     },
     // 新增分类或产品

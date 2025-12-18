@@ -285,6 +285,16 @@ export function getEntrySourcesByClassify(params) {
   });
 }
 
+// 查询指定产品的辞典名称
+export function getWriteFileNamesByClassify(params) {
+  return request({
+    url: "/entryInfo/getWriteFileNamesByClassify",
+    method: "POST",
+    params
+  });
+}
+
+
 // 分支新建-查询lang文档中的文件名称（词条来源全集=已导入的+未导入的）
 export function getSourceByLang(data) {
   return Promise.resolve({
