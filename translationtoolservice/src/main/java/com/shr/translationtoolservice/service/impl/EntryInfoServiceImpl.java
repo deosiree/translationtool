@@ -4485,7 +4485,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public Set<String> getEntrySourcesByClassify(String classifyID) {
+    public Set<String> getEntrySourcesByClassify(String classifyID,String writeType) {
         // TODO Auto-generated method stub
         if(classifyID == null){
             return new HashSet<>();
@@ -4495,7 +4495,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if(productIDs.isEmpty()){
             return new HashSet<>();
         }
-        return entryInfoMapper.selectEntrySourcesByIDs(productIDs.stream().collect(Collectors.toSet()),null);
+        return entryInfoMapper.selectEntrySourcesByIDs(productIDs.stream().collect(Collectors.toSet()),null,writeType);
+    }
+
+    @Override
+    public Set<String> getWriteFileNamesByClassify(String classifyID,String writeType) {
+        // TODO Auto-generated method stub
+        if(classifyID == null){
+            return new HashSet<>();
+        }
+        List<String> productIDs = new ArrayList<>();
+        getProductClassfyList(classifyID, productIDs);
+        if(productIDs.isEmpty()){
+            return new HashSet<>();
+        }
+        return entryInfoMapper.selectWriteTypesByIDs("di_file_name", productIDs.stream().collect(Collectors.toSet()), null,writeType);
     }
 
 

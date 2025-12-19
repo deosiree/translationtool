@@ -61,7 +61,8 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
         Map<String,String> taskDirMap,
         String token,
         List<String> targetLanguageTypes,
-        String backendTaskID
+        String backendTaskID,
+        Map<String,Object> otherArgs
     );
 
     String createEntryByLangDirForTaskInfos(
@@ -70,7 +71,8 @@ public interface TaskInfoService extends IService<TaskInfoEntity> {
         Map<String,String> taskDirMap,
         String token,
         List<String> targetLanguageTypes,
-        String backendTaskID
+        String backendTaskID,
+        Map<String,Object> otherArgs
     );
 
 

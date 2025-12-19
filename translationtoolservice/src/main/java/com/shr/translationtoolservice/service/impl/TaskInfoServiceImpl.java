@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.TaskImportEntryEntity.TaskImportEntryVO;
@@ -742,7 +743,8 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         Map<String,String> taskDirMap,
         String token,
         List<String> targetLanguageTypes,
-        String backendTaskID
+        String backendTaskID,
+        Map<String,Object> otherArgs
     ){
         /* 创建任务成功，到词条导入失败，任务不能提交 */
         List<TaskInfoEntity> taskInfoEntities = this.addTaskInfoListAndSubmit(taskInfoVos, token);
@@ -750,12 +752,12 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
             throw new RuntimeException("创建任务时存在异常");   // 抛异常直接回滚
         }
         backendTaskInfoHandler.addMessageForTaskID(backendTaskID, String.format("任务创建成功, 共%s个任务", taskInfoEntities.size()));
-        return this.createEntryByLangDirForTaskInfos(i18nAddress, taskInfoEntities, taskDirMap, token, targetLanguageTypes,backendTaskID);   // 抛异常直接回滚
+        return this.createEntryByLangDirForTaskInfos(i18nAddress, taskInfoEntities, taskDirMap, token, targetLanguageTypes,backendTaskID,otherArgs);   // 抛异常直接回滚
     }
 
     @Transactional
     @Override
-    public String createEntryByLangDirForTaskInfos(String i18nAddress,List<TaskInfoEntity> taskInfoEntities,Map<String,String> taskDirMap,String token,List<String> targetLanguageTypes,String backendTaskID) {
+    public String createEntryByLangDirForTaskInfos(String i18nAddress,List<TaskInfoEntity> taskInfoEntities,Map<String,String> taskDirMap,String token,List<String> targetLanguageTypes,String backendTaskID,Map<String,Object> otherArgs) {
         // TODO Auto-generated method stub
         // backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "");
         /* 分类出TS和TR类任务 */
@@ -806,12 +808,24 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         Map<TaskInfoEntity,List<String>> taskTRFilesMap = new HashMap<>();  // {{"taskName" : ["tr/xxx","db/xxxx"]},{"taskName2" : ["tr/xxx","db/xxxx",'config/xxx']}}
         Map<TaskInfoEntity,List<String>> taskTSFilesMap = new HashMap<>();  // {{"taskName": ["gui_i18n_tool","fcwwewe"]},{"taskName2": ["gui_manager"]}}
         String externalMessage = "";    // 额外的提供给用户的信息
+        Set ignoredFileList = (Set)(otherArgs.get("ignore_files"));     
         if(!trFileListUsingI18nServer.isEmpty()){
             for(TaskInfoEntity taskInfoEntity : dicTaskInfoList){
                 List<String> dispathTRFilesForTask = this.dispathTRFilesForTask(taskInfoEntity, taskDirMap, trFileListUsingI18nServer);
                 if(dispathTRFilesForTask == null){
                     continue;
                 }
+                dispathTRFilesForTask = dispathTRFilesForTask.stream()
+                    .filter(new Predicate<String>() {
+
+                        @Override
+                        public boolean test(String t) {
+                            // TODO Auto-generated method stub
+                            return !ignoredFileList.contains(t);
+                        }
+                        
+                    })
+                    .collect(Collectors.toList());
                 taskTRFilesMap.put(taskInfoEntity, dispathTRFilesForTask);
             }
             Set<String> noEntryInsertedFileNames = new HashSet<>();
@@ -892,8 +906,17 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
                     }
                     
                 }).collect(Collectors.toSet()); //['gui_i18n_tool','gui_manager']
+                Set<String> filteredEntrySources = entrySources.stream().filter(new Predicate<String>() {
 
-                BatchCreateEntryResult createEntryResult = batchInsertEntryHandler.createEntryFromTSFiles(i18nAddress, new ArrayList<>(entrySources), taskTSFileEntry.getKey(), targetLanguageTypes, token,backendTaskID); 
+                    @Override
+                    public boolean test(String t) {
+                        // TODO Auto-generated method stub
+                        return !ignoredFileList.contains(t);
+                    }
+                    
+                }).collect(Collectors.toSet());
+
+                BatchCreateEntryResult createEntryResult = batchInsertEntryHandler.createEntryFromTSFiles(i18nAddress, new ArrayList<>(filteredEntrySources), taskTSFileEntry.getKey(), targetLanguageTypes, token,backendTaskID); 
                 noEntryInsertedFileNames.addAll(createEntryResult.getFileNameForNoEntryInserted());
                 String failedEntryInfoMessages = "";
                 if(!createEntryResult.getFailedEntryInfoEntities().isEmpty()){
@@ -936,7 +959,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
 
         // Queue<String> responseMessage -
         ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 10, 2, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
-        CountDownLatch latch = new CountDownLatch(taskImportEntryVOs.size());
+        // CountDownLatch latch = new CountDownLatch(taskImportEntryVOs.size());
         Set<String> errorMessages = new HashSet<>();
         for(TaskImportEntryVO taskImportEntryVO : taskImportEntryVOs){
             List<TaskInfoVo> taskInfoVos = new ArrayList<>();
@@ -984,24 +1007,24 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
                         log.error(e.getMessage(), e);
                         errorMessages.add(String.format("任务名: %s,词条来源: %s ,出现异常,信息为: %s", taskName,fileNames.toString(),e.getMessage()));
                     } finally{
-                        latch.countDown();;
+                        // latch.countDown();;
                     }
                 }
                 
             });
         }
-        try {
-            if(!latch.await(1, TimeUnit.HOURS)){
-                throw new RuntimeException("指定时间内没有成功导入所有词条, 导入失败");
-            }
-            if(!errorMessages.isEmpty()){
-                throw new RuntimeException("执行失败, 异常信息为: "+ errorMessages.toString());
-            }
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            log.warn("警告,系统服务异常,线程被interrupted");
-            throw new RuntimeException("警告,系统服务异常,线程被interrupted");
+        // try {
+            // if(!latch.await(1, TimeUnit.HOURS)){
+            //     throw new RuntimeException("指定时间内没有成功导入所有词条, 导入失败");
+            // }
+        if(!errorMessages.isEmpty()){
+            throw new RuntimeException("执行失败, 异常信息为: "+ errorMessages.toString());
         }
+        // } catch (InterruptedException e) {
+        //     // TODO Auto-generated catch block
+        //     log.warn("警告,系统服务异常,线程被interrupted");
+        //     throw new RuntimeException("警告,系统服务异常,线程被interrupted");
+        // }
 
         return "任务全部完成";
     }

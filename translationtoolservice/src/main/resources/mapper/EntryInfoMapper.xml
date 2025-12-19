@@ -2239,12 +2239,19 @@
                     #{productID}
                 </foreach>
             </if>
+            <if test = "writeType != null and writeType != ''">
+                and write_type = #{writeType}
+            </if>
         </where>
         group by ${column}
     </sql>
     
     <select id = "selectEntrySourcesByIDs" resultType = "java.lang.String">
         <include refid = "selectGroupByColumnsByIDs"><property name = "column" value = "entry_source"></property></include>
+    </select>
+
+    <select id = "selectWriteTypesByIDs" resultType = "java.lang.String">
+        <include refid = "selectGroupByColumnsByIDs"><property name = "column" value = "di_file_name"></property></include>
     </select>
 
     <select id = "countEntryTranslateStateForTasks" resultMap = "TaskStateEntityDOMap">

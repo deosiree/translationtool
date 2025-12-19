@@ -115,9 +115,14 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     Set<EntryInfoReplicateCheckVO> newGetEntryInfoExists(@Param("checkConditions") Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs);
 
-    Set<String> selectEntrySourcesByIDs(@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs);
+    Set<String> selectEntrySourcesByIDs(@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs,@Param("writeType") String writeType);
 
-    Set<String> selectGroupByColumnsByIDs(@Param("column") String columnName,@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs);
+    Set<String> selectWriteTypesByIDs(
+        @Param("column") String columnName,
+        @Param("productIDs") Set<String> productIDs,
+        @Param("entryIDs") Set<String> entryIDs,
+        @Param("writeType") String writeType
+    );
 
     List<TaskStateEntityDO> countEntryTranslateStateForTasks(@Param("taskIDs") Set<String> taskIDs);
 }

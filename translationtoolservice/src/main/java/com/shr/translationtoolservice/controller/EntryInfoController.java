@@ -1089,9 +1089,22 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/getEntrySourcesByClassify")
     @ApiOperation("获取一个词条分类下所有的词条来源")
     @CrossOrigin
-    public HttpResponse<Set<String>> getEntrySourcesByClassify(@RequestParam("classifyID") String classifyID){
+    public HttpResponse<Set<String>> getEntrySourcesByClassify(@RequestParam("classifyID") String classifyID,@RequestParam(name =  "writeType",required = false,defaultValue = "") String writeType){
         try {
-            Set<String> entrySourcesByClassify = entryInfoService.getEntrySourcesByClassify(classifyID);     
+            Set<String> entrySourcesByClassify = entryInfoService.getEntrySourcesByClassify(classifyID,writeType);     
+            return ok(entrySourcesByClassify);       
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/getWriteFileNamesByClassify")
+    @ApiOperation("获取一个词条分类下所有的辞典名称")
+    @CrossOrigin
+    public HttpResponse<Set<String>> getWriteFileNamesByClassify(@RequestParam("classifyID") String classifyID,@RequestParam(name =  "writeType",required = false,defaultValue = "") String writeType){
+        try {
+            Set<String> entrySourcesByClassify = entryInfoService.getWriteFileNamesByClassify(classifyID,writeType);     
             return ok(entrySourcesByClassify);       
         } catch (Exception e) {
             log.error(e.getMessage(), e);
