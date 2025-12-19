@@ -498,8 +498,8 @@ const linkList = [
   ["meta", "数据库-对象数据"],
   ["enum", "枚举"],
   ["config", "配置文件"],
-  ["ts", "工具-ts"],
-  ["tr", "工具-tr"],
+  ["ts", "源代码-qt(ts)"],
+  ["tr", "源代码-qt(tr)"],
 ];
 const linkOptions = linkList.map(item => ({
   label: item[0],

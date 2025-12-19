@@ -162,7 +162,7 @@ export default {
               (item) =>
                 !data.some(
                   (delItem) =>
-                    delItem.link === item.link && delItem.title === item.title
+                    delItem.link == item.link && delItem.title == item.title
                 )
             );
           } catch (error) {
