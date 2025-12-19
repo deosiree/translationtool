@@ -267,7 +267,7 @@ const entry_checkboxList = [
   { label: "comment", value: "comment", index: 4 },
   { label: "词条版本", value: "entryVersion", index: 5 },
   { label: "词条字符数", value: "entryLength", index: 6 },
-  { label: "词条来源", value: "entrySource", index: 7 },
+  { label: "词条来源", value: "entrySource", index: 7 },// 可以看到.qt文件的相对路径
   { label: "中文释义", value: "chineseInterpretation", index: 8 },
   { label: "中文翻译", value: "chinese", index: 9 },
   { label: "中文翻译状态", value: "chineseTranslateState", index: 10 },
@@ -285,7 +285,7 @@ const entry_checkboxList = [
   { label: "法文翻译状态", value: "frenchTranslateState", index: 22 },
   { label: "一级分类", value: "classfy1", index: 23 },
   { label: "二级分类", value: "classfy2", index: 24 },
-  { label: "辞典名称", value: "diFileName", index: 25 },
+  { label: "辞典名称", value: "diFileName", index: 25 },// 可以看到.dic文件的相对路径
   { label: "备注", value: "remark", index: 28 },
   { label: "来源表名", value: "srcTabName", index: 29 },
   { label: "数据库记录ID", value: "dbRID", index: 30 },

@@ -50,7 +50,8 @@
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName">
-              <a-input v-model:value="search.diFileName" placeholder="请输入内容"></a-input>
+              <a-select v-model:value="search.diFileName" show-search placeholder="请输入辞典名称" :options="diFileNameOptions" allowClear>
+              </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime">
               <a-date-picker v-model:value="search.startTime_" style="width:186px" />
@@ -399,6 +400,7 @@ import {
   entryImportExcle,
   getEntryByClassfy,
   getEntrySourcesByClassify,
+  getWriteFileNamesByClassify,
 } from "@/http/api/entryManage";
 import { getSecondClassify } from "@/http/api/secondClassify";
 import {
@@ -715,6 +717,7 @@ export default {
       showForbbiden: false, // 显示/隐藏禁用
       classifyLimit: {},
       entrySourceOptions: [], // 词条来源下拉框
+      diFileNameOptions: [], // 辞典名称下拉框
       searchTypes: [
         { label: "冗余词条校验", value: "checkNotUseEntry" },
         { label: "条件查询", value: "getEntryByClassfy" },
@@ -813,10 +816,21 @@ export default {
         this.product = newval;
         // 查询产品的所有词条来源
         getEntrySourcesByClassify({ classifyID: newval.key }).then((res) => {
-          this.entrySourceOptions = res.data.map((item) => ({
-            label: item,
-            value: item,
-          }));
+          this.entrySourceOptions = res.data
+            .filter((item) => item && item !== "")
+            .map((item) => ({
+              label: item,
+              value: item,
+            }));
+        });
+        // 查询产品的所有辞典名称
+        getWriteFileNamesByClassify({ classifyID: newval.key }).then((res) => {
+          this.diFileNameOptions = res.data
+            .filter((item) => item && item !== "")
+            .map((item) => ({
+              label: item,
+              value: item,
+            }));
         });
         this.showOperationArea = false;
         this.pagination.current = 1;
