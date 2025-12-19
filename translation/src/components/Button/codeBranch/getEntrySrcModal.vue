@@ -1,5 +1,6 @@
 <template>
   <CustomModal :visible="visible" :okLoading="loading" :modalTitle="modalTitle" @handleClose="handleClose" @handleOK="handleOK">
+    <div>{{currentClass.title}}</div>
     <div class="search">
       <a-form :model="search" layout="inline" autocomplete="off" :label-col="labelCol">
         <a-row class="search-row" style="width:100%;display:flex;gap:8px">
@@ -61,12 +62,16 @@
         </a-row>
       </a-form>
     </div>
+    <template #leftBottomBtn>
+      <GenConfigButton size="middle" buttonTitle="配置文件生成工具" />
+    </template>
   </CustomModal>
 </template>
 
 <script>
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
+import GenConfigButton from "@/components/Button/codeBranch/generateConfigButton.vue";
 import { PlusOutlined } from "@ant-design/icons-vue";
 import { getLanguage } from "@/http/api/translate";
 import { getI18nAdress } from "@/http/api/workbench";
@@ -80,6 +85,7 @@ import { setModalAriaHidden } from "@/utils/commonUtils";
 export default {
   components: {
     CustomModal,
+    GenConfigButton,
     PlusOutlined,
   },
   emits: ["configList", "handleClose"],
@@ -209,6 +215,8 @@ export default {
       this.search = { i18nURL: null, translateType: ["英文"] };
       this.allSource = [];
       this.ignoredSource = [];
+      this.forbiddenedSource = [];
+      this.commonSource = [];
     },
     //查询
     query() {
@@ -350,10 +358,10 @@ export default {
     // 查询产品的所有词条来源
     async getExistedSource() {
       this.loading = true;
-      console.log("classifyID", this.currentClass, this.currentClass.parentId);
+      // console.log("classifyID", this.currentClass, this.currentClass.key);
       // 获取词条来源
       await getEntrySourcesByClassify({
-        classifyID: this.currentClass.parentId,
+        classifyID: this.currentClass.key,
         writeType: "TS",
       })
         .then((res) => {
@@ -368,7 +376,7 @@ export default {
         });
       // 获取字典来源
       await getWriteFileNamesByClassify({
-        classifyID: this.currentClass.parentId,
+        classifyID: this.currentClass.key,
         writeType: "DI",
       })
         .then((res) => {
