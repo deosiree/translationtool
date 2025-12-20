@@ -26,7 +26,8 @@
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource">
               <!-- <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input> -->
-              <a-select v-model:value="search.entrySource" show-search placeholder="请输入词条来源" :options="entrySourceOptions" allowClear>
+              <a-select v-model:value="search.entrySource" show-search placeholder="请输入词条来源" :options="entrySourceOptions" allowClear
+                @search="handleEntrySourceSearch">
               </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language">
@@ -50,7 +51,8 @@
               <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName">
-              <a-select v-model:value="search.diFileName" show-search placeholder="请输入辞典名称" :options="diFileNameOptions" allowClear>
+              <a-select v-model:value="search.diFileName" show-search placeholder="请输入辞典名称" :options="diFileNameOptions" allowClear
+                @search="handleDiFileNameSearch">
               </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime">
@@ -718,6 +720,8 @@ export default {
       classifyLimit: {},
       entrySourceOptions: [], // 词条来源下拉框
       diFileNameOptions: [], // 辞典名称下拉框
+      entrySourceOptions_copy: [], // 词条来源下拉框
+      diFileNameOptions_copy: [], // 辞典名称下拉框
       searchTypes: [
         { label: "冗余词条校验", value: "checkNotUseEntry" },
         { label: "条件查询", value: "getEntryByClassfy" },
@@ -822,6 +826,7 @@ export default {
               label: item,
               value: item,
             }));
+          this.entrySourceOptions_copy = cloneDeep(this.entrySourceOptions);
         });
         // 查询产品的所有辞典名称
         getWriteFileNamesByClassify({ classifyID: newval.key }).then((res) => {
@@ -831,6 +836,7 @@ export default {
               label: item,
               value: item,
             }));
+          this.diFileNameOptions_copy = cloneDeep(this.diFileNameOptions);
         });
         this.showOperationArea = false;
         this.pagination.current = 1;
@@ -946,6 +952,22 @@ export default {
         this.search.entryState_ = [0, 1, 2, 3];
       }
       this.getEntryByClassfy();
+    },
+    // 处理词条来源的搜索输入
+    handleEntrySourceSearch(value) {
+      const option = {
+        label: value,
+        value: value,
+      };
+      this.entrySourceOptions = this.entrySourceOptions_copy.concat([option]);
+    },
+        // 处理辞典名称的搜索输入
+    handleDiFileNameSearch(value) {
+      const option = {
+        label: value,
+        value: value,
+      };
+      this.diFileNameOptions = this.diFileNameOptions_copy.concat([option]);
     },
     // 动态设置表格高度
     setTableHeight() {
