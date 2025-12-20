@@ -382,8 +382,10 @@ export default {
         });
 
         // 读取本地存储的用户偏好
+        // localStorage.removeItem("display-workbenchIndex");
         const storedDisplay = localStorage.getItem("display-workbenchIndex");
         if (storedDisplay) {
+          // console.log("读取到用户偏好:", storedDisplay, localStorage);
           this.isTreeOr2D = JSON.parse(storedDisplay);
           if (this.isTreeOr2D == "tree") {
             if (
@@ -393,12 +395,23 @@ export default {
               this.pageChange(1, 100);
             }
           } else {
+            // 否则不是层级展示
             if (
               this.pagination.current != 1 ||
               this.pagination.pageSize != 20
             ) {
               this.pageChange(1, 20);
             }
+          }
+        } else {
+          // console.log(
+          //   "读不到用户偏好，使用默认值:",
+          //   this.isTreeOr2D,
+          //   localStorage
+          // );
+          this.isTreeOr2D = "2D";
+          if (this.pagination.current != 1 || this.pagination.pageSize != 20) {
+            this.pageChange(1, 20);
           }
         }
       }
@@ -843,36 +856,42 @@ export default {
       this.loading = true;
 
       if (this.isTreeOr2D == "tree") {
-            // 层级展示
-      const oldNum_total = task.num__total;
-      const { tasks: updateTasks, totalNum } = await this.getTaskPending([task]);
-      const updatedTask = updateTasks[0];
+        // 层级展示
+        const oldNum_total = task.num__total;
+        const { tasks: updateTasks, totalNum } = await this.getTaskPending([
+          task,
+        ]);
+        const updatedTask = updateTasks[0];
 
-      // 使用id来查找任务所在的分支
-      let branchIndex = this.dataSource.findIndex((branch) => {
-        return (
-          branch.child && branch.child.some((t) => t.id === updatedTask.id)
-        );
-      });
+        // 使用id来查找任务所在的分支
+        let branchIndex = this.dataSource.findIndex((branch) => {
+          return (
+            branch.child && branch.child.some((t) => t.id === updatedTask.id)
+          );
+        });
 
-      if (branchIndex !== -1) {
-        // 更新分支中的任务
-        const taskIndex = this.dataSource[branchIndex].child.findIndex(
-          (t) => t.id === updatedTask.id
-        );
-        if (taskIndex !== -1) {
-          this.dataSource[branchIndex].child[taskIndex] = updatedTask;
-          this.dataSource[branchIndex].num__total += totalNum - oldNum_total;
+        if (branchIndex !== -1) {
+          // 更新分支中的任务
+          const taskIndex = this.dataSource[branchIndex].child.findIndex(
+            (t) => t.id === updatedTask.id
+          );
+          if (taskIndex !== -1) {
+            this.dataSource[branchIndex].child[taskIndex] = updatedTask;
+            this.dataSource[branchIndex].num__total += totalNum - oldNum_total;
+          }
+        } else {
+          console.log("没找到对应的分支名称");
         }
       } else {
-        console.log("没找到对应的分支名称");
-      }
-      }else{
         // 平铺展示
-        const { tasks: updateTasks, totalNum } = await this.getTaskPending([task]);
+        const { tasks: updateTasks, totalNum } = await this.getTaskPending([
+          task,
+        ]);
         const updatedTask = updateTasks[0];
         // 使用id来查找任务所在的分支
-        let taskIndex = this.dataSource.findIndex((t) => t.id === updatedTask.id);
+        let taskIndex = this.dataSource.findIndex(
+          (t) => t.id === updatedTask.id
+        );
         if (taskIndex !== -1) {
           // 更新分支中的任务
           this.dataSource[taskIndex] = updatedTask;
