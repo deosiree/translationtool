@@ -250,8 +250,20 @@
       </div>
 
       <div class="form">
-        词条：
-        <a-input v-model:value="keyWords" style="width:30%" size="small" placeholder='请输入词条搜索' />
+        <div style="width: auto; display: flex; align-items: center;justify-content: center;">
+          <a-form layout="inline" autocomplete="off" style="display: flex;gap: 8px;">
+            <a-form-item label="词条" name="entry" style="width: auto;height: auto; margin: 0;">
+              <a-input v-model:value="keyWords" size="small" placeholder='词条' style="width: 100px;" />
+            </a-form-item>
+            <a-form-item label="存在状态" name="isExist" style="width: auto;height: auto; margin: 0;">
+              <a-select v-model:value="isExist" style="width: 120px" placeholder="请选择存在状态" :options="isExistOptions" allowClear
+                size="small" />
+            </a-form-item>
+          </a-form>
+        </div>
+
+        <!-- 词条：
+        <a-input v-model:value="keyWords" style="width:30%" size="small" placeholder='请输入词条搜索' /> -->
         <a-button type="primary" size="small" style="margin-left:8px" @click="select">
           <template #icon>
             <SearchOutlined />
@@ -534,6 +546,8 @@ import {
   useRefRules,
 } from "@/utils/commonUtils";
 const filteredInfo = {};
+const ALL_ISEXIST = "-1";
+
 export default {
   components: {
     CheckOutlined,
@@ -583,6 +597,12 @@ export default {
       filePath: "",
       filediFileName: null,
       keyWords: "",
+      isExist: ALL_ISEXIST,
+      isExistOptions: [
+        { label: "全部", value: ALL_ISEXIST },
+        { label: "已存在", value: "1" },
+        { label: "新建", value: "0" },
+      ],
       dataType: "file",
       tableHeight: { x: "max-content", y: "300px" },
       // tableHeight: { x: "100%", y: "300px" },
@@ -1187,12 +1207,18 @@ export default {
     // 模糊查询
     select() {
       if (this.filterLanguage === null) {
-        this.dataSource = this.allData.filter((item) =>
-          item.entry.includes(this.keyWords)
+        this.dataSource = this.allData.filter(
+          (item) =>
+            item.entry.includes(this.keyWords) &&
+            (this.isExist == ALL_ISEXIST ||
+              item.isExist == this.isExist)
         );
       } else {
-        this.dataSource = this.filterSource.filter((item) =>
-          item.entry.includes(this.keyWords)
+        this.dataSource = this.filterSource.filter(
+          (item) =>
+            item.entry.includes(this.keyWords) &&
+            (this.isExist == ALL_ISEXIST ||
+              item.isExist == this.isExist)
         );
       }
     },
@@ -2131,6 +2157,7 @@ export default {
     afterClose() {
       this.editableData = {};
       this.keyWords = "";
+      this.isExist = ALL_ISEXIST;
       this.dataType = "file";
       this.dataSource = [];
       this.allData = [];
