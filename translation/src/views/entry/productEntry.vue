@@ -112,7 +112,7 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="currentDepartment.ops.has('needIP')" size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
+          <GitCommitButton v-if="currentDepartment.ops.has('needIP')" size="small" buttonTitle="git推送" buttonClass="yellowBtn" :treeTitle="product.title" />
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag" :loading="selectAllLoading">选择全部</a-button>
           <a-button type="primary" size="small" @click="cancelCreate" class="yellowBtn" v-if="createVersionFlag">取消选择</a-button>
@@ -961,7 +961,7 @@ export default {
       };
       this.entrySourceOptions = this.entrySourceOptions_copy.concat([option]);
     },
-        // 处理辞典名称的搜索输入
+    // 处理辞典名称的搜索输入
     handleDiFileNameSearch(value) {
       const option = {
         label: value,
@@ -1688,6 +1688,7 @@ export default {
     },
     // 判断当前状态树是否是产品及以下（以便封掉部门级使用不了的按钮）
     isProduct() {
+      // console.log("当前产品", this.product.title);
       return this.product.type == "product" || this.product.type == "module";
     },
     // 批量选择
