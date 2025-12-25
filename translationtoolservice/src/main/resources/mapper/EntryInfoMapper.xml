@@ -2030,6 +2030,364 @@
         </where>
     </select>
 
+    <select id = "selectEntryInfoIDsByEntryTransConditions" resultType = "java.lang.String">
+        SELECT info.id as info_id 
+        <choose>
+            <when test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+            </when>
+            <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.chineseTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.english != null and entryInfoEntity.english != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+            </when>
+            <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.englishTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+            </when>
+            <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.russianTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+            </when>
+            <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.frenchTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+            </when>
+            <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.spanishTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                FROM t_entry_info as info
+            </otherwise>
+        </choose>
+        inner join t_product_relation on t_product_relation.entry_id = info.id
+
+        <where>
+            and info.is_delete = 0
+
+            <if test = "ids != null and !ids.isEmpty()">
+                and info.id in 
+                <foreach item = "id" collection = "ids" separator = "," open = "(" close = ")">
+                    #{id,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "productIDs != null and !productIDs.isEmpty()">
+                and t_product_relation.product_id in
+                <foreach item = "productID" collection = "productIDs" open = "(" close = ")" separator = ",">
+                    #{productID}
+                </foreach>
+            </if>
+
+            <choose>
+                <when test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
+                    and trans.delete_state = 0 and trans.`type` = '中文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.chinese,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.chineseTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '中文' and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.zh_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
+                    and trans.delete_state = 0 and trans.`type` = '英文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.english,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.englishTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '英文' and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.en_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
+                    and trans.delete_state = 0 and trans.`type` = '俄文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.russian,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate  like CONCAT('%',#{entryInfoEntity.russian,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.russianTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '俄文' and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.ru_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
+                    and trans.delete_state = 0 and trans.`type` = '法文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.french,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate  like CONCAT('%',#{entryInfoEntity.french,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.frenchTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '法文' and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.fra_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
+                    and trans.delete_state = 0 and trans.`type` = '西文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.spanish,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate  like CONCAT('%',#{entryInfoEntity.spanish,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.spanishTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '西文' and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.spa_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <otherwise>
+            
+                </otherwise>
+            </choose>
+
+            <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
+                and info.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+            </if>
+            <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
+                and info.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
+            </if>
+            <if test="entryInfoEntity.classfy1 != null and entryInfoEntity.classfy1   != ''">
+                <if test = "!entryInfoEntity.classfy1.isEmpty()">
+                    and
+                    <foreach item = "item" collection = "entryInfoEntity.classfy1" separator = "or" open = "(" close = ")">
+                        <choose>
+                            <when test = "item != null and item != ''">
+                                info.classfy1 like CONCAT('%',#{item},'%') 
+                            </when>
+                            <when test = "item == ''">
+                                info.classfy1 = ""
+                            </when>
+                            <otherwise>
+                                info.classfy1 is null
+                            </otherwise>
+                        </choose>
+                    </foreach>
+                </if>
+            </if>
+            <if test="entryInfoEntity.classfy2 != null and entryInfoEntity.classfy2   != ''">
+                <if test= "!entryInfoEntity.classfy2.isEmpty()">
+                    and
+                    <foreach item = "item" collection = "entryInfoEntity.classfy2" separator = "or" open = "(" close = ")">
+                        <choose>
+                            <when test = "item != null and item != ''">
+                                info.classfy2 like CONCAT('%',#{item},'%') 
+                            </when>
+                            <when test = "item == ''">
+                                info.classfy2 = ""
+                            </when>
+                            <otherwise>
+                                info.classfy2 is null
+                            </otherwise>
+                        </choose>
+                    </foreach>
+                </if>
+            </if>
+
+            <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('词条')">
+                        and BINARY info.entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.entry like CONCAT('%',#{entryInfoEntity.entry,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr   != ''">
+                and BINARY info.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+            </if>
+            <if test="entryInfoEntity.entryState != null and !entryInfoEntity.entryState.isEmpty()">
+                and info.entry_state in 
+                <foreach item = "item" collection = "entryInfoEntity.entryState" separator = "," open = "(" close = ")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel   != ''">
+                and info.entry_label like CONCAT('%',#{entryInfoEntity.entryLabel,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.tag != null and entryInfoEntity.tag   != ''">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('tag')">
+                        and BINARY info.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.tag like CONCAT('%',#{entryInfoEntity.tag,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('词条来源')">
+                        and BINARY info.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryInfoEntity.entryVersion != null and entryInfoEntity.entryVersion   != ''">
+                and info.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('Comment')">
+                        and BINARY info.comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+
+            <if test="entryInfoEntity.remark != null and entryInfoEntity.remark != '' ">
+                and info.remark  like CONCAT('%',#{entryInfoEntity.remark,jdbcType=VARCHAR},'%')
+            </if>
+
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                and info.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                and info.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.diFileName != null and entryInfoEntity.diFileName != '' ">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('辞典名称')">
+                        and BINARY info.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test = "entryInfoEntity.update != null and entryInfoEntity.update != ''">
+                and info.update like CONCAT('%',#{entryInfoEntity.update,jdbcType = VARCHAR},'%')
+            </if>
+            <choose>
+                <when test = "startTime != null and startTime != '' and endTime != null and endTime != ''">
+                    and info.update_time &gt;= #{startTime}  and update_time &lt;= #{endTime}
+                </when>
+                <when test = "startTime != null and startTime != ''">
+                    and info.update_time &gt;= #{startTime}
+                </when>
+                <when test = "endTime != null and endTime != ''">
+                    and info.update_time &lt;= #{endTime}
+                </when>
+                <otherwise>
+                
+                </otherwise>
+            </choose>
+
+        </where>
+        <if test = "limit >= 0 and offset >= 0">
+            limit #{limit} offset #{offset}
+        </if>
+    </select>
 
     <select id = "newGetEntryInfoExists" resultMap= "replicateCheckVOResultMap">
        select
@@ -2337,5 +2695,359 @@
         </where>
         GROUP BY t_entry_info.entry_state
 
+    </select>
+
+    <select id = "countEntryIDsByConditions" resultType = "java.lang.String">
+        SELECT count(info.id) as info_id 
+        <choose>
+            <when test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+            </when>
+            <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.chineseTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.zh_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.english != null and entryInfoEntity.english != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+            </when>
+            <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.englishTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.en_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+            </when>
+            <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.russianTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.ru_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+            </when>
+            <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.frenchTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.fra_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
+                FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+            </when>
+            <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                <choose>
+                    <when test = "entryInfoEntity.spanishTranslateState != 0">
+                        FROM t_translate as trans   INNER JOIN t_entry_info as info on trans.id = info.spa_trans_id
+                    </when>
+                    <otherwise>
+                        FROM t_entry_info as info
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                FROM t_entry_info as info
+            </otherwise>
+        </choose>
+        inner join t_product_relation on t_product_relation.entry_id = info.id
+
+        <where>
+            <if test = "ids != null and !ids.isEmpty()">
+                and info.id in 
+                <foreach item = "id" collection = "ids" separator = "," open = "(" close = ")">
+                    #{id,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "productIDs != null and !productIDs.isEmpty()">
+                and t_product_relation.product_id in
+                <foreach item = "productID" collection = "productIDs" open = "(" close = ")" separator = ",">
+                    #{productID}
+                </foreach>
+            </if>
+
+            <choose>
+                <when test="entryInfoEntity.chinese != null and entryInfoEntity.chinese != '' ">
+                    and trans.delete_state = 0 and trans.`type` = '中文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.chinese,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate like CONCAT('%',#{entryInfoEntity.chinese,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.chineseTranslateState != null and entryInfoEntity.chineseTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.chineseTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '中文' and trans.translate_state = #{entryInfoEntity.chineseTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.zh_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.english != null and entryInfoEntity.english != '' ">
+                    and trans.delete_state = 0 and trans.`type` = '英文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.english,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate like CONCAT('%',#{entryInfoEntity.english,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.englishTranslateState != null and entryInfoEntity.englishTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.englishTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '英文' and trans.translate_state = #{entryInfoEntity.englishTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.en_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.russian != null and entryInfoEntity.russian != ''">
+                    and trans.delete_state = 0 and trans.`type` = '俄文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.russian,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate  like CONCAT('%',#{entryInfoEntity.russian,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.russianTranslateState != null and entryInfoEntity.russianTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.russianTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '俄文' and trans.translate_state = #{entryInfoEntity.russianTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.ru_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.french != null and entryInfoEntity.french != ''">
+                    and trans.delete_state = 0 and trans.`type` = '法文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.french,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate  like CONCAT('%',#{entryInfoEntity.french,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.frenchTranslateState != null and entryInfoEntity.frenchTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.frenchTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '法文' and trans.translate_state = #{entryInfoEntity.frenchTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.fra_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="entryInfoEntity.spanish != null and entryInfoEntity.spanish != ''">
+                    and trans.delete_state = 0 and trans.`type` = '西文'
+                    <choose>
+                        <when test = "clearMatchSet.contains('翻译结果')">
+                            and BINARY trans.translate = #{entryInfoEntity.spanish,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and trans.translate  like CONCAT('%',#{entryInfoEntity.spanish,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                    <if test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                        and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <when test="entryInfoEntity.spanishTranslateState != null and entryInfoEntity.spanishTranslateState != ''">
+                    <choose>
+                        <when test = "entryInfoEntity.spanishTranslateState != 0">
+                            and trans.delete_state = 0 and trans.`type` = '西文' and trans.translate_state = #{entryInfoEntity.spanishTranslateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            and info.spa_trans_id is NULL
+                        </otherwise>
+                    </choose>
+                </when>
+                <otherwise>
+            
+                </otherwise>
+            </choose>
+
+            <if test="entryInfoEntity.versionID != null and entryInfoEntity.versionID   != ''">
+                and info.version_id = #{entryInfoEntity.versionID,jdbcType=VARCHAR}
+            </if>
+            <if test="entryInfoEntity.taskId != null and entryInfoEntity.taskId   != ''">
+                and info.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
+            </if>
+            <if test="entryInfoEntity.classfy1 != null and entryInfoEntity.classfy1   != ''">
+                <if test = "!entryInfoEntity.classfy1.isEmpty()">
+                    and
+                    <foreach item = "item" collection = "entryInfoEntity.classfy1" separator = "or" open = "(" close = ")">
+                        <choose>
+                            <when test = "item != null and item != ''">
+                                info.classfy1 like CONCAT('%',#{item},'%') 
+                            </when>
+                            <when test = "item == ''">
+                                info.classfy1 = ""
+                            </when>
+                            <otherwise>
+                                info.classfy1 is null
+                            </otherwise>
+                        </choose>
+                    </foreach>
+                </if>
+            </if>
+            <if test="entryInfoEntity.classfy2 != null and entryInfoEntity.classfy2   != ''">
+                <if test= "!entryInfoEntity.classfy2.isEmpty()">
+                    and
+                    <foreach item = "item" collection = "entryInfoEntity.classfy2" separator = "or" open = "(" close = ")">
+                        <choose>
+                            <when test = "item != null and item != ''">
+                                info.classfy2 like CONCAT('%',#{item},'%') 
+                            </when>
+                            <when test = "item == ''">
+                                info.classfy2 = ""
+                            </when>
+                            <otherwise>
+                                info.classfy2 is null
+                            </otherwise>
+                        </choose>
+                    </foreach>
+                </if>
+            </if>
+
+            <if test="entryInfoEntity.entry != null and entryInfoEntity.entry   != ''">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('词条')">
+                        and BINARY info.entry = #{entryInfoEntity.entry,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.entry like CONCAT('%',#{entryInfoEntity.entry,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryInfoEntity.abbr != null and entryInfoEntity.abbr   != ''">
+                and BINARY info.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
+            </if>
+            <if test="entryInfoEntity.entryState != null and !entryInfoEntity.entryState.isEmpty()">
+                and info.entry_state in 
+                <foreach item = "item" collection = "entryInfoEntity.entryState" separator = "," open = "(" close = ")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="entryInfoEntity.entryLabel != null and entryInfoEntity.entryLabel   != ''">
+                and info.entry_label like CONCAT('%',#{entryInfoEntity.entryLabel,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.tag != null and entryInfoEntity.tag   != ''">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('tag')">
+                        and BINARY info.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.tag like CONCAT('%',#{entryInfoEntity.tag,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('词条来源')">
+                        and BINARY info.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.entry_source like CONCAT('%',#{entryInfoEntity.entrySource,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryInfoEntity.entryVersion != null and entryInfoEntity.entryVersion   != ''">
+                and info.entry_version like CONCAT('%',#{entryInfoEntity.entryVersion,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('Comment')">
+                        and BINARY info.comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+
+            <if test="entryInfoEntity.remark != null and entryInfoEntity.remark != '' ">
+                and info.remark  like CONCAT('%',#{entryInfoEntity.remark,jdbcType=VARCHAR},'%')
+            </if>
+
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                and info.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                and info.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="entryInfoEntity.diFileName != null and entryInfoEntity.diFileName != '' ">
+                <choose>
+                    <when test = "clearMatchSet != null and clearMatchSet.contains('辞典名称')">
+                        and BINARY info.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        and info.di_file_name  like CONCAT('%',#{entryInfoEntity.diFileName,jdbcType=VARCHAR},'%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test = "entryInfoEntity.update != null and entryInfoEntity.update != ''">
+                and info.update like CONCAT('%',#{entryInfoEntity.update,jdbcType = VARCHAR},'%')
+            </if>
+            <choose>
+                <when test = "startTime != null and startTime != '' and endTime != null and endTime != ''">
+                    and info.update_time &gt; #{startTime}  and update_time &lt; #{endTime}
+                </when>
+                <when test = "startTime != null and startTime != ''">
+                    and info.update_time &gt; #{startTime}
+                </when>
+                <when test = "endTime != null and endTime != ''">
+                    and info.update_time &lt; #{endTime}
+                </when>
+                <otherwise>
+                
+                </otherwise>
+            </choose>
+
+        </where>
     </select>
 </mapper>

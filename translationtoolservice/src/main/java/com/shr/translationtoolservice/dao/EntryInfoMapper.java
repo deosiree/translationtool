@@ -112,6 +112,25 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     Set<String> selectEntryInfoIDsByTranslateInfos(@Param("entryInfoEntity")EntryInfoEntityQO entryInfoEntity,@Param("ids") Set<String> entryInfoIDs,@Param("clearMatchSet") Set<String> clearMatchSet);
 
+    Set<String> selectEntryInfoIDsByEntryTransConditions(
+        @Param("entryInfoEntity")EntryInfoEntityQO entryInfoEntity,
+        @Param("ids") Set<String> entryInfoIDs,
+        @Param("productIDs") Set<String> productIDs,
+        @Param("clearMatchSet") Set<String> clearMatchSet,
+        @Param("startTime") String startTime,
+        @Param("endTime") String endTime,
+        @Param("offset") Integer offset,
+        @Param("limit") Integer limit
+    );
+
+    String countEntryIDsByConditions(
+        @Param("entryInfoEntity")EntryInfoEntityQO entryInfoEntity,
+        @Param("ids") Set<String> entryInfoIDs,
+        @Param("productIDs") Set<String> productIDs,
+        @Param("clearMatchSet") Set<String> clearMatchSet,
+        @Param("startTime") String startTime,
+        @Param("endTime") String endTime
+    );
 
     Set<EntryInfoReplicateCheckVO> newGetEntryInfoExists(@Param("checkConditions") Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs);
 

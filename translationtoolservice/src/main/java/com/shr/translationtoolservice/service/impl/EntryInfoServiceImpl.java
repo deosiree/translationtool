@@ -2531,6 +2531,156 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
+    // public EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize){
+    //     List<String> productidList = new ArrayList<>();
+    //     //一级分类查询
+    //     // if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
+    //     getProductClassfyList(classfyID, productidList);
+    //     // }
+
+    //   /*  if (CollectionUtils.isEmpty(productidList)){
+    //         log.error("当前分类不存在或者没有子分类");
+    //       return null;
+    //     }*/
+    //     /* 无法查到禁用的词条，在where里面写的 */
+    //     entryInfoEntityTemplate.setEntry(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntry()));
+    //     entryInfoEntityTemplate.setChinese(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getChinese()));
+    //     entryInfoEntityTemplate.setEnglish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEnglish()));
+    //     entryInfoEntityTemplate.setSpanish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getSpanish()));
+    //     entryInfoEntityTemplate.setFrench(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getFrench()));
+    //     entryInfoEntityTemplate.setRussian(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getRussian()));
+
+    //     /*  */
+    //     Set<String> productIDs = new HashSet<>(); 
+    //     Set<String> taskIDs = new HashSet<>();
+    //     Set<String> versionIDs = new HashSet<>();
+
+    //     productIDs.addAll(productidList);
+    //     /*
+    //         1. 存在t_entry_info字段的条件，存在t_translate字段的条件
+    //         2. 存在t_entry_info字段的条件，不存在t_translate字段的条件
+    //         3. 不存在t_entry_info字段的条件，存在t_translate字段的条件
+    //         4. 不存在t_entry_info字段的条件，不存在t_translate字段的条件
+    //      */
+    //     List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectInfosByProductRelationEntity(null,productIDs, taskIDs, versionIDs,-1,-1);
+    //     List<String> matchedIDsFromProductRelation = selectEntryInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
+    //     if(matchedIDsFromProductRelation.isEmpty()){
+    //         EntryInfoVO entryInfoVO = new EntryInfoVO();
+    //         entryInfoVO.setEntryInfoEntities(new ArrayList<>());
+    //         entryInfoVO.setTotalSize(0);
+    //         return entryInfoVO;
+    //     }
+    //     /* 处理时差 */
+    //     String targetStartTimeStr =  null;  // 数据库是按照GMT-6存的，所以转换时区
+    //     String targetEndTimeStr = null;
+
+    //     SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
+    //     parser.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 指定解析时的时区
+    //     // 2. 格式化：转为西六区（America/Chicago）时间
+    //     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    //     formatter.setTimeZone(TimeZone.getTimeZone("America/Chicago")); // 目标时区
+
+    //     if(StringUtils.isNotBlank(startTime)){
+    //         // Date startDate = null;
+    //         try {
+    //             Date localStartDate = parser.parse(startTime); // 解析为东八区的2025-12-01 00:00:00
+    //             targetStartTimeStr = formatter.format(localStartDate);
+    //         } catch (ParseException e) {
+    //             // TODO Auto-generated catch block
+    //             log.error("解析起始查询时间异常", e);
+    //         }
+            
+    //     }
+    //     if(StringUtils.isNotBlank(endTime)){
+    //         // Date endDate = null;
+    //         try {
+    //             Date localEndDate = parser.parse(endTime); // 解析为东八区的2025-12-01 00:00:00
+    //             targetEndTimeStr = formatter.format(localEndDate);
+    //         } catch (ParseException e) {
+    //             // TODO Auto-generated catch block
+    //             log.error("解析末尾查询时间异常", e);
+    //         }
+    //     }        
+    //     Set<String> matchedIDsFromEntryInfos = entryInfoMapper.selectEntryInfoIDsByConditions(matchedIDsFromProductRelation, entryInfoEntityTemplate, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
+    //     if(matchedIDsFromEntryInfos.isEmpty()){
+    //         EntryInfoVO entryInfoVO = new EntryInfoVO();
+    //         entryInfoVO.setEntryInfoEntities(new ArrayList<>());
+    //         entryInfoVO.setTotalSize(0);
+    //         return entryInfoVO;
+    //     }
+        
+    //     List<String> matchedIDsFromTranslateInfos = entryInfoMapper.selectEntryInfoIDsByTranslateInfos(entryInfoEntityTemplate, matchedIDsFromEntryInfos, clearMatchSet).stream().collect(Collectors.toList());
+    //     if(matchedIDsFromTranslateInfos.isEmpty()){
+    //         EntryInfoVO entryInfoVO = new EntryInfoVO();
+    //         entryInfoVO.setEntryInfoEntities(new ArrayList<>());
+    //         entryInfoVO.setTotalSize(0);
+    //         return entryInfoVO;
+    //     }
+    //     int offset;
+    //     int toIndex;
+    //     if(pageIndex <= 0 || pageSize <= 0){
+    //         /* 全查 */
+    //         offset = 0;
+    //         toIndex = matchedIDsFromTranslateInfos.size();
+    //     }else{
+    //         offset = 0;
+    //         if (commonUtils.checkPage(pageIndex, pageSize)) {
+    //             offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
+    //         }
+    //         if(offset < 0){
+    //             String errorMessage = "offset不能小于0,当前offset: " + offset;
+    //             throw new RuntimeException(errorMessage);
+    //         }  
+    //         toIndex = offset + pageSize;
+    //         if(toIndex < offset){
+    //             String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
+    //             log.error(errorMessage);
+    //             throw new RuntimeException(errorMessage);
+    //         }
+    //         toIndex = toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex;
+    //     }
+    //     List<EntryInfoEntityDO> entryInfoEntities = this.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset,toIndex),executor);
+    //     EntryInfoVO entryInfoVO = new EntryInfoVO();
+    //     entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
+    //         @Override
+    //         public EntryInfoEntity apply(EntryInfoEntityDO t) {
+    //             // TODO Auto-generated method stub
+    //             return EntryInfoEntityDO.convertFromEntity(t);
+    //         }
+    //     }).collect(Collectors.toList()));
+    //     entryInfoVO.setTotalSize(matchedIDsFromTranslateInfos.size());
+    //     return entryInfoVO;
+
+        
+    // }
+
+    private void preprocessEntryInfoEntitiyTemplate(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet){
+        if(clearMatchSet == null || !clearMatchSet.contains("词条")){
+            entryInfoEntityTemplate.setEntry(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntry()));
+        }
+        if(clearMatchSet == null || !clearMatchSet.contains("tag")){
+            entryInfoEntityTemplate.setTag(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getTag()));
+        }
+        if(clearMatchSet == null || !clearMatchSet.contains("Comment")){
+            entryInfoEntityTemplate.setComment(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getComment()));
+        }
+        if(clearMatchSet == null || !clearMatchSet.contains("词条来源")){
+            entryInfoEntityTemplate.setEntrySource(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntrySource()));
+        }
+        if(clearMatchSet == null || !clearMatchSet.contains("辞典名称")){
+            entryInfoEntityTemplate.setDiFileName(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getDiFileName()));
+        }
+        if(clearMatchSet == null || !clearMatchSet.contains("翻译结果")){
+            entryInfoEntityTemplate.setChinese(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getChinese()));
+            entryInfoEntityTemplate.setEnglish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEnglish()));
+            entryInfoEntityTemplate.setSpanish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getSpanish()));
+            entryInfoEntityTemplate.setFrench(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getFrench()));
+            entryInfoEntityTemplate.setRussian(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getRussian()));
+        }
+        /* 修改人采用模糊匹配的方式  */
+        entryInfoEntityTemplate.setUpdate(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getUpdate()));
+    }
+
     public EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize){
         List<String> productidList = new ArrayList<>();
         //一级分类查询
@@ -2543,33 +2693,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
           return null;
         }*/
         /* 无法查到禁用的词条，在where里面写的 */
-        entryInfoEntityTemplate.setEntry(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntry()));
-        entryInfoEntityTemplate.setChinese(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getChinese()));
-        entryInfoEntityTemplate.setEnglish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEnglish()));
-        entryInfoEntityTemplate.setSpanish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getSpanish()));
-        entryInfoEntityTemplate.setFrench(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getFrench()));
-        entryInfoEntityTemplate.setRussian(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getRussian()));
-
+        this.preprocessEntryInfoEntitiyTemplate(entryInfoEntityTemplate, clearMatchSet);
         /*  */
         Set<String> productIDs = new HashSet<>(); 
         Set<String> taskIDs = new HashSet<>();
         Set<String> versionIDs = new HashSet<>();
 
         productIDs.addAll(productidList);
-        /*
-            1. 存在t_entry_info字段的条件，存在t_translate字段的条件
-            2. 存在t_entry_info字段的条件，不存在t_translate字段的条件
-            3. 不存在t_entry_info字段的条件，存在t_translate字段的条件
-            4. 不存在t_entry_info字段的条件，不存在t_translate字段的条件
-         */
-        List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectInfosByProductRelationEntity(null,productIDs, taskIDs, versionIDs,-1,-1);
-        List<String> matchedIDsFromProductRelation = selectEntryInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
-        if(matchedIDsFromProductRelation.isEmpty()){
-            EntryInfoVO entryInfoVO = new EntryInfoVO();
-            entryInfoVO.setEntryInfoEntities(new ArrayList<>());
-            entryInfoVO.setTotalSize(0);
-            return entryInfoVO;
-        }
+        int offset = (pageIndex - 1) * pageSize;
         /* 处理时差 */
         String targetStartTimeStr =  null;  // 数据库是按照GMT-6存的，所以转换时区
         String targetEndTimeStr = null;
@@ -2601,45 +2732,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 log.error("解析末尾查询时间异常", e);
             }
         }        
-        Set<String> matchedIDsFromEntryInfos = entryInfoMapper.selectEntryInfoIDsByConditions(matchedIDsFromProductRelation, entryInfoEntityTemplate, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
-        if(matchedIDsFromEntryInfos.isEmpty()){
-            EntryInfoVO entryInfoVO = new EntryInfoVO();
-            entryInfoVO.setEntryInfoEntities(new ArrayList<>());
-            entryInfoVO.setTotalSize(0);
-            return entryInfoVO;
-        }
-        
-        List<String> matchedIDsFromTranslateInfos = entryInfoMapper.selectEntryInfoIDsByTranslateInfos(entryInfoEntityTemplate, matchedIDsFromEntryInfos, clearMatchSet).stream().collect(Collectors.toList());
-        if(matchedIDsFromTranslateInfos.isEmpty()){
-            EntryInfoVO entryInfoVO = new EntryInfoVO();
-            entryInfoVO.setEntryInfoEntities(new ArrayList<>());
-            entryInfoVO.setTotalSize(0);
-            return entryInfoVO;
-        }
-        int offset;
-        int toIndex;
-        if(pageIndex <= 0 || pageSize <= 0){
-            /* 全查 */
-            offset = 0;
-            toIndex = matchedIDsFromTranslateInfos.size();
-        }else{
-            offset = 0;
-            if (commonUtils.checkPage(pageIndex, pageSize)) {
-                offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
-            }
-            if(offset < 0){
-                String errorMessage = "offset不能小于0,当前offset: " + offset;
-                throw new RuntimeException(errorMessage);
-            }  
-            toIndex = offset + pageSize;
-            if(toIndex < offset){
-                String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
-                log.error(errorMessage);
-                throw new RuntimeException(errorMessage);
-            }
-            toIndex = toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex;
-        }
-        List<EntryInfoEntityDO> entryInfoEntities = this.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset,toIndex),executor);
+        Set<String> entryIDs = entryInfoMapper.selectEntryInfoIDsByEntryTransConditions(entryInfoEntityTemplate, null,productIDs, clearMatchSet,targetStartTimeStr,targetEndTimeStr,offset,pageSize);
+
+        List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(entryIDs.stream().collect(Collectors.toList()));
         EntryInfoVO entryInfoVO = new EntryInfoVO();
         entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
             @Override
@@ -2648,117 +2743,118 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 return EntryInfoEntityDO.convertFromEntity(t);
             }
         }).collect(Collectors.toList()));
-        entryInfoVO.setTotalSize(matchedIDsFromTranslateInfos.size());
+
+        String totalNumber = entryInfoMapper.countEntryIDsByConditions(entryInfoEntityTemplate,null,productIDs, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
+
+        entryInfoVO.setTotalSize(Integer.parseInt(totalNumber));    // 暂不考虑int溢出的问题
         return entryInfoVO;
-
-        
     }
 
-    protected List<EntryInfoEntityDO> selectEntryInfosByIDs(List<String> ids,ThreadPoolExecutor executor){
-        if(executor == null){
-            return entryInfoMapper.selectEntryInfosByIDs(ids);
-        }
-        int totalNum = ids.size();
-        int batchSize = 100;
-        int taskNumber = (totalNum + batchSize - 1) / batchSize;
-        log.info(String.format("任务分片共%s个", String.valueOf(taskNumber)));
-        CountDownLatch countDownLatch = new CountDownLatch((totalNum + batchSize - 1) / batchSize);
-        Set<String> errorMessages = new HashSet<>();
-        Queue<EntryInfoEntityDO> entryInfoEntities = new LinkedBlockingQueue<>(); // 并发
-        for(int idx = 0 ; idx < totalNum ; idx += batchSize){
-            int currentIdx = idx;
-            int endIdx = Math.min(currentIdx + batchSize, totalNum);
-            List<String> batchList = ids.subList(currentIdx, endIdx);
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    // TODO Auto-generated method stub
-                    try {
-                        // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
-                        List<EntryInfoEntityDO> _entities = entryInfoMapper.selectEntryInfosByIDs(batchList);
-                        entryInfoEntities.addAll(_entities);
-                    } catch (Exception e) {
-                        // 日志记录：建议用日志框架（SLF4J），这里简化打印
-                        log.error("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage(),e);
-                        errorMessages.add("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage());
-                    } finally {
-                        // 计数器减1（无论任务成功失败，都要计数）
-                        countDownLatch.countDown();
-                    }
-                }
-            });
+    // protected List<EntryInfoEntityDO> selectEntryInfosByIDs(List<String> ids,ThreadPoolExecutor executor){
+    //     if(executor == null){
+    //         return entryInfoMapper.selectEntryInfosByIDs(ids);
+    //     }
+    //     int totalNum = ids.size();
+    //     int batchSize = 100;
+    //     int taskNumber = (totalNum + batchSize - 1) / batchSize;
+    //     log.info(String.format("任务分片共%s个", String.valueOf(taskNumber)));
+    //     CountDownLatch countDownLatch = new CountDownLatch((totalNum + batchSize - 1) / batchSize);
+    //     Set<String> errorMessages = new HashSet<>();
+    //     Queue<EntryInfoEntityDO> entryInfoEntities = new LinkedBlockingQueue<>(); // 并发
+    //     for(int idx = 0 ; idx < totalNum ; idx += batchSize){
+    //         int currentIdx = idx;
+    //         int endIdx = Math.min(currentIdx + batchSize, totalNum);
+    //         List<String> batchList = ids.subList(currentIdx, endIdx);
+    //         executor.execute(new Runnable() {
+    //             @Override
+    //             public void run() {
+    //                 // TODO Auto-generated method stub
+    //                 try {
+    //                     // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
+    //                     List<EntryInfoEntityDO> _entities = entryInfoMapper.selectEntryInfosByIDs(batchList);
+    //                     entryInfoEntities.addAll(_entities);
+    //                 } catch (Exception e) {
+    //                     // 日志记录：建议用日志框架（SLF4J），这里简化打印
+    //                     log.error("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage(),e);
+    //                     errorMessages.add("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage());
+    //                 } finally {
+    //                     // 计数器减1（无论任务成功失败，都要计数）
+    //                     countDownLatch.countDown();
+    //                 }
+    //             }
+    //         });
             
-        }
-        try {
-            // 4. 同步等待所有任务执行完成（根据业务需求选择：如果需要等待结果，就加这行；如果纯异步，可去掉）
-            // 超时时间：避免无限等待（根据业务调整，比如1小时）
-            boolean allDone = countDownLatch.await(3, TimeUnit.HOURS);
-            if (!allDone) {
+    //     }
+    //     try {
+    //         // 4. 同步等待所有任务执行完成（根据业务需求选择：如果需要等待结果，就加这行；如果纯异步，可去掉）
+    //         // 超时时间：避免无限等待（根据业务调整，比如1小时）
+    //         boolean allDone = countDownLatch.await(3, TimeUnit.HOURS);
+    //         if (!allDone) {
 
-                throw new RuntimeException("部分分片任务执行超时，可能存在未完成的任务");
-            } else {
-                log.info(String.format("所有分片任务执行完成,成功的共%s,失败的共%s", String.valueOf(taskNumber - errorMessages.size()),String.valueOf(errorMessages.size())));
-                if(!errorMessages.isEmpty()){
-                    throw new RuntimeException("插入数据时出现异常, 异常信息为: " + errorMessages.toString());
-                }
-                return entryInfoEntities.stream().collect(Collectors.toList());
-            }
-        } catch (InterruptedException e) {
-            log.warn("等待任务执行时被中断：" + e.getMessage());
-            Thread.currentThread().interrupt(); // 恢复中断状态
-            throw new RuntimeException(e);
-        }
-    }
+    //             throw new RuntimeException("部分分片任务执行超时，可能存在未完成的任务");
+    //         } else {
+    //             log.info(String.format("所有分片任务执行完成,成功的共%s,失败的共%s", String.valueOf(taskNumber - errorMessages.size()),String.valueOf(errorMessages.size())));
+    //             if(!errorMessages.isEmpty()){
+    //                 throw new RuntimeException("插入数据时出现异常, 异常信息为: " + errorMessages.toString());
+    //             }
+    //             return entryInfoEntities.stream().collect(Collectors.toList());
+    //         }
+    //     } catch (InterruptedException e) {
+    //         log.warn("等待任务执行时被中断：" + e.getMessage());
+    //         Thread.currentThread().interrupt(); // 恢复中断状态
+    //         throw new RuntimeException(e);
+    //     }
+    // }
 
-    public List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize){
-        int offset = 0; 
-        if (commonUtils.checkPage(pageIndex, pageSize)) {
-            offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
-        }
-        if(offset < 0){
-            String errorMessage = "offset不能小于0,当前offset: " + offset;
-            throw new RuntimeException(errorMessage);
-        }  
-        int toIndex = offset + pageSize;
-        if(toIndex < offset){
-            String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
-            log.error(errorMessage);
-            throw new RuntimeException(errorMessage);
-        }
+    // public List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize){
+    //     int offset = 0; 
+    //     if (commonUtils.checkPage(pageIndex, pageSize)) {
+    //         offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
+    //     }
+    //     if(offset < 0){
+    //         String errorMessage = "offset不能小于0,当前offset: " + offset;
+    //         throw new RuntimeException(errorMessage);
+    //     }  
+    //     int toIndex = offset + pageSize;
+    //     if(toIndex < offset){
+    //         String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
+    //         log.error(errorMessage);
+    //         throw new RuntimeException(errorMessage);
+    //     }
 
-        return entryInfoEntities.subList(offset, toIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : toIndex);
-    }
+    //     return entryInfoEntities.subList(offset, toIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : toIndex);
+    // }
 
-    public List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntityQO entryInfoEntityTemplate,String translateType){
+    // public List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntityQO entryInfoEntityTemplate,String translateType){
 
-        if (CollectionUtils.isEmpty(entryInfoEntities)){
-            return entryInfoEntities;
-        }
-        List<EntryInfoEntity> res = new LinkedList<>(); 
-        // 根据翻译状态，确定是否返回改词条，如果template不提供翻译状态，则返回该词条
-        if (StringUtils.isNotBlank(translateType)) {
+    //     if (CollectionUtils.isEmpty(entryInfoEntities)){
+    //         return entryInfoEntities;
+    //     }
+    //     List<EntryInfoEntity> res = new LinkedList<>(); 
+    //     // 根据翻译状态，确定是否返回改词条，如果template不提供翻译状态，则返回该词条
+    //     if (StringUtils.isNotBlank(translateType)) {
 
-            putEntryTransInfo(entryInfoEntities,entryInfoEntityTemplate,res,translateType);
-            return res;
-            // if (
-            //     "0".equals(entryInfoEntityTemplate.getEnglishTranslateState()) || 
-            //     "0".equals(entryInfoEntityTemplate.getRussianTranslateState()) || 
-            //     "0".equals(entryInfoEntityTemplate.getSpanishTranslateState()) || 
-            //     "0".equals(entryInfoEntityTemplate.getFrenchTranslateState()))
-            // {
-            //     return res;
-            // }
-        }else {
-            String[] languages = {ConstantInterface.CHINESE,ConstantInterface.ENGLISH,ConstantInterface.FRENCH,ConstantInterface.RUSSIAN,ConstantInterface.SPANISH};
-            for(String lang : languages){
-                res = new LinkedList<>();
-                putEntryTransInfo(entryInfoEntities, entryInfoEntityTemplate, res, lang);
-                entryInfoEntities = res;
+    //         putEntryTransInfo(entryInfoEntities,entryInfoEntityTemplate,res,translateType);
+    //         return res;
+    //         // if (
+    //         //     "0".equals(entryInfoEntityTemplate.getEnglishTranslateState()) || 
+    //         //     "0".equals(entryInfoEntityTemplate.getRussianTranslateState()) || 
+    //         //     "0".equals(entryInfoEntityTemplate.getSpanishTranslateState()) || 
+    //         //     "0".equals(entryInfoEntityTemplate.getFrenchTranslateState()))
+    //         // {
+    //         //     return res;
+    //         // }
+    //     }else {
+    //         String[] languages = {ConstantInterface.CHINESE,ConstantInterface.ENGLISH,ConstantInterface.FRENCH,ConstantInterface.RUSSIAN,ConstantInterface.SPANISH};
+    //         for(String lang : languages){
+    //             res = new LinkedList<>();
+    //             putEntryTransInfo(entryInfoEntities, entryInfoEntityTemplate, res, lang);
+    //             entryInfoEntities = res;
                 
-            }
-            return res;
-        }
-    }
+    //         }
+    //         return res;
+    //     }
+    // }
 
 
 
@@ -4512,9 +4608,38 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoMapper.selectWriteTypesByIDs("di_file_name", productIDs.stream().collect(Collectors.toSet()), null,writeType);
     }
 
+    @Override
+    public EntryInfoVO getEntryByClassfyOnPage(String classfyID, Integer pageIndex, Integer pageSize) {
+        // TODO Auto-generated method stub
+        List<String> productidList = new ArrayList<>();
+        //一级分类查询
+        // if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
+        getProductClassfyList(classfyID, productidList);
+        Set<String> productIDSet = productidList.stream().collect(Collectors.toSet());
 
+        int offset = (pageIndex - 1) * pageSize;
 
+        List<ProductRelationEntity> selectInfosByProductRelationEntity = productRelationMapper.selectInfosByProductRelationEntity(
+            null, 
+            productIDSet, 
+            null,
+            null,pageSize,offset);
+        List<String> idList = selectInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
+        List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(idList);
+        EntryInfoVO entryInfoVO = new EntryInfoVO();
+        entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
+            @Override
+            public EntryInfoEntity apply(EntryInfoEntityDO t) {
+                // TODO Auto-generated method stub
+                return EntryInfoEntityDO.convertFromEntity(t);
+            }
+        }).collect(Collectors.toList()));
 
+        String totalNumber = entryInfoMapper.countEntryIDsByConditions(null,null,productIDSet,null,null,null);
+
+        entryInfoVO.setTotalSize(Integer.parseInt(totalNumber));    // 暂不考虑int溢出的问题
+        return entryInfoVO;
+    }
 }
 
 

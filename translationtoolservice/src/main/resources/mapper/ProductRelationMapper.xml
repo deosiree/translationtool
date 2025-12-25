@@ -102,9 +102,7 @@
             t_product_relation.product_id as product_id,
             t_product_relation.task_id as task_id
         from t_product_relation 
-        <if test = "entryIDs != null and !entryIDs.isEmpty()">
-            inner join t_entry_info on t_entry_info.id = t_product_relation.entry_id
-        </if>
+        inner join t_entry_info on t_entry_info.id = t_product_relation.entry_id
         <where> 
             <if test = "entryIDs != null and !entryIDs.isEmpty()">
                 t_entry_info.is_delete = 0

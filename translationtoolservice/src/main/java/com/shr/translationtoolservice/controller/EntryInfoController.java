@@ -278,6 +278,28 @@ public class EntryInfoController extends BaseController {
         return checkResult(responseListModel);
     }
 
+    @PostMapping("/getEntryByClassfyOnPage")
+    @ApiOperation("分页查询词条(无条件)")
+    @CrossOrigin
+    @Token
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByClassfy(
+        @RequestParam(value = "classfyID") String classfyID,
+        @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+        @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+
+        try {
+            ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+            EntryInfoVO entryByClassfyOnPage = entryInfoService.getEntryByClassfyOnPage(classfyID, pageIndex, pageSize);
+            responseListModel.setList(entryByClassfyOnPage.getEntryInfoEntities());
+            responseListModel.setTotalNum(entryByClassfyOnPage.getTotalSize());
+            return ok(responseListModel);            
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+        }
+
+    }
+
+
     @PostMapping("/addEntryByVersion")
     @ApiOperation("新增版本词条(导入)")
     @CrossOrigin
