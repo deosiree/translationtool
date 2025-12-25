@@ -88,11 +88,11 @@
               <div style="width:100%;position: absolute;">
                 <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
                   :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child"
-                  ref="workTable" @resizeColumn="handleResizeColumn" :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys,onSelect:onSelect,onSelectAll:onSelectAll, onChange: onSelectChange,
+                  ref="workTable" @resizeColumn="handleResizeColumn" :row-selection="{ selectedRowKeys: selectedRowKeys,onSelect:onSelect,onSelectAll:onSelectAll, onChange: onSelectChange,
                     selections:isTreeOr2D=='tree'?null:[
                         {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
                         {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]}:null" :customRow="customRow">
+                    ]}" :customRow="customRow">
                   <template #bodyCell="{ column, record, text }">
                     <template v-if="column.dataIndex === 'index'&&isTreeOr2D=='tree'&&record.isBranch">
                       <span style="color:blue;">
@@ -387,22 +387,6 @@ export default {
         if (storedDisplay) {
           // console.log("读取到用户偏好:", storedDisplay, localStorage);
           this.isTreeOr2D = JSON.parse(storedDisplay);
-          if (this.isTreeOr2D == "tree") {
-            if (
-              this.pagination.current != 1 ||
-              this.pagination.pageSize != 100
-            ) {
-              this.pageChange(1, 100);
-            }
-          } else {
-            // 否则不是层级展示
-            if (
-              this.pagination.current != 1 ||
-              this.pagination.pageSize != 20
-            ) {
-              this.pageChange(1, 20);
-            }
-          }
         } else {
           // console.log(
           //   "读不到用户偏好，使用默认值:",
@@ -410,11 +394,23 @@ export default {
           //   localStorage
           // );
           this.isTreeOr2D = "2D";
-          if (this.pagination.current != 1 || this.pagination.pageSize != 20) {
-            this.pageChange(1, 20);
-          }
         }
       }
+
+      // 首次查询
+      if (this.isTreeOr2D == "tree") {
+        if (this.pagination.current != 1 || this.pagination.pageSize != 100) {
+          this.pageChange(1, 100);
+        }
+      } else {
+        // 否则不是层级展示
+        if (this.pagination.current != 1 || this.pagination.pageSize != 20) {
+          this.pageChange(1, 20);
+        } else {
+          this.getTaskByCondition(this.pageChangeSearch);
+        }
+      }
+
       this.init();
 
       /** 控制table的高度 */
