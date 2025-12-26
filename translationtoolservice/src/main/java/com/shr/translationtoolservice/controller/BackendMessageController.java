@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.service.impl.BackendTaskInfoHandler;
-import com.shr.translationtoolservice.service.impl.BackendTaskInfoHandler.TASK_STATE;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TASK_STATE;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

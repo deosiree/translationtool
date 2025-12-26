@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.service.impl;
+package com.shr.translationtoolservice.util.entry;
 
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
@@ -51,6 +51,7 @@ import com.shr.translationtoolservice.util.EntryProcessUtils;
 import com.shr.translationtoolservice.util.HTTPUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -81,22 +82,10 @@ public class BatchInsertEntryHandler {
 
     @Autowired
     @Lazy
-    protected EntryInfoService entryInfoService;
-
-    @Autowired
-    @Lazy
-    protected EntryTempService entryTempService;
-
-
-    @Autowired
-    @Lazy
     protected ProductRelationMapper productRelationMapper;
 
     @Autowired
     private BackendTaskInfoHandler backendTaskInfoHandler;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
 
     @Autowired  
     private LocalTimeUtils localTimeUtils;
@@ -479,7 +468,13 @@ public class BatchInsertEntryHandler {
     }
 
 
-
+    /**
+     * 根据给定的entryInfoEntities, 构建TranslateEntitiy对象(多种语言的)(通用的)
+     * @param entryInfoEntities
+     * @param targetLanguageTypes
+     * @param department
+     * @return
+     */
     @Transactional
     protected List<TranslateEntity> buildTranslateEntitiy(List<EntryInfoEntity> entryInfoEntities,List<String> targetLanguageTypes,String department){
 
@@ -994,7 +989,11 @@ public class BatchInsertEntryHandler {
         return createEntryResult;
     }
 
-
+    /**
+     * 判断当前的entryInfoEntitiy是否与库中的词条重复, 如果重复，给当前的entryInfoEntitiy添加相关属性(通用的)
+     * @param entryInfoEntities
+     * @param taskInfoEntity
+     */
     @Transactional
     protected void caseExistEntry(List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity) {
         // TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);

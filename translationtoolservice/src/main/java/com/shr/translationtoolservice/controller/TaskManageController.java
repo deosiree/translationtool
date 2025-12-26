@@ -8,11 +8,11 @@ import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.TLanguageService;
 import com.shr.translationtoolservice.service.TaskInfoService;
-import com.shr.translationtoolservice.service.impl.BackendTaskInfoHandler;
-import com.shr.translationtoolservice.service.impl.BackendTaskInfoHandler.TASK_STATE;
-import com.shr.translationtoolservice.service.impl.BatchInsertEntryHandler;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.entry.BatchInsertEntryHandler;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TASK_STATE;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
