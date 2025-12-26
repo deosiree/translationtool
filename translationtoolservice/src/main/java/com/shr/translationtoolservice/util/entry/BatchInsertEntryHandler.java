@@ -48,6 +48,7 @@ import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.EntryProcessUtils;
+import com.shr.translationtoolservice.util.EntryUtils;
 import com.shr.translationtoolservice.util.HTTPUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
@@ -89,6 +90,9 @@ public class BatchInsertEntryHandler {
 
     @Autowired  
     private LocalTimeUtils localTimeUtils;
+
+    @Autowired
+    private EntryUtils entryUtils;
 
     Map<String,String> languageSetTranslateMethodMap = new HashMap<>();
 
@@ -847,7 +851,7 @@ public class BatchInsertEntryHandler {
                 log.info(String.format("文件: %s的词条准备存库", fileName));
                 backendTaskInfoHandler.addMessageForTaskID(backendTaskID, String.format("准备将dic词条存库, 共%s个", filteredEntryInfoEntities.size()));
                 if(!filteredEntryInfoEntities.isEmpty()){
-                    caseExistEntry(filteredEntryInfoEntities, taskInfoEntity,executor);
+                    entryUtils.caseExistEntry(filteredEntryInfoEntities, taskInfoEntity,executor);
                     createEntryInfoEntities(
                         filteredEntryInfoEntities,
                         taskInfoEntity, 
@@ -947,7 +951,7 @@ public class BatchInsertEntryHandler {
                 backendTaskInfoHandler.addMessageForTaskID(backendTaskID, String.format("准备将ts词条存库, 共%s个", filteredEntryInfoEntities.size()));
                 if(!filteredEntryInfoEntities.isEmpty()){
                     
-                    caseExistEntry(filteredEntryInfoEntities, taskInfoEntity, executor);
+                    entryUtils.caseExistEntry(filteredEntryInfoEntities, taskInfoEntity, executor);
                     createEntryInfoEntities(
                         filteredEntryInfoEntities,
                         taskInfoEntity, 
@@ -989,122 +993,7 @@ public class BatchInsertEntryHandler {
         return createEntryResult;
     }
 
-    /**
-     * 判断当前的entryInfoEntitiy是否与库中的词条重复, 如果重复，给当前的entryInfoEntitiy添加相关属性(通用的)
-     * @param entryInfoEntities
-     * @param taskInfoEntity
-     */
-    @Transactional
-    protected void caseExistEntry(List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity) {
-        // TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
-        Map<EntryInfoReplicateCheckVO,List<EntryInfoEntity>> entryInfosGroup = new HashMap<>();
-        Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs = new HashSet<>();
-        for(EntryInfoEntity t : entryInfoEntities){
-            EntryInfoReplicateCheckVO entryInfoReplicateCheckVO = new EntryInfoReplicateCheckVO();
-            /* 将词条分配到对应的组 */
-            List<EntryInfoEntity> entryInfos = entryInfosGroup.get(entryInfoReplicateCheckVO);
-            entryInfoReplicateCheckVO.setEntry(t.getEntry());
-            entryInfoReplicateCheckVO.setProductID(t.getProductID());
-            entryInfoReplicateCheckVO.setTag(t.getTag());
-            entryInfoReplicateCheckVO.setComment(t.getComment());
-            entryInfoReplicateCheckVO.setAbbr(t.getAbbr());
-            entryInfoReplicateCheckVO.setImportType(t.getImportType());
-            entryInfoReplicateCheckVO.setEntrySource(t.getEntrySource());
-            entryInfoReplicateCheckVO.setDiFileName(t.getDiFileName());
-            entryInfoReplicateCheckVOs.add(entryInfoReplicateCheckVO);
-            if(entryInfos == null){
-                entryInfos = new ArrayList<>();
-                entryInfos.add(t);
-                entryInfosGroup.put(entryInfoReplicateCheckVO, entryInfos); // 必须所有属性都设定好在存入map或set，否则hash，equals方法存在问题
-            }else{
-                entryInfos.add(t);
-            }
 
-            /* 设定默认值，如果发现存在，再后面修改 */
-            t.setIsExist(0);
-            t.setEntryVersion(1);
-            t.setEntryVersionID(commonUtils.getUUID());
-        }
-        
-        Set<EntryInfoReplicateCheckVO> replicatedExists = entryInfoMapper.newGetEntryInfoExists(entryInfoReplicateCheckVOs,null,taskInfoEntity.getId());
-        for(EntryInfoReplicateCheckVO checkVO : replicatedExists){
-            List<EntryInfoEntity> entryList = entryInfosGroup.get(checkVO);
-            if(entryList == null){
-                log.warn("警告,没有找到对应的词条, 重复校验时各字段信息为: " + checkVO.toString());
-                continue;
-            }
-            String entryVersionID = checkVO.getEntryInfoIDsForMaxEntryVersion().isEmpty() ? "" : checkVO.getEntryInfoIDsForMaxEntryVersion().get(0);
-            entryList.stream().forEach(new Consumer<EntryInfoEntity>() {
-
-                @Override
-                public void accept(EntryInfoEntity t) {
-                    t.setEntryVersion(Integer.parseInt(checkVO.getMaxEntryVersion()) + 1);
-                    t.setIsExist(1);
-                    t.setEntryVersionID(entryVersionID);
-
-                }
-            });
-
-        }
-        return;
-
-    }
-
-    
-    @Transactional
-    protected void caseExistEntry(List<EntryInfoEntity> entryInfoEntities, TaskInfoEntity taskInfoEntity,ThreadPoolExecutor executor) {
-        if(executor == null){
-            this.caseExistEntry(entryInfoEntities, taskInfoEntity);
-            return;
-        }
-        int totalNum = entryInfoEntities.size();
-        int taskNumber = (totalNum + batchSize - 1) / batchSize;
-        log.info(String.format("任务分片共%s个", String.valueOf(taskNumber)));
-        CountDownLatch countDownLatch = new CountDownLatch((totalNum + batchSize - 1) / batchSize); // 任务总数=ceil(totalNum/batchSize)
-        Set<String> errorMessages = new HashSet<>();
-        for(int idx = 0 ; idx < totalNum ; idx += batchSize){
-            int currentIdx = idx;
-            int endIdx = Math.min(currentIdx + batchSize, totalNum);
-            List<EntryInfoEntity> batchList = entryInfoEntities.subList(currentIdx, endIdx);
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    // TODO Auto-generated method stub
-                    try {
-                        // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
-                        caseExistEntry(batchList, taskInfoEntity);
-                    } catch (Exception e) {
-                        // 日志记录：建议用日志框架（SLF4J），这里简化打印
-                        log.error("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage(),e);
-                        errorMessages.add("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage());
-                    } finally {
-                        // 计数器减1（无论任务成功失败，都要计数）
-                        countDownLatch.countDown();
-                    }
-                }
-            });
-            
-        }
-        try {
-            // 4. 同步等待所有任务执行完成（根据业务需求选择：如果需要等待结果，就加这行；如果纯异步，可去掉）
-            // 超时时间：避免无限等待（根据业务调整，比如1小时）
-            boolean allDone = countDownLatch.await(3, TimeUnit.HOURS);
-            if (!allDone) {
-
-                throw new RuntimeException("部分分片任务执行超时，可能存在未完成的任务");
-            } else {
-                log.info(String.format("所有分片任务执行完成,成功的共%s,失败的共%s", String.valueOf(taskNumber - errorMessages.size()),String.valueOf(errorMessages.size())));
-                if(!errorMessages.isEmpty()){
-                    throw new RuntimeException("插入数据时出现异常, 异常信息为: " + errorMessages.toString());
-                }
-            }
-        } catch (InterruptedException e) {
-            log.warn("等待任务执行时被中断：" + e.getMessage());
-            Thread.currentThread().interrupt(); // 恢复中断状态
-            throw new RuntimeException(e);
-        }
-    
-    }
 
 
 
