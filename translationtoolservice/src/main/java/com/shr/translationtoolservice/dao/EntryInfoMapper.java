@@ -132,7 +132,16 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
         @Param("endTime") String endTime
     );
 
-    Set<EntryInfoReplicateCheckVO> newGetEntryInfoExists(@Param("checkConditions") Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs);
+    /**
+     * 查询指定的产品中是否存在以下词条
+     * 查询指定产品的指定任务中是否存在以下词条
+     * 查询库中是否存在以下词条
+     * @param entryInfoReplicateCheckVOs
+     * @param productID
+     * @param taskID
+     * @return
+     */
+    Set<EntryInfoReplicateCheckVO> newGetEntryInfoExists(@Param("checkConditions") Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs,@Param("productID") String productID,@Param("taskID") String taskID);
 
     Set<String> selectEntrySourcesByIDs(@Param("productIDs") Set<String> productIDs,@Param("entryIDs") Set<String> entryIDs,@Param("writeType") String writeType);
 

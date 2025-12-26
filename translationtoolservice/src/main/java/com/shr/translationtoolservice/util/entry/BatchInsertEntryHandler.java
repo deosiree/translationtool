@@ -1026,7 +1026,7 @@ public class BatchInsertEntryHandler {
             t.setEntryVersionID(commonUtils.getUUID());
         }
         
-        Set<EntryInfoReplicateCheckVO> replicatedExists = entryInfoMapper.newGetEntryInfoExists(entryInfoReplicateCheckVOs);
+        Set<EntryInfoReplicateCheckVO> replicatedExists = entryInfoMapper.newGetEntryInfoExists(entryInfoReplicateCheckVOs,null,taskInfoEntity.getId());
         for(EntryInfoReplicateCheckVO checkVO : replicatedExists){
             List<EntryInfoEntity> entryList = entryInfosGroup.get(checkVO);
             if(entryList == null){
