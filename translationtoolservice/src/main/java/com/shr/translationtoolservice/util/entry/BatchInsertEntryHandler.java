@@ -151,6 +151,25 @@ public class BatchInsertEntryHandler {
         public void accept(EntryInfoEntity t) {
             // TODO Auto-generated method stub
             t.setEntryState(3);
+            String currentImportType = t.getImportType();
+            if(currentImportType.equals(ConstantInterface.TS)){
+                return;
+            }else if(currentImportType.equals(ConstantInterface.DI)){
+                String writeFileName = t.getWriteType();
+                if(writeFileName.startsWith("config/")){
+                    t.setImportType(ConstantInterface.CONFIG);
+                }else if(writeFileName.startsWith("db/")){
+                    t.setImportType(ConstantInterface.DB);
+                }else if(writeFileName.startsWith("db/meta/")){
+                    t.setImportType(ConstantInterface.DB);  // 目前是DB类型
+                }else if(writeFileName.startsWith("tr/")){
+                    t.setImportType(ConstantInterface.DI);
+                }else{
+
+                }
+            }else{
+
+            }
         }
     };
 
@@ -295,7 +314,7 @@ public class BatchInsertEntryHandler {
     /**
      * 构建EntryInfoEntity，请求i18n获取指定路径文件的词条, 路径是相对于/run/lang/dic的，例如dicList: {tr/${fileName}},{db/${fileName}},
      * 创建EntryInfoEntity，并设定相应属性(通用)
-     * @param dicList   ["tr/gui_i18n_tool","tr/i18n_test"]
+     * @param dicList   ["tr/gui_i18n_tool","tr/i18n_test","pt/i18n_test"]
      * @param i18nUrl
      * @param transType
      * @param taskID
