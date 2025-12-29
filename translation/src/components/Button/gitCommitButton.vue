@@ -146,7 +146,7 @@ export default {
         message.error("请选择分支！");
         return;
       }
-      // console.log("节点名称", this.treeTitle);
+      console.log("节点名称", this.treeTitle);
       await this.$refs.contentForm.validate();
       let vsName = this.commitMsg.versionName + "(";
       if (this.treeTitle) {
@@ -217,7 +217,11 @@ export default {
       this.loading = true;
 
       try {
+        console.log("节点名称", this.treeTitle);
         let vsName = this.commitMsg.versionName + " (";
+        if (this.treeTitle) {
+          vsName += `Model:${this.treeTitle};`;
+        }
         if (this.commitMsg.userName) {
           vsName += `User: ${this.commitMsg.userName}; `;
         }
