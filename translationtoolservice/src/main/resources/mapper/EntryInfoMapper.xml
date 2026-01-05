@@ -2645,19 +2645,19 @@
         FROM t_entry_info 
         INNER JOIN t_product_relation on t_entry_info.id = t_product_relation.entry_id
         <choose>
-            <when test = "translateType = '英文'">
+            <when test = "translateType == '英文'">
                 INNER JOIN t_translate on t_translate.id = t_entry_info.en_trans_id 
             </when>
-            <when test = "translateType = '中文'">
+            <when test = "translateType == '中文'">
                 INNER JOIN t_translate on t_translate.id = t_entry_info.zh_trans_id 
             </when>
-            <when test = "translateType = '俄文'">
+            <when test = "translateType == '俄文'">
                 INNER JOIN t_translate on t_translate.id = t_entry_info.ru_trans_id 
             </when>
-            <when test = "translateType = '法文'">
+            <when test = "translateType == '法文'">
                 INNER JOIN t_translate on t_translate.id = t_entry_info.fra_trans_id 
             </when>
-            <when test = "translateType = '西文'">
+            <when test = "translateType == '西文'">
                 INNER JOIN t_translate on t_translate.id = t_entry_info.spa_trans_id 
             </when>
             <otherwise>
@@ -2679,19 +2679,19 @@
             and t_entry_info.is_delete = 0
             and t_product_relation.task_id = #{taskID}
             <choose>
-                <when test = "translateType = '英文'">
+                <when test = "translateType == '英文'">
                     and t_entry_info.en_trans_id is NULL
                 </when>
-                <when test = "translateType = '中文'">
+                <when test = "translateType == '中文'">
                     and t_entry_info.zh_trans_id is NULL
                 </when>
-                <when test = "translateType = '俄文'">
+                <when test = "translateType == '俄文'">
                     and t_entry_info.ru_trans_id is NULL
                 </when>
-                <when test = "translateType = '法文'">
+                <when test = "translateType == '法文'">
                     and t_entry_info.fra_trans_id is NULL
                 </when>
-                <when test = "translateType = '西文'">
+                <when test = "translateType == '西文'">
                     and t_entry_info.spa_trans_id is NULL
                 </when>
                 <otherwise>
