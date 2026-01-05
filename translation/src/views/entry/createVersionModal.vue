@@ -156,7 +156,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import { message, Modal } from "ant-design-vue";
+import { message, Modal,notification } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { deleteEntryInfoByID, getI18nAdress } from "@/http/api/workbench.js";
 import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
@@ -697,7 +697,10 @@ export default {
 
           if (successLanguages.length > 0) {
             successmsg += `以下语种回写成功：${successLanguages.join(", ")}。`;
-            message.success(successmsg);
+            notification.success({
+              message: successmsg,
+              duration: 0,
+            });
           }
           if (failedLanguages.length > 0) {
             failedmsg += `以下语种回写失败：${failedLanguages.join(", ")}。`;

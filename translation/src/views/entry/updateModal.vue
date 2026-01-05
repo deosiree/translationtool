@@ -27,7 +27,7 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
-import { message } from "ant-design-vue";
+import { message,notification } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import {
   updateEntryByClassfy,
@@ -215,7 +215,10 @@ export default {
         // console.log("data", data);
         updateEntryByClassfy(data).then((res) => {
           // console.log("updateEntryByClassfy", res);
-          message.success("更新成功！");
+          notification.success({
+            message: "更新成功！",
+            duration: 0,
+          });
           this.dataSource = [];
           // this.$emit("updateClose");// 关闭弹窗
           this.taskSource = Object.values(res.data.list).map((item, index) => ({
