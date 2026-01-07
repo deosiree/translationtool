@@ -3,21 +3,22 @@
         <a-row type="flex">
             <a-col :flex="menuWidth">
                 <div class="menu">
-                    <template v-for='(item,index) in menu' :key="index">
+                    <template v-for='(item, index) in menu' :key="index">
                         <a-tooltip placement="right" :visible="showToolTip">
                             <template #title>
-                                <span>{{item.menuName}}</span>
+                                <span>{{ item.menuName }}</span>
                             </template>
-                            <div :class="isActive === item.url ? 'menuItem active' : 'menuItem'" @click="clickMenu(item.url,index)">
-                                <img :src="isActive === item.url ? menuIcon[item.activeIcon] : menuIcon[item.icon]"/>
-                                <span v-show="showName">{{item.menuName}}</span>
+                            <div :class="isActive === item.url ? 'menuItem active' : 'menuItem'"
+                                @click="clickMenu(item.url, index)">
+                                <img :src="isActive === item.url ? menuIcon[item.activeIcon] : menuIcon[item.icon]" />
+                                <span v-show="showName">{{ item.menuName }}</span>
                             </div>
                         </a-tooltip>
-                        
+
                     </template>
                     <div class="closeMenu" @click="changeMenuWidth">
-                        <LeftOutlined  v-if="showName"/>
-                        <RightOutlined v-else/>
+                        <LeftOutlined v-if="showName" />
+                        <RightOutlined v-else />
                     </div>
                 </div>
             </a-col>
@@ -38,79 +39,89 @@ import Entry from '../../assets/title/entry.png'
 import EntryActive from '../../assets/title/entry_active.png'
 import Config from '../../assets/title/config.png'
 import ConfigActive from '../../assets/title/config_active.png'
+import FileManage from '../../assets/title/config.png'
+import FileManageActive from '../../assets/title/config_active.png'
 import {
-  LeftOutlined,
-  RightOutlined
-} from '@ant-design/icons-vue';
-export default ({
-  name: 'layout',
-  components: {
     LeftOutlined,
     RightOutlined
-  },
-  data() {
-    return {
-        menuIcon:{'Work':Work,'WorkActive':WorkActive,'Entry':Entry,'EntryActive':EntryActive,'Config':Config,'ConfigActive':ConfigActive},
-        menu: [],
-        isActive: "",
-        menuWidth: '90px',
-        showName: true,
-        showToolTip: false
-    };
-  },
-  mounted() {
-    this.$nextTick(() => {
-      // 页面加载完成后执行的代码
-      this.menu = this.$store.state.menu
-      this.isActive = this.$route.path === '/translate' ? this.menu[0].url : this.$route.path
-      this.$router.push(this.isActive)
-    //   console.log(this.$route.path)
-    //   if(this.menu.length > 0){
-    //     this.$router.push(this.menu[0].url)
-    //   }
-    })
-  },
-  methods: {
-    clickMenu(url,index) {
-      this.$router.push(url)
-      this.isActive = url;
-      this.$store.commit("removeTabActive")
+} from '@ant-design/icons-vue';
+export default ({
+    name: 'layout',
+    components: {
+        LeftOutlined,
+        RightOutlined
     },
-    changeMenuWidth(){
-        if(this.showName){
-            this.menuWidth = '35px'
-            this.showName = false
-            this.showToolTip = undefined
-        }else{
-            this.menuWidth = '90px'
-            this.showName = true
-            this.showToolTip = false
-        }
+    data() {
+        return {
+            menuIcon: { 
+                'Work': Work, 'WorkActive': WorkActive, 
+                'Entry': Entry, 'EntryActive': EntryActive, 
+                'Config': Config, 'ConfigActive': ConfigActive,
+                'FileManage': FileManage, 'FileManageActive': FileManageActive,
+             },
+            menu: [],
+            isActive: "",
+            menuWidth: '90px',
+            showName: true,
+            showToolTip: false
+        };
     },
-  },
+    mounted() {
+        this.$nextTick(() => {
+            // 页面加载完成后执行的代码
+            this.menu = this.$store.state.menu
+            this.isActive = this.$route.path === '/translate' ? this.menu[0].url : this.$route.path
+            this.$router.push(this.isActive)
+            //   console.log(this.$route.path)
+            //   if(this.menu.length > 0){
+            //     this.$router.push(this.menu[0].url)
+            //   }
+        })
+    },
+    methods: {
+        clickMenu(url, index) {
+            this.$router.push(url)
+            this.isActive = url;
+            this.$store.commit("removeTabActive")
+        },
+        changeMenuWidth() {
+            if (this.showName) {
+                this.menuWidth = '35px'
+                this.showName = false
+                this.showToolTip = undefined
+            } else {
+                this.menuWidth = '90px'
+                this.showName = true
+                this.showToolTip = false
+            }
+        },
+    },
 })
 </script>
 
 <style lang="less" scoped>
-.layout{
+.layout {
     width: 100%;
     height: calc(100% - 40px);
     // padding: 10px 10px 10px 0;
 }
-.ant-row{
+
+.ant-row {
     height: 100%;
 }
-.menu{
+
+.menu {
     width: 100%;
     // height: calc(100% - 20px);
     height: 100%;
-    background-color: rgb(243,243,243);
+    background-color: rgb(243, 243, 243);
     // padding: 10px 0px;
     text-align: center;
     position: relative;
-    overflow:hidden;
+    overflow: hidden;
 }
-.closeMenu{
+
+.closeMenu {
     width: 100%;
     height: 20px;
     background-color: #e6e8e7;
@@ -118,40 +129,44 @@ export default ({
     bottom: 0;
     color: #a8afac;
 }
-.content{
+
+.content {
     width: 100%;
     height: 100%;
-    background-color: rgb(243,243,243);
+    background-color: rgb(243, 243, 243);
     // padding: 10px 10px 10px 0;
     position: relative;
     // overflow: hidden;
 
-    .contentView{
+    .contentView {
         position: absolute;
         // width:calc(100% - 10px);
         // height:calc(100% - 20px);
         width: 100%;
         height: 100%;
-        background-color:white;
+        background-color: white;
     }
 }
-.menu .menuItem{
+
+.menu .menuItem {
     width: 100%;
     height: 90px;
     border-bottom: 1px solid #E7E7E7;
     position: relative;
 }
-.menuItem img{
+
+.menuItem img {
     width: 32px;
     height: 32px;
-    position:absolute;
+    position: absolute;
     left: 0;
     right: 0;
     top: 20px;
     margin: 0 auto;
 }
-.menuItem span{
-    position:absolute;
+
+.menuItem span {
+    position: absolute;
     left: 0;
     right: 0;
     top: 50px;
@@ -160,14 +175,17 @@ export default ({
     font-size: 12px;
     color: #000000;
 }
-.menuItem:hover span{
-    color: rgb(87,159,249);
-    cursor:default
+
+.menuItem:hover span {
+    color: rgb(87, 159, 249);
+    cursor: default
 }
-.active{
+
+.active {
     background-color: white;
 }
-.active span{
+
+.active span {
     color: #369FFF;
 }
 </style>

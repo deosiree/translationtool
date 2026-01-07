@@ -247,15 +247,93 @@ export function entryReadExcel(params, data) {
     type: "SUCCESS",
     data: {
       list: [
-        { entry: "1", english: "one", comment: "UI" },
-        { entry: "1", english: "one", comment: "UI" },
-        { entry: "2", english: "two", comment: "" },
-        { entry: "2", english: "two", comment: "" },
-        { entry: "2", english: "two1", comment: "" },
-        { entry: "2", english: "two", comment: "1" },
-        { entry: "3", english: "two", comment: "" },
+        { id:"1", entry: "1", english: "one", comment: "UI" },
+        { id:"2", entry: "1", english: "one", comment: "UI" },
+        { id:"3", entry: "2", english: "two", comment: "" },
+        { id:"4", entry: "2", english: "two", comment: "" },
+        { id:"5", entry: "2", english: "two1", comment: "" },
+        { id:"6", entry: "2", english: "two", comment: "1" },
+        { id:"7", entry: "3", english: "two", comment: "" },
+        { id:"8", entry: "4", english: "4two", comment: "" },
+        { id:"9", entry: "4", english: "4two", comment: "" },
+        { id:"10", entry: "4", english: "4two", comment: "" },
+        { id:"11", entry: "4", english: "4two", comment: "" },
+        { id:"12", entry: "4", english: "4two", comment: "" },
+        { id:"13", entry: "4", english: "4two", comment: "" },
+        { id:"14", entry: "4", english: "4two", comment: "" },
+        { id:"15", entry: "4", english: "4two", comment: "" },
+        { id:"16", entry: "4", english: "4two", comment: "" },
+        { id:"17", entry: "4", english: "4two", comment: "" },
+        { id:"18", entry: "4", english: "4two", comment: "" },
+        { id:"19", entry: "4", english: "4two", comment: "" },
+        { id:"20", entry: "4", english: "4two", comment: "" },
+        { id:"21", entry: "4", english: "4two", comment: "" },
+        { id:"22", entry: "4", english: "4two", comment: "" },
       ],
     },
+  });
+}
+
+// 去重导出（mock 接口）
+export function exportDeduplicatedData(params) {
+  const { data, params: deduplicateParams } = params;
+  const deduplicateColumns = deduplicateParams.deduplicateColumns;
+
+  if (!data || data.length === 0) {
+    return Promise.resolve({
+      code: 400,
+      message: "数据为空，无法去重",
+      type: "ERROR",
+      code: "EMPTY_DATA"
+    });
+  }
+
+  if (!deduplicateColumns || deduplicateColumns.length === 0) {
+    return Promise.resolve({
+      code: 400,
+      message: "至少选择一列用于去重",
+      type: "ERROR",
+      code: "INVALID_PARAMS"
+    });
+  }
+
+  const deduplicateMap = new Map();
+
+  data.forEach((item, index) => {
+    const key = deduplicateColumns.map(col => item[col]).join('|');
+
+    if (!deduplicateMap.has(key)) {
+      deduplicateMap.set(key, {
+        parent: { ...item, id: index + 1 },
+        children: []
+      });
+    } else {
+      deduplicateMap.get(key).children.push({ ...item, id: index + 1 });
+    }
+  });
+
+  const dataSource = [];
+  const idMap = {};
+
+  deduplicateMap.forEach((group, key) => {
+    const parent = { ...group.parent };
+
+    if (group.children.length > 0) {
+      parent.children = group.children;
+      idMap[parent.id] = group.children.map(child => child.id);
+    }
+
+    dataSource.push(parent);
+  });
+
+  return Promise.resolve({
+    code: 200,
+    message: "去重成功",
+    type: "SUCCESS",
+    data: {
+      dataSource,
+      idMap
+    }
   });
 }
 

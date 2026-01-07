@@ -1,5 +1,5 @@
 <template>
-  <div class="box" ref="box">
+  <div class="container" ref="box">
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
@@ -89,13 +89,24 @@
             <template #icon>
               <ExportOutlined />
             </template>
-            去重导出
+            去重
           </a-button>
           <a-button type="primary" size="middle" @click="showImportBackfillModal">
             <template #icon>
               <ImportOutlined />
             </template>
             导入回填
+          </a-button>
+          <a-button v-if="batchDeleteFlag" type="primary" danger size="middle" @click="handleBatchDelete">
+            批量删除
+          </a-button>
+          <a-button v-if="deleteButtonsVisible" type="primary" danger size="middle" :loading="deleteLoading"
+            @click="handleDeleteEntries">
+            删除词条
+          </a-button>
+          <a-button v-if="deleteButtonsVisible" type="primary" size="middle" :loading="deleteLoading"
+            @click="handleCancelDelete">
+            取消删除
           </a-button>
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -129,14 +140,37 @@
                   onChange: onSelectChange,
                   onSelect: onSelect,
                   onSelectAll: onSelectAll,
-                }
-                : null
-                ">
+                  selections: [
+                    { key: 'selectAll', text: '全部选择', onSelect: selectAllEntry },
+                    { key: 'clearAll', text: '取消选择', onSelect: clearAllEntry }
+                  ],
+                } : null" :expandable="{
+                  expandedRowKeys: expandedRowKeys,
+                  onExpandedRowsChange: (expandedRows) => {
+                    this.expandedRowKeys = expandedRows;
+                  },
+                }">
+              <template #expandIcon="props">
+                <span v-if="props.record.children != null && props.record.children.length > 0">
+                  <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
+                    @click="(e) => { props.onExpand(props.record, e); }">
+                    <CaretDownOutlined />
+                  </div>
+                  <div v-else style="display: inline-block; margin-right: 10px"
+                    @click="(e) => { props.onExpand(props.record, e); }">
+                    <CaretRightOutlined />
+                  </div>
+                </span>
+                <span v-else style="margin-right:23px"></span>
+              </template>
             </a-table>
           </a-config-provider>
         </div>
       </template>
     </DataBox>
+
+    <SelectCols v-model:visible="filterModal.visible" :loading="loading" :columns="columns"
+      @confirm="handleDeduplicateConfirm" />
     <a-modal v-model:open="importBackfillVisible" title="导入回填" @ok="handleImportBackfill"
       @cancel="handleImportBackfillCancel">
       <a-form :model="importBackfillForm" layout="vertical">
@@ -185,15 +219,18 @@ import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
+import SelectCols from "./selectCols.vue";
 import {
   UploadOutlined,
   ExportOutlined,
   ImportOutlined,
   SettingOutlined,
+  CaretDownOutlined,
+  CaretRightOutlined,
 } from "@ant-design/icons-vue";
 import { getLanguage } from "@/http/api/translate";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
-import { entryReadExcel } from "@/http/api/entryManage";
+import { entryReadExcel, exportDeduplicatedData } from "@/http/api/entryManage";
 import {
   onSelectChange,
   onSelect,
@@ -206,6 +243,7 @@ import {
   getColPref,
   changeColumn,
   getSearch,
+  setModalAriaHidden,
 } from "@/utils/commonUtils";
 import { defineComponent, ref } from "vue";
 
@@ -218,10 +256,13 @@ export default {
     ExportOutlined,
     ImportOutlined,
     SettingOutlined,
+    CaretDownOutlined,
+    CaretRightOutlined,
     EntryStateSelect,
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
+    SelectCols,
   },
   props: {
     boxHeight: 0,
@@ -269,7 +310,7 @@ export default {
       },
       lastSearch: {},
       tableTitle: "词条列表",
-      dataHeight: 400,
+      dataHeight: 200,
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
@@ -286,7 +327,7 @@ export default {
             );
           },
           fixed: "left",
-          index: 0,
+          index: 1,
         },
         {
           title: "词条",
@@ -361,6 +402,7 @@ export default {
       dataSource: [],
       selectedRowKeys: [],
       selectedRows: [],
+      selectEntry: new Map(), // 已选任务（用map来遍历更快）
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -371,11 +413,19 @@ export default {
         onChange: this.pageChange,
       },
       batchSelectFlag: false,
+      batchDeleteFlag: true,
+      deleteButtonsVisible: false,
+      deleteLoading: false,
       importBackfillVisible: false,
       importBackfillForm: {
         deduplicatedCsv: null,
         backfillJson: null,
       },
+      filterModal: {
+        visible: false,
+        duplicateCols: [],
+      },
+      expandedRowKeys: [],// 存储当前所有展开行的key值。当某一行展开时，它的key会被添加到这个数组中；折叠时则会被移除。
       searchConditionList: entryParams.searchConditionList,// 展示的查询条件框
       checkedSearchCondition: cachedSearchCondition
         ? JSON.parse(cachedSearchCondition).displayColumn.split(",")
@@ -576,11 +626,59 @@ export default {
       }
     },
     handleDeduplicateExport() {
-      console.log("去重导出 - 后端实现");
-      console.log("将返回两个文件:");
-      console.log("1. 去重.csv");
-      console.log("2. 回填.json");
-      message.info("去重导出功能待后端实现");
+      if (this.dataSource.length === 0) {
+        message.error("没有数据，无法去重");
+        return;
+      }
+      this.filterModal.visible = true;
+      this.filterModal.duplicateCols = [];
+      setModalAriaHidden(this, document);
+    },
+    handleDeduplicateConfirm(selectedColumns) {
+      this.filterModal.duplicateCols = selectedColumns;
+      this.executeDeduplicateExport();
+    },
+    async executeDeduplicateExport() {
+      if (!this.filterModal.duplicateCols.length) {
+        message.error("请至少选择一列用于去重");
+        return;
+      }
+
+      this.loading = true;
+      try {
+        const params = {
+          data: this.dataSource,
+          params: {
+            deduplicateColumns: this.filterModal.duplicateCols
+          }
+        };
+
+        const res = await exportDeduplicatedData(params);
+        if (res.type === "SUCCESS") {
+          this.dataSource = res.data.dataSource;
+          this.pagination.total = res.data.dataSource.length;
+          this.exportIdMap(res.data.idMap);
+          message.success("去重成功");
+          this.filterModal.visible = false;
+        } else {
+          message.error(res.message || "去重失败");
+        }
+      } catch (error) {
+        console.error("去重失败", error);
+        message.error("去重失败: " + error.message);
+      } finally {
+        this.loading = false;
+      }
+    },
+    exportIdMap(idMap) {
+      const jsonString = JSON.stringify(idMap, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '去重映射.json';
+      link.click();
+      URL.revokeObjectURL(url);
     },
     showImportBackfillModal() {
       this.importBackfillVisible = true;
@@ -672,10 +770,92 @@ export default {
         commonParam.checkboxList
       );
     },
+    // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
+    onSelectChange(selectedRowKeys, selectedRows) {
+      // this.selectedRowKeys = selectedRowKeys;
+      // this.selectedRows = selectedRows;
+      // onSelect(单选/取选)、onSelectAll(全选/反选)后，更新selectedRows、selectedRowKeys
+      this.selectedRows = [...this.selectEntry.values()];
+      this.selectedRowKeys = [...this.selectEntry.keys()]; // selectEntryList.map((item) => item.id);
+      // console.log("表格复选框选择事件", this.selectedRows);
+    },
+    // 表格复选框点击事件
+    onSelect(record, selected) {
+      if (selected) {
+        this.selectEntry.set(record.id, record);
+      } else {
+        this.selectEntry.delete(record.id);
+      }
+
+      // console.log("表格复选框点击事件", record, selected);
+    },
+    // 表格全选/反选框点击事件（当前页）
+    onSelectAll(selected, selectedRows, changeRows) {
+      if (selected) {
+        changeRows.forEach((item) => {
+          this.selectEntry.set(item.id, item);
+        });
+      } else {
+        changeRows.forEach((item) => {
+          this.selectEntry.delete(item.id);
+        });
+      }
+      // console.log(
+      //   "表格全选/反选框点击事件",
+      //   selected,
+      //   selectedRows, // 全选->取选当前页数据时，这个是5个undefined
+      //   changeRows
+      // );
+    },
+    // 复选框全选事件
+    selectAllEntry() {
+      this.toDoTasks.forEach((item) => {
+        this.selectedRowKeys.push(item.id);
+        this.selectedRows.push(item);
+        this.selectEntry.set(item.id, item);
+      });
+    },
+    //复选框反选事件
+    clearAllEntry() {
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      // this.selectEntry.clear();
+    },
+    // 批量删除按钮点击事件
+    handleBatchDelete() {
+      this.batchDeleteFlag = false;
+      this.deleteButtonsVisible = true;
+      this.batchSelectFlag = true;
+    },
+    // 删除词条按钮点击事件
+    handleDeleteEntries() {
+      this.deleteLoading = true;
+      if (this.selectedRowKeys.length === 0) {
+        message.warning("请先选择要删除的词条");
+        this.deleteLoading = false;
+        return;
+      }
+      this.dataSource = this.dataSource.filter(item => !this.selectedRowKeys.includes(item.id));
+      this.clearAllEntry();
+      this.deleteLoading = false;
+      this.batchSelectFlag = false;
+      this.deleteButtonsVisible = false;
+      this.batchDeleteFlag = true;
+      message.success("删除成功");
+    },
+    // 取消删除按钮点击事件
+    handleCancelDelete() {
+      this.deleteLoading = true;
+      this.clearAllEntry();
+      this.deleteLoading = false;
+      this.batchSelectFlag = false;
+      this.deleteButtonsVisible = false;
+      this.batchDeleteFlag = true;
+    },
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        setTableHeight(this, -8, 166, 84, { ok: true, h: this.box });
+        setTableHeight(this, 32, 126, 90, { ok: true, h: this.box });
       });
     },
     // 设置表格每一行的class
@@ -697,11 +877,17 @@ export default {
     handleResizeColumn: (w, col) => {
       col.width = w;
     },
+    // 分页切换
+    pageChange(page, pageSize) {
+      this.pagination.current = page;
+      this.pagination.pageSize = pageSize;
+      this.currentPageBranch = 0;
+    },
   },
 };
 </script>
 <style lang="less" scoped>
-.box {
+.container {
   width: 100%;
   height: 100%;
 }
