@@ -1,39 +1,94 @@
 <template>
   <!-- <a-spin :spinning="visible"> -->
-  <Modal ref="createBranchBox" :modalWidth="modalWidth" :visible="visible" :createBranchClassfyID="createBranchClassfyID" :modalTitle="modalTitle"
-    @handleClose="handleClose" @handleOK="handleOK">
+  <Modal
+    ref="createBranchBox"
+    :modalWidth="modalWidth"
+    :visible="visible"
+    :createBranchClassfyID="createBranchClassfyID"
+    :modalTitle="modalTitle"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+  >
     <div class="content">
       <div class="table">
         <a-form ref="params" name="custom-validation">
           <a-form-item label="IP" name="ip">
-            <a-select v-model:value="ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
+            <a-select
+              v-model:value="ip"
+              :options="ipOptions"
+              placeholder="请选择IP"
+              allowClear
+            ></a-select>
           </a-form-item>
           <a-form-item label="分支名" name="codeBranch">
-            <a-input v-model:value="codeBranch" placeholder="请输入分支名"></a-input>
+            <a-input
+              v-model:value="codeBranch"
+              placeholder="请输入分支名"
+            ></a-input>
           </a-form-item>
           <a-form-item label="导入语种" name="translateTypes">
             <!-- 修改为多选 -->
-            <a-select mode="multiple" v-model:value="translateTypes" :options="langOptions" placeholder="请输入各任务需要的导入翻译语种" @change="languageChange"
-              allowClear></a-select>
+            <a-select
+              mode="multiple"
+              v-model:value="translateTypes"
+              :options="langOptions"
+              placeholder="请输入各任务需要的导入翻译语种"
+              @change="languageChange"
+              allowClear
+            ></a-select>
           </a-form-item>
         </a-form>
-        <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="createBranchTable" bordered :pagination='pagination'
-          :loading="loading" :customRow="customRow">
+        <a-table
+          class="ant-table-striped"
+          :columns="columns"
+          :dataSource="dataSource"
+          :scroll="{ x: '100%', y: '280px' }"
+          :row-class-name="
+            (_record, index) => (index % 2 === 1 ? 'table-striped' : null)
+          "
+          ref="createBranchTable"
+          bordered
+          :pagination="pagination"
+          :loading="loading"
+          :customRow="customRow"
+        >
           <template #bodyCell="{ column, text, record }">
-            <template v-if="['name','title', 'versionName'].includes(column.dataIndex)">
+            <template
+              v-if="['name', 'title', 'versionName'].includes(column.dataIndex)"
+            >
               <template v-if="editableData[record.id]">
-                <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0"
-                  @pressEnter="save(record.id)" />
+                <a-input
+                  @click="clickInput"
+                  v-model:value="editableData[record.id][column.dataIndex]"
+                  style="margin: -5px 0"
+                  @pressEnter="save(record.id)"
+                />
               </template>
               <template v-else>
                 {{ text }}
               </template>
             </template>
-            <template v-else-if="['developer','entryAuditor','translator','translationAuditor','translateType','creator'].includes(column.dataIndex)">
+            <template
+              v-else-if="
+                [
+                  'developer',
+                  'entryAuditor',
+                  'translator',
+                  'translationAuditor',
+                  'translateType',
+                  'creator',
+                ].includes(column.dataIndex)
+              "
+            >
               <template v-if="editableData[record.id]">
-                <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                  :options='options[record.id][column.dataIndex]' @click="clickInput" allowClear>
+                <a-select
+                  v-model:value="editableData[record.id][column.dataIndex]"
+                  style="width: 100%"
+                  placeholder="请选择"
+                  :options="options[record.id][column.dataIndex]"
+                  @click="clickInput"
+                  allowClear
+                >
                 </a-select>
               </template>
               <template v-else>
@@ -42,53 +97,133 @@
             </template>
             <template v-else-if="column.dataIndex === 'operation'">
               <span v-if="editableData[record.id]">
-                <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
-                  <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                  <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                <div
+                  style="
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    justify-self: center;
+                  "
+                >
+                  <a-button
+                    type="primary"
+                    ghost
+                    size="small"
+                    @click.stop="save(record.id)"
+                    >保存</a-button
+                  >
+                  <a-button
+                    type="primary"
+                    ghost
+                    size="small"
+                    danger
+                    @click.stop="cancel(record.id)"
+                    >取消</a-button
+                  >
                 </div>
               </span>
               <span v-else>
-                <a-button type="primary" ghost size="small" @click.stop="edit(record)">编辑</a-button>
+                <a-button
+                  type="primary"
+                  ghost
+                  size="small"
+                  @click.stop="edit(record)"
+                  >编辑</a-button
+                >
               </span>
             </template>
           </template>
         </a-table>
       </div>
     </div>
-    <div class="other" style="padding:12px;background-color:#dbdbdb">
-      <div style="display:flex;align-items:center"><span>需要忽略的文件(不处理翻译，不创建任务，不导入词条)：</span></div>
-      <div class="otherSearchBox" style="padding:12px 0;display:flex;justify-content:space-between">
-        <div ref="otherSearch" style="display:flex;gap:8px">
-          <a-form ref="otherForm" name="custom-validation" layout="inline" autocomplete="off">
-            <!-- <a-form-item label="子分类名" name="sub-classify">
-                <a-input v-model:value="codeBranch" placeholder="所有其他文件将存入子分类中" :rules="[{ required: true, message: '请输入子分类名，所有其他文件将存入子分类中' }]"
-                  style="width: 400px;"></a-input>
-              </a-form-item> -->
-          </a-form>
+    <div class="other" style="padding: 12px; background-color: #dbdbdb; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 50%">
+          <div style="display: flex; align-items: center">
+            <span style="color: red">
+              分支新建后的ts支持更新，其他类型的文件需重走一遍工作台（使用分支新建导入进来的词条，词条来源与工作台的不一样）
+            </span>
+          </div>
+          <div style="display: flex; align-items: center">
+            <span>需要忽略的文件(不处理翻译，不创建任务，不导入词条)：</span>
+          </div>
         </div>
-        <div ref="otherButton" style="display:flex;gap:8px">
-          <AnalysisButton size="small" buttonTitle="读取配置" @configList="createOtherProductByAnalysis" />
-          <ImportButton size="small" buttonTitle="配置新增" :department="user.department" @configList="createOtherProduct" />
+        <div style="display: flex; gap: 8px; align-items: center; width: 50%; justify-content: flex-end">
+          <AnalysisButton
+            size="small"
+            buttonTitle="读取配置"
+            @configList="createOtherProductByAnalysis"
+          />
+          <ImportButton
+            size="small"
+            buttonTitle="配置新增"
+            :department="user.department"
+            @configList="createOtherProduct"
+          />
           <!-- <a-button type="primary" size="small" @click="addIgnore">
             <template #icon>
               <PlusOutlined />
             </template>新增
           </a-button> -->
           <a-button type="primary" size="small" @click="otherDelete" danger>
-            <template #icon>
-              <DeleteOutlined />
-            </template>删除
+            <template #icon> <DeleteOutlined /> </template>删除
           </a-button>
         </div>
       </div>
-      <div class="table" style="display:flex;gap:8px">
-        <div style="width: 100%;">
-          <a-table ref="otherTable" bordered class="ant-table-striped" :columns="otherColumns" :customRow="otherCustomRow"
-            :dataSource="otherDataSource" :loading="otherLoading" :scroll="{x:'100%' , y: '180px'}" :pagination='otherPagination'
-            :row-key="record => record.id" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-selection="{ selectedRowKeys: otherSelectedRowKeys,onSelect:otherOnSelect,onSelectAll:otherOnSelectAll, onChange: otherOnSelectChange, selections:[
-                      {key:'selectAll',text:'全部选择',onSelect:otherSelectAllEntry},
-                      {key:'clearAll',text:'取消选择',onSelect:otherClearAllEntry}
-                  ]}" @resizeColumn="handleResizeColumn">
+      <div
+        class="otherSearchBox"
+        style="display: flex; gap: 8px; align-items: center"
+      >
+        <div ref="otherSearch" style="display: flex; gap: 8px; align-items: center">
+          <a-form
+            ref="otherForm"
+            name="custom-validation"
+            layout="inline"
+            autocomplete="off"
+          >
+            <!-- <a-form-item label="子分类名" name="sub-classify">
+                <a-input v-model:value="codeBranch" placeholder="所有其他文件将存入子分类中" :rules="[{ required: true, message: '请输入子分类名，所有其他文件将存入子分类中' }]"
+                  style="width: 400px;"></a-input>
+              </a-form-item> -->
+          </a-form>
+        </div>
+      </div>
+      <div class="table" style="display: flex; gap: 8px">
+        <div style="width: 100%">
+          <a-table
+            ref="otherTable"
+            bordered
+            class="ant-table-striped"
+            :columns="otherColumns"
+            :customRow="otherCustomRow"
+            :dataSource="otherDataSource"
+            :loading="otherLoading"
+            :scroll="{ x: '100%', y: '180px' }"
+            :pagination="otherPagination"
+            :row-key="(record) => record.id"
+            :row-class-name="
+              (_record, index) => (index % 2 === 1 ? 'table-striped' : null)
+            "
+            :row-selection="{
+              selectedRowKeys: otherSelectedRowKeys,
+              onSelect: otherOnSelect,
+              onSelectAll: otherOnSelectAll,
+              onChange: otherOnSelectChange,
+              selections: [
+                {
+                  key: 'selectAll',
+                  text: '全部选择',
+                  onSelect: otherSelectAllEntry,
+                },
+                {
+                  key: 'clearAll',
+                  text: '取消选择',
+                  onSelect: otherClearAllEntry,
+                },
+              ],
+            }"
+            @resizeColumn="handleResizeColumn"
+          >
             <template #bodyCell="{ column, text, record }">
               <!-- <template v-if="['name','parentTitle','subTitle','title', 'versionName'].includes(column.dataIndex)">
                 <template v-if="otherEditableData[record.id]">
@@ -99,15 +234,32 @@
                   {{ text }}
                 </template>
               </template> -->
-              <template v-if="['link','title'].includes(column.dataIndex)">
+              <template v-if="['link', 'title'].includes(column.dataIndex)">
                 <template v-if="otherEditableData[record.id]">
-                  <template v-if="record.isNew && column.dataIndex=='link'">
-                    <a-select style="width: 100%" placeholder="请选择lang目录" allowClear :options="linkOptions" @pressEnter="otherSave(record.id)"
-                      @change="getIgnoreOptions(record)" v-model:value="otherEditableData[record.id][column.dataIndex]"></a-select>
+                  <template v-if="record.isNew && column.dataIndex == 'link'">
+                    <a-select
+                      style="width: 100%"
+                      placeholder="请选择lang目录"
+                      allowClear
+                      :options="linkOptions"
+                      @pressEnter="otherSave(record.id)"
+                      @change="getIgnoreOptions(record)"
+                      v-model:value="
+                        otherEditableData[record.id][column.dataIndex]
+                      "
+                    ></a-select>
                   </template>
-                  <template v-if="column.dataIndex=='title'">
-                    <a-select style="width: 100%" placeholder="请选择要忽略的文件" allowClear :options="ignoreOptionsMap[record.id]||[]"
-                      @pressEnter="otherSave(record.id)" v-model:value="otherEditableData[record.id][column.dataIndex]"></a-select>
+                  <template v-if="column.dataIndex == 'title'">
+                    <a-select
+                      style="width: 100%"
+                      placeholder="请选择要忽略的文件"
+                      allowClear
+                      :options="ignoreOptionsMap[record.id] || []"
+                      @pressEnter="otherSave(record.id)"
+                      v-model:value="
+                        otherEditableData[record.id][column.dataIndex]
+                      "
+                    ></a-select>
                   </template>
                 </template>
                 <template v-else>
@@ -116,14 +268,47 @@
               </template>
               <template v-else-if="column.dataIndex === 'operation'">
                 <span v-if="otherEditableData[record.id]">
-                  <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
-                    <a-button type="primary" ghost size="small" @click.stop="otherSave(record.id)">保存</a-button>
-                    <a-button type="primary" ghost size="small" danger @click.stop="otherCancel(record.id)">取消</a-button>
+                  <div
+                    style="
+                      display: flex;
+                      gap: 8px;
+                      align-items: center;
+                      justify-self: center;
+                    "
+                  >
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click.stop="otherSave(record.id)"
+                      >保存</a-button
+                    >
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      danger
+                      @click.stop="otherCancel(record.id)"
+                      >取消</a-button
+                    >
                   </div>
                 </span>
                 <span v-else>
-                  <div style="display:flex;gap:8px;align-items:center;justify-self: center;">
-                    <a-button type="primary" ghost size="small" @click.stop="otherEdit(record)">编辑</a-button>
+                  <div
+                    style="
+                      display: flex;
+                      gap: 8px;
+                      align-items: center;
+                      justify-self: center;
+                    "
+                  >
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click.stop="otherEdit(record)"
+                      >编辑</a-button
+                    >
                     <!-- <a-button type="primary" ghost size="small" @click.stop="showSource(record)">词条来源</a-button> -->
                     <!-- <div class="editable-row-operations">
                     <DeleteOutlined style="color:#ff7070;font-size:16px" title="取消选择" />
