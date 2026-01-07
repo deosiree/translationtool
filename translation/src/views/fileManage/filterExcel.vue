@@ -209,7 +209,7 @@
   </div>
 </template>
 <script>
-import { message } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import CustomModal from "@/components/modal/index.vue";
 import SearchBox from "@/components/search/searchBox.vue";
@@ -389,7 +389,7 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 150,
+          width: 40,
           fixed: "right",
           index: 100,
         },
@@ -599,9 +599,12 @@ export default {
 
           const res = await entryReadExcel({}, formData);
           if (res.type === "SUCCESS") {
-            this.dataSource = res.data.list;
-            this.pagination.total = res.data.list.length;
-            message.success("文件读取成功");
+            const success = this.adjustColumnsBasedOnCSV(res.data.list);
+            if (success) {
+              this.dataSource = res.data.list;
+              this.pagination.total = res.data.list.length;
+              message.success("文件读取成功");
+            }
           } else {
             message.error("文件读取失败: " + res.message);
           }
@@ -624,6 +627,68 @@ export default {
       } catch (e) {
         return "GBK";
       }
+    },
+    adjustColumnsBasedOnCSV(dataList) {
+      if (!dataList || dataList.length === 0) {
+        this.showImportError("CSV 文件为空或没有有效数据，请检查文件后重新上传");
+        return false;
+      }
+
+      const csvColumns = Object.keys(dataList[0]);
+
+      const unmatchedColumns = this.getUnmatchedColumns(csvColumns);
+      if (unmatchedColumns.length > 0) {
+        const errorMsg = `CSV 文件包含不支持的列：${unmatchedColumns.join(', ')}，请修改 CSV 文件后重新上传`;
+        this.showImportError(errorMsg);
+        return false;
+      }
+
+      const sortedIntersection = this.calculateSortedIntersection(csvColumns);
+
+      changeColumn(
+        "colPref-fileManage",
+        200,
+        sortedIntersection,
+        this,
+        false,
+        commonParam.checkboxList
+      );
+
+      this.checkedColumn = sortedIntersection;
+
+      return true;
+    },
+    getUnmatchedColumns(csvColumns) {
+      const excludedColumns = ['id', 'index', 'entry', 'operation'];
+      const filteredColumns = csvColumns.filter(col => !excludedColumns.includes(col));
+      
+      const supportedColumns = entryParams.checkboxList.map(item => item.value);
+      return filteredColumns.filter(col => !supportedColumns.includes(col));
+    },
+    calculateSortedIntersection(csvColumns) {
+      const excludedColumns = ['id', 'index', 'entry', 'operation'];
+      const filteredColumns = csvColumns.filter(col => !excludedColumns.includes(col));
+      
+      const supportedColumns = entryParams.checkboxList.map(item => item.value);
+      const intersection = filteredColumns.filter(col => supportedColumns.includes(col));
+
+      const sortedIntersection = entryParams.checkboxList
+        .filter(item => intersection.includes(item.value))
+        .sort((a, b) => a.index - b.index)
+        .map(item => item.value);
+
+      const requiredColumns = ['index', 'entry', 'operation'];
+      const finalColumns = [...new Set([...sortedIntersection, ...requiredColumns])];
+
+      return finalColumns;
+    },
+    showImportError(description) {
+      notification.error({
+        message: '导入失败',
+        description: description,
+        duration: 0,
+        key: 'csv-import-error',
+      });
     },
     handleDeduplicateExport() {
       if (this.dataSource.length === 0) {

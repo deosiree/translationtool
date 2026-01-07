@@ -241,35 +241,73 @@ export function entryImportExcle(params, data) {
 
 // 读取 Excel 文件（mock 接口）
 export function entryReadExcel(params, data) {
+  // 正常数据，所有列都支持
+  const mockData_normal = [
+    { id:"1", entry: "1", english: "one", comment: "UI" },
+    { id:"2", entry: "1", english: "one", comment: "UI" },
+    { id:"3", entry: "2", english: "two", comment: "" },
+    { id:"4", entry: "2", english: "two", comment: "" },
+    { id:"5", entry: "2", english: "two1", comment: "" },
+    { id:"6", entry: "2", english: "two", comment: "1" },
+    { id:"7", entry: "3", english: "two", comment: "" },
+    { id:"8", entry: "4", english: "4two", comment: "" },
+    { id:"9", entry: "4", english: "4two", comment: "" },
+    { id:"10", entry: "4", english: "4two", comment: "" },
+    { id:"11", entry: "4", english: "4two", comment: "" },
+    { id:"12", entry: "4", english: "4two", comment: "" },
+    { id:"13", entry: "4", english: "4two", comment: "" },
+    { id:"14", entry: "4", english: "4two", comment: "" },
+    { id:"15", entry: "4", english: "4two", comment: "" },
+    { id:"16", entry: "4", english: "4two", comment: "" },
+    { id:"17", entry: "4", english: "4two", comment: "" },
+    { id:"18", entry: "4", english: "4two", comment: "" },
+    { id:"19", entry: "4", english: "4two", comment: "" },
+    { id:"20", entry: "4", english: "4two", comment: "" },
+    { id:"21", entry: "4", english: "4two", comment: "" },
+    { id:"22", entry: "4", english: "4two", comment: "" },
+  ];
+
+  // 空数据
+  const mockData_empty = [];
+  const mockData_empty2 = null;
+
+  // 包含不支持的列
+  const mockData_unmatched = [
+    { id:"1", entry: "1", english: "one", comment: "UI", unsupportedColumn1: "value1" },
+    { id:"2", entry: "1", english: "one", comment: "UI", unsupportedColumn2: "value2" },
+    { id:"3", entry: "2", english: "two", comment: "", anotherBadColumn: "value3" },
+  ];
+
+  // 包含比展示列更多的支持的列（会增加列，展示列被撑大，这样效果更好，因为导入后必然能看到完整的所有数据）
+  const mockData_partialMatch = [
+    { id:"1", entry: "1", english: "one", comment: "UI", classfy1: "UI", classfy2: "UI" },
+    { id:"2", entry: "1", english: "one", comment: "UI", classfy1: "UI", classfy2: "UI" },
+    { id:"3", entry: "2", english: "two", comment: "", classfy1: "UI", classfy2: "UI" },
+  ];
+
+  // 包含多个不支持的列
+  const mockData_multipleUnmatched = [
+    { id:"1", entry: "1", english: "one", comment: "UI", badColumn1: "val1", badColumn2: "val2", badColumn3: "val3" },
+    { id:"2", entry: "1", english: "one", comment: "UI", badColumn4: "val4", badColumn5: "val5" },
+  ];
+
+  const mockDataOptions = [
+    mockData_normal,
+    mockData_empty,
+    mockData_empty2,
+    mockData_unmatched,
+    mockData_partialMatch,
+    mockData_multipleUnmatched
+  ];
+  // const currentMockData = mockDataOptions[Math.floor(Math.random() * mockDataOptions.length)];
+  const currentMockData = mockData_partialMatch;
+
   return Promise.resolve({
     code: 200,
     message: "成功",
     type: "SUCCESS",
     data: {
-      list: [
-        { id:"1", entry: "1", english: "one", comment: "UI" },
-        { id:"2", entry: "1", english: "one", comment: "UI" },
-        { id:"3", entry: "2", english: "two", comment: "" },
-        { id:"4", entry: "2", english: "two", comment: "" },
-        { id:"5", entry: "2", english: "two1", comment: "" },
-        { id:"6", entry: "2", english: "two", comment: "1" },
-        { id:"7", entry: "3", english: "two", comment: "" },
-        { id:"8", entry: "4", english: "4two", comment: "" },
-        { id:"9", entry: "4", english: "4two", comment: "" },
-        { id:"10", entry: "4", english: "4two", comment: "" },
-        { id:"11", entry: "4", english: "4two", comment: "" },
-        { id:"12", entry: "4", english: "4two", comment: "" },
-        { id:"13", entry: "4", english: "4two", comment: "" },
-        { id:"14", entry: "4", english: "4two", comment: "" },
-        { id:"15", entry: "4", english: "4two", comment: "" },
-        { id:"16", entry: "4", english: "4two", comment: "" },
-        { id:"17", entry: "4", english: "4two", comment: "" },
-        { id:"18", entry: "4", english: "4two", comment: "" },
-        { id:"19", entry: "4", english: "4two", comment: "" },
-        { id:"20", entry: "4", english: "4two", comment: "" },
-        { id:"21", entry: "4", english: "4two", comment: "" },
-        { id:"22", entry: "4", english: "4two", comment: "" },
-      ],
+      list: currentMockData,
     },
   });
 }
