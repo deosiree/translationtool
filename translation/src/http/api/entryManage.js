@@ -239,6 +239,26 @@ export function entryImportExcle(params, data) {
   });
 }
 
+// 读取 Excel 文件（mock 接口）
+export function entryReadExcel(params, data) {
+  return Promise.resolve({
+    code: 200,
+    message: "成功",
+    type: "SUCCESS",
+    data: {
+      list: [
+        { entry: "1", english: "one", comment: "UI" },
+        { entry: "1", english: "one", comment: "UI" },
+        { entry: "2", english: "two", comment: "" },
+        { entry: "2", english: "two", comment: "" },
+        { entry: "2", english: "two1", comment: "" },
+        { entry: "2", english: "two", comment: "1" },
+        { entry: "3", english: "two", comment: "" },
+      ],
+    },
+  });
+}
+
 // 翻译导入
 export function workImportExcleTrans(data) {
   return request({
