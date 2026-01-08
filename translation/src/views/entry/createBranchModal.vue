@@ -137,18 +137,15 @@
       </div>
     </div>
     <div class="other" style="padding: 12px; background-color: #dbdbdb; display: flex; flex-direction: column; gap: 12px">
-      <div style="display: flex; gap: 12px">
-        <div style="display: flex; flex-direction: column; gap: 8px; width: 50%">
-          <div style="display: flex; align-items: center">
-            <span style="color: red">
-              分支新建后的ts支持更新，其他类型的文件需重走一遍工作台（使用分支新建导入进来的词条，词条来源与工作台的不一样）
-            </span>
-          </div>
-          <div style="display: flex; align-items: center">
-            <span>需要忽略的文件(不处理翻译，不创建任务，不导入词条)：</span>
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center; width: 50%; justify-content: flex-end">
+      <a-alert 
+        message="重要提示" 
+        description="分支新建后的 ts 支持更新，其他类型的文件需重走一遍工作台（使用分支新建导入进来的词条，词条来源与工作台的不一样）" 
+        type="warning" 
+        show-icon 
+      />
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span>需要忽略的文件(不处理翻译，不创建任务，不导入词条)：</span>
+        <div style="display: flex; gap: 8px">
           <AnalysisButton
             size="small"
             buttonTitle="读取配置"
