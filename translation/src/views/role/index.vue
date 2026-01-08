@@ -269,7 +269,7 @@ export default {
         }
         if (list[i]["children"]) {
           let node = this.getAllParentArr(list[i]["children"], id);
-          if (!!node) {
+          if (node) {
             return node.concat(list[i]);
           }
         }

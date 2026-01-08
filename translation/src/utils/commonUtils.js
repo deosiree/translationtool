@@ -21,7 +21,7 @@ export async function randomMsg(msgs = ["执行中", "未执行"], probs = [0.5]
     }
   }
   return msgs[n];
-};
+}
 
 /**
  * @description 随机抛出任务创建异常，用于测试异常处理
@@ -30,7 +30,7 @@ export async function randomError(msg = '随机任务创建失败测试', prob =
   if (Math.random() < prob) {
     throw new Error(msg);
   }
-};
+}
 
 /**
  * 根据节点key获取状态路径
@@ -76,7 +76,7 @@ export function getPathByKey(treeData, targetKey, path = []) {
   }
   // 未找到目标节点
   return null;
-};
+}
 
 /**
  * 处理异步请求的通用函数
@@ -1037,6 +1037,7 @@ export function setTableHeight(vm, buttonHeightBias = 8, tableHeightBias = 158, 
     } catch (error) { }
     vm.tableHeight.y = vm.dataHeight - buttonHeight - tableHeightBias;
 
+    // console.log(vm.tableHeight.y)
   });
 }
 
