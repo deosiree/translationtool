@@ -1019,24 +1019,24 @@ export function clickInput(vm, event) {
  */
 export function setTableHeight(vm, buttonHeightBias = 8, tableHeightBias = 158, dataHeightBias = 0, hasboxHeight = { ok: false, h: 0 }) {
   vm.$nextTick(() => {
-    // 设置列表父元素高度
-    const searchHeight = vm.$refs.search.$el.offsetHeight;
+    let searchHeight = 0;
+    if (vm.$refs.search?.$el) {
+      searchHeight = vm.$refs.search.$el.offsetHeight;
+    }
     let box = 0;
     if (!hasboxHeight.ok)
-      box = vm.$refs.box.offsetHeight;
+      box = vm.$refs.box?.offsetHeight ?? 0;
     else
       box = hasboxHeight.h;
     const operationAreaHeight = vm.$refs.operationArea?.$el?.offsetHeight ?? 0;
     vm.dataHeight = box - searchHeight - dataHeightBias - operationAreaHeight;
 
-    // 设置表格高度
     let buttonHeight = 0;
     try {
-      buttonHeight = vm.$refs.button.offsetHeight + buttonHeightBias;
+      buttonHeight = vm.$refs.button?.offsetHeight + buttonHeightBias ?? buttonHeightBias;
     } catch (error) { }
     vm.tableHeight.y = vm.dataHeight - buttonHeight - tableHeightBias;
 
-    // console.log(vm.tableHeight.y)
   });
 }
 

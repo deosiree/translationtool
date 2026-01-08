@@ -1,6 +1,6 @@
 <template>
   <div class="container" ref="box">
-    <SearchBox ref="search" @change="setTableHeight">
+    <SearchBox v-if="false" ref="search" @change="setTableHeight">
       <template v-slot:form>
         <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
           <a-row class="search-row" style="width:100%;display:flex;gap:8px">
@@ -661,14 +661,14 @@ export default {
     getUnmatchedColumns(csvColumns) {
       const excludedColumns = ['id', 'index', 'entry', 'operation'];
       const filteredColumns = csvColumns.filter(col => !excludedColumns.includes(col));
-      
+
       const supportedColumns = entryParams.checkboxList.map(item => item.value);
       return filteredColumns.filter(col => !supportedColumns.includes(col));
     },
     calculateSortedIntersection(csvColumns) {
       const excludedColumns = ['id', 'index', 'entry', 'operation'];
       const filteredColumns = csvColumns.filter(col => !excludedColumns.includes(col));
-      
+
       const supportedColumns = entryParams.checkboxList.map(item => item.value);
       const intersection = filteredColumns.filter(col => supportedColumns.includes(col));
 
@@ -851,8 +851,8 @@ export default {
       } else {
         this.selectEntry.delete(record.id);
       }
-
-      // console.log("表格复选框点击事件", record, selected);
+      this.selectedRows = [...this.selectEntry.values()];
+      this.selectedRowKeys = [...this.selectEntry.keys()];
     },
     // 表格全选/反选框点击事件（当前页）
     onSelectAll(selected, selectedRows, changeRows) {
@@ -865,26 +865,28 @@ export default {
           this.selectEntry.delete(item.id);
         });
       }
-      // console.log(
-      //   "表格全选/反选框点击事件",
-      //   selected,
-      //   selectedRows, // 全选->取选当前页数据时，这个是5个undefined
-      //   changeRows
-      // );
+      this.selectedRows = [...this.selectEntry.values()];
+      this.selectedRowKeys = [...this.selectEntry.keys()];
     },
     // 复选框全选事件
     selectAllEntry() {
-      this.toDoTasks.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-        this.selectEntry.set(item.id, item);
+      if (!this.dataSource || this.dataSource.length === 0) {
+        message.warning("没有数据可全选");
+        return;
+      }
+      this.dataSource.forEach((item) => {
+        if (!this.selectedRowKeys.includes(item.id)) {
+          this.selectedRowKeys.push(item.id);
+          this.selectedRows.push(item);
+          this.selectEntry.set(item.id, item);
+        }
       });
     },
     //复选框反选事件
     clearAllEntry() {
       this.selectedRowKeys = [];
       this.selectedRows = [];
-      // this.selectEntry.clear();
+      this.selectEntry.clear();
     },
     // 批量删除按钮点击事件
     handleBatchDelete() {
@@ -920,7 +922,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        setTableHeight(this, 32, 126, 90, { ok: true, h: this.box });
+        setTableHeight(this, 32, 146, 90, { ok: true, h: this.box });
       });
     },
     // 设置表格每一行的class

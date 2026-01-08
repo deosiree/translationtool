@@ -300,7 +300,7 @@ export function entryReadExcel(params, data) {
     mockData_multipleUnmatched
   ];
   // const currentMockData = mockDataOptions[Math.floor(Math.random() * mockDataOptions.length)];
-  const currentMockData = mockData_partialMatch;
+  const currentMockData = mockData_normal;
 
   return Promise.resolve({
     code: 200,
