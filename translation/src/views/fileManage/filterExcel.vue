@@ -538,28 +538,13 @@ export default {
       reader.onload = async (e) => {
         const content = e.target.result;
         try {
-          const encoding = this.detectEncoding(content);
-          // if (encoding !== "UTF-8") {
-          //   message.warning(
-          //     "文件编码不是 UTF-8，请另存为 UTF-8 编码的 CSV 文件"
-          //   );
-          // }
-          console.log("导入 CSV 文件:", file.name, "编码:", encoding, "内容", content);
-
           const formData = new FormData();
           formData.append("file", file);
 
-          const res = await entryReadExcel({}, formData);
-          if (res.type === "SUCCESS") {
-            const success = this.adjustColumnsBasedOnCSV(res.data.list);
-            if (success) {
-              this.dataSource = res.data.list;
-              this.pagination.total = res.data.list.length;
-              message.success("文件读取成功");
-            }
-          } else {
-            message.error("文件读取失败: " + res.message);
-          }
+          const res = await entryReadExcel(formData);
+          this.dataSource = res.data;
+          this.pagination.total = this.dataSource.length;
+          message.success("文件读取成功");
         } catch (error) {
           console.error("文件解析失败", error);
           message.error("文件解析失败");
@@ -567,53 +552,6 @@ export default {
       };
       reader.readAsText(file);
       return false;// 在文件开始上传之前阻止文件上传操作
-    },
-    // 文件判断是否为UTF-8
-    detectEncoding(content) {
-      const bom = content.charCodeAt(0);
-      if (bom === 0xfeff) {
-        return "UTF-8";
-      }
-      try {
-        decodeURIComponent(escape(content));
-        return "UTF-8";
-      } catch (e) {
-        return "GBK";
-      }
-    },
-    // 导入后：显示文件中的列名
-    adjustColumnsBasedOnCSV(dataList) {
-      if (!dataList || dataList.length === 0) {
-        this.showImportError("CSV 文件为空或没有有效数据，请检查文件后重新上传");
-        return false;
-      }
-
-      const csvCols = Object.keys(dataList[0]);
-      // console.log("csvCols", csvCols);
-      // 过滤掉无须比较的列
-      this.checkedColumn = csvCols.filter(col => !this.excludedCols.includes(col));
-      // 检查是否有不支持的列
-      const supportedCols = entryParams.checkboxList.map(item => item.value);// 获得列全集
-      const unmatchedCols = this.checkedColumn.filter(col => !supportedCols.includes(col));
-      if (unmatchedCols.length > 0) {
-        notification.error({
-          message: '导入失败',
-          description: `CSV 文件包含不支持的列：${unmatchedCols.join(', ')}，请修改 CSV 文件后重新上传`,
-          duration: 0,
-          key: 'csv-import-error',
-        });
-        return false;
-      }
-
-      // 修改展示列,添加需要显示的列，保存用户偏好
-      this.checkboxList = entryParams.checkboxList.filter(item => this.checkedColumn.includes(item.value));
-      this.changeColumn(this.checkedColumn);
-      // console.log("checkedColumn", this.checkedColumn, this.checkboxList);
-      // 删除展示列中有但是文件中没有的列
-      const showCols = [...this.requiredCols, ...this.checkedColumn];
-      this.columns = this.columns.filter(col => showCols.includes(col.dataIndex));
-
-      return true;
     },
     // ==============去重按钮点击事件======================
     handleDeduplicateExport() {
@@ -637,26 +575,25 @@ export default {
 
       this.loading = true;
       try {
+        const data = this.dataSource;
         const params = {
-          data: this.dataSource,
-          params: {
-            deduplicateColumns: this.filterModal.duplicateCols
-          }
+          replicatedTargetAttributs: this.filterModal.duplicateCols
         };
 
-        const res = await exportDeduplicatedData(params);
-        if (res.type === "SUCCESS") {
-          this.dataSource = res.data.dataSource;
-          this.pagination.total = res.data.dataSource.length;
-          this.exportIdMap(res.data.idMap);
-          message.success("去重成功");
-          this.filterModal.visible = false;
-        } else {
-          message.error(res.message || "去重失败");
-        }
+        const res = await exportDeduplicatedData(params, data);
+
+        this.dataSource = res.data.dataSource;
+        this.pagination.total = res.data.dataSource.length;
+        this.exportIdMap(res.data.idMap);
+        message.success("去重成功");
+        this.filterModal.visible = false;
       } catch (error) {
         console.error("去重失败", error);
-        message.error("去重失败: " + error.message);
+        notification.error({
+          message: "去重失败！",
+          description: error.message || "去重失败",
+          duration: 0,
+        });
       } finally {
         this.loading = false;
       }

@@ -40,17 +40,6 @@ export function checkNotUseEntry(params) {
   });
 }
 
-// 查询分类中的更新词条
-export function getUpdateEntryByClassfy(params, data) {
-  return request({
-    url: "/entryInfo/checkNewEntryByClassfy",
-    // url: "https://apifoxmock.com/m1/5869278-5555786-default/updateEntry",
-    method: "POST",
-    params,
-    data
-  });
-}
-
 // 查询分类树
 export function getClassTree(params) {
   return request({
@@ -239,139 +228,158 @@ export function entryImportExcle(params, data) {
   });
 }
 
-// 读取 Excel 文件（mock 接口）
-export function entryReadExcel(params, data) {
-  // 正常数据，所有列都支持
-  const mockData_normal = [
-    { id:"1", entry: "1", english: "one", comment: "UI" },
-    { id:"2", entry: "1", english: "one", comment: "UI" },
-    { id:"3", entry: "2", english: "two", comment: "" },
-    { id:"4", entry: "2", english: "two", comment: "" },
-    { id:"5", entry: "2", english: "two1", comment: "" },
-    { id:"6", entry: "2", english: "two", comment: "1" },
-    { id:"7", entry: "3", english: "two", comment: "" },
-    { id:"8", entry: "4", english: "4two", comment: "" },
-    { id:"9", entry: "4", english: "4two", comment: "" },
-    { id:"10", entry: "4", english: "4two", comment: "" },
-    { id:"11", entry: "4", english: "4two", comment: "" },
-    { id:"12", entry: "4", english: "4two", comment: "" },
-    { id:"13", entry: "4", english: "4two", comment: "" },
-    { id:"14", entry: "4", english: "4two", comment: "" },
-    { id:"15", entry: "4", english: "4two", comment: "" },
-    { id:"16", entry: "4", english: "4two", comment: "" },
-    { id:"17", entry: "4", english: "4two", comment: "" },
-    { id:"18", entry: "4", english: "4two", comment: "" },
-    { id:"19", entry: "4", english: "4two", comment: "" },
-    { id:"20", entry: "4", english: "4two", comment: "" },
-    { id:"21", entry: "4", english: "4two", comment: "" },
-    { id:"22", entry: "4", english: "4two", comment: "" },
-  ];
+// // 读取 Excel 文件（mock 接口）
+// export function entryReadExcel(params, data) {
+//   // 正常数据，所有列都支持
+//   const mockData_normal = [
+//     { id: "1", entry: "1", english: "one", comment: "UI" },
+//     { id: "2", entry: "1", english: "one", comment: "UI" },
+//     { id: "3", entry: "2", english: "two", comment: "" },
+//     { id: "4", entry: "2", english: "two", comment: "" },
+//     { id: "5", entry: "2", english: "two1", comment: "" },
+//     { id: "6", entry: "2", english: "two", comment: "1" },
+//     { id: "7", entry: "3", english: "two", comment: "" },
+//     { id: "8", entry: "4", english: "4two", comment: "" },
+//     { id: "9", entry: "4", english: "4two", comment: "" },
+//     { id: "10", entry: "4", english: "4two", comment: "" },
+//     { id: "11", entry: "4", english: "4two", comment: "" },
+//     { id: "12", entry: "4", english: "4two", comment: "" },
+//     { id: "13", entry: "4", english: "4two", comment: "" },
+//     { id: "14", entry: "4", english: "4two", comment: "" },
+//     { id: "15", entry: "4", english: "4two", comment: "" },
+//     { id: "16", entry: "4", english: "4two", comment: "" },
+//     { id: "17", entry: "4", english: "4two", comment: "" },
+//     { id: "18", entry: "4", english: "4two", comment: "" },
+//     { id: "19", entry: "4", english: "4two", comment: "" },
+//     { id: "20", entry: "4", english: "4two", comment: "" },
+//     { id: "21", entry: "4", english: "4two", comment: "" },
+//     { id: "22", entry: "4", english: "4two", comment: "" },
+//   ];
 
-  // 空数据
-  const mockData_empty = [];
-  const mockData_empty2 = null;
+//   // 空数据
+//   const mockData_empty = [];
+//   const mockData_empty2 = null;
 
-  // 包含不支持的列
-  const mockData_unmatched = [
-    { id:"1", entry: "1", english: "one", comment: "UI", unsupportedColumn1: "value1" },
-    { id:"2", entry: "1", english: "one", comment: "UI", unsupportedColumn2: "value2" },
-    { id:"3", entry: "2", english: "two", comment: "", anotherBadColumn: "value3" },
-  ];
+//   // 包含不支持的列
+//   const mockData_unmatched = [
+//     { id: "1", entry: "1", english: "one", comment: "UI", unsupportedColumn1: "value1" },
+//     { id: "2", entry: "1", english: "one", comment: "UI", unsupportedColumn2: "value2" },
+//     { id: "3", entry: "2", english: "two", comment: "", anotherBadColumn: "value3" },
+//   ];
 
-  // 包含比展示列更多的支持的列（会增加列，展示列被撑大，这样效果更好，因为导入后必然能看到完整的所有数据）
-  const mockData_partialMatch = [
-    { id:"1", entry: "1", english: "one", comment: "UI", classfy1: "UI", classfy2: "UI" },
-    { id:"2", entry: "1", english: "one", comment: "UI", classfy1: "UI", classfy2: "UI" },
-    { id:"3", entry: "2", english: "two", comment: "", classfy1: "UI", classfy2: "UI" },
-  ];
+//   // 包含比展示列更多的支持的列（会增加列，展示列被撑大，这样效果更好，因为导入后必然能看到完整的所有数据）
+//   const mockData_partialMatch = [
+//     { id: "1", entry: "1", english: "one", comment: "UI", classfy1: "UI", classfy2: "UI" },
+//     { id: "2", entry: "1", english: "one", comment: "UI", classfy1: "UI", classfy2: "UI" },
+//     { id: "3", entry: "2", english: "two", comment: "", classfy1: "UI", classfy2: "UI" },
+//   ];
 
-  // 包含多个不支持的列
-  const mockData_multipleUnmatched = [
-    { id:"1", entry: "1", english: "one", comment: "UI", badColumn1: "val1", badColumn2: "val2", badColumn3: "val3" },
-    { id:"2", entry: "1", english: "one", comment: "UI", badColumn4: "val4", badColumn5: "val5" },
-  ];
+//   // 包含多个不支持的列
+//   const mockData_multipleUnmatched = [
+//     { id: "1", entry: "1", english: "one", comment: "UI", badColumn1: "val1", badColumn2: "val2", badColumn3: "val3" },
+//     { id: "2", entry: "1", english: "one", comment: "UI", badColumn4: "val4", badColumn5: "val5" },
+//   ];
 
-  const mockDataOptions = [
-    mockData_normal,
-    mockData_empty,
-    mockData_empty2,
-    mockData_unmatched,
-    mockData_partialMatch,
-    mockData_multipleUnmatched
-  ];
-  // const currentMockData = mockDataOptions[Math.floor(Math.random() * mockDataOptions.length)];
-  const currentMockData = mockData_normal;
+//   const mockDataOptions = [
+//     mockData_normal,
+//     mockData_empty,
+//     mockData_empty2,
+//     mockData_unmatched,
+//     mockData_partialMatch,
+//     mockData_multipleUnmatched
+//   ];
+//   // const currentMockData = mockDataOptions[Math.floor(Math.random() * mockDataOptions.length)];
+//   const currentMockData = mockData_normal;
 
-  return Promise.resolve({
-    code: 200,
-    message: "成功",
-    type: "SUCCESS",
-    data: {
-      list: currentMockData,
-    },
+//   return Promise.resolve({
+//     code: 200,
+//     message: "成功",
+//     type: "SUCCESS",
+//     data: {
+//       list: currentMockData,
+//     },
+//   });
+// }
+
+// // 去重导出（mock 接口）
+// export function exportDeduplicatedData(params) {
+//   const { data, params: deduplicateParams } = params;
+//   const deduplicateColumns = deduplicateParams.deduplicateColumns;
+
+//   if (!data || data.length === 0) {
+//     return Promise.resolve({
+//       code: 400,
+//       message: "数据为空，无法去重",
+//       type: "ERROR",
+//       code: "EMPTY_DATA"
+//     });
+//   }
+
+//   if (!deduplicateColumns || deduplicateColumns.length === 0) {
+//     return Promise.resolve({
+//       code: 400,
+//       message: "至少选择一列用于去重",
+//       type: "ERROR",
+//       code: "INVALID_PARAMS"
+//     });
+//   }
+
+//   const deduplicateMap = new Map();
+
+//   data.forEach((item, index) => {
+//     const key = deduplicateColumns.map(col => item[col]).join('|');
+
+//     if (!deduplicateMap.has(key)) {
+//       deduplicateMap.set(key, {
+//         parent: { ...item, id: index + 1 },
+//         children: []
+//       });
+//     } else {
+//       deduplicateMap.get(key).children.push({ ...item, id: index + 1 });
+//     }
+//   });
+
+//   const dataSource = [];
+//   const idMap = {};
+
+//   deduplicateMap.forEach((group) => {
+//     const parent = { ...group.parent };
+
+//     if (group.children.length > 0) {
+//       parent.children = group.children;
+//       idMap[parent.id] = group.children.map(child => child.id);
+//     }
+
+//     dataSource.push(parent);
+//   });
+
+//   return Promise.resolve({
+//     code: 200,
+//     message: "去重成功",
+//     type: "SUCCESS",
+//     data: {
+//       dataSource,
+//       idMap
+//     }
+//   });
+// }
+
+// 读取 Excel 文件
+export function entryReadExcel(data) {
+    return request({
+    url: "/entryInfo/parseFileToEntryInfos",
+    method: "POST",
+    data,
   });
 }
 
-// 去重导出（mock 接口）
-export function exportDeduplicatedData(params) {
-  const { data, params: deduplicateParams } = params;
-  const deduplicateColumns = deduplicateParams.deduplicateColumns;
-
-  if (!data || data.length === 0) {
-    return Promise.resolve({
-      code: 400,
-      message: "数据为空，无法去重",
-      type: "ERROR",
-      code: "EMPTY_DATA"
-    });
-  }
-
-  if (!deduplicateColumns || deduplicateColumns.length === 0) {
-    return Promise.resolve({
-      code: 400,
-      message: "至少选择一列用于去重",
-      type: "ERROR",
-      code: "INVALID_PARAMS"
-    });
-  }
-
-  const deduplicateMap = new Map();
-
-  data.forEach((item, index) => {
-    const key = deduplicateColumns.map(col => item[col]).join('|');
-
-    if (!deduplicateMap.has(key)) {
-      deduplicateMap.set(key, {
-        parent: { ...item, id: index + 1 },
-        children: []
-      });
-    } else {
-      deduplicateMap.get(key).children.push({ ...item, id: index + 1 });
-    }
-  });
-
-  const dataSource = [];
-  const idMap = {};
-
-  deduplicateMap.forEach((group) => {
-    const parent = { ...group.parent };
-
-    if (group.children.length > 0) {
-      parent.children = group.children;
-      idMap[parent.id] = group.children.map(child => child.id);
-    }
-
-    dataSource.push(parent);
-  });
-
-  return Promise.resolve({
-    code: 200,
-    message: "去重成功",
-    type: "SUCCESS",
-    data: {
-      dataSource,
-      idMap
-    }
+// 去重导出
+export function exportDeduplicatedData(params, data) {
+  return request({
+    url: "/entryInfo/makeGroupForEntryInfos",
+    method: "POST",
+    params,
+    data: data
   });
 }
 
