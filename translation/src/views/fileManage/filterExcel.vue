@@ -171,9 +171,8 @@
 
     <SelectCols v-model:visible="filterModal.visible" :loading="loading" :columns="columns"
       @confirm="handleDeduplicateConfirm" />
-    <BackFillModal :visible="importBackfillVisible" @handleClose="handleImportBackfillClose"
-      @handleOK="handleImportBackfillOK" @afterClose="handleImportBackfillAfterClose"
-      @backFillSuccess="handleBackFillSuccess" />
+    <BackFillModal :visible="importBackfillVisible" :translateTypes="translateTypes"
+      @handleClose="handleImportBackfillClose" @handleOK="handleImportBackfillOK" />
   </div>
 </template>
 <script>
@@ -396,7 +395,7 @@ export default {
       checkedSearchCondition: cachedSearchCondition
         ? JSON.parse(cachedSearchCondition).displayColumn.split(",")
         : entryParams.checkedSearchCondition, // (可选)显示的查询条件框
-      translateTypes: [],// 翻译语言下拉框
+      translateTypes: [],// 获取翻译语种
       // entrySourceOptions: [], // 词条来源下拉框
       // diFileNameOptions: [], // 辞典名称下拉框
       // entrySourceOptions_copy: [], // 词条来源下拉框
@@ -469,11 +468,9 @@ export default {
       this.admin = this.$store.state.admin;
       //保证初次传的值给到
       this.box = this.boxHeight;
-      this.setTableHeight();
       this.getLanguage();
 
       this.init();
-      getColPref("colPref-fileManage", 150, this);
       window.onresize = function () {
         _this.setTableHeight();
       };
@@ -484,8 +481,18 @@ export default {
   },
   methods: {
     init() {
+      this.reset();
+      this.dataSource = [];
       this.setTableHeight();
       // this.getSearchClick();
+      getColPref("colPref-fileManage", 150, this);
+    },
+    // 获取翻译语种
+    getLanguage() {
+      let data = {};
+      getLanguage(data).then((res) => {
+        this.translateTypes = res.data.list;
+      });
     },
     // 修改展示列并保存用户偏好
     changeColumn(checkedValue) {
@@ -512,20 +519,12 @@ export default {
       this.importBackfillVisible = true;
       setModalAriaHidden(this, document);
     },
-    handleBackFillSuccess(dataSource) {
-      this.loading = true;
-      this.resetSelected();
-      this.dataSource = dataSource;
-      this.pagination.total = dataSource.length;
-      this.loading = false;
-      message.success(`回填成功，共 ${this.pagination.total} 条数据`);
-    },
     handleImportBackfillClose() {
       this.importBackfillVisible = false;
     },
     handleImportBackfillOK() {
-    },
-    handleImportBackfillAfterClose() {
+      this.init();
+      this.handleImportBackfillClose();
     },
     // ===================导入csv文件================================
     // 上传前校验文件格式
@@ -858,13 +857,6 @@ export default {
     //   };
     //   this.diFileNameOptions = this.diFileNameOptions_copy.concat([option]);
     // },
-    // 获取翻译语种
-    getLanguage() {
-      // let data = {};
-      // getLanguage(data).then((res) => {
-      //   this.translateTypes = res.data.list;
-      // });
-    },
     // 展示条件切换并保存用户偏好(查询条件处的，已经封起来了)
     changeSearchCondition(checkedValue) {
       // changeColumn(
