@@ -48,11 +48,11 @@
                 <a-col>
                   <a-button type="primary" size="small" @click="exportExcel">导出Excel</a-button>
                 </a-col>
-                <a-col>
+                <!-- <a-col>
                   <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
                     <a-button type="primary" size="small">翻译导入</a-button>
                   </a-upload>
-                </a-col>
+                </a-col> -->
                 <a-col>
                   <a-dropdown>
                     <template #overlay>
