@@ -353,7 +353,7 @@ export function exportDeduplicatedData(params) {
   const dataSource = [];
   const idMap = {};
 
-  deduplicateMap.forEach((group, key) => {
+  deduplicateMap.forEach((group) => {
     const parent = { ...group.parent };
 
     if (group.children.length > 0) {
@@ -447,4 +447,64 @@ export function getSourceByLang(data) {
   //   method: "POST",
   //   data
   // });
+}
+
+export function entryBackFill() {
+  const mockDataSource = [
+    {
+      id: "1",
+      entry: "登录",
+      english: "Login",
+      russian: "Войти",
+      spanish: "Iniciar sesión",
+      french: "Connexion",
+      comment: "UI",
+    },
+    {
+      id: "2",
+      entry: "注册",
+      english: "Register",
+      russian: "Регистрация",
+      spanish: "Registro",
+      french: "S'inscrire",
+      comment: "UI",
+    },
+    {
+      id: "3",
+      entry: "退出",
+      english: "Logout",
+      russian: "Выйти",
+      spanish: "Cerrar sesión",
+      french: "Déconnexion",
+      comment: "UI",
+    },
+    {
+      id: "4",
+      entry: "设置",
+      english: "Settings",
+      russian: "Настройки",
+      spanish: "Configuración",
+      french: "Paramètres",
+      comment: "UI",
+    },
+    {
+      id: "5",
+      entry: "保存",
+      english: "Save",
+      russian: "Сохранить",
+      spanish: "Guardar",
+      french: "Enregistrer",
+      comment: "UI",
+    },
+  ];
+
+  return Promise.resolve({
+    code: 200,
+    message: "回填成功",
+    type: "SUCCESS",
+    data: {
+      list: mockDataSource,
+      total: mockDataSource.length
+    }
+  });
 }

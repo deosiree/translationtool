@@ -123,7 +123,7 @@ export default {
   methods: {
     initAvailableColumns() {
       this.availableColumns = this.columns
-        .filter((col) => col.dataIndex && !["operation", "selection"].includes(col.dataIndex))
+        .filter((col) => col.dataIndex && !["operation", "selection", "index"].includes(col.dataIndex))
         .map((col) => ({
           key: col.dataIndex,
           title: col.title,
@@ -139,10 +139,7 @@ export default {
         message.error("请至少选择一列用于去重");
         return;
       }
-      this.$emit("confirm", {
-        columns: this.selectedColumns,
-        rules: this.selectedRules
-      });
+      this.$emit("confirm", this.selectedColumns);
     },
     afterClose() {
       this.selectedColumns = [];

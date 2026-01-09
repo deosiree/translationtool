@@ -132,9 +132,9 @@
       <template v-slot:data>
         <div style="width: 100%; position: absolute">
           <a-config-provider :locale="locale">
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
-              :row-key="(record) => record.id" :scroll="tableHeight" :pagination="pagination" :loading="loading"
-              :rowClassName="getRowClassName" ref="fileManageTable" @resizeColumn="handleResizeColumn" :row-selection="batchSelectFlag
+            <a-table bordered class="ant-table-striped" ref="fileManageTable" :columns="columns"
+              :data-source="dataSource" :row-key="(record) => record.id" :scroll="tableHeight" :pagination="pagination"
+              :loading="loading" :rowClassName="getRowClassName" @resizeColumn="handleResizeColumn" :row-selection="batchSelectFlag
                 ? {
                   selectedRowKeys: selectedRowKeys,
                   onChange: onSelectChange,
@@ -171,41 +171,9 @@
 
     <SelectCols v-model:visible="filterModal.visible" :loading="loading" :columns="columns"
       @confirm="handleDeduplicateConfirm" />
-    <a-modal v-model:open="importBackfillVisible" title="导入回填" @ok="handleImportBackfill"
-      @cancel="handleImportBackfillCancel">
-      <a-form :model="importBackfillForm" layout="vertical">
-        <a-form-item label="带上翻译后的去重.csv" name="deduplicatedCsv" :rules="[
-          { required: true, message: '请选择带上翻译后的去重.csv文件' },
-        ]">
-          <a-upload :before-upload="(file) => beforeUploadBackfill(file, 'deduplicatedCsv')
-            " :show-upload-list="false" accept=".csv">
-            <a-button>
-              <template #icon>
-                <UploadOutlined />
-              </template>
-              选择文件
-            </a-button>
-          </a-upload>
-          <div v-if="importBackfillForm.deduplicatedCsv" style="margin-top: 8px">
-            已选择: {{ importBackfillForm.deduplicatedCsv.name }}
-          </div>
-        </a-form-item>
-        <a-form-item label="回填.json" name="backfillJson" :rules="[{ required: true, message: '请选择回填.json文件' }]">
-          <a-upload :before-upload="(file) => beforeUploadBackfill(file, 'backfillJson')
-            " :show-upload-list="false" accept=".json">
-            <a-button>
-              <template #icon>
-                <UploadOutlined />
-              </template>
-              选择文件
-            </a-button>
-          </a-upload>
-          <div v-if="importBackfillForm.backfillJson" style="margin-top: 8px">
-            已选择: {{ importBackfillForm.backfillJson.name }}
-          </div>
-        </a-form-item>
-      </a-form>
-    </a-modal>
+    <BackFillModal :visible="importBackfillVisible" @handleClose="handleImportBackfillClose"
+      @handleOK="handleImportBackfillOK" @afterClose="handleImportBackfillAfterClose"
+      @backFillSuccess="handleBackFillSuccess" />
   </div>
 </template>
 <script>
@@ -220,13 +188,14 @@ import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import SelectCols from "./selectCols.vue";
+import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import {
-  UploadOutlined,
   ExportOutlined,
   ImportOutlined,
   SettingOutlined,
   CaretDownOutlined,
   CaretRightOutlined,
+  UploadOutlined,
 } from "@ant-design/icons-vue";
 import { getLanguage } from "@/http/api/translate";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
@@ -252,17 +221,18 @@ export default {
     SearchBox,
     DataBox,
     ResetButton,
-    UploadOutlined,
     ExportOutlined,
     ImportOutlined,
     SettingOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
+    UploadOutlined,
     EntryStateSelect,
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
     SelectCols,
+    BackFillModal,
   },
   props: {
     boxHeight: 0,
@@ -319,7 +289,7 @@ export default {
           dataIndex: "index",
           align: "center",
           width: 50,
-          customRender: (text, record, index, column) => {
+          customRender: (text, _record, _index, _column) => {
             return (
               text.index +
               1 +
@@ -385,14 +355,14 @@ export default {
           resizable: true,
           index: 21,
         },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          align: "center",
-          width: 40,
-          fixed: "right",
-          index: 100,
-        },
+        // {
+        //   title: "操作",
+        //   dataIndex: "operation",
+        //   align: "center",
+        //   width: 40,
+        //   fixed: "right",
+        //   index: 100,
+        // },
       ],
       overlayStyle: entryParams.overlayStyle, // 展示列样式
       checkboxList: entryParams.checkboxList, // 展示列可选的值
@@ -417,10 +387,6 @@ export default {
       deleteButtonsVisible: false,
       deleteLoading: false,
       importBackfillVisible: false,
-      importBackfillForm: {
-        deduplicatedCsv: null,
-        backfillJson: null,
-      },
       filterModal: {
         visible: false,
         duplicateCols: [],
@@ -436,10 +402,12 @@ export default {
       // entrySourceOptions_copy: [], // 词条来源下拉框
       // diFileNameOptions_copy: [], // 辞典名称下拉框
       showForbbiden: false, // 显示/隐藏禁用
+      excludedCols: ['id', 'index', 'entry', 'operation'],// 无须比较的列, 'index', 'entry', 'operation'
+      requiredCols: ['index', 'entry', 'operation'],// 必须添加的列
     };
   },
   watch: {
-    boxHeight(newval, oldval) {
+    boxHeight(newval) {
       this.box = newval;
       this.setTableHeight();
     },
@@ -517,8 +485,9 @@ export default {
   methods: {
     init() {
       this.setTableHeight();
-      this.getSearchClick();
+      // this.getSearchClick();
     },
+    // 修改展示列并保存用户偏好
     changeColumn(checkedValue) {
       changeColumn(
         "colPref-fileManage",
@@ -528,54 +497,38 @@ export default {
         false,
         this.checkboxList
       );
+      // console.log("修改展示列,并保存用户偏好", this.columns, this.checkedColumn, this.checkboxList);
     },
-    getSearchClick() {
-      this.batchSelectFlag = false;
+    resetSelected() {
+      this.clearAllEntry();
       this.pagination.current = 1;
-      this.getSearch();
+      this.batchSelectFlag = false;
+      this.batchDeleteFlag = true;
+      this.deleteButtonsVisible = false;
     },
-    getSearch() {
-      this.dataSource = [];
-      this.selectedRows = [];
-      this.selectedRowKeys = [];
-      const currentSearch = { ...this.search };
-      this.lastSearch = currentSearch;
-      console.log("查询条件:", currentSearch);
+    // ===================导入回填模态框================================
+    // 打开导入回填模态框
+    showImportBackfillModal() {
+      this.importBackfillVisible = true;
+      setModalAriaHidden(this, document);
+    },
+    handleBackFillSuccess(dataSource) {
       this.loading = true;
-      setTimeout(() => {
-        this.dataSource = [];
-        this.pagination.total = 0;
-        this.loading = false;
-      }, 500);
+      this.resetSelected();
+      this.dataSource = dataSource;
+      this.pagination.total = dataSource.length;
+      this.loading = false;
+      message.success(`回填成功，共 ${this.pagination.total} 条数据`);
     },
-    onResetData() {
-      this.search = {
-        entry: "",
-        abbr: "",
-        partOfSpeech: "",
-        translateType: null,
-        classfy1: [],
-        classfy2: [],
-        entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
-        entryState: this.currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
-        tag: "",
-        entrySource: null,
-        language: null,
-        translateState: null,
-        translate: "",
-        filter_translate: "",
-        comment: "",
-        startTime_: null, // 时间戳格式
-        endTime_: null, // 时间戳格式
-        startTime: null,
-        endTime: null,
-        diFileName: null,
-        update: null,
-        i18nURL: null,
-        hasRedundantRls: false,
-      };
-      this.getSearchClick();
+    handleImportBackfillClose() {
+      this.importBackfillVisible = false;
     },
+    handleImportBackfillOK() {
+    },
+    handleImportBackfillAfterClose() {
+    },
+    // ===================导入csv文件================================
+    // 上传前校验文件格式
     beforeUpload(file) {
       const isCsv = file.name.endsWith(".csv");
       if (!isCsv) {
@@ -616,6 +569,7 @@ export default {
       reader.readAsText(file);
       return false;// 在文件开始上传之前阻止文件上传操作
     },
+    // 文件判断是否为UTF-8
     detectEncoding(content) {
       const bom = content.charCodeAt(0);
       if (bom === 0xfeff) {
@@ -628,68 +582,41 @@ export default {
         return "GBK";
       }
     },
+    // 导入后：显示文件中的列名
     adjustColumnsBasedOnCSV(dataList) {
       if (!dataList || dataList.length === 0) {
         this.showImportError("CSV 文件为空或没有有效数据，请检查文件后重新上传");
         return false;
       }
 
-      const csvColumns = Object.keys(dataList[0]);
-
-      const unmatchedColumns = this.getUnmatchedColumns(csvColumns);
-      if (unmatchedColumns.length > 0) {
-        const errorMsg = `CSV 文件包含不支持的列：${unmatchedColumns.join(', ')}，请修改 CSV 文件后重新上传`;
-        this.showImportError(errorMsg);
+      const csvCols = Object.keys(dataList[0]);
+      // console.log("csvCols", csvCols);
+      // 过滤掉无须比较的列
+      this.checkedColumn = csvCols.filter(col => !this.excludedCols.includes(col));
+      // 检查是否有不支持的列
+      const supportedCols = entryParams.checkboxList.map(item => item.value);// 获得列全集
+      const unmatchedCols = this.checkedColumn.filter(col => !supportedCols.includes(col));
+      if (unmatchedCols.length > 0) {
+        notification.error({
+          message: '导入失败',
+          description: `CSV 文件包含不支持的列：${unmatchedCols.join(', ')}，请修改 CSV 文件后重新上传`,
+          duration: 0,
+          key: 'csv-import-error',
+        });
         return false;
       }
 
-      const sortedIntersection = this.calculateSortedIntersection(csvColumns);
-
-      changeColumn(
-        "colPref-fileManage",
-        200,
-        sortedIntersection,
-        this,
-        false,
-        commonParam.checkboxList
-      );
-
-      this.checkedColumn = sortedIntersection;
+      // 修改展示列,添加需要显示的列，保存用户偏好
+      this.checkboxList = entryParams.checkboxList.filter(item => this.checkedColumn.includes(item.value));
+      this.changeColumn(this.checkedColumn);
+      // console.log("checkedColumn", this.checkedColumn, this.checkboxList);
+      // 删除展示列中有但是文件中没有的列
+      const showCols = [...this.requiredCols, ...this.checkedColumn];
+      this.columns = this.columns.filter(col => showCols.includes(col.dataIndex));
 
       return true;
     },
-    getUnmatchedColumns(csvColumns) {
-      const excludedColumns = ['id', 'index', 'entry', 'operation'];
-      const filteredColumns = csvColumns.filter(col => !excludedColumns.includes(col));
-
-      const supportedColumns = entryParams.checkboxList.map(item => item.value);
-      return filteredColumns.filter(col => !supportedColumns.includes(col));
-    },
-    calculateSortedIntersection(csvColumns) {
-      const excludedColumns = ['id', 'index', 'entry', 'operation'];
-      const filteredColumns = csvColumns.filter(col => !excludedColumns.includes(col));
-
-      const supportedColumns = entryParams.checkboxList.map(item => item.value);
-      const intersection = filteredColumns.filter(col => supportedColumns.includes(col));
-
-      const sortedIntersection = entryParams.checkboxList
-        .filter(item => intersection.includes(item.value))
-        .sort((a, b) => a.index - b.index)
-        .map(item => item.value);
-
-      const requiredColumns = ['index', 'entry', 'operation'];
-      const finalColumns = [...new Set([...sortedIntersection, ...requiredColumns])];
-
-      return finalColumns;
-    },
-    showImportError(description) {
-      notification.error({
-        message: '导入失败',
-        description: description,
-        duration: 0,
-        key: 'csv-import-error',
-      });
-    },
+    // ==============去重按钮点击事件======================
     handleDeduplicateExport() {
       if (this.dataSource.length === 0) {
         message.error("没有数据，无法去重");
@@ -745,96 +672,39 @@ export default {
       link.click();
       URL.revokeObjectURL(url);
     },
-    showImportBackfillModal() {
-      this.importBackfillVisible = true;
-      this.importBackfillForm = {
-        deduplicatedCsv: null,
-        backfillJson: null,
-      };
+    // ===================批量删除按钮点击事件======================
+    // 批量删除按钮点击事件
+    handleBatchDelete() {
+      this.batchDeleteFlag = false;
+      this.deleteButtonsVisible = true;
+      this.batchSelectFlag = true;
     },
-    beforeUploadBackfill(file, type) {
-      if (type === "deduplicatedCsv") {
-        const isCsv = file.name.endsWith(".csv");
-        if (!isCsv) {
-          message.error("只能上传 CSV 文件!");
-          return false;
-        }
-        this.importBackfillForm.deduplicatedCsv = file;
-      } else if (type === "backfillJson") {
-        const isJson = file.name.endsWith(".json");
-        if (!isJson) {
-          message.error("只能上传 JSON 文件!");
-          return false;
-        }
-        this.importBackfillForm.backfillJson = file;
-      }
-      return false;
-    },
-    handleImportBackfill() {
-      if (
-        !this.importBackfillForm.deduplicatedCsv ||
-        !this.importBackfillForm.backfillJson
-      ) {
-        message.error("请选择两个文件");
+    // 删除词条按钮点击事件
+    handleDeleteEntries() {
+      this.deleteLoading = true;
+      if (this.selectedRowKeys.length === 0) {
+        message.warning("请先选择要删除的词条");
+        this.deleteLoading = false;
         return;
       }
-      console.log("导入回填 - 后端实现");
-      console.log(
-        "带上翻译后的去重.csv:",
-        this.importBackfillForm.deduplicatedCsv.name
-      );
-      console.log("回填.json:", this.importBackfillForm.backfillJson.name);
-      message.success("回填成功");
-      this.importBackfillVisible = false;
+      this.dataSource = this.dataSource.filter(item => !this.selectedRowKeys.includes(item.id));
+      this.clearAllEntry();
+      this.deleteLoading = false;
+      this.batchSelectFlag = false;
+      this.deleteButtonsVisible = false;
+      this.batchDeleteFlag = true;
+      message.success("删除成功");
     },
-    handleImportBackfillCancel() {
-      this.importBackfillVisible = false;
+    // 取消删除按钮点击事件
+    handleCancelDelete() {
+      this.deleteLoading = true;
+      this.clearAllEntry();
+      this.deleteLoading = false;
+      this.batchSelectFlag = false;
+      this.deleteButtonsVisible = false;
+      this.batchDeleteFlag = true;
     },
-    // 获取翻译语种
-    getLanguage() {
-      let data = {};
-      getLanguage(data).then((res) => {
-        this.translateTypes = res.data.list;
-      });
-    },
-    // // 处理词条来源的搜索输入
-    // handleEntrySourceSearch(value) {
-    //   const option = {
-    //     label: value,
-    //     value: value,
-    //   };
-    //   this.entrySourceOptions = this.entrySourceOptions_copy.concat([option]);
-    // },
-    // // 处理辞典名称的搜索输入
-    // handleDiFileNameSearch(value) {
-    //   const option = {
-    //     label: value,
-    //     value: value,
-    //   };
-    //   this.diFileNameOptions = this.diFileNameOptions_copy.concat([option]);
-    // },
-    // 展示条件切换并保存用户偏好
-    changeSearchCondition(checkedValue) {
-      changeColumn(
-        "searchCondition-fileManage",
-        200,
-        checkedValue,
-        this,
-        false,
-        entryParams.searchConditionList
-      );
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-fileManage",
-        200,
-        checkedValue,
-        this,
-        false,
-        commonParam.checkboxList
-      );
-    },
+    // ===================表格======================
     // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
     onSelectChange(selectedRowKeys, selectedRows) {
       // this.selectedRowKeys = selectedRowKeys;
@@ -888,37 +758,6 @@ export default {
       this.selectedRows = [];
       this.selectEntry.clear();
     },
-    // 批量删除按钮点击事件
-    handleBatchDelete() {
-      this.batchDeleteFlag = false;
-      this.deleteButtonsVisible = true;
-      this.batchSelectFlag = true;
-    },
-    // 删除词条按钮点击事件
-    handleDeleteEntries() {
-      this.deleteLoading = true;
-      if (this.selectedRowKeys.length === 0) {
-        message.warning("请先选择要删除的词条");
-        this.deleteLoading = false;
-        return;
-      }
-      this.dataSource = this.dataSource.filter(item => !this.selectedRowKeys.includes(item.id));
-      this.clearAllEntry();
-      this.deleteLoading = false;
-      this.batchSelectFlag = false;
-      this.deleteButtonsVisible = false;
-      this.batchDeleteFlag = true;
-      message.success("删除成功");
-    },
-    // 取消删除按钮点击事件
-    handleCancelDelete() {
-      this.deleteLoading = true;
-      this.clearAllEntry();
-      this.deleteLoading = false;
-      this.batchSelectFlag = false;
-      this.deleteButtonsVisible = false;
-      this.batchDeleteFlag = true;
-    },
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
@@ -949,6 +788,93 @@ export default {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
       this.currentPageBranch = 0;
+    },
+    // ===查询box已隐藏，方法均未使用=======================================
+    getSearchClick() {
+      this.resetSelected();
+      this.getSearch();
+    },
+    getSearch() {
+      this.dataSource = [];
+      this.clearAllEntry();
+      const currentSearch = { ...this.search };
+      this.lastSearch = currentSearch;
+      console.log("查询条件:", currentSearch);
+      this.loading = true;
+      setTimeout(() => {
+        this.dataSource = [];
+        this.pagination.total = 0;
+        this.loading = false;
+      }, 500);
+    },
+    onResetData() {
+      this.search = {
+        entry: "",
+        abbr: "",
+        partOfSpeech: "",
+        translateType: null,
+        classfy1: [],
+        classfy2: [],
+        entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
+        entryState: this.currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
+        tag: "",
+        entrySource: null,
+        language: null,
+        translateState: null,
+        translate: "",
+        filter_translate: "",
+        comment: "",
+        startTime_: null, // 时间戳格式
+        endTime_: null, // 时间戳格式
+        startTime: null,
+        endTime: null,
+        diFileName: null,
+        update: null,
+        i18nURL: null,
+        hasRedundantRls: false,
+      };
+      this.getSearchClick();
+    },
+    reset() {
+      this.resetSearch();
+      this.resetSelected();
+    },
+    resetSearch() {
+      // console.log("查询相关的封起来了，暂时没有要用的地方");
+    },
+    // // 处理词条来源的搜索输入
+    // handleEntrySourceSearch(value) {
+    //   const option = {
+    //     label: value,
+    //     value: value,
+    //   };
+    //   this.entrySourceOptions = this.entrySourceOptions_copy.concat([option]);
+    // },
+    // // 处理辞典名称的搜索输入
+    // handleDiFileNameSearch(value) {
+    //   const option = {
+    //     label: value,
+    //     value: value,
+    //   };
+    //   this.diFileNameOptions = this.diFileNameOptions_copy.concat([option]);
+    // },
+    // 获取翻译语种
+    getLanguage() {
+      // let data = {};
+      // getLanguage(data).then((res) => {
+      //   this.translateTypes = res.data.list;
+      // });
+    },
+    // 展示条件切换并保存用户偏好(查询条件处的，已经封起来了)
+    changeSearchCondition(checkedValue) {
+      // changeColumn(
+      //   "searchCondition-fileManage",
+      //   200,
+      //   checkedValue,
+      //   this,
+      //   false,
+      //   entryParams.searchConditionList
+      // );
     },
   },
 };
