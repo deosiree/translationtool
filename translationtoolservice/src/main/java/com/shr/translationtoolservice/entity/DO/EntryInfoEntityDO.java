@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.springframework.beans.BeanUtils;
 
@@ -21,20 +23,14 @@ public class EntryInfoEntityDO {
 
     public List<TranslateEntity> translateEntities;
 
-    public static Map<String,String> setTranslateMap = new HashMap<>();
+    protected static Map<String,String> setTranslateMap = ConstantInterface.entryInfoEntitySetterTranslateMap();
 
-    public static Map<String,String> setTranslateCharLengthMap = new HashMap<>();
+    protected static Map<String,String> setTranslateCharLengthMap = new HashMap<>();
 
-    public static Map<String,String> setTranslateStateMap = new HashMap<>();
+    protected static Map<String,String> setTranslateStateMap = new HashMap<>();
 
-    /* 设定翻译 */
-    static{
-        setTranslateMap.put(ConstantInterface.CHINESE, "setChinese");
-        setTranslateMap.put(ConstantInterface.ENGLISH, "setEnglish");
-        setTranslateMap.put(ConstantInterface.FRENCH, "setFrench");
-        setTranslateMap.put(ConstantInterface.SPANISH, "setSpanish");
-        setTranslateMap.put(ConstantInterface.RUSSIAN, "setRussian");
-    }
+    protected static Function<EntryInfoEntityDO,EntryInfoEntity> entryInfoEntitiyConverter = (entryInfoEntitiyDO) -> {return convertFromEntity(entryInfoEntitiyDO);};
+
     /* 设定翻译字符长度 */
     static{
         setTranslateCharLengthMap.put(ConstantInterface.CHINESE, "setZhCharLength");
@@ -61,6 +57,9 @@ public class EntryInfoEntityDO {
         return translateEntities;
     }
 
+    public static Function<EntryInfoEntityDO,EntryInfoEntity> newConverterForEntryInfoEntitiy(){
+        return entryInfoEntitiyConverter;
+    }
 
 
     public static EntryInfoEntity convertFromEntity(EntryInfoEntityDO entityDO){
@@ -100,4 +99,10 @@ public class EntryInfoEntityDO {
         return entryInfoEntity;
 
     }
+
+
+    public static <T> Stream<T> convertFromEntities(Collection<EntryInfoEntityDO> entityDOs,Function<EntryInfoEntityDO,T> function){
+        return entityDOs.stream().map(function);
+    }
+
 }

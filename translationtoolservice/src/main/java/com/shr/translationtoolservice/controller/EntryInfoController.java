@@ -1,9 +1,8 @@
 package com.shr.translationtoolservice.controller;
 
-import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
@@ -11,19 +10,16 @@ import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
-import com.shr.translationtoolservice.util.ExcelUtils;
+import com.shr.translationtoolservice.util.JSONUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
 
-import io.github.resilience4j.core.lang.Nullable;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.poi.ss.formula.functions.T;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -32,35 +28,19 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName EntryInfoController
@@ -315,24 +295,29 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/entryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
-    @Transactional
     //new
-    public HttpResponse<ResponseListModel<EntryInfoEntity>> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,
+    public HttpResponse<UpdateTranslationByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
                                                           HttpServletRequest httpServletRequest
     ) {
         try {
-            Collection<EntryInfoEntity> collection = entryInfoService.importTransExcle(multipartFile, httpServletRequest,transType);
-            ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<>();
-            responseListModel.setList(collection);
-            responseListModel.setTotalNum(collection.size());
-            HttpResponse<ResponseListModel<EntryInfoEntity>> responseResult = new HttpResponse<>();
-            responseResult.setCode(HttpResponse.Type.OK.getVal());
-            responseResult.setData(responseListModel);
-            if(collection != null && !collection.isEmpty()){
+            if(relationFile != null && !relationFile.getOriginalFilename().endsWith(".json")){
+                throw new RuntimeException(String.format("关联关系文件必须是json格式, 请检查文件后缀以及文件内容"));
+            }
+            Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
+            Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
+            UpdateTranslationByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(multipartFile, httpServletRequest.getHeader("token"),transType,toJson);
+            
+            HttpResponse<UpdateTranslationByFileVO> responseResult = new HttpResponse<>();
+            responseResult.setData(updateTranslationByFileVO);
+            if(updateTranslationByFileVO.hasError()){
+                updateTranslationByFileVO.setGlobalMessage(String.format("更新词条翻译时部分词条更新后存在警告和异常信息, 总共有%s个信息", updateTranslationByFileVO.exceptionNumber()));
                 responseResult.setType(HttpResponse.Type.ERROR);
-                responseResult.setMessage("词条翻译更新成功,部分翻译字符数超过设定的最大外文字符数,请检查核对后自行修改");
+                responseResult.setCode(HttpResponse.Type.ERROR.getVal());
+                responseResult.setMessage("词条翻译更新存在异常, 请查看相关日志信息");
             }else{
+                updateTranslationByFileVO.setGlobalMessage("更新词条翻译成功");
                 responseResult.setType(HttpResponse.Type.OK);
+                responseResult.setCode(HttpResponse.Type.OK.getVal());
                 responseResult.setMessage("词条翻译更新成功");
             }
 
@@ -343,22 +328,22 @@ public class EntryInfoController extends BaseController {
         }
     }
 
-    @PostMapping("/workImportExcleTrans")
-    @ApiOperation("词条excle导入(工作台更新翻译)")
-    @CrossOrigin
-    @Transactional
-    //new
-    public HttpResponse<ResponseListModel<EntryInfoEntity>> workImportExcleTrans(@RequestParam("file") MultipartFile multipartFile,@RequestParam("taskID") String taskID
-    ) {
+    // @PostMapping("/workImportExcleTrans")
+    // @ApiOperation("词条excle导入(工作台更新翻译)")
+    // @CrossOrigin
+    // @Transactional
+    // //new
+    // public HttpResponse<ResponseListModel<EntryInfoEntity>> workImportExcleTrans(@RequestParam("file") MultipartFile multipartFile,@RequestParam("taskID") String taskID
+    // ) {
 
-        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
-        //entryInfoEntities 中存在的词条 更新翻译
-        List<EntryInfoEntity> entryInfoEntities;
-        entryInfoEntities = entryInfoService.workImportExcleTrans(multipartFile,taskID);
-        responseListModel.setList(entryInfoEntities);
-        responseListModel.setTotalNum(entryInfoEntities.size());
-        return checkResult(responseListModel);
-    }
+    //     ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+    //     //entryInfoEntities 中存在的词条 更新翻译
+    //     List<EntryInfoEntity> entryInfoEntities;
+    //     entryInfoEntities = entryInfoService.workImportExcleTrans(multipartFile,taskID);
+    //     responseListModel.setList(entryInfoEntities);
+    //     responseListModel.setTotalNum(entryInfoEntities.size());
+    //     return checkResult(responseListModel);
+    // }
 
     @PostMapping("/addEntryAudit")
     @ApiOperation("词条送审")
@@ -1130,6 +1115,72 @@ public class EntryInfoController extends BaseController {
             return ok(entrySourcesByClassify);       
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/makeGroupForEntryInfosOnFiles")
+    @ApiOperation("将文件中的词条解析, 并对词条进行分组")
+    @CrossOrigin
+    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfosOnFiles(@RequestParam("file") MultipartFile multipartFile,@RequestParam(value =  "attributes",required = false) Collection<String> replicatedTargetAttributes){
+
+        /**
+         * 
+         * 流程: 选择词条 --> 过滤 ----> 去重 ----> 导出词条文件和词条关联关系的文件
+         * 去重
+         * 1. 用户选择要去重的词条（或者选择一个文件（文件是可以通过工作台解析的词条文件））
+         * 2. 接口返回词条分组后的信息, 是一个列表Collection<Collection<EntryInfoEntitiy>>，每一组词条信息是这个列表中的元素，一组词条信息对应一组词条
+         *      - 界面展示: 
+         *          - 界面只展示每组词条中的一个词条, 然后在每个词条附件有一个折叠图标，单击折叠图标，可以展示与该词条同组的其他的词条
+         *          - 提供一个按钮，叫获取词条关联关系文件, 就是去重后的词条的ID和被去重的其他词条ID之间的关联关系（这个在接口返回词条分组后的信息一起返回）
+         *              - 用户单击后，可以设定保存的文件名，设定好后在浏览器的下载中自动生成该文件
+         * 
+         */
+        try {
+            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnExportedFile(multipartFile,replicatedTargetAttributes);
+            return ok(entryInfoGroupVO);    
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/makeGroupForEntryInfos")
+    @ApiOperation("对词条进行分组")
+    @CrossOrigin
+    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfos(@RequestBody Collection<EntryInfoEntity> entryInfoEntities,@RequestParam(value =  "attributes",required = false) Collection<String> replicatedTargetAttributes){
+
+        /**
+         * 
+         * 流程: 选择词条 --> 过滤 ----> 去重 ----> 导出词条文件和词条关联关系的文件
+         * 去重
+         * 1. 用户选择要去重的词条（或者选择一个文件（文件是可以通过工作台解析的词条文件））
+         * 2. 接口返回词条分组后的信息, 是一个列表Collection<Collection<EntryInfoEntitiy>>，每一组词条信息是这个列表中的元素，一组词条信息对应一组词条
+         *      - 界面展示: 
+         *          - 界面只展示每组词条中的一个词条, 然后在每个词条附件有一个折叠图标，单击折叠图标，可以展示与该词条同组的其他的词条
+         *          - 提供一个按钮，叫获取词条关联关系文件, 就是去重后的词条的ID和被去重的其他词条ID之间的关联关系（这个在接口返回词条分组后的信息一起返回）
+         *              - 用户单击后，可以设定保存的文件名，设定好后在浏览器的下载中自动生成该文件
+         * 
+         */
+        try {
+            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfos(entryInfoEntities,replicatedTargetAttributes);
+            return ok(entryInfoGroupVO);    
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error(e.getMessage(), e);
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/parseFileToEntryInfos")
+    @ApiOperation("解析文件的内容变成词条对象")
+    @CrossOrigin
+    public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,HttpServletRequest request){
+        try {
+            return ok(entryInfoService.parseFileToEntryInfos(multipartFile, request));
+        } catch (Exception e) {
+            log.error("解析文件成词条出现异常", e);
             return error(null, e.getMessage());
         }
     }

@@ -4,17 +4,13 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.*;
-import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +64,13 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,String departmentType,HttpServletRequest request);
 
-    // List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID,HttpServletRequest httpServletRequest);
+    /**
+     * 将文件的内容解析成词条, 没有后处理操作
+     * @param multipartFile
+     * @param request
+     * @return
+     */
+    Collection<EntryInfoEntity> parseFileToEntryInfos(MultipartFile multipartFile,HttpServletRequest request);
 
     List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
 
@@ -113,7 +115,9 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
 
-    Collection<EntryInfoEntity> importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
+    UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token,String transType);
+
+    UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token, String transType,Map<String, Set<String>> idRelationMap);
 
     List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 
@@ -143,11 +147,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize);
     
     EntryInfoVO getEntryByClassfyOnPage(String classfyID, Integer pageIndex, Integer pageSize);
-    
-    // List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
-
-    // List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntityQO entryInfoEntityTemplate,String translateType);
-
 
     List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
     /* 禁用词条 */
@@ -156,6 +155,17 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     Set<String> getEntrySourcesByClassify(String classifyID,String writeType);
 
     Set<String> getWriteFileNamesByClassify(String classifyID,String writeType);
+
+    /**
+     * 为导出的文件进行去重, 返回去重后的所有的词条, 以及去重后保留的词条的ID与未保留的其他词条的ID的关联关系
+     * 将文件中的词条进行分组，key代表这一组词条中的其中一个词条, value是这组词条中的其他词条
+     * @param multipartFile
+     * @return
+     */
+    EntryInfoGroupVO makeGroupForEntryInfosOnExportedFile(MultipartFile multipartFile,Collection<String> replicatedTargetAttributes);
+
+    EntryInfoGroupVO makeGroupForEntryInfos(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> replicatedTargetAttributes);
+
 
 
 }

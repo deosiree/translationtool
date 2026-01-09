@@ -7,7 +7,10 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO;
 import com.shr.translationtoolservice.util.entry.BatchInsertEntryHandler;
+import com.shr.translationtoolservice.util.processor.groupby.GroupbyStrategy;
+import com.shr.translationtoolservice.util.processor.groupby.GroupbyStrategy.ReplicatedVOType;
 
+import edu.washington.cs.knowitall.logic.Expression.Paren.R;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.platform.commons.util.StringUtils;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -335,6 +340,32 @@ public class EntryUtils {
 
     public List<EntryInfoEntity> buildRepeTempEntry(List<EntryInfoEntity> entryInfoEntities, String translateType) {
         return entryProcessUtils.buildRepeEntry(entryInfoEntities, translateType);
+    }
+
+
+    /**
+     * 将词条分组，返回的列表中的每一个元素代表一组词条
+     * @param <E>
+     * @param <R>
+     * @param entryInfoEntities
+     * @param groupbyStrategy   分组策略
+     * @return
+     */
+    public <E extends EntryInfoEntity,T extends ReplicatedVOType> Collection<List<E>> makeGroupForEntryInfoEntities(Collection<E> entryInfoEntities,GroupbyStrategy<E,T> groupbyStrategy){
+        
+        Map<T, List<E>> entryInfosGroupMap = entryInfoEntities.stream().collect(Collectors.groupingBy(groupbyStrategy.newInstance()));
+
+
+        Collection<List<E>> entryInfoGroups = new ArrayList<>(entryInfosGroupMap.size());
+        for(Map.Entry<T,List<E>> entity : entryInfosGroupMap.entrySet()){
+            List<E> replicatedEntryInfos = entity.getValue();
+            if(replicatedEntryInfos.isEmpty()){
+                log.warn("警告, 存在一组词条，但该组词条没有词条");
+                continue;
+            }
+            entryInfoGroups.add(replicatedEntryInfos);
+        }
+        return entryInfoGroups;
     }
 
 

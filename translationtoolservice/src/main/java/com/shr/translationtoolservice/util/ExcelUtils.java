@@ -1572,4 +1572,19 @@ public class ExcelUtils {
         }
     }
 
+
+    public <T> Collection<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,Map<String,String> kwargs){
+        try {
+            if(originalFilename.endsWith("csv")){
+                return this.readCSVToEntity(clazz, in, originalFilename, null);
+            }else if(originalFilename.endsWith(".xlsx")){
+                return this.readExcelToEntity(null, clazz, in, originalFilename);
+            }else{
+                throw new RuntimeException("不支持当前的文件格式, 文件不是csv和xlsx类型");
+            }                 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+   
+    }
 }

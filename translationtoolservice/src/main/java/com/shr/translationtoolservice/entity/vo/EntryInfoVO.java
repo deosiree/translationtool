@@ -11,6 +11,14 @@ public class EntryInfoVO {
 
     int totalSize;
 
+    public EntryInfoVO() {
+    }
+
+    public EntryInfoVO(List<EntryInfoEntity> entryInfoEntities) {
+        this.entryInfoEntities = entryInfoEntities;
+        this.totalSize = entryInfoEntities.size();
+    }
+
     public List<EntryInfoEntity> getEntryInfoEntities() {
         return entryInfoEntities;
     }

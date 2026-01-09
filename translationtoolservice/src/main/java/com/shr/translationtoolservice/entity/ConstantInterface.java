@@ -462,6 +462,26 @@ public class ConstantInterface {
         getterMap.put(ConstantInterface.SPANISH, "getSpanish");
         return getterMap;
     }
+
+    public static Map<String,String> entryInfoEntitySetterTranslateMap(){
+        Map<String,String> languageSetTranslateMethodMap = new HashMap<>(); 
+        languageSetTranslateMethodMap.put(ConstantInterface.CHINESE, "setChinese");
+        languageSetTranslateMethodMap.put(ConstantInterface.ENGLISH, "setEnglish");
+        languageSetTranslateMethodMap.put(ConstantInterface.RUSSIAN, "setRussian");
+        languageSetTranslateMethodMap.put(ConstantInterface.FRENCH, "setFrench");
+        languageSetTranslateMethodMap.put(ConstantInterface.SPANISH, "setSpanish");
+        return languageSetTranslateMethodMap;
+    }
+
+    public static Map<String,String> entryInfoEntitySetTranslateIDMethodMap(){
+        Map<String,String> setTranslateIDMethodMap = new HashMap<>(); 
+        setTranslateIDMethodMap.put(ConstantInterface.CHINESE, "setZhTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.ENGLISH, "setEnTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.RUSSIAN, "setRuTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.SPANISH, "setSpaTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.FRENCH, "setFraTransId");
+        return setTranslateIDMethodMap;
+    }
     
 
 }

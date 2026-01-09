@@ -94,11 +94,11 @@ public class BatchInsertEntryHandler {
     @Autowired
     private EntryUtils entryUtils;
 
-    Map<String,String> languageSetTranslateMethodMap = new HashMap<>();
+    Map<String,String> languageSetTranslateMethodMap =  ConstantInterface.entryInfoEntitySetterTranslateMap();
 
-    Map<String,String> languageGetTranslateMethodMap = new HashMap<>();
+    Map<String,String> languageGetTranslateMethodMap = ConstantInterface.entryInfoEntityGetterTranslateMap();
 
-    Map<String,String> setTranslateIDMethodMap = new HashMap<>();
+    Map<String,String> setTranslateIDMethodMap = ConstantInterface.entryInfoEntitySetTranslateIDMethodMap();
 
     int batchSize = 10;
 
@@ -118,31 +118,6 @@ public class BatchInsertEntryHandler {
     }
 
 
-    {
-        this.languageSetTranslateMethodMap.put(ConstantInterface.CHINESE, "setChinese");
-        this.languageSetTranslateMethodMap.put(ConstantInterface.ENGLISH, "setEnglish");
-        this.languageSetTranslateMethodMap.put(ConstantInterface.RUSSIAN, "setRussian");
-        this.languageSetTranslateMethodMap.put(ConstantInterface.FRENCH, "setFrench");
-        this.languageSetTranslateMethodMap.put(ConstantInterface.SPANISH, "setSpanish");
-    }
-
-    {
-        this.languageGetTranslateMethodMap.put(ConstantInterface.CHINESE, "getChinese");
-        this.languageGetTranslateMethodMap.put(ConstantInterface.ENGLISH, "getEnglish");
-        this.languageGetTranslateMethodMap.put(ConstantInterface.RUSSIAN, "getRussian");
-        this.languageGetTranslateMethodMap.put(ConstantInterface.FRENCH, "getFrench");
-        this.languageGetTranslateMethodMap.put(ConstantInterface.SPANISH, "getSpanish");
-    }
-
-    {
-        this.setTranslateIDMethodMap.put(ConstantInterface.CHINESE, "setZhTransId");
-        this.setTranslateIDMethodMap.put(ConstantInterface.ENGLISH, "setEnTransId");
-        this.setTranslateIDMethodMap.put(ConstantInterface.RUSSIAN, "setRuTransId");
-        this.setTranslateIDMethodMap.put(ConstantInterface.SPANISH, "setSpaTransId");
-        this.setTranslateIDMethodMap.put(ConstantInterface.FRENCH, "setFraTransId");
-    
-
-    }
 
 
     private Consumer<EntryInfoEntity> consumerForImportEntitiesFromLangDirDirectly = new Consumer<EntryInfoEntity>() {

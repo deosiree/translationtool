@@ -1,31 +1,27 @@
 package com.shr.translationtoolservice.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.entity.vo.WorkBenchVO.EntryImportFileTypeVO;
-import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
+import com.shr.translationtoolservice.entity.vo.exception.ExceptionEntryInfoVO;
+import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
 import com.shr.translationtoolservice.exception.i18nServerConnectException;
-import com.shr.translationtoolservice.exception.i18nServerParseException;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
 import com.shr.translationtoolservice.util.analyze.impl.BatchMaxLengthTranslateAnalyzer;
-
+import com.shr.translationtoolservice.util.processor.groupby.DefaultEntryGroupbyStrategy;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.ibatis.annotations.Param;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,36 +29,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.management.RuntimeErrorException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.URLEncoder;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
-import java.util.stream.Collector;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collector;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -2127,22 +2113,201 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
-
+    @Transactional
     @Override
-    public Collection<EntryInfoEntity> importTransExcle(MultipartFile multipartFile, HttpServletRequest request, String transType) {
+    public UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token, String transType) {
 
-        Collection<EntryInfoEntity> entryEntitys = new ArrayList<>();
-        String token = request.getHeader("token");
-        String department = JWTTokenUtils.getDepartment(token);
 
-        //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
-        List<EntryInfoEntity> problematicEntryInfoEntities = new ArrayList<>();
+        
         try {
-            if(multipartFile.getOriginalFilename().endsWith(".csv")){
-                entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
-            }else{
-                entryEntitys = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            UpdateTranslationByFileVO updateTranslationByFileVO = new UpdateTranslationByFileVO();
+            String department = JWTTokenUtils.getDepartment(token);
+            Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
+            Map<String,Object> kwargs = new HashMap<>();
+            kwargs.put("department", department);
+            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryEntitys, transType, kwargs);
+            updateExceptionVOs.forEach((vo) -> {updateTranslationByFileVO.addException(vo);});
+            return updateTranslationByFileVO;
+        } catch (Exception e) {
+            log.error("导入文件更新库里词条的翻译时出现异常",e);
+            throw new RuntimeException(e);
+
+        }
+        
+    }
+
+    @Transactional
+    @Override
+    public UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token, String transType,Map<String, Set<String>> idRelationMap){
+        
+        UpdateTranslationByFileVO updateTranslationByFileVO = new UpdateTranslationByFileVO();
+
+        try {
+            
+            String department = JWTTokenUtils.getDepartment(token);
+            Map<String,Object> kwargs = new HashMap<>();
+            kwargs.put("department", department);
+            /* 解析文件, 生成词条 */
+            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
+            /* 先把文件中对应的词条的翻译更新掉 */
+            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosParsedOnFile, transType, kwargs);
+            
+            updateExceptionVOs.forEach((vo) -> {updateTranslationByFileVO.addException(vo);updateTranslationByFileVO.addFailedEntryInfos(vo.getEntryInfoVO().getEntryInfoEntities());});
+
+            if(idRelationMap == null || idRelationMap.isEmpty()){
+                return updateTranslationByFileVO;
             }
+            /* 获取其他没送翻, 但是也应当根据送翻后的词条更新翻译的词条 */
+            Map<String, String> entryInfoEntitySetterTranslateMap = ConstantInterface.entryInfoEntitySetterTranslateMap();
+            Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap();
+            String getMethodName = entryInfoEntityGetterTranslateMap.get(transType);    // 获取getTranslate方法
+            String setMethodName = entryInfoEntitySetterTranslateMap.get(transType);    // 获取setTranslate方法
+            Method getMethod = null;
+            Method setMethod = null;
+            /* 获取getTranslate方法 */
+            try {
+                if(StringUtils.isBlank(getMethodName)){
+                    throw new NullPointerException("transType对应的getMethodName为null");
+                }                
+                getMethod = EntryInfoEntity.class.getMethod(getMethodName);
+            } catch (Exception e) {
+                throw new RuntimeException(String.format("没有找到语言类型: %s对应的getMethod方法, 详细信息为: %s", transType,e.getMessage()));
+            }
+
+            /* 获取setTranslate方法 */
+            try {
+                if(StringUtils.isBlank(setMethodName)){
+                    throw new NullPointerException("transType对应的setMethodName为null");
+                }
+                setMethod = EntryInfoEntity.class.getMethod(setMethodName, String.class);
+            } catch (Exception e) {
+                throw new RuntimeException(String.format("没有找到类型: %s对应的setMethod方法, 详细信息为: %s", setMethodName,e.getMessage()));
+            }
+            if(setMethod == null || getMethod == null){
+                throw new RuntimeException(String.format("没有找到获取翻译和设定翻译的方法, 无法更新翻译, transType: %s",transType));
+            }
+
+            Map<String, List<EntryInfoEntity>> entryInfosOnFileIDRelation = entryInfosParsedOnFile.stream().collect(Collectors.groupingBy((t) -> t.getId())); // key是id, value是entryInfo
+            /*
+                测试场景
+                √：代表更新正常；×：代表更新失败
+                注意事项:
+                    - 只能更新库里未删除的词条
+                    - id关联表只能确定每个节点对应的用来更新的翻译是什么，不能代表是否能正常将翻译存库（例如词条被删除）
+                    
+                1.没有id关联表, 则仅更新翻译文件中对应ID的词条的翻译
+                2. id关联表中的父ID在送翻的文件上，并且子节点都不在送翻的翻译文件上
+                    - 结果： 子节点使用父节点的翻译结果，父节点使用自己的翻译结果（√）
+                3. id关联表中的父ID在送翻的文件上，子节点也在送翻的翻译文件上
+                    - 结果：以ID关联表的翻译获取逻辑实现
+                4. id关联表中的父id，不在送翻的翻译文件上
+                    - 情况1: 子节点都不在送翻的翻译文件上
+                        - 结果： 报异常信息（×）
+                    - 情况2: 子节点在送翻的翻译文件上, 但只有一个子节点
+                        - 结果：父节点和所有子节点都采用该子节点对应的翻译（√）
+                    - 情况3: 子节点在送翻的翻译文件上, 但有多个子节点
+                        - 情况1：假设所有子节点的翻译结果相同
+                            - 结果：父节点和所有子节点都采用子节点对应的翻译（√）
+                        - 情况2：不同子节点的翻译不同
+                            - 结果： 报异常信息（×）
+                5. 下午测试多组ID关联信息的场景
+            */
+            for(Map.Entry<String,Set<String>> idRelation : idRelationMap.entrySet()){
+                String parentID = idRelation.getKey();
+                Set<String> childIDs = idRelation.getValue();
+                if(parentID == null || childIDs == null || childIDs.isEmpty()){
+                    continue;
+                }
+                List<EntryInfoEntity> entryInfosOnFile = entryInfosOnFileIDRelation.get(parentID);
+                String translate = "";
+                List<String> searchIDs = new ArrayList<>();
+                if(entryInfosOnFile == null || entryInfosOnFile.isEmpty()){
+                    /* 文件里面丢失了要翻译的词条 */
+                    // 父节点丢失, 查看是否子节点是否被当作送翻的词条
+                    searchIDs.add(parentID);
+
+                    List<EntryInfoEntity> childEntryInfos = new ArrayList<>();
+                    for(String childID : childIDs){
+                        List<EntryInfoEntity> childEntryInfosOnFile = entryInfosOnFileIDRelation.get(childID);
+                        if(childEntryInfosOnFile == null || childEntryInfosOnFile.isEmpty()){
+                            searchIDs.add(childID);
+                            continue;   // 送翻的词条没有这个子节点
+                        }
+                        childEntryInfos.addAll(childEntryInfosOnFile);
+                        // childTranslates.add(String.valueOf(getMethod.invoke(childEntryInfosOnFile.get(0))));
+                    }
+                    List<String> childTranslates = new ArrayList<>();
+                    for(EntryInfoEntity childEntryInfo : childEntryInfos){
+                        childTranslates.add(String.valueOf(getMethod.invoke(childEntryInfo)));
+                    }
+                    /* 确定更新的翻译的翻译内容是什么 */
+                    int countChildIDOnParsedFile = childTranslates.size();
+                    if(countChildIDOnParsedFile == 0){
+                        /* 父节点没有, 子节点一个也没有, 这种情况是丢了 */
+                        updateTranslationByFileVO.addException(new ExceptionVO(
+                            String.format("父节点id: \"%s\"的词条送翻记录丢失, 并且也没有子节点的送翻信息, 与之关联的子节点的id信息为: %s", parentID,childIDs.toString()),
+                            "检查该id的词条是否送翻, 检查送翻的文件是否正确, 是否送翻文件内容被修改过, 检查id关联文件是否对应, 检查该文件是否被篡改"
+                        ));
+                        continue;
+                        // throw new RuntimeException(String.format("父节点id: \"%s\"的词条送翻记录丢失, 请检查送翻后的翻译文件是否有该词条", parentID));
+                    }else if(countChildIDOnParsedFile > 1){
+                        /* 父节点没有，但是有多个子节点,需要判断这多个子节点的翻译是不是一样的,不一样说明存在异常， 一样就正常翻译就行, 利用子节点的翻译结果更新翻译(父节点的也要更新) */
+                        Set<String> childTranslateSet = childTranslates.stream().collect(Collectors.toSet());
+                        if(childTranslateSet.size() > 1){
+                            updateTranslationByFileVO.addException(new ExceptionVO(
+                                String.format("父节点id: \"%s\",子节点id信息为 \"%s\", 送翻前去重属于同一组的多个词条在该翻译文件中, 并且这多个词条的翻译有所不同, 相关的翻译结果分别为: \"%s\"",parentID, childIDs.toString(),childTranslateSet.toString()), 
+                                "送翻后的文件中该组词条只保留一个，删除掉该组其他的词条, 然后重新更新翻译"));
+                            updateTranslationByFileVO.addFailedEntryInfos(childEntryInfos);
+                            // throw new RuntimeException(String.format("送翻前去重属于同一组的多个词条在该翻译文件中, 并且这多个词条的翻译有所不同, 相关的翻译结果分别为: \"%s\"", childTranslateSet.toString()));
+                            continue;
+                        }
+                        translate = childTranslates.get(0);
+                    }else{
+                        /* 父节点没有, 但只有一个子节点,(父节点的也要更新)  */
+                        translate = childTranslates.get(0);
+                    }
+                }else{
+                    /* 父节点存在， 并且之前已经进行了更新翻译操作(无论成功与否(例如父节点已经在库里被删除了)), 之后为所有子节点添加对应的翻译 */
+                    translate = String.valueOf(getMethod.invoke((entryInfosOnFile.get(0))));
+                    searchIDs.addAll(childIDs);
+                }
+                if(StringUtils.isBlank(translate)){
+                    /* 送翻后的翻译还是空的，需要进行检查 */
+                    // throw new RuntimeException(String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件", parentID));
+                    updateTranslationByFileVO.addException(new ExceptionVO(
+                        String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件", parentID)
+                        , String.format("检查父节点id为: %s, 子节点id为: %s的翻译结果是否为空的,如果是, 请在翻译文件上填写翻译结果", parentID,childIDs.toString())));
+                    if(entryInfosOnFile != null && !entryInfosOnFile.isEmpty()){
+                        updateTranslationByFileVO.addFailedEntryInfos(entryInfosOnFile);
+                    }
+                }
+
+                List<EntryInfoEntityDO> otherEntryInfoDOs = entryInfoMapper.selectEntryInfosByIDs(searchIDs.stream().collect(Collectors.toList()));
+                List<EntryInfoEntity> otherEntryInfos = EntryInfoEntityDO.convertFromEntities(otherEntryInfoDOs, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList());
+                for(EntryInfoEntity otherEntryInfo : otherEntryInfos){
+                    setMethod.invoke(otherEntryInfo, translate);
+                }
+                /* 将更新的结果存库 */
+                Collection<ExceptionEntryInfoVO> updateOtherEntryInfoExceptions = this.updateTranslations(otherEntryInfos, transType, kwargs);
+                updateOtherEntryInfoExceptions.forEach((vo) -> {updateTranslationByFileVO.addException(vo);updateTranslationByFileVO.addFailedEntryInfos(vo.getEntryInfoVO().getEntryInfoEntities());});
+            }
+
+            return updateTranslationByFileVO;
+        } catch (Exception e) {
+            log.error("导入文件更新库里词条的翻译时出现异常",e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected Collection<ExceptionEntryInfoVO> updateTranslations(Collection<EntryInfoEntity> entryEntitys,String transType,Map<String,Object> kwargs){
+
+        try {
+            String department = String.valueOf(kwargs.get("department"));
+            if(department.isEmpty()){
+                throw new RuntimeException("部门参数为空, 联系研发");
+            }
+            List<ExceptionEntryInfoVO> problematicEntryInfoEntities = new ArrayList<>();
+
             if (CollectionUtils.isEmpty(entryEntitys)) {
                 return problematicEntryInfoEntities;
             }
@@ -2334,17 +2499,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             boolean isNotOK = batchMaxLengthTranslateAnalyzer.analyze(entryEntitys);
             if(isNotOK){
                 /* 存在翻译超过了对应的字符限制 */
-                problematicEntryInfoEntities.addAll(batchMaxLengthTranslateAnalyzer.getProblematicEntryInfoEntities());
+                ExceptionEntryInfoVO exceptionEntryInfoVO = new ExceptionEntryInfoVO();
+                EntryInfoVO entryInfoVO = new EntryInfoVO(batchMaxLengthTranslateAnalyzer.getProblematicEntryInfoEntities().stream().collect(Collectors.toList()));
+                exceptionEntryInfoVO.setEntryInfoVO(entryInfoVO);
+                exceptionEntryInfoVO.setMessage("翻译超过了对应词条的字符长度限制");
+                exceptionEntryInfoVO.setResolvedMethodMessage("请修改对应词条的翻译的字符长度,然后再次更新翻译");
+                problematicEntryInfoEntities.add(exceptionEntryInfoVO);
             }
+            return problematicEntryInfoEntities;
         } catch (Exception e) {
-            log.error(null,e);
-            throw new RuntimeException(e);
-
+            throw new RuntimeException(String.format("利用excel翻译后的文件更新词条翻译时出现异常, 异常信息为: %s", e.getMessage()));
         }
-
-
-        return problematicEntryInfoEntities;
-
     }
 
     @Override
@@ -2736,13 +2901,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(entryIDs.stream().collect(Collectors.toList()));
         EntryInfoVO entryInfoVO = new EntryInfoVO();
-        entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
-            @Override
-            public EntryInfoEntity apply(EntryInfoEntityDO t) {
-                // TODO Auto-generated method stub
-                return EntryInfoEntityDO.convertFromEntity(t);
-            }
-        }).collect(Collectors.toList()));
+        entryInfoVO.setEntryInfoEntities(EntryInfoEntityDO.convertFromEntities(entryInfoEntities, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList()));
 
         String totalNumber = entryInfoMapper.countEntryIDsByConditions(entryInfoEntityTemplate,null,productIDs, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
 
@@ -4627,19 +4786,80 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<String> idList = selectInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
         List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(idList);
         EntryInfoVO entryInfoVO = new EntryInfoVO();
-        entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
-            @Override
-            public EntryInfoEntity apply(EntryInfoEntityDO t) {
-                // TODO Auto-generated method stub
-                return EntryInfoEntityDO.convertFromEntity(t);
-            }
-        }).collect(Collectors.toList()));
+        entryInfoVO.setEntryInfoEntities(EntryInfoEntityDO.convertFromEntities(entryInfoEntities, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList()));
 
         String totalNumber = entryInfoMapper.countEntryIDsByConditions(null,null,productIDSet,null,null,null);
 
         entryInfoVO.setTotalSize(Integer.parseInt(totalNumber));    // 暂不考虑int溢出的问题
         return entryInfoVO;
     }
+
+    @Override
+    public EntryInfoGroupVO makeGroupForEntryInfosOnExportedFile(MultipartFile multipartFile,Collection<String> replicatedTargetAttributes) {
+
+        String originalFilename = multipartFile.getOriginalFilename();
+        Collection<EntryInfoEntity> entryInfoEntities = null;
+        try {
+            entryInfoEntities = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), originalFilename, null);
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("解析文件词条时出现异常, 无法进行词条去重分组, 异常信息为: %s", e.getMessage()),e);
+        }
+        
+        return this.makeGroupForEntryInfos(entryInfoEntities,replicatedTargetAttributes);
+    }
+
+    @Override
+    public EntryInfoGroupVO makeGroupForEntryInfos(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> replicatedTargetAttributes) {
+        DefaultEntryGroupbyStrategy entryGroupbyStrategy = new DefaultEntryGroupbyStrategy();
+        entryGroupbyStrategy.addTargetAttributes(replicatedTargetAttributes);
+        Collection<List<EntryInfoEntity>> entryInfoGroups = entryUtils.makeGroupForEntryInfoEntities(entryInfoEntities, entryGroupbyStrategy);
+        Map<EntryInfoEntity,List<EntryInfoEntity>> entryInfoGroupMap = new HashMap<>();
+        Collection<EntryInfoEntity> notReplicatedEntryInfos = new ArrayList<>(entryInfoGroups.size());
+        for(List<EntryInfoEntity> entities : entryInfoGroups){
+            if(entities.isEmpty()){
+                continue;
+            }
+            EntryInfoEntity parentEntryInfo = entities.get(0);
+            /* 父词条为去重后保留的词条, child为其他和它重复的词条 */
+            List<EntryInfoEntity> childList = new ArrayList<>();
+            for(int idx = 1 ; idx < entities.size() ; idx ++ ){
+                childList.add(entities.get(idx));
+            }
+            parentEntryInfo.setChildren(childList);
+            notReplicatedEntryInfos.add(parentEntryInfo);   
+            entryInfoGroupMap.put(parentEntryInfo, childList);
+        }
+
+        /** 建立parentID和childIDs之间的关联 */
+        Map<String,List<String>> idRelationMap = new HashMap<>();
+        entryInfoGroupMap.forEach(new BiConsumer<EntryInfoEntity,List<EntryInfoEntity>>() {
+
+            @Override
+            public void accept(EntryInfoEntity t, List<EntryInfoEntity> u) {
+                // TODO Auto-generated method stub
+                idRelationMap .put(t.getId(), u.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
+            }
+            
+        });
+
+        EntryInfoGroupVO entryInfoGroupVO = new EntryInfoGroupVO(notReplicatedEntryInfos, idRelationMap);
+        /* 需要做一个一致性校验, 去重后的excel文件和对应的ID关联表是否一致 */
+        return entryInfoGroupVO;
+    }
+
+    @Override
+    public Collection<EntryInfoEntity> parseFileToEntryInfos(MultipartFile multipartFile, HttpServletRequest request) {
+        // TODO Auto-generated method stub
+        try {
+            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),null);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e) ;
+        }
+    }
+
+
+
 }
 
 
