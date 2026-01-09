@@ -938,20 +938,6 @@ public class EntryInfoController extends BaseController {
 
 
 
-    @PostMapping("/checkNewEntryByClassfy")
-    @ApiOperation("查询分类中新增的词条")
-    @CrossOrigin
-    @Transactional
-    public   HttpResponse<ResponseListModel> checkNewEntryByClassfy(@RequestParam String i18nUrl ,@RequestParam String classfyID,HttpServletRequest request) {
-        ResponseListModel<TaskEntryVO> responseListModel = new ResponseListModel<>();
-        List<TaskEntryVO> taskEntryVOS = entryInfoService.checkNewEntryByClassfy(i18nUrl,classfyID,request);
-        if (null == taskEntryVOS){
-            return checkResult(null,"i18n 服务异常 ！");
-        }
-        responseListModel.setList(taskEntryVOS);
-        responseListModel.setTotalNum(taskEntryVOS.size());
-        return checkResult(responseListModel);
-    }
 
     @PostMapping("/getEntrysourceListByClassfy")
     @ApiOperation("查询分类中新增的词条来源")

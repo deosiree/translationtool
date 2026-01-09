@@ -151,18 +151,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
         }
 
-      /*  List<EntryVO> entryVOS = new ArrayList<>();
-        for (EntryInfoEntity entryInfoEntity : entryByVersion) {
-            EntryVO entryVO = new EntryVO();
-            List<TranslateEntity> translateEntityList = new ArrayList<>();
-            getTransEntity(entryInfoEntity.getEnTransId(), translateEntityList);
-            getTransEntity(entryInfoEntity.getRuTransId(), translateEntityList);
-            getTransEntity(entryInfoEntity.getSpaTransId(), translateEntityList);
-            getTransEntity(entryInfoEntity.getFraTransId(), translateEntityList);
-            entryVO.setTranslateEntity(translateEntityList);
-            entryVO.setEntryInfoEntity(entryInfoEntity);
-            entryVOS.add(entryVO);
-        }*/
         return res;
     }
 
@@ -234,12 +222,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    private void getTransEntity(String transId, List<TranslateEntity> translateEntityList) {
-        if (StringUtils.isNotBlank(transId)) {
-            TranslateEntity translateEntity = translateMapper.selectById(transId);
-            translateEntityList.add(translateEntity);
-        }
-    }
 
     @Override
     public int getEntryByVersionTotal(EntryInfoEntity entryInfoEntity1) {
@@ -550,126 +532,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
 
-    //新增一个翻译
-    //此方法只适用未审核的翻译
-    private void updateWorkTrans(EntryInfoEntity entryInfoEntity, String department) {
-        String id = "";
-        String transType = "";
-        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
-            transType = ConstantInterface.CHINESE;
-            List<TranslateEntity> translateEntitys = new ArrayList<>();
-            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getChinese(), department);
-            if (CollectionUtils.isEmpty(translateEntitys)) {
-                TranslateEntity translateEntity = new TranslateEntity();
-                id = commonUtils.getUUID();
-                translateEntity.setId(id);
-                translateEntity.setEntry(entryInfoEntity.getEntry());
-                translateEntity.setVersionID(entryInfoEntity.getVersionID());
-                translateEntity.setTranslate(entryInfoEntity.getChinese());
-                translateEntity.setPublicState(0);
-                translateEntity.setTranslateState("1");
-                translateEntity.setDeleteState(0);
-                translateEntity.setVisualRange(department);
-                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                translateEntity.setType(transType);
-                // translateMapper.insert(translateEntity);
-                translateMapper.insertTranslate(translateEntity);
-
-            }
-            entryInfoEntity.setZhTransId(id);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-            transType = ConstantInterface.ENGLISH;
-            List<TranslateEntity> translateEntitys = new ArrayList<>();
-            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getEnglish(), department);
-            if (CollectionUtils.isEmpty(translateEntitys)) {
-                TranslateEntity translateEntity = new TranslateEntity();
-                id = commonUtils.getUUID();
-                translateEntity.setId(id);
-                translateEntity.setEntry(entryInfoEntity.getEntry());
-                translateEntity.setVersionID(entryInfoEntity.getVersionID());
-                translateEntity.setTranslate(entryInfoEntity.getEnglish());
-                translateEntity.setPublicState(0);
-                translateEntity.setTranslateState("1");
-                translateEntity.setDeleteState(0);
-                translateEntity.setVisualRange(department);
-                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                translateEntity.setType(transType);
-                // translateMapper.insert(translateEntity);
-                translateMapper.insertTranslate(translateEntity);
-
-            }
-            entryInfoEntity.setEnTransId(id);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-            transType = ConstantInterface.FRENCH;
-            List<TranslateEntity> translateEntitys = new ArrayList<>();
-            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getFrench(), department);
-            if (CollectionUtils.isEmpty(translateEntitys)) {
-                TranslateEntity translateEntity = new TranslateEntity();
-                id = commonUtils.getUUID();
-                translateEntity.setId(id);
-                translateEntity.setEntry(entryInfoEntity.getEntry());
-                translateEntity.setTranslate(entryInfoEntity.getFrench());
-                translateEntity.setVersionID(entryInfoEntity.getVersionID());
-                translateEntity.setPublicState(0);
-                translateEntity.setTranslateState("1");
-                translateEntity.setDeleteState(0);
-                translateEntity.setType(transType);
-                translateEntity.setVisualRange(department);
-                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                // translateMapper.insert(translateEntity);
-                translateMapper.insertTranslate(translateEntity);
-            }
-            entryInfoEntity.setFraTransId(id);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-            transType = ConstantInterface.SPANISH;
-            List<TranslateEntity> translateEntitys = new ArrayList<>();
-            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getSpanish(), department);
-            if (CollectionUtils.isEmpty(translateEntitys)) {
-                TranslateEntity translateEntity = new TranslateEntity();
-                id = commonUtils.getUUID();
-                translateEntity.setId(id);
-                translateEntity.setEntry(entryInfoEntity.getEntry());
-                translateEntity.setTranslate(entryInfoEntity.getSpanish());
-                translateEntity.setVersionID(entryInfoEntity.getVersionID());
-                translateEntity.setPublicState(0);
-                translateEntity.setTranslateState("1");
-                translateEntity.setDeleteState(0);
-                translateEntity.setType(transType);
-                translateEntity.setVisualRange(department);
-                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                // translateMapper.insert(translateEntity);
-                translateMapper.insertTranslate(translateEntity);
-            }
-            entryInfoEntity.setSpaTransId(id);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-            transType = ConstantInterface.RUSSIAN;
-            List<TranslateEntity> translateEntitys = new ArrayList<>();
-            translateEntitys = translateMapper.getRepTrans(entryInfoEntity.getEntry(), transType, entryInfoEntity.getRussian(), department);
-            if (CollectionUtils.isEmpty(translateEntitys)) {
-                TranslateEntity translateEntity = new TranslateEntity();
-                id = commonUtils.getUUID();
-                translateEntity.setId(id);
-                translateEntity.setEntry(entryInfoEntity.getEntry());
-                translateEntity.setTranslate(entryInfoEntity.getRussian());
-                translateEntity.setVersionID(entryInfoEntity.getVersionID());
-                translateEntity.setPublicState(0);
-                translateEntity.setTranslateState("1");
-                translateEntity.setDeleteState(0);
-                translateEntity.setType(transType);
-                translateEntity.setVisualRange(department);
-                translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                // translateMapper.insert(translateEntity);
-                translateMapper.insertTranslate(translateEntity);
-            }
-            entryInfoEntity.setRuTransId(id);
-        }
-
-
-    }
 
     //更新操作记录表
     private EntryOperate insertUpdateOperate(EntryInfoEntity beforEntry, String notes) throws Exception {
@@ -1065,54 +927,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    // @Override
-    // public List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID, HttpServletRequest request) {
-    //     String fileName = multipartFile.getOriginalFilename();
-    //     List<ImportExcleEntry> importExcleEntries = new ArrayList<>();
-    //     List<EntryInfoEntity> entryEntitys = new ArrayList<>();
-    //     String token = request.getHeader("token");
-
-    //     String userName = JWTTokenUtils.getUserName(token);
-    //     //读取excle转换的实体
-    //     TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
-
-    //     //  ProductTableEntity productTableEntity = productTableMapper.getTableInfoByProductId(taskInfoEntity.getProductId());
-
-    //     try {
-    //         //装饰
-    //         // if (fileName.contains("_zz.xlsx")) {
-    //         //     //拼成词条实体
-    //         //     //2区分出已存在词条 和新词条 is_exist 区分
-    //         //     //3.新词条翻译预写在词条中
-    //         //     importExcleEntries = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-    //         //     zzEntryHandle(importExcleEntries, entryEntitys, userName, taskInfoEntity, fileName);
-    //         // } else 
-    //         if (fileName.contains("_common.xlsx")) {
-    //             entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-    //         } else if (fileName.contains("_jk.xlsx")) {
-    //             entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-    //         }else if (fileName.contains("_db.xlsx")) {
-    //             entryEntitys = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-    //         }else if(fileName.endsWith(".csv")){
-    //             entryEntitys = excelUtils.readCSVToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),null);
-    //             ptEntryHandle(entryEntitys, userName, taskInfoEntity, fileName);
-    //         } else{
-    //             throw new RuntimeException("暂时不支持文件: " + fileName + "的词条导入功能");
-    //         }
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //     }
-    //     String diFileName = request.getParameter("diFileName");
-    //     if(diFileName != null){
-    //         for(EntryInfoEntity entry : entryEntitys){
-    //             entry.setDiFileName(diFileName);
-    //         }
-    //     }
-    //     return entryProcessUtils.buildRepeEntry(entryEntitys, taskInfoEntity.getTranslateType());
-    // }
 
     private void ptEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
         Date date = new Date(System.currentTimeMillis());
@@ -1379,7 +1193,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<EntryInfoEntity> entryInfoEntityList = new ArrayList<>();
         List<ProductRelationEntity> productRelationEntities = new ArrayList<>();
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            // updateWorkTrans(entryInfoEntity, department);
+            
             if (entryInfoEntity.getEntry().length() > 512) {
                 log.info(" ==== insert error : entry lenth too long : {} ======", entryInfoEntity.getEntry().length());
                 continue;
@@ -1737,73 +1551,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    private <T extends EntryInfoEntity> void processEntryInfo(List<T> entryInfoEntities, List<String> columnNames,  String excelName, TaskInfoEntity taskEntity) {
-        int numberOfThreads = 32; // Number of threads to use
-        CountDownLatch latch = new CountDownLatch(numberOfThreads);
-
-        int chunkSize = entryInfoEntities.size() / numberOfThreads;
-        for (int i = 0; i < numberOfThreads; i++) {
-            int start = i * chunkSize;
-            int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
-            List<T> sublist = entryInfoEntities.subList(start, end);
-
-            new Thread(() -> {
-                try {
-                    // Process the sublist
-                    for (EntryInfoEntity entryInfoEntity1 : sublist) {
-                        // Your processing logic here
-                        if (Objects.isNull(taskEntity)) {
-                            QueryWrapper<ProductRelationEntity> queryWrapper = new QueryWrapper<>();
-                            queryWrapper.eq("entry_id", entryInfoEntity1.getId());
-                            List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(queryWrapper);
-                            String versionID = productRelationEntities.get(0).getVersionId();
-                            String productID = productRelationEntities.get(0).getProductId();
-                            if (StringUtils.isNotBlank(versionID)) {
-                                entryInfoEntity1.setVersionID(versionID);
-                                VersionEntity versionByID = versionMapper.getVersionByID(versionID);
-                                entryInfoEntity1.setVersionName(versionByID.getName());
-                            }
-                            if (StringUtils.isNotBlank(productID)) {
-                                entryInfoEntity1.setProductID(productID);
-                                ProductEntity productEntity = productMapper.selectById(productID);
-                                entryInfoEntity1.setProductName(productEntity.getName());
-                            }
-                        } else {
-                            String versionID = taskEntity.getVersionId();
-                            if (StringUtils.isNotBlank(versionID)) {
-                                entryInfoEntity1.setVersionID(versionID);
-                                VersionEntity versionByID = versionMapper.getVersionByID(versionID);
-                                entryInfoEntity1.setVersionName(versionByID.getName());
-                            }
-                            String productId = taskEntity.getProductId();
-                            if (StringUtils.isNotBlank(productId)) {
-                                entryInfoEntity1.setProductID(productId);
-                                ProductEntity productEntity = productMapper.selectById(productId);
-                                entryInfoEntity1.setProductName(productEntity.getName());
-                            }
-                        }
-                    }
-                } finally {
-                    latch.countDown();
-                }
-            }).start();
-        }
-
-        try {
-            latch.await(); // Wait for all threads to finish
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-
-
-
-
-
-
-
-
-    }
 
     @Override
     public List<EntryClassify> getClassfy(String parentId, String type) {
@@ -2696,130 +2443,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntities;
     }
 
-    // public EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize){
-    //     List<String> productidList = new ArrayList<>();
-    //     //一级分类查询
-    //     // if (StringUtils.isBlank(entryInfoEntityTemplate.getClassfy1())){
-    //     getProductClassfyList(classfyID, productidList);
-    //     // }
-
-    //   /*  if (CollectionUtils.isEmpty(productidList)){
-    //         log.error("当前分类不存在或者没有子分类");
-    //       return null;
-    //     }*/
-    //     /* 无法查到禁用的词条，在where里面写的 */
-    //     entryInfoEntityTemplate.setEntry(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntry()));
-    //     entryInfoEntityTemplate.setChinese(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getChinese()));
-    //     entryInfoEntityTemplate.setEnglish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEnglish()));
-    //     entryInfoEntityTemplate.setSpanish(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getSpanish()));
-    //     entryInfoEntityTemplate.setFrench(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getFrench()));
-    //     entryInfoEntityTemplate.setRussian(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getRussian()));
-
-    //     /*  */
-    //     Set<String> productIDs = new HashSet<>(); 
-    //     Set<String> taskIDs = new HashSet<>();
-    //     Set<String> versionIDs = new HashSet<>();
-
-    //     productIDs.addAll(productidList);
-    //     /*
-    //         1. 存在t_entry_info字段的条件，存在t_translate字段的条件
-    //         2. 存在t_entry_info字段的条件，不存在t_translate字段的条件
-    //         3. 不存在t_entry_info字段的条件，存在t_translate字段的条件
-    //         4. 不存在t_entry_info字段的条件，不存在t_translate字段的条件
-    //      */
-    //     List<ProductRelationEntity> selectEntryInfosByProductRelationEntity = productRelationMapper.selectInfosByProductRelationEntity(null,productIDs, taskIDs, versionIDs,-1,-1);
-    //     List<String> matchedIDsFromProductRelation = selectEntryInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
-    //     if(matchedIDsFromProductRelation.isEmpty()){
-    //         EntryInfoVO entryInfoVO = new EntryInfoVO();
-    //         entryInfoVO.setEntryInfoEntities(new ArrayList<>());
-    //         entryInfoVO.setTotalSize(0);
-    //         return entryInfoVO;
-    //     }
-    //     /* 处理时差 */
-    //     String targetStartTimeStr =  null;  // 数据库是按照GMT-6存的，所以转换时区
-    //     String targetEndTimeStr = null;
-
-    //     SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
-    //     parser.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 指定解析时的时区
-    //     // 2. 格式化：转为西六区（America/Chicago）时间
-    //     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    //     formatter.setTimeZone(TimeZone.getTimeZone("America/Chicago")); // 目标时区
-
-    //     if(StringUtils.isNotBlank(startTime)){
-    //         // Date startDate = null;
-    //         try {
-    //             Date localStartDate = parser.parse(startTime); // 解析为东八区的2025-12-01 00:00:00
-    //             targetStartTimeStr = formatter.format(localStartDate);
-    //         } catch (ParseException e) {
-    //             // TODO Auto-generated catch block
-    //             log.error("解析起始查询时间异常", e);
-    //         }
-            
-    //     }
-    //     if(StringUtils.isNotBlank(endTime)){
-    //         // Date endDate = null;
-    //         try {
-    //             Date localEndDate = parser.parse(endTime); // 解析为东八区的2025-12-01 00:00:00
-    //             targetEndTimeStr = formatter.format(localEndDate);
-    //         } catch (ParseException e) {
-    //             // TODO Auto-generated catch block
-    //             log.error("解析末尾查询时间异常", e);
-    //         }
-    //     }        
-    //     Set<String> matchedIDsFromEntryInfos = entryInfoMapper.selectEntryInfoIDsByConditions(matchedIDsFromProductRelation, entryInfoEntityTemplate, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
-    //     if(matchedIDsFromEntryInfos.isEmpty()){
-    //         EntryInfoVO entryInfoVO = new EntryInfoVO();
-    //         entryInfoVO.setEntryInfoEntities(new ArrayList<>());
-    //         entryInfoVO.setTotalSize(0);
-    //         return entryInfoVO;
-    //     }
-        
-    //     List<String> matchedIDsFromTranslateInfos = entryInfoMapper.selectEntryInfoIDsByTranslateInfos(entryInfoEntityTemplate, matchedIDsFromEntryInfos, clearMatchSet).stream().collect(Collectors.toList());
-    //     if(matchedIDsFromTranslateInfos.isEmpty()){
-    //         EntryInfoVO entryInfoVO = new EntryInfoVO();
-    //         entryInfoVO.setEntryInfoEntities(new ArrayList<>());
-    //         entryInfoVO.setTotalSize(0);
-    //         return entryInfoVO;
-    //     }
-    //     int offset;
-    //     int toIndex;
-    //     if(pageIndex <= 0 || pageSize <= 0){
-    //         /* 全查 */
-    //         offset = 0;
-    //         toIndex = matchedIDsFromTranslateInfos.size();
-    //     }else{
-    //         offset = 0;
-    //         if (commonUtils.checkPage(pageIndex, pageSize)) {
-    //             offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
-    //         }
-    //         if(offset < 0){
-    //             String errorMessage = "offset不能小于0,当前offset: " + offset;
-    //             throw new RuntimeException(errorMessage);
-    //         }  
-    //         toIndex = offset + pageSize;
-    //         if(toIndex < offset){
-    //             String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
-    //             log.error(errorMessage);
-    //             throw new RuntimeException(errorMessage);
-    //         }
-    //         toIndex = toIndex >= matchedIDsFromTranslateInfos.size() ? matchedIDsFromTranslateInfos.size() : toIndex;
-    //     }
-    //     List<EntryInfoEntityDO> entryInfoEntities = this.selectEntryInfosByIDs(matchedIDsFromTranslateInfos.subList(offset,toIndex),executor);
-    //     EntryInfoVO entryInfoVO = new EntryInfoVO();
-    //     entryInfoVO.setEntryInfoEntities(entryInfoEntities.stream().map(new Function<EntryInfoEntityDO,EntryInfoEntity>() {
-    //         @Override
-    //         public EntryInfoEntity apply(EntryInfoEntityDO t) {
-    //             // TODO Auto-generated method stub
-    //             return EntryInfoEntityDO.convertFromEntity(t);
-    //         }
-    //     }).collect(Collectors.toList()));
-    //     entryInfoVO.setTotalSize(matchedIDsFromTranslateInfos.size());
-    //     return entryInfoVO;
-
-        
-    // }
-
-    private void preprocessEntryInfoEntitiyTemplate(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet){
+    private void preprocessEntryInfoEntityTemplate(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet){
         if(clearMatchSet == null || !clearMatchSet.contains("词条")){
             entryInfoEntityTemplate.setEntry(StringUtil.addEscapeCharacter(entryInfoEntityTemplate.getEntry()));
         }
@@ -2858,7 +2482,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
           return null;
         }*/
         /* 无法查到禁用的词条，在where里面写的 */
-        this.preprocessEntryInfoEntitiyTemplate(entryInfoEntityTemplate, clearMatchSet);
+        this.preprocessEntryInfoEntityTemplate(entryInfoEntityTemplate, clearMatchSet);
         /*  */
         Set<String> productIDs = new HashSet<>(); 
         Set<String> taskIDs = new HashSet<>();
@@ -2909,119 +2533,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoVO;
     }
 
-    // protected List<EntryInfoEntityDO> selectEntryInfosByIDs(List<String> ids,ThreadPoolExecutor executor){
-    //     if(executor == null){
-    //         return entryInfoMapper.selectEntryInfosByIDs(ids);
-    //     }
-    //     int totalNum = ids.size();
-    //     int batchSize = 100;
-    //     int taskNumber = (totalNum + batchSize - 1) / batchSize;
-    //     log.info(String.format("任务分片共%s个", String.valueOf(taskNumber)));
-    //     CountDownLatch countDownLatch = new CountDownLatch((totalNum + batchSize - 1) / batchSize);
-    //     Set<String> errorMessages = new HashSet<>();
-    //     Queue<EntryInfoEntityDO> entryInfoEntities = new LinkedBlockingQueue<>(); // 并发
-    //     for(int idx = 0 ; idx < totalNum ; idx += batchSize){
-    //         int currentIdx = idx;
-    //         int endIdx = Math.min(currentIdx + batchSize, totalNum);
-    //         List<String> batchList = ids.subList(currentIdx, endIdx);
-    //         executor.execute(new Runnable() {
-    //             @Override
-    //             public void run() {
-    //                 // TODO Auto-generated method stub
-    //                 try {
-    //                     // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
-    //                     List<EntryInfoEntityDO> _entities = entryInfoMapper.selectEntryInfosByIDs(batchList);
-    //                     entryInfoEntities.addAll(_entities);
-    //                 } catch (Exception e) {
-    //                     // 日志记录：建议用日志框架（SLF4J），这里简化打印
-    //                     log.error("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage(),e);
-    //                     errorMessages.add("分片任务执行失败，当前分片索引：" + currentIdx + "-" + endIdx + "，异常信息：" + e.getMessage());
-    //                 } finally {
-    //                     // 计数器减1（无论任务成功失败，都要计数）
-    //                     countDownLatch.countDown();
-    //                 }
-    //             }
-    //         });
-            
-    //     }
-    //     try {
-    //         // 4. 同步等待所有任务执行完成（根据业务需求选择：如果需要等待结果，就加这行；如果纯异步，可去掉）
-    //         // 超时时间：避免无限等待（根据业务调整，比如1小时）
-    //         boolean allDone = countDownLatch.await(3, TimeUnit.HOURS);
-    //         if (!allDone) {
-
-    //             throw new RuntimeException("部分分片任务执行超时，可能存在未完成的任务");
-    //         } else {
-    //             log.info(String.format("所有分片任务执行完成,成功的共%s,失败的共%s", String.valueOf(taskNumber - errorMessages.size()),String.valueOf(errorMessages.size())));
-    //             if(!errorMessages.isEmpty()){
-    //                 throw new RuntimeException("插入数据时出现异常, 异常信息为: " + errorMessages.toString());
-    //             }
-    //             return entryInfoEntities.stream().collect(Collectors.toList());
-    //         }
-    //     } catch (InterruptedException e) {
-    //         log.warn("等待任务执行时被中断：" + e.getMessage());
-    //         Thread.currentThread().interrupt(); // 恢复中断状态
-    //         throw new RuntimeException(e);
-    //     }
-    // }
-
-    // public List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize){
-    //     int offset = 0; 
-    //     if (commonUtils.checkPage(pageIndex, pageSize)) {
-    //         offset = (pageIndex - 1) * pageSize; // 如果pageIndex = 1,则offset会是0
-    //     }
-    //     if(offset < 0){
-    //         String errorMessage = "offset不能小于0,当前offset: " + offset;
-    //         throw new RuntimeException(errorMessage);
-    //     }  
-    //     int toIndex = offset + pageSize;
-    //     if(toIndex < offset){
-    //         String errorMessage = "pageSize和pageIndex设定有误,当前offset: " + offset + ",toIndex: " + toIndex;
-    //         log.error(errorMessage);
-    //         throw new RuntimeException(errorMessage);
-    //     }
-
-    //     return entryInfoEntities.subList(offset, toIndex >= entryInfoEntities.size() ? entryInfoEntities.size() : toIndex);
-    // }
-
-    // public List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntityQO entryInfoEntityTemplate,String translateType){
-
-    //     if (CollectionUtils.isEmpty(entryInfoEntities)){
-    //         return entryInfoEntities;
-    //     }
-    //     List<EntryInfoEntity> res = new LinkedList<>(); 
-    //     // 根据翻译状态，确定是否返回改词条，如果template不提供翻译状态，则返回该词条
-    //     if (StringUtils.isNotBlank(translateType)) {
-
-    //         putEntryTransInfo(entryInfoEntities,entryInfoEntityTemplate,res,translateType);
-    //         return res;
-    //         // if (
-    //         //     "0".equals(entryInfoEntityTemplate.getEnglishTranslateState()) || 
-    //         //     "0".equals(entryInfoEntityTemplate.getRussianTranslateState()) || 
-    //         //     "0".equals(entryInfoEntityTemplate.getSpanishTranslateState()) || 
-    //         //     "0".equals(entryInfoEntityTemplate.getFrenchTranslateState()))
-    //         // {
-    //         //     return res;
-    //         // }
-    //     }else {
-    //         String[] languages = {ConstantInterface.CHINESE,ConstantInterface.ENGLISH,ConstantInterface.FRENCH,ConstantInterface.RUSSIAN,ConstantInterface.SPANISH};
-    //         for(String lang : languages){
-    //             res = new LinkedList<>();
-    //             putEntryTransInfo(entryInfoEntities, entryInfoEntityTemplate, res, lang);
-    //             entryInfoEntities = res;
-                
-    //         }
-    //         return res;
-    //     }
-    // }
-
 
 
     @Override
     public List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap) throws Exception{
     
-        // List<EntryInfoEntity> entities = checkNotUseEntry(i18nUrl, classfyID, request, soucreMap,from,offset);  // 分页查询是classfyID中对应的所有词条中分页
-        // return filterCheckNotUseEntryResult(entities, condition);
         return checkNotUseEntry(i18nUrl, classfyID, soucreMap,new HashMap<>());
     }   
 
@@ -3482,106 +2998,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return noUsedEntrys;
     }
 
-    @Override
-    public List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request) {
-        //TODO:
-        //1.获取当前分类下所有任务
-        //2.获取每个任务下所有词条
-        //2.收集当前分类下都有哪些ts
-        //3.收集当前分类下都有哪些di
-        //4.调用i18n 获取所有ts词条
-        //5.调用i18n 获取所有di词条
-        //6.合并ts 和di的词条
-        //7.对比数据库看哪些是新增的词条
-        //8.返回新增词条
-
-        String token = request.getHeader("token");
-
-        String userName = JWTTokenUtils.getUserName(token);
-        //获取当前分类下所有产品
-        List<String> productidList = new ArrayList<>();
-        getProductClassfyList(classfyID,productidList);
-        //通过关联表获取所有任务id
-        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().in("product_id", productidList));
-        Set<String> taskIDList = new HashSet<>();
-        for (ProductRelationEntity productRelationEntity : productRelationEntities) {
-            if (StringUtils.isBlank(productRelationEntity.getTaskId())){
-                //打印详细信息
-               log.warn("当前产品没有关联任务,任务id为空,产品id为:{},词条id为：{}",productRelationEntity.getProductId(),productRelationEntity.getEntryId());
-               continue;
-            }
-            taskIDList.add(productRelationEntity.getTaskId());
-        }
-        List<TaskEntryVO> taskEntryVOS = new ArrayList<>();
-        //遍历任务id 获取每个任务的词条
-        for (String taskID : taskIDList) {
-            TaskEntryVO taskEntryVO = new TaskEntryVO();
-
-            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
-            List<ProductRelationEntity> productRelationEntities1 = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("task_id", taskID));
-            log.info("当前任务下的任务id为:{}",taskID);
-            String productId = productRelationEntities1.get(0).getProductId();
-            String versionId = productRelationEntities1.get(0).getVersionId();
-            //任务只对应一个产品
-            ProductEntity productEntity = productMapper.selectById(productId);
-            taskEntryVO.setTaskName(taskInfoEntity.getName());
-            taskEntryVO.setProductName(productEntity.getName());
-            taskEntryVO.setTaskID(taskID);
-            taskEntryVO.setProductID(productId);
-            taskEntryVO.setTranslateType(taskInfoEntity.getTranslateType());
-
-            List<EntryInfoEntity> entryByTaskID = entryInfoMapper.getEntryByTaskID(taskID,"t_entry_info");
-            List<String> tsEntryList = new ArrayList<>();
-            List<String> diEntryList = new ArrayList<>();
-            Set<String> tsfileSet = new HashSet<>();
-            Set<String> difileSet = new HashSet<>();
-            for (EntryInfoEntity entryInfoEntity : entryByTaskID) {
-                if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
-                    if (entryInfoEntity.getEntrySource().equals(ConstantInterface.TS)){
-                        tsEntryList.add(entryInfoEntity.getEntry());
-                        tsfileSet.add(entryInfoEntity.getEntrySource());
-                    }else if (entryInfoEntity.getEntrySource().equals(ConstantInterface.DI)){
-                        diEntryList.add(entryInfoEntity.getEntry());
-                        difileSet.add(entryInfoEntity.getDiFileName());
-                    }
-                }
-            }
-            //调用i18n接口获取ts词条
-
-            List<EntryInfoEntity> tsEntry = new ArrayList<>();
-            List<EntryInfoEntity> diEntry = new ArrayList<>();
-            try {
-                // tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                // diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                TsEntryResult tsEntryResult = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                DiEntryResult diEntryResult = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                tsEntry.addAll(tsEntryResult.getResult());
-                diEntry.addAll(diEntryResult.getResult());
-            } catch (Exception e) {
-                return null;
-            }
-          //合并ts和di词条
-            List<EntryInfoEntity> allEntry = new ArrayList<>();
-            allEntry.addAll(tsEntry);
-            allEntry.addAll(diEntry);
-            //对比数据库词条
-            ArrayList<EntryInfoEntity> newEntry = new ArrayList<>();
-            processNewEntry(allEntry, taskID, newEntry);
-
-            List<EntryInfoEntity> entryInfoEntities = entryUtils.buildRepeTempEntry(allEntry, taskInfoEntity.getTranslateType());
-            if (CollectionUtils.isEmpty(entryInfoEntities)){
-                continue;
-            }
-            taskEntryVO.setEntities(entryInfoEntities);
-            taskEntryVOS.add(taskEntryVO);
-
-        }
-        return taskEntryVOS;
-    }
-
-    private void processNewEntry(List<EntryInfoEntity> allEntry, String taskID, ArrayList<EntryInfoEntity> newEntry) {
-        entryUtils.caseNewEntry(allEntry, taskID,newEntry);
-    }
 
     private <E> void constructExceptionMessage(List<String> exceptionMessage,Map<Exception, Set<E>> exceptionCollection){
         constructExceptionMessage(exceptionMessage, exceptionCollection,null,null);
@@ -3940,171 +3356,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return taskNames;
     }
 
-    /**
-     * 1、如果template中翻译状态是null,则返回entryInfoEntities ---->end(添加)
-     * 2、如果list中的entitiy的TransID是null，设定entryInfo的翻译状态为0
-     * 3、如果list中的entitiy的TransID不是null,根据entity的transID在t_translate表中找到对应的记录
-     *      a、如果没找到，则设定entryInfo的翻译状态为0
-     *      b、如果找到了，则设定entryInfo对应语言的翻译状态为t_translate表中对应记录的状态
-     * 4、如果template中的翻译状态和词条对应的语言的翻译状态不同，则不添加到res里面
-     *                          
-     * @param entryInfoEntities
-     * @param entryInfoEntity
-     * @param res   存放满足条件的词条
-     * @param translateType
-     */
-    private void putEntryTransInfo(List<EntryInfoEntity> entryInfoEntities, EntryInfoEntityQO entryInfoEntity, List<EntryInfoEntity> res,String translateType) {
-            /*
-             * 添加一个锁，保证线程安全
-             */
-            ReentrantLock lock = new ReentrantLock();
-            int numberOfThreads = 64; // Number of threads to use
-            CountDownLatch latch = new CountDownLatch(numberOfThreads);
-
-            int chunkSize = entryInfoEntities.size() / numberOfThreads;
-            for (int i = 0; i < numberOfThreads; i++) {
-                int start = i * chunkSize;
-                int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
-                List<EntryInfoEntity> sublist = entryInfoEntities.subList(start, end);
-
-                new Thread(() -> {
-                    List<EntryInfoEntity> collection = new LinkedList<>();
-                    try {
-                        // Process the sublist
-                        for (EntryInfoEntity entryEntity : sublist) {
-                            TranslateEntity translateEntity;
-                            // Your processing logic here
-                            switch (translateType) {
-                                case ConstantInterface.CHINESE:
-                                    if (StringUtils.isBlank(entryInfoEntity.getChineseTranslateState())){
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                        continue;
-                                    }
-                                    if (StringUtils.isBlank(entryEntity.getZhTransId())) {
-                                        // entryEntity.setEnglishTranslateState("0");
-                                        entryEntity.setChineseTranslateState("0");
-                                    } else {
-                                        translateEntity = translateMapper.selectById(entryEntity.getZhTransId());
-                                        if (Objects.nonNull(translateEntity)) {
-                                            entryEntity.setChineseTranslateState(translateEntity.getTranslateState());
-                                        } else {
-                                            entryEntity.setChineseTranslateState("0");
-                                        }
-                                    }
-                                    if ( entryInfoEntity.getChineseTranslateState().equals(entryEntity.getChineseTranslateState())) {
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                    }
-                                    break;
-                                case ConstantInterface.ENGLISH:
-                                    if (StringUtils.isBlank(entryInfoEntity.getEnglishTranslateState())){
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                        continue;
-                                    }
-                                    if (StringUtils.isBlank(entryEntity.getEnTransId())) {
-                                        entryEntity.setEnglishTranslateState("0");
-                                    } else {
-                                        translateEntity = translateMapper.selectById(entryEntity.getEnTransId());
-                                        if (Objects.nonNull(translateEntity)) {
-                                            entryEntity.setEnglishTranslateState(translateEntity.getTranslateState());
-                                        } else {
-                                            entryEntity.setEnglishTranslateState("0");
-                                        }
-                                    }
-                                    if ( entryInfoEntity.getEnglishTranslateState().equals(entryEntity.getEnglishTranslateState())) {
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                    }
-                                    break;
-                                case ConstantInterface.RUSSIAN:
-                                    if (StringUtils.isBlank(entryInfoEntity.getRussianTranslateState())){
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                        continue;
-                                    }
-                                    if (StringUtils.isBlank(entryEntity.getRuTransId())) {
-                                        entryEntity.setRussianTranslateState("0");
-                                    } else {
-                                        translateEntity = translateMapper.selectById(entryEntity.getRuTransId());
-                                        if (Objects.nonNull(translateEntity)) {
-                                            entryEntity.setRussianTranslateState(translateEntity.getTranslateState());
-                                        } else {
-                                            entryEntity.setRussianTranslateState("0");
-                                        }
-                                    }
-                                    if (entryInfoEntity.getRussianTranslateState().equals(entryEntity.getRussianTranslateState())) {
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                    }
-                                    break;
-                                case ConstantInterface.SPANISH:
-                                    if (StringUtils.isBlank(entryInfoEntity.getSpanishTranslateState())){
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                        continue;
-                                    }
-                                    if (StringUtils.isBlank(entryEntity.getSpaTransId())) {
-                                        entryEntity.setSpanishTranslateState("0");
-                                    } else {
-                                        translateEntity = translateMapper.selectById(entryEntity.getSpaTransId());
-                                        if (Objects.nonNull(translateEntity)) {
-                                            entryEntity.setSpanishTranslateState(translateEntity.getTranslateState());
-                                        } else {
-                                            entryEntity.setSpanishTranslateState("0");
-                                        }
-                                    }
-                                    if (entryInfoEntity.getSpanishTranslateState().equals(entryEntity.getSpanishTranslateState())) {
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                    }
-                                    break;
-                                case ConstantInterface.FRENCH:
-                                    if (StringUtils.isBlank(entryInfoEntity.getFrenchTranslateState())){
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                        continue;
-                                    }
-                                    if (StringUtils.isBlank(entryEntity.getFraTransId())) {
-                                        entryEntity.setFrenchTranslateState("0");
-                                    } else {
-                                        translateEntity = translateMapper.selectById(entryEntity.getFraTransId());
-                                        if (Objects.nonNull(translateEntity)) {
-                                            entryEntity.setFrenchTranslateState(translateEntity.getTranslateState());
-                                        } else {
-                                            entryEntity.setFrenchTranslateState("0");
-                                        }
-                                    }
-                                    if (entryInfoEntity.getFrenchTranslateState().equals(entryEntity.getFrenchTranslateState())) {
-                                        // res.add(entryEntity);
-                                        collection.add(entryEntity);
-                                    }
-                                    break;
-                            }
-                        }
-                        try {
-                            lock.lock();
-                            res.addAll(collection);
-                        } catch (Exception e) {
-                            // TODO: handle exception
-                            e.printStackTrace();
-                        } finally{
-                            lock.unlock();
-                        }
-                    } finally {
-                        latch.countDown();
-                    }
-                }).start();
-            }
-
-            try {
-                latch.await(); // Wait for all threads to finish
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-    }
 
     private List<String>    getProductClassfyList(String classfyID, List<String> productidList) {
 
@@ -4144,36 +3395,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
-    private String getTransByType(EntryInfoEntity entryInfoEntity, String translateType) {
-        String transState = "";
-        String trans = "";
-        switch (translateType) {
-            case ConstantInterface.CHINESE:
-                transState = entryInfoEntity.getChineseTranslateState();
-                trans = entryInfoEntity.getChinese();
-                break;
-            case ConstantInterface.ENGLISH:
-                transState = entryInfoEntity.getEnglishTranslateState();
-                trans = entryInfoEntity.getEnglish();
-                break;
-            case ConstantInterface.RUSSIAN:
-                transState = entryInfoEntity.getRussianTranslateState();
-                trans = entryInfoEntity.getRussian();
-                break;
-            case ConstantInterface.SPANISH:
-                transState = entryInfoEntity.getSpanishTranslateState();
-                trans = entryInfoEntity.getSpanish();
-                break;
-            case ConstantInterface.FRENCH:
-                transState = entryInfoEntity.getFrenchTranslateState();
-                trans = entryInfoEntity.getFrench();
-                break;
-        }
-        if (!"3".equals(transState)) {
-            return "";
-        }
-        return trans;
-    }
 
 
     private String setTranslate(EntryInfoEntity entryInfoEntity, String translateType, String department) {
