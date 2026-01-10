@@ -487,10 +487,11 @@ export default {
           record: record,
           isExpanded: true,
         });
+        
       }
 
-      // // 在展开时计算该分支下任务的未完成状态
-      // await this.getBranchPending();// 只获得展开分支的任务执行状态
+      // 在展开时计算该分支下任务的未完成状态
+      await this.getBranchPending();// 只获得展开分支的任务执行状态
 
       // 清除加载状态
       this.loading = false;
@@ -831,8 +832,8 @@ export default {
             this.dataSource = this.buildTreeData(taskList);
             // 使用$nextTick确保DOM更新后再执行getBranchPending
             await new Promise((resolve) => this.$nextTick(resolve));
-            // await this.getBranchPending();// 只获得展开分支的任务执行状态
-            await this.getAllBranchPending(); // 获得所有分支的任务执行状态
+            await this.getBranchPending();// 只获得展开分支的任务执行状态
+            // await this.getAllBranchPending(); // 获得所有分支的任务执行状态
           } else {
             // 平铺展示
             const { tasks, _ } = await this.getTaskPending(taskList);
