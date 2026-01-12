@@ -1,5 +1,7 @@
 package com.shr.translationtoolservice.util.processor.groupby;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +9,7 @@ import com.shr.translationtoolservice.util.processor.groupby.GroupbyStrategy.Rep
 
 public final class GeneralReplicatedVOType extends ReplicatedVOType {
 
-    public Map<String,Object> targetAttributeMap = new HashMap<>(); // key为属性名, value为属性值
+    public Map<String,Collection<Object>> targetAttributeMap = new HashMap<>(); // key为属性名, value为属性值
 
     public GeneralReplicatedVOType() {}
 
@@ -15,7 +17,13 @@ public final class GeneralReplicatedVOType extends ReplicatedVOType {
         if(attributeName == null){
             return;
         }
-        this.targetAttributeMap.put(attributeName, targetValue);
+        if(targetAttributeMap.containsKey(attributeName)){
+            this.targetAttributeMap.get(attributeName).add(targetValue);
+        }else{
+            Collection<Object> attributes = new ArrayList<>();
+            attributes.add(targetValue);
+            this.targetAttributeMap.put(attributeName,attributes);
+        }
     }
 
     @Override

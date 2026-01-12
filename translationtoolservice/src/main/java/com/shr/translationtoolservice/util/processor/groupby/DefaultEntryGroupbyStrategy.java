@@ -12,9 +12,9 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 
 public class DefaultEntryGroupbyStrategy extends GeneralGroupbyStrategy<EntryInfoEntity>{
 
-    public Map<String,Integer> fieldColumnIndexMap = new HashMap<>();
+    protected Map<String,Integer> fieldColumnIndexMap = new HashMap<>();
 
-    public static Map<String,String> attributeFieldMap = new HashMap<>();
+    protected static Map<String,String> attributeFieldMap = new HashMap<>();
 
     static{
         /* key值前端传递过来的属性名 */
@@ -98,7 +98,7 @@ public class DefaultEntryGroupbyStrategy extends GeneralGroupbyStrategy<EntryInf
     }
 
     @Override
-    public List<Object> asList(EntryInfoEntity targetObject) {
+    protected List<Object> asList(EntryInfoEntity targetObject) {
         // TODO Auto-generated method stub
         List<Object> fieldValues = new ArrayList<>();
         // 获取对象的所有字段（包括私有字段）
@@ -141,6 +141,9 @@ public class DefaultEntryGroupbyStrategy extends GeneralGroupbyStrategy<EntryInf
     }
 
     public void addTargetAttributes(Collection<String> attributes){
+        if(attributes == null){
+            return;
+        }
         for(String attribute : attributes){
             this.addTargetAttribute(attribute);
         }

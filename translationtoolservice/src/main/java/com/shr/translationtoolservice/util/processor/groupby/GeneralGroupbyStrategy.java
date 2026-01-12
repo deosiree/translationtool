@@ -48,11 +48,11 @@ public abstract class GeneralGroupbyStrategy<T> implements GroupbyStrategy<T,Gen
         };
     }
 
-    public void addTargetColumnNumber(Integer columnNumber){
+    protected void addTargetColumnNumber(Integer columnNumber){
         this.targetColumnNumbers.add(columnNumber);
     }
     
-    public abstract List<Object> asList(T targetObject);
+    protected abstract List<Object> asList(T targetObject);
 
     @Override
     public Function<T, GeneralReplicatedVOType> newInstance() {
