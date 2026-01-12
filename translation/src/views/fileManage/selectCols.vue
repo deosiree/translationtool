@@ -6,17 +6,18 @@
         <div class="deduplicate-layout-left">
           <div class="deduplicate-section">
             <div class="section-title">选择去重列：</div>
-            <a-table ref="deduplicateTable" :columns="tableColumns" :data-source="tableData" :row-selection="rowSelection"
-              :pagination="false" :scroll="tableHeight ? { y: tableHeight } : undefined" :bordered="true" size="small"
-              class="deduplicate-table" />
+            <a-table ref="deduplicateTable" :columns="tableColumns" :data-source="tableData"
+              :row-selection="rowSelection" :pagination="false" :scroll="tableHeight ? { y: tableHeight } : undefined"
+              :bordered="true" size="small" class="deduplicate-table" />
           </div>
         </div>
 
         <div class="deduplicate-layout-right">
           <div class="rules-section">
             <div class="section-title">选择其他规则：</div>
-            <a-table ref="rulesTable" :columns="rulesColumns" :data-source="rulesData" :row-selection="rulesRowSelection"
-              :pagination="false" :scroll="tableHeight ? { y: tableHeight } : undefined" :bordered="true" size="small"
+            <a-table ref="rulesTable" :columns="rulesColumns" :data-source="rulesData"
+              :row-selection="rulesRowSelection" :pagination="false"
+              :scroll="tableHeight ? { y: tableHeight } : undefined" :bordered="true" size="small"
               class="rules-table" />
           </div>
         </div>
@@ -84,7 +85,7 @@ export default {
         key: col.key,
         title: col.title,
         dataIndex: col.dataIndex
-      }));
+      })).filter(col => col.dataIndex !== "updateTime");// 不能以修改时间为去重列（后端：wps会自动修改更新时间，导致去重异常）
     },
     rowSelection() {
       return {
