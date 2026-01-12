@@ -19,6 +19,7 @@ public class DefaultEntryGroupbyStrategy extends GeneralGroupbyStrategy<EntryInf
     static{
         /* key值前端传递过来的属性名 */
         Function<String,String> fieldAttributeBuilder = (t) -> t;
+        attributeFieldMap.put("id", fieldAttributeBuilder.apply("id"));
         attributeFieldMap.put("isExist", fieldAttributeBuilder.apply("isExist"));
         attributeFieldMap.put("entryState", fieldAttributeBuilder.apply("entryState"));
         attributeFieldMap.put("entry", fieldAttributeBuilder.apply("entry"));

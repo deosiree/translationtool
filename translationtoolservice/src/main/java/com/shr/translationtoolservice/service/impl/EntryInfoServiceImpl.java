@@ -19,8 +19,11 @@ import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
 import com.shr.translationtoolservice.util.analyze.impl.BatchMaxLengthTranslateAnalyzer;
 import com.shr.translationtoolservice.util.processor.groupby.DefaultEntryGroupbyStrategy;
+import com.shr.translationtoolservice.util.processor.groupby.GeneralReplicatedVOType;
+
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -42,13 +45,7 @@ import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -98,9 +95,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private ProductMapper productMapper;
 
     @Autowired
-    private ProductTableMapper productTableMapper;
-
-    @Autowired
     private I18nService i18nService;
 
     @Autowired
@@ -110,8 +104,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private DiUtils diUtils;
     @Autowired
     private TsUtils tsUtils;
-    @Autowired
-    private HTTPUtils httpUtils;
 
     @Value("${I18server.url}")
     private String I18URL;
@@ -122,10 +114,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Autowired
     private EntryUtils entryUtils;
 
-    @Autowired
-    private EntryVersionMapper entryVersionMapper;
-
-    private ThreadPoolExecutor executor = new ThreadPoolExecutor(30, 50, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
     @Override
     public List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity1, Integer pageIndex, Integer pageSize) {
@@ -1962,8 +1950,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             for(Map.Entry<String,Set<String>> idRelation : idRelationMap.entrySet()){
                 String parentID = idRelation.getKey();
                 Set<String> childIDs = idRelation.getValue();
-                if(parentID == null || childIDs == null || childIDs.isEmpty()){
-                    continue;
+                if(parentID == null){
+                    throw new RuntimeException("id映射表存在异常, 父节点的ID为null");
                 }
                 List<EntryInfoEntity> entryInfosOnFile = entryInfosOnFileIDRelation.get(parentID);
                 String translate = "";
@@ -1974,14 +1962,15 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     searchIDs.add(parentID);
 
                     List<EntryInfoEntity> childEntryInfos = new ArrayList<>();
-                    for(String childID : childIDs){
-                        List<EntryInfoEntity> childEntryInfosOnFile = entryInfosOnFileIDRelation.get(childID);
-                        if(childEntryInfosOnFile == null || childEntryInfosOnFile.isEmpty()){
-                            searchIDs.add(childID);
-                            continue;   // 送翻的词条没有这个子节点
+                    if(childIDs != null){
+                        for(String childID : childIDs){
+                            List<EntryInfoEntity> childEntryInfosOnFile = entryInfosOnFileIDRelation.get(childID);
+                            if(childEntryInfosOnFile == null || childEntryInfosOnFile.isEmpty()){
+                                searchIDs.add(childID);
+                                continue;   // 送翻的词条没有这个子节点
+                            }
+                            childEntryInfos.addAll(childEntryInfosOnFile);
                         }
-                        childEntryInfos.addAll(childEntryInfosOnFile);
-                        // childTranslates.add(String.valueOf(getMethod.invoke(childEntryInfosOnFile.get(0))));
                     }
                     List<String> childTranslates = new ArrayList<>();
                     for(EntryInfoEntity childEntryInfo : childEntryInfos){
@@ -3993,43 +3982,53 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         } catch (Exception e) {
             throw new RuntimeException(String.format("解析文件词条时出现异常, 无法进行词条去重分组, 异常信息为: %s", e.getMessage()),e);
         }
-        
+        if(entryInfoEntities == null || entryInfoEntities.isEmpty()){
+            throw new RuntimeException(String.format("没有从文件中解析到任何词条, 请检查文件"));
+        }
         return this.makeGroupForEntryInfos(entryInfoEntities,replicatedTargetAttributes);
     }
 
     @Override
     public EntryInfoGroupVO makeGroupForEntryInfos(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> replicatedTargetAttributes) {
+        if(entryInfoEntities == null){
+            throw new RuntimeException("没有提供用于分组的词条");
+        }
+        if(replicatedTargetAttributes == null){
+            throw new RuntimeException("没有提供用于分组的条件");
+        }
         DefaultEntryGroupbyStrategy entryGroupbyStrategy = new DefaultEntryGroupbyStrategy();
         entryGroupbyStrategy.addTargetAttributes(replicatedTargetAttributes);
         Collection<List<EntryInfoEntity>> entryInfoGroups = entryUtils.makeGroupForEntryInfoEntities(entryInfoEntities, entryGroupbyStrategy);
-        Map<EntryInfoEntity,List<EntryInfoEntity>> entryInfoGroupMap = new HashMap<>();
+        if(entryInfoGroups == null){
+            throw new RuntimeException("词条分组失败, entryInfoGroups为null, 联系研发");
+        }
+        /** 建立parentID和childIDs之间的关联 */
+        Map<String,List<String>> idRelationMap = new HashMap<>();
         Collection<EntryInfoEntity> notReplicatedEntryInfos = new ArrayList<>(entryInfoGroups.size());
         for(List<EntryInfoEntity> entities : entryInfoGroups){
             if(entities.isEmpty()){
                 continue;
             }
             EntryInfoEntity parentEntryInfo = entities.get(0);
+            String parentID = parentEntryInfo.getId();
+            try {
+                EntryUtils.checkEntryID(parentEntryInfo, true);
+            } catch (Exception e) {
+                throw new RuntimeException(String.format("该组词条信息中存在词条的id列的内容为空字符串, 请检查输入", entities.toString()),e);
+            }
             /* 父词条为去重后保留的词条, child为其他和它重复的词条 */
-            List<EntryInfoEntity> childList = new ArrayList<>();
-            for(int idx = 1 ; idx < entities.size() ; idx ++ ){
-                childList.add(entities.get(idx));
+            List<EntryInfoEntity> childList = entities.subList(1, entities.size());
+            for(EntryInfoEntity child : childList){
+                try {
+                    EntryUtils.checkEntryID(child, true);
+                } catch (Exception e) {
+                    throw new RuntimeException(String.format("该组词条信息中存在词条的id列的内容为空字符串, 请检查输入", entities.toString()),e);
+                }
             }
             parentEntryInfo.setChildren(childList);
             notReplicatedEntryInfos.add(parentEntryInfo);   
-            entryInfoGroupMap.put(parentEntryInfo, childList);
+            idRelationMap.put(parentID,childList.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
         }
-
-        /** 建立parentID和childIDs之间的关联 */
-        Map<String,List<String>> idRelationMap = new HashMap<>();
-        entryInfoGroupMap.forEach(new BiConsumer<EntryInfoEntity,List<EntryInfoEntity>>() {
-
-            @Override
-            public void accept(EntryInfoEntity t, List<EntryInfoEntity> u) {
-                // TODO Auto-generated method stub
-                idRelationMap .put(t.getId(), u.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
-            }
-            
-        });
 
         EntryInfoGroupVO entryInfoGroupVO = new EntryInfoGroupVO(notReplicatedEntryInfos, idRelationMap);
         /* 需要做一个一致性校验, 去重后的excel文件和对应的ID关联表是否一致 */
@@ -4037,14 +4036,51 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public Collection<EntryInfoEntity> parseFileToEntryInfos(MultipartFile multipartFile, HttpServletRequest request) {
+    public Collection<EntryInfoEntity> parseFileToEntryInfos(MultipartFile multipartFile, Map<String,Object> kwargs) {
         // TODO Auto-generated method stub
         try {
-            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),null);
+            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),kwargs);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             throw new RuntimeException(e) ;
         }
+    }
+
+    @Override
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(MultipartFile file1, MultipartFile file2,Collection<String> targetAttributes) {
+        // TODO Auto-generated method stub
+        Collection<EntryInfoEntity> entryCollection1 = this.parseFileToEntryInfos(file1, null);
+        Collection<EntryInfoEntity> entryCollection2 = this.parseFileToEntryInfos(file2, null);
+        DefaultEntryGroupbyStrategy entryGroupbyStrategy = new DefaultEntryGroupbyStrategy();
+        entryGroupbyStrategy.addTargetAttributes(targetAttributes);
+        /* 
+            根据属性，先将每个文件中的词条进行分组
+        */
+        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> entryInfosGroupMap1 = entryUtils.makeGroupMapForEntryInfoEntities(entryCollection1, entryGroupbyStrategy);
+        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> entryInfosGroupMap2 = entryUtils.makeGroupMapForEntryInfoEntities(entryCollection2, entryGroupbyStrategy);
+        // 获取两个文件的词条的差异信息
+        KeyDifference<GeneralReplicatedVOType, EntryInfoEntity> compareResult = entryUtils.compareEntryInfos(entryInfosGroupMap1, entryInfosGroupMap2);
+        // 根据差异信息封装成对象返回
+        ValueDifferenceVO<EntryInfoEntity> valueDifferenceVO = new ValueDifferenceVO<>();
+        compareResult.getOnlyInFirstMapKeys().forEach((key)->{valueDifferenceVO.addValuesOnlyInFirst(entryInfosGroupMap1.get(key));});
+        compareResult.getOnlyInSecondMapKeys().forEach((key)->{valueDifferenceVO.addValuesOnlyInSecond(entryInfosGroupMap2.get(key));});
+        compareResult.getAllExistButValueDifferentKeys().forEach((key)->{
+            ValueDifferenceVO.ListDiff<EntryInfoEntity> listDiff = new ValueDifferenceVO.ListDiff<>();
+            listDiff.setFirstList(entryInfosGroupMap1.get(key));
+            listDiff.setSecondList(entryInfosGroupMap2.get(key));
+            valueDifferenceVO.addDifferentBetweenEachOther(listDiff);
+        });
+
+        return valueDifferenceVO;
+
+    }
+
+    @Override
+    public ValueDifferenceVO<EntryInfoEntity> compareTranslatedFileBeforeAfter(MultipartFile translatedFile, MultipartFile beforeTranslatedFile) {
+        // TODO Auto-generated method stub
+        Collection<String> targetAttributes = new HashSet<>();
+        targetAttributes.add("id");
+        return this.compareEntryInfosBetweenFiles(translatedFile, beforeTranslatedFile, targetAttributes);
     }
 
 

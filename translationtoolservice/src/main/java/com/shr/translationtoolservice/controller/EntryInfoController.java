@@ -55,8 +55,6 @@ public class EntryInfoController extends BaseController {
 
 
     @Autowired
-    private EntryPublicService entryPublicService;
-    @Autowired
     private CommonUtils commonUtils;
     @Autowired
     private ProductService productService;
@@ -295,7 +293,6 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/entryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
-    //new
     public HttpResponse<UpdateTranslationByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
                                                           HttpServletRequest httpServletRequest
     ) {
@@ -1164,7 +1161,7 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,HttpServletRequest request){
         try {
-            return ok(entryInfoService.parseFileToEntryInfos(multipartFile, request));
+            return ok(entryInfoService.parseFileToEntryInfos(multipartFile, null));
         } catch (Exception e) {
             log.error("解析文件成词条出现异常", e);
             return error(null, e.getMessage());

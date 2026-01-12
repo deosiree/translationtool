@@ -4,7 +4,6 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +16,7 @@ import java.util.Set;
 /**
  *
  */
-public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileService {
+public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImportService,EntryFileExportService,EntryFileService {
 
     List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity,Integer offset,Integer pageSize);
 

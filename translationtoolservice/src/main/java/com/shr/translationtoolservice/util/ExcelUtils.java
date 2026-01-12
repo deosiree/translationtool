@@ -365,6 +365,9 @@ public class ExcelUtils {
             Method[] methodList = null;
             boolean isFindHeader = false;
             List<String> lineTextList = parseCSVFile(in,charset);
+            if(lineTextList.isEmpty()){
+                throw new RuntimeException("文件内部没有任何内容");
+            }
             for(String lineText : lineTextList){
                 String[] elementList = ExcelUtils.CSVParse(lineText);
                 if(!isFindHeader){
@@ -1573,7 +1576,7 @@ public class ExcelUtils {
     }
 
 
-    public <T> Collection<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,Map<String,String> kwargs){
+    public <T> Collection<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,Map<String,Object> kwargs){
         try {
             if(originalFilename.endsWith("csv")){
                 return this.readCSVToEntity(clazz, in, originalFilename, null);

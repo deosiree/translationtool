@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -37,6 +38,10 @@ public abstract class GeneralGroupbyStrategy<T> implements GroupbyStrategy<T,Gen
             public GeneralReplicatedVOType apply(List<Object> fieldValueList) {
                 // TODO Auto-generated method stub
                 GeneralReplicatedVOType generalReplicatedVOType = new GeneralReplicatedVOType();
+                if(targetColumnNumbers == null || targetColumnNumbers.isEmpty()){
+                    /* 没有提供用于分组区分的条件, 则不进行分组, 返回随机不重复的数字 */
+                    generalReplicatedVOType.addAttribute(String.valueOf(0),UUID.randomUUID().toString());
+                }
                 for(Integer targetColumnNumber : targetColumnNumbers){
                     if(targetColumnNumber >= fieldValueList.size()){
                         throw new IndexOutOfBoundsException(String.format("该对象属性共%s个, 但需要取第%s列的属性值", fieldValueList.size(),targetColumnNumber));
