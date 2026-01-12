@@ -3656,38 +3656,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return false;
     }
 
-    @Override
-    //读取带序号的表格
-    public List<EntryInfoEntity> importExcle(MultipartFile multipartFile, String taskID) {
-        String name = multipartFile.getOriginalFilename();
-        TaskInfoEntity taskInfoEntity1 = taskInfoMapper.selectById(taskID);
-        //读取excle转换的实体
-        List<ImportExcleVO> importExcleEntries = new ArrayList<>();
-        try {
-
-            importExcleEntries = excelUtils.readExcelToEntity(taskInfoEntity1.getTranslateType(),ImportExcleVO.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<EntryInfoEntity> entryEntitys = new ArrayList<>();
-
-        for (ImportExcleVO importExcleEntry : importExcleEntries) {
-            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-            BeanUtils.copyProperties(importExcleEntry, entryInfoEntity);
-            entryInfoEntity.setEntryState(0);
-            entryInfoEntity.setTaskId(taskID);
-            entryInfoEntity.setId(commonUtils.getUUID());
-            entryInfoEntity.setIsDelete(0);
-            TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
-            if (Objects.nonNull(taskInfoEntity)) {
-                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
-            }
-            entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + "fileName" + name);
-
-            entryEntitys.add(entryInfoEntity);
-        }
-        return entryEntitys;
-    }
 
 
     @Override

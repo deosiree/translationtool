@@ -1108,7 +1108,7 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/makeGroupForEntryInfosOnFiles")
     @ApiOperation("将文件中的词条解析, 并对词条进行分组")
     @CrossOrigin
-    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfosOnFiles(@RequestParam("file") MultipartFile multipartFile,@RequestParam(value =  "attributes",required = false) Collection<String> replicatedTargetAttributes){
+    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfosOnFiles(@RequestParam("file") MultipartFile multipartFile,@RequestParam(value =  "attributes[]",required = false) Collection<String> replicatedTargetAttributes){
 
         /**
          * 
@@ -1135,7 +1135,7 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/makeGroupForEntryInfos")
     @ApiOperation("对词条进行分组")
     @CrossOrigin
-    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfos(@RequestBody Collection<EntryInfoEntity> entryInfoEntities,@RequestParam(value =  "attributes",required = false) Collection<String> replicatedTargetAttributes){
+    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfos(@RequestBody Collection<EntryInfoEntity> entryInfoEntities,@RequestParam(value =  "attributes[]",required = false) Collection<String> replicatedTargetAttributes){
 
         /**
          * 

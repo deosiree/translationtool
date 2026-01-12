@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,7 @@ import java.util.Set;
 /**
  *
  */
-public interface EntryInfoService extends IService<EntryInfoEntity> {
+public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileService {
 
     List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity,Integer offset,Integer pageSize);
 
@@ -46,7 +45,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
 
-    List<EntryInfoEntity>  importExcle(MultipartFile multipartFile,String taskID);
 
     boolean checkBeforeAddSingleEntry(EntryInfoEntity entryInfoEntity,String department);
 
@@ -62,15 +60,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     void versionExport(String versionID, HttpServletResponse response,String translateType);
 
-    List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,String departmentType,HttpServletRequest request);
-
-    /**
-     * 将文件的内容解析成词条, 没有后处理操作
-     * @param multipartFile
-     * @param request
-     * @return
-     */
-    Collection<EntryInfoEntity> parseFileToEntryInfos(MultipartFile multipartFile,HttpServletRequest request);
 
     List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
 
@@ -81,33 +70,11 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
 
-    void getEntryInfoEntityForExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO);
-    /**
-     * 过滤出不符合要求的词条
-     * @param excelExportVO 
-     * @return  返回不符合要求的词条,null代表均符合要求
-     */
-    List<EntryInfoEntityForExcel> filterEntryInfoBeforeExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO);
-
-    /**
-     * 预处理提供的词条，主要查找词条要导出的产品和版本信息,没有过滤不符合规定的词条的功能
-     * @param excelExportVO
-     */
-    void postProcessEntryInfoForExport(ExcelExportVO<EntryInfoEntityForExcel> excelExportVO);
-    /**
-     * 导出提供的词条到流中，可用于写入socket流和文件流
-     * @param buffer
-     * @param excelExportVO
-     * @param taskID
-     * @return excelExportVO 和 buffer 为null时为false，如果成功完成所有接口的调用，则返回true，导出存在异常场景时会抛出异常
-     */
-    boolean entryExportByCondition( ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,String taskID);
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
     String addProductRelation(List<EntryInfoEntity>  relationEntity,HttpServletRequest request) throws Exception;
 
-    List<EntryInfoEntity> importCommonExcle(MultipartFile multipartFile, String taskID);
 
     List<EntryInfoEntity>  filterSourceLanguage(List<EntryInfoEntity> entryInfoEntities, String languageType);
 
@@ -115,11 +82,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
 
-    UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token,String transType);
-
-    UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token, String transType,Map<String, Set<String>> idRelationMap);
-
-    List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 
     List<EntryInfoEntity> capitalizeWords(List<EntryInfoEntity> entryInfoEntities, String changeType,String translateType);
 
@@ -154,13 +116,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     Set<String> getWriteFileNamesByClassify(String classifyID,String writeType);
 
-    /**
-     * 为导出的文件进行去重, 返回去重后的所有的词条, 以及去重后保留的词条的ID与未保留的其他词条的ID的关联关系
-     * 将文件中的词条进行分组，key代表这一组词条中的其中一个词条, value是这组词条中的其他词条
-     * @param multipartFile
-     * @return
-     */
-    EntryInfoGroupVO makeGroupForEntryInfosOnExportedFile(MultipartFile multipartFile,Collection<String> replicatedTargetAttributes);
 
     EntryInfoGroupVO makeGroupForEntryInfos(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> replicatedTargetAttributes);
 

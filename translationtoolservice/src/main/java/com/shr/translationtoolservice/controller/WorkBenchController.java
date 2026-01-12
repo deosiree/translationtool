@@ -42,30 +42,12 @@ public class WorkBenchController extends BaseController {
     private EntryInfoService entryInfoService;
     @Autowired
     private EntryTempService entryTempService;
-    @Autowired
-    private CommonUtils commonUtils;
 
     @Autowired
     private TI8nAddressService ti8nAddressService;
     @Autowired
     private I18nService i18nService;
-    @Autowired
-    private StringUtil stringUtil;
 
-    @PostMapping("/importExcle")
-    @ApiOperation("导入excle(预留)")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<ResponseListModel> importExcle(@RequestParam("file") MultipartFile multipartFile,
-                                                       @RequestParam("taskID") String taskID
-    ) {
-        ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryEntities = entryInfoService.importExcle(multipartFile, taskID);
-        responseListModel.setList(entryEntities);
-        responseListModel.setTotalNum(entryEntities.size());
-
-        return checkResult(responseListModel);
-    }
 
 
     @GetMapping("/getI18nAdress")
@@ -233,18 +215,6 @@ public class WorkBenchController extends BaseController {
 
         return checkResult(result);
     }
-/*
-    @PostMapping("/deleteEntryInfoByID")
-    @ApiOperation("删除词条")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<String> deleteEntryInfoByID(@RequestBody List<String> entryID
-                                                   ) {
-
-        String result = entryTempService.deleteEntryInfoByID(entryID);
-
-        return checkResult(result);
-    }*/
 
     @PostMapping("/preTranslate")
     @ApiOperation("预翻译")
