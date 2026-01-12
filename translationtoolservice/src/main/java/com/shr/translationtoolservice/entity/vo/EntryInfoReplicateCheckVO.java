@@ -2,7 +2,9 @@ package com.shr.translationtoolservice.entity.vo;
 
 import java.util.List;
 
-public class EntryInfoReplicateCheckVO {
+import com.shr.translationtoolservice.entity.EntryInfoEntity;
+
+public class EntryInfoReplicateCheckVO{
 
     public String entry;
 
@@ -23,6 +25,8 @@ public class EntryInfoReplicateCheckVO {
     public String maxEntryVersion;
 
     public List<String> entryInfoIDsForMaxEntryVersion;
+
+    private EntryInfoReplicateCheckVO(){}
 
     @Override
     public int hashCode() {
@@ -163,6 +167,22 @@ public class EntryInfoReplicateCheckVO {
     }
     public List<String> getEntryInfoIDsForMaxEntryVersion() {
         return entryInfoIDsForMaxEntryVersion;
+    }
+
+    public static EntryInfoReplicateCheckVO convertFrom(EntryInfoEntity t){
+        if(t == null){
+            return null;
+        }
+        EntryInfoReplicateCheckVO entryInfoReplicateCheckVO = new EntryInfoReplicateCheckVO();
+        entryInfoReplicateCheckVO.setEntry(t.getEntry());
+        entryInfoReplicateCheckVO.setProductID(t.getProductID());
+        entryInfoReplicateCheckVO.setTag(t.getTag());
+        entryInfoReplicateCheckVO.setComment(t.getComment());
+        entryInfoReplicateCheckVO.setAbbr(t.getAbbr());
+        entryInfoReplicateCheckVO.setImportType(t.getImportType());
+        entryInfoReplicateCheckVO.setEntrySource(t.getEntrySource());
+        entryInfoReplicateCheckVO.setDiFileName(t.getDiFileName());
+        return entryInfoReplicateCheckVO;
     }
 
 }

@@ -125,17 +125,9 @@ public class EntryUtils {
         Map<EntryInfoReplicateCheckVO,List<EntryInfoEntity>> entryInfosGroup = new HashMap<>();
         Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs = new HashSet<>();
         for(EntryInfoEntity t : entryInfoEntities){
-            EntryInfoReplicateCheckVO entryInfoReplicateCheckVO = new EntryInfoReplicateCheckVO();
+            EntryInfoReplicateCheckVO entryInfoReplicateCheckVO = EntryInfoReplicateCheckVO.convertFrom(t);
             /* 将词条分配到对应的组 */
             List<EntryInfoEntity> entryInfos = entryInfosGroup.get(entryInfoReplicateCheckVO);
-            entryInfoReplicateCheckVO.setEntry(t.getEntry());
-            entryInfoReplicateCheckVO.setProductID(t.getProductID());
-            entryInfoReplicateCheckVO.setTag(t.getTag());
-            entryInfoReplicateCheckVO.setComment(t.getComment());
-            entryInfoReplicateCheckVO.setAbbr(t.getAbbr());
-            entryInfoReplicateCheckVO.setImportType(t.getImportType());
-            entryInfoReplicateCheckVO.setEntrySource(t.getEntrySource());
-            entryInfoReplicateCheckVO.setDiFileName(t.getDiFileName());
             entryInfoReplicateCheckVOs.add(entryInfoReplicateCheckVO);
             if(entryInfos == null){
                 entryInfos = new ArrayList<>();
@@ -177,17 +169,9 @@ public class EntryUtils {
         Map<EntryInfoReplicateCheckVO,List<EntryInfoEntity>> entryInfosGroup = new HashMap<>();
         Set<EntryInfoReplicateCheckVO> entryInfoReplicateCheckVOs = new HashSet<>();
         for(EntryInfoEntity t : entryInfoEntities){
-            EntryInfoReplicateCheckVO entryInfoReplicateCheckVO = new EntryInfoReplicateCheckVO();
+            EntryInfoReplicateCheckVO entryInfoReplicateCheckVO = EntryInfoReplicateCheckVO.convertFrom(t);
             /* 将词条分配到对应的组 */
             List<EntryInfoEntity> entryInfos = entryInfosGroup.get(entryInfoReplicateCheckVO);
-            entryInfoReplicateCheckVO.setEntry(t.getEntry());
-            entryInfoReplicateCheckVO.setProductID(t.getProductID());
-            entryInfoReplicateCheckVO.setTag(t.getTag());
-            entryInfoReplicateCheckVO.setComment(t.getComment());
-            entryInfoReplicateCheckVO.setAbbr(t.getAbbr());
-            entryInfoReplicateCheckVO.setImportType(t.getImportType());
-            entryInfoReplicateCheckVO.setEntrySource(t.getEntrySource());
-            entryInfoReplicateCheckVO.setDiFileName(t.getDiFileName());
             entryInfoReplicateCheckVOs.add(entryInfoReplicateCheckVO);
             if(entryInfos == null){
                 entryInfos = new ArrayList<>();
