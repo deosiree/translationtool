@@ -37,3 +37,5 @@ pnpm-debug.log*
 *.7z
 *.iter5
 *.model
+
+.cursor

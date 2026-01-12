@@ -1,26 +1,31 @@
 <template>
-  <a-button type="primary" @click="showExportModal" :size="size">{{ buttonTitle }}</a-button>
+  <a-button v-if="!hideButton" type="primary" @click="showExportModal" :size="size">{{ buttonTitle }}</a-button>
 
-  <CustomModal :modalTitle="buttonTitle" width="60%" :visible="exportVisible" :showCancel="false" :showOk="false" @handleClose="handleClose"
-    :afterClose="afterClose">
+  <CustomModal :modalTitle="buttonTitle" width="60%" :visible="exportVisible" :showCancel="false" :showOk="false"
+    @handleClose="handleClose" :afterClose="afterClose">
     <div class="content">
       <a-form ref="exportForm" :model="exportModal">
         <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="exportModal.exportType" placeholder="请选择文件类型" :options='exportTypes' @change="exportTypeChange" allowClear>
+          <a-select v-model:value="exportModal.exportType" placeholder="请选择文件类型" :options='exportTypes'
+            @change="exportTypeChange" allowClear>
           </a-select>
         </a-form-item>
-        <a-form-item label="导出字段" name="field" v-if="exportModal.exportType !== 'xml'" :rules="[{ required: true, message: '请选择!' }]">
+        <a-form-item label="导出字段" name="field" v-if="exportModal.exportType !== 'xml'"
+          :rules="[{ required: true, message: '请选择!' }]">
           <div style="display: flex; justify-content: space-between;">
-            <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions" :fieldNames="{ label: 'label', value: 'label' }"
-              placeholder="请选择导出字段" :disabled="exportModal.exportType === 'xml'" allowClear style="flex: 1; margin-right: 8px;" />
+            <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions"
+              :fieldNames="{ label: 'label', value: 'label' }" placeholder="请选择导出字段"
+              :disabled="exportModal.exportType === 'xml'" allowClear style="flex: 1; margin-right: 8px;" />
             <a-button type="link" size="small" @click="selectAllFields" style="
               font-size: smaller;margin-top:0">全选</a-button>
           </div>
         </a-form-item>
-        <a-form-item label="文件名称" name="xml_name" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请输入文件名!' }]">
+        <a-form-item label="文件名称" name="xml_name" v-if="exportModal.exportType === 'xml'"
+          :rules="[{ required: true, message: '请输入文件名!' }]">
           <a-input v-model:value="exportModal.xml_name" placeholder="请输入文件名"></a-input>
         </a-form-item>
-        <a-form-item label="指定local语种" name="local_desc" v-if="exportModal.exportType === 'xml'" :rules="[{ required: true, message: '请选择!' }]">
+        <a-form-item label="指定local语种" name="local_desc" v-if="exportModal.exportType === 'xml'"
+          :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="exportModal.local_desc" placeholder="请选择语种" :options='localDescOptions' allowClear>
           </a-select>
         </a-form-item>
@@ -82,6 +87,14 @@ export default {
       type: Boolean,
       default: true,
     }, // 默认只能导出已审核词条
+    fileNamePrefix: {
+      type: String,
+      default: "",
+    }, // 可选：导出文件名前缀，例如“去重_”
+    hideButton: {
+      type: Boolean,
+      default: false,
+    }, // 是否隐藏按钮（仅显示模态框）
   },
   data() {
     return {
@@ -112,7 +125,7 @@ export default {
         xml_temp: false,
         ops: new Set(),
       }, // 当前用户所在部门的相关信息
-      fieldOptions: entryParams.exportFields,
+      fieldOptions: [], // 初始值，会在mounted中从fieldOptions_ prop更新
       statusCheck: this.defaultStatusCheck, // 使用prop值作为初始值( props 不应该被组件内部直接修改)
     };
   },
@@ -127,7 +140,11 @@ export default {
         "法文翻译id",
         "中文翻译id",
       ];
-      this.fieldOptions = this.fieldOptions_.filter(
+      // 使用传入的 fieldOptions_ prop，如果不存在则使用 entryParams.exportFields 作为后备(就是导出全部属性)
+      const sourceOptions = this.fieldOptions_ && Array.isArray(this.fieldOptions_) && this.fieldOptions_.length > 0
+        ? this.fieldOptions_
+        : (entryParams && entryParams.exportFields ? entryParams.exportFields : []);
+      this.fieldOptions = sourceOptions.filter(
         (item) => !filterColNames.includes(item.label)
       );
       // 获取当前用户信息
@@ -214,8 +231,9 @@ export default {
 
         if (choosePath && "showSaveFilePicker" in window) {
           // 提前获取文件句柄
+          const prefix = this.fileNamePrefix || "";
           if (exportType === "xml") {
-            suggestedName = this.exportModal.xml_name + ".xml";
+            suggestedName = prefix + this.exportModal.xml_name + ".xml";
             types = [
               {
                 description: "XML 文件",
@@ -228,9 +246,8 @@ export default {
             // 这里先设置一个临时建议名，后续获取真实文件名后再更新
             const time = getCurrentStringTime();
             // console.log("当前时间", time);
-            suggestedName = `词条导出_${time}${
-              exportType === "excel" ? ".xlsx" : ".csv"
-            }`;
+            suggestedName = `${prefix}词条导出_${time}${exportType === "excel" ? ".xlsx" : ".csv"
+              }`;
             types = [
               {
                 description: exportType === "excel" ? "Excel 文件" : "CSV 文件",
@@ -423,14 +440,14 @@ export default {
             excelName: "词条导出",
           };
           let accept_ = [];
+          // 只能导出已审核，需要检查是否有审核未结束的词条
           if (this.statusCheck) {
-            // 只能导出已审核，需要检查是否有审核未结束的词条
             accept_ = await checkBeforeExportEntry(data, params);
             if (accept_.data.list.length != 0) {
               message.warning("导出失败：存在审核未结束的词条");
             }
           }
-          if (!this.statusCheck || accept_.data.list.length == 0) {
+          if (!this.statusCheck || accept_.data.list.length == 0) { // 如果不是只能导出已审核，或者没有审核未结束的词条，则导出全部词条
             const res = await entryExportByCondition(data, params);
             let fileName = res.headers["content-disposition"]
               .split(";")[1]
@@ -448,9 +465,12 @@ export default {
               await writable.write(blob);
               await writable.close();
             } else {
+              const prefix = this.fileNamePrefix || "";
+              const decodedName = decodeURI(fileName);
+              const finalName = prefix + decodedName;
               await this.handleFileSave(
                 blob,
-                decodeURI(fileName),
+                finalName,
                 [
                   {
                     description:
@@ -515,7 +535,7 @@ export default {
       let data = {
         exportColumn: value.join(","),
       };
-      updateUserPartiality(data).then((res) => {});
+      updateUserPartiality(data).then((res) => { });
     },
     // 关闭导出模态框
     handleClose() {

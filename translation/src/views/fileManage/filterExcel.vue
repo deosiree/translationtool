@@ -173,6 +173,9 @@
       @confirm="handleDeduplicateConfirm" />
     <BackFillModal :visible="importBackfillVisible" :translateTypes="translateTypes"
       @handleClose="handleImportBackfillClose" @handleOK="handleImportBackfillOK" />
+    <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
+      size="middle" buttonTitle="导出去重数据" :defaultStatusCheck="false" fileNamePrefix="去重_" :hideButton="true"
+      @afterClose="handleExportAfterClose" />
   </div>
 </template>
 <script>
@@ -188,6 +191,7 @@ import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import SelectCols from "./selectCols.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
+import ExportButton from "@/components/Button/exportButton.vue";
 import {
   ExportOutlined,
   ImportOutlined,
@@ -232,6 +236,7 @@ export default {
     TransStateBadge,
     SelectCols,
     BackFillModal,
+    ExportButton,
   },
   props: {
     boxHeight: 0,
@@ -386,10 +391,13 @@ export default {
       deleteButtonsVisible: false,
       deleteLoading: false,
       importBackfillVisible: false,
+      deduplicatedDataSource: [], // 存储去重后的数据，用于导出
       filterModal: {
         visible: false,
         duplicateCols: [],
       },
+      // 导出去重数据时可选的字段
+      exportFieldOptions: entryParams.exportFields,
       expandedRowKeys: [],// 存储当前所有展开行的key值。当某一行展开时，它的key会被添加到这个数组中；折叠时则会被移除。
       searchConditionList: entryParams.searchConditionList,// 展示的查询条件框
       checkedSearchCondition: cachedSearchCondition
@@ -577,14 +585,23 @@ export default {
       try {
         const data = this.dataSource;
         const params = {
-          replicatedTargetAttributs: this.filterModal.duplicateCols
+          attributes: this.filterModal.duplicateCols
         };
 
         const res = await exportDeduplicatedData(params, data);
+        console.log("去重数据1", res);
 
-        this.dataSource = res.data.dataSource;
-        this.pagination.total = res.data.dataSource.length;
-        this.exportIdMap(res.data.idMap);
+        // 更新表格数据为去重后的结果
+        this.dataSource = res.data.notReplicatedEntryInfos;
+        this.pagination.total = res.data.notReplicatedEntryInfos.length;
+        // 保存去重后的数据用于导出
+        this.deduplicatedDataSource = res.data.notReplicatedEntryInfos;
+        // 先导出JSON映射文件
+        this.exportIdMap(res.data.idRelationMap);
+        // 通过导出按钮组件打开导出模态框
+        if (this.$refs.exportButtonRef) {
+          this.$refs.exportButtonRef.showExportModal();
+        }
         message.success("去重成功");
         this.filterModal.visible = false;
       } catch (error) {
@@ -607,6 +624,10 @@ export default {
       link.download = '去重映射.json';
       link.click();
       URL.revokeObjectURL(url);
+    },
+    // 导出模态框关闭后，清空去重数据
+    handleExportAfterClose() {
+      this.deduplicatedDataSource = [];
     },
     // ===================批量删除按钮点击事件======================
     // 批量删除按钮点击事件
@@ -697,7 +718,7 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        setTableHeight(this, 32, 146, 90, { ok: true, h: this.box });
+        setTableHeight(this, 32, 166, 90, { ok: true, h: this.box });
       });
     },
     // 设置表格每一行的class
