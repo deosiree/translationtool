@@ -1,10 +1,10 @@
 package com.shr.translationtoolservice.service;
 
 import java.util.Collection;
-
-import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
+import com.shr.translationtoolservice.entity.FileInputStreamEntitiy;
 import com.shr.translationtoolservice.entity.vo.EntryInfoGroupVO;
 import com.shr.translationtoolservice.entity.vo.ValueDifferenceVO;
 
@@ -16,7 +16,15 @@ public interface EntryFileService{
      * @param multipartFile
      * @return
      */
-    EntryInfoGroupVO makeGroupForEntryInfosOnExportedFile(MultipartFile multipartFile,Collection<String> replicatedTargetAttributes);
+    EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntitiy multipartFile,Collection<String> replicatedTargetAttributes);
+
+    /**
+     * 将文件的内容解析成词条对象, 没有后处理操作
+     * @param multipartFile
+     * @param request
+     * @return
+     */
+    Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntitiy multipartFile,Map<String,Object> kwargs);
 
 
     /**
@@ -25,16 +33,8 @@ public interface EntryFileService{
      * @param secondFile
      * @param targetAttributes  用于比对使用的属性名的集合
      */
-    ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(MultipartFile file1,MultipartFile file2,Collection<String> targetAttributes);
-
-    /**
-     * 比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失
-     * @param translatedFile
-     * @param beforeTranslatedFile
-     */
-    ValueDifferenceVO<EntryInfoEntity> compareTranslatedFileBeforeAfter(MultipartFile translatedFile,MultipartFile beforeTranslatedFile);
+    ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntitiy file1,FileInputStreamEntitiy file2,Collection<String> targetAttributes);
 
 
-    // void compareTranslatedFileBefore
 
 }

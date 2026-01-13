@@ -54,15 +54,15 @@ public class ValueDifferenceVO<T>{
     }
 
 
-    public List<T> getValuesOnlyInSecond() {
+    public List<T> getValueOnlyInSecond() {
         return valueOnlyInSecond;
     }
 
-    public void setValuesOnlyInSecond(List<T> valueOnlyInSecond) {
+    public void setValueOnlyInSecond(List<T> valueOnlyInSecond) {
         this.valueOnlyInSecond = valueOnlyInSecond;
     }
 
-    public void addValuesOnlyInSecond(List<T> valueOnlyInSecond) {
+    public void addValueOnlyInSecond(List<T> valueOnlyInSecond) {
         this.valueOnlyInSecond.addAll(valueOnlyInSecond);
     }
 

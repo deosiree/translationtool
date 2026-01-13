@@ -4,9 +4,12 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.*;
+import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,8 +51,6 @@ public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImp
     boolean checkBeforeAddSingleEntry(EntryInfoEntity entryInfoEntity,String department);
 
     EntryInfoEntity addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request);
-
-    EntryInfoEntity copyEntry(EntryInfoEntity entryInfoEntity,HttpServletRequest request);
 
     TranslateEntities translate(String name, String type,String visualRange);
 

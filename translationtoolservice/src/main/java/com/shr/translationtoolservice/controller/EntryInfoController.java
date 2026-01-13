@@ -8,6 +8,7 @@ import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
+import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JSONUtils;
@@ -302,7 +303,7 @@ public class EntryInfoController extends BaseController {
             }
             Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
             Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
-            UpdateTranslationByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(multipartFile, httpServletRequest.getHeader("token"),transType,toJson);
+            UpdateTranslationByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(FileInputStreamEntitiy.convertFrom(multipartFile), httpServletRequest.getHeader("token"),transType,toJson);
             
             HttpResponse<UpdateTranslationByFileVO> responseResult = new HttpResponse<>();
             responseResult.setData(updateTranslationByFileVO);
@@ -1120,7 +1121,7 @@ public class EntryInfoController extends BaseController {
          * 
          */
         try {
-            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnExportedFile(multipartFile,replicatedTargetAttributes);
+            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(FileInputStreamEntitiy.convertFrom(multipartFile),replicatedTargetAttributes);
             return ok(entryInfoGroupVO);    
         } catch (Exception e) {
             // TODO: handle exception
@@ -1161,10 +1162,46 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,HttpServletRequest request){
         try {
-            return ok(entryInfoService.parseFileToEntryInfos(multipartFile, null));
+            return ok(entryInfoService.parseFileToEntryInfos(FileInputStreamEntitiy.convertFrom(multipartFile), null));
         } catch (Exception e) {
             log.error("解析文件成词条出现异常", e);
             return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/compareEntryIDsBetweenFiles")
+    @ApiOperation("比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失")
+    @CrossOrigin
+    public HttpResponse<ValueDifferenceVO<EntryInfoEntity>> compareEntryIDsBetweenFiles(@RequestParam("before") MultipartFile beforeTranslatedFile,@RequestParam("after") MultipartFile translatedFile){
+        try {
+            ValueDifferenceVO<EntryInfoEntity> comparedResult = entryInfoService.compareEntryIDsBetweenFiles(FileInputStreamEntitiy.convertFrom(beforeTranslatedFile),FileInputStreamEntitiy.convertFrom(translatedFile));
+            // List<EntryInfoEntity> missingEntryInfos = comparedResult.getValueOnlyInFirst();   // 翻译的文件里面没有(词条没有送翻的)
+            // if(missingEntryInfos != null && !missingEntryInfos.isEmpty()){
+
+            // }
+            // List<EntryInfoEntity> entryInfosOnlyExistInTransFile = comparedResult.getValuesOnlyInSecond(); // 翻译文件里面有, 但是送翻前的文件中存在
+            // if(entryInfosOnlyExistInTransFile != null && !entryInfosOnlyExistInTransFile.isEmpty()){
+
+            // }
+            return ok(comparedResult);
+        } catch (Exception e) {
+            log.error("文件比对出现异常", e);
+            return error(null, String.format("文件比对出现异常, 请检查提供的两个文件, %s", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/compareTranslatedFileWithIDRelation")
+    @ApiOperation("比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失")
+    @CrossOrigin
+    public HttpResponse<Collection<ExceptionVO>> compareTranslatedFileWithIDRelation(@RequestParam("before") MultipartFile file,@RequestParam("relationFile") MultipartFile idRelationFile){
+        try {
+            Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
+            Collection<ExceptionVO> exceptionVOs = entryInfoService.compareTranslatedFileWithIDRelation(FileInputStreamEntitiy.convertFrom(file),JSONUtils.parseToJson(idRelationFile.getInputStream(),StandardCharsets.UTF_8.name(),mapType));
+
+            return ok(exceptionVOs);
+        } catch (Exception e) {
+            log.error("文件比对出现异常", e);
+            return error(null, String.format("文件比对出现异常, 请检查提供的两个文件, %s", e.getMessage()));
         }
     }
 

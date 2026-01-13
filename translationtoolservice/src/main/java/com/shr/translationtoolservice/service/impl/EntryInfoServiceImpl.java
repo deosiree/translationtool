@@ -840,8 +840,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
-    public List<EntryInfoEntity> importEntitiesFromFile(MultipartFile multipartFile,String taskID,String departmentType,HttpServletRequest request){
-        String fileName = multipartFile.getOriginalFilename();
+    @Override
+    public List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntitiy fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request){
+        String fileName = fileInputStreamEntitiy.getFileName();
         List<EntryInfoEntity> entryInfoEntities = null;
         try {
             String token = request.getHeader("token");
@@ -860,22 +861,22 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         // entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
                         // zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                     }else if(modeType == EntryImportFileTypeVO.OLD_FILE_VERSION){
-                        List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, multipartFile.getInputStream(), fileName);
+                        List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, fileInputStreamEntitiy.getInputStream(), fileName);
                         entryInfoEntities = new ArrayList<>();
                         zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
                     }else if(modeType == EntryImportFileTypeVO.COMMON_VERSION){
-                        entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                        entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName);
                         zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                     }else{
                         throw new Exception("当前不支持该文件类型: " + request.getParameter("modeType"));
                     }
                 }else{
-                    entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                    entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName);
                     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }
 
             }else if(fileName.endsWith(".csv")){
-                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), fileName, null);
+                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, null);
                 if(departmentType.equals("装置开发部")){
                     zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }else{
@@ -888,9 +889,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         throw new Exception("请确定xml采用何种模板");
                     }
                     if(template.equals("可视化词条")){
-                        entryInfoEntities = XMLUtils.parseXML(multipartFile.getInputStream(),XMLUtils.XMLHandlerForEquipment.class);
+                        entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(),XMLUtils.XMLHandlerForEquipment.class);
                     }else if(template.equals("装置辞典")){
-                        entryInfoEntities = XMLUtils.parseXML(multipartFile.getInputStream(), XMLUtils.XMLHandlerForEquipment2.class);
+                        entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(), XMLUtils.XMLHandlerForEquipment2.class);
                     }else{
                         throw new Exception("当前不支持该版本的xml导入: " + template);
                     }
@@ -1751,14 +1752,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> importCommonExcle(MultipartFile multipartFile, String taskID) {
-        String name = multipartFile.getOriginalFilename();
+    public List<EntryInfoEntity> importCommonExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String taskID) {
+        String name = fileInputStreamEntitiy.getFileName();
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
         //读取excle转换的实体
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         try {
 
-            entryInfoEntities = excelUtils.readExcelToEntity(taskEntityByTaskID.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(taskEntityByTaskID.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(),name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1850,14 +1851,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional
     @Override
-    public UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token, String transType) {
+    public UpdateTranslationByFileVO importTransExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String token, String transType) {
 
 
         
         try {
             UpdateTranslationByFileVO updateTranslationByFileVO = new UpdateTranslationByFileVO();
             String department = JWTTokenUtils.getDepartment(token);
-            Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
+            Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null);
             Map<String,Object> kwargs = new HashMap<>();
             kwargs.put("department", department);
             Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryEntitys, transType, kwargs);
@@ -1873,7 +1874,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional
     @Override
-    public UpdateTranslationByFileVO importTransExcle(MultipartFile multipartFile, String token, String transType,Map<String, Set<String>> idRelationMap){
+    public UpdateTranslationByFileVO importTransExcle(FileInputStreamEntitiy fileInputStreamEntitiy,  String token, String transType,Map<String, Set<String>> idRelationMap){
         
         UpdateTranslationByFileVO updateTranslationByFileVO = new UpdateTranslationByFileVO();
 
@@ -1883,7 +1884,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             Map<String,Object> kwargs = new HashMap<>();
             kwargs.put("department", department);
             /* 解析文件, 生成词条 */
-            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename(), null);
+            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null);
             /* 先把文件中对应的词条的翻译更新掉 */
             Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosParsedOnFile, transType, kwargs);
             
@@ -2249,11 +2250,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile, String taskID) {
+    public List<EntryInfoEntity> workImportExcleTrans(FileInputStreamEntitiy fileInputStreamEntitiy, String taskID) {
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
         try {
-            entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName());
             sortEmptyTrans(entryInfoEntities,taskInfoEntity.getTranslateType());
 
        /* TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
@@ -3713,47 +3714,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return entryInfoEntity;
     }
 
-    @Override
-    public EntryInfoEntity copyEntry(EntryInfoEntity entryInfoEntity,HttpServletRequest request){
-        String id = commonUtils.getUUID();
-        entryInfoEntity.setId(id);
-        String token = request.getHeader("token");
-        String userName = JWTTokenUtils.getUserName(token);
-        String department = JWTTokenUtils.getDepartment(token);
-        Date date = new Date(System.currentTimeMillis());
-        entryInfoEntity.setUpdate(userName);
-        entryInfoEntity.setUpdateTime(date);
-        entryInfoEntity.setEntryState(0);
-        entryInfoEntity.setIsDelete(0);
-        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
-            setTranslate(entryInfoEntity, ConstantInterface.CHINESE, department);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-            setTranslate(entryInfoEntity, ConstantInterface.ENGLISH, department);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-            setTranslate(entryInfoEntity, ConstantInterface.SPANISH, department);
-        }
-        if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-            setTranslate(entryInfoEntity, ConstantInterface.FRENCH, department);
-        } 
-        if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-            setTranslate(entryInfoEntity, ConstantInterface.RUSSIAN, department);
-        }
-        ProductRelationEntity productRelationEntity = new ProductRelationEntity();
-        productRelationEntity.setId(commonUtils.getUUID());
-        productRelationEntity.setTaskId(entryInfoEntity.getTaskId());
-        productRelationEntity.setVersionId(entryInfoEntity.getVersionID());
-        productRelationEntity.setProductId(entryInfoEntity.getProductID());
-        productRelationEntity.setEntryId(entryInfoEntity.getId());
-        productRelationMapper.insert(productRelationEntity);
-
-        int insert = entryInfoMapper.insert(entryInfoEntity);
-        if (insert != 1) {
-            return null;
-        }
-        return entryInfoEntity;
-    }
 
     private EntryInfoEntity upgradeEnrty(EntryInfoEntity entryInfoEntity, HttpServletRequest request) {
         int lastVersionNum = entryInfoMapper.getLastVersionNum(entryInfoEntity);
@@ -3973,9 +3933,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public EntryInfoGroupVO makeGroupForEntryInfosOnExportedFile(MultipartFile multipartFile,Collection<String> replicatedTargetAttributes) {
+    public EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntitiy multipartFile,Collection<String> replicatedTargetAttributes) {
 
-        String originalFilename = multipartFile.getOriginalFilename();
+        String originalFilename = multipartFile.getFileName();
         Collection<EntryInfoEntity> entryInfoEntities = null;
         try {
             entryInfoEntities = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), originalFilename, null);
@@ -4036,10 +3996,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public Collection<EntryInfoEntity> parseFileToEntryInfos(MultipartFile multipartFile, Map<String,Object> kwargs) {
+    public Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntitiy multipartFile, Map<String,Object> kwargs) {
         // TODO Auto-generated method stub
         try {
-            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getOriginalFilename(),kwargs);
+            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getFileName(),kwargs);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             throw new RuntimeException(e) ;
@@ -4047,7 +4007,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(MultipartFile file1, MultipartFile file2,Collection<String> targetAttributes) {
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntitiy file1, FileInputStreamEntitiy file2,Collection<String> targetAttributes) {
         // TODO Auto-generated method stub
         Collection<EntryInfoEntity> entryCollection1 = this.parseFileToEntryInfos(file1, null);
         Collection<EntryInfoEntity> entryCollection2 = this.parseFileToEntryInfos(file2, null);
@@ -4062,25 +4022,85 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         KeyDifference<GeneralReplicatedVOType, EntryInfoEntity> compareResult = entryUtils.compareEntryInfos(entryInfosGroupMap1, entryInfosGroupMap2);
         // 根据差异信息封装成对象返回
         ValueDifferenceVO<EntryInfoEntity> valueDifferenceVO = new ValueDifferenceVO<>();
-        compareResult.getOnlyInFirstMapKeys().forEach((key)->{valueDifferenceVO.addValuesOnlyInFirst(entryInfosGroupMap1.get(key));});
-        compareResult.getOnlyInSecondMapKeys().forEach((key)->{valueDifferenceVO.addValuesOnlyInSecond(entryInfosGroupMap2.get(key));});
-        compareResult.getAllExistButValueDifferentKeys().forEach((key)->{
-            ValueDifferenceVO.ListDiff<EntryInfoEntity> listDiff = new ValueDifferenceVO.ListDiff<>();
-            listDiff.setFirstList(entryInfosGroupMap1.get(key));
-            listDiff.setSecondList(entryInfosGroupMap2.get(key));
-            valueDifferenceVO.addDifferentBetweenEachOther(listDiff);
-        });
+        // 1. 处理仅file1存在的各组词条
+        Set<GeneralReplicatedVOType> refOnlyInFirstMapKeys = compareResult.getOnlyInFirstMapKeys();
+        if(refOnlyInFirstMapKeys != null)
+            refOnlyInFirstMapKeys.forEach((key)->{valueDifferenceVO.addValuesOnlyInFirst(entryInfosGroupMap1.get(key));});
+        // 2. 处理仅file2存在的各组词条
+        Set<GeneralReplicatedVOType> refOnlyInSecondMapKeys = compareResult.getOnlyInSecondMapKeys();
+        if(refOnlyInSecondMapKeys != null)
+            refOnlyInSecondMapKeys.forEach((key)->{valueDifferenceVO.addValueOnlyInSecond(entryInfosGroupMap2.get(key));});
+        // 2. 处理file1,file2都存在的各组词条
+        Set<GeneralReplicatedVOType> refAllExistButValueDifferentKeys = compareResult.getAllExistButValueDifferentKeys();
+        if(refAllExistButValueDifferentKeys != null)
+            refAllExistButValueDifferentKeys.forEach((key)->{
+                ValueDifferenceVO.ListDiff<EntryInfoEntity> listDiff = new ValueDifferenceVO.ListDiff<>();
+                listDiff.setFirstList(entryInfosGroupMap1.get(key));
+                listDiff.setSecondList(entryInfosGroupMap2.get(key));
+                valueDifferenceVO.addDifferentBetweenEachOther(listDiff);
+            });
 
         return valueDifferenceVO;
 
     }
 
     @Override
-    public ValueDifferenceVO<EntryInfoEntity> compareTranslatedFileBeforeAfter(MultipartFile translatedFile, MultipartFile beforeTranslatedFile) {
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntitiy translatedFile,FileInputStreamEntitiy beforeTranslatedFile) {
         // TODO Auto-generated method stub
         Collection<String> targetAttributes = new HashSet<>();
         targetAttributes.add("id");
         return this.compareEntryInfosBetweenFiles(translatedFile, beforeTranslatedFile, targetAttributes);
+    }
+
+
+    @Override
+    public Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntitiy translatedFile,Map<String, Set<String>> idRelationMap) {
+        if(translatedFile == null){
+            throw new RuntimeException("没有提供词条文件");
+        }
+        Collection<EntryInfoEntity> entryInfoEntities = this.parseFileToEntryInfos(translatedFile, null);
+        if(entryInfoEntities == null){
+            throw new RuntimeException("解析文件中的词条失败, 请检查文件");
+        }
+        /*
+            1. 检查idRelationMap中的key对应的id是否存在这个集合中
+            2. 检查entryInfo中是否存在id在idRelationMap中不存在
+        */
+        List<String> fileEntryIDs = entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList());
+        return null;
+
+        
+        // Map<String,List<String>> convertedIDRelationMap = new HashMap<>();  // {parentID,{parentID}}
+        // idRelationMap.forEach((key,ids)->{
+        //     List<String> parentChildIDList = new ArrayList<>();
+        //     parentChildIDList.add(key);
+        //     parentChildIDList.addAll(ids);
+        //     convertedIDRelationMap.put(key, parentChildIDList);
+        // });
+
+        // KeyDifference<String, String> compareDifference = commonUtils.compareMap(entryIDsMap, convertedIDRelationMap);
+        // Collection<ExceptionVO> exceptionVOs = new ArrayList<>();
+        // // 处理词条中存在的id，但id关联表中不存在的id
+        // Set<String> refOnlyInEntryInfoCollectionIDs = compareDifference.getOnlyInFirstMapKeys();
+        // if(refOnlyInEntryInfoCollectionIDs != null && !refOnlyInEntryInfoCollectionIDs.isEmpty()){
+        //     ExceptionVO notExistInMapVO = new ExceptionVO();
+        //     notExistInMapVO.setMessage(String.format("以下词条: \"%s\"不在id关联表中", refOnlyInEntryInfoCollectionIDs.toString()));
+        //     notExistInMapVO.setResolvedMethodMessage("检查id关联表与这组词条是否匹配, 并检查相关文件是否被篡改");
+        //     exceptionVOs.add(notExistInMapVO);
+        // }
+
+        // // 处理词条中不存在的id，但id关联表中存在的
+        // Set<String> refOnlyInSecondMapKeys = compareDifference.getOnlyInSecondMapKeys();
+        // if(refOnlyInSecondMapKeys != null && !refOnlyInSecondMapKeys.isEmpty()){
+        //     ExceptionVO notExistInEntryInfosVO = new ExceptionVO();
+        //     notExistInEntryInfosVO.setMessage(String.format("以下关联表中的词条id: \\\"%s\\\"不在这组词条中", refOnlyInSecondMapKeys.toString()));
+        //     notExistInEntryInfosVO.setResolvedMethodMessage("检查id关联表与这组词条是否匹配, 并检查相关文件是否被篡改");
+        //     exceptionVOs.add(notExistInEntryInfosVO);
+        // }
+        
+        // 
+
+        // return exceptionVOs;
     }
 
 
