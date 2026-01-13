@@ -5,7 +5,6 @@ import com.shr.translationtoolservice.dao.UserProductMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryClassify;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
-import com.shr.translationtoolservice.entity.Menu;
 import com.shr.translationtoolservice.entity.ProductRelationEntity;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.shr.translationtoolservice.service.EntryClassifyService;
@@ -17,24 +16,14 @@ import com.shr.translationtoolservice.dao.TaskInfoMapper;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 
-import cn.hutool.db.transaction.TransactionLevel;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.util.CollectionUtils;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.function.Predicate;

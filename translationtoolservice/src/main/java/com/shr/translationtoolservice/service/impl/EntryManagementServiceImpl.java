@@ -1,31 +1,23 @@
 package com.shr.translationtoolservice.service.impl;
 
-import cn.hutool.poi.excel.ExcelUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.service.EntryCommonEntityService;
-import com.shr.translationtoolservice.service.EntryProductEntityService;
-import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.service.EntryManagementService;
 import com.shr.translationtoolservice.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.platform.commons.util.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -39,23 +31,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EntryManagementServiceImpl implements EntryManagementService {
     @Autowired
-    private TranslateUtils translate;
-    @Autowired
-    private EntryProductEntityMapper entryProductEntityMapper;
-    @Autowired
-    private EntryProjectEntityMapper entryProjectEntityMapper;
-    @Autowired
     private EntryCommonEntityMapper entryCommonEntityMapper;
-    @Autowired
-    private EntryProductEntityService entryProductEntityService;
-    @Autowired
-    private EntryCommonEntityService entryCommonEntityService;
     @Autowired
     private EntryMapper entryMapper;
     @Autowired
     private EntryOperateMapper entryOperateMapper;
-    @Autowired
-    private EntryVersionMapper entryVersionMapper;
     @Autowired
     private IndexMapper indexMapper;
     @Autowired
