@@ -543,6 +543,12 @@ export default {
     },
     // 关闭模态框后
     afterClose() {
+      this.exportModal = {
+        exportType: null,
+        field: [],
+        local_desc: null,
+        xml_name: "sysdict",
+      };
       this.$emit("afterClose");
     },
   },

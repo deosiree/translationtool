@@ -1,8 +1,8 @@
 <template>
   <a-button type="primary" @click="importEntry" :size="size">{{ buttonTitle }}</a-button>
 
-  <CustomModal :visible="importVisible" :okLoading="importLoading" :modalTitle="buttonTitle" @handleClose="importClose" @handleOK="importOK"
-    @afterClose="importAfterClose">
+  <CustomModal :visible="importVisible" :okLoading="importLoading" :modalTitle="buttonTitle" @handleClose="importClose"
+    @handleOK="importOK" @afterClose="importAfterClose">
     <div class="content">
       <a-form ref="importForm" :model="importModal">
         <a-form-item label="文件类型" name="importType" :rules="[{ required: true, message: '请选择!' }]">
@@ -11,20 +11,21 @@
         </a-form-item>
         <a-form-item label="语种" name="language" :rules="[{ required: true, message: '请选择!' }]">
           <a-select mode="multiple" v-model:value="importModal.language" placeholder="请选择语种" :options='translateTypes'
-            :fieldNames="{label:'name',value:'name'}" allowClear>
+            :fieldNames="{ label: 'name', value: 'name' }" allowClear>
           </a-select>
         </a-form-item>
-        <a-form-item label="文件" name="file" :rules="[{required: true, validator: this.checkFile() }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList" @change="handleChange"
-            @remove="removeFile" :disabled="!importModal.importType||(!this.importModal.language || this.importModal.language.length == 0)">
+        <a-form-item label="文件" name="file" :rules="[{ required: true, validator: this.checkFile() }]">
+          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="fileList"
+            @change="handleChange" @remove="removeFile"
+            :disabled="!importModal.importType || (!this.importModal.language || this.importModal.language.length == 0)">
             <a-button type="primary" size="small" @click="getAccept">选择</a-button>
           </a-upload>
         </a-form-item>
       </a-form>
     </div>
     <template #leftBottomBtn>
-      <ExportButton v-if="exportDataSource.length > 0" :dataSource="exportDataSource" :fieldOptions_="fieldOptions" :defaultStatusCheck="false"
-        size="middle" buttonTitle="导出更新失败的词条文件" @afterClose="exportClose" />
+      <ExportButton v-if="exportDataSource.length > 0" :dataSource="exportDataSource" :fieldOptions_="fieldOptions"
+        :defaultStatusCheck="false" size="middle" buttonTitle="导出更新失败的词条文件" @afterClose="exportClose" />
     </template>
   </CustomModal>
 </template>
@@ -34,6 +35,7 @@ import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import { entryImportExcle } from "@/http/api/entryManage";
+import { entryBatchImportExcel } from "@/utils/handleExcel";
 import { setModalAriaHidden } from "@/utils/commonUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 import { cloneDeep } from "lodash-es";
@@ -104,12 +106,34 @@ export default {
         .validate()
         .then(async () => {
           this.importLoading = true;
+          const formData = new FormData();
+          formData.append("file", this.importModal.importFile);
+
+          const rls = await entryBatchImportExcel(this.importModal.language, formData);
+
+          this.$emit("importSuccess");
+          if (!rls.error) {
+            this.importVisible = false;
+          }
+        })
+        .catch((err) => {
+          // console.log("未选择文件", err, this.importModal.language);
+          message.error("未选择文件", err);
+        })
+        .finally(() => {
+          this.importLoading = false;
+        });
+    },
+    importOK_callback() {
+      if (!this.$refs.importForm) return;
+      this.$refs.importForm
+        .validate()
+        .then(async () => {
+          this.importLoading = true;
           let exportDataMap = new Map(
             this.exportDataSource.map((item) => [item.id, item])
           ); // 不同语种触发更新失败时，需要记录上一次的失败词条，以便后续补充
           const formData = new FormData();
-          const promises = [];
-          const msg = { success: [], failed: new Map() };
           formData.append("file", this.importModal.importFile);
           // console.log("formData", formData);
           // console.log("file", this.importModal.importFile);
@@ -119,72 +143,69 @@ export default {
           // for (const [key, value] of formData.entries()) {
           //   console.log(`${key}: ${value}`);
           // }
-          const entryImportFn = (lang, formData) => {
-            // 每种翻译语种的导入
+
+          // 每种翻译语种的导入
+          const msg = { success: [], failed: new Map() };
+          for (const lang of this.importModal.language) {
+            console.log("请求：", lang)
             const params = {
               transType: lang,
               // importType: this.importModal.importType,// 后端不需要这个参数
             };
-            return entryImportExcle(params, formData)
-              .then((res) => {
-                if (res.type != "ERROR") {
-                  msg.success.push(lang);
-                } else {
-                  if (!msg.failed.has(res.message)) {
-                    msg.failed.set(res.message, []);
-                  }
-                  msg.failed.get(res.message).push(lang);
-                  res.data.list.forEach((item) => {
-                    if (!exportDataMap.has(item.id)) {
-                      exportDataMap.set(item.id, item);
-                    }
-                  });
-                }
-              })
-              .catch((err) => {
-                console.log("导入失败原因", err);
-                let errRes = "";
-                if (typeof err === "string") {
-                  errRes = err;
-                } else {
-                  errRes = "请使用在词条管理中导出的文件进行导入";
-                }
-                if (!msg.failed.has(errRes)) {
-                  msg.failed.set(errRes, []);
-                }
-                msg.failed.get(errRes).push(lang);
-              })
-              .finally(() => {
-                this.exportDataSource = Array.from(exportDataMap.values());
-                // console.log("更新失败的词条", this.exportDataSource);
-              });
-          };
 
-          for (const lang of this.importModal.language) {
-            promises.push(entryImportFn(lang, formData));
-          }
-          await Promise.allSettled(promises).then(() => {
-            this.$emit("importSuccess");
-            if (msg.success.length > 0) {
-              message.success(msg.success.join("，") + "导入成功！", 3);
-              // console.log(msg.success.join(","), "!");
-            }
-            if (msg.failed.size > 0) {
-              function formatMapToString(mapObj) {
-                const result = [];
-                mapObj.forEach((valueArray, key) => {
-                  const valueStr = valueArray.join(",");
-                  result.push(`${key}：${valueStr}`);
+            try {
+              const res = await entryImportExcle(params, formData);
+              if (res.type != "ERROR") {
+                msg.success.push(lang);
+              } else {
+                if (!msg.failed.has(res.message)) {
+                  msg.failed.set(res.message, []);
+                }
+                msg.failed.get(res.message).push(lang);
+                res.data.list.forEach((item) => {
+                  if (!exportDataMap.has(item.id)) {
+                    exportDataMap.set(item.id, item);
+                  }
                 });
-                return result.join("；");
               }
-              const failedStr = "导入失败！" + formatMapToString(msg.failed);
-              // console.log(failedStr,msg.failed);
-              message.error(failedStr, 3);
-            } else {
-              this.importVisible = false;
+            } catch (err) {
+              console.log("导入失败原因", err);
+              let errRes = "";
+              if (typeof err === "string") {
+                errRes = err;
+              } else {
+                errRes = "请使用在词条管理中导出的文件进行导入";
+              }
+              if (!msg.failed.has(errRes)) {
+                msg.failed.set(errRes, []);
+              }
+              msg.failed.get(errRes).push(lang);
+            } finally {
+              this.exportDataSource = Array.from(exportDataMap.values());
             }
-          });
+          }
+
+
+          this.$emit("importSuccess");
+          if (msg.success.length > 0) {
+            message.success(msg.success.join("，") + "导入成功！", 3);
+            // console.log(msg.success.join(","), "!");
+          }
+          if (msg.failed.size > 0) {
+            function formatMapToString(mapObj) {
+              const result = [];
+              mapObj.forEach((valueArray, key) => {
+                const valueStr = valueArray.join(",");
+                result.push(`${key}：${valueStr}`);
+              });
+              return result.join("；");
+            }
+            const failedStr = "导入失败！" + formatMapToString(msg.failed);
+            // console.log(failedStr,msg.failed);
+            message.error(failedStr, 3);
+          } else {
+            this.importVisible = false;
+          }
         })
         .catch((err) => {
           // console.log("未选择文件", err, this.importModal.language);

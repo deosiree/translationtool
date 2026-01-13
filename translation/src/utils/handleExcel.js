@@ -4,7 +4,6 @@ import { entryImportExcle } from "@/http/api/entryManage";
 export async function entryBatchImportExcel(translateTypes, formData) {
     try {
         console.log("参数", translateTypes, formData)
-        const promises = [];
         const msg = { success: [], failed: new Map() };
 
         // 每种翻译语种的导入
@@ -12,31 +11,22 @@ export async function entryBatchImportExcel(translateTypes, formData) {
             const params = {
                 transType: lang,
             };
-            const promise = entryImportExcle(params, formData);
-            promises.push(promise);
-        }
-
-        // 异步后处理导入结果
-        const results = await Promise.allSettled(promises);
-        results.forEach((result, index) => {
-            const transType = translateTypes[index];
-            console.log("result", result, transType)
-            if (result.status === "fulfilled") {
-                msg.success.push(transType);
-            } else {
-                console.log(`${transType}导入失败原因`, result);
-                // 增加错误语言
-                const errMsg = result.reason?.message || result.reason?.data?.message || "未知错误";
+            try {
+                const result = await entryImportExcle(params, formData);
+                msg.success.push(lang);
+            } catch (error) {
+                console.log(`${lang}导入失败原因`, error);
+                const errMsg = error?.message || error?.data?.message || "未知错误";
                 if (!msg.failed.has(errMsg)) {
                     msg.failed.set(errMsg, []);
                 }
-                msg.failed.get(errMsg).push(transType);
+                msg.failed.get(errMsg).push(lang);
                 // 处理错误数据
                 // 后续：
                 //      后端增加属性错误词条list，错误原因list
                 //      前端生成对应语言的错误词条文件，包含错误词条_语言.csv与错误原因_语言.json
             }
-        })
+        }
 
         if (msg.success.length > 0) {
             notification.success({

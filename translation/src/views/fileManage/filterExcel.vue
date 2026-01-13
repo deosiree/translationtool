@@ -372,7 +372,7 @@ export default {
       checkboxList: entryParams.checkboxList, // 展示列可选的值
       checkedColumn: cachedDisplayColumn
         ? JSON.parse(cachedDisplayColumn).displayColumn.split(",")
-        : [], // 展示列已选的值
+        : entryParams.defaultCheckedColumn, // 展示列已选的值
       dataSource: [],
       selectedRowKeys: [],
       selectedRows: [],

@@ -411,6 +411,7 @@ export const entryParams = {
   exportFields: entry_exportFields,
   searchConditionList: entry_searchConditionList,
   checkedSearchCondition: entry_checkedSearchCondition,
+  defaultCheckedColumn: ['index', 'entry', 'comment', 'english', 'russian', 'spanish', 'french'],
 }
 
 // 3.glossaryParams如下：

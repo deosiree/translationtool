@@ -1761,6 +1761,9 @@ export default {
         pageIndex: -1,
         pageSize: -1,
       };
+      if (this.accurSearch && this.accurSearch.length > 0) {
+        params.accurate = this.accurSearch;
+      }
       this.loading = true;
       getEntryByClassfy(params, data)
         .then((res) => {

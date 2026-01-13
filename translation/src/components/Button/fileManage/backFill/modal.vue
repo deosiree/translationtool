@@ -18,11 +18,11 @@
                         </a-button>
                     </a-upload>
                 </a-form-item>
-                <a-form-item label="IP映射" name="ipMappingFile"
-                    :rules="[{ required: true, validator: validateIpMappingFile }]">
-                    <a-upload name="file" :beforeUpload="beforeUpload" :accept="ipMappingAccept" :max-count="1"
-                        :fileList="formModel.ipMappingFileList" @change="handleIpMappingUpload"
-                        @remove="removeIpMappingFile">
+                <a-form-item label="词条映射" name="relationFile"
+                    :rules="[{ required: true, validator: validateIdMappingFile }]">
+                    <a-upload name="file" :beforeUpload="beforeUpload" :accept="idMappingAccept" :max-count="1"
+                        :fileList="formModel.relationFileList" @change="handleIdMappingUpload"
+                        @remove="removeIdMappingFile">
                         <a-button type="primary" size="small">
                             选择
                         </a-button>
@@ -57,14 +57,14 @@ export default {
     data() {
         return {
             formModel: {
-                ipMappingFile: null,
+                relationFile: null,
                 backFillFile: null,
                 language: [],
             },
-            ipMappingFileList: [],
+            relationFileList: [],
             backFillFileList: [],
             loading: false,
-            ipMappingAccept: ".json",
+            idMappingAccept: ".json",
             backFillAccept: ".csv",
         };
     },
@@ -76,12 +76,12 @@ export default {
         },
     },
     methods: {
-        handleIpMappingUpload(info) {
-            this.ipMappingFileList = info.fileList;
+        handleIdMappingUpload(info) {
+            this.relationFileList = info.fileList;
             if (info.fileList.length === 0) {
-                this.formModel.ipMappingFile = null;
+                this.formModel.relationFile = null;
             } else {
-                this.formModel.ipMappingFile = info.file;
+                this.formModel.relationFile = info.file;
             }
         },
 
@@ -98,9 +98,9 @@ export default {
             return false;
         },
 
-        removeIpMappingFile() {
-            this.formModel.ipMappingFile = null;
-            this.ipMappingFileList = [];
+        removeIdMappingFile() {
+            this.formModel.relationFile = null;
+            this.relationFileList = [];
             return true;
         },
 
@@ -110,11 +110,11 @@ export default {
             return true;
         },
 
-        validateIpMappingFile() {
-            if (!this.formModel.ipMappingFile) {
-                return Promise.reject("请选择 ip映射.json 文件！");
+        validateIdMappingFile() {
+            if (!this.formModel.relationFile) {
+                return Promise.reject("请选择 词条映射.json 文件！");
             }
-            if (!this.formModel.ipMappingFile.name.endsWith(".json")) {
+            if (!this.formModel.relationFile.name.endsWith(".json")) {
                 return Promise.reject("请选择 .json 格式的文件！");
             }
             return Promise.resolve();
@@ -136,7 +136,7 @@ export default {
             this.$refs.backFillForm
                 .validate()
                 .then(async () => {
-                    if (!this.formModel.ipMappingFile || !this.formModel.backFillFile || !this.formModel.language.length) {
+                    if (!this.formModel.relationFile || !this.formModel.backFillFile || !this.formModel.language.length) {
                         message.error("请选择语种、回填文件与映射文件！");
                         return;
                     }
@@ -144,7 +144,7 @@ export default {
                     this.$emit("handleOK");
 
                     const formData = new FormData();
-                    formData.append("ipMappingFile", this.formModel.ipMappingFile);
+                    formData.append("relationFile", this.formModel.relationFile);
                     formData.append("file", this.formModel.backFillFile);
 
                     this.loading = true;
@@ -185,11 +185,11 @@ export default {
         },
         resetForm() {
             this.formModel = {
-                ipMappingFile: null,
+                relationFile: null,
                 backFillFile: null,
                 language: [],
             };
-            this.ipMappingFileList = [];
+            this.relationFileList = [];
             this.backFillFileList = [];
             this.loading = false;
             if (this.$refs.backFillForm) {
