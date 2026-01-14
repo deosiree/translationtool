@@ -38,4 +38,9 @@ pnpm-debug.log*
 *.iter5
 *.model
 
+# 代码覆盖率报告
+coverage/
+coverage-*
+coverage\.json
+
 .cursor
