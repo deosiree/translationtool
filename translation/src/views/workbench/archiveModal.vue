@@ -130,14 +130,13 @@ import commonParam, { workbenchParams } from "@/utils/commonParam.js";
 import {
   getColPref,
   changeColumn,
-  getCurrentFormattedTime,
   handleSearch,
   handleReset,
   clearFilters,
   handleTableChange,
-  selectAllEntry,
-  clearAllEntry,
-} from "@/utils/commonUtils";
+} from "@/utils/tableUtils";
+import { getCurrentFormattedTime } from "@/utils/dateUtils";
+import { selectAllEntry, clearAllEntry } from "@/utils/selectionUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {

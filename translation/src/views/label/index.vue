@@ -84,7 +84,7 @@ import {
 } from "@/http/api/label";
 import Pagination from "@/components/page/pagination.vue";
 import SearchForm from "@/components/search/searchForm.vue";
-import { setTableHeight } from "@/utils/commonUtils";
+import { setTableHeight } from "@/utils/tableUtils";
 export default {
   components: {
     PlusOutlined,

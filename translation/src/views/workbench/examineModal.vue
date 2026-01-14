@@ -225,15 +225,11 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
-import {
-  interpretation2value,
-  getColPref,
-  changeColumn,
-  setModalAriaHidden,
-  filter_arr,
-  filter_arr_keys,
-  byteLength,
-} from "@/utils/commonUtils";
+import { getColPref, changeColumn } from "@/utils/tableUtils";
+import { interpretation2value } from "@/utils/translationUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
+import { byteLength } from "@/utils/validationUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {

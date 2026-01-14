@@ -57,10 +57,8 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
-import {
-  setModalAriaHidden,
-  getCurrentStringTime,
-} from "@/utils/commonUtils.js";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { getCurrentStringTime } from "@/utils/dateUtils";
 export default {
   components: {
     CustomModal,

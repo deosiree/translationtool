@@ -151,7 +151,8 @@ import {
 } from "@/http/api/i18Server";
 import { getDictory, getI18nAdress } from "@/http/api/workbench";
 import { v4 as uuidv4 } from "uuid";
-import { setTableHeight,setModalAriaHidden } from "@/utils/commonUtils";
+import { setTableHeight } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {
     SearchBox,

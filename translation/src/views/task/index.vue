@@ -222,7 +222,7 @@ import TaskStateBadge from "@/components/stateBadge/taskStateBadge.vue";
 import ProductModal from "@/views/task/productModal.vue";
 import VersionModal from "@/views/task/versionModal.vue";
 // import commen from "@/views/entry/common.js";
-import { getCurrentFormattedTime } from "@/utils/commonUtils.js";
+import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,
@@ -246,7 +246,8 @@ import { getVersion } from "@/http/api/productVersion";
 import { getRoleUserByDepartment, getDepartments } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
 import { getClassTree } from "@/http/api/entryManage";
-import { setTableHeight, setModalAriaHidden } from "@/utils/commonUtils";
+import { setTableHeight } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {

@@ -43,7 +43,7 @@ import {
     importExcle,
     bachAddEntry
 } from "@/http/api/entry";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
     components:{
         DownloadOutlined,

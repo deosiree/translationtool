@@ -49,7 +49,8 @@
 import Modal from "@/components/modal/index.vue";
 import { message, notification } from "ant-design-vue";
 import { getClassTree, copyEntryClassify } from "@/http/api/entryManage";
-import { getPathByKey, setModalAriaHidden } from "@/utils/commonUtils";
+import { getPathByKey } from "@/utils/dataStructureUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import commonParam from "@/utils/commonParam";
 // import backgroundTaskManager from "@/utils/backgroundTask";
 import { cloneDeep } from "lodash-es";

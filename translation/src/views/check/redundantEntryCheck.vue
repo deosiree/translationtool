@@ -148,18 +148,22 @@ import {
 import commonParam, { redundantTableParams } from "@/utils/commonParam.js";
 import {
   clickInput,
+  setModalAriaHidden,
+} from "@/utils/domUtils";
+import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
+  getColPref,
+  changeColumn,
+} from "@/utils/tableUtils";
+import {
   pageChange,
   onSelectChange,
   onSelect,
   onSelectAll,
   clearAllEntry,
-  getColPref,
-  changeColumn,
-  setModalAriaHidden,
-} from "@/utils/commonUtils"; // 引入工具函数
+} from "@/utils/selectionUtils"; // 引入工具函数
 
 export default {
   components: {

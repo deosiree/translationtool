@@ -30,7 +30,7 @@
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
 import { PlusOutlined } from "@ant-design/icons-vue";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { createBranchParams } from "@/utils/commonParam.js";
 import { cloneDeep } from "lodash-es";
 export default {

@@ -36,7 +36,7 @@ import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import { entryImportExcle } from "@/http/api/entryManage";
 import { entryBatchImportExcel } from "@/utils/handleExcel";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
 import { cloneDeep } from "lodash-es";
 export default {

@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 export default {
   components: {

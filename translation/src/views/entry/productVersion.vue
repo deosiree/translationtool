@@ -164,7 +164,8 @@ import {
 } from "@/http/api/userPartiality";
 import { message } from "ant-design-vue";
 import { entryParams as tableParam } from "@/utils/commonParam.js";
-import { setModalAriaHidden, setTableHeight } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { setTableHeight } from "@/utils/tableUtils";
 export default {
   components: {
     SearchBox,

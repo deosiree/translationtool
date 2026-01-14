@@ -176,11 +176,9 @@ import {
   updateUserPartiality,
 } from "@/http/api/userPartiality";
 import commonParam, { entryParams } from "@/utils/commonParam.js";
-import {
-  pageChange,
-  getColPref,
-  setModalAriaHidden,
-} from "@/utils/commonUtils";
+import { pageChange } from "@/utils/selectionUtils";
+import { getColPref } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { cloneDeep } from "lodash-es";
 export default {
   components: {

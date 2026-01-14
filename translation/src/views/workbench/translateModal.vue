@@ -348,14 +348,18 @@ import { message } from "ant-design-vue";
 import key from "keymaster";
 import {
   clickInput,
+  setModalAriaHidden,
+} from "@/utils/domUtils";
+import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  pageChange,
   getColPref,
   changeColumn,
-  setModalAriaHidden,
-  encodeParams,
+} from "@/utils/tableUtils";
+import { pageChange } from "@/utils/selectionUtils";
+import { encodeParams } from "@/utils/requestUtils";
+import {
   byteLength,
   getMaxLength,
   validateRefRules,
@@ -364,7 +368,7 @@ import {
   verifyArray_workbench_page,
   verifyArray_workbench,
   openSetEdit,
-} from "@/utils/commonUtils"; // 引入工具函数
+} from "@/utils/validationUtils"; // 引入工具函数
 import commonParam, {
   entryParams,
   workbenchParams,

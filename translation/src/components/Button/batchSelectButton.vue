@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import BatchSelectModal from "@/components/Button/batchSelectModal.vue";
 export default {
   components: {

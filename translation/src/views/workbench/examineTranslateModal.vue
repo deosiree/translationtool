@@ -198,12 +198,9 @@ import {
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
-import {
-  getColPref,
-  changeColumn,
-  setModalAriaHidden,
-  byteLength,
-} from "@/utils/commonUtils";
+import { getColPref, changeColumn } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { byteLength } from "@/utils/validationUtils";
 import { computed, defineComponent, ref } from "vue";
 import {
   CheckOutlined,

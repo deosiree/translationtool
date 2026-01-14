@@ -115,7 +115,7 @@ import {
 import { getLanguage } from "@/http/api/translate";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
-import { setTableHeight } from "@/utils/commonUtils";
+import { setTableHeight } from "@/utils/tableUtils";
 export default {
   components: {
     SearchBox,

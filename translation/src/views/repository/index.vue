@@ -106,7 +106,7 @@ import {
 } from "@/http/api/versionTable";
 import Pagination from "@/components/page/pagination.vue"
 import SearchForm from '@/components/search/searchForm.vue'
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
     components:{
         PlusOutlined,

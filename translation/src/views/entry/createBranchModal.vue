@@ -340,7 +340,8 @@ import { createTaskByLang } from "@/http/api/task";
 import { deleteEntryClassfy, getSourceByLang } from "@/http/api/entryManage";
 import commonParam, { createBranchParams } from "@/utils/commonParam";
 import { v4 as uuidv4 } from "uuid";
-import { setModalAriaHidden, randomError } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { randomError } from "@/utils/testUtils";
 import { cloneDeep } from "lodash-es";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 export default {

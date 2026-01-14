@@ -110,7 +110,8 @@ import {
 import { deleteProduct, getUserProduct } from "@/http/api/product";
 import { getLangDirImportTaskState } from "@/http/api/backendInfo";
 import { message } from "ant-design-vue";
-import { setModalAriaHidden, randomMsg } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { randomMsg } from "@/utils/testUtils";
 import commonParam from "@/utils/commonParam";
 export default {
   components: {

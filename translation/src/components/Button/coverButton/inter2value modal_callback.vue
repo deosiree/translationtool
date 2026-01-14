@@ -37,7 +37,7 @@
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
 import commonParam from "@/utils/commonParam.js";
-import { setModalAriaHidden } from "@/utils/commonUtils.js";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { cloneDeep } from "lodash-es";
 export default {
   components: {

@@ -531,20 +531,20 @@ import {
   onSelect,
   onSelectAll,
   pageChange,
+} from "@/utils/selectionUtils";
+import {
   verifyArray_workbench_page,
   getMaxLength,
-  interpretation2value,
-  getColPref,
-  changeColumn,
-  setModalAriaHidden,
-  filter_arr,
-  filter_arr_keys,
   byteLength,
-  handleAsyncRequest,
   verifyArray_workbench,
   openSetEdit,
   useRefRules,
-} from "@/utils/commonUtils";
+} from "@/utils/validationUtils";
+import { interpretation2value } from "@/utils/translationUtils";
+import { getColPref, changeColumn } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
+import { handleAsyncRequest } from "@/utils/requestUtils";
 const filteredInfo = {};
 const ALL_ISEXIST = "-1";
 

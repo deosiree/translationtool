@@ -30,7 +30,7 @@
 <script>
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
-import { setModalAriaHidden } from "@/utils/commonUtils.js";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {
     CustomModal,

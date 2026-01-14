@@ -34,7 +34,7 @@ import {
   gitPush,
 } from "@/http/api/workbench.js";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
-import { setModalAriaHidden } from "@/utils/commonUtils.js";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {
     CustomModal,

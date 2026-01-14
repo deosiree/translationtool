@@ -181,13 +181,13 @@ import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
 import { getProduct } from "@/http/api/product";
 import { getTaskPending } from "@/http/api/task";
+import { setTableHeight } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import {
-  setTableHeight,
-  setModalAriaHidden,
   selectAllEntry,
   clearAllEntry,
   pageChange,
-} from "@/utils/commonUtils";
+} from "@/utils/selectionUtils";
 import commonParam from "@/utils/commonParam";
 export default {
   components: {

@@ -80,7 +80,7 @@ import {
 import { writeBack } from "@/http/api/entryManage";
 import { getDictionary, getFileListByLang } from "@/http/api/i18Server";
 import commonParam, { workbenchParams } from "@/utils/commonParam.js";
-import { setModalAriaHidden } from "@/utils/commonUtils.js";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { QuestionCircleOutlined } from "@ant-design/icons-vue";
 export default {
   components: {

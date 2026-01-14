@@ -252,7 +252,7 @@ import { cloneDeep } from 'lodash-es';
 import Modal from '@/components/modal/index.vue';
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
 // import common from "./common.js";
-import { byteLength } from "@/utils/commonUtils.js";
+import { byteLength } from "@/utils/validationUtils";
 import { message} from 'ant-design-vue';
 import {
     updateEntry,

@@ -63,7 +63,7 @@ import { updateTaskInfo } from "@/http/api/task";
 import { getEntryTempByTaskID, getEntryInfoList } from "@/http/api/workbench";
 import { setInfoByTask, setInfo } from "@/http/api/i18Server";
 // import commen from '../../views/entry/common.js'
-import { getCurrentFormattedTime } from "@/utils/commonUtils.js";
+import { getCurrentFormattedTime } from "@/utils/dateUtils";
 export default {
   props: {
     showButton: {

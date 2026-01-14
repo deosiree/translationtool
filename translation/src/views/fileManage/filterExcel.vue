@@ -214,9 +214,9 @@ import {
   getRowClassName,
   getColPref,
   changeColumn,
-  getSearch,
-  setModalAriaHidden,
-} from "@/utils/commonUtils";
+} from "@/utils/tableUtils";
+import { getSearch } from "@/utils/requestUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { defineComponent, ref } from "vue";
 
 export default {

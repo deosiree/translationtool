@@ -135,19 +135,20 @@ import {
   getSameEntryRelation,
 } from "@/http/api/glossary";
 import {
-  onSelectChange,
-  onSelect,
-  onSelectAll,
-  pageChange,
-  clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
   getColPref,
   changeColumn,
-  setModalAriaHidden,
-  getSearch,
-} from "@/utils/commonUtils";
+} from "@/utils/tableUtils";
+import {
+  onSelectChange,
+  onSelect,
+  onSelectAll,
+  pageChange,
+} from "@/utils/selectionUtils";
+import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
+import { getSearch } from "@/utils/requestUtils";
 import commonParam, { glossaryParams } from "@/utils/commonParam.js";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
@@ -399,6 +400,10 @@ export default {
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {
+        if (!res || !res.data || !Array.isArray(res.data.list)) {
+          this.translateTypes = [];
+          return;
+        }
         this.translateTypes = res.data.list;
       });
     },
@@ -458,11 +463,21 @@ export default {
         if (!res) {
           return;
         }
+        if (!res.data || !Array.isArray(res.data.list)) {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return;
+        }
         this.dataSource = res.data.list;
-        this.pagination.total = res.data.totalNum;
+        this.pagination.total = res.data.totalNum || 0;
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           getSykEntryRelation([item]).then((res) => {
+            if (!res || !res.data || !Array.isArray(res.data.list)) {
+              item["relationCount"] = 0;
+              item["reslations"] = [];
+              return;
+            }
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
           });
@@ -476,11 +491,21 @@ export default {
         if (!res) {
           return;
         }
+        if (!res.data || !Array.isArray(res.data.list)) {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return;
+        }
         this.dataSource = res.data.list;
-        this.pagination.total = res.data.totalNum;
+        this.pagination.total = res.data.totalNum || 0;
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           getSameEntryRelation(item).then((res) => {
+            if (!res || !res.data || !Array.isArray(res.data.list)) {
+              item["relationCount"] = 0;
+              item["reslations"] = [];
+              return;
+            }
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
           });
@@ -493,8 +518,13 @@ export default {
         if (!res) {
           return;
         }
+        if (!res.data || !Array.isArray(res.data.list)) {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return;
+        }
         this.dataSource = res.data.list;
-        this.pagination.total = res.data.totalNum;
+        this.pagination.total = res.data.totalNum || 0;
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           // 空挂术语的详情都是0
@@ -518,6 +548,11 @@ export default {
             item["reslations"] = [];
           } else {
             getSykEntryRelation([item]).then((res) => {
+              if (!res || !res.data || !Array.isArray(res.data.list)) {
+                item["relationCount"] = 0;
+                item["reslations"] = [];
+                return;
+              }
               item["relationCount"] = res.data.list.length;
               item["reslations"] = res.data.list;
             });

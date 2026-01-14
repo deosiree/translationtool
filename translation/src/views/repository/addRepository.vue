@@ -98,7 +98,7 @@ import {
   createVersionTable,
   getVersionTableByCondition,
 } from "@/http/api/versionTable";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {
     BookOutlined,

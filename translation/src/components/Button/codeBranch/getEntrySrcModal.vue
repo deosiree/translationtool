@@ -80,7 +80,7 @@ import {
   getWriteFileNamesByClassify,
 } from "@/http/api/entryManage";
 import { getFileListUsingI18nServer } from "@/http/api/task";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 
 export default {
   components: {

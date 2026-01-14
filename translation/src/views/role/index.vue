@@ -90,7 +90,7 @@ import { TreeSelect } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import { getRoleAndMenu, changeRoleAndMenu, getMenu } from "@/http/api/user";
-import { setTableHeight } from "@/utils/commonUtils";
+import { setTableHeight } from "@/utils/tableUtils";
 export default {
   components: {
     PlusOutlined,

@@ -68,13 +68,13 @@ import {
   getModuleNames,
   getQuestionTypes,
 } from "@/http/api/check";
+import { clickInput } from "@/utils/domUtils";
 import {
-  clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  pageChange,
-} from "@/utils/commonUtils"; // 引入工具函数
+} from "@/utils/tableUtils";
+import { pageChange } from "@/utils/selectionUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,

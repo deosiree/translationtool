@@ -71,14 +71,12 @@ import { cloneDeep, flatMap } from "lodash-es";
 import { getTsProblems, getEntryByTsVo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
 import {
-  clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  pageChange,
-  onSelectChange,
-  setModalAriaHidden,
-} from "@/utils/commonUtils"; // 引入工具函数
+} from "@/utils/tableUtils";
+import { pageChange, onSelectChange } from "@/utils/selectionUtils";
+import { clickInput, setModalAriaHidden } from "@/utils/domUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,

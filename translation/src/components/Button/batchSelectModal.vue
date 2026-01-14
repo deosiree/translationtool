@@ -40,7 +40,8 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
-import { pageChange, getColPref } from "@/utils/commonUtils";
+import { pageChange } from "@/utils/selectionUtils";
+import { getColPref } from "@/utils/tableUtils";
 import { glossaryParams } from "@/utils/commonParam.js";
 export default {
   components: {

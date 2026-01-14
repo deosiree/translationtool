@@ -34,7 +34,7 @@ import {
   getEntrysourceListByClassfy,
 } from "@/http/api/entryManage";
 import { v4 as uuidv4 } from "uuid";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {
     Modal,
