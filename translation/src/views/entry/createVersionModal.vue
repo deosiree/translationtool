@@ -1,6 +1,7 @@
 <template>
-  <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :showCancel="false" :fullFlag="true" cancelText="取消" okText="创建产品版本"
-    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :showCancel="false" :fullFlag="true"
+    cancelText="取消" okText="创建产品版本" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose"
+    @setTableHeight="setTableHeight">
     <div style="width:100%;height:515px">
       <!-- <a-form :model="search" layout="inline" autocomplete="off" ref="formRef">
         <a-form-item label="版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
@@ -10,13 +11,13 @@
       <div class="table">
         <div>已选词条：</div>
         <a-config-provider :locale="locale">
-          <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination="pagination"
-            :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="historyTable" bordered>
-            <template #bodyCell="{ column, record,text }">
+          <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
+            :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+            ref="historyTable" bordered>
+            <template #bodyCell="{ column, record, text }">
               <template v-if="column.dataIndex === 'entryState'">
                 <EntryStateBadge :entryState="text" />
               </template>
-              <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
               <template v-if="langTranslateStateList.includes(column.dataIndex)">
                 <TransStateBadge :translateState="text" />
               </template>
@@ -26,23 +27,24 @@
                 </div>
               </template>
             </template>
-            <!-- 设置表格行展开子行的样式 -->
             <template #expandIcon="props">
               <span v-if="props.record.children != null && props.record.children.length > 0">
-                <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
+                  @click="(e) => { props.onExpand(props.record, e); }">
                   <CaretDownOutlined />
                 </div>
-                <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
+                <div v-else style="display: inline-block; margin-right: 10px"
+                  @click="(e) => { props.onExpand(props.record, e); }">
                   <CaretRightOutlined />
                 </div>
               </span>
               <span v-else style="margin-right:23px"></span>
             </template>
-            <!-- 设置筛选菜单 -->
             <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
               <div style="padding: 8px">
                 <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-                  style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                  style="width: 188px; margin-bottom: 8px; display: block"
+                  @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
                   @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
                 <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
                   @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
@@ -52,7 +54,6 @@
                 <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
               </div>
             </template>
-            <!-- 设置筛选图标 -->
             <template #customFilterIcon="{ filtered }">
               <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
             </template>
@@ -64,13 +65,14 @@
       <a-button @click="cancelCreate">关闭</a-button>
       <a-button type="primary" v-if="currentDepartment.ops.has('needIP')" @click="writeBackFun">回写</a-button>
       <a-button type="primary" danger @click="deleteEntrys" v-if="currentDepartment.ops.has('needDelete')">删除</a-button>
-      <a-button type="primary" danger @click="forrbiddenEntrys" v-if="currentDepartment.ops.has('needForbidden')&&$store.state.admin">禁用</a-button>
+      <a-button type="primary" danger @click="forrbiddenEntrys"
+        v-if="currentDepartment.ops.has('needForbidden') && $store.state.admin">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="导出" />
       <a-button type="primary" @click="examine" v-if="currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
     </template>
   </CustomModal>
-  <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose" @handleOK="operateOk"
-    @afterClose="afterOperateClose">
+  <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose"
+    @handleOK="operateOk" @afterClose="afterOperateClose">
     <div style="width:100%;height:100%">
       <a-form v-if="title === '创建版本'" :model="version" autocomplete="off" ref="versionForm" :label-col="{ span: 6 }">
         <a-form-item label="产品版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
@@ -81,25 +83,20 @@
         </a-form-item>
       </a-form>
       <div class="table" v-if="title === '选择任务'">
-        <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource" :row-selection='taskRowSelection'
-          :row-key="record => record.id" :scroll="{x:'100%' , y: '195px'}" :pagination="false"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="taskTable" bordered>
+        <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource"
+          :row-selection='taskRowSelection' :row-key="record => record.id" :scroll="{ x: '100%', y: '195px' }"
+          :pagination="false" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+          ref="taskTable" bordered>
         </a-table>
       </div>
-      <!-- 添加加载动画 -->
       <a-spin :spinning="writeBackLoading">
         <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
             <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
           </a-form-item>
           <a-form-item label="回写语种" name="language" :rules="[{ required: true, message: '请选择回写语种!' }]">
-            <!-- 修改为多选 -->
-            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择" @change="languageChange" allowClear>
-              <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->
-              <!-- <a-select-option value="英文">英文</a-select-option>
-              <a-select-option value="俄文">俄文</a-select-option>
-              <a-select-option value="西文">西文</a-select-option>
-              <a-select-option value="法文">法文</a-select-option> -->
+            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择"
+              @change="languageChange" allowClear>
             </a-select>
           </a-form-item>
           <a-form-item label="回写类型" name="type">
@@ -116,7 +113,8 @@
             </a-tooltip>
           </a-form-item>
           <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
-            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择" allowClear></a-select>
+            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择"
+              allowClear></a-select>
           </a-form-item>
           <a-form-item label=" " :colon="false">
             <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
@@ -156,7 +154,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import { message, Modal,notification } from "ant-design-vue";
+import { message, Modal, notification } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { deleteEntryInfoByID, getI18nAdress } from "@/http/api/workbench.js";
 import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
@@ -569,7 +567,7 @@ export default {
       let data = {
         exportColumn: value.join(","),
       };
-      updateUserPartiality(data).then((res) => {});
+      updateUserPartiality(data).then((res) => { });
     },
     // 提交词条审核
     examine() {
@@ -598,8 +596,8 @@ export default {
           okText: "是",
           cancelText: "否",
           style: { top: "30%" },
-          onOk: () => {},
-          onCancel: () => {},
+          onOk: () => { },
+          onCancel: () => { },
         });
       }
     },
@@ -737,18 +735,25 @@ export default {
               onOk: () => {
                 this.submitExamine();
               },
-              onCancel: () => {},
+              onCancel: () => { },
             });
+            // Modal.confirm是异步的，不在这里关闭modal
+            return;
           } else {
             this.submitExamine();
+            return;
           }
         }
       } catch (err) {
         console.log("操作失败:", err);
       } finally {
-        this.operateVisible = false;
-        this.$emit("createClose");
-        this.$emit("cancelCreate");
+        // 只有在非"选择任务"的情况下才在这里关闭modal
+        // "选择任务"的情况由submitExamine自己处理
+        if (this.title !== "选择任务") {
+          this.operateVisible = false;
+          this.$emit("createClose");
+          this.$emit("cancelCreate");
+        }
       }
     },
     // 提交词条审核
@@ -1050,6 +1055,7 @@ export default {
   margin-top: 5px;
   position: relative;
 }
+
 .ant-form-inline .ant-form-item-with-help {
   margin-bottom: 0px;
 }
