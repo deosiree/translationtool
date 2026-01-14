@@ -2,7 +2,7 @@
  * 翻译相关工具函数
  * 包含释义替换翻译等功能
  */
-import commonParam from "@/utils/commonParam.js";
+import commonParam from "@/constants/commonParam.js";
 import { verifyArray_workbench } from "./validationUtils";
 
 /**

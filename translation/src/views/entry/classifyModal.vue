@@ -27,7 +27,7 @@
 import Modal from "@/components/modal/index.vue";
 import { addEntryClassfy, updateEntryClassfy } from "@/http/api/entryManage";
 import { addProduct, updateProduct } from "@/http/api/product";
-import commonParam from "@/utils/commonParam";
+import commonParam from "@/constants/commonParam";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 export default {

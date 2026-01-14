@@ -197,7 +197,7 @@ import {
   updateEntryList,
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
-import commonParam, { workbenchParams } from "@/utils/commonParam.js";
+import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { getColPref, changeColumn } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { byteLength } from "@/utils/validationUtils";

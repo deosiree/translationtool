@@ -112,7 +112,7 @@ import { getLangDirImportTaskState } from "@/http/api/backendInfo";
 import { message } from "ant-design-vue";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { randomMsg } from "@/utils/testUtils";
-import commonParam from "@/utils/commonParam";
+import commonParam from "@/constants/commonParam";
 export default {
   components: {
     SearchOutlined,

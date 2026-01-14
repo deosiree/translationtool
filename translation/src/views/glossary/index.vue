@@ -149,7 +149,7 @@ import {
 } from "@/utils/selectionUtils";
 import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
 import { getSearch } from "@/utils/requestUtils";
-import commonParam, { glossaryParams } from "@/utils/commonParam.js";
+import commonParam, { glossaryParams } from "@/constants/commonParam.js";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {

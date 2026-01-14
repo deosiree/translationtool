@@ -201,7 +201,7 @@ import {
   UploadOutlined,
 } from "@ant-design/icons-vue";
 import { getLanguage } from "@/http/api/translate";
-import commonParam, { entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/constants/commonParam.js";
 import { entryReadExcel, exportDeduplicatedData } from "@/http/api/entryManage";
 import {
   onSelectChange,

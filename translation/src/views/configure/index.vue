@@ -21,7 +21,7 @@ import Label from "../label/index.vue";
 import Property from "../property/index.vue";
 import Task from "../task/index.vue";
 import Dict from "../dictionary/index.vue";
-import commonParam from "@/utils/commonParam.js";
+import commonParam from "@/constants/commonParam.js";
 export default {
   name: "layout",
   components: {

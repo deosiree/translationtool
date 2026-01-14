@@ -224,7 +224,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-import commonParam, { workbenchParams } from "@/utils/commonParam.js";
+import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { getColPref, changeColumn } from "@/utils/tableUtils";
 import { interpretation2value } from "@/utils/translationUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";

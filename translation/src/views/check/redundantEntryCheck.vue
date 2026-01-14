@@ -145,7 +145,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import commonParam, { redundantTableParams } from "@/utils/commonParam.js";
+import commonParam, { redundantTableParams } from "@/constants/commonParam.js";
 import {
   clickInput,
   setModalAriaHidden,

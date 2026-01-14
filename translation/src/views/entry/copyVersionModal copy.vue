@@ -51,7 +51,7 @@ import { message, notification } from "ant-design-vue";
 import { getClassTree, copyEntryClassify } from "@/http/api/entryManage";
 import { getPathByKey } from "@/utils/dataStructureUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import commonParam from "@/utils/commonParam";
+import commonParam from "@/constants/commonParam";
 // import backgroundTaskManager from "@/utils/backgroundTask";
 import { cloneDeep } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";

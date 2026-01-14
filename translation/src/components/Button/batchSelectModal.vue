@@ -42,7 +42,7 @@ import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
 import { pageChange } from "@/utils/selectionUtils";
 import { getColPref } from "@/utils/tableUtils";
-import { glossaryParams } from "@/utils/commonParam.js";
+import { glossaryParams } from "@/constants/commonParam.js";
 export default {
   components: {
     CustomModal,

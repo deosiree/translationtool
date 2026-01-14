@@ -525,7 +525,7 @@ import { templateFileDownload } from "@/http/api/download";
 import commonParam, {
   entryParams,
   workbenchParams,
-} from "@/utils/commonParam.js";
+} from "@/constants/commonParam.js";
 import {
   onSelectChange,
   onSelect,

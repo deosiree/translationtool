@@ -175,7 +175,7 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import commonParam, { entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/constants/commonParam.js";
 import { pageChange } from "@/utils/selectionUtils";
 import { getColPref } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";

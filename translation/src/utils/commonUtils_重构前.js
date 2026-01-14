@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash'; // 使用 lodash 的 cloneDeep
 import { message } from "ant-design-vue";
-import commonParam, { entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/constants/commonParam.js";
 import { cancelRequest, cancelAllRequests } from "@/http/request";
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import { async } from './commonUtils';

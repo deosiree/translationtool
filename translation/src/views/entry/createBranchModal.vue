@@ -338,7 +338,7 @@ import { createProductByLang } from "@/http/api/entryManage";
 import { createVersion } from "@/http/api/productVersion";
 import { createTaskByLang } from "@/http/api/task";
 import { deleteEntryClassfy, getSourceByLang } from "@/http/api/entryManage";
-import commonParam, { createBranchParams } from "@/utils/commonParam";
+import commonParam, { createBranchParams } from "@/constants/commonParam";
 import { v4 as uuidv4 } from "uuid";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { randomError } from "@/utils/testUtils";

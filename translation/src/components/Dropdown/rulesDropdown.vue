@@ -23,7 +23,7 @@
 </template>
 <script>
 import { DownOutlined } from "@ant-design/icons-vue";
-import commonParam from "@/utils/commonParam.js";
+import commonParam from "@/constants/commonParam.js";
 export default {
   components: {
     DownOutlined,

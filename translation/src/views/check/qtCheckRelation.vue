@@ -49,7 +49,7 @@ import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import { deleteEntryInfo } from "@/http/api/entryManage";
-import commonParam from "@/utils/commonParam.js";
+import commonParam from "@/constants/commonParam.js";
 export default {
   components: {
     EntryStateBadge,

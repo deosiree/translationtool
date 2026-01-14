@@ -26,7 +26,7 @@
     </Modal>
 </template>
 <script>
-import { entryParams as tableParam } from "@/utils/commonParam.js";
+import { entryParams as tableParam } from "@/constants/commonParam.js";
 import Modal from '@/components/modal/index.vue';
 import { message, TreeSelect } from 'ant-design-vue';
 import {

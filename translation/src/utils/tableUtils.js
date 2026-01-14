@@ -2,7 +2,7 @@
  * 表格相关工具函数
  * 包含表格列配置、筛选、高度设置等功能
  */
-import { entryParams } from "@/utils/commonParam.js";
+import { entryParams } from "@/constants/commonParam.js";
 import { intersection } from "./dataStructureUtils";
 
 /**

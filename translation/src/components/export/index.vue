@@ -13,7 +13,7 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
-import { entryParams } from "@/utils/commonParam.js";
+import { entryParams } from "@/constants/commonParam.js";
 import {
   queryUserPartiality,
   updateUserPartiality,

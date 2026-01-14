@@ -452,7 +452,7 @@ import {
   useRefRules,
   openSetEdit,
 } from "@/utils/validationUtils";
-import commonParam, { entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/constants/commonParam.js";
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
 export default {
   components: {

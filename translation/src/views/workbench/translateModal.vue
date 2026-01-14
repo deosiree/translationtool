@@ -372,7 +372,7 @@ import {
 import commonParam, {
   entryParams,
   workbenchParams,
-} from "@/utils/commonParam.js";
+} from "@/constants/commonParam.js";
 export default {
   components: {
     Modal,

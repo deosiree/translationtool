@@ -37,7 +37,7 @@ import ExportButton from "@/components/Button/exportButton.vue";
 import { entryImportExcle } from "@/http/api/entryManage";
 import { entryBatchImportExcel } from "@/utils/excelUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import commonParam, { entryParams } from "@/utils/commonParam.js";
+import commonParam, { entryParams } from "@/constants/commonParam.js";
 import { cloneDeep } from "lodash-es";
 export default {
   components: {

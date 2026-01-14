@@ -33,7 +33,7 @@ import {
   gitCommit,
   gitPush,
 } from "@/http/api/workbench.js";
-import commonParam, { workbenchParams } from "@/utils/commonParam.js";
+import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {

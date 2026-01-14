@@ -188,7 +188,7 @@ import {
   clearAllEntry,
   pageChange,
 } from "@/utils/selectionUtils";
-import commonParam from "@/utils/commonParam";
+import commonParam from "@/constants/commonParam";
 export default {
   components: {
     SearchBox,
