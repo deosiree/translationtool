@@ -1,5 +1,5 @@
 //引入request.js文件
-import request from "../request";
+import request, { requestMultipart } from "../request";
 
 // 查询分类中新增的词条来源
 export function getEntrysourceListByClassfy(params) {
@@ -219,8 +219,9 @@ export function writeBack(params, data) {
   });
 }
 
+// 更新翻译
 export function entryImportExcle(params, data) {
-  return request({
+  return requestMultipart({
     url: "/entryInfo/entryImportExcle",
     method: "POST",
     params,
@@ -364,9 +365,9 @@ export function entryImportExcle(params, data) {
 //   });
 // }
 
-// 读取 Excel 文件
+// 读取 Excel 文件为dataSource
 export function entryReadExcel(data) {
-    return request({
+    return requestMultipart({
     url: "/entryInfo/parseFileToEntryInfos",
     method: "POST",
     data,
@@ -385,7 +386,7 @@ export function exportDeduplicatedData(params, data) {
 
 // 翻译导入
 export function workImportExcleTrans(data) {
-  return request({
+  return requestMultipart({
     url: "/entryInfo/workImportExcleTrans",
     method: "POST",
     data: data

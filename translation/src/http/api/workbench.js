@@ -1,5 +1,5 @@
 //引入request.js文件
-import request from "../request";
+import request, { requestMultipart } from "../request";
 
 // 保存临时词条
 export function insertEntry(params, data) {
@@ -59,7 +59,7 @@ export function getImportType(params) {
 
 //excel 导入
 export function importExcle(data) {
-  return request({
+  return requestMultipart({
     url: "/workbench/importExcle",
     method: "POST",
     data
@@ -68,7 +68,7 @@ export function importExcle(data) {
 
 //读取装置 excel
 export function readZZExcle(params, data) {
-  return request({
+  return requestMultipart({
     url: "/workbench/entryImportExcle",
     method: "POST",
     params,
@@ -138,7 +138,7 @@ export function getDictory(params) {
 
 // 导入
 export function importCommonExcle(data) {
-  return request({
+  return requestMultipart({
     url: "/workbench/importCommonExcle",
     method: "POST",
     data: data
