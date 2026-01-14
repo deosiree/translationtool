@@ -264,7 +264,7 @@
 
         <!-- 词条：
         <a-input v-model:value="keyWords" style="width:30%" size="small" placeholder='请输入词条搜索' /> -->
-        <a-button type="primary" size="small" style="margin-left:8px" @click="select">
+        <a-button type="primary" size="small" style="margin-left:8px" :loading="loading" @click="select">
           <template #icon>
             <SearchOutlined />
           </template>查询
