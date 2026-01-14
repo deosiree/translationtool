@@ -66,6 +66,7 @@
         <result property="entryVersionID" column="entry_version_type" jdbcType="VARCHAR"/>
         <result property="parentID" column="parent_id" jdbcType="VARCHAR"/>
         <result property="diFileName" column="di_file_name" jdbcType="VARCHAR"/>
+        <result property="maxLength" column="max_length" jdbcType="VARCHAR"/>
 
         <result property="classfy1" column="classfy1" jdbcType="VARCHAR"/>
         <result property="classfy2" column="classfy2" jdbcType="VARCHAR"/>
@@ -1061,6 +1062,9 @@
             </if>
             <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
                 db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+            </if>
+            <if test = "entryInfoEntity.maxLength != null and entryInfoEntity.maxLength != ''">
+                max_length = #{entryInfoEntity.maxLength,jdbcType=VARCHAR}
             </if>
         </set>
         where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
@@ -2558,7 +2562,7 @@
     </select>
     <select id = "selectEntryInfosByIDs" resultMap = "EntryInfoEntityDOMap">
         select 
-        id,abbr,entry,
+        id,abbr,entry,max_length,
         entry_length,chinese_interpretation,english_interpretation,
         russian_interpretation,french_interpretation,spanish_interpretation,
         entry_source,entry_state,`update`,
