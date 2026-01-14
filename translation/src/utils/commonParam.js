@@ -398,7 +398,7 @@ const entry_searchConditionList = [
 const entry_checkedSearchCondition = entry_searchConditionList.map(item => item.value);// 默认选中所有查询条件
 export const entryParams = {
   checkboxList: entry_checkboxList,
-  inputColumn: ["abbr", "entryLength", "partOfSpeech", "remark", "diFileName", "comment"].concat(default_languageList.map(item => item.interpretation)),
+  inputColumn: ["abbr", "entryLength", "partOfSpeech", "remark", "diFileName", "comment", "writeType"].concat(default_languageList.map(item => item.interpretation)),
   translateColumn: default_languageList.map(item => item.value),
   overlayStyle: {
     maxHeight: '300px',
