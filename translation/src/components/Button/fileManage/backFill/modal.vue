@@ -32,7 +32,7 @@
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
 import { entryBackFill } from "@/http/api/entryManage";
-import { entryBatchImportExcel } from "@/utils/handleExcel";
+import { entryBatchImportExcel } from "@/utils/excelUtils";
 export default {
   components: {
     CustomModal,

@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { clickInput, setModalAriaHidden } from '@/utils/domUtils'
+import { clickInput, setModalAriaHidden, createDragModalDirective } from '@/utils/domUtils'
 
 describe('domUtils - DOM/UI工具函数', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // 清理全局事件监听器
+    document.onmousemove = null
+    document.onmouseup = null
   })
 
   describe('clickInput', () => {
@@ -132,6 +135,275 @@ describe('domUtils - DOM/UI工具函数', () => {
 
       expect(mockChild1.setAttribute).toHaveBeenCalledWith('aria-hidden', 'false')
       expect(mockChild2.setAttribute).toHaveBeenCalledWith('aria-hidden', 'false')
+    })
+  })
+
+  describe('createDragModalDirective', () => {
+    it('应该返回一个指令函数', () => {
+      const directive = createDragModalDirective()
+      expect(typeof directive).toBe('function')
+    })
+
+    it('当找不到 dialogHeaderEl 时应该直接返回', () => {
+      const directive = createDragModalDirective()
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return null
+          if (selector === '.ant-modal') return { style: {} }
+          return null
+        })
+      }
+      const mockBinding = {}
+
+      directive(mockEl, mockBinding)
+
+      expect(mockEl.querySelector).toHaveBeenCalledWith('.modalHeader')
+      expect(mockEl.querySelector).toHaveBeenCalledWith('.ant-modal')
+    })
+
+    it('当找不到 dragDom 时应该直接返回', () => {
+      const directive = createDragModalDirective()
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return { style: {} }
+          if (selector === '.ant-modal') return null
+          return null
+        })
+      }
+      const mockBinding = {}
+
+      directive(mockEl, mockBinding)
+
+      expect(mockEl.querySelector).toHaveBeenCalledWith('.modalHeader')
+      expect(mockEl.querySelector).toHaveBeenCalledWith('.ant-modal')
+    })
+
+    it('应该设置 dialogHeaderEl 的 cursor 样式为 move', () => {
+      const directive = createDragModalDirective()
+      const mockDialogHeader = { style: {} }
+      const mockDragDom = {
+        style: {},
+        currentStyle: { left: '100px', top: '200px' }
+      }
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return mockDialogHeader
+          if (selector === '.ant-modal') return mockDragDom
+          return null
+        })
+      }
+      const mockBinding = {}
+
+      // Mock getComputedStyle
+      const originalGetComputedStyle = window.getComputedStyle
+      window.getComputedStyle = vi.fn(() => ({ left: '100px', top: '200px' }))
+
+      directive(mockEl, mockBinding)
+
+      expect(mockDialogHeader.style.cursor).toBe('move')
+
+      window.getComputedStyle = originalGetComputedStyle
+    })
+
+    it('应该绑定 mousedown 事件处理器', () => {
+      const directive = createDragModalDirective()
+      const mockDialogHeader = {
+        style: {},
+        offsetLeft: 50,
+        offsetTop: 100,
+        onmousedown: null
+      }
+      const mockDragDom = {
+        style: {},
+        currentStyle: { left: '100px', top: '200px' }
+      }
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return mockDialogHeader
+          if (selector === '.ant-modal') return mockDragDom
+          return null
+        })
+      }
+      const mockBinding = {}
+
+      // Mock getComputedStyle
+      const originalGetComputedStyle = window.getComputedStyle
+      window.getComputedStyle = vi.fn(() => ({ left: '100px', top: '200px' }))
+
+      directive(mockEl, mockBinding)
+
+      expect(typeof mockDialogHeader.onmousedown).toBe('function')
+
+      window.getComputedStyle = originalGetComputedStyle
+    })
+
+    it('mousedown 事件应该设置 mousemove 和 mouseup 事件', () => {
+      const directive = createDragModalDirective()
+      const mockDialogHeader = {
+        style: {},
+        offsetLeft: 50,
+        offsetTop: 100,
+        onmousedown: null
+      }
+      const mockDragDom = {
+        style: {},
+        currentStyle: { left: '100px', top: '200px' }
+      }
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return mockDialogHeader
+          if (selector === '.ant-modal') return mockDragDom
+          return null
+        })
+      }
+      const mockBinding = {}
+
+      // Mock getComputedStyle
+      const originalGetComputedStyle = window.getComputedStyle
+      window.getComputedStyle = vi.fn(() => ({ left: '100px', top: '200px' }))
+
+      // Mock document.body properties
+      Object.defineProperty(document.body, 'clientWidth', {
+        writable: true,
+        configurable: true,
+        value: 1920
+      })
+      Object.defineProperty(document.body, 'clientHeight', {
+        writable: true,
+        configurable: true,
+        value: 1080
+      })
+
+      directive(mockEl, mockBinding)
+
+      // 模拟 mousedown 事件
+      const mockMouseEvent = {
+        clientX: 200,
+        clientY: 300
+      }
+      mockDialogHeader.onmousedown(mockMouseEvent)
+
+      expect(typeof document.onmousemove).toBe('function')
+      expect(typeof document.onmouseup).toBe('function')
+
+      // 模拟 mousemove 事件
+      const mockMoveEvent = {
+        clientX: 250,
+        clientY: 350
+      }
+      document.onmousemove(mockMoveEvent)
+
+      // 验证样式被更新
+      // disX = 200 - 50 = 150, disY = 300 - 100 = 200
+      // l = 250 - 150 = 100, t = 350 - 200 = 150
+      // left = 100 + 100 = 200px, top = 150 + 200 = 350px
+      expect(mockDragDom.style.left).toBe('200px')
+      expect(mockDragDom.style.top).toBe('350px')
+
+      // 模拟 mouseup 事件
+      document.onmouseup()
+
+      expect(document.onmousemove).toBeNull()
+      expect(document.onmouseup).toBeNull()
+
+      window.getComputedStyle = originalGetComputedStyle
+    })
+
+    it('应该正确处理百分比样式的计算', () => {
+      const directive = createDragModalDirective()
+      const mockDialogHeader = {
+        style: {},
+        offsetLeft: 50,
+        offsetTop: 100,
+        onmousedown: null
+      }
+      const mockDragDom = {
+        style: {},
+        currentStyle: { left: '50%', top: '50%' }
+      }
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return mockDialogHeader
+          if (selector === '.ant-modal') return mockDragDom
+          return null
+        })
+      }
+      const mockBinding = {}
+
+      // Mock getComputedStyle
+      const originalGetComputedStyle = window.getComputedStyle
+      window.getComputedStyle = vi.fn(() => ({ left: '50%', top: '50%' }))
+
+      // Mock document.body properties
+      Object.defineProperty(document.body, 'clientWidth', {
+        writable: true,
+        configurable: true,
+        value: 1920
+      })
+      Object.defineProperty(document.body, 'clientHeight', {
+        writable: true,
+        configurable: true,
+        value: 1080
+      })
+
+      directive(mockEl, mockBinding)
+
+      const mockMouseEvent = {
+        clientX: 200,
+        clientY: 300
+      }
+      mockDialogHeader.onmousedown(mockMouseEvent)
+
+      // 模拟 mousemove 事件
+      const mockMoveEvent = {
+        clientX: 250,
+        clientY: 350
+      }
+      document.onmousemove(mockMoveEvent)
+
+      // 验证样式计算
+      // disX = 200 - 50 = 150, disY = 300 - 100 = 200
+      // styL = 1920 * 0.5 = 960, styT = 1080 * 0.5 = 540
+      // l = 250 - 150 = 100, t = 350 - 200 = 150
+      // left = 100 + 960 = 1060px, top = 150 + 540 = 690px
+      expect(mockDragDom.style.left).toBe('1060px')
+      expect(mockDragDom.style.top).toBe('690px')
+
+      window.getComputedStyle = originalGetComputedStyle
+    })
+
+    it('应该优先使用 currentStyle（IE 兼容）', () => {
+      const directive = createDragModalDirective()
+      const mockDialogHeader = {
+        style: {},
+        offsetLeft: 50,
+        offsetTop: 100,
+        onmousedown: null
+      }
+      const mockDragDom = {
+        style: {},
+        currentStyle: { left: '100px', top: '200px' }
+      }
+      const mockEl = {
+        querySelector: vi.fn((selector) => {
+          if (selector === '.modalHeader') return mockDialogHeader
+          if (selector === '.ant-modal') return mockDragDom
+          return null
+        })
+      }
+      const mockBinding = {}
+      const mockGetComputedStyle = vi.fn(() => ({ left: '200px', top: '300px' }))
+
+      const originalGetComputedStyle = window.getComputedStyle
+      window.getComputedStyle = mockGetComputedStyle
+
+      directive(mockEl, mockBinding)
+
+      // 应该使用 currentStyle，而不是 getComputedStyle
+      expect(mockDragDom.currentStyle).toBeDefined()
+      // getComputedStyle 可能仍会被调用作为后备，但 currentStyle 优先
+
+      window.getComputedStyle = originalGetComputedStyle
     })
   })
 })

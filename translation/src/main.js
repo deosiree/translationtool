@@ -15,4 +15,12 @@ dayjs.locale('zh-cn');
 // 设置全局语言为中文
 moment.locale('zh-cn');
 
-createApp(App).use(store).use(router).use(Antd).mount('#app')
+import { createDragModalDirective } from '@/utils/domUtils'
+
+const app = createApp(App)
+app.use(store).use(router).use(Antd)
+
+// 全局注册拖拽模态框指令
+app.directive('drag-modal', createDragModalDirective())
+
+app.mount('#app')

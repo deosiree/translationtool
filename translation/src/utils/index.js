@@ -29,3 +29,6 @@ export * from './selectionUtils';
 
 // DOM/UI工具
 export * from './domUtils';
+
+// Excel 相关工具
+export * from './excelUtils';

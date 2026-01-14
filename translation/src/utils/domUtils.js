@@ -4,6 +4,56 @@
  */
 
 /**
+ * 创建拖拽模态框指令的工厂函数
+ * 用于在 Vue 应用入口处通过 app.directive('drag-modal', createDragModalDirective()) 注册
+ */
+export function createDragModalDirective() {
+  return (el, _binding) => {
+    // 如果要给其他UI框架中添加modal拖拽事件 修改此处即可
+    const dialogHeaderEl = el.querySelector(".modalHeader");
+    const dragDom = el.querySelector(".ant-modal");
+
+    if (!dialogHeaderEl || !dragDom) return;
+
+    dialogHeaderEl.style.cursor = "move";
+    // 获取原有属性 ie dom元素.currentStyle 火狐谷歌 window.getComputedStyle(dom元素, null);
+    const sty = dragDom.currentStyle || window.getComputedStyle(dragDom, null);
+    dialogHeaderEl.onmousedown = (e) => {
+      // 鼠标按下，计算当前元素距离可视区的距离
+      const disX = e.clientX - dialogHeaderEl.offsetLeft;
+      const disY = e.clientY - dialogHeaderEl.offsetTop;
+      // 获取到的值带px 正则匹配替换
+      let styL, styT;
+      // 注意在ie中 第一次获取到的值为组件自带50% 移动之后赋值为px
+      if (sty.left.includes("%")) {
+        styL =
+          +document.body.clientWidth * (+sty.left.replace(/%/g, "") / 100);
+        styT =
+          +document.body.clientHeight * (+sty.top.replace(/%/g, "") / 100);
+      } else {
+        styL = +sty.left.replace(/\px/g, "");
+        styT = +sty.top.replace(/\px/g, "");
+      }
+
+      document.onmousemove = function (e) {
+        // 通过事件委托，计算移动的距离
+        const l = e.clientX - disX;
+        const t = e.clientY - disY;
+        // 移动当前元素
+        dragDom.style.left = `${l + styL}px`;
+        dragDom.style.top = `${t + styT}px`;
+        // 将此时的位置传出去
+        // binding.value({x:e.pageX,y:e.pageY})
+      };
+      document.onmouseup = function () {
+        document.onmousemove = null;
+        document.onmouseup = null;
+      };
+    };
+  };
+}
+
+/**
  * 表单单元格的点击事件处理函数
  * @param {VueInstance} vm - Vue 实例
  * @param {Event} event - 点击事件对象
