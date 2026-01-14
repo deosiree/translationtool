@@ -19,6 +19,16 @@ public class ExceptionVO {
         this.resolvedMethodMessage = resolvedMethodMessage;
     }
 
+    public static ExceptionVO newInstance(String message){
+        ExceptionVO exceptionVO = new ExceptionVO(message, "");
+        return exceptionVO;
+    }
+
+    public static ExceptionVO newInstance(String message, String resolvedMethodMessage){
+        ExceptionVO exceptionVO = new ExceptionVO(message, resolvedMethodMessage);
+        return exceptionVO;
+    }
+
     public String getResolvedMethodMessage() {
         return resolvedMethodMessage;
     }

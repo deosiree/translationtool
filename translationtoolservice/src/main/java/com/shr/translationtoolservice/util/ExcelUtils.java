@@ -13,11 +13,14 @@ import cn.afterturn.easypoi.excel.entity.ExportParams;
 import cn.hutool.core.text.csv.CsvParser;
 import io.vavr.collection.Stream.Cons;
 
+import com.google.common.reflect.TypeToken;
 import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +60,7 @@ import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.springframework.util.StringUtils.capitalize;
 
@@ -450,9 +454,9 @@ public class ExcelUtils {
                             }
                         } catch (IllegalArgumentException e) {
                             // TODO: handle exception
-                            throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "时显示参数不合适", e);
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; 获取其参数值: " + nextValue + "时显示参数类型不符合要求", e);
                         } catch (InvocationTargetException e){
-                            throw new RuntimeException("调用方法method: " + method.getName() + "; value: " + nextValue + "执行时报错", e);
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; 获取其参数值: " + nextValue + "执行时报错", e);
                         }
                     }
                     if(instance == null){
@@ -1132,6 +1136,22 @@ public class ExcelUtils {
         public static String getMethodName(String propertyName) {
             return GET_PREFIX + capitalize(propertyName);
         }
+
+        public static Collection<Method> methods(Class<?> clazz,Collection<String> fieldNames,Function<String,String> methodNameGetFunction){
+            Collection<Method> methods = new ArrayList<>();
+            fieldNames.stream().forEach((fieldName)->{
+                try {
+                    String methodName = methodNameGetFunction.apply(fieldName);
+                    Method method = clazz.getMethod(methodName);
+                    methods.add(method);
+                } catch(Exception e){
+                    e.printStackTrace();;
+                }
+
+            });
+            return methods;
+        }
+        
     }
 
 
@@ -1576,7 +1596,7 @@ public class ExcelUtils {
     }
 
 
-    public <T> Collection<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,Map<String,Object> kwargs){
+    public <T> Collection<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,KeyValueArguments<String> kwargs){
         try {
             if(originalFilename.endsWith("csv")){
                 return this.readCSVToEntity(clazz, in, originalFilename, null);

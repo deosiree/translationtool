@@ -471,10 +471,10 @@ public class BatchInsertEntryHandler {
      * @param entryInfoEntities
      * @param targetLanguageTypes
      * @param department
-     * @return
+     * @return 返回要插入的翻译, 如果没有，则为空列表
      */
     @Transactional
-    protected List<TranslateEntity> buildTranslateEntitiy(List<EntryInfoEntity> entryInfoEntities,List<String> targetLanguageTypes,String department){
+    public List<TranslateEntity> buildTranslateEntity(List<EntryInfoEntity> entryInfoEntities,List<String> targetLanguageTypes,String department){
 
         List<TranslateEntity> translateEntities = new ArrayList<>();
         for(String targetLanguageType : targetLanguageTypes){
@@ -603,13 +603,13 @@ public class BatchInsertEntryHandler {
     }
 
 
-    protected List<TranslateEntity> buildTranslateEntitiy(
+    public List<TranslateEntity> buildTranslateEntity(
         List<EntryInfoEntity> entryInfoEntities,
         List<String> targetLanguageTypes,
         String department,
         ThreadPoolExecutor executor){
         if(executor == null){
-            return buildTranslateEntitiy(entryInfoEntities, targetLanguageTypes, department);
+            return buildTranslateEntity(entryInfoEntities, targetLanguageTypes, department);
         }
         int totalNum = entryInfoEntities.size();
         int taskNumber = (totalNum + batchSize - 1) / batchSize;
@@ -627,7 +627,7 @@ public class BatchInsertEntryHandler {
                     // TODO Auto-generated method stub
                     try {
                         // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
-                        List<TranslateEntity> _translateEntitiy = buildTranslateEntitiy(batchList, targetLanguageTypes, department);
+                        List<TranslateEntity> _translateEntitiy = buildTranslateEntity(batchList, targetLanguageTypes, department);
                         translateEntities.addAll(_translateEntitiy);
                     } catch (Exception e) {
                         // 日志记录：建议用日志框架（SLF4J），这里简化打印
@@ -690,7 +690,7 @@ public class BatchInsertEntryHandler {
         List<ProductRelationEntity> productRelationEntities = new ArrayList<>();
         String taskID = taskInfoEntity.getId();
 
-        List<TranslateEntity> translateEntities = this.buildTranslateEntitiy(entryInfoEntities, targetLanguageTypes, department,executor);
+        List<TranslateEntity> translateEntities = this.buildTranslateEntity(entryInfoEntities, targetLanguageTypes, department,executor);
         /* 对生成的TranslateEntity进行再处理 */
         if(translateEntitiesConsumer != null){
             translateEntities.stream().forEach(translateEntitiesConsumer);

@@ -13,9 +13,12 @@ import com.shr.translationtoolservice.entity.vo.exception.ExceptionEntryInfoVO;
 import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
 import com.shr.translationtoolservice.exception.i18nServerConnectException;
 import com.shr.translationtoolservice.service.EntryInfoService;
+import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.I18nService;
+import com.shr.translationtoolservice.service.TranslationStorageService;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
 import com.shr.translationtoolservice.util.analyze.impl.BatchMaxLengthTranslateAnalyzer;
 import com.shr.translationtoolservice.util.processor.groupby.DefaultEntryGroupbyStrategy;
@@ -30,21 +33,24 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
 
+import javax.management.RuntimeErrorException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -113,6 +119,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private EntryUtils entryUtils;
+
+    @Autowired
+    private EntryStorageService entryStorageService;
+
+    @Autowired
+    private TranslationStorageService translationStorageService;
 
 
     @Override
@@ -841,7 +853,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntitiy fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request){
+    public List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request){
         String fileName = fileInputStreamEntitiy.getFileName();
         List<EntryInfoEntity> entryInfoEntities = null;
         try {
@@ -1752,7 +1764,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> importCommonExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String taskID) {
+    public List<EntryInfoEntity> importCommonExcle(FileInputStreamEntity fileInputStreamEntitiy, String taskID) {
         String name = fileInputStreamEntitiy.getFileName();
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
         //读取excle转换的实体
@@ -1851,12 +1863,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional
     @Override
-    public UpdateTranslationByFileVO importTransExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String token, String transType) {
+    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType) {
 
 
         
         try {
-            UpdateTranslationByFileVO updateTranslationByFileVO = new UpdateTranslationByFileVO();
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = new UpdateEntryInfoByFileVO();
             String department = JWTTokenUtils.getDepartment(token);
             Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null);
             Map<String,Object> kwargs = new HashMap<>();
@@ -1874,9 +1886,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional
     @Override
-    public UpdateTranslationByFileVO importTransExcle(FileInputStreamEntitiy fileInputStreamEntitiy,  String token, String transType,Map<String, Set<String>> idRelationMap){
+    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy,  String token, String transType,Map<String, Set<String>> idRelationMap){
         
-        UpdateTranslationByFileVO updateTranslationByFileVO = new UpdateTranslationByFileVO();
+        UpdateEntryInfoByFileVO updateTranslationByFileVO = new UpdateEntryInfoByFileVO();
 
         try {
             
@@ -1946,7 +1958,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                             - 结果：父节点和所有子节点都采用子节点对应的翻译（√）
                         - 情况2：不同子节点的翻译不同
                             - 结果： 报异常信息（×）
-                5. 下午测试多组ID关联信息的场景
             */
             for(Map.Entry<String,Set<String>> idRelation : idRelationMap.entrySet()){
                 String parentID = idRelation.getKey();
@@ -2250,7 +2261,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> workImportExcleTrans(FileInputStreamEntitiy fileInputStreamEntitiy, String taskID) {
+    public List<EntryInfoEntity> workImportExcleTrans(FileInputStreamEntity fileInputStreamEntitiy, String taskID) {
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
         try {
@@ -3933,7 +3944,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntitiy multipartFile,Collection<String> replicatedTargetAttributes) {
+    public EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntity multipartFile,Collection<String> replicatedTargetAttributes) {
 
         String originalFilename = multipartFile.getFileName();
         Collection<EntryInfoEntity> entryInfoEntities = null;
@@ -3996,7 +4007,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntitiy multipartFile, Map<String,Object> kwargs) {
+    public Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntity multipartFile, KeyValueArguments<String> kwargs) {
         // TODO Auto-generated method stub
         try {
             return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getFileName(),kwargs);
@@ -4007,7 +4018,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntitiy file1, FileInputStreamEntitiy file2,Collection<String> targetAttributes) {
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntity file1, FileInputStreamEntity file2,Collection<String> targetAttributes) {
         // TODO Auto-generated method stub
         Collection<EntryInfoEntity> entryCollection1 = this.parseFileToEntryInfos(file1, null);
         Collection<EntryInfoEntity> entryCollection2 = this.parseFileToEntryInfos(file2, null);
@@ -4045,7 +4056,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntitiy translatedFile,FileInputStreamEntitiy beforeTranslatedFile) {
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntity translatedFile,FileInputStreamEntity beforeTranslatedFile) {
         // TODO Auto-generated method stub
         Collection<String> targetAttributes = new HashSet<>();
         targetAttributes.add("id");
@@ -4054,7 +4065,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntitiy translatedFile,Map<String, Set<String>> idRelationMap) {
+    public Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntity translatedFile,Map<String, Set<String>> idRelationMap) {
         if(translatedFile == null){
             throw new RuntimeException("没有提供词条文件");
         }
@@ -4102,6 +4113,144 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
         // return exceptionVOs;
     }
+
+    private boolean containsRestrictedColumnNames(Collection<String> updateColumnNames){
+        for(String columnName : updateColumnNames){
+            if(ConstantInterface.RESTRICTION_UPDATE_FILE_COLUMN_NAMES.contains(columnName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public UpdateEntryInfoByFileVO updateEntryInfosByFile(FileInputStreamEntity fileInputStreamEntitiy, Collection<String> updateColumnNames,KeyValueArguments<String> keyValueArguments) {
+
+        try {
+            if(fileInputStreamEntitiy == null){
+                return UpdateEntryInfoByFileVO.newInstance("更新词条信息失败", ExceptionVO.newInstance("没有提供更新词条的文件", "请检查是否提供词条文件"));
+            }
+            Collection<EntryInfoEntity> entryInfos = this.parseFileToEntryInfos(fileInputStreamEntitiy, null);   
+            if(entryInfos == null){
+                return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("解析文件失败, 未获取词条信息","检查提供的文件格式是否存在异常"));
+            }
+            if(entryInfos.isEmpty()){
+                return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("解析文件成功, 但未获取任何词条","请提供存在词条的文件"));
+            }
+            if(this.containsRestrictedColumnNames(updateColumnNames)){
+                return UpdateEntryInfoByFileVO.newInstance("词条更新失败", ExceptionVO.newInstance("禁止选择更新词条ID列的内容"));
+            }
+            Map<String, String> fieldColumnNameMap = ConstantInterface.constructEntryName();    // EntryInfoEntity的属性名与表格的列名的映射关系
+            Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap(); // {"英文":"getEnglish"}
+            if(fieldColumnNameMap == null || fieldColumnNameMap.isEmpty()){
+                return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("系统服务异常, 没有对应文件的列名的映射关系","联系研发"));
+            }
+            // 获取要更新的属性名
+            Collection<String> targetFieldNames = new HashSet<>();
+            fieldColumnNameMap.forEach((fieldName,columnName)->{
+                if(updateColumnNames.contains(columnName)){
+                    targetFieldNames.add(fieldName);
+                }
+            });
+            if(targetFieldNames.size() != updateColumnNames.size()){
+                return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance(
+                    "列名不正确, 无法确定更新词条哪些列的内容",String.format("检查文件中的列名是否都存在于这个列表中: %s", fieldColumnNameMap.values().toString())));
+            }
+            Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
+            // get方法和set方法映射关系
+            Map<Method,Method> methodMap = new HashMap<>();
+            Collection<String> updateTranslationTypes = new HashSet<>();
+            targetFieldNames.forEach((fieldName)->{
+                String getMethodName  = MethodUtils.getMethodName(fieldName);
+                String setMethodName = MethodUtils.setMethodName(fieldName);
+
+                entryInfoEntityGetterTranslateMap.forEach((transType,getterName)->{
+                    if(getterName.equals(getMethodName)){
+                        updateTranslationTypes.add(transType);
+                    }
+                });
+
+                Method getMethod = null;
+                Method setMethod = null;
+                try {
+                    getMethod = clazz.getMethod(getMethodName);
+                    setMethod = clazz.getMethod(setMethodName,getMethod.getReturnType());
+                    if(getMethod == null || setMethod == null){
+                        throw new RuntimeException(String.format("没有获取到对应的方法, 获取结果为null"));
+                    }
+                    methodMap.put(getMethod, setMethod);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(String.format("没有找到对应的方法, get方法名为: %s, set方法名为: %s", getMethodName,setMethodName));
+                } catch (SecurityException e) {
+                    throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, get方法名为: %s, set方法名为: %s", clazz.getName(),getMethodName,setMethodName));
+                } catch (Exception e){
+                    throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
+                }
+
+            });
+            if(methodMap == null || methodMap.isEmpty()){
+                return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("没有找到对应的更新方法, 无法更新词条","请检查提供的文件的列名是否正确"));
+            }
+            // 遍历更新词条信息
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = UpdateEntryInfoByFileVO.newInstance("词条更新成功");
+
+            Collection<EntryInfoEntity> updateTemplates = new ArrayList<>();
+            entryInfos.stream().forEach((entry)->{
+                Map<Method, Object> setMethodValueMap = new HashMap<>();
+                methodMap.forEach((getMethod,setMethod)->{
+                    try {
+                        Object fileValue = getMethod.invoke(entry);
+                        setMethodValueMap.put(setMethod, fileValue);
+                    } catch (IllegalAccessException e) {
+                        // TODO Auto-generated catch block
+                        throw new RuntimeException(String.format("该对象在更新方法中无法调用方法: %s", getMethod.getName()));
+                    } catch (IllegalArgumentException e) {
+                        // TODO Auto-generated catch block
+                        throw new RuntimeException(String.format("方法: %s对应的参数不符合要求, 请检查", getMethod.getName()));
+                    } catch (InvocationTargetException e) {
+                        // TODO Auto-generated catch block
+                        throw new RuntimeException(e);
+                    }
+                });
+                EntryInfoEntity updateEntryInfoTemplate = entryStorageService.getUpdateEntryInfoTemplate(entry.getId(), setMethodValueMap);
+                updateTemplates.add(updateEntryInfoTemplate);
+            });
+            // sql操作
+            boolean updateEntryInfosResult = entryStorageService.updateEntryInfos(updateTemplates);
+            if(!updateEntryInfosResult){
+                /* 更新失败 */
+                updateTranslationByFileVO.addException(ExceptionVO.newInstance(String.format("词条更新失败","存库异常, 检查提供的excel文件的数据, 并联系研发")));
+                updateTranslationByFileVO.setGlobalMessage("词条更新存库失败");
+            }
+            // 更新t_translate表信息
+            Consumer<TranslateEntity> translateEntiityProcessor = new Consumer<TranslateEntity>() {
+                @Override
+                public void accept(TranslateEntity translateEntity) {
+                    // TODO Auto-generated method stub
+                    translateEntity.setTranslateState("3");
+                }
+            };
+            if(updateTemplates != null && !updateTranslationTypes.isEmpty() && keyValueArguments != null){
+                keyValueArguments.set("translateProcessor", translateEntiityProcessor);
+                boolean updateTransResult = translationStorageService.updateEntryInfoTranslations(updateTemplates,updateTranslationTypes,keyValueArguments);
+                if(!updateTransResult){
+                    /* 更新失败 */
+                    updateTranslationByFileVO.addException(ExceptionVO.newInstance(String.format("词条的翻译更新失败","存库异常, 检查提供的excel文件的数据, 或稍后再试")));
+                    updateTranslationByFileVO.setGlobalMessage("词条翻译更新存库失败");
+                }
+            }
+
+            return updateTranslationByFileVO;
+        } catch (Exception e) {
+            String errorMessage = String.format("更新词条时发生异常, 异常信息为: %s", e.getMessage());
+            log.error(errorMessage, e);
+            throw new RuntimeException(errorMessage,e);
+        }
+    }
+
+    
 
 
 

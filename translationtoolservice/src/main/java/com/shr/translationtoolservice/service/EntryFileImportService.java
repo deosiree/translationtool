@@ -11,8 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
-import com.shr.translationtoolservice.entity.FileInputStreamEntitiy;
-import com.shr.translationtoolservice.entity.vo.UpdateTranslationByFileVO;
+import com.shr.translationtoolservice.entity.FileInputStreamEntity;
+import com.shr.translationtoolservice.entity.KeyValueArguments;
+import com.shr.translationtoolservice.entity.vo.UpdateEntryInfoByFileVO;
 import com.shr.translationtoolservice.entity.vo.ValueDifferenceVO;
 import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
 
@@ -27,11 +28,22 @@ public interface EntryFileImportService {
      * @param request
      * @return
      */
-    List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntitiy fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request);
+    List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request);
 
-    List<EntryInfoEntity> importCommonExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String taskID);
+    List<EntryInfoEntity> importCommonExcle(FileInputStreamEntity fileInputStreamEntitiy, String taskID);
 
-    List<EntryInfoEntity> workImportExcleTrans(FileInputStreamEntitiy fileInputStreamEntitiy,  String taskID);
+    List<EntryInfoEntity> workImportExcleTrans(FileInputStreamEntity fileInputStreamEntitiy,  String taskID);
+
+    /**
+     * 利用提供的文件更新词条的信息(不包含翻译信息)
+     * @param fileInputStreamEntitiy
+     * @param updateColumnNames
+     * @param kwargs
+     * @return
+     */
+    UpdateEntryInfoByFileVO updateEntryInfosByFile(FileInputStreamEntity fileInputStreamEntitiy,Collection<String> updateColumnNames,KeyValueArguments<String> keyValueArguments);
+
+    // UpdateEntryInfoByFileVO updateEntryInfosTranslationByFile(FileInputStreamEntity fileInputStreamEntitiy,Collection<String> translationColumnNames,KeyValueArguments<String> keyValueArguments);
 
     /**
      * 更新翻译接口(送翻文件解析, 更新库里词条的翻译)
@@ -40,7 +52,7 @@ public interface EntryFileImportService {
      * @param transType
      * @return
      */
-    UpdateTranslationByFileVO importTransExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String token,String transType);
+    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token,String transType);
 
     /**
      * 更新翻译接口(送翻文件解析, 更新库里词条的翻译)(利用去重的翻译文件,以及去重时使用的词条id关联表), idRelationMap传参为null,调用{@link #importTransExcle(MultipartFile, String, String)}进行更新翻译
@@ -49,19 +61,19 @@ public interface EntryFileImportService {
      * @param transType
      * @return
      */
-    UpdateTranslationByFileVO importTransExcle(FileInputStreamEntitiy fileInputStreamEntitiy, String token, String transType,Map<String, Set<String>> idRelationMap);
+    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,Map<String, Set<String>> idRelationMap);
 
     /**
      * 比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失
      * @param translatedFile
      * @param beforeTranslatedFile
      */
-    ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntitiy translatedFile,FileInputStreamEntitiy beforeTranslatedFile);
+    ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntity translatedFile,FileInputStreamEntity beforeTranslatedFile);
 
     /**
      * 比对送翻后的文件和这组id关联关系是否匹配
      */
-    Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntitiy fileInputStreamEntitiy,Map<String, Set<String>> idRelationMap);
+    Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntity fileInputStreamEntitiy,Map<String, Set<String>> idRelationMap);
 
 
     /**

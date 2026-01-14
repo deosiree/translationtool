@@ -294,7 +294,7 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/entryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
-    public HttpResponse<UpdateTranslationByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
+    public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
                                                           HttpServletRequest httpServletRequest
     ) {
         try {
@@ -303,9 +303,9 @@ public class EntryInfoController extends BaseController {
             }
             Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
             Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
-            UpdateTranslationByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(FileInputStreamEntitiy.convertFrom(multipartFile), httpServletRequest.getHeader("token"),transType,toJson);
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(FileInputStreamEntity.convertFrom(multipartFile), httpServletRequest.getHeader("token"),transType,toJson);
             
-            HttpResponse<UpdateTranslationByFileVO> responseResult = new HttpResponse<>();
+            HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
             responseResult.setData(updateTranslationByFileVO);
             if(updateTranslationByFileVO.hasError()){
                 updateTranslationByFileVO.setGlobalMessage(String.format("更新词条翻译时部分词条更新后存在警告和异常信息, 总共有%s个信息", updateTranslationByFileVO.exceptionNumber()));
@@ -1121,7 +1121,7 @@ public class EntryInfoController extends BaseController {
          * 
          */
         try {
-            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(FileInputStreamEntitiy.convertFrom(multipartFile),replicatedTargetAttributes);
+            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(FileInputStreamEntity.convertFrom(multipartFile),replicatedTargetAttributes);
             return ok(entryInfoGroupVO);    
         } catch (Exception e) {
             // TODO: handle exception
@@ -1162,7 +1162,7 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,HttpServletRequest request){
         try {
-            return ok(entryInfoService.parseFileToEntryInfos(FileInputStreamEntitiy.convertFrom(multipartFile), null));
+            return ok(entryInfoService.parseFileToEntryInfos(FileInputStreamEntity.convertFrom(multipartFile), null));
         } catch (Exception e) {
             log.error("解析文件成词条出现异常", e);
             return error(null, e.getMessage());
@@ -1174,7 +1174,7 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     public HttpResponse<ValueDifferenceVO<EntryInfoEntity>> compareEntryIDsBetweenFiles(@RequestParam("before") MultipartFile beforeTranslatedFile,@RequestParam("after") MultipartFile translatedFile){
         try {
-            ValueDifferenceVO<EntryInfoEntity> comparedResult = entryInfoService.compareEntryIDsBetweenFiles(FileInputStreamEntitiy.convertFrom(beforeTranslatedFile),FileInputStreamEntitiy.convertFrom(translatedFile));
+            ValueDifferenceVO<EntryInfoEntity> comparedResult = entryInfoService.compareEntryIDsBetweenFiles(FileInputStreamEntity.convertFrom(beforeTranslatedFile),FileInputStreamEntity.convertFrom(translatedFile));
             // List<EntryInfoEntity> missingEntryInfos = comparedResult.getValueOnlyInFirst();   // 翻译的文件里面没有(词条没有送翻的)
             // if(missingEntryInfos != null && !missingEntryInfos.isEmpty()){
 
@@ -1196,12 +1196,29 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<Collection<ExceptionVO>> compareTranslatedFileWithIDRelation(@RequestParam("before") MultipartFile file,@RequestParam("relationFile") MultipartFile idRelationFile){
         try {
             Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
-            Collection<ExceptionVO> exceptionVOs = entryInfoService.compareTranslatedFileWithIDRelation(FileInputStreamEntitiy.convertFrom(file),JSONUtils.parseToJson(idRelationFile.getInputStream(),StandardCharsets.UTF_8.name(),mapType));
+            Collection<ExceptionVO> exceptionVOs = entryInfoService.compareTranslatedFileWithIDRelation(FileInputStreamEntity.convertFrom(file),JSONUtils.parseToJson(idRelationFile.getInputStream(),StandardCharsets.UTF_8.name(),mapType));
 
             return ok(exceptionVOs);
         } catch (Exception e) {
             log.error("文件比对出现异常", e);
             return error(null, String.format("文件比对出现异常, 请检查提供的两个文件, %s", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/updateEntryInfosByFile")
+    @ApiOperation("根据文件的词条, 指定文件中哪些列的内容要更新到库中")
+    @CrossOrigin
+    public HttpResponse<UpdateEntryInfoByFileVO> updateEntryInfosByFile(@RequestParam("file") MultipartFile file,@RequestParam("columnName[]") Collection<String> columnNames,HttpServletRequest request){
+
+        try {
+            FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(file);
+            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
+            keyValueArguments.set("department", JWTTokenUtils.getDepartment(request.getHeader("token")));
+            UpdateEntryInfoByFileVO updateEntryInfoByFileVO = entryInfoService.updateEntryInfosByFile(fileInputStreamEntity, columnNames, keyValueArguments);
+            return ok(updateEntryInfoByFileVO);
+        } catch (Exception e) {
+            log.error("出现异常", e);
+            return error(null, e.getMessage());
         }
     }
 

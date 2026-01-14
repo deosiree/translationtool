@@ -1,10 +1,9 @@
 package com.shr.translationtoolservice.service;
 
 import java.util.Collection;
-import java.util.Map;
-
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
-import com.shr.translationtoolservice.entity.FileInputStreamEntitiy;
+import com.shr.translationtoolservice.entity.FileInputStreamEntity;
+import com.shr.translationtoolservice.entity.KeyValueArguments;
 import com.shr.translationtoolservice.entity.vo.EntryInfoGroupVO;
 import com.shr.translationtoolservice.entity.vo.ValueDifferenceVO;
 
@@ -16,7 +15,7 @@ public interface EntryFileService{
      * @param multipartFile
      * @return
      */
-    EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntitiy multipartFile,Collection<String> replicatedTargetAttributes);
+    EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntity multipartFile,Collection<String> replicatedTargetAttributes);
 
     /**
      * 将文件的内容解析成词条对象, 没有后处理操作
@@ -24,7 +23,7 @@ public interface EntryFileService{
      * @param request
      * @return
      */
-    Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntitiy multipartFile,Map<String,Object> kwargs);
+    Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntity multipartFile,KeyValueArguments<String> keyValueArguments);
 
 
     /**
@@ -33,7 +32,7 @@ public interface EntryFileService{
      * @param secondFile
      * @param targetAttributes  用于比对使用的属性名的集合
      */
-    ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntitiy file1,FileInputStreamEntitiy file2,Collection<String> targetAttributes);
+    ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntity file1,FileInputStreamEntity file2,Collection<String> targetAttributes);
 
 
 

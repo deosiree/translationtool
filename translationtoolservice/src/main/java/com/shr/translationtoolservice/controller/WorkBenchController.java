@@ -99,7 +99,7 @@ public class WorkBenchController extends BaseController {
                                                              @RequestParam("taskID") String taskID
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(FileInputStreamEntitiy.convertFrom(multipartFile), taskID);
+        List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(FileInputStreamEntity.convertFrom(multipartFile), taskID);
         responseListModel.setList(entryEntities);
         responseListModel.setTotalNum(entryEntities.size());
 
@@ -119,7 +119,7 @@ public class WorkBenchController extends BaseController {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryInfoEntity> entryInfoEntities = null;
         try {
-            entryInfoEntities = entryInfoService.importEntitiesFromFile(FileInputStreamEntitiy.convertFrom(multipartFile), taskID,departmentType, httpServletRequest);
+            entryInfoEntities = entryInfoService.importEntitiesFromFile(FileInputStreamEntity.convertFrom(multipartFile), taskID,departmentType, httpServletRequest);
 
             if(entryInfoEntities == null){
                 throw new NullPointerException("entryInfoEntities == null");
