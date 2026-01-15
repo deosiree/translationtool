@@ -131,7 +131,17 @@
           <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin" :disabled="!isProduct()">二级分类管理</a-button>
-          <ImportButton @importSuccess="refreshTable" v-if="admin" :translateTypes="translateTypes" size="small" buttonTitle="更新翻译" />
+          <BackFillModal
+            v-if="admin"
+            mode="button"
+            :translateTypes="translateTypes"
+            :showFileTypeSelect="true"
+            :defaultAccept="'.csv'"
+            size="small"
+            buttonTitle="更新翻译"
+            modalTitle="更新翻译"
+            @importSuccess="refreshTable"
+          />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -377,7 +387,7 @@ import zhCN from "ant-design-vue/es/locale/zh_CN";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
-import ImportButton from "@/components/Button/importButton.vue";
+import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import EntryStateSelect from "@/components/select/entryStateSelect.vue";
@@ -460,7 +470,7 @@ export default {
     SearchBox,
     DataBox,
     OperationArea,
-    ImportButton,
+    BackFillModal,
     AccurSearchButton,
     GitCommitButton,
     EntryStateSelect,

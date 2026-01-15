@@ -32,3 +32,6 @@ export * from './domUtils';
 
 // Excel 相关工具
 export * from './excelUtils';
+
+// 文件处理工具
+export * from './fileUtils';

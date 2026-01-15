@@ -23,14 +23,38 @@
         </a-form-item>
       </a-form>
     </div>
-    <template #leftBottomBtn>
-      <ExportButton v-if="exportDataSource.length > 0" :dataSource="exportDataSource" :fieldOptions_="fieldOptions"
-        :defaultStatusCheck="false" size="middle" buttonTitle="导出更新失败的词条文件" @afterClose="exportClose" />
-    </template>
   </CustomModal>
+
+  <!-- 失败信息模态框 -->
+  <CustomModal :visible="failedInfoVisible" :modalTitle="'失败信息'" :showOk="false" @handleClose="failedInfoClose">
+    <div class="content">
+      <!-- 第一行：显示 globalMessage -->
+      <div v-if="globalMessage" style="margin-bottom: 16px; color: #ff4d4f; font-weight: 500;">
+        <a-alert :description="globalMessage" type="info" show-icon />
+        <!-- {{ globalMessage }} -->
+      </div>
+
+      <!-- 部分更新失败的词条下载 -->
+      <div v-if="failedEntryInfos && failedEntryInfos.length > 0" style="margin-bottom: 12px;">
+        <span style="margin-right: 8px;">部分更新失败的词条：</span>
+        <a-button type="link" @click="downloadFailedEntries">下载</a-button>
+      </div>
+
+      <!-- 全部异常信息下载 -->
+      <div v-if="exceptionVos && exceptionVos.length > 0">
+        <span style="margin-right: 8px;">全部异常信息：</span>
+        <a-button type="link" @click="downloadExceptionInfos">下载</a-button>
+      </div>
+    </div>
+  </CustomModal>
+
+  <!-- 隐藏的 ExportButton，用于导出失败词条 -->
+  <ExportButton ref="failedExportRef" :dataSource="failedExportDataSource" :fieldOptions_="fieldOptions"
+    :defaultStatusCheck="false" :hideButton="true" />
 </template>
 
 <script>
+import { cloneDeep } from "lodash-es";
 import { message } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
@@ -38,7 +62,7 @@ import { entryImportExcle } from "@/http/api/entryManage";
 import { entryBatchImportExcel } from "@/utils/excelUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import commonParam, { entryParams } from "@/constants/commonParam.js";
-import { cloneDeep } from "lodash-es";
+import { downloadJsonFile } from "@/utils/fileUtils";
 export default {
   components: {
     CustomModal, // 注册 CustomModal 组件
@@ -74,8 +98,14 @@ export default {
       ],
       accept: null,
       fileList: [],
-      exportDataSource: [], // 存储更新失败的词条
+      exportDataSource: [], // 存储更新失败的词条（旧逻辑，保留兼容）
       fieldOptions: entryParams.exportFields,
+      // 新增状态：失败信息相关
+      failedEntryInfos: [], // 可重试失败词条数组
+      exceptionVos: [], // 异常信息数组
+      globalMessage: "", // 总体错误提示信息
+      failedInfoVisible: false, // 控制失败信息模态框显示
+      failedExportDataSource: [], // 用于导出失败词条的数据源
     };
   },
   watch: {
@@ -109,11 +139,38 @@ export default {
           const formData = new FormData();
           formData.append("file", this.importModal.importFile);
 
-          const rls = await entryBatchImportExcel(this.importModal.language, formData);
+          try {
+            // 调用批量导入函数
+            const result = await entryBatchImportExcel(this.importModal.language, formData);
 
-          this.$emit("importSuccess");
-          if (!rls.error) {
-            this.importVisible = false;
+            this.$emit("importSuccess");
+
+            // 处理结果
+            if (result.code === 201) {
+              // code=201 表示有失败信息，显示失败信息模态框
+              // 保存失败信息
+              this.failedEntryInfos = result.failedEntryInfos || [];
+              this.exceptionVos = result.exceptionVos || [];
+              this.globalMessage = result.globalMessage || "";
+
+              // 提取失败词条数据用于导出（如果有数据）
+              if (this.failedEntryInfos.length > 0) {
+                this.extractFailedEntriesData();
+              }
+
+              // 关闭导入弹窗，打开失败信息模态框
+              this.importVisible = false;
+              this.failedInfoVisible = true;
+            } else if (result.code === 200) {
+              // 完全成功
+              this.importVisible = false;
+            } else {
+              // 其他情况
+              this.importVisible = false;
+            }
+          } catch (error) {
+            console.error("导入过程发生异常：", error);
+            message.error("导入失败：" + (error.message || "未知错误"));
           }
         })
         .catch((err) => {
@@ -223,6 +280,13 @@ export default {
         importType: null,
       };
       this.fileList = [];
+      // 重置失败信息相关状态
+      this.failedEntryInfos = [];
+      this.exceptionVos = [];
+      this.globalMessage = "";
+      this.failedInfoVisible = false;
+      this.failedExportDataSource = [];
+      this.exportDataSource = [];
       if (this.$refs.importForm) {
         this.$refs.importForm.clearValidate();
       }
@@ -278,6 +342,68 @@ export default {
       this.importClose();
       this.exportDataSource = []; //清空更新失败的词条记录
       // console.log("更新失败的词条被清空后", this.exportDataSource);
+    },
+    // 关闭失败信息模态框
+    failedInfoClose() {
+      this.failedInfoVisible = false;
+      // 重置失败信息相关状态
+      this.failedEntryInfos = [];
+      this.exceptionVos = [];
+      this.globalMessage = "";
+      this.failedExportDataSource = [];
+    },
+    // 提取失败词条数据用于导出
+    extractFailedEntriesData() {
+      const entriesMap = new Map();
+
+      // 遍历 failedEntryInfos，提取所有词条数据
+      this.failedEntryInfos.forEach((item) => {
+        // 兼容两种数据结构：
+        // 1. 直接是词条对象：{id: 1, entry: "...", ...}
+        // 2. 包含 entryInfoVO 的对象：{entryInfoVO: {entryInfoEntitie: [...]}}
+        if (item.id) {
+          // 情况1：直接是词条对象
+          if (!entriesMap.has(item.id)) {
+            entriesMap.set(item.id, item);
+          }
+        } else if (item.entryInfoVO) {
+          // 情况2：包含 entryInfoVO
+          const entryInfoVO = item.entryInfoVO || {};
+          const entryList = entryInfoVO.entryInfoEntitie || entryInfoVO.entryInfoEntities || [];
+
+          entryList.forEach((entry) => {
+            // 使用 id 作为 key 去重
+            if (entry.id && !entriesMap.has(entry.id)) {
+              entriesMap.set(entry.id, entry);
+            }
+          });
+        }
+      });
+
+      this.failedExportDataSource = Array.from(entriesMap.values());
+    },
+    // 下载部分更新失败的词条
+    downloadFailedEntries() {
+      if (this.failedExportDataSource.length === 0) {
+        message.warning("没有可导出的失败词条数据");
+        return;
+      }
+
+      // 通过 ref 调用隐藏的 ExportButton 的 showExportModal 方法
+      if (this.$refs.failedExportRef) {
+        this.$refs.failedExportRef.showExportModal();
+      } else {
+        message.error("导出功能初始化失败");
+      }
+    },
+    // 下载全部异常信息
+    downloadExceptionInfos() {
+      if (this.exceptionVos.length === 0) {
+        message.warning("没有异常信息可下载");
+        return;
+      }
+
+      downloadJsonFile(this.exceptionVos, "entry_import_exceptions", false);
     },
   },
 };
