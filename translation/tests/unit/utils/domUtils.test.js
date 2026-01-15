@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { clickInput, setModalAriaHidden, createDragModalDirective, stopDomEvent } from '@/utils/domUtils'
+import {
+  clickInput,
+  setModalAriaHidden,
+  createDragModalDirective,
+  stopDomEvent,
+  createDraggable
+} from '@/utils/domUtils'
 
 describe('domUtils - DOM/UI工具函数', () => {
   beforeEach(() => {
@@ -456,25 +462,92 @@ describe('domUtils - DOM/UI工具函数', () => {
   })
 
   describe('createDraggable', () => {
-    // 注意：此函数尚未实现，测试将在函数实现后完善
-    // 当前仅作为占位，确保测试结构完整
-    
-    it.skip('应该返回清理函数', () => {
-      // TODO: 等待 createDraggable 函数实现后完善此测试
-      // const cleanup = createDraggable(element, options)
-      // expect(typeof cleanup).toBe('function')
+    it('应该返回清理函数', () => {
+      const el = document.createElement('div')
+      document.body.appendChild(el)
+
+      const cleanup = createDraggable(el)
+
+      expect(typeof cleanup).toBe('function')
+
+      cleanup()
     })
 
-    it.skip('应该在拖拽时调用 onDrag 回调', () => {
-      // TODO: 等待 createDraggable 函数实现后完善此测试
+    it('应该在拖拽时调用 onDrag 回调', () => {
+      const el = document.createElement('div')
+      // 初始位置
+      el.style.left = '0px'
+      el.style.top = '0px'
+      document.body.appendChild(el)
+
+      const onDrag = vi.fn()
+      createDraggable(el, { onDrag })
+
+      // 模拟按下并拖动
+      el.dispatchEvent(new MouseEvent('mousedown', { clientX: 10, clientY: 20, button: 0 }))
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 30, clientY: 50 }))
+      document.dispatchEvent(new MouseEvent('mouseup'))
+
+      // 至少被调用一次
+      expect(onDrag).toHaveBeenCalled()
+      const { x, y } = onDrag.mock.calls[onDrag.mock.calls.length - 1][0]
+      expect(typeof x).toBe('number')
+      expect(typeof y).toBe('number')
     })
 
-    it.skip('应该限制在边界内', () => {
-      // TODO: 等待 createDraggable 函数实现后完善此测试
+    it('应该限制在边界内', () => {
+      const el = document.createElement('div')
+      el.style.left = '0px'
+      el.style.top = '0px'
+      document.body.appendChild(el)
+
+      const getBounds = () => ({
+        minX: 0,
+        maxX: 100,
+        minY: 0,
+        maxY: 50
+      })
+
+      createDraggable(el, { getBounds })
+
+      el.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, button: 0 }))
+      // 尝试拖到很远的位置，应该会被限制在边界内
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 1000, clientY: 1000 }))
+      document.dispatchEvent(new MouseEvent('mouseup'))
+
+      const left = parseFloat(el.style.left)
+      const top = parseFloat(el.style.top)
+
+      expect(left).toBeLessThanOrEqual(100)
+      expect(left).toBeGreaterThanOrEqual(0)
+      expect(top).toBeLessThanOrEqual(50)
+      expect(top).toBeGreaterThanOrEqual(0)
     })
 
-    it.skip('应该清理事件监听器', () => {
-      // TODO: 等待 createDraggable 函数实现后完善此测试
+    it('应该清理事件监听器', () => {
+      const el = document.createElement('div')
+      el.style.left = '0px'
+      el.style.top = '0px'
+      document.body.appendChild(el)
+
+      const onDrag = vi.fn()
+      const cleanup = createDraggable(el, { onDrag })
+
+      // 先正常拖拽一次
+      el.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, button: 0 }))
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 10 }))
+      document.dispatchEvent(new MouseEvent('mouseup'))
+      expect(onDrag).toHaveBeenCalled()
+
+      onDrag.mockClear()
+
+      // 执行清理函数后，再次触发事件不应再调用 onDrag
+      cleanup()
+      el.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, button: 0 }))
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 20, clientY: 20 }))
+      document.dispatchEvent(new MouseEvent('mouseup'))
+
+      expect(onDrag).not.toHaveBeenCalled()
     })
   })
 })

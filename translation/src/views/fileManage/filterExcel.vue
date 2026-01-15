@@ -78,7 +78,7 @@
       <template v-slot:operate>
         <div ref="button" style="margin-bottom: 8px; display: flex; gap: 10px">
           <a-upload name="file" accept=".csv" :beforeUpload="beforeUpload" :show-upload-list="false">
-            <a-button type="primary" size="middle">
+            <a-button type="primary" size="middle" :loading="importLoading">
               <template #icon>
                 <UploadOutlined />
               </template>
@@ -391,6 +391,7 @@ export default {
       batchDeleteFlag: true,
       deleteButtonsVisible: false,
       deleteLoading: false,
+      importLoading: false,
       importBackfillVisible: false,
       deduplicatedDataSource: [], // 存储去重后的数据，用于导出
       filterModal: {
@@ -543,6 +544,8 @@ export default {
         message.error("只能上传 CSV 文件!");
         return false;
       }
+      this.importLoading = true;
+      this.loading = true;
       const reader = new FileReader();
       reader.onload = async (e) => {
         const content = e.target.result;
@@ -557,7 +560,15 @@ export default {
         } catch (error) {
           console.error("文件解析失败", error);
           message.error("文件解析失败");
+        } finally {
+          this.importLoading = false;
+          this.loading = false;
         }
+      };
+      reader.onerror = () => {
+        message.error("文件读取失败");
+        this.importLoading = false;
+        this.loading = false;
       };
       reader.readAsText(file);
       return false;// 在文件开始上传之前阻止文件上传操作

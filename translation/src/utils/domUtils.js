@@ -122,3 +122,107 @@ export function setModalAriaHidden(vm, _document) {
     }
   });
 }
+
+/**
+ * 创建通用可拖拽元素
+ *
+ * @param {HTMLElement} targetEl 需要拖拽的元素
+ * @param {Object} [options]
+ * @param {(pos: { x: number, y: number }) => void} [options.onDrag] 拖拽时的回调
+ * @param {() => { minX?: number, maxX?: number, minY?: number, maxY?: number }} [options.getBounds] 返回拖拽边界
+ * @returns {() => void} cleanup 函数，用于移除事件监听
+ */
+export function createDraggable(targetEl, options = {}) {
+  if (!targetEl) {
+    // 返回空清理函数，避免调用方还要判空
+    return () => {};
+  }
+
+  const { onDrag, getBounds } = options;
+
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let originLeft = 0;
+  let originTop = 0;
+
+  const parsePx = (value) => {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+      const num = parseFloat(value);
+      return Number.isNaN(num) ? 0 : num;
+    }
+    return 0;
+  };
+
+  const applyBounds = (x, y) => {
+    if (typeof getBounds !== "function") {
+      return { x, y };
+    }
+    const bounds = getBounds() || {};
+    const minX = typeof bounds.minX === "number" ? bounds.minX : -Infinity;
+    const maxX = typeof bounds.maxX === "number" ? bounds.maxX : Infinity;
+    const minY = typeof bounds.minY === "number" ? bounds.minY : -Infinity;
+    const maxY = typeof bounds.maxY === "number" ? bounds.maxY : Infinity;
+
+    return {
+      x: Math.min(Math.max(x, minX), maxX),
+      y: Math.min(Math.max(y, minY), maxY),
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+
+    let nextX = originLeft + deltaX;
+    let nextY = originTop + deltaY;
+
+    const bounded = applyBounds(nextX, nextY);
+    nextX = bounded.x;
+    nextY = bounded.y;
+
+    targetEl.style.left = `${nextX}px`;
+    targetEl.style.top = `${nextY}px`;
+
+    if (typeof onDrag === "function") {
+      onDrag({ x: nextX, y: nextY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseDown = (e) => {
+    // 只响应主键（左键）
+    if (typeof e.button === "number" && e.button !== 0) return;
+
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+
+    const style = window.getComputedStyle
+      ? window.getComputedStyle(targetEl)
+      : targetEl.style;
+
+    originLeft = parsePx(style.left);
+    originTop = parsePx(style.top);
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  targetEl.addEventListener("mousedown", handleMouseDown);
+
+  // 返回清理函数
+  return () => {
+    targetEl.removeEventListener("mousedown", handleMouseDown);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+}
