@@ -749,6 +749,8 @@ export default {
       selectAllLoading: false,
       filters: null,
       accurSearch: [], // 用于分页时的查询参数
+      lastSearchType: "getEntryByClassfy", // 记录最近一次查询类型
+      lastAccurate: [], // 记录最近一次全量查询的accurate参数
       showForbbiden: false, // 显示/隐藏禁用
       classifyLimit: {},
       entrySourceOptions: [], // 词条来源下拉框
@@ -1063,11 +1065,18 @@ export default {
         this.search.searchType == "getEntryByClassfy"
       ) {
         // 条件查询
-        if (accurate.length > 0) this.accurSearch = accurate;
-        else this.accurSearch = [];
+        this.lastSearchType = "getEntryByClassfy";
+        if (accurate && accurate.length > 0) {
+          this.accurSearch = accurate;
+        } else {
+          this.accurSearch = [];
+        }
+        this.lastAccurate = this.accurSearch;
         this.getEntryByClassfy(isInit, this.accurSearch);
       } else if (this.search.searchType == "checkNotUseEntry") {
         // 冗余校验查询
+        this.lastSearchType = "checkNotUseEntry";
+        this.lastAccurate = [];
         this.getCheckNotUseEntry();
       } else {
         console.log("未执行查询", this.search.searchType);
@@ -1742,7 +1751,17 @@ export default {
       this.getProductVersion();
     },
     refreshTable() {
-      this.getEntryByClassfy(false, this.accurSearch);
+      if (this.lastSearchType === "checkNotUseEntry") {
+        // 上一次为冗余词条校验查询，则刷新冗余校验结果
+        this.getCheckNotUseEntry();
+      } else {
+        // 其他情况（包含普通条件查询与全量查询），沿用上一次的accurate参数
+        const accurate =
+          this.lastAccurate && this.lastAccurate.length
+            ? this.lastAccurate
+            : this.accurSearch;
+        this.getEntryByClassfy(false, accurate);
+      }
     },
     // 选择全部词条
     selectAllEntry() {
