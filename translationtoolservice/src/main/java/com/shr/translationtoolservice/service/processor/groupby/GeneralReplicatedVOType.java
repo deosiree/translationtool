@@ -1,11 +1,11 @@
-package com.shr.translationtoolservice.util.processor.groupby;
+package com.shr.translationtoolservice.service.processor.groupby;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.shr.translationtoolservice.util.processor.groupby.GroupbyStrategy.ReplicatedVOType;
+import com.shr.translationtoolservice.service.processor.groupby.GroupbyStrategy.ReplicatedVOType;
 
 public final class GeneralReplicatedVOType extends ReplicatedVOType {
 

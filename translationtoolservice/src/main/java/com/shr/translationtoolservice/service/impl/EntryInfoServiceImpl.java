@@ -17,12 +17,12 @@ import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TranslationStorageService;
 import com.shr.translationtoolservice.service.analyze.BatchMaxLengthTranslateAnalyzer;
+import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
+import com.shr.translationtoolservice.service.processor.groupby.GeneralReplicatedVOType;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
-import com.shr.translationtoolservice.util.processor.groupby.DefaultEntryGroupbyStrategy;
-import com.shr.translationtoolservice.util.processor.groupby.GeneralReplicatedVOType;
 
 import lombok.extern.slf4j.Slf4j;
 
