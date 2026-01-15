@@ -126,7 +126,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needIP", "needExamine", "needDelete", "needBranch", "dev"]),
+      ops: new Set(["needIP", "needExamine", "needDelete", "needBranch", "toolBox", "dev"]),
       // -needIP是否需要IP地址(凡是包含ip的都同理）
       // -----1.工作台-导入：IP的显示与获取、回写辞典
       // -----2.工作台-归档，归档；
@@ -145,6 +145,7 @@ export default {
       // -----5.工作台-批量选择，
       // --------5.1.工作台-批量选择，勾选后才显示多选按钮（平铺有下三角可全部选择/反选；层级无全部选择）
       // -----6.词条管理-查询条件-校验类型，（其他部门没有，默认为条件查询）
+      // -toolBox是否需要全局工具栏（悬浮按钮）
       // -dev正在开发中的功能，暂时只放开给平台部
     },
     "监控系统部": {

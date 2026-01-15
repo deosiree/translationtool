@@ -68,6 +68,33 @@ export function clickInput(vm, event) {
 }
 
 /**
+ * 通用 DOM 事件阻止工具
+ * 通常在「只想执行自定义逻辑，而不希望触发浏览器默认行为或父级事件」时使用。
+ *
+ * 例如：
+ * - 阻止点击触发隐藏的 input[type=file]，避免弹出系统文件选择框
+ * - 阻止点击事件继续冒泡到父元素上
+ *
+ * @param {Event} event - 原生 DOM 事件对象
+ * @param {Object} [options]
+ * @param {boolean} [options.preventDefault=true] - 是否调用 event.preventDefault() 阻止默认行为
+ * @param {boolean} [options.stopPropagation=true] - 是否调用 event.stopPropagation() 阻止事件冒泡
+ */
+export function stopDomEvent(event, options = {}) {
+  const { preventDefault = true, stopPropagation = true } = options;
+
+  if (!event) return;
+
+  if (preventDefault && typeof event.preventDefault === "function") {
+    event.preventDefault();
+  }
+
+  if (stopPropagation && typeof event.stopPropagation === "function") {
+    event.stopPropagation();
+  }
+}
+
+/**
  * 设置模态框的 aria-hidden 属性为 false
  * @param {Object} vm - Vue 实例，用于调用 $nextTick 方法
  * @param {Document} _document - 文档对象，用于获取 DOM 元素

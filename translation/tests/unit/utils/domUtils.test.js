@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { clickInput, setModalAriaHidden, createDragModalDirective } from '@/utils/domUtils'
+import { clickInput, setModalAriaHidden, createDragModalDirective, stopDomEvent } from '@/utils/domUtils'
 
 describe('domUtils - DOM/UI工具函数', () => {
   beforeEach(() => {
@@ -19,6 +19,54 @@ describe('domUtils - DOM/UI工具函数', () => {
       clickInput(mockVm, mockEvent)
 
       expect(mockEvent.stopPropagation).toHaveBeenCalled()
+    })
+  })
+
+  describe('stopDomEvent', () => {
+    it('event 为空时不应抛异常', () => {
+      expect(() => stopDomEvent(null)).not.toThrow()
+      expect(() => stopDomEvent(undefined)).not.toThrow()
+    })
+
+    it('默认应同时调用 preventDefault 和 stopPropagation', () => {
+      const mockEvent = {
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn()
+      }
+
+      stopDomEvent(mockEvent)
+
+      expect(mockEvent.preventDefault).toHaveBeenCalledTimes(1)
+      expect(mockEvent.stopPropagation).toHaveBeenCalledTimes(1)
+    })
+
+    it('可仅阻止默认行为（不阻止冒泡）', () => {
+      const mockEvent = {
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn()
+      }
+
+      stopDomEvent(mockEvent, { preventDefault: true, stopPropagation: false })
+
+      expect(mockEvent.preventDefault).toHaveBeenCalledTimes(1)
+      expect(mockEvent.stopPropagation).not.toHaveBeenCalled()
+    })
+
+    it('可仅阻止冒泡（不阻止默认行为）', () => {
+      const mockEvent = {
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn()
+      }
+
+      stopDomEvent(mockEvent, { preventDefault: false, stopPropagation: true })
+
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled()
+      expect(mockEvent.stopPropagation).toHaveBeenCalledTimes(1)
+    })
+
+    it('当 event 缺少对应方法时不应抛异常', () => {
+      const mockEvent = {}
+      expect(() => stopDomEvent(mockEvent)).not.toThrow()
     })
   })
 
@@ -404,6 +452,29 @@ describe('domUtils - DOM/UI工具函数', () => {
       // getComputedStyle 可能仍会被调用作为后备，但 currentStyle 优先
 
       window.getComputedStyle = originalGetComputedStyle
+    })
+  })
+
+  describe('createDraggable', () => {
+    // 注意：此函数尚未实现，测试将在函数实现后完善
+    // 当前仅作为占位，确保测试结构完整
+    
+    it.skip('应该返回清理函数', () => {
+      // TODO: 等待 createDraggable 函数实现后完善此测试
+      // const cleanup = createDraggable(element, options)
+      // expect(typeof cleanup).toBe('function')
+    })
+
+    it.skip('应该在拖拽时调用 onDrag 回调', () => {
+      // TODO: 等待 createDraggable 函数实现后完善此测试
+    })
+
+    it.skip('应该限制在边界内', () => {
+      // TODO: 等待 createDraggable 函数实现后完善此测试
+    })
+
+    it.skip('应该清理事件监听器', () => {
+      // TODO: 等待 createDraggable 函数实现后完善此测试
     })
   })
 })
