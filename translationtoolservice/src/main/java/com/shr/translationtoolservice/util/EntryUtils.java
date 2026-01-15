@@ -7,11 +7,11 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.KeyDifference;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO;
+import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
 import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
 import com.shr.translationtoolservice.service.processor.groupby.GeneralReplicatedVOType;
 import com.shr.translationtoolservice.service.processor.groupby.GroupbyStrategy;
 import com.shr.translationtoolservice.service.processor.groupby.GroupbyStrategy.ReplicatedVOType;
-import com.shr.translationtoolservice.util.entry.BatchInsertEntryHandler;
 
 import edu.washington.cs.knowitall.logic.Expression.Paren.R;
 import lombok.extern.slf4j.Slf4j;

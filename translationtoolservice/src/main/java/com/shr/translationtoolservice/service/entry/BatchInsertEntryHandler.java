@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.util.entry;
+package com.shr.translationtoolservice.service.entry;
 
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;

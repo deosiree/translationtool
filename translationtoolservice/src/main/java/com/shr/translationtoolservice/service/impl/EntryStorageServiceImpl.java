@@ -14,8 +14,8 @@ import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.service.EntryStorageService;
+import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
-import com.shr.translationtoolservice.util.entry.BatchInsertEntryHandler;
 
 import lombok.extern.slf4j.Slf4j;
 

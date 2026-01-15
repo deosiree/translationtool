@@ -22,7 +22,7 @@ import com.shr.translationtoolservice.entity.KeyValueArguments;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.TranslationStorageService;
-import com.shr.translationtoolservice.util.entry.BatchInsertEntryHandler;
+import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
 
 import lombok.extern.slf4j.Slf4j;
 
