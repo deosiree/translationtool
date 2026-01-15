@@ -13,7 +13,7 @@
         </div>
 
         <div class="deduplicate-layout-right">
-          <div class="rules-section">
+          <div v-if="false" class="rules-section">
             <div class="section-title">选择其他规则：</div>
             <a-table ref="rulesTable" :columns="rulesColumns" :data-source="rulesData"
               :row-selection="rulesRowSelection" :pagination="false"
