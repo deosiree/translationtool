@@ -9,8 +9,8 @@
     <!-- 工具面板 -->
     <div v-if="panelVisible" ref="toolPanelRef" class="tool-panel" :style="panelStyle"
       @mouseleave="handlePanelMouseLeave">
-      <div style="margin-bottom: 8px;">
-        <GitCommitButton size="middle" buttonTitle="git推送" buttonClass="yellowBtn" />
+      <div style="margin-bottom: 8px;" class="tool-panel-button">
+        <GitCommitButton size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
       </div>
       <div style="margin-bottom: 8px;">
         <BackFillModal mode="button" size="small" buttonTitle="更新翻译" modalTitle="更新翻译" :translateTypes="translateTypes"
@@ -31,6 +31,7 @@ import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import { closeAllNotifications } from "@/utils/notificationUtils";
 import { getLanguage } from "@/http/api/translate";
+import "@/assets/style/common.less";
 
 export default {
   name: "FloatingToolBox",
@@ -399,6 +400,14 @@ export default {
   padding: 12px;
   min-width: 150px;
   animation: slideDown 0.3s ease;
+}
+
+.tool-panel > div {
+  width: 80px;
+}
+
+.tool-panel > div :deep(.ant-btn) {
+  width: 100%;
 }
 
 @keyframes slideDown {

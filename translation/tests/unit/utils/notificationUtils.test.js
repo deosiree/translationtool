@@ -9,24 +9,33 @@ describe('notificationUtils - Notification工具函数', () => {
   })
 
   describe('closeAllNotifications', () => {
-    it('应该移除所有notification容器', () => {
-      // 创建模拟的notification容器
+    it('应该保留notification容器，只移除notice元素', () => {
+      // 创建模拟的notification容器（包含notice）
       const notification1 = document.createElement('div')
       notification1.className = 'ant-notification'
+      const notice1 = document.createElement('div')
+      notice1.className = 'ant-notification-notice'
+      notification1.appendChild(notice1)
+      
       const notification2 = document.createElement('div')
       notification2.className = 'ant-notification'
+      const notice2 = document.createElement('div')
+      notice2.className = 'ant-notification-notice'
+      notification2.appendChild(notice2)
       
       document.body.appendChild(notification1)
       document.body.appendChild(notification2)
 
-      // 验证元素存在
+      // 验证初始状态
       expect(document.querySelectorAll('.ant-notification').length).toBe(2)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(2)
 
       // 调用函数
       closeAllNotifications()
 
-      // 验证元素被移除
-      expect(document.querySelectorAll('.ant-notification').length).toBe(0)
+      // 验证容器被保留，但notice被移除
+      expect(document.querySelectorAll('.ant-notification').length).toBe(2)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
     })
 
     it('应该移除所有notice元素', () => {
@@ -49,21 +58,24 @@ describe('notificationUtils - Notification工具函数', () => {
       expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
     })
 
-    it('应该同时移除notification容器和notice元素', () => {
+    it('应该移除notice元素但保留容器', () => {
       // 创建混合的DOM结构
       const notification = document.createElement('div')
       notification.className = 'ant-notification'
-      const notice = document.createElement('div')
-      notice.className = 'ant-notification-notice'
+      const notice1 = document.createElement('div')
+      notice1.className = 'ant-notification-notice'
+      notification.appendChild(notice1)
       
+      const notice2 = document.createElement('div')
+      notice2.className = 'ant-notification-notice'
+      document.body.appendChild(notice2)
       document.body.appendChild(notification)
-      document.body.appendChild(notice)
 
       // 调用函数
       closeAllNotifications()
 
-      // 验证所有元素都被移除
-      expect(document.querySelectorAll('.ant-notification').length).toBe(0)
+      // 验证notice被移除，但容器保留
+      expect(document.querySelectorAll('.ant-notification').length).toBe(1)
       expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
     })
 
@@ -79,59 +91,64 @@ describe('notificationUtils - Notification工具函数', () => {
     })
 
     it('应该处理有parentNode的情况', () => {
-      // 创建有parentNode的notification
+      // 创建有parentNode的notification（包含notice）
       const parent = document.createElement('div')
       const notification = document.createElement('div')
       notification.className = 'ant-notification'
+      const notice = document.createElement('div')
+      notice.className = 'ant-notification-notice'
+      notification.appendChild(notice)
       parent.appendChild(notification)
       document.body.appendChild(parent)
 
       expect(document.querySelectorAll('.ant-notification').length).toBe(1)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(1)
 
       // 调用函数
       closeAllNotifications()
 
-      // 验证元素被移除
-      expect(document.querySelectorAll('.ant-notification').length).toBe(0)
-      expect(parent.childNodes.length).toBe(0)
+      // 验证容器保留，但notice被移除
+      expect(document.querySelectorAll('.ant-notification').length).toBe(1)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
+      expect(parent.childNodes.length).toBe(1) // 容器还在
     })
 
-    it('应该处理没有parentNode的情况（直接调用remove）', () => {
-      // 创建没有parentNode的notification（直接添加到body）
-      const notification = document.createElement('div')
-      notification.className = 'ant-notification'
-      document.body.appendChild(notification)
+    it('应该处理没有parentNode的notice情况', () => {
+      // 创建没有parentNode的notice（直接添加到body）
+      const notice = document.createElement('div')
+      notice.className = 'ant-notification-notice'
+      document.body.appendChild(notice)
 
-      // 模拟remove方法
-      const removeSpy = vi.spyOn(notification, 'remove')
-
-      // 先移除parentNode，模拟没有parentNode的情况
-      document.body.removeChild(notification)
-      document.body.appendChild(notification)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(1)
 
       // 调用函数
       closeAllNotifications()
 
-      // 验证remove被调用（如果元素没有parentNode）
-      // 注意：在实际情况下，如果元素在DOM中，它会有parentNode
-      // 这个测试主要验证代码逻辑不会因为parentNode为null而报错
-      expect(document.querySelectorAll('.ant-notification').length).toBe(0)
+      // 验证notice被移除
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
     })
 
-    it('应该处理嵌套的notification结构', () => {
-      // 创建嵌套的notification结构
+    it('应该处理嵌套的notification结构（只移除notice）', () => {
+      // 创建嵌套的notification结构（包含notice）
       const outerNotification = document.createElement('div')
       outerNotification.className = 'ant-notification'
       const innerNotification = document.createElement('div')
       innerNotification.className = 'ant-notification'
+      const notice = document.createElement('div')
+      notice.className = 'ant-notification-notice'
+      innerNotification.appendChild(notice)
       outerNotification.appendChild(innerNotification)
       document.body.appendChild(outerNotification)
+
+      expect(document.querySelectorAll('.ant-notification').length).toBe(2)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(1)
 
       // 调用函数
       closeAllNotifications()
 
-      // 验证所有notification都被移除
-      expect(document.querySelectorAll('.ant-notification').length).toBe(0)
+      // 验证容器保留，但notice被移除
+      expect(document.querySelectorAll('.ant-notification').length).toBe(2)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
     })
 
     it('应该处理多个嵌套的notice元素', () => {
@@ -151,6 +168,36 @@ describe('notificationUtils - Notification工具函数', () => {
 
       // 验证所有notice都被移除
       expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
+    })
+
+    it('移除所有通知后，容器保留但notice被移除，确保新通知能正常显示', () => {
+      // 创建模拟的notification结构（包含容器和notice）
+      const container = document.createElement('div')
+      container.className = 'ant-notification'
+      const notice1 = document.createElement('div')
+      notice1.className = 'ant-notification-notice'
+      const notice2 = document.createElement('div')
+      notice2.className = 'ant-notification-notice'
+      container.appendChild(notice1)
+      container.appendChild(notice2)
+      document.body.appendChild(container)
+
+      // 验证初始状态
+      expect(document.querySelectorAll('.ant-notification').length).toBe(1)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(2)
+
+      // 调用函数移除所有通知
+      closeAllNotifications()
+
+      // 验证容器保留，但所有notice被移除
+      // 保留容器是为了确保Ant Design Vue的内部状态与DOM一致，从而能正常创建新通知
+      expect(document.querySelectorAll('.ant-notification').length).toBe(1)
+      expect(document.querySelectorAll('.ant-notification-notice').length).toBe(0)
+      
+      // 验证容器是空的（可以用于添加新通知）
+      const remainingContainer = document.querySelector('.ant-notification')
+      expect(remainingContainer).toBeTruthy()
+      expect(remainingContainer.children.length).toBe(0)
     })
   })
 })
