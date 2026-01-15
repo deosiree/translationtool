@@ -16,11 +16,11 @@ import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TranslationStorageService;
+import com.shr.translationtoolservice.service.analyze.BatchMaxLengthTranslateAnalyzer;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
-import com.shr.translationtoolservice.util.analyze.impl.BatchMaxLengthTranslateAnalyzer;
 import com.shr.translationtoolservice.util.processor.groupby.DefaultEntryGroupbyStrategy;
 import com.shr.translationtoolservice.util.processor.groupby.GeneralReplicatedVOType;
 

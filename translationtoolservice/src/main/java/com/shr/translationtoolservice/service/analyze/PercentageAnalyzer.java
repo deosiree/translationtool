@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.util.analyze.impl;
+package com.shr.translationtoolservice.service.analyze;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -6,9 +6,6 @@ import java.util.List;
 
 
 import org.springframework.stereotype.Component;
-
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.TranslateAnalyzer;
 
 @Component
 public class PercentageAnalyzer implements TranslateAnalyzer<AnalyzeSample> {

@@ -5,13 +5,10 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.service.analyze.AnalyzeSample;
+import com.shr.translationtoolservice.service.analyze.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.AsyncUtils;
-
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;

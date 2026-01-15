@@ -1,7 +1,6 @@
-package com.shr.translationtoolservice.util.analyze.impl;
+package com.shr.translationtoolservice.service.analyze;
 
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.AbstractTranslateAnaylzer.AnalyzeSampleBuilder;
+import com.shr.translationtoolservice.service.analyze.AbstractTranslateAnaylzer.AnalyzeSampleBuilder;
 
 public abstract class AbstractTranslateAnaylzer<B extends AnalyzeSampleBuilder<T>,T extends AnalyzeSample>{
 

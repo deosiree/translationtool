@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.util.analyze.impl;
+package com.shr.translationtoolservice.service.analyze;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -16,7 +16,6 @@ import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryClassify;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.ProductRelationEntity;
-import com.shr.translationtoolservice.util.analyze.TranslateAnalyzer;
 
 public class BatchMaxLengthTranslateAnalyzer implements TranslateAnalyzer<Collection<EntryInfoEntity>> {
 

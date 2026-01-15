@@ -1,11 +1,10 @@
-package com.shr.translationtoolservice.util.analyze.impl;
+package com.shr.translationtoolservice.service.analyze;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer.DefaultTranslateAnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer.DefaultSampleBuilder;;
+import com.shr.translationtoolservice.service.analyze.DefaultTranslateAnalyzer.DefaultSampleBuilder;
+import com.shr.translationtoolservice.service.analyze.DefaultTranslateAnalyzer.DefaultTranslateAnalyzeSample;;
 
 @Component
 public class DefaultTranslateAnalyzer extends AbstractTranslateAnaylzer<DefaultSampleBuilder,DefaultTranslateAnalyzeSample> {

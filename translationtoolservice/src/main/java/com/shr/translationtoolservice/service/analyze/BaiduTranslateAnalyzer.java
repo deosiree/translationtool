@@ -1,13 +1,11 @@
-package com.shr.translationtoolservice.util.analyze.impl;
+package com.shr.translationtoolservice.service.analyze;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.shr.translationtoolservice.util.analyze.impl.BaiduTranslateAnalyzer.BaiduTranslateAnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.BaiduTranslateAnalyzer.BaiduSampleBuilder;
-
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer.DefaultTranslateAnalyzeSample;
+import com.shr.translationtoolservice.service.analyze.BaiduTranslateAnalyzer.BaiduSampleBuilder;
+import com.shr.translationtoolservice.service.analyze.BaiduTranslateAnalyzer.BaiduTranslateAnalyzeSample;
+import com.shr.translationtoolservice.service.analyze.DefaultTranslateAnalyzer.DefaultTranslateAnalyzeSample;
 
 @Component
 public class BaiduTranslateAnalyzer extends AbstractTranslateAnaylzer<BaiduSampleBuilder,BaiduTranslateAnalyzeSample>{

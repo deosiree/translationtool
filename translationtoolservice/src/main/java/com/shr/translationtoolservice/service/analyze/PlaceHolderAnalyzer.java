@@ -1,12 +1,9 @@
-package com.shr.translationtoolservice.util.analyze.impl;
+package com.shr.translationtoolservice.service.analyze;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
-
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.TranslateAnalyzer;
 
 @Component
 public class PlaceHolderAnalyzer implements TranslateAnalyzer<AnalyzeSample> {

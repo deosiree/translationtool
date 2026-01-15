@@ -1,4 +1,4 @@
-package com.shr.translationtoolservice.util.analyze;
+package com.shr.translationtoolservice.service.analyze;
 
 
 /**
