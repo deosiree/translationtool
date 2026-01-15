@@ -3,10 +3,12 @@
     {{ buttonTitle }}
   </a-button>
 
-  <CustomModal :visible="internalVisible" :okLoading="loading" :modalTitle="modalTitle" @handleClose="handleClose" @handleOK="handleOK">
+  <CustomModal :visible="internalVisible" :okLoading="loading" :modalTitle="modalTitle" @handleClose="handleClose"
+    @handleOK="handleOK">
     <div class="content">
       <a-form ref="backFillForm" :model="formModel">
-        <a-form-item v-if="showFileTypeSelect" label="文件类型" name="importType" :rules="[{ required: true, message: '请选择!' }]">
+        <a-form-item v-if="showFileTypeSelect" label="文件类型" name="importType"
+          :rules="[{ required: true, message: '请选择!' }]">
           <a-select v-model:value="formModel.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
           </a-select>
         </a-form-item>
@@ -16,15 +18,15 @@
           </a-select>
         </a-form-item>
         <a-form-item label="文件" name="backFillFile" :rules="[{ required: true, validator: validateBackFillFile }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :max-count="1" :fileList="formModel.backFillFileList"
-            @change="handleBackFillUpload" @remove="removeBackFillFile"
-            :disabled="showFileTypeSelect && (!formModel.importType || !formModel.language || formModel.language.length === 0)">
-            <a-button type="primary" size="small">选择</a-button>
+          <a-upload name="file" :beforeUpload="beforeUpload" :accept="backFillAccept" :max-count="1"
+            :fileList="formModel.backFillFileList" @change="handleBackFillUpload" @remove="removeBackFillFile">
+            <a-button type="primary" size="small" @click="handleBackFillChooseClick">选择</a-button>
           </a-upload>
         </a-form-item>
-        <a-form-item v-if="needRelationFile" label="词条映射" name="relationFile" :rules="[{ required: true, validator: validateIdMappingFile }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="idMappingAccept" :max-count="1" :fileList="formModel.relationFileList"
-            @change="handleIdMappingUpload" @remove="removeIdMappingFile">
+        <a-form-item v-if="needRelationFile" label="词条映射" name="relationFile"
+          :rules="[{ required: true, validator: validateIdMappingFile }]">
+          <a-upload name="file" :beforeUpload="beforeUpload" :accept="idMappingAccept" :max-count="1"
+            :fileList="formModel.relationFileList" @change="handleIdMappingUpload" @remove="removeIdMappingFile">
             <a-button type="primary" size="small">
               选择
             </a-button>
@@ -62,13 +64,13 @@
 </template>
 
 <script>
-import { message } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import { entryBatchImportExcel } from "@/utils/excelUtils";
 import { downloadJsonFile } from "@/utils/fileUtils";
 import { entryParams } from "@/constants/commonParam.js";
-import { setModalAriaHidden } from "@/utils/domUtils";
+import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
 export default {
   components: {
     CustomModal,
@@ -131,7 +133,6 @@ export default {
       },
       loading: false,
       idMappingAccept: ".json",
-      accept: null, // 回填文件的 accept（由 defaultAccept prop 初始化，当 showFileTypeSelect 为 true 时动态更新）
       importTypes: [
         { label: "csv", value: "csv", accept: ".csv" },
         { label: "excel", value: "excel", accept: ".xls,.xlsx" },
@@ -144,6 +145,19 @@ export default {
       failedExportDataSource: [], // 用于导出失败词条的数据源
       fieldOptions: entryParams.exportFields,
     };
+  },
+  computed: {
+    // 回填文件的 accept：以 importType 为准（有选择器时），否则使用 defaultAccept
+    backFillAccept() {
+      if (this.showFileTypeSelect) {
+        if (!this.formModel.importType) return null;
+        const selectedType = this.importTypes.find(
+          (type) => type.value === this.formModel.importType
+        );
+        return selectedType ? selectedType.accept : null;
+      }
+      return this.defaultAccept;
+    },
   },
   watch: {
     visible(newVal) {
@@ -159,25 +173,15 @@ export default {
         if (newValue !== oldValue && this.showFileTypeSelect) {
           // 文件类型变化时，清空已选择的文件
           this.removeBackFillFile();
-          // 如果文件类型为空，重置 accept 为默认值
-          if (!newValue) {
-            this.accept = this.defaultAccept;
-          } else {
-            // 如果文件类型有值，根据文件类型更新 accept
-            this.updateAccept();
-          }
         }
       },
       immediate: false,
     },
   },
   mounted() {
-    // 初始化 accept 为父组件传递的默认值
-    this.accept = this.defaultAccept;
     // 初始化 defaultFileType
     if (this.defaultFileType && this.showFileTypeSelect) {
       this.formModel.importType = this.defaultFileType;
-      this.updateAccept();
     }
     // 同步 visible
     if (this.mode === "modal") {
@@ -192,18 +196,6 @@ export default {
     handleButtonClick() {
       this.internalVisible = true;
       setModalAriaHidden(this, document);
-    },
-    // 根据文件类型更新 accept（仅在文件类型有值时调用）
-    updateAccept() {
-      if (!this.formModel.importType) {
-        return; // 文件类型为空时不应该调用此方法
-      }
-      for (let key in this.importTypes) {
-        if (this.formModel.importType === this.importTypes[key].value) {
-          this.accept = this.importTypes[key].accept;
-          break;
-        }
-      }
     },
     // 通用文件上传处理
     handleFileUpload(info, fileKey, fileListKey) {
@@ -221,6 +213,15 @@ export default {
 
     handleBackFillUpload(info) {
       this.handleFileUpload(info, "backFillFile", "backFillFileList");
+    },
+
+    handleBackFillChooseClick(e) {
+      // accept 未就绪时拦截，避免弹出系统文件选择框
+      if (!this.backFillAccept) {
+        message.warning("请先选择文件类型");
+        // 使用通用 DOM 工具函数统一处理默认行为和冒泡
+        stopDomEvent(e);
+      }
     },
 
     beforeUpload() {
@@ -303,15 +304,6 @@ export default {
 
           this.loading = true;
           try {
-            // const res = await entryBackFill({}, formData);
-            // if (res.type === "SUCCESS") {
-            //     // console.log("回填成功数据", res.data.list);
-            //     this.$emit("backFillSuccess", res.data.list);
-            //     this.$emit("handleClose");
-            // } else {
-            //     message.error("回填失败：" + res.message);
-            // }
-
             const result = await entryBatchImportExcel(
               this.formModel.language,
               formData
@@ -323,35 +315,76 @@ export default {
               this.$emit("importSuccess");
             }
 
-            // 处理结果
-            if (result.code === 201) {
-              // code=201 表示有失败信息，显示失败信息模态框
-              // 保存失败信息
-              this.failedEntryInfos = result.failedEntryInfos || [];
-              this.exceptionVos = result.exceptionVos || [];
-              this.globalMessage = result.globalMessage || "";
+            // 根据结果处理通知与失败信息
+            let notifyTask = null;
 
-              // 提取失败词条数据用于导出（如果有数据）
-              if (this.failedEntryInfos.length > 0) {
-                this.extractFailedEntriesData();
-              }
+            if (result.code === 200) {
+              // 完全成功：仅展示成功通知
+              const successLangs = result.success || [];
+              const desc =
+                successLangs.length > 0
+                  ? `${successLangs.join(", ")} 导入成功！`
+                  : "导入成功！";
+              notifyTask = () => {
+                notification.success({
+                  message: "导入成功！",
+                  description: desc,
+                  duration: 0,
+                });
+              };
+            } else if (result.code === 201) {
+              if (result.failedEntryInfos && result.failedEntryInfos.length > 0) {
+                // 有具体的失败词条信息：使用失败信息模态框展示
+                this.failedEntryInfos = result.failedEntryInfos || [];
+                this.exceptionVos = result.exceptionVos || [];
+                this.globalMessage = result.globalMessage || "";
 
-              // 关闭导入回填弹窗，打开失败信息模态框
-              this.handleCloseInternal();
-              this.failedInfoVisible = true;
-            } else if (result.code === 200) {
-              // 完全成功
-              this.handleCloseInternal();
-              if (this.mode === "modal") {
-                message.success("回填成功！");
+                // 提取失败词条数据用于导出（如果有数据）
+                if (this.failedEntryInfos.length > 0) {
+                  this.extractFailedEntriesData();
+                }
+
+                this.failedInfoVisible = true;
+              } else {
+                // 有失败但没有可展示的失败详情：用通知给出总体说明
+                const hasFailedMap = result.failed && result.failed.size > 0;
+                const desc =
+                  result.globalMessage ||
+                  (hasFailedMap ? "导入存在失败或异常信息" : "导入存在失败");
+                notifyTask = () => {
+                  notification.error({
+                    message: "导入存在失败",
+                    description: desc,
+                    duration: 0,
+                  });
+                };
               }
             } else {
-              // 其他情况
-              this.handleCloseInternal();
+              // 兜底分支：未知 code，当作失败处理
+              const desc = result.globalMessage || "导入失败";
+              notifyTask = () => {
+                notification.error({
+                  message: "导入失败",
+                  description: desc,
+                  duration: 0,
+                });
+              };
+            }
+
+            // 先关闭当前导入弹窗，再在下一个渲染周期中展示通知
+            this.handleCloseInternal();
+            if (notifyTask) {
+              this.$nextTick(() => {
+                notifyTask();
+              });
             }
           } catch (error) {
             console.error("导入过程发生异常：", error);
-            message.error("导入失败：" + (error.message || "未知错误"));
+            notification.error({
+              message: "导入过程发生异常！",
+              description: error.message || "未知错误",
+              duration: 0,
+            });
           } finally {
             this.loading = false;
           }
@@ -378,7 +411,7 @@ export default {
     resetForm() {
       // 重置 importType：如果有 defaultFileType 则使用默认值，否则为 null
       const importType = this.defaultFileType && this.showFileTypeSelect ? this.defaultFileType : null;
-      
+
       this.formModel = {
         relationFile: null,
         backFillFile: null,
@@ -388,11 +421,6 @@ export default {
         importType: importType,
       };
       this.loading = false;
-      // 重置 accept
-      this.accept = this.defaultAccept; // 重置为父组件传递的默认值
-      if (importType && this.showFileTypeSelect) {
-        this.updateAccept(); // 如果有默认文件类型，根据它更新 accept
-      }
       // 重置失败信息相关状态
       this.failedEntryInfos = [];
       this.exceptionVos = [];

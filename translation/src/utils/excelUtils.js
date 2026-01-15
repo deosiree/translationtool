@@ -1,4 +1,3 @@
-import { notification } from "ant-design-vue";
 import { entryImportExcle } from "@/http/api/entryManage";
 
 /**
@@ -98,13 +97,6 @@ export async function entryBatchImportExcel(translateTypes, formData) {
       };
     } else if (msg.success.length > 0 && msg.failed.size === 0) {
       // 完全成功
-      if (msg.success.length > 0) {
-        notification.success({
-          message: "导入成功！",
-          description: msg.success.join(", ") + "导入成功！",
-          duration: 0,
-        });
-      }
       return {
         code: 200,
         success: msg.success,
@@ -125,13 +117,6 @@ export async function entryBatchImportExcel(translateTypes, formData) {
       };
     } else {
       // 有失败但没有 code=201（可能是其他错误）
-      if (msg.failed.size > 0) {
-        notification.error({
-          message: "导入失败！",
-          description: formatMapToString(msg.failed),
-          duration: 0,
-        });
-      }
       return {
         code: 201,
         success: msg.success,
@@ -143,11 +128,6 @@ export async function entryBatchImportExcel(translateTypes, formData) {
     }
   } catch (error) {
     console.error("entryBatchImportExcel 发生异常：", error);
-    notification.error({
-      message: "导入过程发生异常！",
-      description: error.message || "未知错误",
-      duration: 0,
-    });
     return {
       code: 201,
       success: [],

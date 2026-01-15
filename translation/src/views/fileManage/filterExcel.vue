@@ -171,15 +171,9 @@
 
     <SelectCols v-model:visible="filterModal.visible" :loading="loading" :columns="columns"
       @confirm="handleDeduplicateConfirm" />
-    <BackFillModal 
-      :visible="importBackfillVisible" 
-      :translateTypes="translateTypes"
-      :needRelationFile="true"
-      :defaultAccept="'.csv'"
-      modalTitle="导入回填"
-      @handleClose="handleImportBackfillClose" 
-      @handleOK="handleImportBackfillOK" 
-    />
+    <BackFillModal modalTitle="导入回填" :visible="importBackfillVisible" :translateTypes="translateTypes"
+      :needRelationFile="true" :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose"
+      @handleOK="handleImportBackfillOK" />
     <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
       size="middle" buttonTitle="导出去重数据" :defaultStatusCheck="false" fileNamePrefix="去重_" :hideButton="true"
       @afterClose="handleExportAfterClose" />

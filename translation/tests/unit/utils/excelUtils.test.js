@@ -1,20 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { entryBatchImportExcel } from '@/utils/excelUtils'
 
-// Mock ant-design-vue notification
-vi.mock('ant-design-vue', () => ({
-  notification: {
-    success: vi.fn(),
-    error: vi.fn()
-  }
-}))
-
 // Mock API
 vi.mock('@/http/api/entryManage', () => ({
   entryImportExcle: vi.fn()
 }))
 
-import { notification } from 'ant-design-vue'
 import { entryImportExcle } from '@/http/api/entryManage'
 
 describe('excelUtils - Excel 相关工具函数', () => {
@@ -38,12 +29,6 @@ describe('excelUtils - Excel 相关工具函数', () => {
       expect(entryImportExcle).toHaveBeenCalledWith({ transType: 'zh' }, formData)
       expect(entryImportExcle).toHaveBeenCalledWith({ transType: 'en' }, formData)
       expect(entryImportExcle).toHaveBeenCalledWith({ transType: 'fr' }, formData)
-      expect(notification.success).toHaveBeenCalledWith({
-        message: '导入成功！',
-        description: 'zh, en, fr导入成功！',
-        duration: 0
-      })
-      expect(notification.error).not.toHaveBeenCalled()
       expect(result).toEqual({
         code: 200,
         success: ['zh', 'en', 'fr'],
@@ -66,12 +51,8 @@ describe('excelUtils - Excel 相关工具函数', () => {
       const result = await entryBatchImportExcel(translateTypes, formData)
 
       expect(entryImportExcle).toHaveBeenCalledTimes(3)
-      expect(notification.success).not.toHaveBeenCalled()
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入失败！',
-        description: '文件格式错误：en',
-        duration: 0
-      })
+      // 失败信息应记录到 failed Map 中
+      expect(result.failed.get('文件格式错误')).toEqual(['en'])
       expect(result.code).toBe(201)
       expect(result.success).toEqual(['zh', 'fr'])
       expect(result.failedEntryInfos).toEqual([])
@@ -91,12 +72,8 @@ describe('excelUtils - Excel 相关工具函数', () => {
 
       const result = await entryBatchImportExcel(translateTypes, formData)
 
-      expect(notification.success).not.toHaveBeenCalled()
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入失败！',
-        description: '文件格式错误：zh, en, de；网络错误：fr',
-        duration: 0
-      })
+      expect(result.failed.get('文件格式错误')).toEqual(['zh', 'en', 'de'])
+      expect(result.failed.get('网络错误')).toEqual(['fr'])
       expect(result.code).toBe(201)
       expect(result.success).toEqual([])
       expect(result.failedEntryInfos).toEqual([])
@@ -114,12 +91,8 @@ describe('excelUtils - Excel 相关工具函数', () => {
 
       const result = await entryBatchImportExcel(translateTypes, formData)
 
-      expect(notification.success).not.toHaveBeenCalled()
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入失败！',
-        description: '文件格式错误：zh；服务器错误：en',
-        duration: 0
-      })
+      expect(result.failed.get('文件格式错误')).toEqual(['zh'])
+      expect(result.failed.get('服务器错误')).toEqual(['en'])
       expect(result.code).toBe(201)
       expect(result.success).toEqual([])
       expect(result.failedEntryInfos).toEqual([])
@@ -135,11 +108,7 @@ describe('excelUtils - Excel 相关工具函数', () => {
 
       const result = await entryBatchImportExcel(translateTypes, formData)
 
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入失败！',
-        description: '未知错误：zh',
-        duration: 0
-      })
+      expect(result.failed.get('未知错误')).toEqual(['zh'])
       expect(result.code).toBe(201)
       expect(result.success).toEqual([])
       expect(result.failedEntryInfos).toEqual([])
@@ -157,11 +126,7 @@ describe('excelUtils - Excel 相关工具函数', () => {
 
       const result = await entryBatchImportExcel(translateTypes, formData)
 
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入失败！',
-        description: '后端返回的错误消息：zh',
-        duration: 0
-      })
+      expect(result.failed.get('后端返回的错误消息')).toEqual(['zh'])
       expect(result.code).toBe(201)
       expect(result.success).toEqual([])
       expect(result.failedEntryInfos).toEqual([])
@@ -180,11 +145,6 @@ describe('excelUtils - Excel 相关工具函数', () => {
         'entryBatchImportExcel 发生异常：',
         expect.any(TypeError)
       )
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入过程发生异常！',
-        description: expect.stringContaining(''),
-        duration: 0
-      })
       expect(result.code).toBe(201)
       expect(result.success).toEqual([])
       expect(result.failedEntryInfos).toEqual([])
@@ -203,11 +163,6 @@ describe('excelUtils - Excel 相关工具函数', () => {
       const result = await entryBatchImportExcel(translateTypes, formData)
 
       expect(console.error).toHaveBeenCalled()
-      expect(notification.error).toHaveBeenCalledWith({
-        message: '导入过程发生异常！',
-        description: '未知错误',
-        duration: 0
-      })
       expect(result.code).toBe(201)
       expect(result.success).toEqual([])
       expect(result.failedEntryInfos).toEqual([])
@@ -237,8 +192,6 @@ describe('excelUtils - Excel 相关工具函数', () => {
       const result = await entryBatchImportExcel(translateTypes, formData)
 
       expect(entryImportExcle).not.toHaveBeenCalled()
-      expect(notification.success).not.toHaveBeenCalled()
-      expect(notification.error).not.toHaveBeenCalled()
       expect(result).toEqual({
         code: 200,
         success: [],
