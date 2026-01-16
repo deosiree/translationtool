@@ -95,13 +95,13 @@
             <template #icon>
               <ImportOutlined />
             </template>
-            导入回填
+            去重回填
           </a-button>
           <a-button type="primary" size="middle" @click="showImportBackfillModal_v2">
             <template #icon>
               <ImportOutlined />
             </template>
-            导入回填 (开发中)
+            去重回填 2.0
           </a-button>
           <a-button v-if="batchDeleteFlag" type="primary" danger size="middle" @click="handleBatchDelete">
             批量删除
@@ -177,10 +177,10 @@
 
     <SelectCols v-model:visible="filterModal.visible" :loading="loading" :columns="columns"
       @confirm="handleDeduplicateConfirm" />
-    <BackFillModal modalTitle="导入回填" :visible="importBackfillVisible" :translateTypes="translateTypes"
+    <BackFillModal modalTitle="去重回填" :visible="importBackfillVisible" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose"
       @handleOK="handleImportBackfillOK" />
-    <BackFillModal_v2 modalTitle="导入回填 (开发中)" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
+    <BackFillModal_v2 modalTitle="去重回填 2.0" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" @handleClose="handleImportBackfillClose_v2"
       @handleOK="handleImportBackfillOK_v2" />
     <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
@@ -535,8 +535,8 @@ export default {
       this.batchDeleteFlag = true;
       this.deleteButtonsVisible = false;
     },
-    // ===================导入回填模态框================================
-    // 打开导入回填模态框
+    // ===================去重回填模态框================================
+    // 打开去重回填模态框
     showImportBackfillModal() {
       this.importBackfillVisible = true;
       setModalAriaHidden(this, document);
@@ -548,8 +548,8 @@ export default {
       this.init();
       this.handleImportBackfillClose();
     },
-    // ===================导入回填模态框 (v2版本)================================
-    // 打开导入回填模态框 (v2版本)
+    // ===================去重回填模态框 (v2版本)================================
+    // 打开去重回填模态框 (v2版本)
     showImportBackfillModal_v2() {
       this.importBackfillVisible_v2 = true;
       setModalAriaHidden(this, document);

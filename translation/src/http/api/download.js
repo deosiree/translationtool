@@ -88,3 +88,15 @@ export function entryExportByCondition(data, params) {
     }
   )
 }
+
+// 通用文件下载（从URL下载文件）
+export function downloadFileFromUrl(downloadUrl) {
+  return axios({
+    url: downloadUrl.startsWith('http') ? downloadUrl : env.dev.baseUrl + downloadUrl,
+    method: 'GET',
+    responseType: 'blob',
+    headers: {
+      token: store.state.token
+    }
+  });
+}

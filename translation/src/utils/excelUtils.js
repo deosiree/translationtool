@@ -1,4 +1,5 @@
 import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 as entryValidateApi_v2 } from "@/http/api/entryManage";
+import { message } from "ant-design-vue";
 
 /**
  * 格式化 Map 对象为字符串
@@ -141,243 +142,147 @@ export async function entryBatchImportExcel(translateTypes, formData) {
 
 /**
  * 批量导入 Excel 词条 (v2版本 - 新API)
- * @param {Array<string>} backfillFields - 需要更新的字段列表（字段label数组）
- * @param {FormData} formData - Excel 文件等表单数据
+ * @param {File} dedupExcel - 去重后Excel文件
+ * @param {File|null} mappingJson - 映射JSON文件（可选）
+ * @param {Array<string>} backfillFields - 回填字段列表（字段label数组）
+ * @param {Object} options - 全局配置（如{emptyStringAsValue: true}）
  * @returns {Promise<Object>} 返回结果对象，结构可能与旧版本不同
+ * @note 更新接口不需要去重前Excel，后端只需要去重后Excel和映射文件就能回填成去重前Excel
  */
-export async function entryBatchImportExcel_v2(backfillFields, formData) {
+export async function entryBatchImportExcel_v2(dedupExcel, mappingJson, backfillFields, options = {}) {
   try {
-    console.log('entryBatchImportExcel_v2 参数', backfillFields, formData);
-    const msg = { success: [], failed: new Map() };
-    let allFailedEntryInfos = [];
-    let allExceptionVos = [];
-    let globalMessage = "";
-    let hasCode201 = false;
+    console.log('entryBatchImportExcel_v2 参数', { dedupExcel, mappingJson, backfillFields, options });
 
-    // 每个更新字段的处理
-    for (const field of backfillFields) {
-      const params = {
-        field: field, // 字段label
-      };
-      try {
-        await entryImportExcle_v2(params, formData);
-        msg.success.push(field);
-      } catch (error) {
-        // 响应拦截器会将 code !== 200 && code !== 205 的响应 reject
-        // 需要从 error.response 或 error.data 中提取数据
-        console.log(`${field}导入响应（v2）：`, error);
-        
-        // 尝试从 error.response.data 或 error.data 中提取数据
-        const errorData = error?.response?.data || error?.data || error;
-        const { code, data } = errorData || {};
-        
-        if (code === 201) {
-          // code=201 表示有失败信息，这是正常的业务响应
-          hasCode201 = true;
-          // 注意：新API的响应体结构可能不同，需要根据实际响应结构调整
-          const failedInfos = data?.failedEntryInfos || [];
-          const exceptionVos = data?.exceptionVos || data?.exceptionVOs || [];
-          const globalMsg = data?.globalMessage || "";
-          
-          allFailedEntryInfos = allFailedEntryInfos.concat(failedInfos);
-          allExceptionVos = allExceptionVos.concat(exceptionVos);
-          
-          if (globalMsg) {
-            globalMessage = globalMsg;
+    // 参数校验
+    if (options.emptyStringAsValue === undefined) {
+      const errorMsg = "请明确指定是否导入空值！";
+      message.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    if (!backfillFields || !Array.isArray(backfillFields) || backfillFields.length === 0) {
+      const errorMsg = "请至少选择一个回填字段！";
+      message.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // 构建FormData
+    const formData = new FormData();
+    // 注意：更新接口不需要originExcel，后端只需要dedupExcel和mappingJson就能回填
+    formData.append("dedupExcel", dedupExcel);
+    if (mappingJson) {
+      formData.append("mappingJson", mappingJson);
+    }
+
+    // 构建payload JSON（只包含backfillFields任务，不包含checkFields等校验任务）
+    const payload = {
+      options: {
+        emptyStringAsValue: options.emptyStringAsValue,
+      },
+      rules: [
+        {
+          taskType: "backfillFields",
+          params: {
+            backfillFields: backfillFields
           }
-          
-          // 记录失败语种
-          const errMsg = globalMsg || "导入存在失败或异常信息";
-          if (!msg.failed.has(errMsg)) {
-            msg.failed.set(errMsg, []);
-          }
-          msg.failed.get(errMsg).push(field);
-        } else {
-          // 真正的错误
-          console.error(`${field}导入失败（v2）：`, error);
-          const errMsg = error?.message || error?.data?.message || "未知错误";
-          if (!msg.failed.has(errMsg)) {
-            msg.failed.set(errMsg, []);
-          }
-          msg.failed.get(errMsg).push(field);
         }
-      }
-    }
+      ]
+    };
+    formData.append("payload", JSON.stringify(payload));
 
-    // 返回结果
-    // 注意：新API的响应体结构可能不同，返回格式需要根据实际API响应调整
-    if (hasCode201) {
-      // 有 code=201 的响应，返回失败信息
-      return {
-        code: 201,
-        success: msg.success,
-        failed: msg.failed,
-        failedEntryInfos: allFailedEntryInfos,
-        exceptionVos: allExceptionVos,
-        globalMessage: globalMessage,
-      };
-    } else if (msg.success.length > 0 && msg.failed.size === 0) {
-      // 完全成功
-      return {
-        code: 200,
-        success: msg.success,
-        failed: msg.failed,
-        failedEntryInfos: [],
-        exceptionVos: [],
-        globalMessage: "",
-      };
-    } else if (msg.success.length === 0 && msg.failed.size === 0) {
-      // 空语言列表，视为成功
-      return {
-        code: 200,
-        success: [],
-        failed: msg.failed,
-        failedEntryInfos: [],
-        exceptionVos: [],
-        globalMessage: "",
-      };
-    } else {
-      // 有失败但没有 code=201（可能是其他错误）
-      return {
-        code: 201,
-        success: msg.success,
-        failed: msg.failed,
-        failedEntryInfos: allFailedEntryInfos,
-        exceptionVos: allExceptionVos,
-        globalMessage: globalMessage || "导入存在失败",
-      };
-    }
+    // 调用API
+    // params: {} - 无URL query参数
+    // data: formData - FormData包含所有multipart数据（文件+payload）
+    const response = await entryImportExcle_v2({}, formData);
+    
+    // 返回完整的API响应（包含 code, message 等字段）
+    return response;
   } catch (error) {
     console.error("entryBatchImportExcel_v2 发生异常：", error);
-    return {
-      code: 201,
-      success: [],
-      failed: new Map(),
-      failedEntryInfos: [],
-      exceptionVos: [],
-      globalMessage: error.message || "未知错误",
-    };
+    // 尝试从error中提取响应数据
+    const errorData = error?.response?.data || error?.data || error;
+    throw errorData;
   }
 }
 
 /**
  * 校验词条 (v2版本 - 新API)
- * @param {Array<string>} backfillFields - 需要校验的字段列表（字段label数组）
- * @param {FormData} formData - Excel 文件等表单数据
- * @returns {Promise<Object>} 返回校验结果对象，结构可能与导入API不同
+ * @param {File} originExcel - 去重前Excel文件
+ * @param {File} dedupExcel - 去重后Excel文件
+ * @param {File|null} mappingJson - 映射JSON文件（可选）
+ * @param {Array<string>} checkFields - 校验字段列表（如["entry", "comment", "tag"]）
+ * @param {Array<string>} backfillFields - 回填字段列表（字段label数组）
+ * @param {Object} options - 全局配置和可选校验任务
+ *   - emptyStringAsValue: boolean - 是否将空字符串视为有效值
+ *   - failFast: boolean - 是否在首次FATAL错误时立即终止
+ *   - checkSpecialChar: boolean - 是否启用特殊字符校验（可选）
+ *   - checkMaxLength: boolean - 是否启用长度校验（可选）
+ * @returns {Promise<Object>} 返回校验结果对象，包含 {success, canBackfill, summary, issues, preview, attachments}
  */
-export async function entryValidate_v2(backfillFields, formData) {
+export async function entryValidate_v2(originExcel, dedupExcel, mappingJson, checkFields, backfillFields, options = {}) {
   try {
-    console.log('entryValidate_v2 参数', backfillFields, formData);
-    const msg = { success: [], failed: new Map() };
-    let allFailedEntryInfos = [];
-    let allExceptionVos = [];
-    let globalMessage = "";
-    let hasCode201 = false;
+    console.log('entryValidate_v2 参数', { originExcel, dedupExcel, mappingJson, checkFields, backfillFields, options });
 
-    // 每个校验字段的处理
-    for (const field of backfillFields) {
-      const params = {
-        field: field,
-      };
-      try {
-        await entryValidateApi_v2(params, formData);
-        msg.success.push(field);
-      } catch (error) {
-        // 响应拦截器会将 code !== 200 && code !== 205 的响应 reject
-        // 需要从 error.response 或 error.data 中提取数据
-        console.log(`${field}校验响应（v2）：`, error);
-        
-        // 尝试从 error.response.data 或 error.data 中提取数据
-        const errorData = error?.response?.data || error?.data || error;
-        const { code, data } = errorData || {};
-        
-        if (code === 201) {
-          // code=201 表示有失败信息，这是正常的业务响应
-          hasCode201 = true;
-          // 注意：校验API的响应体结构可能不同，需要根据实际响应结构调整
-          const failedInfos = data?.failedEntryInfos || [];
-          const exceptionVos = data?.exceptionVos || data?.exceptionVOs || [];
-          const globalMsg = data?.globalMessage || "";
-          
-          allFailedEntryInfos = allFailedEntryInfos.concat(failedInfos);
-          allExceptionVos = allExceptionVos.concat(exceptionVos);
-          
-          if (globalMsg) {
-            globalMessage = globalMsg;
-          }
-          
-          // 记录失败语种
-          const errMsg = globalMsg || "校验存在失败或异常信息";
-          if (!msg.failed.has(errMsg)) {
-            msg.failed.set(errMsg, []);
-          }
-          msg.failed.get(errMsg).push(field);
-        } else {
-          // 真正的错误
-          console.error(`${field}校验失败（v2）：`, error);
-          const errMsg = error?.message || error?.data?.message || "未知错误";
-          if (!msg.failed.has(errMsg)) {
-            msg.failed.set(errMsg, []);
-          }
-          msg.failed.get(errMsg).push(field);
+    // 构建FormData
+    const formData = new FormData();
+    formData.append("originExcel", originExcel);
+    formData.append("dedupExcel", dedupExcel);
+    if (mappingJson) {
+      formData.append("mappingJson", mappingJson);
+    }
+
+    // 构建rules数组
+    const rules = [
+      {
+        taskType: "checkFields",
+        params: {
+          checkFields: checkFields || []
+        }
+      },
+      {
+        taskType: "backfillFields",
+        params: {
+          backfillFields: backfillFields || []
         }
       }
+    ];
+
+    // 添加可选的校验任务
+    if (options.checkSpecialChar) {
+      rules.push({
+        taskType: "checkSpecialChar",
+        params: {}
+      });
+    }
+    if (options.checkMaxLength) {
+      rules.push({
+        taskType: "checkMaxLength",
+        params: {}
+      });
     }
 
-    // 返回结果
-    // 注意：校验API的响应体结构可能与导入API不同，返回格式需要根据实际API响应调整
-    if (hasCode201) {
-      // 有 code=201 的响应，返回失败信息
-      return {
-        code: 201,
-        success: msg.success,
-        failed: msg.failed,
-        failedEntryInfos: allFailedEntryInfos,
-        exceptionVos: allExceptionVos,
-        globalMessage: globalMessage,
-      };
-    } else if (msg.success.length > 0 && msg.failed.size === 0) {
-      // 完全成功
-      return {
-        code: 200,
-        success: msg.success,
-        failed: msg.failed,
-        failedEntryInfos: [],
-        exceptionVos: [],
-        globalMessage: "",
-      };
-    } else if (msg.success.length === 0 && msg.failed.size === 0) {
-      // 空语言列表，视为成功
-      return {
-        code: 200,
-        success: [],
-        failed: msg.failed,
-        failedEntryInfos: [],
-        exceptionVos: [],
-        globalMessage: "",
-      };
-    } else {
-      // 有失败但没有 code=201（可能是其他错误）
-      return {
-        code: 201,
-        success: msg.success,
-        failed: msg.failed,
-        failedEntryInfos: allFailedEntryInfos,
-        exceptionVos: allExceptionVos,
-        globalMessage: globalMessage || "校验存在失败",
-      };
-    }
+    // 构建payload JSON
+    const payload = {
+      options: {
+        emptyStringAsValue: options.emptyStringAsValue !== undefined ? options.emptyStringAsValue : true,
+        failFast: options.failFast !== undefined ? options.failFast : false,
+      },
+      rules: rules
+    };
+    formData.append("payload", JSON.stringify(payload));
+
+    // 调用API
+    // params: {} - 无URL query参数
+    // data: formData - FormData包含所有multipart数据（文件+payload）
+    const response = await entryValidateApi_v2({}, formData);
+    
+    // 直接返回API响应
+    return response.data || response;
   } catch (error) {
     console.error("entryValidate_v2 发生异常：", error);
-    return {
-      code: 201,
-      success: [],
-      failed: new Map(),
-      failedEntryInfos: [],
-      exceptionVos: [],
-      globalMessage: error.message || "未知错误",
-    };
+    // 尝试从error中提取响应数据
+    const errorData = error?.response?.data || error?.data || error;
+    throw errorData;
   }
 }
 

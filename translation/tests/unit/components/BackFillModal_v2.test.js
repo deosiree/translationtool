@@ -70,7 +70,7 @@ vi.mock('ant-design-vue', () => ({
   }
 }))
 
-describe('BackFillModal_v2 - 导入回填模态框 (v2版本)', () => {
+describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
   let wrapper
 
   afterEach(() => {

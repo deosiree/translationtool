@@ -113,7 +113,7 @@ export default {
     },
     modalTitle: {
       type: String,
-      default: "导入回填",
+      default: "去重回填",
     },
     defaultAccept: {
       type: String,

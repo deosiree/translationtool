@@ -17,11 +17,11 @@
           :showFileTypeSelect="true" :defaultAccept="'.csv'" />
       </div>
       <div style="margin-bottom: 8px;">
-        <BackFillModal_v2 mode="button" size="small" buttonTitle="更新翻译 (新)" modalTitle="更新翻译" :translateTypes="translateTypes"
+        <BackFillModal_v2 mode="button" size="small" buttonTitle="更新翻译2.0" modalTitle="更新翻译" :translateTypes="translateTypes"
           :showFileTypeSelect="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" />
       </div>
       <div style="margin-bottom: 8px;">
-        <BackFillModal mode="button" size="small" buttonTitle="去重回填" modalTitle="导入回填" :translateTypes="translateTypes"
+        <BackFillModal mode="button" size="small" buttonTitle="去重回填" modalTitle="去重回填" :translateTypes="translateTypes"
           :needRelationFile="true" :defaultAccept="'.csv'" />
       </div>
       <a-button block @click="closePanel">关闭</a-button>

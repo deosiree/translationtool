@@ -65,3 +65,52 @@ export async function downloadJsonFile(data, fileName = "data", choosePath = fal
     throw error;
   }
 }
+
+/**
+ * 处理blob响应并触发下载（通用下载处理函数）
+ * @param {Object} response - axios响应对象（responseType: 'blob'）
+ * @param {string} fileName - 文件名（可选，从响应头提取）
+ * @returns {void}
+ */
+export function downloadBlobResponse(response, fileName = null) {
+  try {
+    // 从响应头提取文件名
+    let finalFileName = fileName;
+    if (!finalFileName) {
+      const contentDisposition = response.headers['content-disposition'];
+      if (contentDisposition) {
+        // 支持两种格式：filename="xxx" 或 filename=xxx
+        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          finalFileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+        }
+      }
+    }
+
+    // 如果没有提取到文件名，使用默认名称
+    if (!finalFileName) {
+      const time = getCurrentStringTime();
+      finalFileName = `download_${time}`;
+    }
+
+    // 获取contentType
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+
+    // 创建Blob并触发下载
+    const blob = new Blob([response.data], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = finalFileName;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    // 清理
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("处理下载响应失败：", error);
+    message.error(`下载文件失败: ${error.message || error}`);
+    throw error;
+  }
+}
