@@ -97,6 +97,12 @@
             </template>
             导入回填
           </a-button>
+          <a-button type="primary" size="middle" @click="showImportBackfillModal_v2">
+            <template #icon>
+              <ImportOutlined />
+            </template>
+            导入回填 (开发中)
+          </a-button>
           <a-button v-if="batchDeleteFlag" type="primary" danger size="middle" @click="handleBatchDelete">
             批量删除
           </a-button>
@@ -174,6 +180,9 @@
     <BackFillModal modalTitle="导入回填" :visible="importBackfillVisible" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose"
       @handleOK="handleImportBackfillOK" />
+    <BackFillModal_v2 modalTitle="导入回填 (开发中)" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
+      :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" @handleClose="handleImportBackfillClose_v2"
+      @handleOK="handleImportBackfillOK_v2" />
     <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
       size="middle" buttonTitle="导出去重数据" :defaultStatusCheck="false" fileNamePrefix="去重_" :hideButton="true"
       @afterClose="handleExportAfterClose" />
@@ -192,6 +201,7 @@ import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import SelectCols from "./selectCols.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
+import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import {
   ExportOutlined,
@@ -237,6 +247,7 @@ export default {
     TransStateBadge,
     SelectCols,
     BackFillModal,
+    BackFillModal_v2,
     ExportButton,
   },
   props: {
@@ -393,6 +404,7 @@ export default {
       deleteLoading: false,
       importLoading: false,
       importBackfillVisible: false,
+      importBackfillVisible_v2: false,
       deduplicatedDataSource: [], // 存储去重后的数据，用于导出
       filterModal: {
         visible: false,
@@ -535,6 +547,19 @@ export default {
     handleImportBackfillOK() {
       this.init();
       this.handleImportBackfillClose();
+    },
+    // ===================导入回填模态框 (v2版本)================================
+    // 打开导入回填模态框 (v2版本)
+    showImportBackfillModal_v2() {
+      this.importBackfillVisible_v2 = true;
+      setModalAriaHidden(this, document);
+    },
+    handleImportBackfillClose_v2() {
+      this.importBackfillVisible_v2 = false;
+    },
+    handleImportBackfillOK_v2() {
+      this.init();
+      this.handleImportBackfillClose_v2();
     },
     // ===================导入csv文件================================
     // 上传前校验文件格式

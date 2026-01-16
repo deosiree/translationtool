@@ -53,8 +53,46 @@ vi.mock('@/utils/domUtils', () => ({
 vi.mock('ant-design-vue', () => ({
   message: {
     success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn()
+  },
+  notification: {
+    success: vi.fn(),
     error: vi.fn()
   }
+}))
+
+// Mock userPartiality API
+vi.mock('@/http/api/userPartiality', () => ({
+  queryUserPartiality: vi.fn(() => Promise.resolve({
+    data: {
+      list: [{
+        exportColumn: '词条,英文翻译',
+        backfillFields: '词条,英文翻译'
+      }]
+    }
+  })),
+  updateUserPartiality: vi.fn(() => Promise.resolve({}))
+}))
+
+// Mock excelUtils
+vi.mock('@/utils/excelUtils', () => ({
+  entryBatchImportExcel_v2: vi.fn(() => Promise.resolve({
+    code: 200,
+    success: ['词条'],
+    failed: new Map(),
+    failedEntryInfos: [],
+    exceptionVos: [],
+    globalMessage: ''
+  })),
+  entryValidate_v2: vi.fn(() => Promise.resolve({
+    code: 200,
+    success: ['词条'],
+    failed: new Map(),
+    failedEntryInfos: [],
+    exceptionVos: [],
+    globalMessage: ''
+  }))
 }))
 
 describe('FloatingToolBox - 悬浮工具仓组件', () => {
@@ -106,6 +144,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
     it('应该渲染悬浮按钮', () => {
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             GitCommitButton: true,
             'a-button': true,
@@ -114,7 +162,8 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true
           }
         }
       })
@@ -125,6 +174,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
     it('初始状态不应该显示工具面板', () => {
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             'a-button': true,
             'a-form': true,
@@ -132,7 +191,8 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true
           }
         }
       })
@@ -145,6 +205,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
     beforeEach(() => {
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             GitCommitButton: true,
             'a-button': true,
@@ -153,7 +223,9 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
           }
         }
       })
@@ -223,7 +295,19 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
+          },
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
           }
         }
       })
@@ -268,6 +352,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
       
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             'a-button': true,
             'a-form': true,
@@ -275,7 +369,9 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
           }
         }
       })
@@ -290,6 +386,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
       
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             'a-button': true,
             'a-form': true,
@@ -297,7 +403,9 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
           }
         }
       })
@@ -333,6 +441,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
       
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             GitCommitButton: true,
             'a-button': true,
@@ -341,7 +459,9 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
           }
         }
       })
@@ -363,6 +483,16 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
 
       wrapper = mount(FloatingToolBox, {
         global: {
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
+          },
           stubs: {
             'a-button': true,
             'a-form': true,
@@ -370,7 +500,9 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
           }
         }
       })
@@ -403,7 +535,19 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
+          },
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
           }
         }
       })
@@ -443,7 +587,19 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
+          },
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
           }
         }
       })
@@ -483,7 +639,19 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
             'a-select': true,
             'ToolOutlined': true,
             'CustomModal': true,
-            'BackFillModal': true
+            'BackFillModal': true,
+            'BackFillModal_v2': true,
+            'ExportButton': true
+          },
+          mocks: {
+            $store: {
+              state: {
+                user: {
+                  department: 'default',
+                  userName: 'testUser'
+                }
+              }
+            }
           }
         }
       })

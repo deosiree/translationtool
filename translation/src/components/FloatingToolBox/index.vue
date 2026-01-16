@@ -17,6 +17,10 @@
           :showFileTypeSelect="true" :defaultAccept="'.csv'" />
       </div>
       <div style="margin-bottom: 8px;">
+        <BackFillModal_v2 mode="button" size="small" buttonTitle="更新翻译 (新)" modalTitle="更新翻译" :translateTypes="translateTypes"
+          :showFileTypeSelect="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" />
+      </div>
+      <div style="margin-bottom: 8px;">
         <BackFillModal mode="button" size="small" buttonTitle="去重回填" modalTitle="导入回填" :translateTypes="translateTypes"
           :needRelationFile="true" :defaultAccept="'.csv'" />
       </div>
@@ -29,6 +33,7 @@
 import { ToolOutlined } from "@ant-design/icons-vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
+import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
 import { closeAllNotifications } from "@/utils/notificationUtils";
 import { getLanguage } from "@/http/api/translate";
 import "@/assets/style/common.less";
@@ -39,6 +44,7 @@ export default {
     ToolOutlined,
     GitCommitButton,
     BackFillModal,
+    BackFillModal_v2,
   },
   data() {
     return {
@@ -403,7 +409,7 @@ export default {
 }
 
 .tool-panel > div {
-  width: 80px;
+  width: 100%;
 }
 
 .tool-panel > div :deep(.ant-btn) {

@@ -1,5 +1,9 @@
 //引入request.js文件
 import request, { requestMultipart } from "../request";
+import {
+  entryImportExcle_v2 as entryImportExcle_v2_mock,
+  entryValidate_v2 as entryValidate_v2_mock,
+} from "./mock/entryManage";
 
 // 查询分类中新增的词条来源
 export function getEntrysourceListByClassfy(params) {
@@ -229,6 +233,36 @@ export function entryImportExcle(params, data) {
   });
 }
 
+// 更新翻译 (v2版本 - 新API)
+// 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
+export function entryImportExcle_v2(params, data) {
+  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  // return requestMultipart({
+  //   url: "/entryInfo/entryImportExcle_v2",
+  //   method: "POST",
+  //   params,
+  //   data,
+  // });
+
+  // 当前使用 Mock 接口
+  return entryImportExcle_v2_mock(params, data);
+}
+
+// 校验词条 (v2版本 - 新API)
+// 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
+export function entryValidate_v2(params, data) {
+  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  // return requestMultipart({
+  //   url: "/entryInfo/entryValidate_v2",
+  //   method: "POST",
+  //   params,
+  //   data,
+  // });
+
+  // 当前使用 Mock 接口
+  return entryValidate_v2_mock(params, data);
+}
+
 // // 读取 Excel 文件（mock 接口）
 // export function entryReadExcel(params, data) {
 //   // 正常数据，所有列都支持
@@ -367,7 +401,7 @@ export function entryImportExcle(params, data) {
 
 // 读取 Excel 文件为dataSource
 export function entryReadExcel(data) {
-    return requestMultipart({
+  return requestMultipart({
     url: "/entryInfo/parseFileToEntryInfos",
     method: "POST",
     data,

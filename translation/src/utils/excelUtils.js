@@ -1,4 +1,4 @@
-import { entryImportExcle } from "@/http/api/entryManage";
+import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 as entryValidateApi_v2 } from "@/http/api/entryManage";
 
 /**
  * 格式化 Map 对象为字符串
@@ -128,6 +128,248 @@ export async function entryBatchImportExcel(translateTypes, formData) {
     }
   } catch (error) {
     console.error("entryBatchImportExcel 发生异常：", error);
+    return {
+      code: 201,
+      success: [],
+      failed: new Map(),
+      failedEntryInfos: [],
+      exceptionVos: [],
+      globalMessage: error.message || "未知错误",
+    };
+  }
+}
+
+/**
+ * 批量导入 Excel 词条 (v2版本 - 新API)
+ * @param {Array<string>} backfillFields - 需要更新的字段列表（字段label数组）
+ * @param {FormData} formData - Excel 文件等表单数据
+ * @returns {Promise<Object>} 返回结果对象，结构可能与旧版本不同
+ */
+export async function entryBatchImportExcel_v2(backfillFields, formData) {
+  try {
+    console.log('entryBatchImportExcel_v2 参数', backfillFields, formData);
+    const msg = { success: [], failed: new Map() };
+    let allFailedEntryInfos = [];
+    let allExceptionVos = [];
+    let globalMessage = "";
+    let hasCode201 = false;
+
+    // 每个更新字段的处理
+    for (const field of backfillFields) {
+      const params = {
+        field: field, // 字段label
+      };
+      try {
+        await entryImportExcle_v2(params, formData);
+        msg.success.push(field);
+      } catch (error) {
+        // 响应拦截器会将 code !== 200 && code !== 205 的响应 reject
+        // 需要从 error.response 或 error.data 中提取数据
+        console.log(`${field}导入响应（v2）：`, error);
+        
+        // 尝试从 error.response.data 或 error.data 中提取数据
+        const errorData = error?.response?.data || error?.data || error;
+        const { code, data } = errorData || {};
+        
+        if (code === 201) {
+          // code=201 表示有失败信息，这是正常的业务响应
+          hasCode201 = true;
+          // 注意：新API的响应体结构可能不同，需要根据实际响应结构调整
+          const failedInfos = data?.failedEntryInfos || [];
+          const exceptionVos = data?.exceptionVos || data?.exceptionVOs || [];
+          const globalMsg = data?.globalMessage || "";
+          
+          allFailedEntryInfos = allFailedEntryInfos.concat(failedInfos);
+          allExceptionVos = allExceptionVos.concat(exceptionVos);
+          
+          if (globalMsg) {
+            globalMessage = globalMsg;
+          }
+          
+          // 记录失败语种
+          const errMsg = globalMsg || "导入存在失败或异常信息";
+          if (!msg.failed.has(errMsg)) {
+            msg.failed.set(errMsg, []);
+          }
+          msg.failed.get(errMsg).push(field);
+        } else {
+          // 真正的错误
+          console.error(`${field}导入失败（v2）：`, error);
+          const errMsg = error?.message || error?.data?.message || "未知错误";
+          if (!msg.failed.has(errMsg)) {
+            msg.failed.set(errMsg, []);
+          }
+          msg.failed.get(errMsg).push(field);
+        }
+      }
+    }
+
+    // 返回结果
+    // 注意：新API的响应体结构可能不同，返回格式需要根据实际API响应调整
+    if (hasCode201) {
+      // 有 code=201 的响应，返回失败信息
+      return {
+        code: 201,
+        success: msg.success,
+        failed: msg.failed,
+        failedEntryInfos: allFailedEntryInfos,
+        exceptionVos: allExceptionVos,
+        globalMessage: globalMessage,
+      };
+    } else if (msg.success.length > 0 && msg.failed.size === 0) {
+      // 完全成功
+      return {
+        code: 200,
+        success: msg.success,
+        failed: msg.failed,
+        failedEntryInfos: [],
+        exceptionVos: [],
+        globalMessage: "",
+      };
+    } else if (msg.success.length === 0 && msg.failed.size === 0) {
+      // 空语言列表，视为成功
+      return {
+        code: 200,
+        success: [],
+        failed: msg.failed,
+        failedEntryInfos: [],
+        exceptionVos: [],
+        globalMessage: "",
+      };
+    } else {
+      // 有失败但没有 code=201（可能是其他错误）
+      return {
+        code: 201,
+        success: msg.success,
+        failed: msg.failed,
+        failedEntryInfos: allFailedEntryInfos,
+        exceptionVos: allExceptionVos,
+        globalMessage: globalMessage || "导入存在失败",
+      };
+    }
+  } catch (error) {
+    console.error("entryBatchImportExcel_v2 发生异常：", error);
+    return {
+      code: 201,
+      success: [],
+      failed: new Map(),
+      failedEntryInfos: [],
+      exceptionVos: [],
+      globalMessage: error.message || "未知错误",
+    };
+  }
+}
+
+/**
+ * 校验词条 (v2版本 - 新API)
+ * @param {Array<string>} backfillFields - 需要校验的字段列表（字段label数组）
+ * @param {FormData} formData - Excel 文件等表单数据
+ * @returns {Promise<Object>} 返回校验结果对象，结构可能与导入API不同
+ */
+export async function entryValidate_v2(backfillFields, formData) {
+  try {
+    console.log('entryValidate_v2 参数', backfillFields, formData);
+    const msg = { success: [], failed: new Map() };
+    let allFailedEntryInfos = [];
+    let allExceptionVos = [];
+    let globalMessage = "";
+    let hasCode201 = false;
+
+    // 每个校验字段的处理
+    for (const field of backfillFields) {
+      const params = {
+        field: field,
+      };
+      try {
+        await entryValidateApi_v2(params, formData);
+        msg.success.push(field);
+      } catch (error) {
+        // 响应拦截器会将 code !== 200 && code !== 205 的响应 reject
+        // 需要从 error.response 或 error.data 中提取数据
+        console.log(`${field}校验响应（v2）：`, error);
+        
+        // 尝试从 error.response.data 或 error.data 中提取数据
+        const errorData = error?.response?.data || error?.data || error;
+        const { code, data } = errorData || {};
+        
+        if (code === 201) {
+          // code=201 表示有失败信息，这是正常的业务响应
+          hasCode201 = true;
+          // 注意：校验API的响应体结构可能不同，需要根据实际响应结构调整
+          const failedInfos = data?.failedEntryInfos || [];
+          const exceptionVos = data?.exceptionVos || data?.exceptionVOs || [];
+          const globalMsg = data?.globalMessage || "";
+          
+          allFailedEntryInfos = allFailedEntryInfos.concat(failedInfos);
+          allExceptionVos = allExceptionVos.concat(exceptionVos);
+          
+          if (globalMsg) {
+            globalMessage = globalMsg;
+          }
+          
+          // 记录失败语种
+          const errMsg = globalMsg || "校验存在失败或异常信息";
+          if (!msg.failed.has(errMsg)) {
+            msg.failed.set(errMsg, []);
+          }
+          msg.failed.get(errMsg).push(field);
+        } else {
+          // 真正的错误
+          console.error(`${field}校验失败（v2）：`, error);
+          const errMsg = error?.message || error?.data?.message || "未知错误";
+          if (!msg.failed.has(errMsg)) {
+            msg.failed.set(errMsg, []);
+          }
+          msg.failed.get(errMsg).push(field);
+        }
+      }
+    }
+
+    // 返回结果
+    // 注意：校验API的响应体结构可能与导入API不同，返回格式需要根据实际API响应调整
+    if (hasCode201) {
+      // 有 code=201 的响应，返回失败信息
+      return {
+        code: 201,
+        success: msg.success,
+        failed: msg.failed,
+        failedEntryInfos: allFailedEntryInfos,
+        exceptionVos: allExceptionVos,
+        globalMessage: globalMessage,
+      };
+    } else if (msg.success.length > 0 && msg.failed.size === 0) {
+      // 完全成功
+      return {
+        code: 200,
+        success: msg.success,
+        failed: msg.failed,
+        failedEntryInfos: [],
+        exceptionVos: [],
+        globalMessage: "",
+      };
+    } else if (msg.success.length === 0 && msg.failed.size === 0) {
+      // 空语言列表，视为成功
+      return {
+        code: 200,
+        success: [],
+        failed: msg.failed,
+        failedEntryInfos: [],
+        exceptionVos: [],
+        globalMessage: "",
+      };
+    } else {
+      // 有失败但没有 code=201（可能是其他错误）
+      return {
+        code: 201,
+        success: msg.success,
+        failed: msg.failed,
+        failedEntryInfos: allFailedEntryInfos,
+        exceptionVos: allExceptionVos,
+        globalMessage: globalMessage || "校验存在失败",
+      };
+    }
+  } catch (error) {
+    console.error("entryValidate_v2 发生异常：", error);
     return {
       code: 201,
       success: [],
