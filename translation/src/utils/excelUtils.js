@@ -1,5 +1,5 @@
 import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 as entryValidateApi_v2 } from "@/http/api/entryManage";
-import { message } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
 
 /**
  * 格式化 Map 对象为字符串
@@ -48,25 +48,25 @@ export async function entryBatchImportExcel(translateTypes, formData) {
         // 响应拦截器会将 code !== 200 && code !== 205 的响应 reject
         // 需要从 error.response 或 error.data 中提取数据
         console.log(`${lang}导入响应：`, error);
-        
+
         // 尝试从 error.response.data 或 error.data 中提取数据
         const errorData = error?.response?.data || error?.data || error;
         const { code, data } = errorData || {};
-        
+
         if (code === 201) {
           // code=201 表示有失败信息，这是正常的业务响应
           hasCode201 = true;
           const failedInfos = data?.failedEntryInfos || [];
           const exceptionVos = data?.exceptionVos || data?.exceptionVOs || [];
           const globalMsg = data?.globalMessage || "";
-          
+
           allFailedEntryInfos = allFailedEntryInfos.concat(failedInfos);
           allExceptionVos = allExceptionVos.concat(exceptionVos);
-          
+
           if (globalMsg) {
             globalMessage = globalMsg;
           }
-          
+
           // 记录失败语种
           const errMsg = globalMsg || "导入存在失败或异常信息";
           if (!msg.failed.has(errMsg)) {
@@ -141,6 +141,61 @@ export async function entryBatchImportExcel(translateTypes, formData) {
 }
 
 /**
+ * 批量导入 Excel 词条
+ * @param {Array<string>} translateTypes - 需要导入的翻译语种列表
+ * @param {FormData} formData - Excel 文件等表单数据
+ * @returns {Promise<Object>} 返回结果对象，包含：
+ *   - code: 200 表示完全成功，201 表示有失败信息
+ *   - success: 成功语种列表
+ *   - failed: 失败语种 Map
+ *   - failedEntryInfos: 可重试失败词条数组
+ *   - exceptionVos: 异常信息数组
+ *   - globalMessage: 总体错误提示信息
+ */
+export async function entryBatchImportExcel_V1_5(translateTypes, formData) {
+  try {
+    console.log('参数', translateTypes, formData);
+    const success = [];
+    const msgBylang = [];
+    let catchError = false;
+
+    // 每种翻译语种的导入
+    for (const lang of translateTypes) {
+      const params = {
+        transType: lang,
+      };
+      try {
+        const res = await entryImportExcle(params, formData);
+        success.push(lang);
+        msgBylang.push({ lang: lang, code: res.code, ...res.data });
+      } catch (error) {
+        catchError = true;
+        console.log("错误信息", error, error.data, error.data.data);
+        msgBylang.push({ lang: lang, code: error.code, ...error.data.data });
+      }
+    }
+
+    // 返回结果
+    return {
+      code: catchError ? 201 : 200,
+      success: success,
+      msgBylang: msgBylang,
+    };
+  } catch (error) {
+    console.error("entryBatchImportExcel 发生异常：", error);
+    notification.error({
+      message: "导入失败",
+      description: error.message || "未知错误",
+    });
+    return {
+      code: 201,
+      success: [],
+      msgBylang: [],
+    };
+  }
+}
+
+/**
  * 批量导入 Excel 词条 (v2版本 - 新API)
  * @param {File} dedupExcel - 去重后Excel文件
  * @param {File|null} mappingJson - 映射JSON文件（可选）
@@ -194,7 +249,7 @@ export async function entryBatchImportExcel_v2(dedupExcel, mappingJson, backfill
     // params: {} - 无URL query参数
     // data: formData - FormData包含所有multipart数据（文件+payload）
     const response = await entryImportExcle_v2({}, formData);
-    
+
     // 返回完整的API响应（包含 code, message 等字段）
     return response;
   } catch (error) {
@@ -275,7 +330,7 @@ export async function entryValidate_v2(originExcel, dedupExcel, mappingJson, che
     // params: {} - 无URL query参数
     // data: formData - FormData包含所有multipart数据（文件+payload）
     const response = await entryValidateApi_v2({}, formData);
-    
+
     // 直接返回API响应
     return response.data || response;
   } catch (error) {
