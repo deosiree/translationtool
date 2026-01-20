@@ -11,6 +11,8 @@ export default defineConfig({
     globals: true,
     // 测试文件匹配模式
     include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    // 全局测试配置文件，在所有测试运行前执行
+    setupFiles: ['tests/setup.js'],
     // 代码覆盖率配置
     coverage: {
       provider: 'v8',

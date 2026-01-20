@@ -6,20 +6,27 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 } from '@/http/api/entryManage'
 
-// Mock mock文件中的函数
+// IMPORTANT:
+// src/http/api/entryManage.js 当前部分接口会走真实 requestMultipart（axios 实例）。
+// 单测需要 mock request 层，避免 jsdom 下发真实网络请求。
+vi.mock('@/http/request', () => ({
+  default: vi.fn(),
+  requestMultipart: vi.fn(),
+}))
+
+// entryImportExcle_v2 当前实现走 mock 模块（非 requestMultipart），这里也需要 mock
 vi.mock('@/http/api/mock/entryManage', () => ({
   entryImportExcle: vi.fn(),
   entryImportExcle_v2: vi.fn(),
   entryValidate_v2: vi.fn(),
 }))
 
+import request, { requestMultipart } from '@/http/request'
 import {
-  entryImportExcle as mockEntryImportExcle,
   entryImportExcle_v2 as mockEntryImportExcle_v2,
-  entryValidate_v2 as mockEntryValidate_v2,
 } from '@/http/api/mock/entryManage'
+import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 } from '@/http/api/entryManage'
 
 describe('entryManage API - v1/v2 版本', () => {
   beforeEach(() => {
@@ -40,11 +47,11 @@ describe('entryManage API - v1/v2 版本', () => {
         message: null,
         operationObject: ''
       }
-      mockEntryImportExcle.mockResolvedValue(successResp)
+      requestMultipart.mockResolvedValue(successResp)
 
       const result = await entryImportExcle(params, formData)
 
-      expect(mockEntryImportExcle).toHaveBeenCalledTimes(1)
+      expect(requestMultipart).toHaveBeenCalledTimes(1)
       expect(result.code).toBe(200)
       expect(result.type).toBe('OK')
       expect(result.data.failedEntryInfos).toEqual([])
@@ -65,7 +72,7 @@ describe('entryManage API - v1/v2 版本', () => {
         message: '词条翻译更新存在异常, 请查看相关日志信息',
         operationObject: ''
       }
-      mockEntryImportExcle.mockResolvedValue(failureResp)
+      requestMultipart.mockResolvedValue(failureResp)
 
       const result = await entryImportExcle(params, formData)
 
@@ -214,12 +221,17 @@ describe('entryManage API - v1/v2 版本', () => {
         previews: [],
         attachments: { issueLog: [] }
       }
-      mockEntryValidate_v2.mockResolvedValue(mockResponse)
+      requestMultipart.mockResolvedValue(mockResponse)
 
       const result = await entryValidate_v2(params, formData)
 
-      expect(mockEntryValidate_v2).toHaveBeenCalledTimes(1)
-      expect(mockEntryValidate_v2).toHaveBeenCalledWith(params, formData)
+      expect(requestMultipart).toHaveBeenCalledTimes(1)
+      expect(requestMultipart).toHaveBeenCalledWith({
+        url: "/entryInfo/checkBeforeUpdateTranslationByFile",
+        method: "POST",
+        params,
+        data: formData,
+      })
       expect(result).toEqual(mockResponse)
     })
 
@@ -240,7 +252,7 @@ describe('entryManage API - v1/v2 版本', () => {
         previews: [],
         attachments: { issueLog: [] }
       }
-      mockEntryValidate_v2.mockResolvedValue(successResponse)
+      requestMultipart.mockResolvedValue(successResponse)
 
       const result = await entryValidate_v2(params, formData)
 
@@ -283,7 +295,7 @@ describe('entryManage API - v1/v2 版本', () => {
           issueLog: []
         }
       }
-      mockEntryValidate_v2.mockResolvedValue(warnResponse)
+      requestMultipart.mockResolvedValue(warnResponse)
 
       const result = await entryValidate_v2(params, formData)
 
@@ -313,7 +325,7 @@ describe('entryManage API - v1/v2 版本', () => {
         previews: [],
         attachments: { issueLog: [] }
       }
-      mockEntryValidate_v2.mockResolvedValue(fatalResponse)
+      requestMultipart.mockResolvedValue(fatalResponse)
 
       const result = await entryValidate_v2(params, formData)
 
@@ -355,7 +367,7 @@ describe('entryManage API - v1/v2 版本', () => {
       ]
 
       for (const response of responses) {
-        mockEntryValidate_v2.mockResolvedValueOnce(response)
+        requestMultipart.mockResolvedValueOnce(response)
       }
 
       const results = await Promise.all([
@@ -368,7 +380,7 @@ describe('entryManage API - v1/v2 版本', () => {
       expect(results[0].success).toBe(true)
       expect(results[1].success).toBe(false)
       expect(results[2].success).toBe(true)
-      expect(mockEntryValidate_v2).toHaveBeenCalledTimes(3)
+      expect(requestMultipart).toHaveBeenCalledTimes(3)
     })
 
     it('应该验证响应结构完整性（成功场景）', async () => {
@@ -388,7 +400,7 @@ describe('entryManage API - v1/v2 版本', () => {
         previews: [],
         attachments: { issueLog: [] }
       }
-      mockEntryValidate_v2.mockResolvedValue(successResponse)
+      requestMultipart.mockResolvedValue(successResponse)
 
       const result = await entryValidate_v2(params, formData)
 
@@ -420,7 +432,7 @@ describe('entryManage API - v1/v2 版本', () => {
         previews: [],
         attachments: { issueLog: [] }
       }
-      mockEntryValidate_v2.mockResolvedValue(failureResponse)
+      requestMultipart.mockResolvedValue(failureResponse)
 
       const result = await entryValidate_v2(params, formData)
 
@@ -455,7 +467,7 @@ describe('entryManage API - v1/v2 版本', () => {
         previews: [],
         attachments: { issueLog: [] }
       }
-      mockEntryValidate_v2.mockResolvedValue(response)
+      requestMultipart.mockResolvedValue(response)
 
       const result = await entryValidate_v2(params, formData)
 

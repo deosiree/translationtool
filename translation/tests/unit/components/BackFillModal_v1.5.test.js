@@ -85,6 +85,81 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
     vi.clearAllMocks()
   })
 
+  describe('契约：label/value 映射与偏好存储', () => {
+    it('fieldOptions 的 label 为语种名，value 为字段 key；全选产出 value', async () => {
+      wrapper = mount(BackFillModal_v1_5, {
+        props: {
+          mode: 'button',
+          translateTypes: []
+        },
+        global: {
+          stubs: {
+            'CustomModal': true,
+            'ExportButton': true
+          }
+        }
+      })
+
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 60))
+
+      const englishOpt = wrapper.vm.fieldOptions.find(o => o.label === '英文')
+      const russianOpt = wrapper.vm.fieldOptions.find(o => o.label === '俄文')
+      expect(englishOpt.value).toBe('english')
+      expect(russianOpt.value).toBe('russian')
+
+      wrapper.vm.selectAllBackfillFields()
+      await nextTick()
+      expect(wrapper.vm.formModel.backfillFields).toContain('english')
+      expect(wrapper.vm.formModel.backfillFields).toContain('russian')
+    })
+
+    it('提交后 localStorage.backfillFieldsPref.backfillFields 保存为 label 逗号串（英文,俄文）', async () => {
+      wrapper = mount(BackFillModal_v1_5, {
+        props: {
+          mode: 'button',
+          functionMode: 'updateTranslation',
+          translateTypes: []
+        },
+        global: {
+          stubs: {
+            'CustomModal': {
+              template: '<div><slot></slot></div>',
+              props: ['visible', 'okLoading', 'modalTitle'],
+              emits: ['handleClose', 'handleOK']
+            },
+            'ExportButton': true,
+            // 需要提供 validate，否则 $refs.backFillForm.validate 会报错（覆盖全局配置中的 a-form）
+            'a-form': {
+              template: '<form ref="backFillForm"><slot></slot></form>',
+              methods: {
+                validate: vi.fn(() => Promise.resolve()),
+                clearValidate: vi.fn()
+              }
+            }
+          }
+        }
+      })
+
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 60))
+
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+
+      wrapper.vm.formModel.backfillFields = ['english', 'russian']
+      wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
+
+      await wrapper.vm.handleOK()
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 120))
+
+      const calls = setItemSpy.mock.calls.filter((c) => c[0] === 'backfillFieldsPref')
+      expect(calls.length).toBeGreaterThan(0)
+      const saved = JSON.parse(calls[calls.length - 1][1])
+      expect(saved.backfillFields).toBe('英文,俄文')
+    })
+  })
+
   describe('组件渲染', () => {
     it('按钮模式下应该渲染按钮', () => {
       wrapper = mount(BackFillModal_v1_5, {
@@ -96,11 +171,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -121,11 +192,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -146,30 +213,33 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
     })
 
     it('按钮模式下点击应该获取用户偏好', async () => {
-      const { queryUserPartiality } = await import('@/http/api/userPartiality')
-      
-      // 直接调用方法而不是通过按钮点击
+      // 需求变更：用户偏好仅 localStorage（不再调用 userPartiality API）
+      localStorage.setItem('backfillFieldsPref', JSON.stringify({
+        backfillFields: '英文,俄文'
+      }))
+
+      // 直接调用方法而不是通过按钮点击（等价触发打开逻辑）
       wrapper.vm.handleButtonClick()
       await nextTick()
       await new Promise(resolve => setTimeout(resolve, 100))
 
-      expect(queryUserPartiality).toHaveBeenCalled()
+      // 组件内部会把 label 偏好映射为 value 存到 formModel.backfillFields
+      expect(wrapper.vm.formModel.backfillFields).toEqual(['english', 'russian'])
     })
 
     it('模态框模式下打开应该获取用户偏好', async () => {
-      const { queryUserPartiality } = await import('@/http/api/userPartiality')
-      
+      // 需求变更：用户偏好仅 localStorage（不再调用 userPartiality API）
+      localStorage.setItem('backfillFieldsPref', JSON.stringify({
+        backfillFields: '英文,俄文'
+      }))
+
       // 先以 visible: false 挂载，然后设置为 true 以触发 watch
       wrapper = mount(BackFillModal_v1_5, {
         props: {
@@ -180,11 +250,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -197,7 +263,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       // 等待 watch visible 触发和异步调用完成
       await new Promise(resolve => setTimeout(resolve, 150))
 
-      expect(queryUserPartiality).toHaveBeenCalled()
+      expect(wrapper.vm.formModel.backfillFields).toEqual(['english', 'russian'])
     })
   })
 
@@ -211,11 +277,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -241,11 +303,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -266,7 +324,8 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       wrapper.vm.selectAllBackfillFields()
       await nextTick()
 
-      expect(wrapper.vm.formModel.backfillFields).toEqual(['英文', '俄文'])
+      // 新语义：backfillFields 存 value
+      expect(wrapper.vm.formModel.backfillFields).toEqual(['english', 'russian'])
     })
   })
 
@@ -286,16 +345,14 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
               emits: ['handleClose', 'handleOK']
             },
             'ExportButton': true,
+            // 需要提供 validate，否则 $refs.backFillForm.validate 会报错（覆盖全局配置中的 a-form）
             'a-form': {
               template: '<form ref="backFillForm"><slot></slot></form>',
               methods: {
                 validate: vi.fn(() => Promise.resolve()),
                 clearValidate: vi.fn()
               }
-            },
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            }
           }
         }
       })
@@ -342,12 +399,10 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
               emits: ['handleClose', 'handleOK']
             },
             'ExportButton': true,
+            // 覆盖全局配置中的 a-form（简单 template）
             'a-form': {
               template: '<form><slot></slot></form>'
-            },
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            }
           }
         }
       })
@@ -360,7 +415,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       
       // 设置表单数据
-      wrapper.vm.formModel.backfillFields = ['英文', '俄文']
+      wrapper.vm.formModel.backfillFields = ['english', 'russian']
       wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
       
       // Mock表单验证通过
@@ -396,12 +451,10 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
               emits: ['handleClose', 'handleOK']
             },
             'ExportButton': true,
+            // 覆盖全局配置中的 a-form（简单 template）
             'a-form': {
               template: '<form><slot></slot></form>'
-            },
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            }
           }
         }
       })
@@ -412,7 +465,7 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       const { entryValidate_v2 } = await import('@/utils/excelUtils')
       
       // 设置表单数据
-      wrapper.vm.formModel.backfillFields = ['英文', '俄文']
+      wrapper.vm.formModel.backfillFields = ['english', 'russian']
       wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
       wrapper.vm.formModel.originExcel = new File(['test'], 'origin.csv', { type: 'text/csv' })
       
@@ -432,12 +485,12 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
     })
 
     it('提交成功后应该保存用户偏好', async () => {
-      const { updateUserPartiality } = await import('@/http/api/userPartiality')
-      
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+
       await nextTick()
       
       // 设置表单数据
-      wrapper.vm.formModel.backfillFields = ['英文', '俄文']
+      wrapper.vm.formModel.backfillFields = ['english', 'russian']
       wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
       
       // Mock表单验证通过
@@ -452,9 +505,13 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       await new Promise(resolve => setTimeout(resolve, 100))
 
-      expect(updateUserPartiality).toHaveBeenCalledWith({
-        backfillFields: '英文,俄文'
-      })
+      // 需求变更：提交后写入 localStorage（backfillFields 用语种名称逗号串）
+      expect(setItemSpy).toHaveBeenCalled()
+
+      const calls = setItemSpy.mock.calls.filter((c) => c[0] === 'backfillFieldsPref')
+      expect(calls.length).toBeGreaterThan(0)
+      const saved = JSON.parse(calls[calls.length - 1][1])
+      expect(saved.backfillFields).toBe('英文,俄文')
     })
   })
 })

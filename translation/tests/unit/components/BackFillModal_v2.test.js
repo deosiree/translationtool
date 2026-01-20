@@ -91,11 +91,7 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -116,11 +112,7 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -141,11 +133,7 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -175,11 +163,7 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -206,11 +190,7 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -236,11 +216,7 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
         global: {
           stubs: {
             'CustomModal': true,
-            'ExportButton': true,
-            'a-form': true,
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            'ExportButton': true
           }
         }
       })
@@ -281,16 +257,14 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
               emits: ['handleClose', 'handleOK']
             },
             'ExportButton': true,
+            // 需要提供 validate，否则 $refs.backFillForm.validate 会报错（覆盖全局配置中的 a-form）
             'a-form': {
               template: '<form ref="backFillForm"><slot></slot></form>',
               methods: {
                 validate: vi.fn(() => Promise.resolve()),
                 clearValidate: vi.fn()
               }
-            },
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            }
           }
         }
       })
@@ -337,12 +311,10 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
               emits: ['handleClose', 'handleOK']
             },
             'ExportButton': true,
+            // 覆盖全局配置中的 a-form（简单 template）
             'a-form': {
               template: '<form><slot></slot></form>'
-            },
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            }
           }
         }
       })
@@ -388,12 +360,10 @@ describe('BackFillModal_v2 - 去重回填模态框 (v2版本)', () => {
               emits: ['handleClose', 'handleOK']
             },
             'ExportButton': true,
+            // 覆盖全局配置中的 a-form（简单 template）
             'a-form': {
               template: '<form><slot></slot></form>'
-            },
-            'a-form-item': true,
-            'a-select': true,
-            'a-upload': true
+            }
           }
         }
       })
