@@ -1,6 +1,7 @@
 //引入request.js文件
 import request, { requestMultipart } from "../request";
 import {
+  entryImportExcle as entryImportExcle_mock,
   entryImportExcle_v2 as entryImportExcle_v2_mock,
   entryValidate_v2 as entryValidate_v2_mock,
 } from "./mock/entryManage";
@@ -225,12 +226,16 @@ export function writeBack(params, data) {
 
 // 更新翻译
 export function entryImportExcle(params, data) {
+  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
   return requestMultipart({
     url: "/entryInfo/entryImportExcle",
     method: "POST",
     params,
     data,
   });
+
+  // // 当前使用 Mock 接口（v1 响应结构）
+  // return entryImportExcle_mock(params, data);
 }
 
 // 更新翻译 (v2版本 - 新API)
@@ -252,15 +257,15 @@ export function entryImportExcle_v2(params, data) {
 // 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
 export function entryValidate_v2(params, data) {
   // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
-  // return requestMultipart({
-  //   url: "/entryInfo/entryValidate_v2",
-  //   method: "POST",
-  //   params,
-  //   data,
-  // });
+  return requestMultipart({
+    url: "/entryInfo/checkBeforeUpdateTranslationByFile",
+    method: "POST",
+    params,
+    data,
+  });
 
-  // 当前使用 Mock 接口
-  return entryValidate_v2_mock(params, data);
+  // // 当前使用 Mock 接口
+  // return entryValidate_v2_mock(params, data);
 }
 
 // 读取 Excel 文件为dataSource

@@ -32,13 +32,13 @@ function extractPayloadFromFormData(formData) {
  */
 function generateValidateResponse(payload) {
   const random = Math.random();
-  
+
   // 70% 概率成功，30% 概率有警告或错误
   if (random < 0.5) {
     // 50% 概率：完全成功
     return {
       success: true,
-      canBackfill: true,
+      canBackFill: true,
       summary: {
         totalOriginRows: 1200,
         totalDedupRows: 300,
@@ -46,20 +46,22 @@ function generateValidateResponse(payload) {
         willUpdateCells: 3500
       },
       issues: [],
-      preview: []
+      previews: [],
+      attachments: {
+        issueLog: []
+      }
     };
   } else if (random < 0.7) {
     // 20% 概率：有警告但可回填
     const issues = [];
-    const hasAttachments = Math.random() > 0.5;
-    
-    // 生成一些警告类型的 issues
+    const hasAttachments = true;
+
     const warnTypes = [
       { type: 'EMPTY_VALUE_SKIP', fieldKey: 'englishTranslate', id: 'c321', message: '字段在去重后文件中为空，已跳过更新' },
       { type: 'SPECIAL_CHAR_MISMATCH', fieldKey: 'englishTranslate', id: 'c322', message: '占位符不一致' },
       { type: 'MAX_LENGTH_EXCEEDED', fieldKey: 'englishStatus', id: 'c323', message: '字段长度超出限制' }
     ];
-    
+
     const selectedWarn = warnTypes[Math.floor(Math.random() * warnTypes.length)];
     issues.push({
       level: 'WARN',
@@ -68,10 +70,10 @@ function generateValidateResponse(payload) {
       fieldKey: selectedWarn.fieldKey,
       message: selectedWarn.message
     });
-    
+
     const response = {
       success: true,
-      canBackfill: true,
+      canBackFill: true,
       summary: {
         totalOriginRows: 1200,
         totalDedupRows: 300,
@@ -79,22 +81,19 @@ function generateValidateResponse(payload) {
         skippedRows: 20
       },
       issues: issues,
-      preview: []
+      previews: [],
+      attachments: {
+        issueLog: []
+      }
     };
-    
+
     if (hasAttachments) {
-      response.attachments = {
-        invalidExcel: {
-          fileName: 'backfill_invalid_rows.xlsx',
-          downloadUrl: '/api/backfill/validate/files/invalid-excel'
-        },
-        issueLog: {
-          fileName: 'backfill_issues.log',
-          downloadUrl: '/api/backfill/validate/files/issue-log'
-        }
+      response.attachments.invalidExcel = {
+        fileName: 'backfill_invalid_rows.xlsx',
+        downloadUrl: '/api/backfill/validate/files/invalid-excel'
       };
     }
-    
+
     return response;
   } else {
     // 30% 概率：致命错误，禁止回填
@@ -103,19 +102,23 @@ function generateValidateResponse(payload) {
       { type: 'CHECK_FIELDS_MISMATCH', message: 'Excel 中字段值与数据库不一致' },
       { type: 'ORIGIN_ID_NOT_FOUND', message: '去重前 Excel 的 id 不存在于数据库' }
     ];
-    
+
     const selectedFatal = fatalTypes[Math.floor(Math.random() * fatalTypes.length)];
-    
+
     return {
       success: false,
-      canBackfill: false,
+      canBackFill: false,
       issues: [
         {
           level: 'FATAL',
           type: selectedFatal.type,
           message: selectedFatal.message
         }
-      ]
+      ],
+      previews: [],
+      attachments: {
+        issueLog: []
+      }
     };
   }
 }
@@ -131,50 +134,58 @@ function generateValidateResponse(payload) {
  */
 function generateImportResponse(payload) {
   const random = Math.random();
-  
-  if (random < 0.7) {
-    // 70% 概率：完全成功
+
+  if (random < 0.5) {
     return {
       code: 200,
-      message: '导入成功'
-    };
-  } else {
-    // 30% 概率：部分失败
-    const failedCount = Math.floor(Math.random() * 3) + 1; // 1-3个失败词条
-    const failedEntryInfos = [];
-    const backfillFields = payload?.rules?.find(r => r.taskType === 'backfillFields')?.params?.backfillFields || [];
-    const firstField = backfillFields[0] || '未知字段';
-    
-    for (let i = 1; i <= failedCount; i++) {
-      const failedInfo = {
-        id: `mock-${i}`,
-        entry: `测试词条${i}`
-      };
-      if (firstField) {
-        failedInfo[firstField] = `测试值${i}`;
-      }
-      failedEntryInfos.push(failedInfo);
-    }
-    
-    const exceptionCount = Math.floor(Math.random() * 2) + 1; // 1-2个异常
-    const exceptionVos = [];
-    for (let i = 1; i <= exceptionCount; i++) {
-      exceptionVos.push({
-        id: `exception-${i}`,
-        message: `异常信息${i}`
-      });
-    }
-    
-    return {
-      code: 201,
-      message: '导入存在失败',
+      type: 'OK',
       data: {
-        failedEntryInfos,
-        exceptionVos,
-        globalMessage: '部分词条导入失败'
-      }
+        globalMessage: null,
+        failedEntryInfos: [],
+        exceptionVOs: []
+      },
+      message: null,
+      operationObject: ''
     };
   }
+
+  const failedEntryInfos = [
+    {
+      id: '3ba12ada-5308-4ad1-93e0-6331bcae1fff',
+      entry: '送翻测试2',
+      english: '送翻测试2',
+      russian: '子节点a',
+      spanish: '子节点aa',
+      comment: 'a'
+    },
+    {
+      id: 'b7f5856c-52b7-4260-9339-f6aee49fd923',
+      entry: '送翻测试2',
+      english: '送翻测试3',
+      russian: '子节点b',
+      spanish: '子节点bb',
+      comment: 'a'
+    }
+  ];
+
+  const exceptionVOs = [
+    {
+      message: '父节点id: "1a9431a6-e24d-41c6-9c8e-107c02b5dd2a",子节点id信息为 "[3ba12ada-5308-4ad1-93e0-6331bcae1fff, b7f5856c-52b7-4260-9339-f6aee49fd923]", 送翻前去重属于同一组的多个词条在该翻译文件中, 并且这多个词条的翻译有所不同, 相关的翻译结果分别为: "[送翻测试3, 送翻测试2]"',
+      resolvedMethodMessage: '送翻后的文件中该组词条只保留一个，删除掉该组其他的词条, 然后重新更新翻译'
+    }
+  ];
+
+  return {
+    code: 201,
+    type: 'ERROR',
+    data: {
+      globalMessage: '更新词条翻译时部分词条更新后存在警告和异常信息, 总共有1个信息',
+      failedEntryInfos,
+      exceptionVOs
+    },
+    message: '词条翻译更新存在异常, 请查看相关日志信息',
+    operationObject: ''
+  };
 }
 
 /**
@@ -207,13 +218,20 @@ export async function entryValidate_v2(params, data) {
   // 从 FormData 中提取 payload（如果存在）
   const payload = extractPayloadFromFormData(data);
   
-  // 生成符合新 API 文档的响应
+  // 生成符合新 API 文档的响应（直接返回数据段）
   const response = generateValidateResponse(payload);
-  
-  // 包装成标准响应格式（code, message, data）
-  return {
-    code: 200,
-    message: response.success ? '校验成功' : '校验失败',
-    data: response
-  };
+
+  return response;
+}
+
+/**
+ * Mock: 更新翻译 (v1 版本 - 现网接口响应仿真)
+ * @param {Object} params - 请求参数
+ * @param {FormData} data - 表单数据
+ * @returns {Promise<Object>} v1 更新接口响应
+ */
+export async function entryImportExcle(params, data) {
+  await new Promise(resolve => setTimeout(resolve, 200));
+  const payload = extractPayloadFromFormData(data);
+  return generateImportResponse(payload);
 }

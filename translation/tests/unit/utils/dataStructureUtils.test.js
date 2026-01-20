@@ -3,7 +3,9 @@ import {
   filter_arr, 
   intersection,
   getPathByKey,
-  filter_arr_keys
+  filter_arr_keys,
+  mapLabelToValue,
+  mapValueToLabel
 } from '@/utils/dataStructureUtils'
 
 describe('dataStructureUtils - 数据结构处理工具函数', () => {
@@ -176,6 +178,122 @@ describe('dataStructureUtils - 数据结构处理工具函数', () => {
       const treeData = []
       const path = getPathByKey(treeData, '1')
       expect(path).toBeNull()
+    })
+  })
+
+  describe('mapLabelToValue', () => {
+    it('应该将标签列表正确转换为对应的值列表', () => {
+      const labelList = ['标签1', '标签2', '标签3']
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签2', value: 'value2' },
+        { label: '标签3', value: 'value3' },
+        { label: '标签4', value: 'value4' }
+      ]
+      const result = mapLabelToValue(labelList, allList)
+      
+      expect(result).toEqual(['value1', 'value2', 'value3'])
+    })
+
+    it('应该处理空标签列表', () => {
+      const labelList = []
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签2', value: 'value2' }
+      ]
+      const result = mapLabelToValue(labelList, allList)
+      
+      expect(result).toEqual([])
+    })
+
+    it('应该处理标签列表中包含不存在的标签时，只返回匹配的值', () => {
+      const labelList = ['标签1', '不存在的标签', '标签3']
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签2', value: 'value2' },
+        { label: '标签3', value: 'value3' }
+      ]
+      const result = mapLabelToValue(labelList, allList)
+      
+      expect(result).toEqual(['value1', 'value3'])
+    })
+
+    it('应该处理空 allList', () => {
+      const labelList = ['标签1', '标签2']
+      const allList = []
+      const result = mapLabelToValue(labelList, allList)
+      
+      expect(result).toEqual([])
+    })
+
+    it('应该处理部分匹配的情况', () => {
+      const labelList = ['标签1', '标签2']
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签3', value: 'value3' },
+        { label: '标签4', value: 'value4' }
+      ]
+      const result = mapLabelToValue(labelList, allList)
+      
+      expect(result).toEqual(['value1'])
+    })
+  })
+
+  describe('mapValueToLabel', () => {
+    it('应该将值列表正确转换为对应的标签列表', () => {
+      const valueList = ['value1', 'value2', 'value3']
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签2', value: 'value2' },
+        { label: '标签3', value: 'value3' },
+        { label: '标签4', value: 'value4' }
+      ]
+      const result = mapValueToLabel(valueList, allList)
+      
+      expect(result).toEqual(['标签1', '标签2', '标签3'])
+    })
+
+    it('应该处理空值列表', () => {
+      const valueList = []
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签2', value: 'value2' }
+      ]
+      const result = mapValueToLabel(valueList, allList)
+      
+      expect(result).toEqual([])
+    })
+
+    it('应该处理值列表中包含不存在的值时，只返回匹配的标签', () => {
+      const valueList = ['value1', '不存在的值', 'value3']
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签2', value: 'value2' },
+        { label: '标签3', value: 'value3' }
+      ]
+      const result = mapValueToLabel(valueList, allList)
+      
+      expect(result).toEqual(['标签1', '标签3'])
+    })
+
+    it('应该处理空 allList', () => {
+      const valueList = ['value1', 'value2']
+      const allList = []
+      const result = mapValueToLabel(valueList, allList)
+      
+      expect(result).toEqual([])
+    })
+
+    it('应该处理部分匹配的情况', () => {
+      const valueList = ['value1', 'value2']
+      const allList = [
+        { label: '标签1', value: 'value1' },
+        { label: '标签3', value: 'value3' },
+        { label: '标签4', value: 'value4' }
+      ]
+      const result = mapValueToLabel(valueList, allList)
+      
+      expect(result).toEqual(['标签1'])
     })
   })
 })
