@@ -68,7 +68,7 @@ public class CheckFilePipeline implements Pipeline {
     }
 
     public CheckEntryNotMatchWorkNode<EntryInfoEntity> buildCheckEntryNotMatchWorkNode(Collection<EntryInfoEntity> fileEntryInfoEntities,Collection<String> attributes,BuildOption buildOption){
-        EntryInfoEntityMatchAnalyzer entryInfoEntityMatchAnalyzer = new EntryInfoEntityMatchAnalyzer(entryInfoMapper);
+        EntryInfoEntityMatchAnalyzer entryInfoEntityMatchAnalyzer = new EntryInfoEntityMatchAnalyzer(true,entryInfoMapper);
         CheckEntryNotMatchWorkNode<EntryInfoEntity> checkEntryNotMatchWorkNode = new CheckEntryNotMatchWorkNode<>(entryInfoEntityMatchAnalyzer);
         checkEntryNotMatchWorkNode.setFileEntryInfoEntities(fileEntryInfoEntities.stream().collect(Collectors.toList()));
         checkEntryNotMatchWorkNode.setMethods(this.getMethodByAttributes(EntryInfoEntity.class, attributes,buildOption));   // ['english','chinese','russian']
@@ -200,6 +200,11 @@ public class CheckFilePipeline implements Pipeline {
     public static class EntryInfoEntityMatchAnalyzer extends EntityMatchAnalyzer<EntryInfoEntity>{
 
         protected EntryInfoMapper entryInfoMapper;
+
+        public EntryInfoEntityMatchAnalyzer(boolean nullAsEmptyString, EntryInfoMapper entryInfoMapper) {
+            super(nullAsEmptyString);
+            this.entryInfoMapper = entryInfoMapper;
+        }
 
         public EntryInfoEntityMatchAnalyzer(EntryInfoMapper entryInfoMapper) {
             this.entryInfoMapper = entryInfoMapper;

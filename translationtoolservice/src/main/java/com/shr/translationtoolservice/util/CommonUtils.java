@@ -104,6 +104,21 @@ public class CommonUtils {
      */
     public static abstract class EntityMatchAnalyzer<T>{
 
+
+        protected boolean nullAsEmptyString;
+
+
+        public EntityMatchAnalyzer() {
+        }
+        
+        public EntityMatchAnalyzer(boolean nullAsEmptyString) {
+            this.nullAsEmptyString = nullAsEmptyString;
+        }
+
+        public void setNullAsEmptyString(boolean nullAsEmptyString) {
+            this.nullAsEmptyString = nullAsEmptyString;
+        }
+
         /**
          * 比对两个对象的指定方法获取的值是否一样
          * @param <T>
@@ -112,7 +127,7 @@ public class CommonUtils {
          * @param getMethods
          * @return
          */
-        public static <T> boolean isFieldEqual(T object1,T object2,Collection<MethodEntity> getMethods){
+        public boolean isFieldEqual(T object1,T object2,Collection<MethodEntity> getMethods){
             if(getMethods == null){
                 throw new NullPointerException("getMethods is Null");
             }
@@ -123,8 +138,16 @@ public class CommonUtils {
                     value2 = methodEntity.getMethod().invoke(object2,methodEntity.getParams());
                     if(value1 == null && value2 == null){
                         continue;
-                    }else if((value1 != null && value2 == null) || (value1 == null && value2 != null)){
-                        return false;
+                    }else if((value1 != null && value2 == null)){
+                        if(!nullAsEmptyString){
+                            return false;
+                        }
+                        return value1.equals("");
+                    }else if((value1 == null && value2 != null)){
+                        if(!nullAsEmptyString){
+                            return false;
+                        }
+                        return value2.equals("");
                     }
                     if(!value1.equals(value2)){
                         return false;
@@ -143,7 +166,7 @@ public class CommonUtils {
          * @param methods
          * @return
          */
-        public static <T> List<EntityPairForComparsion<T>> getNotMatchEntities(Collection<EntityPairForComparsion<T>> entityPairForComparsions,Collection<MethodEntity> methods){
+        public List<EntityPairForComparsion<T>> getNotMatchEntities(Collection<EntityPairForComparsion<T>> entityPairForComparsions,Collection<MethodEntity> methods){
             List<EntityPairForComparsion<T>> notMatchEntryInfosCollection = new ArrayList<>();
             for(EntityPairForComparsion<T> entityPairForComparsion : entityPairForComparsions){
                 if(isFieldEqual(entityPairForComparsion.getEntity1(), entityPairForComparsion.getEntity2(), methods)){

@@ -8,7 +8,7 @@ import com.shr.translationtoolservice.entity.vo.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
+import java.io.ByteArrayOutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -117,6 +117,5 @@ public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImp
 
     EntryInfoGroupVO makeGroupForEntryInfos(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> replicatedTargetAttributes);
 
-
-
+    void getLog(ByteArrayOutputStream outputStream, String logPath);
 }

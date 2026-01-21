@@ -1203,8 +1203,8 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("更新翻译前的校验工作")
     @CrossOrigin
     public HttpResponse<TaskCheckResultVO> checkBeforeUpdateTranslationByFile(
-        @RequestParam("originExcel") MultipartFile unTranslatedFile,
-        @RequestParam("dedupExcel") MultipartFile translatedFile,
+        @RequestParam("dedupOriginExcel") MultipartFile unTranslatedFile,
+        @RequestParam("dedupUpdateExcel") MultipartFile translatedFile,
         @RequestParam(name =  "mappingJson",required = false) MultipartFile idRelationJsonFile,
         @RequestParam("payload") String taskMessages
     ){
@@ -1233,7 +1233,53 @@ public class EntryInfoController extends BaseController {
         }
     }
 
-    // public HttpResponse getLogForCheck
+    @PostMapping("/getLogForCheck")
+    @ApiOperation("更新翻译校验后获取日志信息")
+    @CrossOrigin
+    public void getLogForCheck(String logPath,HttpServletResponse response){
+        ByteArrayOutputStream buffer = null;
+        try {
+            // HttpResponse
+            response.getOutputStream();
+            buffer = new ByteArrayOutputStream();
+            entryInfoService.getLog(buffer, logPath);
+            response.setHeader("Content-disposition", "attachment;filename=" + commonUtils.getUUID() + ".log");
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Cache-Control", "no-cache");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            buffer.writeTo(response.getOutputStream());
+        } catch (Exception e) {
+            log.error("导出文件功能报错", e);
+            if(!response.isCommitted()){
+                /* 保证原子性 */
+                response.reset();
+                response.setHeader("content-type", "application/json");
+                HttpResponse<String> exceptionResponse = new HttpResponse<>();
+                exceptionResponse.setCode(HttpResponse.Type.ERROR.getVal());
+                exceptionResponse.setType(HttpResponse.Type.ERROR);
+                exceptionResponse.setMessage(String.format("获取错误日志失败, 异常信息为: %s", e.getMessage()));
+                Gson gson = new Gson();
+                try {
+                    response.getOutputStream().write(gson.toJson(exceptionResponse).getBytes("UTF-8"));
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    log.error("向响应体中写入数据时报错", e1);
+                }
+            }else{
+                log.error("已经开始向响应中写响应体时发生异常", e);
+            }
+        }finally{
+            if(buffer != null){
+                try {
+                    buffer.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    log.error("关闭缓存字节流时报错", e);
+                }
+            }
+        }
+    }
 
 
 

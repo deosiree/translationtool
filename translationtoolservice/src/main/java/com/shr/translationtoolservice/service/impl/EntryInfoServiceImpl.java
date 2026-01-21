@@ -4308,6 +4308,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
+    @Override
     public void getLog(ByteArrayOutputStream outputStream, String logPath) {
         // 使用 try-with-resources 自动关闭流，避免资源泄漏
         try (FileInputStream fileInputStream = new FileInputStream(new File(logPath))) {
@@ -4326,12 +4327,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             return;
         } catch (FileNotFoundException e) {
             // 更友好的异常提示，而非仅打印堆栈
-            System.err.println("日志文件未找到：" + logPath);
-            e.printStackTrace();
+            throw new RuntimeException("日志文件未找到：" + logPath);
         } catch (IOException e) {
             // 捕获所有 IO 相关异常
-            System.err.println("读取/写入日志文件时发生 IO 错误：" + logPath);
-            e.printStackTrace();
+            throw new RuntimeException("读取/写入日志文件时发生 IO 错误：" + logPath);
         }
     }
 
