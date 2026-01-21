@@ -1236,10 +1236,10 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/getLogForCheck")
     @ApiOperation("更新翻译校验后获取日志信息")
     @CrossOrigin
-    public void getLogForCheck(String logPath,HttpServletResponse response){
+    public void getLogForCheck(@RequestParam("logPath") String logPath,HttpServletResponse response){
         ByteArrayOutputStream buffer = null;
         try {
-            // HttpResponse
+
             response.getOutputStream();
             buffer = new ByteArrayOutputStream();
             entryInfoService.getLog(buffer, logPath);
