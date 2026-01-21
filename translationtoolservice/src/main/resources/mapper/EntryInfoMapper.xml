@@ -1147,6 +1147,9 @@
             <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
                 db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR},
             </if>
+            <if test = "entryInfoEntity.maxLength != null and entryInfoEntity.maxLength != ''">
+                max_length = #{entryInfoEntity.maxLength,jdbcType=VARCHAR}
+            </if>
         </set>
         where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
     </update>
