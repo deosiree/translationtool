@@ -8,7 +8,8 @@ import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.*;
-import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
+import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO;
+import com.shr.translationtoolservice.entity.vo.check.TaskRequest;
 import com.shr.translationtoolservice.service.*;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JSONUtils;
@@ -297,13 +298,15 @@ public class EntryInfoController extends BaseController {
     public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
                                                           HttpServletRequest httpServletRequest
     ) {
+        
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
             if(relationFile != null && !relationFile.getOriginalFilename().endsWith(".json")){
                 throw new RuntimeException(String.format("关联关系文件必须是json格式, 请检查文件后缀以及文件内容"));
             }
             Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
             Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
-            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(FileInputStreamEntity.convertFrom(multipartFile), httpServletRequest.getHeader("token"),transType,toJson);
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity, httpServletRequest.getHeader("token"),transType,toJson);
             
             HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
             responseResult.setData(updateTranslationByFileVO);
@@ -323,6 +326,8 @@ public class EntryInfoController extends BaseController {
         } catch (Exception e) {
             return error(null, e.getMessage());
             // TODO: handle exception
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
         }
     }
 
@@ -1120,13 +1125,16 @@ public class EntryInfoController extends BaseController {
          *              - 用户单击后，可以设定保存的文件名，设定好后在浏览器的下载中自动生成该文件
          * 
          */
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
-            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(FileInputStreamEntity.convertFrom(multipartFile),replicatedTargetAttributes);
+            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(fileInputStreamEntity,replicatedTargetAttributes);
             return ok(entryInfoGroupVO);    
         } catch (Exception e) {
             // TODO: handle exception
             log.error(e.getMessage(), e);
             return error(null, e.getMessage());
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
         }
     }
 
@@ -1161,47 +1169,14 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("解析文件的内容变成词条对象")
     @CrossOrigin
     public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,HttpServletRequest request){
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
-            return ok(entryInfoService.parseFileToEntryInfos(FileInputStreamEntity.convertFrom(multipartFile), null));
+            return ok(entryInfoService.parseFileToEntryInfos(fileInputStreamEntity, null));
         } catch (Exception e) {
             log.error("解析文件成词条出现异常", e);
             return error(null, e.getMessage());
-        }
-    }
-
-    @PostMapping("/compareEntryIDsBetweenFiles")
-    @ApiOperation("比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失")
-    @CrossOrigin
-    public HttpResponse<ValueDifferenceVO<EntryInfoEntity>> compareEntryIDsBetweenFiles(@RequestParam("before") MultipartFile beforeTranslatedFile,@RequestParam("after") MultipartFile translatedFile){
-        try {
-            ValueDifferenceVO<EntryInfoEntity> comparedResult = entryInfoService.compareEntryIDsBetweenFiles(FileInputStreamEntity.convertFrom(beforeTranslatedFile),FileInputStreamEntity.convertFrom(translatedFile));
-            // List<EntryInfoEntity> missingEntryInfos = comparedResult.getValueOnlyInFirst();   // 翻译的文件里面没有(词条没有送翻的)
-            // if(missingEntryInfos != null && !missingEntryInfos.isEmpty()){
-
-            // }
-            // List<EntryInfoEntity> entryInfosOnlyExistInTransFile = comparedResult.getValuesOnlyInSecond(); // 翻译文件里面有, 但是送翻前的文件中存在
-            // if(entryInfosOnlyExistInTransFile != null && !entryInfosOnlyExistInTransFile.isEmpty()){
-
-            // }
-            return ok(comparedResult);
-        } catch (Exception e) {
-            log.error("文件比对出现异常", e);
-            return error(null, String.format("文件比对出现异常, 请检查提供的两个文件, %s", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/compareTranslatedFileWithIDRelation")
-    @ApiOperation("比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失")
-    @CrossOrigin
-    public HttpResponse<Collection<ExceptionVO>> compareTranslatedFileWithIDRelation(@RequestParam("before") MultipartFile file,@RequestParam("relationFile") MultipartFile idRelationFile){
-        try {
-            Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
-            Collection<ExceptionVO> exceptionVOs = entryInfoService.compareTranslatedFileWithIDRelation(FileInputStreamEntity.convertFrom(file),JSONUtils.parseToJson(idRelationFile.getInputStream(),StandardCharsets.UTF_8.name(),mapType));
-
-            return ok(exceptionVOs);
-        } catch (Exception e) {
-            log.error("文件比对出现异常", e);
-            return error(null, String.format("文件比对出现异常, 请检查提供的两个文件, %s", e.getMessage()));
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
         }
     }
 
@@ -1209,9 +1184,9 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("根据文件的词条, 指定文件中哪些列的内容要更新到库中")
     @CrossOrigin
     public HttpResponse<UpdateEntryInfoByFileVO> updateEntryInfosByFile(@RequestParam("file") MultipartFile file,@RequestParam("columnName[]") Collection<String> columnNames,HttpServletRequest request){
-
+        FileInputStreamEntity fileInputStreamEntity = null;
         try {
-            FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(file);
+            fileInputStreamEntity = FileInputStreamEntity.convertFrom(file);
             KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
             keyValueArguments.set("department", JWTTokenUtils.getDepartment(request.getHeader("token")));
             UpdateEntryInfoByFileVO updateEntryInfoByFileVO = entryInfoService.updateEntryInfosByFile(fileInputStreamEntity, columnNames, keyValueArguments);
@@ -1219,8 +1194,47 @@ public class EntryInfoController extends BaseController {
         } catch (Exception e) {
             log.error("出现异常", e);
             return error(null, e.getMessage());
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
         }
     }
+
+    @PostMapping("/checkBeforeUpdateTranslationByFile")
+    @ApiOperation("更新翻译前的校验工作")
+    @CrossOrigin
+    public HttpResponse<TaskCheckResultVO> checkBeforeUpdateTranslationByFile(
+        @RequestParam("originExcel") MultipartFile unTranslatedFile,
+        @RequestParam("dedupExcel") MultipartFile translatedFile,
+        @RequestParam(name =  "mappingJson",required = false) MultipartFile idRelationJsonFile,
+        @RequestParam("payload") String taskMessages
+    ){
+        FileInputStreamEntity unTranslatedFileStreamEntitiy = null;
+        FileInputStreamEntity translatedFileStreamEntity = null;
+        FileInputStreamEntity idRelationFileStreamEntitiy = null;
+        try {
+            unTranslatedFileStreamEntitiy = FileInputStreamEntity.convertFrom(unTranslatedFile);
+            translatedFileStreamEntity = FileInputStreamEntity.convertFrom(translatedFile);
+            idRelationFileStreamEntitiy = idRelationJsonFile != null ? FileInputStreamEntity.convertFrom(idRelationJsonFile) : null;
+            Gson gson = new Gson();
+            TaskRequest taskRequest = gson.fromJson(taskMessages, new TypeToken<TaskRequest>() {}.getType());
+            TaskCheckResultVO taskCheckResultVO = entryInfoService.checkBeforeUpdateTranslationByFile(
+                unTranslatedFileStreamEntitiy, 
+                translatedFileStreamEntity, 
+                idRelationFileStreamEntitiy,
+                taskRequest);
+            return ok(taskCheckResultVO);
+        } catch (Exception e) {
+            log.error("文件检查出现异常", e);
+            return error(null, String.format("文件检查出现异常, %s", e.getMessage()));
+        } finally{
+            FileInputStreamEntity.close(unTranslatedFileStreamEntitiy);
+            FileInputStreamEntity.close(translatedFileStreamEntity);
+            FileInputStreamEntity.close(idRelationFileStreamEntitiy);
+        }
+    }
+
+    // public HttpResponse getLogForCheck
+
 
 
     @Autowired

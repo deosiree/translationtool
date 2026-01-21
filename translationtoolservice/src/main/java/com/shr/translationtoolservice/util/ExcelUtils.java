@@ -7,29 +7,19 @@ package com.shr.translationtoolservice.util;
  * @Date 2023/8/30 0030 9:52
  **/
 
-import cn.afterturn.easypoi.cache.manager.IFileLoader;
 import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
-import cn.hutool.core.text.csv.CsvParser;
-import io.vavr.collection.Stream.Cons;
-
-import com.google.common.reflect.TypeToken;
 import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
-import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
-
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.ibatis.type.TypeException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,26 +27,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.*;
@@ -103,11 +82,10 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
+    public <T> ParseFileInfo<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
-        List<T> excelForBeans = readNewExcel(classzz, workbook, excelHeads);  //解析Excel
-        return excelForBeans;
+        return readNewExcel(classzz, workbook, excelHeads);  //解析Excel
     }
 
     private static String charsetDetect(String filePath){
@@ -221,11 +199,11 @@ public class ExcelUtils {
         return false;
     }
 
-    private static <T> Method[] methodListFromCSV(String lineText,Class<T> classzz){
+    public static <T> Method[] methodListFromCSV(String lineText,Class<T> classzz){
         return methodListFromCSV(lineText, classzz, null);
     }
 
-    private static <T> Method[] methodListFromCSV(String lineText,Class<T> classzz,Map<String,String> methodRedirect){
+    public static <T> Method[] methodListFromCSV(String lineText,Class<T> classzz,Map<String,String> methodRedirect){
         if(methodRedirect == null){
             methodRedirect = new HashMap<>();
         }
@@ -358,7 +336,7 @@ public class ExcelUtils {
             throw new RuntimeException("当前解析的csv文件没有词条对应的列");
     }
 
-    public <T> List<T> readCSVToEntity(Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
+    public <T> ParseFileInfo<T> readCSVToEntity(Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
         checkFile(fileName);
         List<T> entities = new  ArrayList<>();
         // String charset = StringUtil.checkCharset(kwargs.get("charset"));
@@ -366,6 +344,7 @@ public class ExcelUtils {
         if(charset == null) charset = "UTF-8";
         DateFormat electedFormat = null;
         try {
+            ParseFileInfo<T> parseFileInfo = new ParseFileInfo<>();
             Method[] methodList = null;
             boolean isFindHeader = false;
             List<String> lineTextList = parseCSVFile(in,charset);
@@ -376,6 +355,7 @@ public class ExcelUtils {
                 String[] elementList = ExcelUtils.CSVParse(lineText);
                 if(!isFindHeader){
                     // 第一个非空行,代表表头    
+                    parseFileInfo.setColumnName(elementList);
                     methodList = methodListFromCSV(lineText, classzz);
                     isFindHeader = true;
                     checkMethodList(methodList);
@@ -387,7 +367,8 @@ public class ExcelUtils {
                     T instance= null; 
                     for(int i = 0 ; i < dataLength ; i ++ ){
                         String nextValue = elementList[i];
-                        if(nextValue == null || nextValue.equals("") ){
+                        // 以后考虑一下如果有这个字段, 但是单元格为空，将这个字段的值填充为"", 如果没有这个字段的列，那么这个字段的值为null
+                        if(nextValue == null || (nextValue.equals("") && !Boolean.parseBoolean(kwargs.get("emptyAsValue"))) ){
                             /* 单元格内容为空时跳过，该字段默认值 */
                             continue;
                         }
@@ -412,6 +393,9 @@ public class ExcelUtils {
                             Class<?> paramType = paramTypes[0];
                             /* 执行get方法 */
                             if(paramType != String.class){
+                                if(nextValue.equals("")){
+                                    continue;   // 跳过,非字符串类型的数据就跳过
+                                }
                                 Object convertedValue = convertType(paramType, nextValue);
                                 if(convertedValue.getClass() != paramType){
                                     // convertType失效
@@ -469,14 +453,12 @@ public class ExcelUtils {
             if(entities.isEmpty()){
                 log.debug("当前解析的文件没有获取到任何词条,header信息为: " + lineTextList.get(0));
             }
-            return entities;
+            parseFileInfo.setParsedObjects(entities);
+            return parseFileInfo;
         } catch (Exception e) {
             throw e;
         } finally{
-            // if(r)
-            if(in != null){
-                in.close();
-            }
+
         }
     }
 
@@ -509,7 +491,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName) throws Exception {
+    public <T> ParseFileInfo<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName) throws Exception {
         return readExcelToEntity(translateType,classzz, in, fileName, null);
     }
 
@@ -814,9 +796,10 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    private <T> List<T> readNewExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
+    private <T> ParseFileInfo<T> readNewExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
         List<T> beans = new ArrayList<T>();
         int sheetNum = workbook.getNumberOfSheets();
+        ParseFileInfo<T> parseFileInfo = new ParseFileInfo<>();
         for (int sheetIndex = 0; sheetIndex < sheetNum; sheetIndex++) {
             //判断分类
             boolean isWrite = false;
@@ -830,6 +813,8 @@ public class ExcelUtils {
             Row head = sheet.getRow(firstRowNum);
             if (head == null)
                 continue;
+            String[] columnNames = this.getFileColumns(head);
+            parseFileInfo.setColumnName(columnNames);
             short firstCellNum = head.getFirstCellNum();
             short lastCellNum = head.getLastCellNum();
 
@@ -1024,7 +1009,8 @@ public class ExcelUtils {
 
             }
         }
-        return beans;
+        parseFileInfo.setParsedObjects(beans);
+        return parseFileInfo;
     }
 
     /**
@@ -1150,6 +1136,31 @@ public class ExcelUtils {
 
             });
             return methods;
+        }
+
+        public static class MethodEntity{
+
+            Method method;
+
+            Object[] params;
+
+            public MethodEntity(Method method) {
+                this.method = method;
+            }
+
+            public MethodEntity(Method method, Object[] params) {
+                this.method = method;
+                this.params = params;
+            }
+
+            public Method getMethod() {
+                return method;
+            }
+
+            public Object[] getParams() {
+                return params;
+            }
+            
         }
         
     }
@@ -1596,10 +1607,12 @@ public class ExcelUtils {
     }
 
 
-    public <T> Collection<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,KeyValueArguments<String> kwargs){
+    public <T> ParseFileInfo<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,KeyValueArguments<String> kwargs){
         try {
             if(originalFilename.endsWith("csv")){
-                return this.readCSVToEntity(clazz, in, originalFilename, null);
+                Map<String,String> keyValueMap = new HashMap<>();
+                keyValueMap.put("emptyAsValue",kwargs != null ? String.valueOf(kwargs.get("emptyAsValue",Boolean.class)) : String.valueOf(false));
+                return this.readCSVToEntity(clazz, in, originalFilename, keyValueMap);
             }else if(originalFilename.endsWith(".xlsx")){
                 return this.readExcelToEntity(null, clazz, in, originalFilename);
             }else{
@@ -1609,5 +1622,63 @@ public class ExcelUtils {
             throw new RuntimeException(e);
         }
    
+    }
+
+    public String[] getFileColumns(Row head){
+        short firstCellNum = head.getFirstCellNum();
+        short lastCellNum = head.getLastCellNum();
+        String[] columns = new String[lastCellNum - firstCellNum];
+        for(int cellIndex = firstCellNum; cellIndex < lastCellNum; cellIndex++){
+            Cell headCell = head.getCell(cellIndex);
+            String columnName = headCell.getStringCellValue();
+            columns[cellIndex - firstCellNum] = columnName;
+        }
+        return columns;
+    }
+
+    public <T> Collection<String> getAttributesByFileColumns(Map<String,String> columnNameAttributeMap,String[] columnLine){
+        Collection<String> attributes = new HashSet<>();
+        for(String columnName : columnLine){
+            columnNameAttributeMap.forEach((field,targetColumnName)->{
+                if(targetColumnName.equals(columnName)){
+                    attributes.add(field);
+                }
+            });
+        }   
+        return attributes;
+    }
+
+
+
+    public class ParseFileInfo<T>{
+
+        Collection<T> parsedObjects;
+
+        String[] columnName;
+
+        public ParseFileInfo() {
+        }
+
+        public ParseFileInfo(Collection<T> parsedObjects, String[] columnName) {
+            this.parsedObjects = parsedObjects;
+            this.columnName = columnName;
+        }
+
+        public Collection<T> getParsedObjects() {
+            return parsedObjects;
+        }
+
+        public String[] getColumnName() {
+            return columnName;
+        }
+
+        public void setParsedObjects(Collection<T> parsedObjects) {
+            this.parsedObjects = parsedObjects;
+        }
+
+        public void setColumnName(String[] columnName) {
+            this.columnName = columnName;
+        }
+
     }
 }

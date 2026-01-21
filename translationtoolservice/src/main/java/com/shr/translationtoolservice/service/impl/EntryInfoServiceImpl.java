@@ -3,12 +3,20 @@ package com.shr.translationtoolservice.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO;
 import com.shr.translationtoolservice.entity.vo.*;
 import com.shr.translationtoolservice.entity.vo.WorkBenchVO.EntryImportFileTypeVO;
+import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO;
+import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO.Attachments;
+import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO.Issue;
+import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO.Attachment;
+import com.shr.translationtoolservice.entity.vo.check.TaskRequest;
+import com.shr.translationtoolservice.entity.vo.check.TaskRule;
 import com.shr.translationtoolservice.entity.vo.exception.ExceptionEntryInfoVO;
 import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
 import com.shr.translationtoolservice.exception.i18nServerConnectException;
@@ -19,9 +27,21 @@ import com.shr.translationtoolservice.service.TranslationStorageService;
 import com.shr.translationtoolservice.service.analyze.BatchMaxLengthTranslateAnalyzer;
 import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
 import com.shr.translationtoolservice.service.processor.groupby.GeneralReplicatedVOType;
+import com.shr.translationtoolservice.service.workflow.CheckFilePipeline;
+import com.shr.translationtoolservice.service.workflow.CheckFilePipeline.BuildOption;
+import com.shr.translationtoolservice.service.workflow.CheckFilePipeline.ExecuteOption;
+import com.shr.translationtoolservice.service.workflow.node.CheckColumnExistWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CheckEntryNotMatchWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CheckMissingEntryRelationWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CheckMissingEntryWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CheckSpecialCharacterWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CheckTranslationMaxLengthWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CheckWorkNode;
+import com.shr.translationtoolservice.service.workflow.node.CompareEntityWorkNode;
 import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
+import com.shr.translationtoolservice.util.ExcelUtils.ParseFileInfo;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,10 +63,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -125,6 +150,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private TranslationStorageService translationStorageService;
+
+    @Autowired
+    private CheckFilePipeline checkFilePipeline;
 
 
     @Override
@@ -877,18 +905,18 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         entryInfoEntities = new ArrayList<>();
                         zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
                     }else if(modeType == EntryImportFileTypeVO.COMMON_VERSION){
-                        entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName);
+                        entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
                         zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                     }else{
                         throw new Exception("当前不支持该文件类型: " + request.getParameter("modeType"));
                     }
                 }else{
-                    entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName);
+                    entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
                     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }
 
             }else if(fileName.endsWith(".csv")){
-                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, null);
+                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, null).getParsedObjects().stream().collect(Collectors.toList());
                 if(departmentType.equals("装置开发部")){
                     zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }else{
@@ -1768,12 +1796,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String name = fileInputStreamEntitiy.getFileName();
         TaskInfoEntity taskEntityByTaskID = taskInfoMapper.getTaskEntityByTaskID(taskID);
         //读取excle转换的实体
-        List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+        Collection<EntryInfoEntity> entryInfoEntities = null;
         try {
 
-            entryInfoEntities = excelUtils.readExcelToEntity(taskEntityByTaskID.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(),name);
+            entryInfoEntities = excelUtils.readExcelToEntity(taskEntityByTaskID.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(),name).getParsedObjects();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         List<EntryInfoEntity> entryEntitys = new ArrayList<>();
 
@@ -1870,7 +1898,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         try {
             UpdateEntryInfoByFileVO updateTranslationByFileVO = new UpdateEntryInfoByFileVO();
             String department = JWTTokenUtils.getDepartment(token);
-            Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null);
+            Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
             Map<String,Object> kwargs = new HashMap<>();
             kwargs.put("department", department);
             Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryEntitys, transType, kwargs);
@@ -1896,7 +1924,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             Map<String,Object> kwargs = new HashMap<>();
             kwargs.put("department", department);
             /* 解析文件, 生成词条 */
-            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null);
+            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
             /* 先把文件中对应的词条的翻译更新掉 */
             Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosParsedOnFile, transType, kwargs);
             
@@ -2265,7 +2293,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
         try {
-            entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName());
+            entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName()).getParsedObjects().stream().collect(Collectors.toList());
             sortEmptyTrans(entryInfoEntities,taskInfoEntity.getTranslateType());
 
        /* TaskInfoEntity taskInfoEntity = taskInfoMapper.selectById(taskID);
@@ -3949,7 +3977,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         String originalFilename = multipartFile.getFileName();
         Collection<EntryInfoEntity> entryInfoEntities = null;
         try {
-            entryInfoEntities = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), originalFilename, null);
+            entryInfoEntities = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), originalFilename, null).getParsedObjects();
         } catch (Exception e) {
             throw new RuntimeException(String.format("解析文件词条时出现异常, 无法进行词条去重分组, 异常信息为: %s", e.getMessage()),e);
         }
@@ -4010,7 +4038,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     public Collection<EntryInfoEntity> parseFileToEntryInfos(FileInputStreamEntity multipartFile, KeyValueArguments<String> kwargs) {
         // TODO Auto-generated method stub
         try {
-            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getFileName(),kwargs);
+            return excelUtils.parseFileToEntity(EntryInfoEntity.class,multipartFile.getInputStream(),multipartFile.getFileName(),kwargs).getParsedObjects();
         } catch (Exception e) {
             // TODO Auto-generated catch block
             throw new RuntimeException(e) ;
@@ -4024,99 +4052,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         Collection<EntryInfoEntity> entryCollection2 = this.parseFileToEntryInfos(file2, null);
         DefaultEntryGroupbyStrategy entryGroupbyStrategy = new DefaultEntryGroupbyStrategy();
         entryGroupbyStrategy.addTargetAttributes(targetAttributes);
-        /* 
-            根据属性，先将每个文件中的词条进行分组
-        */
-        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> entryInfosGroupMap1 = entryUtils.makeGroupMapForEntryInfoEntities(entryCollection1, entryGroupbyStrategy);
-        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> entryInfosGroupMap2 = entryUtils.makeGroupMapForEntryInfoEntities(entryCollection2, entryGroupbyStrategy);
-        // 获取两个文件的词条的差异信息
-        KeyDifference<GeneralReplicatedVOType, EntryInfoEntity> compareResult = entryUtils.compareEntryInfos(entryInfosGroupMap1, entryInfosGroupMap2);
-        // 根据差异信息封装成对象返回
-        ValueDifferenceVO<EntryInfoEntity> valueDifferenceVO = new ValueDifferenceVO<>();
-        // 1. 处理仅file1存在的各组词条
-        Set<GeneralReplicatedVOType> refOnlyInFirstMapKeys = compareResult.getOnlyInFirstMapKeys();
-        if(refOnlyInFirstMapKeys != null)
-            refOnlyInFirstMapKeys.forEach((key)->{valueDifferenceVO.addValuesOnlyInFirst(entryInfosGroupMap1.get(key));});
-        // 2. 处理仅file2存在的各组词条
-        Set<GeneralReplicatedVOType> refOnlyInSecondMapKeys = compareResult.getOnlyInSecondMapKeys();
-        if(refOnlyInSecondMapKeys != null)
-            refOnlyInSecondMapKeys.forEach((key)->{valueDifferenceVO.addValueOnlyInSecond(entryInfosGroupMap2.get(key));});
-        // 2. 处理file1,file2都存在的各组词条
-        Set<GeneralReplicatedVOType> refAllExistButValueDifferentKeys = compareResult.getAllExistButValueDifferentKeys();
-        if(refAllExistButValueDifferentKeys != null)
-            refAllExistButValueDifferentKeys.forEach((key)->{
-                ValueDifferenceVO.ListDiff<EntryInfoEntity> listDiff = new ValueDifferenceVO.ListDiff<>();
-                listDiff.setFirstList(entryInfosGroupMap1.get(key));
-                listDiff.setSecondList(entryInfosGroupMap2.get(key));
-                valueDifferenceVO.addDifferentBetweenEachOther(listDiff);
-            });
-
-        return valueDifferenceVO;
-
+        return entryUtils.compareEntryInfos(entryCollection1, entryCollection2, entryGroupbyStrategy);
     }
 
-    @Override
-    public ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntity translatedFile,FileInputStreamEntity beforeTranslatedFile) {
-        // TODO Auto-generated method stub
-        Collection<String> targetAttributes = new HashSet<>();
-        targetAttributes.add("id");
-        return this.compareEntryInfosBetweenFiles(translatedFile, beforeTranslatedFile, targetAttributes);
-    }
-
-
-    @Override
-    public Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntity translatedFile,Map<String, Set<String>> idRelationMap) {
-        if(translatedFile == null){
-            throw new RuntimeException("没有提供词条文件");
-        }
-        Collection<EntryInfoEntity> entryInfoEntities = this.parseFileToEntryInfos(translatedFile, null);
-        if(entryInfoEntities == null){
-            throw new RuntimeException("解析文件中的词条失败, 请检查文件");
-        }
-        /*
-            1. 检查idRelationMap中的key对应的id是否存在这个集合中
-            2. 检查entryInfo中是否存在id在idRelationMap中不存在
-        */
-        List<String> fileEntryIDs = entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList());
-        return null;
-
-        
-        // Map<String,List<String>> convertedIDRelationMap = new HashMap<>();  // {parentID,{parentID}}
-        // idRelationMap.forEach((key,ids)->{
-        //     List<String> parentChildIDList = new ArrayList<>();
-        //     parentChildIDList.add(key);
-        //     parentChildIDList.addAll(ids);
-        //     convertedIDRelationMap.put(key, parentChildIDList);
-        // });
-
-        // KeyDifference<String, String> compareDifference = commonUtils.compareMap(entryIDsMap, convertedIDRelationMap);
-        // Collection<ExceptionVO> exceptionVOs = new ArrayList<>();
-        // // 处理词条中存在的id，但id关联表中不存在的id
-        // Set<String> refOnlyInEntryInfoCollectionIDs = compareDifference.getOnlyInFirstMapKeys();
-        // if(refOnlyInEntryInfoCollectionIDs != null && !refOnlyInEntryInfoCollectionIDs.isEmpty()){
-        //     ExceptionVO notExistInMapVO = new ExceptionVO();
-        //     notExistInMapVO.setMessage(String.format("以下词条: \"%s\"不在id关联表中", refOnlyInEntryInfoCollectionIDs.toString()));
-        //     notExistInMapVO.setResolvedMethodMessage("检查id关联表与这组词条是否匹配, 并检查相关文件是否被篡改");
-        //     exceptionVOs.add(notExistInMapVO);
-        // }
-
-        // // 处理词条中不存在的id，但id关联表中存在的
-        // Set<String> refOnlyInSecondMapKeys = compareDifference.getOnlyInSecondMapKeys();
-        // if(refOnlyInSecondMapKeys != null && !refOnlyInSecondMapKeys.isEmpty()){
-        //     ExceptionVO notExistInEntryInfosVO = new ExceptionVO();
-        //     notExistInEntryInfosVO.setMessage(String.format("以下关联表中的词条id: \\\"%s\\\"不在这组词条中", refOnlyInSecondMapKeys.toString()));
-        //     notExistInEntryInfosVO.setResolvedMethodMessage("检查id关联表与这组词条是否匹配, 并检查相关文件是否被篡改");
-        //     exceptionVOs.add(notExistInEntryInfosVO);
-        // }
-        
-        // 
-
-        // return exceptionVOs;
-    }
-
-    private boolean containsRestrictedColumnNames(Collection<String> updateColumnNames){
-        for(String columnName : updateColumnNames){
-            if(ConstantInterface.RESTRICTION_UPDATE_FILE_COLUMN_NAMES.contains(columnName)){
+    private boolean containsRestrictedFieldNames(Collection<String> fieldNames){
+        for(String fieldName : fieldNames){
+            if(ConstantInterface.constructEntryName().containsKey(fieldName)){
                 return true;
             }
         }
@@ -4126,7 +4067,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public UpdateEntryInfoByFileVO updateEntryInfosByFile(FileInputStreamEntity fileInputStreamEntitiy, Collection<String> updateColumnNames,KeyValueArguments<String> keyValueArguments) {
+    public UpdateEntryInfoByFileVO updateEntryInfosByFile(FileInputStreamEntity fileInputStreamEntitiy, Collection<String> fieldNames,KeyValueArguments<String> keyValueArguments) {
 
         try {
             if(fileInputStreamEntitiy == null){
@@ -4139,7 +4080,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             if(entryInfos.isEmpty()){
                 return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("解析文件成功, 但未获取任何词条","请提供存在词条的文件"));
             }
-            if(this.containsRestrictedColumnNames(updateColumnNames)){
+            if(this.containsRestrictedFieldNames(fieldNames)){
                 return UpdateEntryInfoByFileVO.newInstance("词条更新失败", ExceptionVO.newInstance("禁止选择更新词条ID列的内容"));
             }
             Map<String, String> fieldColumnNameMap = ConstantInterface.constructEntryName();    // EntryInfoEntity的属性名与表格的列名的映射关系
@@ -4148,16 +4089,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("系统服务异常, 没有对应文件的列名的映射关系","联系研发"));
             }
             // 获取要更新的属性名
-            Collection<String> targetFieldNames = new HashSet<>();
-            fieldColumnNameMap.forEach((fieldName,columnName)->{
-                if(updateColumnNames.contains(columnName)){
-                    targetFieldNames.add(fieldName);
-                }
-            });
-            if(targetFieldNames.size() != updateColumnNames.size()){
-                return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance(
-                    "列名不正确, 无法确定更新词条哪些列的内容",String.format("检查文件中的列名是否都存在于这个列表中: %s", fieldColumnNameMap.values().toString())));
-            }
+            // Collection<String> targetFieldNames = new HashSet<>();
+            Collection<String> targetFieldNames = fieldNames;
+            // fieldColumnNameMap.forEach((fieldName,columnName)->{
+            //     if(updateColumnNames.contains(columnName)){
+            //         targetFieldNames.add(fieldName);    // 确定更新的属性(与要更新成的值无关)
+            //     }
+            // });
+            // if(targetFieldNames.size() != updateColumnNames.size()){
+            //     return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance(
+            //         "列名不正确, 无法确定更新词条哪些列的内容",String.format("检查文件中的列名是否都存在于这个列表中: %s", fieldColumnNameMap.values().toString())));
+            // }
             Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
             // get方法和set方法映射关系
             Map<Method,Method> methodMap = new HashMap<>();
@@ -4168,7 +4110,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
                 entryInfoEntityGetterTranslateMap.forEach((transType,getterName)->{
                     if(getterName.equals(getMethodName)){
-                        updateTranslationTypes.add(transType);
+                        updateTranslationTypes.add(transType);  // 确定要更新哪些语种的翻译(与要更新成的值无关)
                     }
                 });
 
@@ -4247,6 +4189,149 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             String errorMessage = String.format("更新词条时发生异常, 异常信息为: %s", e.getMessage());
             log.error(errorMessage, e);
             throw new RuntimeException(errorMessage,e);
+        }
+    }
+ 
+    @Override
+    public TaskCheckResultVO checkBeforeUpdateTranslationByFile(FileInputStreamEntity unTranslateFile,FileInputStreamEntity translatedFile, FileInputStreamEntity idRelationFile,TaskRequest taskRequest) {
+        // TODO Auto-generated method stub
+        try {
+            TaskCheckResultVO taskCheckResultVO = new TaskCheckResultVO();
+            if(taskRequest == null){
+                return taskCheckResultVO;
+            }
+            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
+            keyValueArguments.set("emptyAsValue", taskRequest.getOptions().isEmptyStringAsValue());
+            ParseFileInfo<EntryInfoEntity> unTranslatedFileInfo = excelUtils.parseFileToEntity(EntryInfoEntity.class, unTranslateFile.getInputStream(), unTranslateFile.getFileName(), keyValueArguments);    
+            ParseFileInfo<EntryInfoEntity> translatedFileInfo = excelUtils.parseFileToEntity(EntryInfoEntity.class, translatedFile.getInputStream(), translatedFile.getFileName(), keyValueArguments);    
+
+            Collection<EntryInfoEntity> entryInfoOnUnTranslatedFile = unTranslatedFileInfo.getParsedObjects();
+            Collection<EntryInfoEntity> entryInfoOnTranslatedFile = translatedFileInfo.getParsedObjects();
+
+            Collection<CheckWorkNode<?>> checkWorkNodes = new ArrayList<>();
+            List<TaskRule> taskRules = taskRequest.getTaskRules();
+            for(TaskRule taskRule : taskRules){
+                String taskType = taskRule.getTaskType();
+                if(taskType.equals("IdMatch")){
+                    CompareEntityWorkNode<EntryInfoEntity> checkWorkNode = checkFilePipeline.buildCheckMissingEntryWorkNode(entryInfoOnUnTranslatedFile, entryInfoOnTranslatedFile);
+                    checkWorkNodes.add(checkWorkNode);
+                }else if(idRelationFile != null && taskType.equals("filterIdMap")){
+                    Map<String,Set<String>> idRelationMap = JSONUtils.parseToJson(idRelationFile.getInputStream(), StandardCharsets.UTF_8.name(), new TypeToken<Map<String,Set<String>>>() {}.getType());
+                    CheckMissingEntryRelationWorkNode checkMissingEntryRelationWorkNode = checkFilePipeline.buildCheckMissingEntryRelationWorkNode(entryInfoOnTranslatedFile, idRelationMap);
+                    checkWorkNodes.add(checkMissingEntryRelationWorkNode);
+                }else if(taskType.equals("checkFields")){
+                    Map<String, Object> params = taskRule.getParams();
+                    Object checkFields = params.get("checkFields");
+                    List checkFieldList = (List)(checkFields);  // type safety不管
+                    BuildOption buildOption = new BuildOption();
+                    String[] fileColumns = translatedFileInfo.getColumnName();
+                    Collection<String> attributes = excelUtils.getAttributesByFileColumns(ConstantInterface.constructEntryName(), fileColumns);
+                    buildOption.setAvaliableAttributes(attributes.stream().collect(Collectors.toSet()));
+                    CheckEntryNotMatchWorkNode<EntryInfoEntity> checkEntryNotMatchWorkNode = checkFilePipeline.buildCheckEntryNotMatchWorkNode(entryInfoOnTranslatedFile, checkFieldList,buildOption);
+                    checkWorkNodes.add(checkEntryNotMatchWorkNode);
+                }else if(taskType.equals("checkSpecialChar")){
+                    Map<String, Object> params = taskRule.getParams();
+                    List translateAttributes =(List) params.get("translateAttributes");
+                    BuildOption buildOption = new BuildOption();
+
+                    String[] fileColumns = translatedFileInfo.getColumnName();
+                    Collection<String> attributes = excelUtils.getAttributesByFileColumns(ConstantInterface.constructEntryName(), fileColumns);
+                    buildOption.setAvaliableAttributes(attributes.stream().collect(Collectors.toSet()));
+                    CheckSpecialCharacterWorkNode<EntryInfoEntity> checkSpecialCharacterWorkNode = checkFilePipeline.buildCheckSpecialCharacterWorkNode(entryInfoOnTranslatedFile, translateAttributes,buildOption);
+                    checkWorkNodes.add(checkSpecialCharacterWorkNode);
+                }else if(taskType.equals("checkMaxLength")){
+                    Map<String, Object> params = taskRule.getParams();
+                    List translateAttributes =(List) params.get("translateAttributes");
+                    BuildOption buildOption = new BuildOption();
+                    String[] fileColumns = translatedFileInfo.getColumnName();
+                    Collection<String> attributes = excelUtils.getAttributesByFileColumns(ConstantInterface.constructEntryName(), fileColumns);
+                    buildOption.setAvaliableAttributes(attributes.stream().collect(Collectors.toSet()));
+                    CheckTranslationMaxLengthWorkNode translationMaxLengthWorkNode = checkFilePipeline.buildTranslationMaxLengthWorkNode(entryInfoOnTranslatedFile,translateAttributes,buildOption);
+                    
+                    checkWorkNodes.add(translationMaxLengthWorkNode);
+                }else if(taskType.equals("backfillFields")){
+                    Map<String, Object> params = taskRule.getParams();
+                    List checkFields =(List) params.get("backfillFields");
+                    
+                    CheckColumnExistWorkNode checkColumnExistWorkNode = checkFilePipeline.buildCheckColumnExistWorkNode(Arrays.asList(translatedFileInfo.getColumnName()), checkFields);
+                    checkWorkNodes.add(checkColumnExistWorkNode);
+                }
+            }
+            ExecuteOption executeOption = new ExecuteOption();
+            executeOption.setReturnAfterOnceFailed(taskRequest.getOptions().isFailFast());
+            checkFilePipeline.execute(checkWorkNodes,executeOption);
+            Collection<String> notPassedMessages = new ArrayList<>();
+            Collection<Issue> issues = new ArrayList<>();
+            Attachments attachments = new Attachments();
+            boolean canBackFill = true;
+            for(CheckWorkNode<?> checkNode : checkWorkNodes){
+                if(checkNode.isFinished() && !checkNode.isPassed()){
+                    String convertResultToJSONString = checkNode.convertResultToJSONString();
+                    notPassedMessages.add(convertResultToJSONString);
+                    issues.add(checkNode.getIssue());
+                    Issue.Level level = checkNode.getIssue().getLevel();
+                    if(level == Issue.Level.ERROR || level == Issue.Level.FATAL){
+                        canBackFill = false;
+                    }
+                }
+
+            }
+            if(!notPassedMessages.isEmpty()){
+                Collection<Object> wholeMessage = new ArrayList<>();
+                notPassedMessages.stream().forEach((message)->{
+                    Gson gson = new Gson();
+                    Object object =  gson.fromJson(message, Object.class);
+                    wholeMessage.add(object);
+                });
+                String logDir=  "/app/cache/log/";
+                // String logDir = "E:\\work\\translation\\translationTool\\translationtool\\cache\\log\\";
+                String logID = commonUtils.getUUID();
+                // String logID = "f5698f09-99d3-462e-b835-cce5447d1c67";
+                String filePath = logDir + logID + ".log";
+                JSONUtils.exportJson(wholeMessage, filePath);
+                Attachment attachment = new Attachment();
+                attachment.setFileName(logID + ".log");
+                attachment.setDownloadUrl(filePath);
+                attachments.setIssueLog(attachment);
+            }
+            taskCheckResultVO.setSuccess(true);
+            taskCheckResultVO.setCanBackFill(canBackFill);
+            taskCheckResultVO.setIssues(issues);
+            taskCheckResultVO.setAttachments(attachments);
+            // 日志量不可控，但是日志量不会特别大，但是校验选项增加的概率较高，并且需要保证低运维成本，选择mongodb
+            return taskCheckResultVO;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e) ;
+        }
+        
+
+    }
+
+    public void getLog(ByteArrayOutputStream outputStream, String logPath) {
+        // 使用 try-with-resources 自动关闭流，避免资源泄漏
+        try (FileInputStream fileInputStream = new FileInputStream(new File(logPath))) {
+            // 定义缓冲区（8KB 是常用的缓冲区大小，平衡性能和内存占用）
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            
+            // 循环读取文件内容到缓冲区，直到文件末尾（返回 -1）
+            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                // 将缓冲区中读取到的字节写入输出流
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            
+            // 刷新输出流，确保所有数据都被写入
+            outputStream.flush();
+            return;
+        } catch (FileNotFoundException e) {
+            // 更友好的异常提示，而非仅打印堆栈
+            System.err.println("日志文件未找到：" + logPath);
+            e.printStackTrace();
+        } catch (IOException e) {
+            // 捕获所有 IO 相关异常
+            System.err.println("读取/写入日志文件时发生 IO 错误：" + logPath);
+            e.printStackTrace();
         }
     }
 

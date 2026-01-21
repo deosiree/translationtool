@@ -439,7 +439,7 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         try {
 
-            entryInfoEntities = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename()).getParsedObjects().stream().collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
         }

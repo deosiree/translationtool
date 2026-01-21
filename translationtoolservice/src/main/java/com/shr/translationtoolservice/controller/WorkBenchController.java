@@ -1,16 +1,12 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
-import com.shr.translationtoolservice.entity.vo.ImportResultEntryVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TI8nAddressService;
-import com.shr.translationtoolservice.util.CommonUtils;
-import com.shr.translationtoolservice.util.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -98,12 +94,21 @@ public class WorkBenchController extends BaseController {
     public HttpResponse<ResponseListModel> importCommonExcle(@RequestParam("file") MultipartFile multipartFile,
                                                              @RequestParam("taskID") String taskID
     ) {
-        ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(FileInputStreamEntity.convertFrom(multipartFile), taskID);
-        responseListModel.setList(entryEntities);
-        responseListModel.setTotalNum(entryEntities.size());
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
+        try {
+            ResponseListModel responseListModel = new ResponseListModel();
+            List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(FileInputStreamEntity.convertFrom(multipartFile), taskID);
+            responseListModel.setList(entryEntities);
+            responseListModel.setTotalNum(entryEntities.size());
 
-        return checkResult(responseListModel);
+            return checkResult(responseListModel);            
+        } catch (Exception e) {
+            log.error("导入翻译文件时出现异常", e);
+            return error(null, String.format("导入文件时出现异常, 异常信息为: %s", e.getMessage()));
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
+        }
+
     }
 
 
@@ -118,8 +123,9 @@ public class WorkBenchController extends BaseController {
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryInfoEntity> entryInfoEntities = null;
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
-            entryInfoEntities = entryInfoService.importEntitiesFromFile(FileInputStreamEntity.convertFrom(multipartFile), taskID,departmentType, httpServletRequest);
+            entryInfoEntities = entryInfoService.importEntitiesFromFile(fileInputStreamEntity, taskID,departmentType, httpServletRequest);
 
             if(entryInfoEntities == null){
                 throw new NullPointerException("entryInfoEntities == null");
@@ -131,6 +137,8 @@ public class WorkBenchController extends BaseController {
             // TODO: handle exception
             log.error("导入excel文件的词条时报错", e);
             return error(null, e.getMessage());
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
         }
 
     }

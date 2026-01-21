@@ -14,8 +14,8 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.FileInputStreamEntity;
 import com.shr.translationtoolservice.entity.KeyValueArguments;
 import com.shr.translationtoolservice.entity.vo.UpdateEntryInfoByFileVO;
-import com.shr.translationtoolservice.entity.vo.ValueDifferenceVO;
-import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
+import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO;
+import com.shr.translationtoolservice.entity.vo.check.TaskRequest;
 
 public interface EntryFileImportService {
 
@@ -41,7 +41,7 @@ public interface EntryFileImportService {
      * @param kwargs
      * @return
      */
-    UpdateEntryInfoByFileVO updateEntryInfosByFile(FileInputStreamEntity fileInputStreamEntitiy,Collection<String> updateColumnNames,KeyValueArguments<String> keyValueArguments);
+    UpdateEntryInfoByFileVO updateEntryInfosByFile(FileInputStreamEntity fileInputStreamEntitiy,Collection<String> updateFieldNames,KeyValueArguments<String> keyValueArguments);
 
     // UpdateEntryInfoByFileVO updateEntryInfosTranslationByFile(FileInputStreamEntity fileInputStreamEntitiy,Collection<String> translationColumnNames,KeyValueArguments<String> keyValueArguments);
 
@@ -63,23 +63,7 @@ public interface EntryFileImportService {
      */
     UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,Map<String, Set<String>> idRelationMap);
 
-    /**
-     * 比对送翻前的文件和送翻后的文件, 检查id列是否存在丢失
-     * @param translatedFile
-     * @param beforeTranslatedFile
-     */
-    ValueDifferenceVO<EntryInfoEntity> compareEntryIDsBetweenFiles(FileInputStreamEntity translatedFile,FileInputStreamEntity beforeTranslatedFile);
+    TaskCheckResultVO checkBeforeUpdateTranslationByFile(FileInputStreamEntity unTranslateFile,FileInputStreamEntity translatedFile,FileInputStreamEntity idRelationFile,TaskRequest taskRequest);
 
-    /**
-     * 比对送翻后的文件和这组id关联关系是否匹配
-     */
-    Collection<ExceptionVO> compareTranslatedFileWithIDRelation(FileInputStreamEntity fileInputStreamEntitiy,Map<String, Set<String>> idRelationMap);
-
-
-    /**
-     * 利用提供的文件更新词条的信息
-     * @param ins
-     */
-    // void updateEntryInfosByFile(FileInputStreamEntitiy fileInputStreamEntitiy);
 
 }

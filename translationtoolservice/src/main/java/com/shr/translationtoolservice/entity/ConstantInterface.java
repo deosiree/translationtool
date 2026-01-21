@@ -167,16 +167,6 @@ public class ConstantInterface {
     public static final String DEEPL = "deepl";
     public static final String SYNTHESIS = "synthesis";// 综合优先级
 
-    /*
-     *  禁止将词条文件这些列名对应列的数据更新到库里对应词条的数据上
-     */
-    public static final Set<String> RESTRICTION_UPDATE_FILE_COLUMN_NAMES = new HashSet<>();
-
-    static{
-
-        addProhibitedColumnNamesForUpdateUsingFile(RESTRICTION_UPDATE_FILE_COLUMN_NAMES);
-
-    }
 
     public static HashMap<String, String> translateMachine() {
         HashMap<String, String> translateMachine = new HashMap<>();
@@ -507,14 +497,6 @@ public class ConstantInterface {
         return getTranslateIDMethodMap;
     }
 
-    public static void addProhibitedColumnNamesForUpdateUsingFile(Set<String> prohibitedMap){
-        prohibitedMap.add("id");
-        prohibitedMap.add("enTransId");
-        prohibitedMap.add("ruTransId");
-        prohibitedMap.add("spaTransId");
-        prohibitedMap.add("fraTransId");
-        prohibitedMap.add("zhTransId");
-    }
-    
+
 
 }

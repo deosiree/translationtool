@@ -4,8 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.stereotype.Component;
 import com.shr.translationtoolservice.entity.KeyDifference;
-
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils.MethodEntity;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -94,5 +95,111 @@ public class CommonUtils {
         keyDifference.setAllExistButValueDifferentKeys(allExistButValueDifferentKeys);
         return keyDifference;
     }
+
+    /**
+     * 查询T对象与其数据库中存储的T对象的相关字段的值是否一致
+     * 例如查看文件解析获得的{@link EntryInfoEntity}对象对应字段的值与库中的值是否一致
+     * (首先获取文件中词条对应的ID，然后根据该ID查看该词条在库中各属性的值，然后与文件中对应属性的值比较，查看是否有所不同)
+     * 例如查看词条ID为"xfed",文件中tag字段的值是否与库中tag字段的值一致
+     */
+    public static abstract class EntityMatchAnalyzer<T>{
+
+        /**
+         * 比对两个对象的指定方法获取的值是否一样
+         * @param <T>
+         * @param object1
+         * @param object2
+         * @param getMethods
+         * @return
+         */
+        public static <T> boolean isFieldEqual(T object1,T object2,Collection<MethodEntity> getMethods){
+            if(getMethods == null){
+                throw new NullPointerException("getMethods is Null");
+            }
+            for(MethodEntity methodEntity : getMethods){
+                Object value1,value2;
+                try {
+                    value1 = methodEntity.getMethod().invoke(object1,methodEntity.getParams());
+                    value2 = methodEntity.getMethod().invoke(object2,methodEntity.getParams());
+                    if(value1 == null && value2 == null){
+                        continue;
+                    }else if((value1 != null && value2 == null) || (value1 == null && value2 != null)){
+                        return false;
+                    }
+                    if(!value1.equals(value2)){
+                        return false;
+                    }
+                } catch(Exception e){
+                    throw new RuntimeException(e);
+                }
+            }
+            return true;
+        }
+
+        /**
+         * 利用{@link #isFieldEqual(Object, Object, Collection)}获取其中不匹配的entity对
+         * @param <T>
+         * @param entityPairForComparsions
+         * @param methods
+         * @return
+         */
+        public static <T> List<EntityPairForComparsion<T>> getNotMatchEntities(Collection<EntityPairForComparsion<T>> entityPairForComparsions,Collection<MethodEntity> methods){
+            List<EntityPairForComparsion<T>> notMatchEntryInfosCollection = new ArrayList<>();
+            for(EntityPairForComparsion<T> entityPairForComparsion : entityPairForComparsions){
+                if(isFieldEqual(entityPairForComparsion.getEntity1(), entityPairForComparsion.getEntity2(), methods)){
+                    continue;
+                }
+                notMatchEntryInfosCollection.add(entityPairForComparsion);
+            }
+            return notMatchEntryInfosCollection;
+        }
+
+
+        protected abstract Collection<EntityPairForComparsion<T>> getEntityForComparsion(List<T> entities);
+
+        public List<EntityPairForComparsion<T>> getNotMatchEntity(List<T> entities,Collection<MethodEntity> methods){
+
+            int size = entities.size();
+            int batchSize = 100;
+            List<EntityPairForComparsion<T>> notMatchEntryInfosCollection = new ArrayList<>();
+            for(int leftIdx = 0 ; leftIdx < size ; leftIdx += batchSize){
+                int rightIdx = leftIdx + batchSize > size ? size : leftIdx + batchSize;
+                List<T> subList = entities.subList(leftIdx, rightIdx).stream().collect(Collectors.toList());
+
+                Collection<EntityPairForComparsion<T>> entityForComparsions = this.getEntityForComparsion(subList);
+                if(entityForComparsions == null){
+                    continue;
+                }
+                List<EntityPairForComparsion<T>> notMatchEntities = getNotMatchEntities(entityForComparsions, methods);
+                notMatchEntryInfosCollection.addAll(notMatchEntities);
+            }
+            return notMatchEntryInfosCollection;
+        }
+
+
+        public static class EntityPairForComparsion<T>{
+
+            T entity1;
+
+            T entity2;
+
+            public EntityPairForComparsion(T entity1,T entity2){
+                this.entity1 = entity1;
+                this.entity2 = entity2;
+            }
+
+            public T getEntity1() {
+                return entity1;
+            }
+
+            public T getEntity2() {
+                return entity2;
+            }
+
+            
+        }
+    }
+
+    
 
 }

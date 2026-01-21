@@ -7,8 +7,9 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.KeyDifference;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO;
+import com.shr.translationtoolservice.entity.vo.ValueDifferenceVO;
 import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
-import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
+import com.shr.translationtoolservice.service.processor.groupby.GeneralGroupbyStrategy;
 import com.shr.translationtoolservice.service.processor.groupby.GeneralReplicatedVOType;
 import com.shr.translationtoolservice.service.processor.groupby.GroupbyStrategy;
 import com.shr.translationtoolservice.service.processor.groupby.GroupbyStrategy.ReplicatedVOType;
@@ -384,9 +385,43 @@ public class EntryUtils {
         return entryInfoGroups;
     }
 
-
     public <E extends EntryInfoEntity,T extends ReplicatedVOType> KeyDifference<T,E> compareEntryInfos(Map<T, List<E>> entryInfosGroupMap1, Map<T, List<E>> entryInfosGroupMap2){
         return commonUtils.compareMap(entryInfosGroupMap1, entryInfosGroupMap2);
+    }
+    
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfos(
+        Collection<EntryInfoEntity> entryCollection1,
+        Collection<EntryInfoEntity> entryCollection2,
+        GeneralGroupbyStrategy<EntryInfoEntity> entryGroupbyStrategy
+    ){
+        /* 
+            根据属性，先将每个文件中的词条进行分组
+        */
+        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> entryInfosGroupMap1 = this.makeGroupMapForEntryInfoEntities(entryCollection1, entryGroupbyStrategy);
+        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> entryInfosGroupMap2 = this.makeGroupMapForEntryInfoEntities(entryCollection2, entryGroupbyStrategy);
+        // 获取两个文件的词条的差异信息
+        KeyDifference<GeneralReplicatedVOType, EntryInfoEntity> compareResult = this.compareEntryInfos(entryInfosGroupMap1, entryInfosGroupMap2);
+        // 根据差异信息封装成对象返回
+        ValueDifferenceVO<EntryInfoEntity> valueDifferenceVO = new ValueDifferenceVO<>();
+        // 1. 处理仅file1存在的各组词条
+        Set<GeneralReplicatedVOType> refOnlyInFirstMapKeys = compareResult.getOnlyInFirstMapKeys();
+        if(refOnlyInFirstMapKeys != null)
+            refOnlyInFirstMapKeys.forEach((key)->{valueDifferenceVO.addValuesOnlyInFirst(entryInfosGroupMap1.get(key));});
+        // 2. 处理仅file2存在的各组词条
+        Set<GeneralReplicatedVOType> refOnlyInSecondMapKeys = compareResult.getOnlyInSecondMapKeys();
+        if(refOnlyInSecondMapKeys != null)
+            refOnlyInSecondMapKeys.forEach((key)->{valueDifferenceVO.addValueOnlyInSecond(entryInfosGroupMap2.get(key));});
+        // 2. 处理file1,file2都存在的各组词条
+        Set<GeneralReplicatedVOType> refAllExistButValueDifferentKeys = compareResult.getAllExistButValueDifferentKeys();
+        if(refAllExistButValueDifferentKeys != null)
+            refAllExistButValueDifferentKeys.forEach((key)->{
+                ValueDifferenceVO.ListDiff<EntryInfoEntity> listDiff = new ValueDifferenceVO.ListDiff<>();
+                listDiff.setFirstList(entryInfosGroupMap1.get(key));
+                listDiff.setSecondList(entryInfosGroupMap2.get(key));
+                valueDifferenceVO.addDifferentBetweenEachOther(listDiff);
+            });
+
+        return valueDifferenceVO;
     }
 
 

@@ -2,15 +2,18 @@ package com.shr.translationtoolservice.util;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,17 +62,21 @@ public class JSONUtils {
     }
 
     public static boolean exportJson(Object object,String filePath){
+        Gson gson = new GsonBuilder()
+            .setPrettyPrinting() // 开启格式化（换行+缩进）
+            .disableHtmlEscaping() // 禁用HTML转义（避免中文/特殊字符被转义）
+            .create();
         String jsonString =  gson.toJson(object);
 
         File file = new File(filePath);
-        FileWriter writer = null;
+        Writer writer = null;
         try {
-            writer = new FileWriter(file);
+            writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8.name());
             writer.write(jsonString);
             return true;
         } catch (Exception e) {
             log.error("导出json文件时出现异常", e);
-            return false;
+            throw new RuntimeException(e);
         } finally{
             if(writer != null){
                 try {

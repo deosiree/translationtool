@@ -74,6 +74,9 @@ public class BatchMaxLengthTranslateAnalyzer implements TranslateAnalyzer<Collec
          */
         boolean hasProblemEntry = false;
         Set<String> ids = analyzeSample.stream().map(EntryInfoEntity::getId).collect(Collectors.toSet());
+        if(ids.isEmpty()){
+            return false;
+        }
         List<EntryInfoEntity> entryByIDs = entryInfoMapper.getEntryByIDs(ids);
         if(entryByIDs == null){
             throw new NullPointerException("根据id查询不到对应的词条");
