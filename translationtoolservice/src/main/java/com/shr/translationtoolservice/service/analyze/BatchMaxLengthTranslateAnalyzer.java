@@ -72,6 +72,7 @@ public class BatchMaxLengthTranslateAnalyzer implements TranslateAnalyzer<Collec
         /**
          * 1. 根据词条的max_length长度比对,返回结果
          * 2. 如果为null，则根据词条分类的字符长度进行判断
+         * 3. 如果最大长度为null,小于等于0，就跳过不校验
          */
         boolean hasProblemEntry = false;
         Set<String> ids = analyzeSample.stream().map(EntryInfoEntity::getId).collect(Collectors.toSet());
@@ -87,6 +88,10 @@ public class BatchMaxLengthTranslateAnalyzer implements TranslateAnalyzer<Collec
         /* key: 词条ID ，value: 词条的最大长度 */
         Map<String,Integer> maxLengthMap = new HashMap<>();
         for(EntryInfoEntity entryInfoEntity : entryByIDs){
+            Integer entryMaxLength = entryInfoEntity.getMaxLength();
+            if(entryMaxLength == null || entryMaxLength <= 0){
+                continue;
+            }
             maxLengthMap.put(entryInfoEntity.getId(), entryInfoEntity.getMaxLength());
         }
         /* 禁用将禁用信息添加到备注里面 */
@@ -144,7 +149,7 @@ public class BatchMaxLengthTranslateAnalyzer implements TranslateAnalyzer<Collec
 
         for(EntryInfoEntity entity : analyzeSample){
             Integer maxLength = maxLengthMap.get(entity.getId());
-            if(maxLength == null){
+            if(maxLength == null || maxLength <= 0){
                 continue;
             }
             Collection<String> translates = new ArrayList<>(5);
