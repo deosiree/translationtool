@@ -20,7 +20,7 @@
                 <span v-else>{{ title }}</span>
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
-                    <a-menu-item v-if="currentDepartment.ops.has('needIP')" @click="update(treeKey)">更新</a-menu-item>
+                    <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" @click="update(treeKey)">更新</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
                       @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
                     <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
@@ -33,14 +33,14 @@
                       <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="deleteClassify(treeKey,type)">删除
                       </a-popconfirm>
                     </a-menu-item>
-                    <a-menu-item v-if="currentDepartment.ops.has('needBranch') && type =='classify'" @click="createBranch(treeKey)"
+                    <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needBranch') && type =='classify'" @click="createBranch(treeKey)"
                       :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
                       分支新建{{createbranchStatus=='执行中'?'(执行中)':''}}
                     </a-menu-item>
-                    <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="entrySourceOpen(treeKey)" ref="entrySourceMenu">
+                    <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" @click="entrySourceOpen(treeKey)" ref="entrySourceMenu">
                       来源汇总{{createbranchStatus=='执行中'?'(执行中)':''}}
                     </a-menu-item>
-                    <!-- <a-menu-item v-if="currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
+                    <!-- <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
                   </a-menu>
                 </template>
               </a-dropdown>
@@ -132,12 +132,6 @@ export default {
     return {
       name: "entry",
       boxFlex: "240px",
-      user: {},
-      currentDepartment: {
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       boxHeight: 0,
       keyWords: "",
       isProduct: true,
@@ -169,15 +163,6 @@ export default {
     let _this = this;
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
       this.init();
       _this.boxHeight = _this.$refs.box.offsetHeight;
       /** 控制table的高度 */
@@ -226,15 +211,17 @@ export default {
     // 根据用户权限限制状态树的展示
     async getClassTreeByUsed() {
       let treeScoped = ["公共库"]; // 状态树可展示的字段
-      if (this.user.roleName.includes("超级管理员"))
+      if (this.user?.roleName?.includes("超级管理员"))
         treeScoped = commonParam.treeScoped.map((item) => item.title);
       else {
-        treeScoped.push(this.user.department);
+        if (this.user?.department) {
+          treeScoped.push(this.user.department);
+        }
       }
       let treeData = cloneDeep(this.treeData);
       let treeDataScoped = [];
       // 遍历树数据，根据部门名过滤
-      treeDataScoped = await treeData.filter((company) => {
+      treeDataScoped = await (treeData || []).filter((company) => {
         // 如果有公司信息（如：“公共库”）
         if (treeScoped.includes(company.title)) return true;
         if (company.children) {

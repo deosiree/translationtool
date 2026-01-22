@@ -68,7 +68,7 @@
               <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
             </a-form-item>
             <a-form-item
-              v-if="checkedSearchCondition.includes('searchType') && currentProduct.key && currentDepartment.ops.has('needBranch')"
+              v-if="checkedSearchCondition.includes('searchType') && currentProduct.key && $currentDepartment && $currentDepartment.ops.has('needBranch')"
               label="校验类型" name="searchType">
               <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型"
                 :options='searchTypes' allowClear>
@@ -121,7 +121,7 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="currentDepartment.ops.has('needIP')" size="small" buttonTitle="git推送"
+          <GitCommitButton v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" size="small" buttonTitle="git推送"
             buttonClass="yellowBtn" :treeTitle="product.title" />
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag"
@@ -387,7 +387,7 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible" :currentDepartment="currentDepartment"
+  <CreateVersionModal :visible="createVisible"
     :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product"
     :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
     @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event"
@@ -529,12 +529,6 @@ export default {
     return {
       locale: zhCN,
       box: 0,
-      user: {},
-      currentDepartment: {
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       admin: false,
       edit: false, // 用户对该产品是否有编辑权限
       product: {},
@@ -768,18 +762,11 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
+      if (this.$currentDepartment) {
+        this.search.entryState = this.$currentDepartment.ops.has("entryState3")
+          ? "3"
+          : null;
       }
-      this.search.entryState = this.currentDepartment.ops.has("entryState3")
-        ? "3"
-        : null;
       this.admin = this.$store.state.admin;
       //保证初次传的值给到
       this.box = this.boxHeight;
@@ -1646,7 +1633,7 @@ export default {
         classfy1: [],
         classfy2: [],
         entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
-        entryState: this.currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
+        entryState: this.$currentDepartment && this.$currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
         tag: "",
         entrySource: null,
         language: null,

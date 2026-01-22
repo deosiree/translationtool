@@ -37,26 +37,11 @@ export default {
     return {
       activeKey: "",
       menu: [],
-      user: {},
-      currentDepartment: {
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
     };
   },
   mounted() {
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
       // console.log(this.$store.state.tabActive)
       // 页面加载完成后执行的代码
       let list = this.$store.state.menu;
@@ -64,8 +49,8 @@ export default {
         if (item.url === this.$route.path && item.children.length > 0) {
           this.menu = item.children;
           // this.activeKey = this.menu[0].name
-          // 选择性过滤需要有IP的“辞典管理”子页面
-          if (!this.currentDepartment.ops.has("needIP")) {
+          // 选择性过滤需要有IP的"辞典管理"子页面
+          if (!this.$currentDepartment || !this.$currentDepartment.ops.has("needIP")) {
             this.menu = this.menu.filter(
               (child) => child.menuName !== "辞典管理"
             );

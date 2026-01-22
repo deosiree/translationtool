@@ -90,7 +90,7 @@
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
-      <a-button type="primary" ghost @click="placeOnFile" v-if="currentDepartment.ops.has('needIP')">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')">归档</a-button>
       <a-button type="primary" ghost @click="placeOnFile2">结束任务</a-button>
     </template>
   </CustomModal>
@@ -202,13 +202,6 @@ export default {
         ...commonParam.langTranslateStateList,
         "translateState",
       ],
-      user: null, // 当前用户的相关信息
-      currentDepartment: {
-        label: "部门名称",
-        importTypes: [],
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       state: {
         searchText: "",
         searchedColumn: "",
@@ -232,15 +225,6 @@ export default {
     this.$nextTick(() => {
       // 获取当前用户信息
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
     });
   },
   watch: {

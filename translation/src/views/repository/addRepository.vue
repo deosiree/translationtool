@@ -122,7 +122,6 @@ export default {
   data() {
     return {
       SHOW_PARENT: TreeSelect.SHOW_PARENT,
-      user: {},
       visible: false,
       modalWidth: "450px",
       modalTitle: "生成版本库",
@@ -314,7 +313,6 @@ export default {
     };
   },
   mounted() {
-    this.user = this.$store.state.user;
   },
   methods: {
     // 添加版本单元格双击可编辑事件
@@ -406,7 +404,7 @@ export default {
         pageSize: -1,
       };
       let data = {
-        department: this.user.department,
+        department: this.$store.state.user?.department,
       };
       getVersionTableByCondition(params, data).then((res) => {
         this.repositoryList = [];

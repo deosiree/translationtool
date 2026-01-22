@@ -40,10 +40,6 @@ export default {
   },
   emits: ["configList"],
   props: {
-    department: {
-      type: String,
-      default: null,
-    },
     size: {
       type: String,
       default: "small",
@@ -81,7 +77,7 @@ export default {
   methods: {
     // 获取可选部门
     async getDepartmentOptions() {
-      this.importModal.department = this.department; // 默认当前用户所在部门
+      this.importModal.department = this.$store.state.user?.department; // 默认当前用户所在部门
 
       // 前端方案(提供给其他部门时要有后端写入/读取的方案)：根据公共参数中定死的部门选项
       this.departmentOptions = Object.keys(this.configJson).map((key) => ({

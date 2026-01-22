@@ -6,11 +6,11 @@
         <a-form-item label="名称" name="title" :rules="[{ required: true, message: '请输入名称!' }]">
           <a-input v-model:value="classify.title" placeholder="请输入内容"></a-input>
         </a-form-item>
-        <a-form-item v-if="(modalTitle === '添加产品' || modalTitle === '编辑产品')&&currentDepartment.ops.has('needBranch')" label="归档分支" name="codeBranch"
+        <a-form-item v-if="(modalTitle === '添加产品' || modalTitle === '编辑产品')&&$currentDepartment && $currentDepartment.ops.has('needBranch')" label="归档分支" name="codeBranch"
           :rules="[{ message: '请输入归档分支(与代码分支相对应)!' }]">
           <a-input v-model:value="classify.codeBranch" placeholder="请输入归档分支(与代码分支相对应)"></a-input>
         </a-form-item>
-        <a-form-item v-if="modalTitle === '编辑分类'&&currentDepartment.ops.has('needBranch')" label="批量修改分支" name="codeBranchs">
+        <a-form-item v-if="modalTitle === '编辑分类'&&$currentDepartment && $currentDepartment.ops.has('needBranch')" label="批量修改分支" name="codeBranchs">
           <a-input v-model:value="classify.codeBranch" placeholder="批量修改其中所有产品的归档分支" style="width:100%"></a-input>
         </a-form-item>
         <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="词条字符数" name="maxByte">
@@ -27,7 +27,6 @@
 import Modal from "@/components/modal/index.vue";
 import { addEntryClassfy, updateEntryClassfy } from "@/http/api/entryManage";
 import { addProduct, updateProduct } from "@/http/api/product";
-import commonParam from "@/constants/commonParam";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 export default {
@@ -57,12 +56,6 @@ export default {
         codeBranch: "",
       },
       loading: false,
-      user: {},
-      currentDepartment: {
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
     };
   },
 
@@ -71,15 +64,6 @@ export default {
     this.classify = this.currentClass;
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
     });
   },
   watch: {

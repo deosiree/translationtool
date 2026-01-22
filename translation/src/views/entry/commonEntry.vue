@@ -134,7 +134,6 @@ export default {
   },
   data() {
     return {
-      user: {},
       admin: false,
       box: 0,
       common: {},
@@ -211,7 +210,7 @@ export default {
     this.box = this.boxHeight;
     this.common = this.currentCommon;
 
-    this.user = this.$store.state.user;
+    // 不再需要 this.user，直接使用 $store.state.user
     this.admin = this.$store.state.admin;
     // console.log(this.admin)
 
@@ -238,7 +237,7 @@ export default {
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {
-        this.translateTypes = res.data.list;
+        this.translateTypes = res.data?.list || [];
       });
     },
     // 设置表格每一行的class

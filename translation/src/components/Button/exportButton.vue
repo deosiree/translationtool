@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { message } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
 import { create } from "xmlbuilder2";
 // import builder from "xmlbuilder"; // 注意：这是 xmlbuilder 的常见导入方式
 import { ref } from "vue";
@@ -115,14 +115,6 @@ export default {
         value: item.value,
       })),
       fileHandle: null, // 新增，用于保存文件句柄
-      user: null, // 当前用户的相关信息
-      currentDepartment: {
-        label: "部门名称",
-        importTypes: [],
-        value: "name",
-        xml_temp: false,
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       fieldOptions: [], // 初始值，会在mounted中从fieldOptions_ prop更新
       statusCheck: this.defaultStatusCheck, // 使用prop值作为初始值( props 不应该被组件内部直接修改)
     };
@@ -147,15 +139,6 @@ export default {
       );
       // 获取当前用户信息
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
     });
   },
   methods: {
@@ -296,9 +279,8 @@ export default {
             };
 
             // 装置部给领导看的临时版本
-            if (
-              this.currentDepartment.hasOwnProperty("xml_temp") &&
-              this.currentDepartment.xml_temp
+            if (this.$currentDepartment.hasOwnProperty("xml_temp") &&
+              this.$currentDepartment.xml_temp
             ) {
               let abbr_tmp = itemData.abbr;
               itemData.abbr = itemData.cn_desc;
@@ -446,14 +428,25 @@ export default {
             }
           }
           if (!this.statusCheck || accept_.data.list.length == 0) { // 如果不是只能导出已审核，或者没有审核未结束的词条，则导出全部词条
+            // console.log("导出文件入参: ", data, params);
             const res = await entryExportByCondition(data, params);
-            let fileName = res.headers["content-disposition"]
-              .split(";")[1]
-              .split("filename=")[1];
+            // console.log("导出文件: res", res);
+            let fileName, contentType;
+            try {
+              fileName = res.headers["content-disposition"]
+                .split(";")[1]
+                .split("filename=")[1];
 
-            let contentType = res.headers["content-type"];
-            // 去除字符编码信息
-            contentType = contentType.split(";")[0];
+              contentType = res.headers["content-type"];
+              // 去除字符编码信息
+              contentType = contentType.split(";")[0];
+            } catch (error) {
+              notification.error({
+                message: "导出文件失败,可能是接口报错（如导出重复词条）",
+                description: error.message,
+              });
+              return;
+            }
 
             // 导出文件
             const blob = new Blob([res.data], { type: contentType });

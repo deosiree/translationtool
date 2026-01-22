@@ -62,10 +62,10 @@
           <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
             <template v-slot:operate>
               <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-                <BatchSelectButton v-if="currentDepartment.ops.has('needBranch')" :size="'middle'" :getSearch="query"
+                <BatchSelectButton v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" :size="'middle'" :getSearch="query"
                   v-model:batchSelectFlag="batchSelectFlag" v-model:selectEntry="selectEntry" v-model:selectedRows="selectedRows"
                   v-model:selectedRowKeys="selectedRowKeys" />
-                <a-button v-if="currentDepartment.ops.has('needBranch')" type="primary" size="middle"
+                <a-button v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" type="primary" size="middle"
                   @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
                   {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
                 <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
@@ -344,12 +344,6 @@ export default {
       },
       pageChangeSearch: {},
       expandSource: [], // 记录展开了的分支信息
-      user: {},
-      currentDepartment: {
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       batchSelectVisible: false,
     };
@@ -358,16 +352,7 @@ export default {
     let _this = this;
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
-      if (!this.currentDepartment.ops.has("needBranch")) {
+      if (!this.$currentDepartment || !this.$currentDepartment.ops.has("needBranch")) {
         this.isTreeOr2D = "2D";
       } else {
         // 增加分支列
@@ -428,7 +413,7 @@ export default {
     isTreeOr2D: {
       handler(newVal, oldVal) {
         if (
-          this.currentDepartment.ops.has("needBranch") &&
+          this.$currentDepartment && this.$currentDepartment.ops.has("needBranch") &&
           newVal != null &&
           newVal !== oldVal
         ) {
@@ -792,13 +777,13 @@ export default {
       };
       // 待办事项
       getToDoTaskInfo(params, {}).then((res) => {
-        this.toDoNum = res.data.totalNum;
-        this.toDoTasks = res.data.list;
+        this.toDoNum = res.data?.totalNum || 0;
+        this.toDoTasks = res.data?.list || [];
         // console.log("需要查询是否完成的任务1", this.toDoTasks);
       });
       // 已办事项
       getFinishTaskInfo(params, {}).then((res) => {
-        this.finishNum = res.data.totalNum;
+        this.finishNum = res.data?.totalNum || 0;
       });
     },
     // 查询按钮点击事件

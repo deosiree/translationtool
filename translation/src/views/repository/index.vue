@@ -119,7 +119,6 @@ export default {
     data() {
         return{
             name:"repository",
-            user:{},
             selectedRowKeys:[],
             tableHeight:{ x:'100%',y: 0 },
             columns:[
@@ -230,7 +229,7 @@ export default {
             }
             let data = {
                 version: this.search.version,
-                department: this.user.department
+                department: this.$store.state.user?.department
             }
             getVersionTableByCondition(params,data).then((res) => {
                 this.pagination.total = res.data.totalNum

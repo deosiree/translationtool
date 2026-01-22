@@ -267,10 +267,6 @@ export default {
   },
   data() {
     return {
-      user: {
-        userName: "",
-        department: "",
-      },
       isAdmin: false,
       locale: locale,
       labelCol: { style: { width: "84px" } },
@@ -466,7 +462,7 @@ export default {
     // 初始化
     init() {
       this.user = this.$store.state.user;
-      this.isAdmin = this.user.roleName.includes("超级管理员");
+      this.isAdmin = this.user?.roleName?.includes("超级管理员") || false;
       this.setTableHeight();
       this.searchTaskInfo();
       this.getDepartments();
@@ -482,7 +478,7 @@ export default {
     getDepartments() {
       getDepartments().then((res) => {
         this.departments = [];
-        res.data.list.forEach((item) => {
+        res.data?.list?.forEach((item) => {
           let d = {
             label: item,
             value: item,
@@ -583,16 +579,17 @@ export default {
     //新增
     handleAdd() {
       this.pagination.current = 1; // 重置分页
+      const defaultUser = this.$store.state.user?.userName;
       const newData = {
         id: `new${this.dataSource.length + 1}`,
         name: "",
         state: "0",
-        department: this.user.department,
-        creator: this.user.userName, // 任务管理员-创建人-归档
-        developer: this.user.userName, // 开发员
-        entryAuditor: this.user.userName, // 词条审核员
-        translator: this.user.userName, // 翻译员
-        translationAuditor: this.user.userName, // 翻译审核员
+        department: this.$store.state.user?.department,
+        creator: defaultUser, // 任务管理员-创建人-归档
+        developer: defaultUser, // 开发员
+        entryAuditor: defaultUser, // 词条审核员
+        translator: defaultUser, // 翻译员
+        translationAuditor: defaultUser, // 翻译审核员
         translateType: "英文",
         versionId: null,
         versionName: null,
@@ -1104,7 +1101,7 @@ export default {
         copyTask.deliveryTime = null;
         copyTask.createTime = getCurrentFormattedTime();
         copyTask.endTime = null;
-        copyTask.creator = this.user.userName; // 任务管理员-创建人-归档
+        copyTask.creator = this.$store.state.user?.userName; // 任务管理员-创建人-归档
         copyTask.isSubmit = false;
 
         this.dataSource.unshift(copyTask);

@@ -65,7 +65,7 @@ export default {
         ip: null,
         branch: null,
         versionName: "update",
-        userName: this.$store.state.user.userName,
+        userName: this.$store.state.user?.userName || '',
       },
       visible: false,
       loading: false,
@@ -76,16 +76,6 @@ export default {
       // 获取当前用户信息
       this.user = this.$store.state.user;
       // console.log("当前用户信息", this.commitMsg.userName);
-
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
     });
   },
   watch: {

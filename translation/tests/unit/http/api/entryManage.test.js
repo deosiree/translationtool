@@ -203,7 +203,7 @@ describe('entryManage API - v1/v2 版本', () => {
     it('应该正确调用mock函数并传递参数', async () => {
       const params = {}
       const formData = new FormData()
-      formData.append('originExcel', new Blob(['test'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+      formData.append('dedupOriginExcel', new Blob(['test'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
       formData.append('dedupExcel', new Blob(['test'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
       formData.append('payload', JSON.stringify({
         options: { emptyStringAsValue: true, failFast: false },

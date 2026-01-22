@@ -14,15 +14,15 @@
           <a-form layout="inline" style="margin-top: 10px;">
             <a-form-item label="数据类型">
               <a-radio-group v-model:value="dataType" @change="dataTypeChange">
-                <a-radio v-if="currentDepartment.importTypes.includes('file')" :value="'file'">文件</a-radio>
-                <a-radio v-if="currentDepartment.importTypes.includes('ts')" :value="'ts'">TS</a-radio>
-                <a-radio v-if="currentDepartment.importTypes.includes('database')" :value="'database'">实时库</a-radio>
-                <a-radio v-if="currentDepartment.importTypes.includes('dictionary')" :value="'dictionary'">辞典</a-radio>
-                <a-radio v-if="currentDepartment.importTypes.includes('config')" :value="'config'">配置文件</a-radio>
-                <a-radio v-if="currentDepartment.importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
+                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('file')" :value="'file'">文件</a-radio>
+                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('ts')" :value="'ts'">TS</a-radio>
+                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('database')" :value="'database'">实时库</a-radio>
+                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('dictionary')" :value="'dictionary'">辞典</a-radio>
+                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('config')" :value="'config'">配置文件</a-radio>
+                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
               </a-radio-group>
             </a-form-item>
-            <a-form-item v-if="currentDepartment.ops.has('needIP')" label="IP">
+            <a-form-item v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" label="IP">
               <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
             </a-form-item>
           </a-form>
@@ -41,7 +41,7 @@
             <a-col :span="8">
               <a-row type="flex" align="middle" justify="space-between">
                 <a-col :flex="1">
-                  <a-form-item v-if="currentDepartment.ops.has('needIP')" label="回写辞典" name="diFileName">
+                  <a-form-item v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" label="回写辞典" name="diFileName">
                     <a-select v-model:value="filediFileName" allowClear placeholder="请选择回写辞典目录" style="width:70%" :options="dictionaryOptions"
                       size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
                     </a-select>
@@ -706,13 +706,6 @@ export default {
       searchTSValue: "",
       searchConfigValue: "",
       searchEnumValue: "",
-      user: null,
-      currentDepartment: {
-        label: "部门名称",
-        importTypes: [],
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       departmentList: commonParam.departmentList, // 当前用户所在部门
       templateTypes: null,
       templateType: null,
@@ -722,22 +715,6 @@ export default {
       ],
       rulesOptions: commonParam.rulesOptions,
     };
-  },
-  created() {},
-  mounted() {
-    this.$nextTick(() => {
-      // 获取当前用户信息
-      this.user = this.$store.state.user;
-      // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
-      }
-    });
   },
   watch: {
     currentTask(newval, oldval) {
@@ -751,10 +728,12 @@ export default {
           this.$nextTick(() => {
             // 1.设置模板类型
             // 获取模板类型（暂时只有装置部使用多个模板）
-            if (Object.keys(this.currentDepartment).includes("templateType"))
-              this.templateTypes = this.currentDepartment.templateType;
+            if (this.$currentDepartment && Object.keys(this.$currentDepartment).includes("templateType"))
+              this.templateTypes = this.$currentDepartment.templateType;
             // 设置默认的模板类型为本部门的
-            this.templateObj.type = this.currentDepartment.value;
+            if (this.$currentDepartment) {
+              this.templateObj.type = this.$currentDepartment.value;
+            }
             if (this.templateObj.type === "default")
               this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
 
@@ -2253,7 +2232,9 @@ export default {
     },
     templateClose() {
       this.templateVisible = false;
-      this.templateObj.type = this.currentDepartment.value;
+      if (this.$currentDepartment) {
+        this.templateObj.type = this.$currentDepartment.value;
+      }
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
       this.templateObj.exportType = null;
     },
@@ -2365,7 +2346,7 @@ export default {
     },
     // 获取i18服务器ip
     getIPs() {
-      if (this.currentDepartment.ops.has("needIP")) {
+      if (this.$currentDepartment && this.$currentDepartment.ops.has("needIP")) {
         this.ips = [];
         getI18nAdress().then((res) => {
           res.data.list.forEach((item) => {

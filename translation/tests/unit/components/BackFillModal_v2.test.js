@@ -44,7 +44,8 @@ vi.mock('@/utils/fileUtils', () => ({
 
 vi.mock('@/utils/domUtils', () => ({
   setModalAriaHidden: vi.fn(),
-  stopDomEvent: vi.fn()
+  stopDomEvent: vi.fn(),
+  createDragModalDirective: vi.fn(() => ({}))
 }))
 
 vi.mock('@/constants/commonParam.js', () => ({
@@ -59,6 +60,9 @@ vi.mock('@/constants/commonParam.js', () => ({
 }))
 
 vi.mock('ant-design-vue', () => ({
+  default: {
+    install: vi.fn()
+  },
   message: {
     success: vi.fn(),
     error: vi.fn(),

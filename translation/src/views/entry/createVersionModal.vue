@@ -63,12 +63,12 @@
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="cancelCreate">关闭</a-button>
-      <a-button type="primary" v-if="currentDepartment.ops.has('needIP')" @click="writeBackFun">回写</a-button>
-      <a-button type="primary" danger @click="deleteEntrys" v-if="currentDepartment.ops.has('needDelete')">删除</a-button>
+      <a-button type="primary" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" @click="writeBackFun">回写</a-button>
+      <a-button type="primary" danger @click="deleteEntrys" v-if="$currentDepartment && $currentDepartment.ops.has('needDelete')">删除</a-button>
       <a-button type="primary" danger @click="forrbiddenEntrys"
-        v-if="currentDepartment.ops.has('needForbidden') && $store.state.admin">禁用</a-button>
+        v-if="$currentDepartment && $currentDepartment.ops.has('needForbidden') && $store.state.admin">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="导出" />
-      <a-button type="primary" @click="examine" v-if="currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
+      <a-button type="primary" @click="examine" v-if="$currentDepartment && $currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
     </template>
   </CustomModal>
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose"
@@ -229,14 +229,6 @@ export default {
         totalNum: 0,
       }),
     },
-    currentDepartment: {
-      type: Object,
-      default: () => ({
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }), // 当前用户所在部门的相关信息
-    },
   },
 
   data() {
@@ -377,12 +369,6 @@ export default {
 
   created() {
     this.product = this.currentProduct;
-  },
-  mounted() {
-    this.$nextTick(() => {
-      this.user = this.$store.state.user;
-      // console.log("currentProduct:", this.currentProduct)
-    });
   },
   computed: {
     taskRowSelection() {

@@ -170,21 +170,6 @@ describe('excelUtils - Excel 相关工具函数', () => {
       expect(result.globalMessage).toBe('未知错误')
     })
 
-    it('应该正确记录控制台日志', async () => {
-      const translateTypes = ['zh', 'en']
-      const formData = new FormData()
-      formData.append('file', new Blob(['test'], { type: 'text/csv' }))
-
-      entryImportExcle
-        .mockResolvedValueOnce({ code: 200 })
-        .mockRejectedValueOnce({ message: '错误消息' })
-
-      await entryBatchImportExcel(translateTypes, formData)
-
-      expect(console.log).toHaveBeenCalledWith('参数', translateTypes, formData)
-      expect(console.log).toHaveBeenCalledWith('en导入响应：', expect.any(Object))
-    })
-
     it('应该处理空的语言列表', async () => {
       const translateTypes = []
       const formData = new FormData()

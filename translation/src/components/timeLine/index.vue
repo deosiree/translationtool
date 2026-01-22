@@ -18,25 +18,25 @@
           <div class="top_info">
             <div v-if="showButton" class="buttonBox">
               <a-badge :count="entryRejectCount" :overflow-count="99" v-if="item.state === '1'">
-                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true"
+                <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="importEntry">导入</a-button>
               </a-badge>
               <a-badge :count="entryCheckCount" :overflow-count="99" v-if="item.state === '2'">
-                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true"
+                <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="examineEntry">词条审核</a-button>
               </a-badge>
               <a-badge :count="transalteCount" :overflow-count="99" v-if="item.state === '3'">
-                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true"
+                <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="translateEntry">翻译</a-button>
               </a-badge>
               <a-badge :count="translateCheckCount" :overflow-count="99" v-if="item.state === '4'">
-                <a-button type="primary" ghost size="small" :disabled="currentUser.userName === item.user ? false : true"
+                <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="examineTranslate">翻译审核</a-button>
               </a-badge>
 
               <!-- <a-button type="primary" ghost size="small" v-if="item.state != '5'" :disabled="task.state === item.state ? false : true" @click="submitTask">递交</a-button> -->
               <!-- <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="task.state === item.state ? false : true" @click="exportEntry">导出</a-button> -->
-              <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="currentUser.userName === item.user ? false : true"
+              <a-button type="primary" ghost size="small" v-if="item.state === '5'" :disabled="isButtonDisabled(item)"
                 @click="archiveEntry">归档</a-button>
             </div>
             <span v-if="!showButton && item.state === task.state">
@@ -84,7 +84,6 @@ export default {
     return {
       task: {},
       taskList: [],
-      currentUser: {},
       entryRejectCount: 0,
       entryCheckCount: 0,
       transalteCount: 0,
@@ -107,8 +106,7 @@ export default {
   },
   methods: {
     init() {
-      // 获取登录用户名
-      this.currentUser = this.$store.state.user;
+      // 不再需要 currentUser，直接使用 $store.state.user
       this.taskList = [];
       if (this.task.creator != "") {
         let item = {
@@ -188,6 +186,10 @@ export default {
     // 归档
     archiveEntry() {
       this.$emit("archiveEntry");
+    },
+    // 判断按钮是否禁用：只有当前用户与任务项用户匹配时才不禁用
+    isButtonDisabled(item) {
+      return this.$store.state.user?.userName !== item.user;
     },
     submitTask() {
       Modal.confirm({

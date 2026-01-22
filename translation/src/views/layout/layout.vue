@@ -30,6 +30,7 @@
                 </div>
             </a-col>
         </a-row>
+        <FloatingToolBox v-if="$currentDepartment && $currentDepartment.ops?.has('toolBox')" />
     </div>
 </template>
 <script>
@@ -45,11 +46,13 @@ import {
     LeftOutlined,
     RightOutlined
 } from '@ant-design/icons-vue';
-export default ({
+import FloatingToolBox from '@/components/FloatingToolBox/index.vue';
+export default {
     name: 'layout',
     components: {
         LeftOutlined,
-        RightOutlined
+        RightOutlined,
+        FloatingToolBox
     },
     data() {
         return {
@@ -70,7 +73,7 @@ export default ({
         this.$nextTick(() => {
             // 页面加载完成后执行的代码
             this.menu = this.$store.state.menu
-            this.isActive = this.$route.path === '/translate' ? this.menu[0].url : this.$route.path
+            this.isActive = this.$route.path === '/translate' && this.menu.length > 0 ? this.menu[0].url : this.$route.path
             this.$router.push(this.isActive)
             //   console.log(this.$route.path)
             //   if(this.menu.length > 0){
@@ -96,7 +99,7 @@ export default ({
             }
         },
     },
-})
+}
 </script>
 
 <style lang="less" scoped>

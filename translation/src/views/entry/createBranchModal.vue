@@ -154,7 +154,6 @@
           <ImportButton
             size="small"
             buttonTitle="配置新增"
-            :department="user.department"
             @configList="createOtherProduct"
           />
           <!-- <a-button type="primary" size="small" @click="addIgnore">
@@ -374,7 +373,6 @@ export default {
     const cachedLanguages = localStorage.getItem("createBranchLanguages");
     return {
       modalWidth: "1000px",
-      user: null,
       ip: null,
       codeBranch: "",
       translateTypes: cachedLanguages
@@ -624,7 +622,7 @@ export default {
     getIPs() {
       this.ipOptions = [];
       getI18nAdress().then((res) => {
-        res.data.list.forEach((item) => {
+        res.data?.list?.forEach((item) => {
           let ip = {
             label: item.ip,
             value: item.ip,
@@ -652,14 +650,15 @@ export default {
         parentId: this.treeNode.key,
         codeBranch: this.codeBranch,
       };
+      const defaultUser = this.$store.state.user?.userName;
       const newTask = {
         state: "0",
-        department: this.user.department,
-        creator: this.user.userName, // 任务管理员-创建人-归档
-        developer: this.user.userName, // 开发员
-        entryAuditor: this.user.userName, // 词条审核员
-        translator: this.user.userName, // 翻译员
-        translationAuditor: this.user.userName, // 翻译审核员
+        department: this.$store.state.user?.department,
+        creator: defaultUser, // 任务管理员-创建人-归档
+        developer: defaultUser, // 开发员
+        entryAuditor: defaultUser, // 词条审核员
+        translator: defaultUser, // 翻译员
+        translationAuditor: defaultUser, // 翻译审核员
         translateType: "英文",
         versionId: null,
         versionName: null,

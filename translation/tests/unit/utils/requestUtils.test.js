@@ -4,6 +4,9 @@ import { message } from 'ant-design-vue'
 
 // Mock ant-design-vue
 vi.mock('ant-design-vue', () => ({
+  default: {
+    install: vi.fn()
+  },
   message: {
     error: vi.fn()
   }
