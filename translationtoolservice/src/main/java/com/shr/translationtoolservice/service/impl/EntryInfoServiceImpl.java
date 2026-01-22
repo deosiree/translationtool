@@ -4088,8 +4088,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     private boolean containsRestrictedFieldNames(Collection<String> fieldNames){
         for(String fieldName : fieldNames){
             if(ConstantInterface.constructEntryName().containsKey(fieldName)){
-                return true;
+                continue;
             }
+            return true;
         }
         return false;
     }
@@ -4103,7 +4104,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             if(fileInputStreamEntitiy == null){
                 return UpdateEntryInfoByFileVO.newInstance("更新词条信息失败", ExceptionVO.newInstance("没有提供更新词条的文件", "请检查是否提供词条文件"));
             }
-            Collection<EntryInfoEntity> entryInfos = this.parseFileToEntryInfos(fileInputStreamEntitiy, null);   
+            Collection<EntryInfoEntity> entryInfos = this.parseFileToEntryInfos(fileInputStreamEntitiy, null);  // 属性为null: 没有对应的列，单元格没有值   
             if(entryInfos == null){
                 return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("解析文件失败, 未获取词条信息","检查提供的文件格式是否存在异常"));
             }
