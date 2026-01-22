@@ -417,7 +417,7 @@ import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
 import Dictionary from "@/views/entry/dictionary.vue";
-import { message, Modal } from "ant-design-vue";
+import { message, Modal, notification } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import { getLanguage } from "@/http/api/translate";
@@ -1450,14 +1450,17 @@ export default {
       this.columns.forEach((column) => {
         if (validateArrSum.includes(column.dataIndex)) {
           formRefNameList.push(
-            `form${id.replaceAll("-", "")}${column.dataIndex}`
+            {
+              refName: `form${id.replaceAll("-", "")}${column.dataIndex}`,
+              columnValue: column.dataIndex,
+            }
           );
         }
       });
       try {
-        for (const formRefName of formRefNameList) {
+        for (const { refName, columnValue } of formRefNameList) {
           // 使用校验规则
-          await useRefRules(this.$refs, formRefName);
+          await useRefRules(this.$refs, refName, columnValue);
         }
         // 所有表单校验通过，执行后续逻辑
         if (id.startsWith("new") || id.startsWith("copy")) {
@@ -1487,6 +1490,30 @@ export default {
         }
       } catch (err) {
         console.error(err);
+        // 校验失败：用 notification.error 聚合展示（兼容 string/object/array）
+        const normalizeErrors = (e) => {
+          if (!e) return [];
+          if (typeof e === "string") return [{ columnName: "", errorMessage: e }];
+          if (Array.isArray(e)) return e;
+          if (typeof e === "object") return [e];
+          return [{ columnName: "", errorMessage: String(e) }];
+        };
+        const errorList = normalizeErrors(err).filter(Boolean);
+        const description = errorList
+          .map((item) => {
+            const col = item.columnName ? `${item.columnName}：` : "";
+            const msg = item.errorMessage || item.message || "";
+            return `${col}${msg}`;
+          })
+          .filter(Boolean)
+          .join("\n");
+        notification.error({
+          message: "校验失败",
+          description: description || "请检查输入内容",
+          duration: 5,
+        });
+        // 阻止后续保存
+        return;
       }
 
       // // 校验字段长度是否超限
