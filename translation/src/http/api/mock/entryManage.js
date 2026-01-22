@@ -28,9 +28,108 @@ function extractPayloadFromFormData(formData) {
 /**
  * 生成校验接口的响应（符合新 API 文档格式）
  * @param {Object} payload - 请求的 payload
+ * @param {string} mockType - Mock 类型：'success' | 'warning' | 'fail'，如果不指定则随机返回
  * @returns {Object} 校验响应
  */
-function generateValidateResponse(payload) {
+function generateValidateResponse(payload, mockType = null) {
+  // 如果指定了 mockType，则根据类型返回对应的响应
+  if (mockType === 'success') {
+    // 完全成功
+    return {
+      success: true,
+      canBackFill: true,
+      summary: {
+        totalOriginRows: 1200,
+        totalDedupRows: 300,
+        affectedRows: 1180,
+        willUpdateCells: 3500
+      },
+      issues: [],
+      previews: [],
+      attachments: {
+        issueLog: [],
+        invalidExcel: null
+      }
+    };
+  } else if (mockType === 'warning') {
+    // 有警告但可回填
+    const issues = [];
+    const hasAttachments = true;
+
+    const warnTypes = [
+      { type: 'EMPTY_VALUE_SKIP', fieldKey: 'englishTranslate', id: 'c321', message: '字段在去重后文件中为空，已跳过更新' },
+      { type: 'SPECIAL_CHAR_MISMATCH', fieldKey: 'englishTranslate', id: 'c322', message: '占位符不一致' },
+      { type: 'MAX_LENGTH_EXCEEDED', fieldKey: 'englishStatus', id: 'c323', message: '字段长度超出限制' }
+    ];
+
+    const selectedWarn = warnTypes[Math.floor(Math.random() * warnTypes.length)];
+    issues.push({
+      level: 'WARN',
+      type: selectedWarn.type,
+      id: selectedWarn.id,
+      fieldKey: selectedWarn.fieldKey,
+      message: selectedWarn.message
+    });
+
+    const response = {
+      success: true,
+      canBackFill: true,
+      summary: {
+        totalOriginRows: 1200,
+        totalDedupRows: 300,
+        affectedRows: 1180,
+        skippedRows: 20
+      },
+      issues: issues,
+      previews: [],
+      attachments: {
+        issueLog: []
+      }
+    };
+
+    if (hasAttachments) {
+      response.attachments.invalidExcel = {
+        fileName: 'backfill_invalid_rows.xlsx',
+        downloadUrl: '/api/backfill/validate/files/invalid-excel'
+      };
+    }
+
+    return response;
+  } else if (mockType === 'fail') {
+    // 致命错误，禁止回填
+    const fatalTypes = [
+      { type: 'MAPPING_MISSING_PARENT', message: '去重后 id 在映射文件中不存在' },
+      { type: 'CHECK_FIELDS_MISMATCH', message: 'Excel 中字段值与数据库不一致' },
+      { type: 'ORIGIN_ID_NOT_FOUND', message: '去重前 Excel 的 id 不存在于数据库' }
+    ];
+
+    const selectedFatal = fatalTypes[Math.floor(Math.random() * fatalTypes.length)];
+
+    return {
+      success: false,
+      canBackFill: false,
+      summary: {
+        totalOriginRows: 1200,
+        totalDedupRows: 300,
+        affectedRows: 0,
+        willUpdateCells: 0
+      },
+      issues: [
+        {
+          level: 'FATAL',
+          type: selectedFatal.type,
+          message: selectedFatal.message
+        }
+      ],
+      previews: [],
+      attachments: {
+        issueLog: [],
+        invalidExcel: null
+      }
+    };
+  }
+
+  // 如果没有指定类型，则随机返回（保持原有逻辑）
   const random = Math.random();
 
   // 70% 概率成功，30% 概率有警告或错误
@@ -48,7 +147,8 @@ function generateValidateResponse(payload) {
       issues: [],
       previews: [],
       attachments: {
-        issueLog: []
+        issueLog: [],
+        invalidExcel: null
       }
     };
   } else if (random < 0.7) {
@@ -108,6 +208,12 @@ function generateValidateResponse(payload) {
     return {
       success: false,
       canBackFill: false,
+      summary: {
+        totalOriginRows: 1200,
+        totalDedupRows: 300,
+        affectedRows: 0,
+        willUpdateCells: 0
+      },
       issues: [
         {
           level: 'FATAL',
@@ -117,7 +223,8 @@ function generateValidateResponse(payload) {
       ],
       previews: [],
       attachments: {
-        issueLog: []
+        issueLog: [],
+        invalidExcel: null
       }
     };
   }
@@ -207,8 +314,13 @@ export async function entryImportExcle_v2(params, data) {
 
 /**
  * Mock: 校验词条 (v2版本 - 新API)
- * @param {Object} params - 请求参数（通常为空对象）
- * @param {FormData} data - 表单数据，包含文件（originExcel, dedupExcel, mappingJson）和 payload
+ * @param {Object} params - 请求参数，可包含 mockType 字段用于控制返回类型
+ *   - mockType: 'success' | 'warning' | 'fail'，用于指定返回的响应类型
+ *     - 'success': 完全成功（success=true, canBackFill=true, issues=[]）
+ *     - 'warning': 有警告但可回填（success=true, canBackFill=true, issues有WARN级别）
+ *     - 'fail': 校验失败不可回填（success=false, canBackFill=false, issues有FATAL级别）
+ *     如果不指定 mockType，则随机返回
+ * @param {FormData} data - 表单数据，包含文件（dedupOriginExcel, dedupUpdateExcel, mappingJson）和 payload
  * @returns {Promise<Object>} 返回模拟的API响应（符合新 API 文档格式）
  */
 export async function entryValidate_v2(params, data) {
@@ -218,8 +330,11 @@ export async function entryValidate_v2(params, data) {
   // 从 FormData 中提取 payload（如果存在）
   const payload = extractPayloadFromFormData(data);
   
+  // 从 params 中获取 mockType（用于手动控制返回类型）
+  const mockType = params?.mockType || null;
+  
   // 生成符合新 API 文档的响应（直接返回数据段）
-  const response = generateValidateResponse(payload);
+  const response = generateValidateResponse(payload, mockType);
 
   return response;
 }

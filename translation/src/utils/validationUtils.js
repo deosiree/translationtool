@@ -4,6 +4,21 @@
  */
 import { cloneDeep } from 'lodash';
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
+import { entryParams } from "@/constants/commonParam.js";
+import { mapValueToLabel } from "@/utils/dataStructureUtils";
+
+/**
+ * 根据列 value 获取用户友好列名（label）
+ * - 数据来源：constants/commonParam.js -> entryParams.checkboxList（即 entry_checkboxList）
+ * - 找不到时回退为 value，避免出现空列名
+ * @param {string} value
+ * @returns {string}
+ */
+export function getColumnLabelByValue(value) {
+  if (!value) return "";
+  const label = mapValueToLabel([value], entryParams.checkboxList)[0];
+  return label || value;
+}
 
 /**
  * 计算字符串的字节长度，中文及部分中文符号按 2 字节计算，其他字符按 1 字节计算。
@@ -37,7 +52,11 @@ export function byteLength(str) {
  * 2. 翻译（具体语种english,chinese,...）:"foreignMaxByte"
  * @returns {number|null} - 最大长度，如果不存在则返回 null
  */
-export function getMaxLength(record, vm, colName = "foreignMaxByte") {
+export function getMaxLength(record_, vm, colName = "foreignMaxByte") {
+  let record = record_;
+  if (vm.editableData[record.id]) {// 若处于编辑态，则使用编辑态数据
+    record = vm.editableData[record.id];
+  }
   if (!record.classfy1) {
     // console.log("无一级分类", record)
     return record.maxLength || null;
@@ -62,7 +81,7 @@ export function getMaxLength(record, vm, colName = "foreignMaxByte") {
  * @param {string} refName - 用于从 refs 中获取目标表单引用的键名，如 'form1'、'editForm' 等
  * @returns {Promise<void>} - 返回一个 Promise，通常由调用方 await
  */
-export async function useRefRules(refs, refName) {
+export async function useRefRules(refs, refName, columnValue) {
   const formRef = refs[refName];
   if (formRef) {
     try {
@@ -71,7 +90,14 @@ export async function useRefRules(refs, refName) {
       return Promise.resolve();
     } catch (err) {
       // console.log("验证失败", err);// 不弹窗，通过ref提示
-      return Promise.reject(`编辑-保存校验失败:${err.errorFields[0].errors}`);
+      // 兼容：若传入 columnValue，则返回结构化错误供外层聚合展示；否则保持旧字符串格式
+      if (columnValue) {
+        const columnName = getColumnLabelByValue(columnValue);
+        const errors = err?.errorFields?.[0]?.errors || [];
+        const errorMessage = Array.isArray(errors) ? errors.join("；") : String(errors || "");
+        return Promise.reject({ columnName, errorMessage });
+      }
+      return Promise.reject(`编辑-保存校验失败:${err?.errorFields?.[0]?.errors}`);
     }
   }
   else {
@@ -94,6 +120,7 @@ export function setRefRules(vm, record, cols) {
   vm.rules[record.id] = {};
   for (const col of cols) {
     if (col === "entry") {
+      continue;// 不给词条列设置校验规则了
       vm.rules[record.id][col] = [
         { validator: validateRefRules(record, vm, "maxByte", "") },
         { required: true, message: "请输入!" },
@@ -123,6 +150,7 @@ export function validateRefRules(record, vm, colName, language) {
     const maxLength = getMaxLength(record, vm, colName);
     let length = byteLength(value);
     if (maxLength && length > maxLength) {
+      // 表单项内仍使用字符串以保证控件正常显示错误；外层聚合展示由 useRefRules/editSave 负责
       return Promise.reject(`允许最大字符数为${maxLength}(1中文=2字符)`);
     }
 
@@ -143,6 +171,7 @@ export function validateRefRules(record, vm, colName, language) {
         specialCharNum = res.data?.length ?? 0;
       } catch (err) { }
       if (specialCharNum > 0)
+        // 只要 res.data 非空即视为失败（后端返回 data 表示不通过）
         return Promise.reject(`特殊字符不一致\r\n(如%1翻译成% 1)`);
     }
 

@@ -45,11 +45,7 @@ export async function entryBatchImportExcel(translateTypes, formData) {
         await entryImportExcle(params, formData);
         msg.success.push(lang);
       } catch (error) {
-        // 响应拦截器会将 code !== 200 && code !== 205 的响应 reject
-        // 需要从 error.response 或 error.data 中提取数据
-        console.log(`${lang}导入响应：`, error);
-
-        // 尝试从 error.response.data 或 error.data 中提取数据
+        // console.log(`${lang}导入响应：`, error);
         const errorData = error?.response?.data || error?.data || error;
         const { code, data } = errorData || {};
 
@@ -75,7 +71,7 @@ export async function entryBatchImportExcel(translateTypes, formData) {
           msg.failed.get(errMsg).push(lang);
         } else {
           // 真正的错误
-          console.error(`${lang}导入失败：`, error);
+          // console.error(`${lang}导入失败：`, error);
           const errMsg = error?.message || error?.data?.message || "未知错误";
           if (!msg.failed.has(errMsg)) {
             msg.failed.set(errMsg, []);
@@ -165,12 +161,14 @@ export async function entryBatchImportExcel_V1_5(translateTypes, formData) {
         transType: lang,
       };
       try {
+        // console.log('更新V1.5 参数', params, formData);
+
         const res = await entryImportExcle(params, formData);
         success.push(lang);
         msgBylang.push({ lang: lang, code: res.code, ...res.data });
       } catch (error) {
         catchError = true;
-        console.log("错误信息", error, error.data, error.data.data);
+        console.log("错误信息: error", error, "error.data", error.data, "error.data.data", error.data.data);
         msgBylang.push({ lang: lang, code: error.code, ...error.data.data });
       }
     }
@@ -223,7 +221,7 @@ export async function entryBatchImportExcel_v2(dedupExcel, mappingJson, backfill
 
     // 构建FormData
     const formData = new FormData();
-    // 注意：更新接口不需要originExcel，后端只需要dedupExcel和mappingJson就能回填
+    // 注意：更新接口不需要dedupOriginExcel，后端只需要dedupUpdateExcel和mappingJson就能回填
     formData.append("dedupExcel", dedupExcel);
     if (mappingJson) {
       formData.append("mappingJson", mappingJson);
@@ -262,7 +260,7 @@ export async function entryBatchImportExcel_v2(dedupExcel, mappingJson, backfill
 
 /**
  * 校验词条 (v2版本 - 新API)
- * @param {File} originExcel - 去重前Excel文件
+ * @param {File} dedupOriginExcel - 去重后送翻前Excel文件
  * @param {File} dedupExcel - 去重后Excel文件
  * @param {File|null} mappingJson - 映射JSON文件（可选）
  * @param {Array<string>} checkFields - 校验字段列表（如["entry", "comment", "tag"]）
@@ -270,32 +268,47 @@ export async function entryBatchImportExcel_v2(dedupExcel, mappingJson, backfill
  * @param {Object} options - 全局配置和可选校验任务
  *   - emptyStringAsValue: boolean - 是否将空字符串视为有效值
  *   - failFast: boolean - 是否在首次FATAL错误时立即终止
+ * 
  *   - checkSpecialChar: boolean - 是否启用特殊字符校验（可选）
  *   - checkMaxLength: boolean - 是否启用长度校验（可选）
  * @returns {Promise<Object>} 返回校验结果对象，包含 {success, canBackfill, summary, issues, preview, attachments}
  */
-export async function entryValidate_v2(originExcel, dedupExcel, mappingJson, checkFields, backfillFields, options = {}) {
+export async function entryValidate_v2(dedupOriginExcel, dedupUpdateExcel, mappingJson, checkFields, backfillFields, options = {}) {
   try {
-    console.log('entryValidate_v2 参数', { originExcel, dedupExcel, mappingJson, checkFields, backfillFields, options });
+    console.log('entryValidate_v2 参数', { dedupOriginExcel, dedupUpdateExcel, mappingJson, checkFields, backfillFields, options });
 
     // 构建FormData
     const formData = new FormData();
-    formData.append("originExcel", originExcel);
-    formData.append("dedupExcel", dedupExcel);
+    formData.append("dedupOriginExcel", dedupOriginExcel);
+    formData.append("dedupUpdateExcel", dedupUpdateExcel);
     if (mappingJson) {
       formData.append("mappingJson", mappingJson);
     }
 
-    // 构建rules数组
-    const rules = [
+    // 构建options数组（全局配置）
+    const options_ = {
+      emptyStringAsValue: options.emptyStringAsValue !== undefined ? options.emptyStringAsValue : true,
+      failFast: options.failFast !== undefined ? options.failFast : false,
+    };
+
+    // 构建rules数组（校验规则）
+    const rules_ = [
       {
-        taskType: "checkFields",
+        taskType: "checkFields",// 校验任务1（校验 Excel 与数据库中核心字段的一致性，用于防止错批次、错表或人工篡改，例如：id与词条匹配）
         params: {
           checkFields: checkFields || []
         }
       },
       {
-        taskType: "backfillFields",
+        taskType: "filterIdMap",// 校验任务2（去重后的翻译与映射文件的id映射是否错误）
+        params: {}
+      },
+      {
+        taskType: "IdMatch",// 校验任务3（送翻后的翻译文件中，存在异常id，不在送翻前的翻译文件中）
+        params: {}
+      },
+      {
+        taskType: "backfillFields",// 校验任务4（校验 Excel 中是否存在指定用于回填更新的业务字段列）
         params: {
           backfillFields: backfillFields || []
         }
@@ -303,32 +316,33 @@ export async function entryValidate_v2(originExcel, dedupExcel, mappingJson, che
     ];
 
     // 添加可选的校验任务
-    if (options.checkSpecialChar) {
-      rules.push({
-        taskType: "checkSpecialChar",
-        params: {}
-      });
-    }
-    if (options.checkMaxLength) {
-      rules.push({
-        taskType: "checkMaxLength",
-        params: {}
-      });
+    if (options.translateAttributes) {
+      if (options.checkSpecialChar) {
+        rules_.push({
+          taskType: "checkSpecialChar",
+          params: {
+            translateAttributes: options.translateAttributes,
+          }
+        });
+      }
+      if (options.checkMaxLength) {
+        rules_.push({
+          taskType: "checkMaxLength",
+          params: {
+            translateAttributes: options.translateAttributes,
+          }
+        });
+      }
     }
 
     // 构建payload JSON
     const payload = {
-      options: {
-        emptyStringAsValue: options.emptyStringAsValue !== undefined ? options.emptyStringAsValue : true,
-        failFast: options.failFast !== undefined ? options.failFast : false,
-      },
-      rules: rules
+      options: options_,
+      rules: rules_
     };
     formData.append("payload", JSON.stringify(payload));
 
-    // 调用API
-    // params: {} - 无URL query参数
-    // data: formData - FormData包含所有multipart数据（文件+payload）
+    // console.log('校验 参数', {}, formData, payload);
     const response = await entryValidateApi_v2({}, formData);
 
     // 直接返回API响应
@@ -341,3 +355,15 @@ export async function entryValidate_v2(originExcel, dedupExcel, mappingJson, che
   }
 }
 
+/**
+ * 根据 accept 字符串（如 ".csv"）从类型列表反查 value（如 "csv"），供文件类型选择器等复用。
+ * @param {string} accept - accept 字符串，如 ".csv"、".xls,.xlsx"
+ * @param {Array<{value: string, accept: string}>} types - 类型列表，每项含 value、accept
+ * @returns {string|null} 匹配的 value，未匹配则 null
+ */
+export function resolveImportTypeFromAccept(accept, types) {
+  if (!accept || typeof accept !== 'string') return null;
+  if (!Array.isArray(types)) return null;
+  const t = types.find((type) => type && type.accept === accept.trim());
+  return t ? t.value : null;
+}

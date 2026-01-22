@@ -67,6 +67,54 @@ export async function downloadJsonFile(data, fileName = "data", choosePath = fal
 }
 
 /**
+ * 通用文件上传处理函数
+ * 用于处理 Ant Design Vue Upload 组件的文件上传事件
+ * @param {Object} formModel - 表单模型对象（Vue 响应式对象）
+ * @param {Object} info - Upload 组件的 change 事件信息对象
+ *   - info.fileList: 文件列表数组
+ *   - info.file: 当前文件对象
+ * @param {string} fileKey - 表单模型中存储单个文件的键名
+ * @param {string} fileListKey - 表单模型中存储文件列表的键名
+ * @returns {void}
+ * @example
+ * // 在组件中使用
+ * import { handleFileUpload } from "@/utils/fileUtils";
+ * 
+ * handleIdMappingUpload(info) {
+ *   handleFileUpload(this.formModel, info, "relationFile", "relationFileList");
+ * }
+ */
+export function handleFileUpload(formModel, info, fileKey, fileListKey) {
+  formModel[fileListKey] = info.fileList;
+  if (info.fileList.length === 0) {
+    formModel[fileKey] = null;
+  } else {
+    formModel[fileKey] = info.file;
+  }
+}
+
+/**
+ * 通用文件移除处理函数
+ * 用于移除表单模型中的文件和文件列表
+ * @param {Object} formModel - 表单模型对象（Vue 响应式对象）
+ * @param {string} fileKey - 表单模型中存储单个文件的键名
+ * @param {string} fileListKey - 表单模型中存储文件列表的键名
+ * @returns {boolean} 始终返回 true，用于 Upload 组件的 remove 事件处理
+ * @example
+ * // 在组件中使用
+ * import { removeFile } from "@/utils/fileUtils";
+ * 
+ * removeIdMappingFile() {
+ *   return removeFile(this.formModel, "relationFile", "relationFileList");
+ * }
+ */
+export function removeFile(formModel, fileKey, fileListKey) {
+  formModel[fileKey] = null;
+  formModel[fileListKey] = [];
+  return true;
+}
+
+/**
  * 处理blob响应并触发下载（通用下载处理函数）
  * @param {Object} response - axios响应对象（responseType: 'blob'）
  * @param {string} fileName - 文件名（可选，从响应头提取）

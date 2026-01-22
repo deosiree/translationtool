@@ -4,7 +4,7 @@
   </a-button>
 
   <CustomModal :visible="internalVisible" :okLoading="loading" :modalTitle="modalTitle" @handleClose="handleClose"
-    @handleOK="handleOK">
+    @handleOK="handleOK" style="width: 800px;">
     <div class="content">
       <a-form ref="backFillForm" :model="formModel">
         <!-- 共同部分：文件类型 -->
@@ -14,27 +14,30 @@
           </a-select>
         </a-form-item>
 
-        <!-- 共同部分：更新字段（回填字段） -->
-        <a-form-item label="更新字段" name="backfillFields" :rules="[{ required: true, message: '请选择!' }]">
+        <!-- 共同部分：回填字段（回填字段） -->
+        <a-form-item label="回填字段" name="backfillFields" :rules="[{ required: true, message: '请选择!' }]">
           <div style="display: flex; justify-content: space-between;">
-            <a-select mode="multiple" v-model:value="formModel.backfillFields" :options="fieldOptions"
-              placeholder="请选择更新字段" allowClear style="flex: 1; margin-right: 8px;" />
+            <a-select mode="multiple" v-model:value="formModel.backfillFields" :options="languageOptions"
+              :fieldNames="{ label: 'name', value: 'value' }" placeholder="请选择回填字段" allowClear
+              style="flex: 1; margin-right: 8px;" />
             <a-button type="link" size="small" @click="selectAllBackfillFields" style="
               font-size: smaller;margin-top:0">全选</a-button>
           </div>
         </a-form-item>
 
-        <!-- 校验模式专用：去重前Excel（只有校验时才需要，用于和去重后Excel+映射文件生成的总文件比较） -->
-        <a-form-item v-if="formModel.enableValidate" label="去重前Excel" name="originExcel"
-          :rules="[{ required: true, validator: validateOriginExcel }]">
+        <!-- 校验模式专用：去重后送翻前文件（只有校验时才需要，用于和去重后送翻后文件+映射文件生成的总文件比较） -->
+        <a-form-item v-if="formModel.enableValidate" label="去重文件（去重后，送翻前）" name="dedupOriginExcel"
+          :rules="[{ required: true, validator: validatededupOriginExcel }]">
           <a-upload name="file" :beforeUpload="beforeUpload" :accept="backFillAccept" :max-count="1"
-            :fileList="formModel.originExcelList" @change="handleOriginExcelUpload" @remove="removeOriginExcel">
-            <a-button type="primary" size="small" @click="handleOriginExcelChooseClick">选择</a-button>
+            :fileList="formModel.dedupOriginExcelList" @change="handlededupOriginExcelUpload"
+            @remove="removededupOriginExcel">
+            <a-button type="primary" size="small" @click="handlededupOriginExcelChooseClick">选择</a-button>
           </a-upload>
         </a-form-item>
 
-        <!-- 共同部分：去重后Excel（待回填文件） -->
-        <a-form-item label="去重后Excel" name="dedupExcel" :rules="[{ required: true, validator: validateBackFillFile }]">
+        <!-- 共同部分：去重后送翻后文件（待回填文件） -->
+        <a-form-item label="回填文件（去重后，送翻后）" name="dedupUpdateExcel"
+          :rules="[{ required: true, validator: validateBackFillFile }]">
           <a-upload name="file" :beforeUpload="beforeUpload" :accept="backFillAccept" :max-count="1"
             :fileList="formModel.backFillFileList" @change="handleBackFillUpload" @remove="removeBackFillFile">
             <a-button type="primary" size="small" @click="handleBackFillChooseClick">选择</a-button>
@@ -55,9 +58,9 @@
         <!-- 共同部分：勾选框（flex布局，尽量一行，摆不下自动换行） -->
         <a-form-item label="选项">
           <a-row style="width:100%;display:flex;gap:8px;flex-wrap:wrap;">
+            <a-checkbox v-model:checked="formModel.enableValidate">校验</a-checkbox>
             <a-checkbox v-model:checked="formModel.emptyStringAsValue">导入空值</a-checkbox>
             <a-checkbox v-model:checked="formModel.failFast">失败中止</a-checkbox>
-            <a-checkbox v-model:checked="formModel.enableValidate">校验</a-checkbox>
           </a-row>
         </a-form-item>
 
@@ -66,7 +69,7 @@
           <!-- 校验字段 -->
           <a-form-item label="校验字段" name="checkFields"
             :rules="formModel.enableValidate ? [{ required: true, message: '请选择!' }] : []">
-            <a-select mode="multiple" v-model:value="formModel.checkFields" :options="checkFieldOptions"
+            <a-select mode="multiple" v-model:value="formModel.checkFields" :options="fieldOptions"
               placeholder="请选择校验字段" allowClear />
           </a-form-item>
 
@@ -77,31 +80,45 @@
               <a-checkbox v-model:checked="formModel.checkMaxLength">长度超限校验</a-checkbox>
             </a-row>
           </a-form-item>
+
+          <!-- 校验选项共用：任一规则勾选时展示“翻译列语种” -->
+          <a-form-item v-if="formModel.checkSpecialChar || formModel.checkMaxLength" label="翻译列语种"
+            name="translateAttrs">
+            <div style="display: flex; justify-content: space-between;">
+              <a-select mode="multiple" v-model:value="formModel.translateAttrs" :options="languageOptions"
+                :fieldNames="{ label: 'name', value: 'value' }" placeholder="请选择翻译列语种" allowClear
+                style="flex: 1; margin-right: 8px;" />
+              <a-button type="link" size="small" @click="selectAllValidateTranslateAttrs" style="
+                font-size: smaller;margin-top:0">全选</a-button>
+            </div>
+          </a-form-item>
         </template>
       </a-form>
     </div>
   </CustomModal>
 
-  <!-- 失败信息模态框 -->
-  <CustomModal :visible="failedInfoVisible"
-    :modalTitle="formModel.enableValidate ? '校验结果' : (overallStatus === 'success' ? '更新结果' : '更新结果（部分失败）')"
-    :showOk="false" @handleClose="failedInfoClose">
-    <div class="failed-content">
-      <!-- 校验模式：显示summary信息 -->
-      <div v-if="formModel.enableValidate && validationSummary" style="margin-bottom: 16px;">
+  <!-- 校验结果模态框 -->
+  <CustomModal :visible="validationVisible" modalTitle="校验结果" :showOk="false" @handleClose="validationClose">
+    <div class="validation-content">
+      <!-- 显示校验通过提示 -->
+      <div v-if="isValidationSuccess" style="margin-bottom: 16px;">
+        <a-alert message="校验通过" type="success" show-icon description="所有校验项目均通过，可以继续回填" />
+      </div>
+
+      <!-- 显示summary信息 -->
+      <div v-if="validation.summary" style="margin-bottom: 16px;">
         <a-descriptions :column="2" bordered size="small">
-          <a-descriptions-item label="去重前行数">{{ validationSummary.totalOriginRows || 0 }}</a-descriptions-item>
-          <a-descriptions-item label="去重后行数">{{ validationSummary.totalDedupRows || 0 }}</a-descriptions-item>
-          <a-descriptions-item label="受影响行数">{{ validationSummary.affectedRows || 0 }}</a-descriptions-item>
-          <a-descriptions-item label="将更新单元格数">{{ validationSummary.willUpdateCells || 0 }}</a-descriptions-item>
+          <a-descriptions-item label="去重前行数">{{ validation.summary.totalOriginRows || 0 }}</a-descriptions-item>
+          <a-descriptions-item label="去重后行数">{{ validation.summary.totalDedupRows || 0 }}</a-descriptions-item>
+          <a-descriptions-item label="受影响行数">{{ validation.summary.affectedRows || 0 }}</a-descriptions-item>
+          <a-descriptions-item label="将更新单元格数">{{ validation.summary.willUpdateCells || 0 }}</a-descriptions-item>
         </a-descriptions>
       </div>
 
-      <!-- 校验模式：显示issues列表 -->
-      <div v-if="formModel.enableValidate && validationIssues && validationIssues.length > 0"
-        style="margin-bottom: 16px;">
+      <!-- 显示issues列表 -->
+      <div v-if="validation.issues && validation.issues.length > 0" style="margin-bottom: 16px;">
         <div style="margin-bottom: 8px; font-weight: 500;">校验问题列表：</div>
-        <a-table :columns="issueColumns" :dataSource="validationIssues" :pagination="{ pageSize: 10 }" size="small"
+        <a-table :columns="issueColumns" :dataSource="validation.issues" :pagination="{ pageSize: 10 }" size="small"
           :scroll="{ y: 200 }">
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'level'">
@@ -111,92 +128,95 @@
             </template>
           </template>
         </a-table>
-        <div style="margin-top: 8px;">
-          <a-button type="link" @click="downloadValidationIssues">下载校验问题JSON</a-button>
-        </div>
       </div>
 
-      <!-- 校验模式：显示attachments下载 -->
-      <div
-        v-if="formModel.enableValidate && validationAttachments && Array.isArray(validationAttachments.issueLog) && validationAttachments.issueLog.length > 0"
-        style="margin-bottom: 16px;">
-        <div v-if="validationAttachments.invalidExcel" style="margin-bottom: 8px;">
-          <span style="margin-right: 8px;">{{ validationAttachments.invalidExcel.fileName }}：</span>
+      <!-- 显示attachments下载 -->
+      <div v-if="hasValidationInfo" style="margin-bottom: 16px;">
+        <div>
+          <span style="margin-right: 8px;">异常信息（全部）：</span>
           <a-button type="link"
-            @click="downloadAttachment(validationAttachments.invalidExcel.downloadUrl, validationAttachments.invalidExcel.fileName)">下载</a-button>
+            @click="downloadAttachment(validation.attachments.issueLog.downloadUrl, validation.attachments.issueLog.fileName)">下载</a-button>
         </div>
-        <div v-if="validationAttachments.issueLog">
-          <span style="margin-right: 8px;">{{ validationAttachments.issueLog.fileName }}：</span>
+        <div v-if="validation.attachments.invalidExcel && validation.attachments.invalidExcel.downloadUrl"
+          style="margin-bottom: 8px;">
+          <span style="margin-right: 8px;">失败词条（部分）：</span>
           <a-button type="link"
-            @click="downloadAttachment(validationAttachments.issueLog.downloadUrl, validationAttachments.issueLog.fileName)">下载</a-button>
+            @click="downloadAttachment(validation.attachments.invalidExcel.downloadUrl, validation.attachments.invalidExcel.fileName)">下载</a-button>
         </div>
       </div>
+    </div>
+    <template #leftBottomBtn>
+      <a-button v-if="validation.canBackFill" type="primary" :loading="loading" @click="handleContinueBackFill">
+        继续回填
+      </a-button>
+    </template>
+  </CustomModal>
 
-      <!-- 导入模式：按语种分组的失败信息展示 -->
-      <template
-        v-if="!formModel.enableValidate && failedEntryInfosByLang && Object.keys(failedEntryInfosByLang).length > 0">
-        <a-tabs v-model:activeKey="activeFailedLangTab" type="card" class="failure-tabs">
-          <a-tab-pane v-for="(failedInfos, langKey) in failedEntryInfosByLang" :key="langKey">
-            <template #tab>
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <span :style="{ color: langCodeByLang[langKey] === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
-                  {{ langKey }}
-                </span>
+  <!-- 更新结果模态框 -->
+  <CustomModal :visible="updateVisible" modalTitle="更新结果" :showOk="false" @handleClose="updateClose">
+    <div class="update-content">
+      <!-- 按语种分组的失败信息展示 -->
+      <a-tabs v-if="detailsByLang && Object.keys(detailsByLang).length > 0" v-model:activeKey="activeFailedLangTab"
+        type="card" class="failure-tabs">
+        <a-tab-pane v-for="(detail, langKey) in detailsByLang" :key="langKey">
+          <template #tab>
+            <span style="display:inline-flex;align-items:center;gap:6px;">
+              <span :style="{ color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
+                {{ langKey }}
               </span>
-            </template>
-            <!-- 更新结果的globalMessage -->
-            <div v-if="globalMessageByLang[langKey]"
-              :style="{ marginBottom: '16px', color: langCodeByLang[langKey] === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
-              <a-alert :description="globalMessageByLang[langKey]"
-                :type="langCodeByLang[langKey] === 200 ? 'success' : 'error'" show-icon />
-            </div>
-            <!-- 更新结果的错误信息下载 -->
-            <a-card class="failure-lang-card" v-if="langCodeByLang[langKey] === 201" :bordered="true">
-              <template #title>
-                <div class="failure-card-title">
-                  <exclamation-circle-outlined class="failure-icon" />
-                  <span class="lang-name">{{ langKey }}</span>
-                  <a-badge :count="(failedInfos?.length || 0) + (exceptionVosByLang[langKey]?.length || 0)"
-                    :number-style="{ backgroundColor: langCodeByLang[langKey] === 200 ? '#52c41a' : '#ff4d4f' }"
-                    :overflow-count="999" />
-                </div>
-              </template>
-
-              <div class="failure-card-content">
-                <div v-if="failedInfos && failedInfos.length > 0" class="failure-item">
-                  <div class="failure-label">
-                    <file-excel-outlined class="item-icon" />
-                    <span>部分更新失败的词条</span>
-                    <a-tag color="error" style="margin-left: 8px;">{{ failedInfos.length }} 条</a-tag>
-                  </div>
-                  <a-button type="primary" size="small" danger @click="downloadFailedEntriesByLang(langKey)">
-                    <template #icon><download-outlined /></template>
-                    下载
-                  </a-button>
-                </div>
-
-                <div v-if="exceptionVosByLang[langKey] && exceptionVosByLang[langKey].length > 0" class="failure-item">
-                  <div class="failure-label">
-                    <warning-outlined class="item-icon" />
-                    <span>全部异常信息</span>
-                    <a-tag color="warning" style="margin-left: 8px;">{{ exceptionVosByLang[langKey].length }} 条</a-tag>
-                  </div>
-                  <a-button type="primary" size="small" danger @click="downloadExceptionInfosByLang(langKey)">
-                    <template #icon><download-outlined /></template>
-                    下载
-                  </a-button>
-                </div>
+            </span>
+          </template>
+          <!-- 更新结果的globalMessage -->
+          <div v-if="detail.globalMessage"
+            :style="{ marginBottom: '16px', color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
+            <a-alert :description="detail.globalMessage" :type="(detail.code || 201) === 200 ? 'success' : 'error'"
+              show-icon />
+          </div>
+          <!-- 更新结果的错误信息下载 -->
+          <a-card class="failure-lang-card" v-if="(detail.code || 201) === 201" :bordered="true">
+            <template #title>
+              <div class="failure-card-title">
+                <exclamation-circle-outlined class="failure-icon" />
+                <span class="lang-name">{{ langKey }}</span>
+                <a-badge :count="(detail.failedEntryInfos?.length || 0) + (detail.exceptionVos?.length || 0)"
+                  :number-style="{ backgroundColor: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f' }"
+                  :overflow-count="999" />
               </div>
-            </a-card>
-          </a-tab-pane>
-        </a-tabs>
-      </template>
+            </template>
+
+            <div class="failure-card-content">
+              <div v-if="detail.exceptionVos && detail.exceptionVos.length > 0" class="failure-item">
+                <div class="failure-label">
+                  <warning-outlined class="item-icon" />
+                  <span>异常信息（全部）</span>
+                  <a-tag color="warning" style="margin-left: 8px;">{{ detail.exceptionVos.length }} 条</a-tag>
+                </div>
+                <a-button type="primary" size="small" danger @click="downloadExceptionInfosByLang(langKey)">
+                  <template #icon><download-outlined /></template>
+                  下载
+                </a-button>
+              </div>
+              <div v-if="detail.failedEntryInfos && detail.failedEntryInfos.length > 0" class="failure-item">
+                <div class="failure-label">
+                  <file-excel-outlined class="item-icon" />
+                  <span>失败词条（部分）</span>
+                  <a-tag color="error" style="margin-left: 8px;">{{ detail.failedEntryInfos.length }} 条</a-tag>
+                </div>
+                <a-button type="primary" size="small" danger @click="downloadFailedEntriesByLang(langKey)">
+                  <template #icon><download-outlined /></template>
+                  下载
+                </a-button>
+              </div>
+            </div>
+          </a-card>
+        </a-tab-pane>
+      </a-tabs>
     </div>
   </CustomModal>
 
   <!-- 隐藏的 ExportButton，用于导出失败词条 -->
   <ExportButton ref="failedExportRef" :fileNamePrefix="failedExportLang + '更新失败_'" :dataSource="failedExportDataSource"
-    :fieldOptions_="fieldOptions" :defaultStatusCheck="false" :hideButton="true"
+    :fieldOptions_="languageOptions" :defaultStatusCheck="false" :hideButton="true"
     @afterClose="handleFailedExportAfterClose" />
 </template>
 
@@ -210,12 +230,14 @@ import {
 } from '@ant-design/icons-vue';
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
-import { entryBatchImportExcel_V1_5, entryValidate_v2 } from "@/utils/excelUtils";
-import { downloadJsonFile, downloadBlobResponse } from "@/utils/fileUtils";
+import { entryBatchImportExcel_V1_5, entryValidate_v2, resolveImportTypeFromAccept } from "@/utils/excelUtils";
+import { downloadJsonFile, downloadBlobResponse, handleFileUpload, removeFile } from "@/utils/fileUtils";
 import { downloadFileFromUrl } from "@/http/api/download";
+import commonParam from "@/constants/commonParam.js";
 import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
-import { mapLabelToValue, mapValueToLabel } from "@/utils/dataStructureUtils";
+import { mapValueToName } from "@/utils/dataStructureUtils";
+import { handleErrorNotification } from "@/utils/notificationUtils";
 export default {
   name: "BackFillModal_v1_5",
   components: {
@@ -233,25 +255,13 @@ export default {
       default: false,
       required: false, // 按钮模式下不需要 visible prop
     },
-    translateTypes: {
-      type: Array,
-      default: () => [],
-    },
     mode: {
       type: String,
       default: "modal", // 'button' 或 'modal'
     },
-    functionMode: {
-      type: String,
-      default: "updateTranslation", // 'updateTranslation' 或 'validate'
-    },
     showFileTypeSelect: {
       type: Boolean,
       default: false,
-    },
-    defaultFileType: {
-      type: String,
-      default: null, // 'csv' 或 'excel'，可选
     },
     needRelationFile: {
       type: Boolean,
@@ -271,31 +281,30 @@ export default {
     },
     defaultAccept: {
       type: String,
-      default: null, // 默认 accept 值，由父组件传递（如 ".csv"），不传则为 null
+      default: null, // 如 ".csv"、".xls,.xlsx"。有选择器时据此从 importTypes 反查 value 作默认选中；无选择器时直接作上传 accept 及扩展名校验。
     },
   },
   data() {
     return {
       internalVisible: false, // 内部控制的 visible（按钮模式使用）
       formModel: {
-        relationFile: null,
-        backFillFile: null,
-        language: [],
-        relationFileList: [],// id映射文件
-        backFillFileList: [],// 去重后文件
         importType: null, // 文件类型（csv/excel）
-        backfillFields: [],// 更新字段
-        // 新API通用字段（两种模式都需要）
-        originExcel: null,        // 去重前Excel
-        originExcelList: [],      // 去重前Excel文件列表
+        relationFile: null,
+        relationFileList: [],// id映射文件
+        backFillFile: null,
+        backFillFileList: [],// 去重后文件
+        backfillFields: [],// 回填字段
         // 选项勾选框
-        emptyStringAsValue: true,  // 导入空值
+        enableValidate: true,    // 校验（勾选后才显示校验相关字段）
+        emptyStringAsValue: false,  // 导入空值
         failFast: false,          // 失败中止
-        enableValidate: false,    // 校验（勾选后才显示校验相关字段）
         // 校验模式专用字段（勾选了enableValidate后才使用）
+        dedupOriginExcel: null,        // 去重后送翻前文件
+        dedupOriginExcelList: [],      // 去重后送翻前文件列表
         checkFields: [],          // 校验字段（如["entry", "comment", "tag"]）
         checkSpecialChar: false,  // 特殊字符校验
         checkMaxLength: false,    // 长度校验
+        translateAttrs: [],// 翻译列语种
       },
       loading: false,
       idMappingAccept: ".json",
@@ -303,39 +312,36 @@ export default {
         { label: "csv", value: "csv", accept: ".csv" },
         { label: "excel", value: "excel", accept: ".xls,.xlsx" },
       ],
-      // 失败信息相关状态
-      failedEntryInfos: [], // 可重试失败词条数组
-      exceptionVos: [], // 异常信息数组
-      failedEntryInfosByLang: {}, // 按语种分组的失败词条信息 { "英文": [...], "俄文": [...] }
-      exceptionVosByLang: {},     // 按语种分组的异常信息 { "英文": [...], "俄文": [...] }
-      globalMessage: "", // 总体错误提示信息
-      globalMessageByLang: {}, // 按语种分组的globalMessage { "英文": "...", "俄文": "..." }
-      langCodeByLang: {}, // 按语种分组的响应 code { "英文": 200, "西文": 201 }
-      overallStatus: "partial-error", // 导入结果整体状态：success / partial-error
-      failedInfoVisible: false, // 控制失败信息模态框显示
-      failedExportDataSource: [], // 用于导出失败词条的数据源
-      failedExportLang: "", // 用于导出失败词条的文件名前缀
-      failedExportDataSourceBackup: null, // 导出失败词条时临时备份原数据源
-      activeFailedLangTab: '', // 当前激活的失败语种标签
-      languageNames: ["英文", "俄文", "西文", "法文", "中文"], // v1.5支持的语种名称
-      fieldOptions: [], // 初始值，会在mounted中从entryParams.exportFields更新并过滤
-      // 校验字段选项（硬编码，通常为["entry", "comment", "tag"]）
-      checkFieldOptions: [],
+      validationVisible: false, // 控制校验结果模态框显示
       // 校验结果相关状态
-      validationSummary: null, // 校验摘要信息
-      validationIssues: [], // 校验问题列表
-      validationAttachments: { issueLog: [], invalidExcel: null }, // 校验附件信息
+      validation: {
+        summary: null,        // 校验摘要信息
+        issues: [],           // 校验问题列表
+        attachments: { issueLog: [], invalidExcel: null }, // 校验附件信息
+        canBackFill: false,   // 是否可继续回填
+      },
       // issues表格列定义
       issueColumns: [
         { title: '级别', dataIndex: 'level', key: 'level', width: 80 },
+        { title: '描述', dataIndex: 'message', key: 'message', width: 300 },
         { title: '类型', dataIndex: 'type', key: 'type', width: 150 },
-        { title: '词条ID', dataIndex: 'id', key: 'id', width: 120 },
-        { title: '字段', dataIndex: 'fieldKey', key: 'fieldKey', width: 120 },
-        { title: '描述', dataIndex: 'message', key: 'message' },
       ],
+      updateVisible: false, // 控制更新结果模态框显示
+      detailsByLang: {}, // 失败信息相关状态（按语种聚合）{ "英文": { code, globalMessage, failedEntryInfos, exceptionVos } }
+      activeFailedLangTab: '', // 当前激活的失败语种标签
+      failedExportDataSource: [], // 用于导出失败词条的数据源
+      failedExportLang: "", // 用于导出失败词条的文件名前缀
+      // 回填字段(后续拓展后同校验字段),翻译列语种（语种名称，来自公共常量,name/value）
+      languageOptions: (commonParam && Array.isArray(commonParam.languageList)) ? commonParam.languageList : [],
     };
   },
   computed: {
+    // 校验字段选项（字段名称，来自公共常量,label/value），过滤掉翻译id字段
+    fieldOptions() {
+      const fields = (entryParams && entryParams.exportFields) ? entryParams.exportFields : [];
+      // 过滤掉包含"翻译id"的字段
+      return fields.filter(field => !field.label.includes('翻译id') && !field.value.includes('TransId'));
+    },
     // 回填文件的 accept：以 importType 为准（有选择器时），否则使用 defaultAccept
     backFillAccept() {
       if (this.showFileTypeSelect) {
@@ -346,6 +352,14 @@ export default {
         return selectedType ? selectedType.accept : null;
       }
       return this.defaultAccept;
+    },
+    // 判断校验是否完全成功（无任何问题）
+    isValidationSuccess() {
+      return this.validation.canBackFill && (!this.validation.issues || this.validation.issues.length === 0);
+    },
+    // 判断校验是否有异常信息
+    hasValidationInfo() {
+      return this.validation.attachments && (this.validation.attachments.invalidExcel || (this.validation.attachments.issueLog && this.validation.attachments.issueLog.downloadUrl));
     },
   },
   watch: {
@@ -359,6 +373,22 @@ export default {
         }
       }
     },
+    // 校验结果弹窗显示后，修复 aria-hidden 导致的焦点可访问性告警
+    validationVisible(newVal) {
+      if (newVal) {
+        setModalAriaHidden(this, document);
+        // 打开校验模态框时，关闭初始模态框
+        this.internalVisible = false;
+      }
+    },
+    // 更新结果弹窗显示后，修复 aria-hidden 导致的焦点可访问性告警
+    updateVisible(newVal) {
+      if (newVal) {
+        setModalAriaHidden(this, document);
+        // 打开更新模态框时，关闭校验模态框
+        this.validationVisible = false;
+      }
+    },
     "formModel.importType": {
       handler(newValue, oldValue) {
         if (newValue !== oldValue && this.showFileTypeSelect) {
@@ -370,13 +400,10 @@ export default {
     },
   },
   mounted() {
-    // 初始化 defaultFileType
-    if (this.defaultFileType && this.showFileTypeSelect) {
-      this.formModel.importType = this.defaultFileType;
-    }
-    // 根据functionMode初始化enableValidate（向后兼容）
-    if (this.functionMode === "validate") {
-      this.formModel.enableValidate = true;
+    // 有选择器且传了 defaultAccept：根据 accept 从 importTypes 反查 value，作为默认选中
+    if (this.defaultAccept && this.showFileTypeSelect) {
+      const v = resolveImportTypeFromAccept(this.defaultAccept, this.importTypes);
+      if (v) this.formModel.importType = v;
     }
     // 同步 visible
     if (this.mode === "modal") {
@@ -390,36 +417,9 @@ export default {
       // 按钮模式下，internalVisible 初始为 false
       this.internalVisible = false;
     }
-    // 初始化字段选项：v1.5只保留语种字段，直接使用语种名称作为label
-    this.$nextTick(() => {
-      this.checkFieldOptions = entryParams && entryParams.exportFields ? entryParams.exportFields : [];
-      // 从exportFields中查找语种字段，然后创建新的选项，label使用语种名称
-      this.fieldOptions = this.languageNames.map(langName => {
-        // 找到对应的字段标签（如"英文翻译"）
-        const fieldLabel = langName + "翻译";
-        // 从exportFields中查找对应的字段
-        const field = this.checkFieldOptions.find(item => item.label === fieldLabel);
-        // 返回新选项：label使用语种名称（如"英文"），value使用字段值（如"english"）
-        return {
-          label: langName,
-          value: field.value
-        };
-      });
-      console.log("fieldOptions", this.fieldOptions, "this.checkFieldOptions", this.checkFieldOptions)
-
-    });
-    console.log("fieldOptions", this.fieldOptions)
   },
   methods: {
-    // // 将“英文翻译”旧格式转换为语种名称，保持与API期望一致
-    // normalizeBackfillFieldLabel(label) {
-    //   if (!label) return "";
-    //   return label.endsWith("翻译") ? label.slice(0, -2) : label;
-    // },
-    normalizeBackfillFields(fields) {
-      return mapLabelToValue(fields, this.fieldOptions);
-      // return (fields || []).map((item) => this.normalizeBackfillFieldLabel(item)).filter(Boolean);
-    },
+    // ==================== 模态框控制 ====================
     // 按钮模式：点击按钮打开模态框
     handleButtonClick() {
       this.internalVisible = true;
@@ -427,36 +427,94 @@ export default {
       // 获取用户偏好
       this.queryBackfillFieldsPreference();
     },
-    // 通用文件上传处理
-    handleFileUpload(info, fileKey, fileListKey) {
-      this.formModel[fileListKey] = info.fileList;
-      if (info.fileList.length === 0) {
-        this.formModel[fileKey] = null;
+    // 内部关闭处理（不重置表单）
+    handleCloseInternal() {
+      // 关闭校验模态框（如果打开的话）
+      if (this.validationVisible) {
+        this.validationVisible = false;
+      }
+      // 关闭更新模态框（如果打开的话）
+      if (this.updateVisible) {
+        this.updateVisible = false;
+      }
+      if (this.mode === "button") {
+        this.internalVisible = false;
       } else {
-        this.formModel[fileKey] = info.file;
+        this.$emit("handleClose");
       }
     },
+    // 关闭处理（重置表单）
+    handleClose() {
+      this.resetForm();
+      this.handleCloseInternal();
+    },
+    resetForm() {
+      // 重置 importType：有选择器且传了 defaultAccept 时，根据 accept 反查 value，否则为 null
+      const importType = this.defaultAccept && this.showFileTypeSelect
+        ? resolveImportTypeFromAccept(this.defaultAccept, this.importTypes) : null;
 
+      this.formModel = {
+        relationFile: null,
+        backFillFile: null,
+        backfillFields: [],
+        relationFileList: [],
+        backFillFileList: [],
+        importType: importType,
+        dedupOriginExcel: null,
+        dedupOriginExcelList: [],
+        emptyStringAsValue: true,
+        failFast: false,
+        enableValidate: true,
+        checkFields: [],
+        checkSpecialChar: false,
+        checkMaxLength: false,
+        translateAttrs: [],
+      };
+      this.loading = false;
+      // 重置模态框的相关属性
+      this.validationClose();
+      this.updateClose();
+      if (this.$refs.backFillForm && typeof this.$refs.backFillForm.clearValidate === 'function') {
+        this.$refs.backFillForm.clearValidate();
+      }
+    },
+    // 关闭校验结果模态框
+    validationClose() {
+      this.validationVisible = false;
+      // 重置校验结果相关状态
+      this.validation = {
+        summary: null,
+        issues: [],
+        attachments: { issueLog: [], invalidExcel: null },
+        canBackFill: false,
+      };
+    },
+    // 关闭更新结果模态框
+    updateClose() {
+      this.updateVisible = false;
+      // 重置更新结果相关状态
+      this.detailsByLang = {};
+      this.failedExportDataSource = [];
+      this.activeFailedLangTab = '';
+    },
+
+    // ==================== 文件上传相关 ====================
     handleIdMappingUpload(info) {
-      this.handleFileUpload(info, "relationFile", "relationFileList");
+      handleFileUpload(this.formModel, info, "relationFile", "relationFileList");
     },
-
     handleBackFillUpload(info) {
-      this.handleFileUpload(info, "backFillFile", "backFillFileList");
+      handleFileUpload(this.formModel, info, "backFillFile", "backFillFileList");
     },
-
-    handleOriginExcelUpload(info) {
-      this.handleFileUpload(info, "originExcel", "originExcelList");
+    handlededupOriginExcelUpload(info) {
+      handleFileUpload(this.formModel, info, "dedupOriginExcel", "dedupOriginExcelList");
     },
-
-    handleOriginExcelChooseClick(e) {
+    handlededupOriginExcelChooseClick(e) {
       // accept 未就绪时拦截，避免弹出系统文件选择框
       if (!this.backFillAccept) {
         message.warning("请先选择文件类型");
         stopDomEvent(e);
       }
     },
-
     handleBackFillChooseClick(e) {
       // accept 未就绪时拦截，避免弹出系统文件选择框
       if (!this.backFillAccept) {
@@ -465,30 +523,20 @@ export default {
         stopDomEvent(e);
       }
     },
-
     beforeUpload() {
       return false;
     },
-
-    // 通用文件移除处理
-    removeFile(fileKey, fileListKey) {
-      this.formModel[fileKey] = null;
-      this.formModel[fileListKey] = [];
-      return true;
-    },
-
     removeIdMappingFile() {
-      return this.removeFile("relationFile", "relationFileList");
+      return removeFile(this.formModel, "relationFile", "relationFileList");
     },
-
     removeBackFillFile() {
-      return this.removeFile("backFillFile", "backFillFileList");
+      return removeFile(this.formModel, "backFillFile", "backFillFileList");
+    },
+    removededupOriginExcel() {
+      return removeFile(this.formModel, "dedupOriginExcel", "dedupOriginExcelList");
     },
 
-    removeOriginExcel() {
-      return this.removeFile("originExcel", "originExcelList");
-    },
-
+    // ==================== 文件验证相关 ====================
     validateIdMappingFile() {
       if (!this.formModel.relationFile) {
         return Promise.reject("请选择 词条映射.json 文件！");
@@ -498,7 +546,6 @@ export default {
       }
       return Promise.resolve();
     },
-
     validateBackFillFile() {
       const file = this.formModel.backFillFile;
       if (!file) {
@@ -506,15 +553,13 @@ export default {
       }
       return this.validateFileExtension(file);
     },
-
-    validateOriginExcel() {
-      const file = this.formModel.originExcel;
+    validatededupOriginExcel() {
+      const file = this.formModel.dedupOriginExcel;
       if (!file) {
-        return Promise.reject("请选择去重前Excel文件！");
+        return Promise.reject("请选择去重后送翻前文件文件！");
       }
       return this.validateFileExtension(file);
     },
-
     // 通用文件扩展名验证方法
     validateFileExtension(file) {
       // 如果启用了文件类型选择，根据选择的类型验证文件扩展名
@@ -545,6 +590,7 @@ export default {
       return Promise.resolve();
     },
 
+    // ==================== 表单提交和业务逻辑 ====================
     async handleOK() {
       if (!this.$refs.backFillForm) return;
 
@@ -555,56 +601,30 @@ export default {
           this.$emit("handleOK");
 
           // 保存用户偏好到 localStorage
-          const languageNames = mapValueToLabel(this.formModel.backfillFields, this.fieldOptions);//（使用语种名称格式）
           let data = {
-            backfillFields: languageNames.join(","),
+            backfillFields: this.formModel.backfillFields.join(","),
             emptyStringAsValue: this.formModel.emptyStringAsValue,
             failFast: this.formModel.failFast,
             enableValidate: this.formModel.enableValidate,
             checkFields: this.formModel.checkFields.join(","),
             checkSpecialChar: this.formModel.checkSpecialChar,
             checkMaxLength: this.formModel.checkMaxLength,
+            translateAttrs: (this.formModel.translateAttrs || []).join(","),
           };
           localStorage.setItem("backfillFieldsPref", JSON.stringify(data));
 
           this.loading = true;
-          console.log("handleOK", this.formModel.enableValidate);
-          let validSuccess = true;
+          // console.log("保存用户偏好", data);
           // 校验模式：校验是否通过
           if (this.formModel.enableValidate) {
-            try {
-              validSuccess = await this.handleValidation();
-              console.log("validSuccess", validSuccess)
-            } catch (error) {
-              const errorData = error?.response?.data || error?.data || error;
-              notification.error({
-                message: "校验过程发生异常！",
-                description: errorData?.message || error.message || "未知错误",
-                duration: 0,
-              });
-            }
+            await this.handleValidation();// 若可回填，则显示"继续回填"按钮，不再自动执行更新，改为通过"继续回填"按钮人为控制
+            // console.log("canBackFill", this.validation.canBackFill)
+          } else {
+            // 不勾选校验时：直接执行批量更新（无需展示"继续回填"按钮）
+            await this.handleBatchUpdate();
+            // 先关闭当前弹窗
+            this.handleCloseInternal();
           }
-          // 校验通过，执行回填操作
-          if (validSuccess) {
-            try {
-              await this.handleBatchUpdate();
-            } catch (error) {
-              const errorData = error?.response?.data || error?.data || error;
-              notification.error({
-                message: "更新/回填过程发生异常！",
-                description: errorData?.message || error.message || "未知错误",
-                duration: 0,
-              });
-            }
-          }
-
-          // 按钮模式需要 emit importSuccess 事件
-          if (this.mode === "button") {
-            this.$emit("importSuccess");
-          }
-
-          // 先关闭当前弹窗
-          this.handleCloseInternal();
 
           this.loading = false;
         })
@@ -612,297 +632,182 @@ export default {
           console.log("表单校验失败", err);
         });
     },
-
     // 处理校验响应
     async handleValidation() {
-      let result = await entryValidate_v2(
-        this.formModel.originExcel,// 去重前Excel
-        this.formModel.backFillFile,// 去重后Excel
-        this.needRelationFile ? this.formModel.relationFile : null,// 词条映射.json
-        this.formModel.checkFields,// 校验字段
-        this.formModel.backfillFields, // 更新字段
-        {
+      try {
+        // 按 utils/excelUtils.js 的签名直接传参，避免 FormData 结构错位
+        const payloadOptions = {
           emptyStringAsValue: this.formModel.emptyStringAsValue,
           failFast: this.formModel.failFast,
           checkSpecialChar: this.formModel.checkSpecialChar,
-          checkMaxLength: this.formModel.checkMaxLength
-        }// options配置
-      );
+          checkMaxLength: this.formModel.checkMaxLength,
+          translateAttributes: this.formModel.translateAttrs,
+        };
 
-      this.validationSummary = result.summary || null;
-      this.validationIssues = result.issues || [];
-      this.validationAttachments = result.attachments || { issueLog: [], invalidExcel: null };
-      console.log("校验的下载模态框", this.validationAttachments.issueLog.length)
-      if (result.success && result.canBackFill) {
-        // 校验通过，可回填
-        notification.success({
-          message: "校验通过",
-          // description: `共校验 ${result.summary?.totalOriginRows || 0} 条数据，${result.summary?.affectedRows || 0} 条将受影响`,
-          duration: 0,
-        });
-        this.formModel.enableValidate = false;// 校验流程结束，关闭校验模式
-      } else {
-        this.failedInfoVisible = true;
-        if (result.success && !result.canBackFill) {
-          // 校验通过但不可回填（有WARN级别问题）
-          notification.error({
-            message: "校验告警",
-            description: "校验完成，但存在警告，不允许回填",
-            duration: 0,
-          });
-        } else {
-          // 校验失败（有FATAL级别错误）
-          notification.error({
-            message: "校验失败",
-            description: "校验失败，存在致命错误",
-            duration: 0,
-          });
-        }
+        const result = await entryValidate_v2(
+          this.formModel.dedupOriginExcel,                  // dedupOriginExcel
+          this.formModel.backFillFile,                 // dedupUpdateExcel
+          this.needRelationFile ? this.formModel.relationFile : null, // mappingJson
+          this.formModel.checkFields,                  // checkFields
+          this.formModel.backfillFields,               // backfillFields
+          payloadOptions                               // options
+        );
+
+        // 处理响应数据：支持嵌套的 data 结构（真实 API 可能返回 {code, data: {...}}）
+        const data = result?.data || result;
+        this.validation = {
+          summary: data.summary || null,
+          issues: data.issues || [],
+          attachments: data.attachments || { issueLog: [], invalidExcel: null },
+          canBackFill: data.canBackFill || false,
+        };
+
+        // 统一显示校验结果模态框，无论校验结果如何
+        this.validationVisible = true;
+      } catch (error) {
+        handleErrorNotification(error, "校验过程发生异常！");
+        throw error; // 重新抛出错误，让调用方知道校验失败
       }
-
-      console.log("校验的响应体V1.5", result, "globalMessage", this.globalMessage)
-      return !this.failedInfoVisible;// 若未开启失败信息模态框，则返回true，否则返回false
     },
-
     // 处理导入响应
     async handleBatchUpdate() {
-      let notifyTask = null;
+      // 执行更新时，立即关闭校验模态框
+      this.validationVisible = false;
+      try {
+        let notifyTask = null;
 
-      // 构建FormData（v1 API需要FormData格式）
-      const formData = new FormData();
-      formData.append("file", this.formModel.backFillFile);
-      if (this.needRelationFile && this.formModel.relationFile) {
-        formData.append("relationFile", this.formModel.relationFile);
-      }
+        // 构建FormData（v1 API需要FormData格式）
+        const formData = new FormData();
+        formData.append("file", this.formModel.backFillFile);
+        if (this.needRelationFile && this.formModel.relationFile) {
+          formData.append("relationFile", this.formModel.relationFile);
+        }
 
-      // 将选择的字段标准化为语种名称（兼容“英文翻译”旧值）
-      // const languageNames = this.normalizeBackfillFields(this.formModel.backfillFields);
-      const languageNames = mapValueToLabel(this.formModel.backfillFields, this.fieldOptions);
+        // 调用v1.5的批量导入API
+        let result = await entryBatchImportExcel_V1_5(
+          mapValueToName(this.formModel.backfillFields, this.languageOptions),// 将回填字段english转化为英文
+          formData
+        );
 
-      // 调用v1.5的批量导入API
-      let result = await entryBatchImportExcel_V1_5(
-        languageNames,// 更新语种名称数组
-        formData
-      );
+        // console.log("去重回填的响应体V1.5", result);
 
-      // 输出完整响应体用于调试
-      console.log("去重回填的响应体V1.5", result);
-
-
-      if (result.code === 200) {
-        // 完全成功：仅展示成功通知
-        const successLangs = result.success || [];
-        const desc =
-          successLangs.length > 0
-            ? `${successLangs.join(", ")} 导入成功！`
-            : "导入成功！";
-        notifyTask = () => {
-          notification.success({
-            message: "导入成功！",
-            description: desc,
-            duration: 0,
-          });
-        };
-      } else if (result.code === 201) {
-        // 新响应体：仅解析 msgBylang（无需兼容旧字段）
-        const msgBylang = Array.isArray(result.msgBylang) ? result.msgBylang : [];
-        const failedEntryInfosByLang = {};
-        const exceptionVosByLang = {};
-        const globalMessageByLang = {};
-        const langCodeByLang = {};
-        let firstFailedLang = "";
-
-        msgBylang.forEach((item) => {
-          const langKey = item?.lang;
-          if (!langKey) return;
-
-          const code = item?.code ?? 201;
-          langCodeByLang[langKey] = code;
-
-          const detail = item || {};
-          failedEntryInfosByLang[langKey] = detail.failedEntryInfos || [];
-          exceptionVosByLang[langKey] = detail.exceptionVOs || detail.exceptionVos || [];
-          globalMessageByLang[langKey] = detail.globalMessage || "";
-
-          if (!firstFailedLang && code === 201) {
-            firstFailedLang = langKey;
-          }
-        });
-
-        // 若没有任何可展示项：走通知兜底
-        if (Object.keys(failedEntryInfosByLang).length === 0) {
-          const firstItem = msgBylang[0] || {};
-          const firstDetail = firstItem.data || {};
+        if (result.code === 200) {
+          // 完全成功：仅展示成功通知
+          const successLangs = result.success || [];
           const desc =
-            firstDetail.globalMessage ||
-            firstItem.message ||
-            "更新存在异常（无可展示的分语种详情）";
+            successLangs.length > 0
+              ? `${successLangs.join(", ")} 导入成功！`
+              : "导入成功！";
           notifyTask = () => {
-            notification.error({
-              message: "更新存在异常",
+            notification.success({
+              message: "导入成功！",
               description: desc,
               duration: 0,
             });
           };
-        } else {
-          // 写回状态：弹窗展示所有语言（成功绿/失败红）
-          this.failedEntryInfosByLang = failedEntryInfosByLang;
-          this.exceptionVosByLang = exceptionVosByLang;
-          this.globalMessageByLang = globalMessageByLang;
-          this.langCodeByLang = langCodeByLang;
-          this.failedEntryInfos = [];
-          this.exceptionVos = [];
-          this.globalMessage = "";
 
-          this.overallStatus = firstFailedLang ? "partial-error" : "success";
-          this.activeFailedLangTab = firstFailedLang || Object.keys(failedEntryInfosByLang)[0];
-          this.failedInfoVisible = true;
-        }
-      } else {
-        // 兜底分支：未知 code，当作失败处理
-        // 新响应格式：数据直接在 result 上，没有 result.data
-        const desc = result.globalMessage || "导入失败";
-        notifyTask = () => {
-          notification.error({
-            message: "导入失败",
-            description: desc,
-            duration: 0,
-          });
-        };
-      }
-
-      if (notifyTask) {
-        this.$nextTick(() => {
-          notifyTask();
-        });
-      }
-    },
-
-    // 内部关闭处理（不重置表单）
-    handleCloseInternal() {
-      if (this.mode === "button") {
-        this.internalVisible = false;
-      } else {
-        this.$emit("handleClose");
-      }
-    },
-
-    // 关闭处理（重置表单）
-    handleClose() {
-      this.resetForm();
-      this.handleCloseInternal();
-    },
-    resetForm() {
-      // 重置 importType：如果有 defaultFileType 则使用默认值，否则为 null
-      const importType = this.defaultFileType && this.showFileTypeSelect ? this.defaultFileType : null;
-      // 根据functionMode初始化enableValidate（向后兼容）
-      const enableValidate = this.functionMode === "validate";
-
-      this.formModel = {
-        relationFile: null,
-        backFillFile: null,
-        backfillFields: [],
-        relationFileList: [],
-        backFillFileList: [],
-        importType: importType,
-        originExcel: null,
-        originExcelList: [],
-        emptyStringAsValue: true,
-        failFast: false,
-        enableValidate: enableValidate,
-        checkFields: [],
-        checkSpecialChar: false,
-        checkMaxLength: false,
-      };
-      this.loading = false;
-      // 重置失败信息相关状态
-      this.failedEntryInfos = [];
-      this.exceptionVos = [];
-      this.failedEntryInfosByLang = {};
-      this.exceptionVosByLang = {};
-      this.globalMessage = "";
-      this.globalMessageByLang = {};
-      this.langCodeByLang = {};
-      this.overallStatus = "partial-error";
-      this.failedInfoVisible = false;
-      this.failedExportDataSource = [];
-      this.activeFailedLangTab = '';
-      // 重置校验结果相关状态
-      this.validationSummary = null;
-      this.validationIssues = [];
-      this.validationAttachments = { issueLog: [], invalidExcel: null };
-      if (this.$refs.backFillForm && typeof this.$refs.backFillForm.clearValidate === 'function') {
-        this.$refs.backFillForm.clearValidate();
-      }
-    },
-    // 关闭失败信息模态框
-    failedInfoClose() {
-      this.failedInfoVisible = false;
-      // 重置失败信息相关状态
-      this.failedEntryInfos = [];
-      this.exceptionVos = [];
-      this.failedEntryInfosByLang = {};
-      this.exceptionVosByLang = {};
-      this.globalMessage = "";
-      this.globalMessageByLang = {};
-      this.langCodeByLang = {};
-      this.overallStatus = "partial-error";
-      this.failedExportDataSource = [];
-      this.activeFailedLangTab = '';
-      // 重置校验结果相关状态
-      this.validationSummary = null;
-      this.validationIssues = [];
-      this.validationAttachments = { issueLog: [], invalidExcel: null };
-    },
-    // 提取失败词条数据用于导出
-    extractFailedEntriesData() {
-      const entriesMap = new Map();
-
-      // 遍历 failedEntryInfos，提取所有词条数据
-      // 注意：新API的响应体结构可能不同，需要根据实际响应结构调整
-      this.failedEntryInfos.forEach((item) => {
-        // 兼容两种数据结构：
-        // 1. 直接是词条对象：{id: 1, entry: "...", ...}
-        // 2. 包含 entryInfoVO 的对象：{entryInfoVO: {entryInfoEntitie: [...]}}
-        if (item.id) {
-          // 情况1：直接是词条对象
-          if (!entriesMap.has(item.id)) {
-            entriesMap.set(item.id, item);
+          // 按钮模式需要 emit importSuccess 事件（仅在成功时）
+          if (this.mode === "button") {
+            this.$emit("importSuccess");
           }
-        } else if (item.entryInfoVO) {
-          // 情况2：包含 entryInfoVO
-          const entryInfoVO = item.entryInfoVO || {};
-          const entryList = entryInfoVO.entryInfoEntitie || entryInfoVO.entryInfoEntities || [];
+        } else if (result.code === 201) {
+          // 新响应体：仅解析 msgBylang（无需兼容旧字段）
+          const msgBylang = Array.isArray(result.msgBylang) ? result.msgBylang : [];
+          const detailsByLang = {};
+          let firstFailedLang = "";
 
-          entryList.forEach((entry) => {
-            // 使用 id 作为 key 去重
-            if (entry.id && !entriesMap.has(entry.id)) {
-              entriesMap.set(entry.id, entry);
+          msgBylang.forEach((item) => {
+            const langKey = item?.lang;
+            if (!langKey) return;
+
+            const code = item?.code ?? 201;
+            const detail = item || {};
+            detailsByLang[langKey] = {
+              code,
+              globalMessage: detail.globalMessage || "",
+              failedEntryInfos: detail.failedEntryInfos || [],
+              exceptionVos: detail.exceptionVOs || detail.exceptionVos || [],
+            };
+
+            if (!firstFailedLang && code === 201) {
+              firstFailedLang = langKey;
             }
           });
-        }
-      });
 
-      this.failedExportDataSource = Array.from(entriesMap.values());
+          // 若没有任何可展示项：走通知兜底
+          if (Object.keys(detailsByLang).length > 0) {
+            // 写回状态：弹窗展示所有语言（成功绿/失败红）
+            this.detailsByLang = detailsByLang;
+            this.activeFailedLangTab = firstFailedLang || Object.keys(detailsByLang)[0];
+            this.updateVisible = true;
+          } else {
+            // 若没有任何可展示项：走通知兜底
+            const firstItem = msgBylang[0] || {};
+            const firstDetail = firstItem.data || {};
+            const desc =
+              firstDetail.globalMessage ||
+              firstItem.message ||
+              "更新存在异常（无可展示的分语种详情）";
+            notifyTask = () => {
+              notification.error({
+                message: "更新存在异常",
+                description: desc,
+                duration: 0,
+              });
+            };
+          }
+        } else {
+          // 兜底分支：未知 code，当作失败处理
+          // 新响应格式：数据直接在 result 上，没有 result.data
+          const desc = result.globalMessage || "导入失败";
+          notifyTask = () => {
+            notification.error({
+              message: "导入失败",
+              description: desc,
+              duration: 0,
+            });
+          };
+        }
+
+        if (notifyTask) {
+          this.$nextTick(() => {
+            notifyTask();
+          });
+        }
+      } catch (error) {
+        handleErrorNotification(error, "更新/回填过程发生异常！");
+        throw error; // 重新抛出错误，让调用方知道更新失败
+      }
+    },
+    // 处理继续回填按钮点击
+    async handleContinueBackFill() {
+      this.loading = true;
+      await this.handleBatchUpdate();
+      this.loading = false;
+    },
+
+    // ==================== 下载相关 ====================
+    // 辅助方法：从 detailsByLang 中提取指定语种和字段的数据，并验证是否为空
+    extractDataByLang(lang, fieldName, emptyMessage) {
+      const data = (this.detailsByLang[lang] && this.detailsByLang[lang][fieldName]) || [];
+      if (data.length === 0) {
+        message.warning(emptyMessage);
+        return null;
+      }
+      return data;
     },
     // 按语种下载失败词条
     downloadFailedEntriesByLang(lang) {
-      const failedInfos = this.failedEntryInfosByLang[lang] || [];
-      if (failedInfos.length === 0) {
-        message.warning(`没有${lang}的失败词条数据可导出`);
-        return;
-      }
-      console.log("下载失败词条", failedInfos);
+      const failedInfos = this.extractDataByLang(lang, 'failedEntryInfos', `没有${lang}的失败词条数据可导出`);
+      if (!failedInfos) return;
 
-      // 临时设置数据源并触发导出
-      const originalDataSource = this.failedExportDataSource;
-      if (this.failedExportDataSourceBackup == null) {
-        this.failedExportDataSourceBackup = originalDataSource;
-      }
+      // console.log("下载失败词条", failedInfos);
+
+      // 设置数据源并触发导出
       this.failedExportDataSource = failedInfos;
       this.failedExportLang = lang;
 
-      console.log("把下载词条传递给exportButton", this.$refs.failedExportRef, this.failedExportDataSource);
+      // console.log("把下载词条传递给exportButton", this.$refs.failedExportRef, this.failedExportDataSource);
       if (this.$refs.failedExportRef) {
         console.log("传递给exportButton", this.failedExportDataSource);
         // 等待 prop 更新到子组件后再打开弹窗，否则子组件可能读到旧的空数组
@@ -914,32 +819,16 @@ export default {
       }
     },
     handleFailedExportAfterClose() {
-      if (this.failedExportDataSourceBackup != null) {
-        this.failedExportDataSource = this.failedExportDataSourceBackup;
-        this.failedExportDataSourceBackup = null;
-      }
+      // 关闭后清空，避免保留上次数据
+      this.failedExportDataSource = [];
     },
     // 按语种下载异常信息
     downloadExceptionInfosByLang(lang) {
-      const exceptionVos = this.exceptionVosByLang[lang] || [];
-      if (exceptionVos.length === 0) {
-        message.warning(`没有${lang}的异常信息可下载`);
-        return;
-      }
+      const exceptionVos = this.extractDataByLang(lang, 'exceptionVos', `没有${lang}的异常信息可下载`);
+      if (!exceptionVos) return;
 
       downloadJsonFile(exceptionVos, `${lang}更新异常_`, false);
     },
-
-    // 下载校验问题JSON
-    downloadValidationIssues() {
-      if (this.validationIssues.length === 0) {
-        message.warning("没有校验问题可下载");
-        return;
-      }
-
-      downloadJsonFile(this.validationIssues, "backfill_validation_issues", false);
-    },
-
     // 下载附件
     async downloadAttachment(downloadUrl, fileName) {
       if (!downloadUrl) {
@@ -948,24 +837,27 @@ export default {
       }
 
       try {
-        const response = await downloadFileFromUrl(downloadUrl);
-        downloadBlobResponse(response, fileName);
+        await downloadFileFromUrl({ logPath: downloadUrl }).then(res => {
+          // console.log("下载链接", res)
+          downloadBlobResponse(res, fileName);
+        })
       } catch (error) {
         console.error("下载附件失败：", error);
         message.error("下载附件失败");
       }
     },
+
+    // ==================== 用户偏好和UI辅助 ====================
     // 获取用户偏好
     queryBackfillFieldsPreference() {
       // 读取本地存储的用户偏好
       const storedPreferences = localStorage.getItem("backfillFieldsPref");
-      console.log("读取用户偏好", storedPreferences);
+      // console.log("读取用户偏好", storedPreferences);
       if (storedPreferences) {
         const preferences = JSON.parse(storedPreferences);
-        // 应用偏好-更新字段
+        // 应用偏好-回填字段
         if (preferences.backfillFields != null && preferences.backfillFields != "") {
-          const rawFields = preferences.backfillFields.split(",");
-          this.formModel.backfillFields = this.normalizeBackfillFields(rawFields);
+          this.formModel.backfillFields = preferences.backfillFields.split(",");
         }
         // 应用偏好-导入空值
         if (preferences.emptyStringAsValue !== undefined) {
@@ -991,11 +883,19 @@ export default {
         if (preferences.checkMaxLength !== undefined) {
           this.formModel.checkMaxLength = preferences.checkMaxLength;
         }
+        // 应用偏好-校验语种（特殊字符校验与长度超限校验共用）
+        if (preferences.translateAttrs != null && preferences.translateAttrs !== "") {
+          this.formModel.translateAttrs = preferences.translateAttrs.split(",");
+        }
       }
     },
-    // 全选更新字段方法
+    // 全选-回填字段
     selectAllBackfillFields() {
-      this.formModel.backfillFields = this.fieldOptions.map((item) => item.value);
+      this.formModel.backfillFields = this.languageOptions.map((item) => item.value);
+    },
+    // 全选-翻译列语种（两个规则共用）
+    selectAllValidateTranslateAttrs() {
+      this.formModel.translateAttrs = this.languageOptions.map((item) => item.value);
     },
   },
 };
@@ -1006,7 +906,8 @@ export default {
   padding: 20px;
 }
 
-.failed-content {
+.validation-content,
+.update-content {
   padding: 0px;
 }
 

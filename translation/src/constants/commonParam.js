@@ -303,7 +303,7 @@ const entry_checkboxList = [
   // { label: "环境备注", value: "environmentRemark", index: 44 },// 词条管理-导出csv后端会报错
   { label: "产品名", value: "productName", index: 45 },
   { label: "版本名", value: "versionName", index: 46 },
-  { label: "翻译最大长度", value: "maxLength", index: 47 },
+  { label: "翻译最大长度", value: "maxLength", index: 47 },// 长度超限校验：max(maxLength,foreign_max_byte)，foreign_max_byte后端没传给我，所有只能修改maxLength进行词条的长度限制
   { label: "英文术语字符数", value: "enCharLength", index: 48 },
   { label: "中文术语字符数", value: "zhCharLength", index: 49 },
   { label: "俄文术语字符数", value: "ruCharLength", index: 50 },
@@ -399,7 +399,7 @@ const entry_searchConditionList = [
 const entry_checkedSearchCondition = entry_searchConditionList.map(item => item.value);// 默认选中所有查询条件
 export const entryParams = {
   checkboxList: entry_checkboxList,
-  inputColumn: ["abbr", "entryLength", "partOfSpeech", "remark", "diFileName", "comment", "writeType"].concat(default_languageList.map(item => item.interpretation)),
+  inputColumn: ["abbr", "entryLength", "partOfSpeech", "remark", "maxLength", "diFileName", "comment", "writeType"].concat(default_languageList.map(item => item.interpretation)),
   translateColumn: default_languageList.map(item => item.value),
   overlayStyle: {
     maxHeight: '300px',

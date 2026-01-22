@@ -2,13 +2,13 @@
   <div class="floating-tool-box">
     <!-- 悬浮按钮 -->
     <div ref="floatingButtonRef" class="floating-button" :class="{ dragging: isDragging }" :style="buttonStyle"
-      @click="handleClick" @dblclick="handleDoubleClick" @pointerdown="startDrag">
+      @click="handleClick" @pointerdown="startDrag">
       <ToolOutlined />
     </div>
 
     <!-- 工具面板 -->
-    <div v-if="panelVisible" ref="toolPanelRef" class="tool-panel" :style="panelStyle"
-      @mouseleave="handlePanelMouseLeave">
+    <div v-if="panelVisible" v-show="panelShow" ref="toolPanelRef" class="tool-panel" :style="panelStyle"
+      @mouseleave="handlePanelMouseLeave" @click.capture="handleInnerClick">
       <div style="margin-bottom: 8px;" class="tool-panel-button">
         <GitCommitButton size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
       </div>
@@ -17,8 +17,8 @@
           :showFileTypeSelect="true" :defaultAccept="'.csv'" />
       </div>
       <div style="margin-bottom: 8px;">
-        <BackFillModal_v2 mode="button" size="small" buttonTitle="更新翻译2.0" modalTitle="更新翻译" :translateTypes="translateTypes"
-          :showFileTypeSelect="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" />
+        <BackFillModal_v1_5 mode="button" size="small" buttonTitle="去重回填V1.5" modalTitle="去重回填V1.5"
+          :needRelationFile="true" :defaultAccept="'.csv'" />
       </div>
       <div style="margin-bottom: 8px;">
         <BackFillModal mode="button" size="small" buttonTitle="去重回填" modalTitle="去重回填" :translateTypes="translateTypes"
@@ -33,7 +33,7 @@
 import { ToolOutlined } from "@ant-design/icons-vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
-import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
+import BackFillModal_v1_5 from "@/components/Button/fileManage/backFill/modal_v1.5.vue";
 import { closeAllNotifications } from "@/utils/notificationUtils";
 import { getLanguage } from "@/http/api/translate";
 import "@/assets/style/common.less";
@@ -44,7 +44,7 @@ export default {
     ToolOutlined,
     GitCommitButton,
     BackFillModal,
-    BackFillModal_v2,
+    BackFillModal_v1_5,
   },
   data() {
     return {
@@ -73,6 +73,7 @@ export default {
       clickTimer: null,
       // 语种列表
       translateTypes: [],
+      panelShow: false,
     };
   },
   computed: {
@@ -173,34 +174,57 @@ export default {
         );
       }
     },
-    // 单击事件
+    // 单击事件（包含自定义双击检测）
     handleClick() {
-      // 拖拽结束后会触发一次 click，这里用时间窗口屏蔽，避免“拖完自动打开面板”
+      // 拖拽结束后会触发一次 click，这里用时间窗口屏蔽，避免"拖完自动打开面板"
       if (this.lastDragEndTime && Date.now() - this.lastDragEndTime < 250) {
         return;
       }
 
-      // 延迟执行，以区分单击和双击
+      // 若此前存在未过期的单击定时器 => 认为是连续点击（双击）
+      if (this.clickTimer) {
+        clearTimeout(this.clickTimer);
+        this.clickTimer = null;
+
+        // 仅在非拖拽场景下识别为双击（确保是连续点击，而不是单击+拖拽）
+        if (!this.isDragging && !this.dragHasMoved) {
+          this.handleDoubleClick();
+        }
+        return;
+      }
+
+      // 设置单击定时器：若到期则判定为单击
       this.clickTimer = setTimeout(() => {
         if (!this.isDragging) {
           // 每次打开前强制触发一次 panelStyle 的重新计算
           this.panelReflowKey += 1;
           // 关闭所有通知
           closeAllNotifications();
-
         }
         this.clickTimer = null;
       }, 200);
     },
-    // 双击事件
+    // 双击事件：切换显示/隐藏面板，打开时强制重新计算样式并关闭通知
     handleDoubleClick() {
       // 清除单击定时器
       if (this.clickTimer) {
         clearTimeout(this.clickTimer);
         this.clickTimer = null;
       }
-      // 显示/隐藏工具面板
-      this.panelVisible = !this.panelVisible;
+
+      const willShow = !this.panelVisible;
+      if (willShow) {
+        // 每次打开前强制触发一次 panelStyle 的重新计算
+        this.panelReflowKey += 1;
+        // 关闭所有通知
+        closeAllNotifications();
+        this.panelShow = true;
+        this.panelVisible = true;
+      } else {
+        // 隐藏时同时同步 panelShow，以触发 watcher 或其他依赖
+        this.panelVisible = false;
+        this.panelShow = false;
+      }
     },
     // 开始拖拽
     startDrag(e) {
@@ -332,6 +356,23 @@ export default {
     closePanel() {
       this.panelVisible = false;
     },
+    // 面板内部点击（捕获阶段）——当面板打开且内部有点击时，关闭面板
+    handleInnerClick() {
+      if (this.panelVisible) {
+        // this.panelVisible = false;// 容器不显示了，则弹窗也会不显示
+        this.panelShow = false;
+      }
+    },
+    // 子组件通过事件主动通知（例如 BackFillModal_v1_5），统一在这里关闭面板
+    onChildHandleButtonClick(value) {
+      // 如果子组件传递了明确布尔值，优先使用；否则直接关闭
+      if (typeof value === "boolean") {
+        this.panelShow = value;
+      } else {
+        this.panelShow = false;
+      }
+      this.panelVisible = false;
+    },
     // 面板鼠标离开
     handlePanelMouseLeave() {
       // 暂时不自动隐藏，等待后续优化
@@ -408,11 +449,11 @@ export default {
   animation: slideDown 0.3s ease;
 }
 
-.tool-panel > div {
+.tool-panel>div {
   width: 100%;
 }
 
-.tool-panel > div :deep(.ant-btn) {
+.tool-panel>div :deep(.ant-btn) {
   width: 100%;
 }
 

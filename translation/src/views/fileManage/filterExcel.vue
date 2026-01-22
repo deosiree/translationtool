@@ -97,13 +97,15 @@
             </template>
             去重回填
           </a-button>
-          <a-button type="primary" size="middle" @click="showImportBackfillModal_v2">
+          <a-button v-if="hasDevPermission()" type="primary" size="middle"
+            @click="showImportBackfillModal_v2">
             <template #icon>
               <ImportOutlined />
             </template>
             去重回填 2.0
           </a-button>
-          <a-button type="primary" size="middle" @click="showImportBackfillModal_v1_5">
+          <a-button v-if="hasDevPermission()" type="primary" size="middle"
+            @click="showImportBackfillModal_v1_5">
             <template #icon>
               <ImportOutlined />
             </template>
@@ -187,13 +189,12 @@
       :needRelationFile="true" :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose"
       @handleOK="handleImportBackfillOK" />
     <BackFillModal_v2 modalTitle="去重回填 2.0" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
-      :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" @handleClose="handleImportBackfillClose_v2"
-      @handleOK="handleImportBackfillOK_v2" />
-    <BackFillModal_v1_5 modalTitle="去重回填 v1.5" :visible="importBackfillVisible_v1_5" :translateTypes="translateTypes"
-      :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'" @handleClose="handleImportBackfillClose_v1_5"
-      @handleOK="handleImportBackfillOK_v1_5" />
+      :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'"
+      @handleClose="handleImportBackfillClose_v2" @handleOK="handleImportBackfillOK_v2" />
+    <BackFillModal_v1_5 modalTitle="去重回填 v1.5" :visible="importBackfillVisible_v1_5" :needRelationFile="true"
+      :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v1_5" @handleOK="handleImportBackfillOK_v1_5" />
     <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
-      size="middle" buttonTitle="导出去重数据" :defaultStatusCheck="false" fileNamePrefix="去重_" :hideButton="true"
+      size="middle" buttonTitle="导出去重数据" :defaultStatusCheck="false" fileNamePrefix="去重文件（去重后，送翻前）_" :hideButton="true"
       @afterClose="handleExportAfterClose" />
   </div>
 </template>
@@ -272,12 +273,6 @@ export default {
     );
     return {
       locale: zhCN,
-      user: {},
-      currentDepartment: {
-        label: "部门名称",
-        value: "name",
-        ops: new Set(),
-      }, // 当前用户所在部门的相关信息
       labelCol: { style: { width: "84px" } },
       search: {
         entry: "",
@@ -486,19 +481,12 @@ export default {
   mounted() {
     let _this = this;
     this.$nextTick(() => {
-      this.user = this.$store.state.user;
       // 获取当前用户所在部门的相关信息
-      if (
-        Object.keys(commonParam.departmentMap).includes(this.user.department)
-      ) {
-        this.currentDepartment =
-          commonParam.departmentMap[this.user.department];
-      } else {
-        this.currentDepartment = commonParam.departmentMap["default"];
+      if (this.$currentDepartment) {
+        this.search.entryState = this.$currentDepartment.ops?.has("entryState3")
+          ? "3"
+          : null;
       }
-      this.search.entryState = this.currentDepartment.ops.has("entryState3")
-        ? "3"
-        : null;
       this.admin = this.$store.state.admin;
       //保证初次传的值给到
       this.box = this.boxHeight;
@@ -514,6 +502,9 @@ export default {
     window.onresize = null;
   },
   methods: {
+    hasDevPermission() {
+      return this.$currentDepartment?.ops?.has('dev') || false;
+    },
     init() {
       this.reset();
       this.dataSource = [];
@@ -835,7 +826,7 @@ export default {
         classfy1: [],
         classfy2: [],
         entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
-        entryState: this.currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
+        entryState: this.$currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
         tag: "",
         entrySource: null,
         language: null,

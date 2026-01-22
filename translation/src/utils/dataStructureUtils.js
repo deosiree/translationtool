@@ -26,6 +26,17 @@ export function mapValueToLabel(valueList, allList) {
 }
 
 /**
+ * 将值列表转换为名称列表
+ * @param {Array} valueList - 值列表
+ * @param {Array} allList - 所有列表
+ * @returns {Array} 名称列表
+ */
+export function mapValueToName(valueList, allList) {
+  const nameList = allList.filter(item => valueList.includes(item.value)).map(item => item.name);
+  return nameList;
+}
+
+/**
  * 根据节点key获取状态路径
  * @description 递归遍历树形数据结构，查找指定key的节点并返回从根节点到该节点的完整路径
  * @param {Array} treeData - 树形数据数组，每个节点包含key、title和可选的children属性
