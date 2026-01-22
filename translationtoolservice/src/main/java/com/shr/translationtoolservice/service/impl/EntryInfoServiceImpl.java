@@ -1925,21 +1925,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             kwargs.put("department", department);
             /* 解析文件, 生成词条 */
             Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
-            /* 先把文件中对应的词条的翻译更新掉 */
-            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosParsedOnFile, transType, kwargs);
             
-            updateExceptionVOs.forEach((vo) -> {updateTranslationByFileVO.addException(vo);updateTranslationByFileVO.addFailedEntryInfos(vo.getEntryInfoVO().getEntryInfoEntities());});
-
-            if(idRelationMap == null || idRelationMap.isEmpty()){
-                return updateTranslationByFileVO;
-            }
             /* 获取其他没送翻, 但是也应当根据送翻后的词条更新翻译的词条 */
             Map<String, String> entryInfoEntitySetterTranslateMap = ConstantInterface.entryInfoEntitySetterTranslateMap();
             Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap();
             String getMethodName = entryInfoEntityGetterTranslateMap.get(transType);    // 获取getTranslate方法
             String setMethodName = entryInfoEntitySetterTranslateMap.get(transType);    // 获取setTranslate方法
-            Method getMethod = null;
-            Method setMethod = null;
+            Method getMethod;
+            Method setMethod;
             /* 获取getTranslate方法 */
             try {
                 if(StringUtils.isBlank(getMethodName)){
@@ -1962,7 +1955,31 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             if(setMethod == null || getMethod == null){
                 throw new RuntimeException(String.format("没有找到获取翻译和设定翻译的方法, 无法更新翻译, transType: %s",transType));
             }
+            List<EntryInfoEntity> entryInfosAllowdParsedOnFile = entryInfosParsedOnFile.stream().filter((entry)->{
+                try {
+                    if(StringUtils.isNotBlank(getMethod.invoke(entry) == null ? null : String.valueOf(getMethod.invoke(entry)))){
+                        return true;
+                    }  // 如果该行记录的翻译是空的，是不进行更新的
+                    ExceptionVO exceptionVO = new ExceptionVO(String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件, id: %s", entry.getId()),"请在翻译文件上填写翻译结果, 或删除该词条不进行更新");
+                    updateTranslationByFileVO.addException(exceptionVO);
+                    updateTranslationByFileVO.addFailedEntryInfo(entry);
+                    return false;
+                } catch(Exception e){
+                    log.error(e.getMessage(), e);
+                    ExceptionVO exceptionVO = new ExceptionVO(String.format("判断词条对应语种: %s是否有翻译时出现异常: %s,异常信息为: %s, id: %s", transType,e.getMessage(),entry.getId()),"联系研发");
+                    updateTranslationByFileVO.addException(exceptionVO);
+                    updateTranslationByFileVO.addFailedEntryInfo(entry);
+                    return false;
+                }
+            }).collect(Collectors.toList());
+            /* 先把文件中对应的词条的翻译更新掉 */
+            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosAllowdParsedOnFile, transType, kwargs);
+            
+            updateExceptionVOs.forEach((vo) -> {updateTranslationByFileVO.addException(vo);updateTranslationByFileVO.addFailedEntryInfos(vo.getEntryInfoVO().getEntryInfoEntities());});
 
+            if(idRelationMap == null || idRelationMap.isEmpty()){
+                return updateTranslationByFileVO;
+            }
             Map<String, List<EntryInfoEntity>> entryInfosOnFileIDRelation = entryInfosParsedOnFile.stream().collect(Collectors.groupingBy((t) -> t.getId())); // key是id, value是entryInfo
             /*
                 测试场景
@@ -2014,7 +2031,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     }
                     List<String> childTranslates = new ArrayList<>();
                     for(EntryInfoEntity childEntryInfo : childEntryInfos){
-                        childTranslates.add(String.valueOf(getMethod.invoke(childEntryInfo)));
+                        childTranslates.add(getMethod.invoke(childEntryInfo) == null ? null : String.valueOf(getMethod.invoke(childEntryInfo)));
                     }
                     /* 确定更新的翻译的翻译内容是什么 */
                     int countChildIDOnParsedFile = childTranslates.size();
@@ -2042,19 +2059,27 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                         /* 父节点没有, 但只有一个子节点,(父节点的也要更新)  */
                         translate = childTranslates.get(0);
                     }
+                    if(StringUtils.isBlank(translate)){
+                        /* 父节点没有，送翻后的子节点的翻译还是空的，需要进行检查 */
+                        updateTranslationByFileVO.addException(new ExceptionVO(
+                            String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件", parentID), 
+                            String.format("检查父节点id为: %s, 子节点id为: %s的翻译结果是否为空的,如果是, 请在翻译文件上填写翻译结果", parentID,childIDs.toString()))
+                        );
+                        updateTranslationByFileVO.addFailedEntryInfos(childEntryInfos);
+                        continue;   // 1. 只送翻了一个子节点, 但翻译为""或null; 2. 送翻了多个子节点, 但所有子节点的翻译都为"" 或null
+                    }
                 }else{
                     /* 父节点存在， 并且之前已经进行了更新翻译操作(无论成功与否(例如父节点已经在库里被删除了)), 之后为所有子节点添加对应的翻译 */
-                    translate = String.valueOf(getMethod.invoke((entryInfosOnFile.get(0))));
+                    translate = getMethod.invoke((entryInfosOnFile.get(0))) == null ? null : String.valueOf(getMethod.invoke((entryInfosOnFile.get(0))));
                     searchIDs.addAll(childIDs);
-                }
-                if(StringUtils.isBlank(translate)){
-                    /* 送翻后的翻译还是空的，需要进行检查 */
-                    // throw new RuntimeException(String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件", parentID));
-                    updateTranslationByFileVO.addException(new ExceptionVO(
-                        String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件", parentID)
-                        , String.format("检查父节点id为: %s, 子节点id为: %s的翻译结果是否为空的,如果是, 请在翻译文件上填写翻译结果", parentID,childIDs.toString())));
-                    if(entryInfosOnFile != null && !entryInfosOnFile.isEmpty()){
-                        updateTranslationByFileVO.addFailedEntryInfos(entryInfosOnFile);
+                    if(StringUtils.isBlank(translate)){
+                        /* 送翻后的翻译还是空的，需要进行检查 */
+                        updateTranslationByFileVO.addException(new ExceptionVO(
+                            String.format("送翻后的翻译文件的词条没有对应语言的翻译, 请检查翻译文件", parentID), 
+                            String.format("检查父节点id为: %s, 子节点id为: %s的翻译结果是否为空的,如果是, 请在翻译文件上填写翻译结果", parentID,childIDs.toString()))
+                        );
+                        // updateTranslationByFileVO.addFailedEntryInfos(entryInfosOnFile);
+                        continue;
                     }
                 }
 
@@ -2063,9 +2088,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 for(EntryInfoEntity otherEntryInfo : otherEntryInfos){
                     setMethod.invoke(otherEntryInfo, translate);
                 }
-                /* 将更新的结果存库 */
+                /* 
+                    将更新的结果存库
+                    如果翻译文件只有父节点，那么父节点和子节点的翻译都相同
+                    如果翻译文件存在父节点和子节点，那么子节点的翻译也是父节点的翻译（当子节点的翻译结果和父节点不同时）
+                    如果翻译文件只有子节点，那么父节点和子节点的翻译都相同
+                */
                 Collection<ExceptionEntryInfoVO> updateOtherEntryInfoExceptions = this.updateTranslations(otherEntryInfos, transType, kwargs);
-                updateOtherEntryInfoExceptions.forEach((vo) -> {updateTranslationByFileVO.addException(vo);updateTranslationByFileVO.addFailedEntryInfos(vo.getEntryInfoVO().getEntryInfoEntities());});
+                updateOtherEntryInfoExceptions.forEach((vo) -> {updateTranslationByFileVO.addException(vo);});  // 因为要处理的是文件中的词条，此处更新的不是文件中的词条，所以不需要返回给用户,不需要执行addFailedEntryInfos
             }
 
             return updateTranslationByFileVO;
