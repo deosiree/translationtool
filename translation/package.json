@@ -5,6 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "preview": "serve -s dist -l 8080",
     "lint": "vue-cli-service lint",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -50,7 +50,7 @@ export default {
     return {
       // 按钮位置
       buttonPosition: {
-        x: null, // null表示使用默认位置（右下角）
+        x: null, // null表示使用默认位置（左上角）
         y: null,
       },
       // 拖拽相关
@@ -84,13 +84,18 @@ export default {
         cursor: this.isDragging ? "grabbing" : "grab",
       };
 
-      if (this.buttonPosition.x !== null && this.buttonPosition.y !== null) {
+      if (this.buttonPosition.x !== null) {
         style.left = `${this.buttonPosition.x}px`;
+      } else {
+        // 默认位置：左上角
+        style.left = "20px";
+      }
+
+      if (this.buttonPosition.y !== null) {
         style.top = `${this.buttonPosition.y}px`;
       } else {
-        // 默认位置：右下角
-        style.right = "20px";
-        style.bottom = "20px";
+        // 默认位置：左上角
+        style.top = "20px";
       }
 
       return style;
@@ -167,7 +172,7 @@ export default {
     },
     // 保存按钮位置
     saveButtonPosition() {
-      if (this.buttonPosition.x !== null && this.buttonPosition.y !== null) {
+      if (this.buttonPosition.x !== null || this.buttonPosition.y !== null) {
         localStorage.setItem(
           "floatingToolBoxPosition",
           JSON.stringify(this.buttonPosition)
@@ -234,13 +239,13 @@ export default {
       // 只响应主键（鼠标左键）
       if (typeof e.button === "number" && e.button !== 0) return;
 
-      if (this.buttonPosition.x === null || this.buttonPosition.y === null) {
-        // 如果使用默认位置，转换为固定坐标
-        const rect = this.$refs.floatingButtonRef.getBoundingClientRect();
-        this.buttonPosition = {
-          x: rect.left,
-          y: rect.top,
-        };
+      // 如果使用默认位置，转换为固定坐标（只转换 null 的坐标，保留已设置的坐标）
+      const rect = this.$refs.floatingButtonRef.getBoundingClientRect();
+      if (this.buttonPosition.x === null) {
+        this.buttonPosition.x = rect.left;
+      }
+      if (this.buttonPosition.y === null) {
+        this.buttonPosition.y = rect.top;
       }
 
       this.isDragging = true;
