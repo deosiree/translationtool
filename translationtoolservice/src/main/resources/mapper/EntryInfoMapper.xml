@@ -1087,6 +1087,15 @@
             <if test="entryInfoEntity.englishInterpretation != null">
                 english_interpretation = #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.russianInterpretation != null">
+                russian_interpretation = #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null">
+                french_interpretation = #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null">
+                spanish_interpretation = #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
+            </if>
             <if test="entryInfoEntity.entrySource != null">
                 entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
             </if>
@@ -1096,7 +1105,7 @@
             <if test="entryInfoEntity.update != null">
                 `update` = #{entryInfoEntity.update,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.updateTime != null  ">
+            <if test="entryInfoEntity.updateTime != null">
                 update_time = #{entryInfoEntity.updateTime,jdbcType=TIMESTAMP},
             </if>
             <if test="entryInfoEntity.entryLabel != null">
@@ -1141,13 +1150,13 @@
             <if test = "entryInfoEntity.entryLength != null">
                 entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            <if test="entryInfoEntity.srcTabName != null">
                 source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
             </if>
-            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
-                db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR},
+            <if test="entryInfoEntity.dbRID != null">
+                db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
             </if>
-            <if test = "entryInfoEntity.maxLength != null and entryInfoEntity.maxLength != ''">
+            <if test = "entryInfoEntity.maxLength != null">
                 max_length = #{entryInfoEntity.maxLength,jdbcType=VARCHAR}
             </if>
         </set>
