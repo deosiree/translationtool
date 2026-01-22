@@ -1,5 +1,8 @@
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
+import commonParam from '@/constants/commonParam'
+import { notification } from 'ant-design-vue'
+import { setCurrentDepartment } from '@/main'
 
 export default createStore({
   state: {
@@ -9,7 +12,7 @@ export default createStore({
     user:null,
     admin:false,
     dynamicRoutes: [],
-    tabActive:null   // 配置页面子菜单激活的tab
+    tabActive:null,   // 配置页面子菜单激活的tab
   },
   getters: {
   },
@@ -24,6 +27,23 @@ export default createStore({
       if(value.user.roleName != null && value.user.roleName.indexOf('管理员') != -1){
         state.admin = true
       }
+      // 根据用户部门设置当前部门信息（使用全局属性）
+      const department = value.user?.department;
+      let currentDepartment = null;
+      if (department && Object.keys(commonParam.departmentMap).includes(department)) {
+        currentDepartment = commonParam.departmentMap[department];
+      } else {
+        // 找不到用户部门时，通知用户并设置为默认部门
+        if (department) {
+          notification.warning({
+            message: '部门信息未找到',
+            description: `未找到用户部门"${department}"的配置，已设置为默认部门`
+          });
+        }
+        currentDepartment = commonParam.departmentMap["default"];
+      }
+      // 设置全局属性
+      setCurrentDepartment(currentDepartment);
     },
     // 删除token
     removeData(state) {
@@ -33,6 +53,8 @@ export default createStore({
       state.user = null
       state.dynamicRoutes = []
       state.admin = false
+      // 清空全局属性中的部门信息
+      setCurrentDepartment(null);
     },
     setTabActive(state, value){
       state.tabActive = value
