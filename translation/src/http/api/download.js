@@ -1,7 +1,7 @@
 import axios from "axios";  //引入axios
 import env from "../env";
 import store from '@/store'
-import request from "../request";//引入request.js文件
+import request, { requestBinary } from "../request";//引入request.js文件
 
 // 版本词条导出
 export function versionDownload(params) {
@@ -90,13 +90,11 @@ export function entryExportByCondition(data, params) {
 }
 
 // 通用文件下载（从URL下载文件）
-export function downloadFileFromUrl(downloadUrl) {
-  return axios({
-    url: downloadUrl.startsWith('http') ? downloadUrl : env.dev.baseUrl + downloadUrl,
-    method: 'GET',
-    responseType: 'blob',
-    headers: {
-      token: store.state.token
-    }
+export function downloadFileFromUrl(params) {
+  return requestBinary({
+    url: "entryInfo/getLogForCheck",
+    method: "POST",
+    params,
+    responseType: 'blob'
   });
 }

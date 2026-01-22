@@ -118,10 +118,11 @@ const requestInterceptorError = (error) => {
   return Promise.reject(error);
 };
 
-// ==================== 响应拦截器（所有实例共享） ====================
+// ==================== 响应拦截器（按实例分别注册） ====================
 let messageFlag = true;
 
-const responseInterceptor = (response) => {
+// JSON 响应拦截器（用于 jsonInstance / formInstance / multipartInstance）
+const jsonResponseInterceptor = (response) => {
   // // 请求成功，计数器减 1
   // requestCount--;
   // handleHideLoading();
@@ -150,6 +151,16 @@ const responseInterceptor = (response) => {
   } else {
     message.error('请求失败!')
     return Promise.reject(response)
+  }
+};
+
+// Binary 响应拦截器（用于 binaryInstance，直接返回完整 response，调用方可读取 headers 与 data）
+const binaryResponseInterceptor = (response) => {
+  if (response && response.status && response.status === 200) {
+    return response;
+  } else {
+    message.error('请求失败!');
+    return Promise.reject(response);
   }
 };
 
@@ -182,7 +193,7 @@ const jsonInstance = axios.create({
 
 // 添加拦截器
 jsonInstance.interceptors.request.use(requestInterceptor, requestInterceptorError);
-jsonInstance.interceptors.response.use(responseInterceptor, responseInterceptorError);
+jsonInstance.interceptors.response.use(jsonResponseInterceptor, responseInterceptorError);
 
 /**
  * Form 实例
@@ -217,7 +228,7 @@ const formInstance = axios.create({
 
 // 添加拦截器
 formInstance.interceptors.request.use(requestInterceptor, requestInterceptorError);
-formInstance.interceptors.response.use(responseInterceptor, responseInterceptorError);
+formInstance.interceptors.response.use(jsonResponseInterceptor, responseInterceptorError);
 
 /**
  * Multipart 实例
@@ -232,7 +243,7 @@ const multipartInstance = axios.create({
 
 // 添加拦截器
 multipartInstance.interceptors.request.use(requestInterceptor, requestInterceptorError);
-multipartInstance.interceptors.response.use(responseInterceptor, responseInterceptorError);
+multipartInstance.interceptors.response.use(jsonResponseInterceptor, responseInterceptorError);
 
 /**
  * Binary 实例
@@ -248,7 +259,7 @@ const binaryInstance = axios.create({
 
 // 添加拦截器
 binaryInstance.interceptors.request.use(requestInterceptor, requestInterceptorError);
-binaryInstance.interceptors.response.use(responseInterceptor, responseInterceptorError);
+binaryInstance.interceptors.response.use(binaryResponseInterceptor, responseInterceptorError);
 
 // // 处理隐藏 loading 的逻辑
 // export function handleHideLoading() {
