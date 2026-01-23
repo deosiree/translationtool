@@ -4,6 +4,67 @@
  */
 
 /**
+ * 从 localStorage 恢复悬浮组件位置：
+ * - 坐标合法且在视口内：返回 { x, y }
+ * - 坐标非法或越界：清除 localStorage，返回默认位置
+ *
+ * 该方法适用于所有基于窗口可视区域的悬浮组件位置恢复场景，
+ * 例如全局工具栏按钮、浮动帮助按钮等。
+ *
+ * @param {string} storageKey localStorage 键名
+ * @param {{x: number|null, y: number|null}} defaultPosition 组件的默认位置（例如 { x: null, y: null }）
+ * @param {{width: number, height: number}} size 组件本身的宽高
+ * @returns {{x: number|null, y: number|null}}
+ */
+export function normalizeFloatingPosition(storageKey, defaultPosition, size) {
+  // SSR/测试环境下直接返回默认值
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
+    return defaultPosition;
+  }
+
+  const saved = window.localStorage.getItem(storageKey);
+  if (!saved) {
+    return defaultPosition;
+  }
+
+  try {
+    const pos = JSON.parse(saved) || {};
+    let x = Number(pos.x);
+    let y = Number(pos.y);
+
+    // 坐标不是有效数字：清除缓存并回默认
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      window.localStorage.removeItem(storageKey);
+      return defaultPosition;
+    }
+
+    const buttonWidth = size && typeof size.width === "number" ? size.width : 0;
+    const buttonHeight = size && typeof size.height === "number" ? size.height : 0;
+
+    const maxX = Math.max(0, window.innerWidth - buttonWidth);
+    const maxY = Math.max(0, window.innerHeight - buttonHeight);
+
+    const outOfViewport = x < 0 || y < 0 || x > maxX || y > maxY;
+
+    if (outOfViewport) {
+      // 一旦越界：清掉 localStorage，下次回到默认位置
+      window.localStorage.removeItem(storageKey);
+      return defaultPosition;
+    }
+
+    // 在范围内再夹紧一次，避免边界精度问题
+    x = Math.max(0, Math.min(x, maxX));
+    y = Math.max(0, Math.min(y, maxY));
+
+    return { x, y };
+  } catch (e) {
+    console.error("normalizeFloatingPosition error:", e);
+    window.localStorage.removeItem(storageKey);
+    return defaultPosition;
+  }
+}
+
+/**
  * 创建拖拽模态框指令的工厂函数
  * 用于在 Vue 应用入口处通过 app.directive('drag-modal', createDragModalDirective()) 注册
  */

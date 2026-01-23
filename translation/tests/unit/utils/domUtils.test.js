@@ -4,7 +4,8 @@ import {
   setModalAriaHidden,
   createDragModalDirective,
   stopDomEvent,
-  createDraggable
+  createDraggable,
+  normalizeFloatingPosition
 } from '@/utils/domUtils'
 
 describe('domUtils - DOM/UI工具函数', () => {
@@ -25,6 +26,63 @@ describe('domUtils - DOM/UI工具函数', () => {
       clickInput(mockVm, mockEvent)
 
       expect(mockEvent.stopPropagation).toHaveBeenCalled()
+    })
+  })
+
+  describe('normalizeFloatingPosition', () => {
+    const STORAGE_KEY = 'floatingToolBoxPosition'
+    const DEFAULT_POS = { x: null, y: null }
+    const SIZE = { width: 50, height: 50 }
+
+    beforeEach(() => {
+      window.localStorage.removeItem(STORAGE_KEY)
+      // 默认窗口尺寸
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 800
+      })
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: 600
+      })
+    })
+
+    it('localStorage 无记录时应返回默认位置', () => {
+      const pos = normalizeFloatingPosition(STORAGE_KEY, DEFAULT_POS, SIZE)
+      expect(pos).toEqual(DEFAULT_POS)
+    })
+
+    it('坐标合法且在视口内时应返回存储位置', () => {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ x: 100, y: 200 }))
+      const pos = normalizeFloatingPosition(STORAGE_KEY, DEFAULT_POS, SIZE)
+      expect(pos).toEqual({ x: 100, y: 200 })
+      // 不应清除存储
+      expect(window.localStorage.getItem(STORAGE_KEY)).not.toBeNull()
+    })
+
+    it('坐标为非法数字时应清除存储并返回默认位置', () => {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ x: 'abc', y: 200 }))
+      const pos = normalizeFloatingPosition(STORAGE_KEY, DEFAULT_POS, SIZE)
+      expect(pos).toEqual(DEFAULT_POS)
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull()
+    })
+
+    it('坐标超出当前视口范围时应清除存储并返回默认位置', () => {
+      // 超出右下角
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ x: 9999, y: 9999 }))
+      const pos = normalizeFloatingPosition(STORAGE_KEY, DEFAULT_POS, SIZE)
+      expect(pos).toEqual(DEFAULT_POS)
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull()
+    })
+
+    it('坐标等于窗口尺寸（完全越界）时应清除存储并返回默认位置', () => {
+      // x=innerWidth、y=innerHeight 已经完全跑出可视范围，按业务约定应视为越界
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ x: 800, y: 600 }))
+      const pos = normalizeFloatingPosition(STORAGE_KEY, DEFAULT_POS, SIZE)
+      expect(pos).toEqual(DEFAULT_POS)
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull()
     })
   })
 

@@ -36,6 +36,7 @@ import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import BackFillModal_v1_5 from "@/components/Button/fileManage/backFill/modal_v1.5.vue";
 import { closeAllNotifications } from "@/utils/notificationUtils";
 import { getLanguage } from "@/http/api/translate";
+import { normalizeFloatingPosition } from "@/utils";
 import "@/assets/style/common.less";
 
 export default {
@@ -160,15 +161,12 @@ export default {
   methods: {
     // 加载按钮位置
     loadButtonPosition() {
-      const saved = localStorage.getItem("floatingToolBoxPosition");
-      if (saved) {
-        try {
-          const pos = JSON.parse(saved);
-          this.buttonPosition = { x: pos.x, y: pos.y };
-        } catch (e) {
-          console.error("Failed to load button position:", e);
-        }
-      }
+      const pos = normalizeFloatingPosition(
+        "floatingToolBoxPosition",
+        { x: null, y: null },
+        { width: 50, height: 50 }
+      );
+      this.buttonPosition = pos;
     },
     // 保存按钮位置
     saveButtonPosition() {

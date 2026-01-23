@@ -46,10 +46,37 @@ vi.mock('@/http/api/workbench.js', () => ({
   gitPush: vi.fn(() => Promise.resolve({}))
 }))
 
-vi.mock('@/utils/domUtils', () => ({
-  setModalAriaHidden: vi.fn(),
-  createDragModalDirective: vi.fn(() => ({}))
-}))
+vi.mock('@/utils/domUtils', () => {
+  const setModalAriaHidden = vi.fn()
+  const createDragModalDirective = vi.fn(() => ({}))
+  /**
+   * 对 normalizeFloatingPosition 做一个与组件测试预期一致的轻量 mock：
+   * - 若 localStorage 中有合法的 { x, y }，则直接返回该位置
+   * - 否则返回传入的 defaultPosition
+   *
+   * 这里不做越界判断，越界处理由 domUtils 自身单测覆盖，
+   * 组件层单测只关注“能否从 localStorage 恢复位置”这一行为。
+   */
+  const normalizeFloatingPosition = vi.fn((storageKey, defaultPosition) => {
+    try {
+      const raw = global.localStorage?.getItem?.(storageKey)
+      if (!raw) return defaultPosition
+      const parsed = JSON.parse(raw) || {}
+      if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+        return { x: parsed.x, y: parsed.y }
+      }
+      return defaultPosition
+    } catch {
+      return defaultPosition
+    }
+  })
+
+  return {
+    setModalAriaHidden,
+    createDragModalDirective,
+    normalizeFloatingPosition
+  }
+})
 
 vi.mock('ant-design-vue', () => ({
   default: {

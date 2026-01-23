@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import commonParam from '@/constants/commonParam'
 import { notification } from 'ant-design-vue'
-import { setCurrentDepartment } from '@/main'
+import { setCurrentDepartment } from '@/services/currentDepartmentService'
 
 export default createStore({
   state: {
