@@ -49,10 +49,11 @@ public class CheckSpecialCharacterWorkNode<T> extends CheckWorkNode<Collection<T
             Collection<T> notCorrectEntryInfos = new ArrayList<>();
             if(getEntryMethodEntity != null && getTranslationMethods != null && !getTranslationMethods.isEmpty() && entities != null && !entities.isEmpty()){
                 for(T entity : entities){
-                    String entry = String.valueOf( getEntryMethodEntity.getMethod().invoke(entity, getEntryMethodEntity.getParams()));
+                    String entry = getEntryMethodEntity.getMethod().invoke(entity, getEntryMethodEntity.getParams()) != null ? 
+                        String.valueOf(getEntryMethodEntity.getMethod().invoke(entity, getEntryMethodEntity.getParams())) : null;
                     for(MethodEntity getMethodEntity : getTranslationMethods){
                         try {
-                            String translate = String.valueOf(getMethodEntity.getMethod().invoke(entity));
+                            String translate = getMethodEntity.getMethod().invoke(entity) != null ? String.valueOf(getMethodEntity.getMethod().invoke(entity)) : null;
                             DefaultTranslateAnalyzeSample defaultTranslateAnalyzeSample = defaultTranslateAnalyzer.prepare(entry, translate);
                             AnalyzeSample analyze = defaultTranslateAnalyzer.analyze(defaultTranslateAnalyzeSample);
                             if(analyze.isBad()){

@@ -63,7 +63,7 @@ public class CheckFilePipeline implements Pipeline {
 
     public CheckMissingEntryRelationWorkNode buildCheckMissingEntryRelationWorkNode(Collection<EntryInfoEntity> entryInfoEntities, Map<String,Set<String>> idRelationMap){
         CheckMissingEntryRelationWorkNode checkMissingEntryRelationWorkNode = new CheckMissingEntryRelationWorkNode();
-        checkMissingEntryRelationWorkNode.addCheckData(entryInfoEntities, idRelationMap);
+        checkMissingEntryRelationWorkNode.addCheckData(entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toSet()), idRelationMap);
         return checkMissingEntryRelationWorkNode;
     }
 

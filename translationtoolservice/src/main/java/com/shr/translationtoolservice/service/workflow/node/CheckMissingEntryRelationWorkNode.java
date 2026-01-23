@@ -2,11 +2,8 @@ package com.shr.translationtoolservice.service.workflow.node;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO.Issue;
 import com.shr.translationtoolservice.entity.vo.check.TaskCheckResultVO.Issue.IssueType;
 import com.shr.translationtoolservice.entity.vo.exception.ExceptionVO;
@@ -16,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CheckMissingEntryRelationWorkNode extends CheckWorkNode<Collection<ExceptionVO>>{
 
-    public Collection<EntryInfoEntity> entryInfoEntities = null;
+    public Collection<String> entryIDs = null;
 
     public Map<String, Set<String>> idRelationMap = null;
 
@@ -28,8 +25,8 @@ public class CheckMissingEntryRelationWorkNode extends CheckWorkNode<Collection<
     }
 
 
-    public void addCheckData(Collection<EntryInfoEntity> entryInfoEntities,Map<String, Set<String>> idRelationMap){
-        this.entryInfoEntities = entryInfoEntities;
+    public void addCheckData(Collection<String> entryIDs,Map<String, Set<String>> idRelationMap){
+        this.entryIDs = entryIDs;
         this.idRelationMap = idRelationMap;
     }
 
@@ -39,14 +36,13 @@ public class CheckMissingEntryRelationWorkNode extends CheckWorkNode<Collection<
      * @param idRelationMap
      * @return
      */
-    protected Collection<ExceptionVO> compareTranslatedFileWithIDRelation(Collection<EntryInfoEntity> entryInfoEntities,Map<String, Set<String>> idRelationMap) {
+    protected Collection<ExceptionVO> compareTranslatedFileWithIDRelation(Collection<String> entryIDs,Map<String, Set<String>> idRelationMap) {
         Collection<ExceptionVO> exceptionVOs = new ArrayList<>();
         if(idRelationMap == null || idRelationMap.isEmpty()){
             ExceptionVO exceptionVO = new ExceptionVO("没有解析获取到id关联表的信息, 请检查提供的json文件是否正确");
             exceptionVOs.add(exceptionVO);
             return exceptionVOs;
         }
-        Map<String, List<EntryInfoEntity>> entryInfosOnFileIDRelation = entryInfoEntities.stream().collect(Collectors.groupingBy((t) -> t.getId())); // key是id, value是entryInfo
         /* 检查如果父节点不存在, 是否有一个或多个子节点, 如果没有子节点, 则为异常信息(没法更新翻译(回填)) */
         for(Map.Entry<String,Set<String>> idRelation : idRelationMap.entrySet()){
             String parentID = idRelation.getKey();
@@ -54,24 +50,18 @@ public class CheckMissingEntryRelationWorkNode extends CheckWorkNode<Collection<
             if(parentID == null){
                 throw new RuntimeException("id映射表存在异常, 父节点的ID为null");
             }
-            List<EntryInfoEntity> entryInfosOnFile = entryInfosOnFileIDRelation.get(parentID);
-
-            if(entryInfosOnFile == null || entryInfosOnFile.isEmpty()){
-                // 父节点丢失, 查看是否子节点是否被当作送翻的词条
-
-                List<EntryInfoEntity> childEntryInfos = new ArrayList<>();
-                if(childIDs != null){
-                    for(String childID : childIDs){
-                        List<EntryInfoEntity> childEntryInfosOnFile = entryInfosOnFileIDRelation.get(childID);
-                        if(childEntryInfosOnFile == null || childEntryInfosOnFile.isEmpty()){
-                            continue;   // 送翻的词条没有这个子节点
-                        }
-                        childEntryInfos.addAll(childEntryInfosOnFile);
+            if(entryIDs.contains(parentID)){
+                /* 父节点存在 */
+                continue;
+            }else{
+                int childIDExistInEntryIDs = 0; // entryIDs中子节点的个数
+                for(String childID : childIDs){
+                    if(!entryIDs.contains(childID)){
+                        continue;   // entryIDs中不存在这个子节点ID
                     }
+                    childIDExistInEntryIDs ++ ;
                 }
-                /* 确定更新的翻译的翻译内容是什么 */
-                int countChildIDOnParsedFile = childEntryInfos.size();
-                if(countChildIDOnParsedFile == 0){
+                if(childIDExistInEntryIDs == 0){
                     /* 父节点没有, 子节点一个也没有, 这种情况是丢了 */
                     exceptionVOs.add(new ExceptionVO(
                         String.format("父节点id: '%s'的词条送翻记录丢失, 并且也没有子节点的送翻信息, 与之关联的子节点的id信息为: %s", parentID,childIDs.toString()),
@@ -82,8 +72,6 @@ public class CheckMissingEntryRelationWorkNode extends CheckWorkNode<Collection<
                     /* 父节点没有, 但有一个或多个子节点,(父节点的也要更新),满足要求  */
                     continue;
                 }
-            }else{
-                continue;
             }
         }
 
@@ -94,7 +82,7 @@ public class CheckMissingEntryRelationWorkNode extends CheckWorkNode<Collection<
     public void checkInternal() {
         // TODO Auto-generated method stub
         try {
-            Collection<ExceptionVO> exceptionVos = this.compareTranslatedFileWithIDRelation(this.entryInfoEntities,this.idRelationMap);
+            Collection<ExceptionVO> exceptionVos = this.compareTranslatedFileWithIDRelation(this.entryIDs,this.idRelationMap);
             CheckResultCode resultCode = null;
             String message = "";
             if(exceptionVos.isEmpty()){
