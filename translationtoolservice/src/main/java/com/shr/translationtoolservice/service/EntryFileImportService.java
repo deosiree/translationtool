@@ -45,14 +45,6 @@ public interface EntryFileImportService {
 
     // UpdateEntryInfoByFileVO updateEntryInfosTranslationByFile(FileInputStreamEntity fileInputStreamEntitiy,Collection<String> translationColumnNames,KeyValueArguments<String> keyValueArguments);
 
-    /**
-     * 更新翻译接口(送翻文件解析, 更新库里词条的翻译)
-     * @param multipartFile
-     * @param token
-     * @param transType
-     * @return
-     */
-    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token,String transType);
 
     /**
      * 更新翻译接口(送翻文件解析, 更新库里词条的翻译)(利用去重的翻译文件,以及去重时使用的词条id关联表), idRelationMap传参为null,调用{@link #importTransExcle(MultipartFile, String, String)}进行更新翻译

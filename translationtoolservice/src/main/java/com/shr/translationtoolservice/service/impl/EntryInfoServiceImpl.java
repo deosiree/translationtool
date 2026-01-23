@@ -1889,28 +1889,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
-    @Transactional
-    @Override
-    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType) {
-
-
-        
-        try {
-            UpdateEntryInfoByFileVO updateTranslationByFileVO = new UpdateEntryInfoByFileVO();
-            String department = JWTTokenUtils.getDepartment(token);
-            Collection<EntryInfoEntity> entryEntitys = excelUtils.parseFileToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
-            Map<String,Object> kwargs = new HashMap<>();
-            kwargs.put("department", department);
-            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryEntitys, transType, kwargs);
-            updateExceptionVOs.forEach((vo) -> {updateTranslationByFileVO.addException(vo);});
-            return updateTranslationByFileVO;
-        } catch (Exception e) {
-            log.error("导入文件更新库里词条的翻译时出现异常",e);
-            throw new RuntimeException(e);
-
-        }
-        
-    }
 
     @Transactional
     @Override
@@ -1923,6 +1901,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             String department = JWTTokenUtils.getDepartment(token);
             Map<String,Object> kwargs = new HashMap<>();
             kwargs.put("department", department);
+            Consumer<TranslateEntity> translateEntiityProcessor = new Consumer<TranslateEntity>() {
+                @Override
+                public void accept(TranslateEntity translateEntity) {
+                    // TODO Auto-generated method stub
+                    translateEntity.setTranslateState("3");
+                }
+            };
+            kwargs.put("translateProcessor", translateEntiityProcessor);    // 利用excel文件更新翻译，默认更新为已审核
             /* 解析文件, 生成词条 */
             Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
             
@@ -2114,191 +2100,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             }
             List<ExceptionEntryInfoVO> problematicEntryInfoEntities = new ArrayList<>();
 
-            if (CollectionUtils.isEmpty(entryEntitys)) {
-                return problematicEntryInfoEntities;
-            }
-            for (EntryInfoEntity entryInfoEntity1 : entryEntitys) {
-                if (entryInfoEntity1.getEntry() != null && entryInfoEntity1.getEntry().equals("字节顺序")){
-                    System.out.println("字节顺序");
-                }
-                String trans = "";
-                switch (transType) {
-                    case ConstantInterface.CHINESE:
-                        trans = entryInfoEntity1.getChinese();
-                        break;
-                    case ConstantInterface.ENGLISH:
-                        trans = entryInfoEntity1.getEnglish();
-                        break;
-                    case ConstantInterface.SPANISH:
-                        trans = entryInfoEntity1.getSpanish();
-                        break;
-                    case ConstantInterface.RUSSIAN:
-                        trans = entryInfoEntity1.getRussian();
-                        break;
-                    case ConstantInterface.FRENCH:
-                        trans = entryInfoEntity1.getFrench();
-                        break;
-
-                }
-                //获取原词条翻译id 对比翻译结果是否有变化 如果没变化 则不改变
-                //有变化 在翻译新增翻译 实体
-                EntryInfoEntity originalEntry = entryInfoMapper.selectById(entryInfoEntity1.getId());
-                if (Objects.isNull(originalEntry)){
-                    continue;
-                }
-                // List<TranslateEntity> repTrans = translateMapper.getRepTrans(entryInfoEntity1.getEntry(), transType, trans, department);
-                List<TranslateEntity> repTrans = new LinkedList<>();
-                TranslateEntity translateEntity;
-                boolean isExist = false;
-                if (!CollectionUtils.isEmpty(repTrans)){
-                    //translateEntity使用repTrans中lastUseTime最近的
-                    translateEntity = repTrans.stream().max(Comparator.comparing(TranslateEntity::getLastUseTime)).get();
-                    isExist = true;
-                } else {
-                    translateEntity = new TranslateEntity();
-                    translateEntity.setId(commonUtils.getUUID());
-                    translateEntity.setEntry(entryInfoEntity1.getEntry());
-                    translateEntity.setType(transType);
-                    translateEntity.setTranslate(trans);
-                    translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                    translateEntity.setTranslateState("1");
-                    translateEntity.setDeleteState(0);
-                    translateEntity.setVisualRange(department);
-                    translateEntity.setPublicState(0);
-                    isExist = false;
-                }
-
-                switch (transType) {
-                    case ConstantInterface.CHINESE:
-                        if (StringUtils.isBlank(entryInfoEntity1.getChinese())){
-                            break;
-                        }
-                        if (StringUtils.isBlank(originalEntry.getZhTransId())) {
-                            entryInfoEntity1.setZhTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            // translateMapper.insert(translateEntity);
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        TranslateEntity originZhTrans = translateMapper.selectById(originalEntry.getZhTransId());
-                        if (Objects.isNull(originZhTrans) || !entryInfoEntity1.getChinese().equals(originZhTrans.getTranslate())) {
-                            entryInfoEntity1.setZhTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        break;
-                    case ConstantInterface.ENGLISH:
-                        if (StringUtils.isBlank(entryInfoEntity1.getEnglish())){
-                            break;
-                        }
-                        if (StringUtils.isBlank(originalEntry.getEnTransId())) {
-                            entryInfoEntity1.setEnTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            // translateMapper.insert(translateEntity);
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        TranslateEntity originEnTrans = translateMapper.selectById(originalEntry.getEnTransId());
-                        if (Objects.isNull(originEnTrans) || !entryInfoEntity1.getEnglish().equals(originEnTrans.getTranslate())) {
-                            entryInfoEntity1.setEnTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        break;
-                    case ConstantInterface.SPANISH:
-                        if (StringUtils.isBlank(entryInfoEntity1.getSpanish()) ){
-                            break;
-                        }
-                        if (StringUtils.isBlank(originalEntry.getSpaTransId())) {
-                            entryInfoEntity1.setSpaTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-                            continue;
-                        }
-                        TranslateEntity originSpaTrans = translateMapper.selectById(originalEntry.getSpaTransId());
-                        if (Objects.isNull(originSpaTrans) || !entryInfoEntity1.getSpanish().equals(originSpaTrans.getTranslate())) {
-                            entryInfoEntity1.setSpaTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        break;
-                    case ConstantInterface.RUSSIAN:
-                        if (StringUtils.isBlank(entryInfoEntity1.getRussian())){
-                            break;
-                        }
-                        if (StringUtils.isBlank(originalEntry.getRuTransId())) {
-                            entryInfoEntity1.setRuTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        TranslateEntity originRuTrans = translateMapper.selectById(originalEntry.getRuTransId());
-                        if (Objects.isNull(originRuTrans) ||!entryInfoEntity1.getRussian().equals(originRuTrans.getTranslate())) {
-                            entryInfoEntity1.setRuTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-                            break;
-                        }
-                        break;
-                    case ConstantInterface.FRENCH:
-                        if (StringUtils.isBlank(entryInfoEntity1.getFrench())){
-                            break;
-                        }
-                        if (StringUtils.isBlank(originalEntry.getFraTransId())) {
-                            entryInfoEntity1.setFraTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-
-                            break;
-                        }
-                        TranslateEntity originFraTrans = translateMapper.selectById(originalEntry.getFraTransId());
-                        if (Objects.isNull(originFraTrans) || !entryInfoEntity1.getFrench().equals(originFraTrans.getTranslate())) {
-                            entryInfoEntity1.setFraTransId(translateEntity.getId());
-                            entryInfoMapper.updateById(entryInfoEntity1);
-                            if (isExist){
-                                break;
-                            }
-                            translateMapper.insertTranslate(translateEntity);
-
-                            break;
-                        }
-                        break;
-
-                }
-            
-                
-            }
-        
+            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
+            keyValueArguments.set("department", department);
+            keyValueArguments.set("translateProcessor", kwargs.get("translateProcessor"));
+            translationStorageService.updateEntryInfoTranslations(entryEntitys, Arrays.asList(transType), keyValueArguments);
             /* 校验导入的翻译是否超过了最大字符长度,仅警告用户存在问题 */
             BatchMaxLengthTranslateAnalyzer batchMaxLengthTranslateAnalyzer = new BatchMaxLengthTranslateAnalyzer(entryInfoMapper,productRelationMapper,entryClassifyMapper);
             batchMaxLengthTranslateAnalyzer.addLanguageType(transType);
