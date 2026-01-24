@@ -69,7 +69,7 @@ public class CheckMissingEntryWorkNode extends CompareEntityWorkNode<EntryInfoEn
     @Override
     public Issue getIssue() {
         Issue issue = new Issue();
-        issue.setLevel(Issue.Level.FATAL);
+        issue.setLevel(Issue.Level.WARN);
         issue.setType(this.getIssueType());
         issue.setMessage(this.getMessage());
         return issue;
