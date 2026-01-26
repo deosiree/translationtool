@@ -682,19 +682,20 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       wrapper.vm.formModel.backfillFields = ['english', 'russian']
       wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
 
-      // 调用更新操作（不立即await，以便验证立即关闭的行为）
+      // 调用更新操作
       const updatePromise = wrapper.vm.handleContinueBackFill()
       
-      // 验证在更新开始时（API调用之前）校验窗立即关闭
-      // handleBatchUpdate() 在方法开始时同步设置 validationVisible = false
-      expect(wrapper.vm.validationVisible).toBe(false)
+      // 验证在更新开始时校验窗仍然打开（因为现在是在接口响应后才关闭）
+      expect(wrapper.vm.validationVisible).toBe(true)
       
-      // 等待更新操作完成
+      // 等待更新操作完成和 $nextTick
       await updatePromise
+      await nextTick()
+      // 等待额外的 $nextTick，因为关闭逻辑在 $nextTick 中
       await nextTick()
       await new Promise(resolve => setTimeout(resolve, 50))
 
-      // 验证校验窗保持关闭状态
+      // 验证校验窗在接口响应后通过 $nextTick 关闭
       expect(wrapper.vm.validationVisible).toBe(false)
       // 验证打开了更新模态框
       expect(wrapper.vm.updateVisible).toBe(true)
@@ -848,11 +849,31 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.validationVisible).toBe(true)
 
-      // 打开更新模态框
-      wrapper.vm.updateVisible = true
+      // 打开更新模态框（现在 watch 不再自动关闭校验模态框，需要通过 handleBatchUpdate 来触发）
+      // 这个测试需要模拟实际的业务场景：通过 handleBatchUpdate 来设置 updateVisible
+      const { entryBatchImportExcel_V1_5 } = await import('@/utils/excelUtils')
+      entryBatchImportExcel_V1_5.mockResolvedValueOnce({
+        code: 201,
+        msgBylang: [
+          {
+            lang: '英文',
+            code: 201,
+            globalMessage: '部分成功',
+            failedEntryInfos: [],
+            exceptionVos: []
+          }
+        ]
+      })
+      
+      wrapper.vm.formModel.backfillFields = ['english']
+      wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
+      
+      await wrapper.vm.handleBatchUpdate()
+      await nextTick()
+      // 等待额外的 $nextTick，因为关闭逻辑在 $nextTick 中
       await nextTick()
 
-      // 验证校验模态框被关闭
+      // 验证校验模态框被关闭（通过 handleBatchUpdate 中的 $nextTick）
       expect(wrapper.vm.validationVisible).toBe(false)
       expect(wrapper.vm.updateVisible).toBe(true)
     })
@@ -867,11 +888,30 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.validationVisible).toBe(true)
 
-      // 打开更新模态框
-      wrapper.vm.updateVisible = true
+      // 打开更新模态框（现在 watch 不再自动关闭校验模态框，需要通过 handleBatchUpdate 来触发）
+      const { entryBatchImportExcel_V1_5 } = await import('@/utils/excelUtils')
+      entryBatchImportExcel_V1_5.mockResolvedValueOnce({
+        code: 201,
+        msgBylang: [
+          {
+            lang: '英文',
+            code: 201,
+            globalMessage: '部分成功',
+            failedEntryInfos: [],
+            exceptionVos: []
+          }
+        ]
+      })
+      
+      wrapper.vm.formModel.backfillFields = ['english']
+      wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
+      
+      await wrapper.vm.handleBatchUpdate()
+      await nextTick()
+      // 等待额外的 $nextTick，因为关闭逻辑在 $nextTick 中
       await nextTick()
 
-      // 验证校验模态框被关闭
+      // 验证校验模态框被关闭（通过 handleBatchUpdate 中的 $nextTick）
       expect(wrapper.vm.validationVisible).toBe(false)
       expect(wrapper.vm.updateVisible).toBe(true)
     })
@@ -882,11 +922,11 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.validationVisible).toBe(true)
 
-      // 调用 handleCloseInternal
-      wrapper.vm.handleCloseInternal()
+      // 调用 handleClose（而不是 handleCloseInternal，因为 handleCloseInternal 只关闭主模态框）
+      wrapper.vm.handleClose()
       await nextTick()
 
-      // 验证校验模态框被关闭
+      // 验证校验模态框被关闭（通过 handleClose）
       expect(wrapper.vm.validationVisible).toBe(false)
       // 验证主模态框也被关闭（button 模式）
       expect(wrapper.vm.internalVisible).toBe(false)
@@ -902,11 +942,11 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.validationVisible).toBe(true)
 
-      // 调用 handleCloseInternal
-      wrapper.vm.handleCloseInternal()
+      // 调用 handleClose（而不是 handleCloseInternal，因为 handleCloseInternal 只关闭主模态框）
+      wrapper.vm.handleClose()
       await nextTick()
 
-      // 验证校验模态框被关闭
+      // 验证校验模态框被关闭（通过 handleClose）
       expect(wrapper.vm.validationVisible).toBe(false)
       // 验证触发了 handleClose 事件（modal 模式）
       expect(wrapper.emitted('handleClose')).toBeTruthy()
@@ -918,11 +958,11 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.updateVisible).toBe(true)
 
-      // 调用 handleCloseInternal
-      wrapper.vm.handleCloseInternal()
+      // 调用 handleClose（而不是 handleCloseInternal，因为 handleCloseInternal 只关闭主模态框）
+      wrapper.vm.handleClose()
       await nextTick()
 
-      // 验证更新模态框被关闭
+      // 验证更新模态框被关闭（通过 handleClose）
       expect(wrapper.vm.updateVisible).toBe(false)
       // 验证主模态框也被关闭（button 模式）
       expect(wrapper.vm.internalVisible).toBe(false)
@@ -938,11 +978,11 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.updateVisible).toBe(true)
 
-      // 调用 handleCloseInternal
-      wrapper.vm.handleCloseInternal()
+      // 调用 handleClose（而不是 handleCloseInternal，因为 handleCloseInternal 只关闭主模态框）
+      wrapper.vm.handleClose()
       await nextTick()
 
-      // 验证更新模态框被关闭
+      // 验证更新模态框被关闭（通过 handleClose）
       expect(wrapper.vm.updateVisible).toBe(false)
       // 验证触发了 handleClose 事件（modal 模式）
       expect(wrapper.emitted('handleClose')).toBeTruthy()
@@ -954,14 +994,33 @@ describe('BackFillModal_v1_5 - 去重回填模态框 (v1.5版本)', () => {
       await nextTick()
       expect(wrapper.vm.validationVisible).toBe(true)
       
-      // 然后打开更新模态框（此时校验模态框会被 watch 自动关闭）
-      wrapper.vm.updateVisible = true
+      // 然后通过 handleBatchUpdate 打开更新模态框（此时校验模态框会在 $nextTick 中关闭）
+      const { entryBatchImportExcel_V1_5 } = await import('@/utils/excelUtils')
+      entryBatchImportExcel_V1_5.mockResolvedValueOnce({
+        code: 201,
+        msgBylang: [
+          {
+            lang: '英文',
+            code: 201,
+            globalMessage: '部分成功',
+            failedEntryInfos: [],
+            exceptionVos: []
+          }
+        ]
+      })
+      
+      wrapper.vm.formModel.backfillFields = ['english']
+      wrapper.vm.formModel.backFillFile = new File(['test'], 'test.csv', { type: 'text/csv' })
+      
+      await wrapper.vm.handleBatchUpdate()
       await nextTick()
-      expect(wrapper.vm.validationVisible).toBe(false) // watch 已自动关闭
+      // 等待额外的 $nextTick，因为关闭逻辑在 $nextTick 中
+      await nextTick()
+      expect(wrapper.vm.validationVisible).toBe(false) // 通过 handleBatchUpdate 中的 $nextTick 关闭
       expect(wrapper.vm.updateVisible).toBe(true)
 
-      // 调用 handleCloseInternal
-      wrapper.vm.handleCloseInternal()
+      // 调用 handleClose（而不是 handleCloseInternal，因为 handleCloseInternal 只关闭主模态框）
+      wrapper.vm.handleClose()
       await nextTick()
 
       // 验证更新模态框被关闭（校验模态框已经是 false，无需验证）

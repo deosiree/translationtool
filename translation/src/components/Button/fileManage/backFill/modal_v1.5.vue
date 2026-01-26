@@ -377,16 +377,12 @@ export default {
     validationVisible(newVal) {
       if (newVal) {
         setModalAriaHidden(this, document);
-        // 打开校验模态框时，关闭初始模态框
-        this.internalVisible = false;
       }
     },
     // 更新结果弹窗显示后，修复 aria-hidden 导致的焦点可访问性告警
     updateVisible(newVal) {
       if (newVal) {
         setModalAriaHidden(this, document);
-        // 打开更新模态框时，关闭校验模态框
-        this.validationVisible = false;
       }
     },
     "formModel.importType": {
@@ -615,18 +611,27 @@ export default {
 
           this.loading = true;
           // console.log("保存用户偏好", data);
-          // 校验模式：校验是否通过
-          if (this.formModel.enableValidate) {
-            await this.handleValidation();// 若可回填，则显示"继续回填"按钮，不再自动执行更新，改为通过"继续回填"按钮人为控制
-            // console.log("canBackFill", this.validation.canBackFill)
-          } else {
-            // 不勾选校验时：直接执行批量更新（无需展示"继续回填"按钮）
-            await this.handleBatchUpdate();
-            // 先关闭当前弹窗
-            this.handleCloseInternal();
+          try {
+            // 校验模式：校验是否通过
+            if (this.formModel.enableValidate) {
+              await this.handleValidation();// 若可回填，则显示"继续回填"按钮，不再自动执行更新，改为通过"继续回填"按钮人为控制
+              // console.log("canBackFill", this.validation.canBackFill)
+              // 等待新模态框渲染完成后再关闭loading
+              this.$nextTick(() => {
+                this.loading = false;
+              });
+            } else {
+              // 不勾选校验时：直接执行批量更新（无需展示"继续回填"按钮）
+              await this.handleBatchUpdate();
+              // 先关闭当前弹窗
+              this.handleCloseInternal();
+              this.loading = false;
+            }
+          } catch (error) {
+            // 错误处理：确保 loading 被关闭
+            this.loading = false;
+            throw error; // 重新抛出错误，让外层 catch 处理
           }
-
-          this.loading = false;
         })
         .catch((err) => {
           console.log("表单校验失败", err);
@@ -664,6 +669,10 @@ export default {
 
         // 统一显示校验结果模态框，无论校验结果如何
         this.validationVisible = true;
+        // 等待新模态框渲染完成后再关闭旧模态框
+        this.$nextTick(() => {
+          this.internalVisible = false;
+        });
       } catch (error) {
         handleErrorNotification(error, "校验过程发生异常！");
         throw error; // 重新抛出错误，让调用方知道校验失败
@@ -671,8 +680,6 @@ export default {
     },
     // 处理导入响应
     async handleBatchUpdate() {
-      // 执行更新时，立即关闭校验模态框
-      this.validationVisible = false;
       try {
         let notifyTask = null;
 
@@ -740,6 +747,10 @@ export default {
             this.detailsByLang = detailsByLang;
             this.activeFailedLangTab = firstFailedLang || Object.keys(detailsByLang)[0];
             this.updateVisible = true;
+            // 等待新模态框渲染完成后再关闭旧模态框
+            this.$nextTick(() => {
+              this.validationVisible = false;
+            });
           } else {
             // 若没有任何可展示项：走通知兜底
             const firstItem = msgBylang[0] || {};
@@ -782,8 +793,17 @@ export default {
     // 处理继续回填按钮点击
     async handleContinueBackFill() {
       this.loading = true;
-      await this.handleBatchUpdate();
-      this.loading = false;
+      try {
+        await this.handleBatchUpdate();
+        // 等待新模态框渲染完成后再关闭loading
+        this.$nextTick(() => {
+          this.loading = false;
+        });
+      } catch (error) {
+        // 错误处理：确保 loading 被关闭
+        this.loading = false;
+        throw error; // 重新抛出错误，让调用方知道更新失败
+      }
     },
 
     // ==================== 下载相关 ====================
