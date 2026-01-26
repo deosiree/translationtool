@@ -44,3 +44,5 @@ coverage-*
 coverage\.json
 
 .cursor
+
+/test/files
