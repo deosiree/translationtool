@@ -168,8 +168,9 @@ export async function entryBatchImportExcel_V1_5(translateTypes, formData) {
         msgBylang.push({ lang: lang, code: res.code, ...res.data });
       } catch (error) {
         catchError = true;
-        console.log("错误信息: error", error, "error.data", error.data, "error.data.data", error.data.data);
-        msgBylang.push({ lang: lang, code: error.code, ...error.data.data });
+        const res = error?.data || error?.response?.data || error;
+        console.log("错误信息: error", error, "res", res, "res.data", res.data);
+        msgBylang.push({ lang: lang, code: res.code, ...res.data });
       }
     }
 

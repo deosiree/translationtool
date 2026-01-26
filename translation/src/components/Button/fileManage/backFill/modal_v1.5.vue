@@ -429,14 +429,6 @@ export default {
     },
     // 内部关闭处理（不重置表单）
     handleCloseInternal() {
-      // 关闭校验模态框（如果打开的话）
-      if (this.validationVisible) {
-        this.validationVisible = false;
-      }
-      // 关闭更新模态框（如果打开的话）
-      if (this.updateVisible) {
-        this.updateVisible = false;
-      }
       if (this.mode === "button") {
         this.internalVisible = false;
       } else {
@@ -447,6 +439,14 @@ export default {
     handleClose() {
       this.resetForm();
       this.handleCloseInternal();
+      // 关闭校验模态框（如果打开的话）
+      if (this.validationVisible) {
+        this.validationVisible = false;
+      }
+      // 关闭更新模态框（如果打开的话）
+      if (this.updateVisible) {
+        this.updateVisible = false;
+      }
     },
     resetForm() {
       // 重置 importType：有选择器且传了 defaultAccept 时，根据 accept 反查 value，否则为 null
@@ -689,7 +689,7 @@ export default {
           formData
         );
 
-        // console.log("去重回填的响应体V1.5", result);
+        console.log("去重回填的响应体V1.5", result);
 
         if (result.code === 200) {
           // 完全成功：仅展示成功通知
