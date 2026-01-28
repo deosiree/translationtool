@@ -413,6 +413,24 @@ export const entryParams = {
   searchConditionList: entry_searchConditionList,
   checkedSearchCondition: entry_checkedSearchCondition,
   defaultCheckedColumn: ['index', 'entry', 'comment', 'english', 'russian', 'spanish', 'french'],
+  // 更新词条相关常量（右键菜单-更新）
+  updateEntry: {
+    // localStorage key 集合，方便后续扩展更多需要缓存的字段
+    localStorageKey: {
+      i18nUrl: "i18nUrl",
+    }, // 用于缓存选中的 i18nUrl
+    pollingInterval: 5000, // 轮询间隔（毫秒），开发阶段缩短为5秒
+    // 任务状态消息映射
+    taskStatusMessages: {
+      0: "没有查到正在执行的任务信息",
+      1: "任务正在执行中", // 状态1改为执行中
+      2: "任务执行成功", // 状态2改为执行成功
+      3: "任务执行失败",
+      4: "任务终止执行",
+      5: "任务终止执行失败",
+      6: "系统服务存在异常，联系研发，存在未知的任务状态",
+    },
+  },
 }
 
 // 3.glossaryParams如下：
@@ -765,4 +783,3 @@ export const createBranchParams = {
     }
   }
 }
-

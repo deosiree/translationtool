@@ -1,3 +1,5 @@
+import { createTaskMock } from "./backendInfo";
+
 /**
  * entryManage v2 版本 API 的 Mock 实现
  * 
@@ -294,6 +296,24 @@ function generateImportResponse(payload) {
     operationObject: ''
   };
 }
+
+/**
+ * Mock: 创建更新词条任务
+ */
+export async function createEntrysourceListByClassfyTaskMock(params) {
+  const { classifyID, i18nUrl } = params || {};
+  createTaskMock(classifyID, i18nUrl); // Call the backendInfo mock to set the state
+
+  await new Promise(resolve => setTimeout(resolve, 50)); // Small delay for async behavior
+
+  return {
+    code: 200,
+    type: 'OK',
+    message: '更新任务已创建',
+    operationObject: '',
+  };
+}
+
 
 /**
  * Mock: 更新翻译 (v2版本 - 新API)

@@ -4,6 +4,7 @@ import {
   entryImportExcle as entryImportExcle_mock,
   entryImportExcle_v2 as entryImportExcle_v2_mock,
   entryValidate_v2 as entryValidate_v2_mock,
+  createEntrysourceListByClassfyTaskMock, // Import the new mock
 } from "./mock/entryManage";
 
 // 查询分类中新增的词条来源
@@ -14,6 +15,20 @@ export function getEntrysourceListByClassfy(params) {
     method: "POST",
     params,
   });
+}
+
+// 创建更新词条任务
+export function createEntrysourceListByClassfyTask(params) {
+  // console.log("创建更新词条任务params", params);
+  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  return request({
+    url: "/entryInfo/getEntrysourceListByClassfy",
+    method: "POST",
+    params,
+  });
+
+  // 当前使用 Mock 接口
+  return createEntrysourceListByClassfyTaskMock(params);
 }
 
 // 更新来源中新增的词条来源
@@ -242,12 +257,12 @@ export function entryImportExcle(params, data) {
 // 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
 export function entryImportExcle_v2(params, data) {
   // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
-  // return requestMultipart({
-  //   url: "/entryInfo/entryImportExcle_v2",
-  //   method: "POST",
-  //   params,
-  //   data,
-  // });
+  return requestMultipart({
+    url: "/entryInfo/entryImportExcle_v2",
+    method: "POST",
+    params,
+    data,
+  });
 
   // 当前使用 Mock 接口
   return entryImportExcle_v2_mock(params, data);

@@ -2,43 +2,89 @@
   <div ref="box" class="box">
     <a-row type="flex">
       <a-col :flex="boxFlex" class="treeBox" ref="treeBox">
-        <a-input v-model:value="keyWords" placeholder="关键字搜索" @pressEnter="getClassTree" v-if="treeBoxOpen">
+        <a-input placeholder="关键字搜索" v-if="treeBoxOpen" v-model:value="keyWords" @pressEnter="getClassTree">
           <template #suffix>
-            <SearchOutlined style="color: #DCDCDC;" />
+            <SearchOutlined style="color: #dcdcdc" />
           </template>
         </a-input>
         <div class="productTree">
-          <a-tree v-if="treeBoxOpen" show-icon v-model:expandedKeys="expandedKeys" :defaultExpandAll="true" :selectedKeys="selectedTreeKeys"
-            :tree-data="treeData" @select="clickTree" @rightClick="rightClickTree" draggable block-node @dragenter="onDragEnter" @drop="onDrop"
-            @expand="onExpandTree">
-            <template #title="{ key: treeKey, title, type,maxByte ,foreignMaxByte,codeBranch}">
+          <a-tree v-if="treeBoxOpen" show-icon draggable block-node v-model:expandedKeys="expandedKeys"
+            :defaultExpandAll="true" :selectedKeys="selectedTreeKeys" :tree-data="treeData" @select="clickTree"
+            @rightClick="rightClickTree" @dragenter="onDragEnter" @drop="onDrop" @expand="onExpandTree">
+            <template #title="{
+              key: treeKey,
+              title,
+              type,
+              maxByte,
+              foreignMaxByte,
+              codeBranch,
+            }">
               <a-dropdown :trigger="['contextmenu']">
-                <span v-if="type === 'common'" style="color: #001fb8">{{ title }}</span>
-                <span v-else-if="type === 'classify'" style="color: #7d7d7d">{{ title }}</span>
-                <span v-else-if="type === 'product'" style="color: #5ba584">{{ title }}</span>
-                <span v-else-if="type === 'module'" style="color: #a55b7c">{{ title }}</span>
+                <span v-if="type === 'common'" style="color: #001fb8">{{
+                  title
+                }}</span>
+                <span v-else-if="type === 'classify'" style="color: #7d7d7d">{{
+                  title
+                }}</span>
+                <span v-else-if="type === 'product'" style="color: #5ba584">{{
+                  title
+                }}</span>
+                <span v-else-if="type === 'module'" style="color: #a55b7c">{{
+                  title
+                }}</span>
                 <span v-else>{{ title }}</span>
                 <template #overlay>
                   <a-menu v-if="$store.state.admin">
-                    <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" @click="update(treeKey)">更新</a-menu-item>
-                    <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
-                      @click="addClassify(treeKey,'classify')">添加分类</a-menu-item>
-                    <a-menu-item v-if="type !='common' && type != 'product'  && type != 'module'"
-                      @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
+                    <a-menu-item v-if="
+                      $currentDepartment &&
+                      $currentDepartment.ops.has('needIP')
+                    " :disabled="updateTaskStatusMap[treeKey] === '1'" :loading="updateTaskStatusMap[treeKey] === '1'"
+                      @click="handleUpdateClick(treeKey)">
+                      {{ updateTaskStatusMap[treeKey] === "1" ? "正在执行中" : "更新" }}
+                    </a-menu-item>
+                    <a-menu-item v-if="
+                      type != 'common' &&
+                      type != 'product' &&
+                      type != 'module'
+                    " @click="addClassify(treeKey, 'classify')">添加分类</a-menu-item>
+                    <a-menu-item v-if="
+                      type != 'common' &&
+                      type != 'product' &&
+                      type != 'module'
+                    " @click="addClassify(treeKey, 'product')">添加产品</a-menu-item>
                     <a-menu-item v-if="type === 'product'" @click="productAuthority(treeKey)">权限设置</a-menu-item>
-                    <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey,'module')">添加模块</a-menu-item>
-                    <a-menu-item v-if="type !='department' && type !='common'"
-                      @click="editClassify(treeKey, title, type,maxByte,foreignMaxByte,codeBranch)">编辑</a-menu-item>
-                    <a-menu-item v-if="type !='department' && type !='common'">
-                      <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="deleteClassify(treeKey,type)">删除
+                    <a-menu-item v-if="type === 'product'" @click="addClassify(treeKey, 'module')">添加模块</a-menu-item>
+                    <a-menu-item v-if="type != 'department' && type != 'common'" @click="
+                      editClassify(
+                        treeKey,
+                        title,
+                        type,
+                        maxByte,
+                        foreignMaxByte,
+                        codeBranch
+                      )
+                      ">编辑</a-menu-item>
+                    <a-menu-item v-if="type != 'department' && type != 'common'">
+                      <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否"
+                        @confirm="deleteClassify(treeKey, type)">删除
                       </a-popconfirm>
                     </a-menu-item>
-                    <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needBranch') && type =='classify'" @click="createBranch(treeKey)"
-                      :disabled="createbranchStatus=='执行中'" ref="createBranchMenu">
-                      分支新建{{createbranchStatus=='执行中'?'(执行中)':''}}
+                    <a-menu-item v-if="
+                      $currentDepartment &&
+                      $currentDepartment.ops.has('needBranch') &&
+                      type == 'classify'
+                    " ref="createBranchMenu" :disabled="createbranchStatus == '执行中'" @click="createBranch(treeKey)">
+                      分支新建{{
+                        createbranchStatus == "执行中" ? "(执行中)" : ""
+                      }}
                     </a-menu-item>
-                    <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" @click="entrySourceOpen(treeKey)" ref="entrySourceMenu">
-                      来源汇总{{createbranchStatus=='执行中'?'(执行中)':''}}
+                    <a-menu-item v-if="
+                      $currentDepartment &&
+                      $currentDepartment.ops.has('needBranch')
+                    " ref="entrySourceMenu" @click="entrySourceOpen(treeKey)">
+                      来源汇总{{
+                        createbranchStatus == "执行中" ? "(执行中)" : ""
+                      }}
                     </a-menu-item>
                     <!-- <a-menu-item v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" @click="redundantCheck(treeKey)">冗余校验</a-menu-item> -->
                   </a-menu>
@@ -46,42 +92,45 @@
               </a-dropdown>
             </template>
           </a-tree>
-          <span v-if="treeBoxOpen && treeData.length === 0" style="color: rgba(0, 0, 0, 0.40);margin-left: 40%;">暂无数据</span>
+          <span v-if="treeBoxOpen && treeData.length === 0"
+            style="color: rgba(0, 0, 0, 0.4); margin-left: 40%">暂无数据</span>
         </div>
-
       </a-col>
       <a-col flex="auto" class="dataBox">
         <div class="entryBox" v-if="isProduct">
           <a-tabs v-model:activeKey="activeKey" type="card" @change="tabChange">
             <a-tab-pane key="1" tab="词条详情">
-              <ProductEntry :boxHeight="boxHeight" :currentProduct="currentClickProduct" :productEdit="productEdit" ref="productEntry" />
+              <ProductEntry ref="productEntry" :boxHeight="boxHeight" :currentProduct="currentClickProduct"
+                :productEdit="productEdit" />
             </a-tab-pane>
             <a-tab-pane key="2" tab="产品版本">
-              <ProductVersion ref="productVersionRef" :boxHeight="boxHeight" :currentProduct="currentClickProduct" :productEdit="productEdit"
-                @viewEntry="viewEntry" />
+              <ProductVersion ref="productVersionRef" :boxHeight="boxHeight" :currentProduct="currentClickProduct"
+                :productEdit="productEdit" @viewEntry="viewEntry" />
             </a-tab-pane>
           </a-tabs>
         </div>
         <div class="entryBox" v-else>
-          <CommonEntry :boxHeight="boxHeight" :currentCommon="currentClickProduct" modalTitle="更新详情" />
+          <CommonEntry modalTitle="更新详情" :boxHeight="boxHeight" :currentCommon="currentClickProduct" />
         </div>
         <div class="floatBtn">
-          <left-outlined v-if="treeBoxOpen" @click="openOrCloseTree" title="收起树" />
-          <right-outlined v-if="!treeBoxOpen" @click="openOrCloseTree" title="展开树" />
+          <left-outlined v-if="treeBoxOpen" title="收起树" @click="openOrCloseTree" />
+          <right-outlined v-if="!treeBoxOpen" title="展开树" @click="openOrCloseTree" />
         </div>
       </a-col>
     </a-row>
   </div>
   <!-- <RedundantModal ref="redundantModal" :visible="redundantVisible" :modalTitle="classifyModalTitle" :redundantClassfyID="redundantClassfyID"
     @redundantClose="redundantClose" style="width:700px;" /> -->
-  <UpdateModal ref="updateModal" :visible="updateVisible" :modalTitle="classifyModalTitle" :updateClassfyID="updateClassfyID"
-    @updateClose="updateClose" style="width:700px;" />
-  <CreateBranchModal ref="createBranchModal" :treeNode="currentClickProduct" :visible="createBranchVisible" :modalTitle="classifyModalTitle"
-    :createBranchClassfyID="createBranchClassfyID" @createBranchClose="createBranchClose" style="width:90%;" />
-  <EntrySourceModal ref="entrySourceModal" :visible="entrySourceVisible" :modalTitle="classifyModalTitle" :currentClass="currentClickProduct"
-    @handleClose="entrySourceClose" style="width:100%;" />
-  <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle" :currentClass="currentClass"
-    :treeNode="currentClickProduct" @classifyClose="classifyClose" />
+  <UpdateModal ref="updateModal" style="width: 700px" :visible="updateVisible" :modalTitle="classifyModalTitle"
+    :updateClassfyID="updateClassfyID" :taskStatus="updateTaskStatusMap[updateClassfyID]" @updateClose="updateClose"
+    @taskCompleted="handleOpenModal" />
+  <CreateBranchModal ref="createBranchModal" style="width: 90%" :treeNode="currentClickProduct"
+    :visible="createBranchVisible" :modalTitle="classifyModalTitle" :createBranchClassfyID="createBranchClassfyID"
+    @createBranchClose="createBranchClose" />
+  <EntrySourceModal ref="entrySourceModal" style="width: 100%" :visible="entrySourceVisible"
+    :modalTitle="classifyModalTitle" :currentClass="currentClickProduct" @handleClose="entrySourceClose" />
+  <ClassifyModal ref="classifyModal" :visible="classifyVisible" :modalTitle="classifyModalTitle"
+    :currentClass="currentClass" :treeNode="currentClickProduct" @classifyClose="classifyClose" />
   <ProductAuthorityModal :visible="authorityVisible" :productId="authorityProductId" @authorityClose="authorityClose" />
 </template>
 <script>
@@ -103,16 +152,19 @@ import { cloneDeep, iteratee } from "lodash-es";
 import {
   getClassTree,
   deleteEntryClassfy,
-  getUpdateEntryByClassfy,
-  updateEntryByEntrySource,
-  getEntrysourceListByClassfy,
 } from "@/http/api/entryManage";
 import { deleteProduct, getUserProduct } from "@/http/api/product";
-import { getLangDirImportTaskState } from "@/http/api/backendInfo";
-import { message } from "ant-design-vue";
+import {
+  getLangDirImportTaskState,
+  getEntrysourceListByClassfyTaskState,
+} from "@/http/api/backendInfo";
+import { getI18nAdress } from "@/http/api/workbench";
+import { message, notification, Modal as AntModal } from "ant-design-vue";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { randomMsg } from "@/utils/testUtils";
-import commonParam from "@/constants/commonParam";
+import commonParam, { entryParams } from "@/constants/commonParam";
+import { getCachedI18nUrl } from "@/utils/dataUtils";
+import { handleTaskFailureStatusNotification } from "@/utils/notificationUtils";
 export default {
   components: {
     SearchOutlined,
@@ -157,6 +209,7 @@ export default {
       productEdit: false,
       treeBoxOpen: true,
       treeHeight: 0,
+      updateTaskStatusMap: {}, // 以classifyID为键存储更新任务状态
     };
   },
   mounted() {
@@ -176,10 +229,12 @@ export default {
     window.onresize = null;
   },
   methods: {
+    // ==================== 生命周期和初始化相关 ====================
     init() {
       this.getClassTree();
       // this.getTreeHeight()
     },
+    // ==================== 树结构相关 ====================
     // 在methods中添加onExpandTree方法
     onExpandTree(expandedKeys, { expanded, node }) {
       // 展开状态树时，如果是分类节点，执行查询分支新建状态的函数
@@ -294,6 +349,7 @@ export default {
       // console.log(product.title, "能否被查看", filterProductRes);
       return filterProductRes;
     },
+    // ==================== 模态框控制 ====================
     classifyClose(closeFlag) {
       this.classifyVisible = false;
       if (!closeFlag) {
@@ -303,8 +359,37 @@ export default {
         // this.$refs.productEntry.refresh(this.currentClickProduct);
       } else console.log("没进close，不用重新获取树和刷新页面");
     },
-    updateClose() {
+    updateClose(statusInfo) {
+      // 接收子组件传递的状态信息，存储到状态Map中
+      if (statusInfo && statusInfo.classifyID) {
+        const { status, classifyID } = statusInfo;
+        // 存储或更新该分类的任务状态
+        this.updateTaskStatusMap[classifyID] = status;
+      }
       this.updateVisible = false;
+    },
+    // 处理打开模态框事件（后台任务完成时触发）
+    // 后台轮询任务执行成功后，由子组件触发该事件：
+    // - 自动打开更新模态框
+    // - 子组件在弹窗打开时会根据任务状态=1自动拉取结果
+    handleOpenModal({ classifyID, i18nUrl, status }) {
+      this.openUpdateModal(classifyID, status);
+    },
+    // ==================== 模态框控制 ====================
+    // 打开更新模态框的辅助方法（基于任务状态）
+    openUpdateModal(treeKey, status) {
+      this.classifyModalTitle = "更新详情";
+      this.updateClassfyID = treeKey;
+      // 如果未传入status参数，从状态Map中获取
+      if (!status) {
+        status = this.updateTaskStatusMap[treeKey] || null;
+      }
+      // 如果获取到状态，更新到Map中（确保状态同步）
+      if (status !== null && status !== undefined) {
+        this.updateTaskStatusMap[treeKey] = status;
+      }
+      this.updateVisible = true;
+      setModalAriaHidden(this, document);
     },
     redundantClose() {
       this.redundantVisible = false;
@@ -322,13 +407,53 @@ export default {
     entrySourceClose() {
       this.entrySourceVisible = false;
     },
-    // 更新
-    update(treeKey) {
-      this.classifyModalTitle = "更新详情";
-      this.updateClassfyID = treeKey; // treeKey就是classfyID  有些是数字 有些是uuid
-      this.updateVisible = true; // 显示弹窗
-      setModalAriaHidden(this, document);
+    // ==================== 更新相关 ====================
+    // 更新入口：只负责打开弹窗，状态查询/轮询/结果加载由子组件统一处理
+    async handleUpdateClick(treeKey) {
+      // 从状态Map中获取该分类的状态
+      const status = this.updateTaskStatusMap[treeKey];
+      // 如果状态为"1"（执行中），禁止打开模态框
+      if (status === "1") {
+        return;
+      }
+      this.openUpdateModal(treeKey, status);
     },
+    // 查询更新任务状态
+    async checkUpdateTaskState(classfyID, i18nUrl) {
+      const res = await getEntrysourceListByClassfyTaskState({
+        classifyID: classfyID,
+        i18nUrl: i18nUrl,
+      });
+      return res.data.state;
+    },
+    // 处理不同状态的逻辑
+    // - 右键查询状态：仅更新按钮显示（silent=true），不打开弹窗
+    // - 点击"更新"：才打开弹窗（silent=false）
+    handleUpdateTaskStatus(status, treeKey, i18nUrl, { silent = false } = {}) {
+      // 将状态存储到状态Map中
+      this.updateTaskStatusMap[treeKey] = status;
+
+      if (status === "0" || status === "2") {
+        // 状态0 (未执行) 或状态2 (执行完成)：打开弹窗
+        if (!silent) {
+          this.openUpdateModal(treeKey, status);
+        }
+      } else if (status === "1") {
+        // 状态1 (执行中)：灰禁按钮，显示"正在执行中"，显示loading
+        // 按钮已经在模板中通过disabled和loading控制
+        // 禁止打开模态框（silent模式除外）
+        if (!silent) {
+          // 状态为"1"时，不打开模态框
+          return;
+        }
+      } else {
+        // 其他状态：右键时不打扰用户；点击更新时再提示
+        if (!silent) {
+          handleTaskFailureStatusNotification(status);
+        }
+      }
+    },
+    // ==================== 业务操作相关 ====================
     // 冗余校验
     redundantCheck(treeKey) {
       this.classifyModalTitle = "冗余校验";
@@ -368,7 +493,7 @@ export default {
       }
     },
     // 编辑分类或产品
-    editClassify(treeKey, title, type, maxByte, foreignMaxByte, codeBranch) {
+    editClassfy(treeKey, title, type, maxByte, foreignMaxByte, codeBranch) {
       this.currentClass = {
         key: treeKey,
         title: title,
@@ -387,7 +512,7 @@ export default {
       }
     },
     // 删除分类或产品
-    deleteClassify(treeKey, type) {
+    deleteClassfy(treeKey, type) {
       let data = [treeKey];
       deleteEntryClassfy(data).then((res) => {
         // 删除产品，分类，模块都是复用deleteEntryClassfy这个接口
@@ -431,7 +556,7 @@ export default {
       }
       // 为currentClickProduct赋值，根据当前目录树传给子组件
       let node = e.node.dataRef;
-      // console.log(node)
+      // console.log("node", node)
       this.isProduct = true; // 除了公开库common展示CommonEntry，其他都是true展示productEntry和productVersion
       if (node.type === "product") {
         this.currentClickProduct = node;
@@ -448,7 +573,8 @@ export default {
       } else {
         if (this.$store.state.admin) {
           this.productEdit = true;
-        } else {
+        }
+        else {
           this.productEdit = false;
         }
 
@@ -475,6 +601,29 @@ export default {
       // 调用clickTree方法处理节点信息更新
       this.clickTree([treeKey], mockClickEvent);
 
+      // 若存在缓存 i18nUrl，右键时查询更新任务状态（无缓存则跳过）
+      if (
+        this.$store.state.admin &&
+        this.$currentDepartment &&
+        this.$currentDepartment.ops.has("needIP")
+      ) {
+        const cachedI18nUrl = getCachedI18nUrl();
+        if (cachedI18nUrl) {
+          try {
+            const status = await this.checkUpdateTaskState(treeKey, cachedI18nUrl);
+            // 将查询到的状态存储到状态Map中
+            this.updateTaskStatusMap[treeKey] = status;
+            // 右键：仅后台查询并更新按钮显示，不打开弹窗
+            this.handleUpdateTaskStatus(status, treeKey, cachedI18nUrl, {
+              silent: true,
+            });
+          } catch (err) {
+            // 查询失败时，清除该分类的状态
+            delete this.updateTaskStatusMap[treeKey];
+          }
+        }
+      }
+
       // 若是分类，执行一个查询分支新建状态的函数
       if (e.node.dataRef.type === "classify") {
         await this.getCreateBranchStatus(treeKey);
@@ -494,15 +643,27 @@ export default {
             case "2":
               this.createbranchStatus = "执行失败";
               message.error("‘分支新建’执行失败");
-              // 如果分支新建失败，前端执行删除产品
-              deleteEntryClassfy(res.data.productIDs)
-                .then((res) => {
-                  this.getClassTree();
-                })
-                .catch((err) => {
-                  message.error(`删除分类失败：${err}`);
-                  console.log("删除分类失败", err);
+              // 分支新建失败时的“补偿删除”必须二次确认，避免误删
+              if (Array.isArray(res.data.productIDs) && res.data.productIDs.length) {
+                AntModal.confirm({
+                  title: "检测到分支新建失败，是否删除相关产品分类？",
+                  content: `将删除 ${res.data.productIDs.length} 个ID（建议先确认后端是否已自动补偿）：${res.data.productIDs.join(
+                    ", "
+                  )}`,
+                  okText: "确认删除",
+                  cancelText: "取消",
+                  onOk: async () => {
+                    try {
+                      await deleteEntryClassfy(res.data.productIDs);
+                      message.success("删除已提交");
+                      this.getClassTree();
+                    } catch (err) {
+                      message.error(`删除分类失败：${err}`);
+                      console.log("删除分类失败", err);
+                    }
+                  },
                 });
+              }
               break;
             default:
               this.createbranchStatus = "未知状态";
@@ -543,6 +704,7 @@ export default {
         }
       });
     },
+    // ==================== 拖拽相关 ====================
     // 分类拖拽
     onDragEnter(info) {
       // console.log("onDragEnter:",info)
@@ -584,6 +746,7 @@ export default {
         this.$refs.productEntry.setTableHeight();
       }
     },
+    // ==================== UI控制相关 ====================
     // treeBox展开与关闭
     openOrCloseTree() {
       this.treeBoxOpen = !this.treeBoxOpen;
@@ -660,27 +823,35 @@ export default {
     }
   }
 }
+
 :deep(.ant-tree) {
   width: 100%;
 }
+
 .ant-tabs {
   height: 100%;
 }
+
 :deep(.ant-tabs-content) {
   height: 100%;
 }
+
 :deep(.ant-tabs-nav-wrap) {
   background-color: rgba(250, 250, 250, 1);
 }
+
 :deep(.ant-tabs-tabpane) {
   height: 100%;
 }
+
 :deep(.ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected) {
   background-color: #eef7ff;
 }
+
 :deep(.ant-tree-node-selected .ant-dropdown-trigger) {
   color: #369fff;
 }
+
 // 树结构title超长时 滚动
 :deep(.ant-tree-title) {
   white-space: nowrap;

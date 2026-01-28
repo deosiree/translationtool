@@ -3,6 +3,7 @@
  * 包含关闭所有notification、错误处理等功能
  */
 import { notification } from "ant-design-vue";
+import { entryParams } from "@/constants/commonParam";
 
 /**
  * 关闭所有当前显示的notification
@@ -59,5 +60,28 @@ export function handleErrorNotification(error, message = "操作失败", options
     message,
     description,
     duration,
+  });
+}
+
+/**
+ * 处理更新任务失败状态的通知
+ * 根据任务状态码显示对应的错误通知
+ * @param {string} status - 任务状态码（"2"/"3"/"4"/"5"/"6"）
+ * @returns {void}
+ * @example
+ * // 在组件中使用
+ * import { handleTaskFailureStatusNotification } from "@/utils/notificationUtils";
+ * 
+ * if (status === "3") {
+ *   handleTaskFailureStatusNotification(status);
+ * }
+ */
+export function handleTaskFailureStatusNotification(status, message = "操作失败") {
+  const messageText = entryParams.updateEntry.taskStatusMessages[status] || "未知状态";
+
+  notification.error({
+    message: message,
+    description: messageText,
+    duration: 0,
   });
 }

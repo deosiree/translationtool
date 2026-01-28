@@ -8,32 +8,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // IMPORTANT:
-// src/http/api/entryManage.js 当前部分接口会走真实 requestMultipart（axios 实例）。
+// src/http/api/entryManage.js 当前接口走真实 request/requestMultipart（axios 实例）。
 // 单测需要 mock request 层，避免 jsdom 下发真实网络请求。
 vi.mock('@/http/request', () => ({
   default: vi.fn(),
   requestMultipart: vi.fn(),
 }))
 
-// entryImportExcle_v2 当前实现走 mock 模块（非 requestMultipart），这里也需要 mock
-vi.mock('@/http/api/mock/entryManage', () => ({
-  entryImportExcle: vi.fn(),
-  entryImportExcle_v2: vi.fn(),
-  entryValidate_v2: vi.fn(),
-}))
+// NOTE:
+// 下面这段是基于 mock entryManage 模块的单测配置，当前阶段改为贴真实 API，
+// 保留但暂时不用，后续如果需要切回 mock，可以直接恢复。
+// vi.mock('@/http/api/mock/entryManage', () => ({
+//   entryImportExcle: vi.fn(),
+//   entryImportExcle_v2: vi.fn(),
+//   entryValidate_v2: vi.fn(),
+// }))
 
 import request, { requestMultipart } from '@/http/request'
+// import {
+//   entryImportExcle_v2 as mockEntryImportExcle_v2,
+// } from '@/http/api/mock/entryManage'
 import {
-  entryImportExcle_v2 as mockEntryImportExcle_v2,
-} from '@/http/api/mock/entryManage'
-import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 } from '@/http/api/entryManage'
+  entryImportExcle,
+  entryImportExcle_v2,
+  entryValidate_v2,
+  createEntrysourceListByClassfyTask,
+} from '@/http/api/entryManage'
 
 describe('entryManage API - v1/v2 版本', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'log').mockImplementation(() => { })
+    vi.spyOn(console, 'error').mockImplementation(() => { })
+    vi.spyOn(console, 'warn').mockImplementation(() => { })
   })
 
   describe('entryImportExcle (v1 更新接口)', () => {
@@ -85,7 +92,7 @@ describe('entryManage API - v1/v2 版本', () => {
   })
 
   describe('entryImportExcle_v2 (更新接口)', () => {
-    it('应该正确调用mock函数并传递参数', async () => {
+    it('应该正确调用 requestMultipart 并传递参数', async () => {
       const params = {}
       const formData = new FormData()
       formData.append('dedupExcel', new Blob(['test'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
@@ -99,12 +106,17 @@ describe('entryManage API - v1/v2 版本', () => {
         message: '导入成功',
         data: { success: true }
       }
-      mockEntryImportExcle_v2.mockResolvedValue(mockResponse)
+      requestMultipart.mockResolvedValue(mockResponse)
 
       const result = await entryImportExcle_v2(params, formData)
 
-      expect(mockEntryImportExcle_v2).toHaveBeenCalledTimes(1)
-      expect(mockEntryImportExcle_v2).toHaveBeenCalledWith(params, formData)
+      expect(requestMultipart).toHaveBeenCalledTimes(1)
+      expect(requestMultipart).toHaveBeenCalledWith({
+        url: "/entryInfo/entryImportExcle_v2",
+        method: "POST",
+        params,
+        data: formData,
+      })
       expect(result).toEqual(mockResponse)
     })
 
@@ -116,7 +128,7 @@ describe('entryManage API - v1/v2 版本', () => {
         code: 200,
         message: '导入成功'
       }
-      mockEntryImportExcle_v2.mockResolvedValue(successResponse)
+      requestMultipart.mockResolvedValue(successResponse)
 
       const result = await entryImportExcle_v2(params, formData)
 
@@ -142,7 +154,7 @@ describe('entryManage API - v1/v2 版本', () => {
           globalMessage: '部分词条导入失败'
         }
       }
-      mockEntryImportExcle_v2.mockResolvedValue(failureResponse)
+      requestMultipart.mockResolvedValue(failureResponse)
 
       const result = await entryImportExcle_v2(params, formData)
 
@@ -165,7 +177,7 @@ describe('entryManage API - v1/v2 版本', () => {
       ]
 
       for (const response of responses) {
-        mockEntryImportExcle_v2.mockResolvedValueOnce(response)
+        requestMultipart.mockResolvedValueOnce(response)
       }
 
       const results = await Promise.all([
@@ -178,7 +190,7 @@ describe('entryManage API - v1/v2 版本', () => {
       expect(results[0].code).toBe(200)
       expect(results[1].code).toBe(201)
       expect(results[2].code).toBe(200)
-      expect(mockEntryImportExcle_v2).toHaveBeenCalledTimes(3)
+      expect(requestMultipart).toHaveBeenCalledTimes(3)
     })
 
     it('应该验证响应结构完整性', async () => {
@@ -189,7 +201,7 @@ describe('entryManage API - v1/v2 版本', () => {
         code: 200,
         message: '导入成功'
       }
-      mockEntryImportExcle_v2.mockResolvedValue(response)
+      requestMultipart.mockResolvedValue(response)
 
       const result = await entryImportExcle_v2(params, formData)
 
@@ -478,6 +490,78 @@ describe('entryManage API - v1/v2 版本', () => {
       expect(issue).toHaveProperty('fieldKey')
       expect(issue).toHaveProperty('message')
       expect(['WARN', 'ERROR', 'FATAL']).toContain(issue.level)
+    })
+  })
+
+  describe('createEntrysourceListByClassfyTask (创建更新词条任务)', () => {
+    it('应该正确调用request并传递参数', async () => {
+      const params = {
+        classifyID: 'c210e64a-5553-40df-8eac-a04325251918',
+        i18nUrl: 'http://10.17.196.28:18099/',
+      }
+      const successResp = {
+        code: 200,
+        type: 'OK',
+        data: null,
+        message: '创建词条更新任务成功',
+        operationObject: '',
+      }
+      request.mockResolvedValue(successResp)
+
+      const result = await createEntrysourceListByClassfyTask(params)
+
+      expect(request).toHaveBeenCalledTimes(1)
+      expect(request).toHaveBeenCalledWith({
+        url: '/entryInfo/getEntrysourceListByClassfy',
+        method: 'POST',
+        params,
+      })
+      expect(result.code).toBe(200)
+      expect(result.type).toBe('OK')
+      expect(result.message).toBe('创建词条更新任务成功')
+    })
+
+    it('应该处理成功响应', async () => {
+      const params = {
+        classifyID: 'c210e64a-5553-40df-8eac-a04325251918',
+        i18nUrl: 'http://10.17.196.28:18099/',
+      }
+      const successResp = {
+        code: 200,
+        type: 'OK',
+        data: null,
+        message: '创建词条更新任务成功',
+        operationObject: '',
+      }
+      request.mockResolvedValue(successResp)
+
+      const result = await createEntrysourceListByClassfyTask(params)
+
+      expect(result).toHaveProperty('code')
+      expect(result).toHaveProperty('type')
+      expect(result).toHaveProperty('message')
+      expect(result.code).toBe(200)
+    })
+
+    it('应该处理错误响应', async () => {
+      const params = {
+        classifyID: 'c210e64a-5553-40df-8eac-a04325251918',
+        i18nUrl: 'http://10.17.196.28:18099/',
+      }
+      const errorResp = {
+        code: 500,
+        type: 'ERROR',
+        data: null,
+        message: '创建任务失败',
+        operationObject: '',
+      }
+      request.mockResolvedValue(errorResp)
+
+      const result = await createEntrysourceListByClassfyTask(params)
+
+      expect(result.code).toBe(500)
+      expect(result.type).toBe('ERROR')
+      expect(result.message).toBe('创建任务失败')
     })
   })
 })
