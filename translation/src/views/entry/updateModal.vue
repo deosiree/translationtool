@@ -294,16 +294,17 @@ export default {
       }
       else if (this.currentTaskStatus === "2") {
         await this.loadTaskResultAndDisplay(this.updateClassfyID, this.i18nURL);
-        message.success("查询完成，可点击“更新写库”写入数据库");
+        message.success("查询完成，可点击\"更新写库\"写入数据库");
         return;
       }
       else if (this.currentTaskStatus) {
-        // 状态2/3/4/5/6：告警状态（或执行中）
+        // 状态3/4/5/6：告警状态
         handleTaskFailureStatusNotification(this.currentTaskStatus);
         return;
       }
       else {
-        message.warning("未获取到任务状态，请先点击“查询更新”生成任务");
+        // currentTaskStatus 为 null/undefined，说明没有任务状态，应该创建新任务
+        await this.handleStatus0();
       }
     },
     async handleWriteUpdate() {
