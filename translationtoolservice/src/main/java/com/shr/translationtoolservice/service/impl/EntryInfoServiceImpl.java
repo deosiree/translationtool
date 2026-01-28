@@ -2879,7 +2879,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public  List<SourceEntryVO> getEntrysourceListByClassfy(String classfyID,String i18nUrl, HttpServletRequest request,List<String> exceptionMessage) {
+    public  List<SourceEntryVO> getEntrysourceListByClassfy(String classfyID,String i18nUrl, String token,List<String> exceptionMessage) {
         //TODO:
         //1.获取当前分类下所有任务
         //2.获取每个任务下所有词条
@@ -2893,8 +2893,6 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if(exceptionMessage == null){
             throw new NullPointerException("exceptionMessage为null");
         }
-        String token = request.getHeader("token");
-
         String userName = JWTTokenUtils.getUserName(token);
         //获取当前分类下所有产品
         List<String> productidList = new ArrayList<>();

@@ -96,7 +96,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImp
     List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID,  Map<String,List<String>> soucreMap,Map<String,String> condition) throws Exception;
 
 
-    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request,List<String> exceptionMessage);
+    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,String token,List<String> exceptionMessage);
 
     void doWeight();
 

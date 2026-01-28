@@ -15,6 +15,9 @@ import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JSONUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TASK_STATE;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TaskIDGenerator.TaskType;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,7 +40,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -70,6 +75,8 @@ public class EntryInfoController extends BaseController {
 
     private ThreadPoolExecutor threadPoolExecutor =  new ThreadPoolExecutor(5, 20, 120, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
 
+    @Autowired
+    private BackendTaskInfoHandler backendTaskInfoHandler;
 
     //查询词条信息
     @PostMapping("/getPublicEntry")
@@ -940,18 +947,12 @@ public class EntryInfoController extends BaseController {
     }
 
 
-
-
-    @PostMapping("/getEntrysourceListByClassfy")
-    @ApiOperation("查询分类中新增的词条来源")
-    @CrossOrigin
-    @Transactional
-    public   HttpResponse< ResponseListModel<SourceEntryVO>> getEntrysourceListByClassfy(@RequestParam String classfyID,@RequestParam String i18nUrl,HttpServletRequest request) {
+    protected HttpResponse<ResponseListModel<SourceEntryVO>> getEntrysourceListByClassfyInternal(String classifyID,String i18nUrl,String token) throws RuntimeException{
         ResponseListModel<SourceEntryVO> responseListModel = new ResponseListModel<>();
         List<String> exceptionMessages = new ArrayList<>();
         List<SourceEntryVO> sourceEntryVOS = null;
         try {
-            sourceEntryVOS = entryInfoService.getEntrysourceListByClassfy(classfyID, i18nUrl,request,exceptionMessages);
+            sourceEntryVOS = entryInfoService.getEntrysourceListByClassfy(classifyID, i18nUrl,token,exceptionMessages);
             if (null == sourceEntryVOS){
                 return checkResult(null,"i18n 服务异常 ！");
             }
@@ -960,12 +961,7 @@ public class EntryInfoController extends BaseController {
             responseListModel.setTotalNum(sourceEntryVOS.size());
             httpResponse.setData(responseListModel);
             if(!exceptionMessages.isEmpty()){
-                StringBuilder builder = new StringBuilder();
-                for(String message : exceptionMessages){
-                    builder.append(message);
-                    builder.append(";");
-                }
-                httpResponse.setMessage(builder.toString()); 
+                httpResponse.setMessage(String.join(";", exceptionMessages)); 
                 
             }
             HttpResponse.Type responseType = exceptionMessages.isEmpty() ? HttpResponse.Type.OK : HttpResponse.Type.INTERNAL_ERROR;
@@ -973,9 +969,70 @@ public class EntryInfoController extends BaseController {
             httpResponse.setCode(responseType.getVal());
             return httpResponse;
         } catch (Exception e) {
-            // TODO: handle exception
-            log.error(null, e);
-            return checkResult(null,e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/getEntrysourceListByClassfy")
+    @ApiOperation("查询分类中新增的词条来源(启动执行后台任务)")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> getEntrysourceListByClassfy(@RequestParam String classifyID,@RequestParam String i18nUrl,HttpServletRequest request) {
+        final TaskType taskType = TaskType.UPDATE_ENTRY;
+        String token = request.getHeader("token");
+        final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,classifyID,i18nUrl); // 参数顺序必须一致
+        
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    HttpResponse<ResponseListModel<SourceEntryVO>> resultVO = getEntrysourceListByClassfyInternal(classifyID, i18nUrl, token);
+                    TASK_STATE beforeExecuteState = backendTaskInfoHandler.getTaskExecuteState(taskID);
+                    if(beforeExecuteState != null && (beforeExecuteState == TASK_STATE.CANCELED || beforeExecuteState == TASK_STATE.CANCEL_FAILED)){
+                        backendTaskInfoHandler.setTaskResultVOs(taskID, checkResult(null, "任务执行失败, 请稍后重试"));
+                    }else{
+                        backendTaskInfoHandler.setTaskResultVOs(taskID, resultVO);
+                        backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FINISHED);    
+                    }
+                } catch (Exception e) {
+                    backendTaskInfoHandler.setTaskResultVOs(taskID, checkResult("内部子线程执行更新任务时出现异常",e.getMessage()));
+                    backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);    
+                }
+            }
+        };
+        Future<?> future = null;
+        try {
+            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.EXECUTING);   // 不能runnable内部才设定正在执行, 因为该请求返回后, 线程池可能没法立即执行该任务
+            future = this.threadPoolExecutor.submit(runnable);    
+        } catch(RejectedExecutionException rejectException){
+            log.error(String.format("线程池拒绝执行词条更新任务, taskID : %s", taskID), rejectException);
+            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);    
+            return error(null, "线程池拒绝执行词条更新任务, 请稍后重试");   // 任务没有提交执行, 缓存没有信息
+        } catch(NullPointerException nullException){
+            log.error(String.format("系统服务异常, 出现空指针, taskID : %s", taskID), nullException);
+            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);    
+            return error(null, "系统服务异常, runnable = null");    // 任务没有提交执行, 缓存没有信息
+        } catch (Exception e) {
+            log.error(String.format("提交更新词条任务到线程池时出现异常, taskID : %s", taskID), e);
+            // runnable可能已经执行，需要中断该任务
+            boolean isStopSuccessfully = this.backendTaskInfoHandler.stopTask(taskID, future);
+            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);
+            
+            return error(null, String.format("创建更新词条任务时出现异常, 异常信息为: %s", e.getMessage()));
+        }
+        try {
+            HttpResponse<String> resposne = new HttpResponse<>();
+            resposne.setCode(HttpResponse.Type.OK.getVal());
+            resposne.setType(HttpResponse.Type.OK);     
+            resposne.setData(null);
+            resposne.setMessage("创建词条更新任务成功");
+            return resposne;
+        } catch (Exception e) {
+            log.error("创建更新词条任务时出现异常", e);
+            // runnable可能已经执行， 需要中断该任务
+            this.backendTaskInfoHandler.stopTask(taskID, future);
+            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);
+            return error(null, String.format("创建更新词条任务时出现异常, 异常信息为: %s", e.getMessage()));
         }
     }
 
