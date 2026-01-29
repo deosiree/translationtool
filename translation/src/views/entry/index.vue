@@ -55,146 +55,107 @@
     </a-row>
   </div>
   <!-- 统一树右键菜单：基于 rightClickTree 和 treeContextmenu 控制 -->
-  <div
-    v-if="treeContextmenu.visible && treeContextmenu.node && $store.state.admin"
-    :style="{
-      position: 'fixed',
-      left: treeContextmenu.clientX + 'px',
-      top: treeContextmenu.clientY + 'px',
-      zIndex: 3000,
-      width: 0,
-      height: 0,
-    }"
-    @contextmenu.prevent
-  >
+  <div v-if="treeContextmenu.visible && treeContextmenu.node && $store.state.admin" :style="{
+    position: 'fixed',
+    left: treeContextmenu.clientX + 'px',
+    top: treeContextmenu.clientY + 'px',
+    zIndex: 3000,
+    width: 0,
+    height: 0,
+  }" @contextmenu.prevent>
     <a-dropdown :visible="treeContextmenu.visible">
       <template #overlay>
         <a-menu>
-          <a-menu-item
-            v-if="
-              $currentDepartment &&
-              $currentDepartment.ops.has('needIP')
-            "
-            :disabled="updateTaskStatusMap[treeContextmenu.node.key] === '1'"
-            :loading="updateTaskStatusMap[treeContextmenu.node.key] === '1'"
-            @click="
+          <a-menu-item v-if="
+            $currentDepartment &&
+            $currentDepartment.ops.has('needIP')
+          " :disabled="updateTaskStatusMap[treeContextmenu.node.key] === '1'"
+            :loading="updateTaskStatusMap[treeContextmenu.node.key] === '1'" @click="
               hideTreeContextmenu();
-              handleUpdateClick(treeContextmenu.node.key);
-            "
-          >
+            handleUpdateClick(treeContextmenu.node.key);
+            ">
             {{
               updateTaskStatusMap[treeContextmenu.node.key] === '1'
                 ? '正在执行中'
                 : '更新'
             }}
           </a-menu-item>
-          <a-menu-item
-            v-if="
-              treeContextmenu.node.type != 'common' &&
-              treeContextmenu.node.type != 'product' &&
-              treeContextmenu.node.type != 'module'
-            "
-            @click="
-              hideTreeContextmenu();
-              addClassify(treeContextmenu.node.key, 'classify');
-            "
-          >
+          <a-menu-item v-if="
+            treeContextmenu.node.type != 'common' &&
+            treeContextmenu.node.type != 'product' &&
+            treeContextmenu.node.type != 'module'
+          " @click="
+            hideTreeContextmenu();
+          addClassify(treeContextmenu.node.key, 'classify');
+          ">
             添加分类
           </a-menu-item>
-          <a-menu-item
-            v-if="
-              treeContextmenu.node.type != 'common' &&
-              treeContextmenu.node.type != 'product' &&
-              treeContextmenu.node.type != 'module'
-            "
-            @click="
-              hideTreeContextmenu();
-              addClassify(treeContextmenu.node.key, 'product');
-            "
-          >
+          <a-menu-item v-if="
+            treeContextmenu.node.type != 'common' &&
+            treeContextmenu.node.type != 'product' &&
+            treeContextmenu.node.type != 'module'
+          " @click="
+            hideTreeContextmenu();
+          addClassify(treeContextmenu.node.key, 'product');
+          ">
             添加产品
           </a-menu-item>
-          <a-menu-item
-            v-if="treeContextmenu.node.type === 'product'"
-            @click="
-              hideTreeContextmenu();
-              productAuthority(treeContextmenu.node.key);
-            "
-          >
+          <a-menu-item v-if="treeContextmenu.node.type === 'product'" @click="
+            hideTreeContextmenu();
+          productAuthority(treeContextmenu.node.key);
+          ">
             权限设置
           </a-menu-item>
-          <a-menu-item
-            v-if="treeContextmenu.node.type === 'product'"
-            @click="
-              hideTreeContextmenu();
-              addClassify(treeContextmenu.node.key, 'module');
-            "
-          >
+          <a-menu-item v-if="treeContextmenu.node.type === 'product'" @click="
+            hideTreeContextmenu();
+          addClassify(treeContextmenu.node.key, 'module');
+          ">
             添加模块
           </a-menu-item>
-          <a-menu-item
-            v-if="
-              treeContextmenu.node.type != 'department' &&
-              treeContextmenu.node.type != 'common'
-            "
-            @click="
-              hideTreeContextmenu();
-              editClassify(
-                treeContextmenu.node.key,
-                treeContextmenu.node.title,
-                treeContextmenu.node.type,
-                treeContextmenu.node.maxByte,
-                treeContextmenu.node.foreignMaxByte,
-                treeContextmenu.node.codeBranch
-              );
-            "
-          >
+          <a-menu-item v-if="
+            treeContextmenu.node.type != 'department' &&
+            treeContextmenu.node.type != 'common'
+          " @click="
+            hideTreeContextmenu();
+          editClassify(
+            treeContextmenu.node.key,
+            treeContextmenu.node.title,
+            treeContextmenu.node.type,
+            treeContextmenu.node.maxByte,
+            treeContextmenu.node.foreignMaxByte,
+            treeContextmenu.node.codeBranch
+          );
+          ">
             编辑
           </a-menu-item>
-          <a-menu-item
-            v-if="
-              treeContextmenu.node.type != 'department' &&
-              treeContextmenu.node.type != 'common'
-            "
-          >
-            <a-popconfirm
-              title="确定要删除吗?"
-              ok-text="是"
-              cancel-text="否"
-              @confirm="
-                hideTreeContextmenu();
-                deleteClassify(treeContextmenu.node.key, treeContextmenu.node.type);
-              "
-            >
+          <a-menu-item v-if="
+            treeContextmenu.node.type != 'department' &&
+            treeContextmenu.node.type != 'common'
+          ">
+            <a-popconfirm title="确定要删除吗?" ok-text="是" cancel-text="否" @confirm="
+              hideTreeContextmenu();
+            deleteClassify(treeContextmenu.node.key, treeContextmenu.node.type);
+            ">
               删除
             </a-popconfirm>
           </a-menu-item>
-          <a-menu-item
-            v-if="
-              $currentDepartment &&
-              $currentDepartment.ops.has('needBranch') &&
-              treeContextmenu.node.type == 'classify'
-            "
-            ref="createBranchMenu"
-            :disabled="createbranchStatus == '执行中'"
-            @click="
-              hideTreeContextmenu();
-              createBranch(treeContextmenu.node.key);
-            "
-          >
+          <a-menu-item v-if="
+            $currentDepartment &&
+            $currentDepartment.ops.has('needBranch') &&
+            treeContextmenu.node.type == 'classify'
+          " ref="createBranchMenu" :disabled="createbranchStatus == '执行中'" @click="
+            hideTreeContextmenu();
+          createBranch(treeContextmenu.node.key);
+          ">
             分支新建{{ createbranchStatus == '执行中' ? '(执行中)' : '' }}
           </a-menu-item>
-          <a-menu-item
-            v-if="
-              $currentDepartment &&
-              $currentDepartment.ops.has('needBranch')
-            "
-            ref="entrySourceMenu"
-            @click="
-              hideTreeContextmenu();
-              entrySourceOpen(treeContextmenu.node.key);
-            "
-          >
+          <a-menu-item v-if="
+            $currentDepartment &&
+            $currentDepartment.ops.has('needBranch')
+          " ref="entrySourceMenu" @click="
+            hideTreeContextmenu();
+          entrySourceOpen(treeContextmenu.node.key);
+          ">
             来源汇总{{ createbranchStatus == '执行中' ? '(执行中)' : '' }}
           </a-menu-item>
         </a-menu>
