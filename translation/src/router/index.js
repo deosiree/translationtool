@@ -6,6 +6,17 @@ import Login from '@/views/login/index.vue'
 // import request, { cancelAllRequests, handleHideLoading } from '../http/request';
 import request from '../http/request';
 
+// 原型/开发测试用静态路由：可选导入（没有 prototype/router.js 也不会报错）
+let prototypeRoutes = []
+try {
+  // eslint-disable-next-line global-require, import/no-unresolved
+  const mod = require('../../prototype/router')
+  prototypeRoutes = (mod && (mod.default || mod)) || []
+  if (!Array.isArray(prototypeRoutes)) prototypeRoutes = []
+} catch (e) {
+  prototypeRoutes = []
+}
+
 const routes = [
   {
     path: '/',
@@ -21,9 +32,7 @@ const routes = [
     path: '/translate',
     name: 'translate',
     component: () => import('@/views/layout/layout.vue'),
-    children: [
-
-    ]
+    children: [...prototypeRoutes],
   },
   {
     path: '/:pathMatch(.*)*',

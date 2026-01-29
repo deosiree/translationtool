@@ -86,7 +86,12 @@ export default {
           if(res.data.menu.length === 0){
             this.$router.push('/notPermission');
           }else{
-            this.$router.push('/translate');
+            const redirect = this.$route && this.$route.query && this.$route.query.redirect;// 重定向地址，场景：登录某个路由页面但是当前未登录->跳转登录页，登录->根据这个重定向跳转之前访问的页面，登录成功后跳转
+            if (redirect) {
+              this.$router.push(redirect);
+            } else {
+              this.$router.push('/translate');
+            }
           }
           this.loading = false
       }).catch((err) => {

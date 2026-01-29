@@ -44,5 +44,6 @@ coverage-*
 coverage\.json
 
 .cursor
+.claude
 
 /tests/file
