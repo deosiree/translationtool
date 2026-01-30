@@ -17,5 +17,12 @@ export default [
     // 原型页入口：整页导入模态框 + 内嵌 JSON/XML 配置文件原型
     component: () => import('./importConfig/PrototypePage.vue'),
   },
+  {
+    // 访问：http://localhost:8080/#/translate/workbench/prototype-import-config-v2.html
+    path: 'workbench/prototype-import-config-v2.html',
+    name: 'prototypeImportConfigV2',
+    // 原型页入口：整页导入模态框 + 内嵌 JSON/XML 配置文件原型
+    component: () => import('./importConfigV2/PrototypePage.vue'),
+  },
 ]
 
