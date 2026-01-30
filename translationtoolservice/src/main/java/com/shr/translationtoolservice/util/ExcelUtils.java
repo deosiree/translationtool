@@ -280,7 +280,8 @@ public class ExcelUtils {
     }
 
     public List<String> parseCSVFile(InputStream in,String charset) throws Exception{
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in,charset));
+        InputStreamReader inputStreamReader = charset == null || charset.trim().isEmpty() ? new InputStreamReader(in) : new InputStreamReader(in,charset);
+        BufferedReader reader = new BufferedReader(inputStreamReader);
         List<String> lineTextList = new ArrayList<>();
         String nextLine = null;
         String beforeLine = "";
@@ -340,14 +341,14 @@ public class ExcelUtils {
         checkFile(fileName);
         List<T> entities = new  ArrayList<>();
         // String charset = StringUtil.checkCharset(kwargs.get("charset"));
-        String charset = charsetDetect(fileName);
-        if(charset == null) charset = "UTF-8";
+        // String charset = charsetDetect(fileName);
+        // if(charset == null) charset = "UTF-8";
         DateFormat electedFormat = null;
         try {
             ParseFileInfo<T> parseFileInfo = new ParseFileInfo<>();
             Method[] methodList = null;
             boolean isFindHeader = false;
-            List<String> lineTextList = parseCSVFile(in,charset);
+            List<String> lineTextList = parseCSVFile(in,"GBK");
             if(lineTextList.isEmpty()){
                 throw new RuntimeException("文件内部没有任何内容");
             }
