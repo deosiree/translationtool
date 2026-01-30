@@ -3925,17 +3925,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("系统服务异常, 没有对应文件的列名的映射关系","联系研发"));
             }
             // 获取要更新的属性名
-            // Collection<String> targetFieldNames = new HashSet<>();
             Collection<String> targetFieldNames = fieldNames;
-            // fieldColumnNameMap.forEach((fieldName,columnName)->{
-            //     if(updateColumnNames.contains(columnName)){
-            //         targetFieldNames.add(fieldName);    // 确定更新的属性(与要更新成的值无关)
-            //     }
-            // });
-            // if(targetFieldNames.size() != updateColumnNames.size()){
-            //     return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance(
-            //         "列名不正确, 无法确定更新词条哪些列的内容",String.format("检查文件中的列名是否都存在于这个列表中: %s", fieldColumnNameMap.values().toString())));
-            // }
             Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
             // get方法和set方法映射关系
             Map<Method,Method> methodMap = new HashMap<>();
@@ -3999,7 +3989,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             boolean updateEntryInfosResult = entryStorageService.updateEntryInfos(updateTemplates);
             if(!updateEntryInfosResult){
                 /* 更新失败 */
-                updateTranslationByFileVO.addException(ExceptionVO.newInstance(String.format("词条更新失败","存库异常, 检查提供的excel文件的数据, 并联系研发")));
+                updateTranslationByFileVO.addException(ExceptionVO.newInstance(String.format("词条更新失败"),"存库异常,检查词条是否存在"));
                 updateTranslationByFileVO.setGlobalMessage("词条更新存库失败");
             }
             // 更新t_translate表信息
@@ -4015,7 +4005,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 boolean updateTransResult = translationStorageService.updateEntryInfoTranslations(updateTemplates,updateTranslationTypes,keyValueArguments);
                 if(!updateTransResult){
                     /* 更新失败 */
-                    updateTranslationByFileVO.addException(ExceptionVO.newInstance(String.format("词条的翻译更新失败","存库异常, 检查提供的excel文件的数据, 或稍后再试")));
+                    updateTranslationByFileVO.addException(ExceptionVO.newInstance(String.format("词条的翻译更新失败"),"存库异常, 检查提供的excel文件的数据, 或稍后再试"));
                     updateTranslationByFileVO.setGlobalMessage("词条翻译更新存库失败");
                 }
             }

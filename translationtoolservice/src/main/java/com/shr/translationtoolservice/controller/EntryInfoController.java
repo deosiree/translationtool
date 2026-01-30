@@ -1247,6 +1247,9 @@ public class EntryInfoController extends BaseController {
             KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
             keyValueArguments.set("department", JWTTokenUtils.getDepartment(request.getHeader("token")));
             UpdateEntryInfoByFileVO updateEntryInfoByFileVO = entryInfoService.updateEntryInfosByFile(fileInputStreamEntity, columnNames, keyValueArguments);
+            if(updateEntryInfoByFileVO.hasError()){
+                return error(updateEntryInfoByFileVO, "存在异常");
+            }
             return ok(updateEntryInfoByFileVO);
         } catch (Exception e) {
             log.error("出现异常", e);
