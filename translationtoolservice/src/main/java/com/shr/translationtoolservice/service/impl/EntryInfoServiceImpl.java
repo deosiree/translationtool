@@ -1913,10 +1913,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
             
             /* 获取其他没送翻, 但是也应当根据送翻后的词条更新翻译的词条 */
-            Map<String, String> entryInfoEntitySetterTranslateMap = ConstantInterface.entryInfoEntitySetterTranslateMap();
-            Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap();
-            String getMethodName = entryInfoEntityGetterTranslateMap.get(transType);    // 获取getTranslate方法
-            String setMethodName = entryInfoEntitySetterTranslateMap.get(transType);    // 获取setTranslate方法
+            String getMethodName = MethodUtils.getMethodName(transType);    // 获取getTranslate方法
+            String setMethodName = MethodUtils.setMethodName(transType);    // 获取setTranslate方法
             Method getMethod;
             Method setMethod;
             /* 获取getTranslate方法 */
@@ -1959,7 +1957,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
             }).collect(Collectors.toList());
             /* 先把文件中对应的词条的翻译更新掉 */
-            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosAllowdParsedOnFile, transType, kwargs);
+            String transTypeChinese =  ConstantInterface.translateMap().get(transType);   // english->英文,russian->俄文
+            if(StringUtils.isBlank(transTypeChinese)){
+                throw new RuntimeException(String.format("当前不支持更新语种: %s为的翻译", transType));
+            }
+            Collection<ExceptionEntryInfoVO> updateExceptionVOs = this.updateTranslations(entryInfosAllowdParsedOnFile, transTypeChinese, kwargs);
             
             updateExceptionVOs.forEach((vo) -> {updateTranslationByFileVO.addException(vo);updateTranslationByFileVO.addFailedEntryInfos(vo.getEntryInfoVO().getEntryInfoEntities());});
 
@@ -4167,6 +4169,51 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             throw new RuntimeException("读取/写入日志文件时发生 IO 错误：" + logPath);
         }
     }
+
+    // /**
+    //  * 更新一个词条的翻译为另一个词条的翻译
+    //  * @param <E> matchedEntryInfo的数据类型
+    //  * @param entryID
+    //  * @param matchedEntryInfo
+    //  * @param transTypes
+    //  */
+    // @Transactional(rollbackFor = Exception.class)
+    // protected <E> void updateTranslationByOthers(String entryID,E matchedEntryInfo,Set<String> transTypes){
+    //     if(StringUtils.isBlank(entryID)){
+    //         throw new RuntimeException(String.format("没有提供词条的ID, 无法更新词条的翻译"));
+    //     }
+    //     Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap();
+    //     Map<String,String> translations = new HashMap<>();
+
+    //     transTypes.forEach((transType)->{
+    //         String getTranslateMethodName = entryInfoEntityGetterTranslateMap.get(transType);
+    //         if(StringUtils.isBlank(getTranslateMethodName)){
+    //             throw new RuntimeException(String.format("没有获取到语言类型为: {}的getTranslate方法", transType));
+    //         }
+    //         try {
+    //             Method getTranslateMethod = EntryInfoEntity.class.getMethod(getTranslateMethodName);
+    //             String translate = getTranslateMethod.invoke(matchedEntryInfo) != null ? String.valueOf(getTranslateMethod.invoke(matchedEntryInfo)) : null;
+    //             if(StringUtils.isBlank(translate)){
+    //                 return; // 不能更新翻译为null或""
+    //             }else{
+    //                 translations.put(transType, translate);
+    //             }
+    //         } catch (Exception e){
+    //             throw new RuntimeException(String.format("利用%s更新ID为: %s的词条时出现异常, 异常信息为: %s",matchedEntryInfo.toString(),entryID,e.getMessage())); 
+    //         }
+
+    //     });
+    //     try {
+    //         boolean isUpdateSuccess = translationStorageService.updateEntryInfoTranslation(entryID, translations, null);
+    //         if(!isUpdateSuccess){
+    //             throw new RuntimeException(String.format("ID为: %s的词条未找到, 无法更新该词条的翻译", entryID)); 
+    //         }            
+    //     } catch (Exception e) {
+    //         throw new RuntimeException(String.format("利用%s更新ID为: %s的词条时出现异常",matchedEntryInfo.toString(),entryID,e.getMessage())); 
+
+    //     }
+    //     return;
+    // }
 
     
 
