@@ -91,26 +91,24 @@
             </template>
             去重
           </a-button>
-          <a-button type="primary" size="middle" @click="showImportBackfillModal">
+          <a-button v-if="hasDevPermission()" type="primary" size="middle" @click="showImportBackfillModal_v2_5">
             <template #icon>
               <ImportOutlined />
             </template>
             去重回填
           </a-button>
-          <a-button v-if="hasDevPermission()" type="primary" size="middle"
-            @click="showImportBackfillModal_v2">
+          <!-- <a-button type="primary" size="middle" @click="showImportBackfillModal">
             <template #icon>
               <ImportOutlined />
             </template>
-            去重回填 2.0
+            去重回填 v1
           </a-button>
-          <a-button v-if="hasDevPermission()" type="primary" size="middle"
-            @click="showImportBackfillModal_v1_5">
+          <a-button v-if="hasDevPermission()" type="primary" size="middle" @click="showImportBackfillModal_v1_5">
             <template #icon>
               <ImportOutlined />
             </template>
             去重回填 v1.5
-          </a-button>
+          </a-button> -->
           <a-button v-if="batchDeleteFlag" type="primary" danger size="middle" @click="handleBatchDelete">
             批量删除
           </a-button>
@@ -188,9 +186,11 @@
     <BackFillModal modalTitle="去重回填" :visible="importBackfillVisible" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose"
       @handleOK="handleImportBackfillOK" />
-    <BackFillModal_v2 modalTitle="去重回填 2.0" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
+    <!-- <BackFillModal_v2 modalTitle="去重回填 2.0" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'"
-      @handleClose="handleImportBackfillClose_v2" @handleOK="handleImportBackfillOK_v2" />
+      @handleClose="handleImportBackfillClose_v2" @handleOK="handleImportBackfillOK_v2" /> -->
+    <BackFillModal_v2_5 modalTitle="去重回填 v2.5" :visible="importBackfillVisible_v2_5" :needRelationFile="true"
+      :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v2_5" @handleOK="handleImportBackfillOK_v2_5" />
     <BackFillModal_v1_5 modalTitle="去重回填 v1.5" :visible="importBackfillVisible_v1_5" :needRelationFile="true"
       :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v1_5" @handleOK="handleImportBackfillOK_v1_5" />
     <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
@@ -212,6 +212,7 @@ import ResetButton from "@/components/Button/resetButton.vue";
 import SelectCols from "./selectCols.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
+import BackFillModal_v2_5 from "@/components/Button/fileManage/backFill/modal_v2.5.vue";
 import BackFillModal_v1_5 from "@/components/Button/fileManage/backFill/modal_v1.5.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import {
@@ -258,6 +259,7 @@ export default {
     TransStateBadge,
     SelectCols,
     BackFillModal,
+    BackFillModal_v2_5,
     BackFillModal_v2,
     BackFillModal_v1_5,
     ExportButton,
@@ -410,6 +412,7 @@ export default {
       deleteLoading: false,
       importLoading: false,
       importBackfillVisible: false,
+      importBackfillVisible_v2_5: false,
       importBackfillVisible_v2: false,
       importBackfillVisible_v1_5: false,
       deduplicatedDataSource: [], // 存储去重后的数据，用于导出
@@ -550,6 +553,19 @@ export default {
     handleImportBackfillOK() {
       this.init();
       this.handleImportBackfillClose();
+    },
+    // ===================去重回填模态框 (v2.5版本)================================
+    // 打开去重回填模态框 (v2.5版本)
+    showImportBackfillModal_v2_5() {
+      this.importBackfillVisible_v2_5 = true;
+      setModalAriaHidden(this, document);
+    },
+    handleImportBackfillClose_v2_5() {
+      this.importBackfillVisible_v2_5 = false;
+    },
+    handleImportBackfillOK_v2_5() {
+      this.init();
+      this.handleImportBackfillClose_v2_5();
     },
     // ===================去重回填模态框 (v2版本)================================
     // 打开去重回填模态框 (v2版本)

@@ -380,3 +380,15 @@ export function getSourceByLang(data) {
   //   data
   // });
 }
+
+// 更新词条信息（支持更新所有属性列）
+// @param {Object} params - URL参数，包含columnName[]数组
+// @param {FormData} data - FormData，包含file（Excel/CSV文件）
+export function updateEntryInfosByFile(params, data) {
+  return requestMultipart({
+    url: "/entryInfo/updateEntryInfosByFile",
+    method: "POST",
+    params,
+    data,
+  });
+}

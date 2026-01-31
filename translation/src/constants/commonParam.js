@@ -396,6 +396,26 @@ const entry_searchConditionList = [
   { label: '修改人', value: 'update', index: 15 },
   { label: '校验类型', value: 'searchType', index: 16 },
 ];
+const entry_readonlyFields = [
+  'entry',           // 词条
+  'comment',         // comment
+  'entryLength',     // 词条字符数
+  'entrySource',     // 词条来源
+  'classfy1',        // 一级分类
+  'diFileName',      // 辞典名称
+  'update',          // 修改人
+  'updateTime',      // 修改时间
+  'classifyId',      // 词条所属分类
+  'productName',     // 产品名
+  'versionName',     // 版本名
+  'enCharLength',   // 英文术语字符数
+  'zhCharLength',   // 中文术语字符数
+  'ruCharLength',   // 俄文术语字符数
+  'spaCharLength',  // 西文术语字符数
+  'fraCharLength',  // 法文术语字符数
+  'maxChineseLength', // 中文字符上限
+  'foreignMaxLength', // 外文字符上限
+];
 const entry_checkedSearchCondition = entry_searchConditionList.map(item => item.value);// 默认选中所有查询条件
 export const entryParams = {
   checkboxList: entry_checkboxList,
@@ -413,6 +433,12 @@ export const entryParams = {
   searchConditionList: entry_searchConditionList,
   checkedSearchCondition: entry_checkedSearchCondition,
   defaultCheckedColumn: ['index', 'entry', 'comment', 'english', 'russian', 'spanish', 'french'],
+  // 不可修改的字段列表（更新词条时不能选择这些字段）
+  readonlyFields: entry_readonlyFields,
+  // 更新字段选项（从entry_checkboxList过滤掉不可修改列）
+  updateableFields: entry_exportFields.filter(item => {
+    return !entry_readonlyFields.includes(item.value);
+  }),
   // 更新词条相关常量（右键菜单-更新）
   updateEntry: {
     // localStorage key 集合，方便后续扩展更多需要缓存的字段

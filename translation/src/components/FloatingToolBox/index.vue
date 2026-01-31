@@ -12,17 +12,25 @@
       <div style="margin-bottom: 8px;" class="tool-panel-button">
         <GitCommitButton size="small" buttonTitle="git推送" buttonClass="yellowBtn" />
       </div>
-      <div style="margin-bottom: 8px;">
-        <BackFillModal mode="button" size="small" buttonTitle="更新翻译" modalTitle="更新翻译" :translateTypes="translateTypes"
+      <!-- <div style="margin-bottom: 8px;">
+        <BackFillModal mode="button" size="small" buttonTitle="更新翻译" modalTitle="更新翻译 v1" :translateTypes="translateTypes"
           :showFileTypeSelect="true" :defaultAccept="'.csv'" />
-      </div>
+      </div> -->
       <div style="margin-bottom: 8px;">
+        <BackFillModal_v2_5 mode="button" buttonTitle="更新翻译" modalTitle="更新翻译" size="small" :showFileTypeSelect="true"
+          :defaultAccept="'.csv'" />
+      </div>
+      <!-- <div style="margin-bottom: 8px;">
         <BackFillModal_v1_5 mode="button" size="small" buttonTitle="去重回填V1.5" modalTitle="去重回填V1.5"
           :needRelationFile="true" :defaultAccept="'.csv'" />
       </div>
       <div style="margin-bottom: 8px;">
-        <BackFillModal mode="button" size="small" buttonTitle="去重回填" modalTitle="去重回填" :translateTypes="translateTypes"
-          :needRelationFile="true" :defaultAccept="'.csv'" />
+        <BackFillModal mode="button" size="small" buttonTitle="去重回填" modalTitle="去重回填 v1"
+          :translateTypes="translateTypes" :needRelationFile="true" :defaultAccept="'.csv'" />
+      </div> -->
+      <div style="margin-bottom: 8px;">
+        <BackFillModal_v2_5 mode="button" buttonTitle="去重回填" modalTitle="去重回填" size="small" :needRelationFile="true"
+          :showFileTypeSelect="true" :defaultAccept="'.csv'" />
       </div>
       <a-button block @click="closePanel">关闭</a-button>
     </div>
@@ -34,6 +42,7 @@ import { ToolOutlined } from "@ant-design/icons-vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import BackFillModal_v1_5 from "@/components/Button/fileManage/backFill/modal_v1.5.vue";
+import BackFillModal_v2_5 from "@/components/Button/fileManage/backFill/modal_v2.5.vue";
 import { closeAllNotifications } from "@/utils/notificationUtils";
 import { getLanguage } from "@/http/api/translate";
 import { normalizeFloatingPosition } from "@/utils";
@@ -46,6 +55,7 @@ export default {
     GitCommitButton,
     BackFillModal,
     BackFillModal_v1_5,
+    BackFillModal_v2_5,
   },
   data() {
     return {

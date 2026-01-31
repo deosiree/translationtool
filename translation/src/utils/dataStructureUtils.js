@@ -130,3 +130,47 @@ export function intersection(nums1, nums2) {
   let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
   return arr;
 }
+
+/**
+ * 判断选择的属性是否都是翻译语种
+ * @param {Array<string>} selectedFields - 选中的字段列表，可能是name或value
+ * @param {Object} commonParam - commonParam对象，包含langNameList和langValList
+ * @returns {boolean} 如果所有选中的字段都是翻译语种，返回true；否则返回false
+ * @example
+ * // 使用name判断
+ * isAllTranslationFields(['英文', '俄文'], { langNameList: ['英文', '俄文', '西文'], langValList: ['english', 'russian', 'spanish'] })
+ * // 返回: true
+ * 
+ * // 使用value判断
+ * isAllTranslationFields(['english', 'russian'], { langNameList: ['英文', '俄文'], langValList: ['english', 'russian'] })
+ * // 返回: true
+ * 
+ * // 混合字段
+ * isAllTranslationFields(['english', 'tag'], { langNameList: ['英文'], langValList: ['english'] })
+ * // 返回: false
+ */
+export function isAllTranslationFields(selectedFields, commonParam) {
+  if (!selectedFields || !Array.isArray(selectedFields) || selectedFields.length === 0) {
+    return false;
+  }
+  
+  if (!commonParam) {
+    console.warn('isAllTranslationFields: commonParam参数为空');
+    return false;
+  }
+  
+  const langNameList = commonParam.langNameList || [];
+  const langValList = commonParam.langValList || [];
+  
+  if (!Array.isArray(langNameList) && !Array.isArray(langValList)) {
+    console.warn('isAllTranslationFields: commonParam缺少有效的langNameList或langValList');
+    return false;
+  }
+  
+  const translationFields = new Set([
+    ...(Array.isArray(langNameList) ? langNameList : []),
+    ...(Array.isArray(langValList) ? langValList : [])
+  ]);
+  
+  return selectedFields.every(field => translationFields.has(field));
+}

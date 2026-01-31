@@ -16,14 +16,14 @@
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('classfy1')" label="一级分类" name="classfy1">
               <a-select v-model:value="search.classfy1" mode="tags" placeholder="请输入一级分类"
-                :fieldNames="{ label: 'title', value: 'title' }" :options='classify1Option' allowClear :maxTagTextLength="3"
-                :maxTagCount="1">
+                :fieldNames="{ label: 'title', value: 'title' }" :options='classify1Option' allowClear
+                :maxTagTextLength="3" :maxTagCount="1">
               </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('classfy2')" label="二级分类" name="classfy2">
               <a-select v-model:value="search.classfy2" mode="tags" placeholder="请输入二级分类"
-                :fieldNames="{ label: 'title', value: 'title' }" :options='classify2Option' allowClear :maxTagTextLength="3"
-                :maxTagCount="1">
+                :fieldNames="{ label: 'title', value: 'title' }" :options='classify2Option' allowClear
+                :maxTagTextLength="3" :maxTagCount="1">
               </a-select>
             </a-form-item>
             <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource">
@@ -121,8 +121,8 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" size="small" buttonTitle="git推送"
-            buttonClass="yellowBtn" :treeTitle="product.title" />
+          <GitCommitButton v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" size="small"
+            buttonTitle="git推送" buttonClass="yellowBtn" :treeTitle="product.title" />
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
           <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag"
             :loading="selectAllLoading">选择全部</a-button>
@@ -144,8 +144,13 @@
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin"
             :disabled="!isProduct()">二级分类管理</a-button>
-          <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
-            :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译" modalTitle="更新翻译" @importSuccess="refreshTable" />
+          <!-- <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
+            :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译" @importSuccess="refreshTable" />
+          <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
+            buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
+            @importSuccess="refreshTable" /> -->
+          <BackFillModal_v2_5 v-if="admin" mode="button" buttonTitle="更新翻译" modalTitle="更新翻译 v2.5" size="small"
+            :showFileTypeSelect="true" :defaultAccept="'.csv'" @importSuccess="refreshTable" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
             <template #content>
@@ -348,7 +353,8 @@
             </tr>
             <tr>
               <td class="tableTitle">翻译结果</td>
-              <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{ currentEntry[lang.value] }}
+              <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{ currentEntry[lang.value]
+                }}
               </td>
             </tr>
             <tr>
@@ -387,12 +393,11 @@
     </OperationArea>
     <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
-  <CreateVersionModal :visible="createVisible"
-    :selectedProducts="selectedProducts" :dataSource="selectEntry" :currentProduct="product"
-    :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows" @update:dataSource="selectEntry = $event"
-    @update:selectedRowKeys="selectedRowKeys = $event" @update:selectedRows="selectedRows = $event"
-    @update:selectedProducts="selectedProducts = $event" @createClose="createClose" @refresh="refreshTable"
-    @cancelCreate="cancelCreate" />
+  <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry"
+    :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows"
+    @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event"
+    @update:selectedRows="selectedRows = $event" @update:selectedProducts="selectedProducts = $event"
+    @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
 
   <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product"
     @secondClassifyClose="secondClassifyClose" />
@@ -407,6 +412,8 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
+import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
+import BackFillModal_v2_5 from "@/components/Button/fileManage/backFill/modal_v2.5.vue";
 import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import EntryStateSelect from "@/components/select/entryStateSelect.vue";
@@ -490,6 +497,8 @@ export default {
     DataBox,
     OperationArea,
     BackFillModal,
+    BackFillModal_v2,
+    BackFillModal_v2_5,
     AccurSearchButton,
     GitCommitButton,
     EntryStateSelect,
