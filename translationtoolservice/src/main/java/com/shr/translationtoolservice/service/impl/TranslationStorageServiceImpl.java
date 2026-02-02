@@ -169,7 +169,7 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
             Map<String,String> translations = new HashMap<>();
             transTypeGetterMethodMap.forEach((transType,method)->{
                 try {
-                    String translation = String.valueOf(method.invoke(entryInfoEntity));
+                    String translation = method.invoke(entryInfoEntity) != null ? String.valueOf(method.invoke(entryInfoEntity)) : null;
 
                     if(translation == null || translation.trim().isEmpty()){
                         return; // 不会将词条的翻译更新为null或""
