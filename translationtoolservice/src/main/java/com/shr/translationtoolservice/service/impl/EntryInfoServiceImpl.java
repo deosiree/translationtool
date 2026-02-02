@@ -1445,7 +1445,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if(exportFileType.equals("excel")){
             excelUtils.getWorkBook(buffer,entities,exportFields, columnNames, excelName);
         }else if(exportFileType.equals("csv")){
-            String charsetName = "UTF-8";
+            String charsetName = "GBK";
             try {
                 if(!columnNames.contains("id")){
                     columnNames.add("id");
@@ -4109,10 +4109,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     Object object =  gson.fromJson(message, Object.class);
                     wholeMessage.add(object);
                 });
-                String logDir=  "/app/cache/log/";
-                // String logDir = "E:\\work\\translation\\translationTool\\translationtool\\cache\\log\\";
-                String logID = commonUtils.getUUID();
-                // String logID = "f5698f09-99d3-462e-b835-cce5447d1c67";
+                // String logDir=  "/app/cache/log/";
+                String logDir = "E:\\work\\translation\\translationTool\\translationtool\\cache\\log\\";
+                // String logID = commonUtils.getUUID();
+                String logID = "f5698f09-99d3-462e-b835-cce5447d1c67";
                 String filePath = logDir + logID + ".log";
                 JSONUtils.exportJson(wholeMessage, filePath);
                 Attachment attachment = new Attachment();
