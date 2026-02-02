@@ -2082,7 +2082,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     如果翻译文件存在父节点和子节点，那么子节点的翻译也是父节点的翻译（当子节点的翻译结果和父节点不同时）
                     如果翻译文件只有子节点，那么父节点和子节点的翻译都相同
                 */
-                Collection<ExceptionEntryInfoVO> updateOtherEntryInfoExceptions = this.updateTranslations(otherEntryInfos, transType, kwargs);
+                Collection<ExceptionEntryInfoVO> updateOtherEntryInfoExceptions = this.updateTranslations(otherEntryInfos, transTypeChinese, kwargs);
                 updateOtherEntryInfoExceptions.forEach((vo) -> {updateTranslationByFileVO.addException(vo);});  // 因为要处理的是文件中的词条，此处更新的不是文件中的词条，所以不需要返回给用户,不需要执行addFailedEntryInfos
             }
 
