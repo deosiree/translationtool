@@ -257,7 +257,8 @@ public class ExcelUtils {
             }
             if(!isFindMethod){
                 /* 没有找到说明该单元格的内容无效 */
-                throw new RuntimeException("当前单元格内容为: " + nextHeader + "没有找到对应的方法");
+                // throw new RuntimeException("当前单元格内容为: " + nextHeader + "没有找到对应的方法");
+                methodList[i] = null;
             }
         }
 
