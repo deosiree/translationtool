@@ -1140,17 +1140,76 @@ public class ExcelUtils {
             return methods;
         }
 
+        public static final Function<String,String> DEFAULT_GET_METHOD_NAME_GENERATOR = (t)->{return t != null ? MethodUtils.getMethodName(t) : "";};
+
+        public static final Function<String,String> DEFAULT_SET_METHOD_NAME_GENERATOR = (t)->{return t != null ? MethodUtils.setMethodName(t) : "";};
+
+        /**
+         * 获取指定属性名的方法
+         * @param <T>
+         * @param clazz
+         * @param fieldName
+         * @param methodNameGenerator
+         * @param parameterTypes
+         * @return
+         */
+        public static <T> Method acquireMethod(Class<T> clazz,String fieldName,Function<String,String> methodNameGenerator,Class<?>... parameterTypes){
+            if(clazz == null){
+                throw new NullPointerException("clazz为null");
+            }
+            if(fieldName.isEmpty() || fieldName.trim().isEmpty()){
+
+            }
+            String methodName = "";
+            try {
+                methodName = methodNameGenerator.apply(fieldName);
+                Method method = clazz.getMethod(methodName, parameterTypes);
+                return method;
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(String.format("没有找到对应的方法, 方法名为: %s",methodName));
+            } catch (SecurityException e) {
+                throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, 方法名为: %s", clazz.getName(),methodName));
+            } catch (Exception e){
+                throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
+            }
+        }
+
+
+        public static class MethodDefinition{
+
+            public String methodName;
+
+            public Class<?>[] parameterTypes;
+
+            public MethodDefinition(String methodName) {
+                this.methodName = methodName;
+            }
+
+            public MethodDefinition(String methodName, Class<?>... parameterTypes) {
+                this.methodName = methodName;
+                this.parameterTypes = parameterTypes;
+            }
+
+            public String getMethodName() {
+                return methodName;
+            }
+
+            public Class<?>[] getParameterTypes() {
+                return parameterTypes;
+            }
+        }
+
         public static class MethodEntity{
 
             Method method;
-
+            /* 方法实际调用时的传参 */
             Object[] params;
 
             public MethodEntity(Method method) {
                 this.method = method;
             }
 
-            public MethodEntity(Method method, Object[] params) {
+            public MethodEntity(Method method, Object... params) {
                 this.method = method;
                 this.params = params;
             }
@@ -1159,10 +1218,114 @@ public class ExcelUtils {
                 return method;
             }
 
+            public void setParams(Object... params) {
+                this.params = params;
+            }
+
             public Object[] getParams() {
                 return params;
             }
+
+            public Object invoke(Object instance){
+                try {
+                    Object objectValue = this.method.invoke(instance,this.getParams());
+                    return objectValue;
+                } catch (IllegalAccessException e) {
+                    // TODO Auto-generated catch block
+                    throw new RuntimeException(String.format("该对象在更新方法中无法调用方法: %s", this.method.getName()));
+                } catch (IllegalArgumentException e) {
+                    // TODO Auto-generated catch block
+                    throw new RuntimeException(String.format("方法: %s对应的参数不符合要求, 参数列表: %s, 请检查", this.method.getName(),this.params.toString()));
+                } catch (InvocationTargetException e) {
+                    // TODO Auto-generated catch block
+                    throw new RuntimeException(e);
+                }
+            }
             
+        }
+
+        public static class PropertyMethods<T>{
+
+            public Class<T> clazz = null;
+
+            public Method getMethod = null;
+
+            public Method setMethod = null;
+
+            public PropertyMethods(Class<T> clazz,MethodDefinition getMethodDefinition,MethodDefinition setMethodDefinition){
+ 
+                this.clazz = clazz;
+                String getMethodName = MethodUtils.getMethodName(getMethodDefinition.getMethodName());
+                String setMethodName = MethodUtils.setMethodName(setMethodDefinition.getMethodName());
+
+                try {
+                    Method getMethod = clazz.getMethod(getMethodName,getMethodDefinition.getParameterTypes());
+                    this.getMethod = getMethod;
+
+                    Method setMethod = clazz.getMethod(setMethodName,setMethodDefinition.getParameterTypes());
+                    this.setMethod = setMethod;
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(String.format("没有找到对应的方法, get方法名为: %s, set方法名为: %s", getMethodName,setMethodName));
+                } catch (SecurityException e) {
+                    throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, get方法名为: %s, set方法名为: %s", clazz.getName(),getMethodName,setMethodName));
+                } catch (Exception e){
+                    throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
+                }
+            }
+
+
+            public Class<T> getClazz() {
+                return clazz;
+            }
+
+
+            public Method getGetMethod() {
+                return getMethod;
+            }
+
+
+            public Method getSetMethod() {
+                return setMethod;
+            }
+
+
+            @Override
+            public int hashCode() {
+                final int prime = 31;
+                int result = 1;
+                result = prime * result + ((clazz == null) ? 0 : clazz.hashCode());
+                result = prime * result + ((getMethod == null) ? 0 : getMethod.hashCode());
+                result = prime * result + ((setMethod == null) ? 0 : setMethod.hashCode());
+                return result;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                PropertyMethods other = (PropertyMethods) obj;
+                if (clazz == null) {
+                    if (other.clazz != null)
+                        return false;
+                } else if (!clazz.equals(other.clazz))
+                    return false;
+                if (getMethod == null) {
+                    if (other.getMethod != null)
+                        return false;
+                } else if (!getMethod.equals(other.getMethod))
+                    return false;
+                if (setMethod == null) {
+                    if (other.setMethod != null)
+                        return false;
+                } else if (!setMethod.equals(other.setMethod))
+                    return false;
+                return true;
+            }
+
         }
         
     }

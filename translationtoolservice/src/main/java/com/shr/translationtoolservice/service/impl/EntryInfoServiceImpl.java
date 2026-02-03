@@ -26,14 +26,12 @@ import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TranslationStorageService;
 import com.shr.translationtoolservice.service.analyze.BatchMaxLengthTranslateAnalyzer;
 import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
-import com.shr.translationtoolservice.service.processor.groupby.GeneralReplicatedVOType;
 import com.shr.translationtoolservice.service.workflow.CheckFilePipeline;
 import com.shr.translationtoolservice.service.workflow.CheckFilePipeline.BuildOption;
 import com.shr.translationtoolservice.service.workflow.CheckFilePipeline.ExecuteOption;
 import com.shr.translationtoolservice.service.workflow.node.CheckColumnExistWorkNode;
 import com.shr.translationtoolservice.service.workflow.node.CheckEntryNotMatchWorkNode;
 import com.shr.translationtoolservice.service.workflow.node.CheckMissingEntryRelationWorkNode;
-import com.shr.translationtoolservice.service.workflow.node.CheckMissingEntryWorkNode;
 import com.shr.translationtoolservice.service.workflow.node.CheckSpecialCharacterWorkNode;
 import com.shr.translationtoolservice.service.workflow.node.CheckTranslationMaxLengthWorkNode;
 import com.shr.translationtoolservice.service.workflow.node.CheckWorkNode;
@@ -42,6 +40,7 @@ import com.shr.translationtoolservice.util.*;
 import com.shr.translationtoolservice.util.DiUtils.DiEntryResult;
 import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
 import com.shr.translationtoolservice.util.ExcelUtils.ParseFileInfo;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils.MethodEntity;
 import com.shr.translationtoolservice.util.TsUtils.TsEntryResult;
 
 import lombok.extern.slf4j.Slf4j;
@@ -3920,7 +3919,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 return UpdateEntryInfoByFileVO.newInstance("词条更新失败", ExceptionVO.newInstance("禁止选择更新词条ID列的内容"));
             }
             Map<String, String> fieldColumnNameMap = ConstantInterface.constructEntryName();    // EntryInfoEntity的属性名与表格的列名的映射关系
-            Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap(); // {"英文":"getEnglish"}
+
             if(fieldColumnNameMap == null || fieldColumnNameMap.isEmpty()){
                 return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("系统服务异常, 没有对应文件的列名的映射关系","联系研发"));
             }
@@ -3929,33 +3928,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
             // get方法和set方法映射关系
             Map<Method,Method> methodMap = new HashMap<>();
-            Collection<String> updateTranslationTypes = new HashSet<>();
+
             targetFieldNames.forEach((fieldName)->{
-                String getMethodName  = MethodUtils.getMethodName(fieldName);
-                String setMethodName = MethodUtils.setMethodName(fieldName);
 
-                entryInfoEntityGetterTranslateMap.forEach((transType,getterName)->{
-                    if(getterName.equals(getMethodName)){
-                        updateTranslationTypes.add(transType);  // 确定要更新哪些语种的翻译(与要更新成的值无关)
-                    }
-                });
-
-                Method getMethod = null;
-                Method setMethod = null;
-                try {
-                    getMethod = clazz.getMethod(getMethodName);
-                    setMethod = clazz.getMethod(setMethodName,getMethod.getReturnType());
-                    if(getMethod == null || setMethod == null){
-                        throw new RuntimeException(String.format("没有获取到对应的方法, 获取结果为null"));
-                    }
-                    methodMap.put(getMethod, setMethod);
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException(String.format("没有找到对应的方法, get方法名为: %s, set方法名为: %s", getMethodName,setMethodName));
-                } catch (SecurityException e) {
-                    throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, get方法名为: %s, set方法名为: %s", clazz.getName(),getMethodName,setMethodName));
-                } catch (Exception e){
-                    throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
-                }
+                Method getMethod = MethodUtils.acquireMethod(clazz, fieldName, MethodUtils.DEFAULT_GET_METHOD_NAME_GENERATOR);
+                Method setMethod = MethodUtils.acquireMethod(clazz, fieldName, MethodUtils.DEFAULT_SET_METHOD_NAME_GENERATOR,getMethod.getReturnType());
+                methodMap.put(getMethod, setMethod);
 
             });
             if(methodMap == null || methodMap.isEmpty()){
@@ -3966,23 +3944,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
             Collection<EntryInfoEntity> updateTemplates = new ArrayList<>();
             entryInfos.stream().forEach((entry)->{
-                Map<Method, Object> setMethodValueMap = new HashMap<>();
+                Set<MethodEntity> setMethodValues = new HashSet<>();
                 methodMap.forEach((getMethod,setMethod)->{
-                    try {
-                        Object fileValue = getMethod.invoke(entry);
-                        setMethodValueMap.put(setMethod, fileValue);
-                    } catch (IllegalAccessException e) {
-                        // TODO Auto-generated catch block
-                        throw new RuntimeException(String.format("该对象在更新方法中无法调用方法: %s", getMethod.getName()));
-                    } catch (IllegalArgumentException e) {
-                        // TODO Auto-generated catch block
-                        throw new RuntimeException(String.format("方法: %s对应的参数不符合要求, 请检查", getMethod.getName()));
-                    } catch (InvocationTargetException e) {
-                        // TODO Auto-generated catch block
-                        throw new RuntimeException(e);
-                    }
+                    MethodEntity getMethodEntity = new MethodEntity(getMethod);
+                    Object fileValue = getMethodEntity.invoke(entry);
+                    setMethodValues.add(new MethodEntity(setMethod, fileValue));
                 });
-                EntryInfoEntity updateEntryInfoTemplate = entryStorageService.getUpdateEntryInfoTemplate(entry.getId(), setMethodValueMap);
+                EntryInfoEntity updateEntryInfoTemplate = entryStorageService.buildUpdateEntryInfoTemplate(entry.getId(), setMethodValues);
                 updateTemplates.add(updateEntryInfoTemplate);
             });
             // sql操作
@@ -4000,6 +3968,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     translateEntity.setTranslateState("3");
                 }
             };
+            Collection<String> updateTranslationTypes = new HashSet<>();
+            Map<String, String> translateMap = ConstantInterface.translateMap();
+            fieldNames.forEach((fieldName)->{if(translateMap.containsKey(fieldName)){updateTranslationTypes.add(translateMap.get(fieldName));}});
+            
             if(updateTemplates != null && !updateTranslationTypes.isEmpty() && keyValueArguments != null){
                 keyValueArguments.set("translateProcessor", translateEntiityProcessor);
                 boolean updateTransResult = translationStorageService.updateEntryInfoTranslations(updateTemplates,updateTranslationTypes,keyValueArguments);

@@ -117,7 +117,7 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
                     throw new RuntimeException(e);
                 }
             }
-            EntryInfoEntity updateEntryInfoTemplate = entryStorageService.getUpdateEntryInfoTemplate(entryID,setTransIDMethodValueMap);
+            EntryInfoEntity updateEntryInfoTemplate = entryStorageService.buildUpdateEntryInfoTemplate(entryID,setTransIDMethodValueMap);
             boolean updateResult = entryStorageService.updateEntryInfo(updateEntryInfoTemplate);
             if(!updateResult){
                 throw new RuntimeException(String.format("更新词条的相关信息失败, 请稍后重试, 更新的词条的查询条件为: %s", updateEntryInfoTemplate.toString()));    // 可能的原因，更新过程中词条被删除掉,
@@ -144,6 +144,9 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
         Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
         Map<String,Method> transTypeGetterMethodMap = new HashMap<>();
         transTypes.stream().forEach((transType)->{
+            if(transType.isEmpty() || transType.trim().isEmpty()){
+                throw new RuntimeException(String.format("transType为空, 无法更新对应的翻译, 提供的要更新的翻译语种包括: %s", transTypes.toString()));
+            }
             String getMethodName = TRANSLATE_GETTER_METHOD_MAP.get(transType);
             if(getMethodName == null || getMethodName.trim().isEmpty()){
                 throw new RuntimeException(String.format("没有找到翻译类型对应的getTranslate方法: %s", transType));

@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils.MethodEntity;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +46,19 @@ public class EntryStorageServiceImpl implements EntryStorageService {
     }
 
     @Override
-    public EntryInfoEntity getUpdateEntryInfoTemplate(String entryID, Map<Method, Object> setMethodValueMap) {
+    public EntryInfoEntity buildUpdateEntryInfoTemplate(String entryID, Set<MethodEntity> setMethodValues) {
+        if(setMethodValues == null || setMethodValues.isEmpty()){
+            return null;
+        }
+        EntryInfoEntity updateEntryInfoTemplate = new EntryInfoEntity();
+        updateEntryInfoTemplate.setId(entryID);
+        updateEntryInfoTemplate.setUpdateTime(localTimeUtils.getBeijingTime()); 
+        setMethodValues.forEach((methodEntity)->{methodEntity.invoke(updateEntryInfoTemplate);});
+        return updateEntryInfoTemplate;
+    }
+
+    @Override
+    public EntryInfoEntity buildUpdateEntryInfoTemplate(String entryID, Map<Method, Object> setMethodValueMap) {
         if(setMethodValueMap == null || setMethodValueMap.isEmpty()){
             return null;
         }
