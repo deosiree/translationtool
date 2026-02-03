@@ -9,7 +9,7 @@ import request from '../http/request';
 // 原型/开发测试用静态路由：可选导入（没有 prototype/router.js 也不会报错）
 let prototypeRoutes = []
 try {
-  // eslint-disable-next-line global-require, import/no-unresolved
+  // eslint-disable-next-line global-require
   const mod = require('../../prototype/router')
   prototypeRoutes = (mod && (mod.default || mod)) || []
   if (!Array.isArray(prototypeRoutes)) prototypeRoutes = []

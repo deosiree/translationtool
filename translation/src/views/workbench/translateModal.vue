@@ -858,7 +858,11 @@ export default {
         try {
           // 校验当前页数据的长度
           await verifyArray_workbench_page(this.pagination, currentLang, this);
-        } catch (err) {}
+        } catch (err) {
+          // 仅兜底：不阻断保存流程
+          // eslint-disable-next-line no-console
+          console.warn("[translateModal] verifyArray_workbench_page failed", err);
+        }
       }
     },
     // async handleOK_bak() {

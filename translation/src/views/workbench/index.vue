@@ -815,8 +815,8 @@ export default {
           if (this.isTreeOr2D == "tree") {
             // 层级展示
             this.dataSource = this.buildTreeData(taskList);
-            // 使用$nextTick确保DOM更新后再执行getBranchPending
-            await new Promise((resolve) => this.$nextTick(resolve));
+            // Vue3: $nextTick 支持直接 await（避免 valid-next-tick 报错）
+            await this.$nextTick();
             await this.getBranchPending();// 只获得展开分支的任务执行状态
             // await this.getAllBranchPending(); // 获得所有分支的任务执行状态
           } else {

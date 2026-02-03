@@ -358,6 +358,8 @@ export default {
     // 合并单元格
     getCheckboxProps(record) {
       if (record.flag != "col") {
+        // 默认行为：不隐藏 checkbox
+        return {};
       } else {
         return {
           props: {

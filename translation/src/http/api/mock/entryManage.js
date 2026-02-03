@@ -241,7 +241,7 @@ function generateValidateResponse(payload, mockType = null) {
  * - 成功：{ code: 200, message: '导入成功' }
  * - 失败：{ code: 201, message: '导入存在失败', data: { failedEntryInfos: [], exceptionVos: [], globalMessage: '...' } }
  */
-function generateImportResponse(payload) {
+function generateImportResponse() {
   const random = Math.random();
 
   if (random < 0.5) {

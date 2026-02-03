@@ -1130,7 +1130,11 @@ export default {
                 this.task.transMap.value,
                 this
               );
-            } catch (err) {}
+            } catch (err) {
+              // 仅兜底：不阻断保存流程
+              // eslint-disable-next-line no-console
+              console.warn("[importModal] verifyArray_workbench_page failed", err);
+            }
           }
         })
         .finally(() => {

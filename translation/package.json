@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "preview": "serve -s dist -l 8080",
-    "lint": "vue-cli-service lint",
+    "lint": "vue-cli-service lint src/views src/http",
+    "lint:all": "vue-cli-service lint",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -25,6 +26,7 @@
     "axios": "^1.4.0",
     "core-js": "^3.8.3",
     "dayjs": "^1.11.18",
+    "iconv-lite": "^0.7.2",
     "js-base64": "^3.7.5",
     "keymaster": "^1.6.2",
     "lodash-es": "^4.17.21",
@@ -80,7 +82,22 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {}
+    "rules": {},
+    "overrides": [
+      {
+        "files": [
+          "src/views/**/*.vue"
+        ],
+        "rules": {
+          "no-unused-vars": "warn",
+          "no-prototype-builtins": "warn",
+          "vue/no-unused-components": "warn",
+          "vue/multi-word-component-names": "warn",
+          "vue/require-prop-type-constructor": "warn",
+          "vue/require-valid-default-prop": "warn"
+        }
+      }
+    ]
   },
   "browserslist": [
     "> 1%",

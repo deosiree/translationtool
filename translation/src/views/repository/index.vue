@@ -107,6 +107,7 @@ import {
 import Pagination from "@/components/page/pagination.vue"
 import SearchForm from '@/components/search/searchForm.vue'
 import { setModalAriaHidden } from "@/utils/domUtils";
+import { addProperty, updateProperty } from "@/http/api/property";
 export default {
     components:{
         PlusOutlined,

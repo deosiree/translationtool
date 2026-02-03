@@ -55,7 +55,7 @@ export default {
     EntryStateBadge,
     TransStateBadge,
   },
-  emits: ["relationClose"],
+  emits: ["relationClose", "update:dataSource"],
   props: {
     visible: {
       type: Boolean,
@@ -204,9 +204,14 @@ export default {
         .then((res) => {
           if (res.code === 200) {
             message.success("删除成功");
-            this.dataSource.list = this.dataSource.list.filter(
-              (item) => item.id !== record.id
-            );
+            const nextDataSource = {
+              ...(this.dataSource || {}),
+              list: ((this.dataSource && this.dataSource.list) || []).filter(
+                (item) => item.id !== record.id
+              ),
+            };
+            // props 不可直接修改：通过事件通知父组件更新
+            this.$emit("update:dataSource", nextDataSource);
             this.pagination.current = 1;
             this.pagination.total--;
           } else {

@@ -58,7 +58,7 @@
       </template>
     </DataBox>
   </div>
-  <QtCheckRelation ref="qtCheckRelation" :visible="relationVisible" :dataSource="relationData" @relationClose="relationClose"></QtCheckRelation>
+  <QtCheckRelation ref="qtCheckRelation" :visible="relationVisible" :dataSource="relationData" @relationClose="relationClose" @update:dataSource="updateDataSource"></QtCheckRelation>
 </template>
 <script>
 import "@/assets/style/common.less";
@@ -253,6 +253,15 @@ export default {
           this.loading = false;
         });
     },
+    updateDataSource(dataSource) {
+      this.dataSource = dataSource;
+      this.pagination.total = dataSource.length;
+      this.pagination.current = 1;
+      this.pagination.pageSize = 20;
+      this.pagination.showTotal = (total) => `共 ${total} 条`;
+      this.pagination.onChange = this.pageChange;
+      this.pagination.showSizeChanger = true;
+    }, 
 
     // 查看详情
     viewRelation(record) {

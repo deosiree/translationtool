@@ -435,6 +435,7 @@ import {
   updatePublicEntry,
   addSingleEntry,
   getClassfy,
+  getClassTree,
   entryImportExcle,
   getEntryByClassfy,
   getEntrySourcesByClassify,
@@ -1169,7 +1170,8 @@ export default {
       let params = {
         classfyID: this.product.key,
       };
-      getEntryClassfy(params).then((res) => {
+      // 复用 entryManage 里的“查询分类树”接口（避免 no-undef）
+      getClassTree(params).then((res) => {
         this.entryClassfy = res.data;
       });
     },

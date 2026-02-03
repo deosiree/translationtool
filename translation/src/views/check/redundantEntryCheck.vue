@@ -185,7 +185,7 @@ export default {
         entrySource: null, //词条来源
         tag: "", //tag
         classfy2: null, //二级分类
-        entrySource: "", //词性来源
+        propertyName: "", // 词性（原字段重复导致 no-dupe-keys，这里改为 propertyName）
         translateType: null, //翻译语种
         translateState: null, //翻译状态
         translate: "", //翻译结果

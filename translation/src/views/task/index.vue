@@ -937,6 +937,7 @@ export default {
               // 新建状态
               ids.push(item.id);
             } else {
+              // 非新建状态：不下发
             }
           });
           if (ids.length === 0) {

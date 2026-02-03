@@ -1,0 +1,11 @@
+dist/**
+coverage/**
+node_modules/**
+
+# 历史备份/草稿/待删除（不参与 lint 基线）
+src/utils/**/_重构前.*
+src/components/**/*待删除*.vue
+clearCopy/**
+
+# views 下的拷贝文件（通常是临时/对照，不作为核心基线）
+src/views/**/* copy.vue

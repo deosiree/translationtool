@@ -1,8 +1,4 @@
 import request from "../request";
-import {
-  getEntrysourceListByClassfyTaskStateMock,
-  getEntrysourceListByClassfyResultMock,
-} from "./mock/backendInfo";
 
 // 返回任务状态（分支新建-基于lang文档新增任务/taskManage/createTaskByLang）
 export function getLangDirImportTaskState(params) {

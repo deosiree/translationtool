@@ -87,7 +87,6 @@ export default {
           align: "center",
           width: "10%",
         },
-        ,
         {
           title: "更新的任务",
           dataIndex: "task",

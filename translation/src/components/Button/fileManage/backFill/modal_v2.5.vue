@@ -70,8 +70,12 @@
           <!-- 校验字段 -->
           <a-form-item label="校验字段" name="checkFields"
             :rules="formModel.enableValidate ? [{ required: true, message: '请选择!' }] : []">
-            <a-select mode="multiple" v-model:value="formModel.checkFields" :options="checkFieldOptions"
-              placeholder="请选择校验字段" allowClear />
+            <div style="display: flex; justify-content: space-between;">
+              <a-select mode="multiple" v-model:value="formModel.checkFields" :options="checkFieldOptions"
+                placeholder="请选择校验字段" allowClear />
+              <a-button type="link" size="small" @click="selectAllCheckFields" style="
+              font-size: smaller;margin-top:0">全选</a-button>
+            </div>
           </a-form-item>
 
           <!-- 校验选项勾选框（flex布局，尽量一行，摆不下自动换行） -->
@@ -365,8 +369,10 @@ export default {
         { label: "csv", value: "csv", accept: ".csv" },
         { label: "excel", value: "excel", accept: ".xls,.xlsx" },
       ],
-      // 更新/回填字段、校验字段
+      // 更新/回填字段
       fieldOptions: (entryParams && Array.isArray(entryParams.updateableFields)) ? entryParams.updateableFields : [],
+      // 校验字段
+      checkFieldOptions: (entryParams && Array.isArray(entryParams.validateFields)) ? entryParams.validateFields : [],
       // 翻译列语种（语种名称，来自公共常量,name/value）
       languageOptions: (commonParam && Array.isArray(commonParam.languageList)) ? commonParam.languageList : [],
       validationVisible: false, // 控制校验结果模态框显示
@@ -393,12 +399,6 @@ export default {
     };
   },
   computed: {
-    // 校验字段选项（字段名称，来自公共常量,label/value），过滤掉翻译id字段
-    checkFieldOptions() {
-      const fields = (entryParams && entryParams.exportFields) ? entryParams.exportFields : [];
-      // 过滤掉包含"翻译id"的字段
-      return fields.filter(field => !field.label.includes('翻译id') && !field.value.includes('TransId'));
-    },
     // 回填文件的 accept：以 importType 为准（有选择器时），否则使用 defaultAccept
     backFillAccept() {
       if (this.showFileTypeSelect) {
@@ -1041,7 +1041,11 @@ export default {
     },
     // 全选-回填字段
     selectAllBackfillFields() {
-      this.formModel.backfillFields = this.languageOptions.map((item) => item.value);
+      this.formModel.backfillFields = this.fieldOptions.map((item) => item.value);
+    },
+    // 全选-校验字段
+    selectAllCheckFields() {
+      this.formModel.checkFields = this.checkFieldOptions.map((item) => item.value);
     },
     // 全选-翻译列语种（两个规则共用）
     selectAllValidateTranslateAttrs() {

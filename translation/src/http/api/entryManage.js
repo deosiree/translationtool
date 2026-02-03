@@ -20,15 +20,15 @@ export function getEntrysourceListByClassfy(params) {
 // 创建更新词条任务
 export function createEntrysourceListByClassfyTask(params) {
   // console.log("创建更新词条任务params", params);
-  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return createEntrysourceListByClassfyTaskMock(params);
+  }
   return request({
     url: "/entryInfo/getEntrysourceListByClassfy",
     method: "POST",
     params,
   });
-
-  // 当前使用 Mock 接口
-  return createEntrysourceListByClassfyTaskMock(params);
 }
 
 // 更新来源中新增的词条来源
@@ -241,35 +241,41 @@ export function writeBack(params, data) {
 
 // 更新翻译
 export function entryImportExcle(params, data) {
-  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return entryImportExcle_mock(params, data);
+  }
   return requestMultipart({
     url: "/entryInfo/entryImportExcle",
     method: "POST",
     params,
     data,
   });
-
-  // // 当前使用 Mock 接口（v1 响应结构）
-  // return entryImportExcle_mock(params, data);
 }
 
 // 更新翻译 (v2版本 - 新API)
 // 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
 export function entryImportExcle_v2(params, data) {
-  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return entryImportExcle_v2_mock(params, data);
+  }
   return requestMultipart({
     url: "/entryInfo/entryImportExcle_v2",
     method: "POST",
     params,
     data,
   });
-
-  // 当前使用 Mock 接口
-  return entryImportExcle_v2_mock(params, data);
 }
 
 // 校验词条 (v2版本 - 新API)
 export function entryValidate_v2(params, data) {
+  // 支持 mock：可通过 params.mockType 控制返回类型（success/warning/fail）
+  if (params && params.mockType) {
+    // eslint-disable-next-line no-console
+    console.log(params.mockType, "mock的校验结果", entryValidate_v2_mock(params, data, params.mockType));
+    return entryValidate_v2_mock(params, data, params.mockType);
+  }
   // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
   return requestMultipart({
     url: "/entryInfo/checkBeforeUpdateTranslationByFile",
@@ -277,15 +283,6 @@ export function entryValidate_v2(params, data) {
     params: { ...params, mockType: undefined }, // 移除 mockType 参数
     data,
   });
-
-  // // 当前使用 Mock 接口
-  // // 可以通过 params.mockType 控制返回类型：
-  // // params.mockType = 'success'  // 完全成功
-  // params.mockType = 'warning'  // 有警告但可回填
-  // // params.mockType = 'fail'     // 校验失败不可回填
-  // const rls = entryValidate_v2_mock(params, data, params.mockType);
-  // console.log(params.mockType, "mock的校验结果", rls);
-  // return rls;
 }
 
 // 读取 Excel 文件为dataSource
@@ -364,7 +361,7 @@ export function getWriteFileNamesByClassify(params) {
 
 
 // 分支新建-查询lang文档中的文件名称（词条来源全集=已导入的+未导入的）
-export function getSourceByLang(data) {
+export function getSourceByLang() {
   return Promise.resolve({
     code: 200,
     message: "成功",
