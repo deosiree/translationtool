@@ -163,10 +163,23 @@ export default {
         }
     },
     methods: {
+        // 关闭/隐藏 modal 前先移除焦点，避免 aria-hidden + focus 触发可访问性告警
+        blurActiveElement() {
+            try {
+                const el = document && document.activeElement
+                if (el && typeof el.blur === 'function') {
+                    el.blur()
+                }
+            } catch (e) {
+                // ignore
+            }
+        },
         cancel(){
+            this.blurActiveElement()
             this.$emit("handleClose")
         },
         ok(){
+            this.blurActiveElement()
             this.$emit("handleOK")
         },
         afterClose(){

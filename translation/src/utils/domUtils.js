@@ -164,6 +164,16 @@ export function stopDomEvent(event, options = {}) {
 export function setModalAriaHidden(vm, _document) {
   // 等待 Vue 实例的 DOM 更新完成后执行回调函数
   vm.$nextTick(() => {
+    // 先移除当前焦点，避免在带焦点的元素祖先上操作 aria-hidden 触发浏览器告警
+    try {
+      const activeEl = _document && _document.activeElement
+      if (activeEl && typeof activeEl.blur === 'function') {
+        activeEl.blur()
+      }
+    } catch (e) {
+      // ignore
+    }
+
     // 通过传入的文档对象获取所有类名为 'ant-modal' 的 DOM 元素
     const domArr = _document.getElementsByClassName("ant-modal");
     // 检查是否存在类名为 'ant-modal' 的元素
