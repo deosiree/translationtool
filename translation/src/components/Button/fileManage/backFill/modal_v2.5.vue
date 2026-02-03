@@ -809,16 +809,16 @@ export default {
           this.showUpdateTabs = false; // 多个语种，显示tab页
           this.activeFailedLangTab = '';// 失败语种
           this.detailsByLang = {};
+          // 按钮模式需要立即 emit importSuccess 事件（在组件关闭前），确保父组件能接收到
+          if (this.mode === "button") {
+            this.$emit("importSuccess");
+          }
           notifyTask = () => {
             notification.success({
               message: "导入成功！",
               description: successLangs + " 导入成功！",
               duration: 0,
             });
-            // 按钮模式需要 emit importSuccess 事件（仅在成功时）
-            if (this.mode === "button") {
-              this.$emit("importSuccess");
-            }
           };
         } else if (result.code === 201) {
           // code 201 时，需要按语种分组展示

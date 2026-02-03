@@ -145,11 +145,11 @@
           <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin"
             :disabled="!isProduct()">二级分类管理</a-button>
           <!-- <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
-            :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译" @importSuccess="refreshTable" />
+            :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译 v1" @importSuccess="refreshTable" />
           <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
             buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
             @importSuccess="refreshTable" /> -->
-          <BackFillModal_v2_5 v-if="admin" mode="button" buttonTitle="更新翻译" modalTitle="更新翻译 v2.5" size="small"
+          <BackFillModal_v2_5 v-if="admin" mode="button" buttonTitle="更新翻译" modalTitle="更新翻译" size="small"
             :showFileTypeSelect="true" :defaultAccept="'.csv'" @importSuccess="refreshTable" />
 
           <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
@@ -354,7 +354,7 @@
             <tr>
               <td class="tableTitle">翻译结果</td>
               <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{ currentEntry[lang.value]
-                }}
+              }}
               </td>
             </tr>
             <tr>
@@ -1776,6 +1776,7 @@ export default {
       this.getProductVersion();
     },
     refreshTable() {
+      console.log("刷新查询", this.lastSearchType);
       if (this.lastSearchType === "checkNotUseEntry") {
         // 上一次为冗余词条校验查询，则刷新冗余校验结果
         this.getCheckNotUseEntry();
