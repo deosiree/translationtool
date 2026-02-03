@@ -18,6 +18,13 @@ export default [
     component: () => import('./importConfig/PrototypePage.vue'),
   },
   {
+    // 访问：http://localhost:8080/#/translate/workbench/prototype-pre-translate.html
+    path: 'workbench/prototype-pre-translate.html',
+    name: 'prototypePreTranslate',
+    // 原型页入口：直接显示工作台 index 原型页（可选择任务并打开原型版翻译/预翻译模态框）
+    component: () => import('./preTranslate/index.vue'),
+  },
+  {
     // 访问：http://localhost:8080/#/translate/workbench/prototype-import-config-v2.html
     path: 'workbench/prototype-import-config-v2.html',
     name: 'prototypeImportConfigV2',

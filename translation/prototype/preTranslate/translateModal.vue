@@ -1,13 +1,14 @@
 <template>
-  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" okText="保存" :okLoading="saveLoading" :fullFlag="true"
-    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" okText="保存" :okLoading="saveLoading"
+    :fullFlag="true" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose"
+    @setTableHeight="setTableHeight">
     <div class="content">
       <div class="table">
         <div class="taskInfo">
-          <div class="taskItem">任务名称：{{task.name}}</div>
-          <div class="taskItem">产品名称：{{task.productName}}</div>
-          <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-          <div class="taskItem">翻译语种：{{task.translateType}}</div>
+          <div class="taskItem">任务名称：{{ task.name }}</div>
+          <div class="taskItem">产品名称：{{ task.productName }}</div>
+          <div class="taskItem">上级分类名称：{{ task.classifyName }}</div>
+          <div class="taskItem">翻译语种：{{ task.translateType }}</div>
           <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
         </div>
         <div class="form">
@@ -23,15 +24,16 @@
                 <a-col :span="12">
                   <div class="inline-left-align">
                     <span>翻译状态：</span>
-                    <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" :size="'small'"
-                      :style="'width: 150px'" :filter="new Set(['3'])" />
+                    <TransStateSelect :translateState="search.translateState"
+                      @update:translateState="search.translateState = $event" :size="'small'" :style="'width: 150px'"
+                      :filter="new Set(['3'])" />
                   </div>
                 </a-col>
                 <a-col :span="12">
                   <div class="inline-left-align">
                     <span>部门所属：</span>
-                    <a-select v-model:value="search.department" style="width: 186px" placeholder="请选择" :options='departments' size="small"
-                      @click="clickInput" allowClear>
+                    <a-select v-model:value="search.department" style="width: 186px" placeholder="请选择"
+                      :options='departments' size="small" @click="clickInput" allowClear>
                     </a-select>
                   </div>
                 </a-col>
@@ -96,27 +98,29 @@
             </a-col>
           </a-row>
         </div>
-        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-          :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child" ref="tableContainer"
-          @resizeColumn="handleResizeColumn" :row-selection="{selectedRowKeys: selectedRowKeys, 
-                    onChange: onSelectChange,
-                    selections:[
-                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]
-                }" :customRow="customRow">
+        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
+          :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading"
+          :rowClassName="getRowClassName" childrenColumnName="child" ref="tableContainer"
+          @resizeColumn="handleResizeColumn" :row-selection="{
+            selectedRowKeys: selectedRowKeys,
+            onChange: onSelectChange,
+            selections: [
+              { key: 'selectAll', text: '全部选择', onSelect: selectAllEntry },
+              { key: 'clearAll', text: '取消选择', onSelect: clearAllEntry }
+            ]
+          }" :customRow="customRow">
           <template #bodyCell="{ column, text, record }">
             <template v-if="column.dataIndex === 'entry'">
-              <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
+              <span v-text="text ? text.replace(/\n/g, '\\n') : text"></span>
             </template>
             <template v-if="editList_needValidate.includes(column.dataIndex)">
               <div>
                 <template v-if="editableData[record.id]">
-                  <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
-                    autocomplete="off">
+                  <a-form :model="editableData[record.id]" :rules="rules[record.id]"
+                    :ref="'form' + record.id.replaceAll('-', '') + column.dataIndex" autocomplete="off">
                     <a-form-item :name="column.dataIndex">
-                      <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="editSave(record)"
-                        @change="changeInput(record)" />
+                      <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0"
+                        @pressEnter="editSave(record)" @change="changeInput(record)" />
                     </a-form-item>
                   </a-form>
                 </template>
@@ -128,8 +132,8 @@
             <template v-if="column.dataIndex === 'tag'">
               <div>
                 <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
-                    {{tag}}
+                  <a-tag v-for="(tag, index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
+                    {{ tag }}
                   </a-tag>
                 </span>
               </div>
@@ -160,10 +164,11 @@
           <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
             <div style="padding: 8px">
               <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)" />
+                style="width: 188px; margin-bottom: 8px; display: block"
+                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
               <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)">
+                @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
                 <template #icon>
                   <SearchOutlined />
                 </template>搜索</a-button>
@@ -217,42 +222,43 @@
         <div class="suggentContent">
           <div>
             <span class="title">中文释义：</span>
-            <span>{{chineseInterpretation}}</span>
+            <span>{{ chineseInterpretation }}</span>
           </div>
           <div>
             <span class="title">英文释义：</span>
-            <span>{{englishInterpretation}}</span>
+            <span>{{ englishInterpretation }}</span>
           </div>
         </div>
         <div style="margin-bottom: 6px;">翻译建议：</div>
         <a-spin :spinning="spinning" tip="翻译中....">
           <div class="suggentContent">
             <span class="title">本地翻译：</span>
-            <template v-for="(item,index) in suggest.local" :key="index">
-              <div class="suggentItem" @click="suggestClick(item.title,item.id)">
+            <template v-for="(item, index) in suggest.local" :key="index">
+              <div class="suggentItem" @click="suggestClick(item.title, item.id)">
                 <div class="tran">
-                  <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
-                  <span>{{item.title}}（{{item.updateTime}}）</span>
+                  <img src="@/assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
+                  <span>{{ item.title }}（{{ item.updateTime }}）</span>
                 </div>
                 <div class="tips">
-                  {{item.tips}}
+                  {{ item.tips }}
                   <span v-if='index < 9'>
-                    Ctrl+{{index + 1}}
+                    Ctrl+{{ index + 1 }}
                   </span>
                 </div>
               </div>
             </template>
             <span class="title">外网翻译：</span>
-            <template v-for="(item,index) in suggest.web" :key="index">
-              <div class="suggentItem" @click="suggestClick(item.title,item.id)">
+            <template v-for="(item, index) in suggest.web" :key="index">
+              <div class="suggentItem" @click="suggestClick(item.title, item.id)">
                 <div class="tran">
-                  <img :src="require('../../assets/icon/'+item.type+'.png')" style="width:24px;height:24px;margin-right:8px" />
-                  <span>{{item.title}}</span>
+                  <img :src="require('@/assets/icon/' + item.type + '.png')"
+                    style="width:24px;height:24px;margin-right:8px" />
+                  <span>{{ item.title }}</span>
                 </div>
                 <div class="tips">
-                  {{item.tips}}
+                  {{ item.tips }}
                   <span v-if="index + this.suggest.local.length < 9">
-                    Ctrl+{{index + this.suggest.local.length + 1}}
+                    Ctrl+{{ index + this.suggest.local.length + 1 }}
                   </span>
                 </div>
               </div>
@@ -262,43 +268,21 @@
       </div>
     </div>
   </Modal>
-  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="preTranslateClose"
-    @handleOK="preTranslateOK" @afterClose="preTranslateAfterClose">
-    <div style="width:100%;height:100%">
-      <a-form ref="formRef" name="custom-validation" autocomplete='off' :label-col="labelCol" :model="preTran">
-        <a-form-item label="优先级" name="priority" :rules="[{ required: true, message: '请选择优先级!' }]">
-          <a-select v-model:value="preTran.priority" placeholder="请选择" allowClear>
-            <a-select-option value="shuyuku">术语库</a-select-option>
-            <a-select-option value="deepl">DeepL翻译</a-select-option>
-            <a-select-option value="youdao">有道翻译</a-select-option>
-            <a-select-option value="baidu">百度翻译</a-select-option>
-            <a-select-option value="google">Google翻译</a-select-option>
-            <a-select-option value="module">本地模型</a-select-option>
-            <a-select-option value="synthesis">
-              综合优先级
-              <a-tooltip placement="top">
-                <template #title>
-                  <span>使用所有的翻译引擎进行翻译，取出现次数最多的翻译为当前词条的翻译！</span>
-                </template>
-                <info-circle-outlined style="float:right;color:#FBB31F;margin-top:5px" />
-              </a-tooltip>
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-form>
-    </div>
-  </Modal>
-  <Modal :visible="exportVisible" modalTitle="导出" @handleClose="exportClose" @handleOK="exportOK" @afterClose="exportAfterClose">
+  <PreTranslateModal :visible="preTranslateVisible" :currentTask="task" modalTitle="预翻译"
+    @handleClose="preTranslateClose" @handleOK="preTranslateOK" />
+  <Modal :visible="exportVisible" modalTitle="导出" @handleClose="exportClose" @handleOK="exportOK"
+    @afterClose="exportAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="exportForm" name="custom-validation" :model="exportModal">
         <a-form-item label="导出字段" name="field" :rules="[{ required: true, message: '请选择导出字段!' }]">
-          <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions" :fieldNames="{label:'label',value:'label'}"
-            placeholder="请选择" allowClear></a-select>
+          <a-select mode="multiple" v-model:value="exportModal.field" :options="fieldOptions"
+            :fieldNames="{ label: 'label', value: 'label' }" placeholder="请选择" allowClear></a-select>
         </a-form-item>
       </a-form>
     </div>
   </Modal>
-  <Modal :visible="replaceVisible" modalTitle="查找替换" @handleClose="replaceClose" @handleOK="replaceOK" @afterClose="replaceAfterClose">
+  <Modal :visible="replaceVisible" modalTitle="查找替换" @handleClose="replaceClose" @handleOK="replaceOK"
+    @afterClose="replaceAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="replaceForm" name="custom-validation" :model="replaceModal">
         <a-form-item label="原文本" name="sourceStr" :rules="[{ required: true, message: '请输入原文本!' }]">
@@ -373,6 +357,7 @@ import commonParam, {
   entryParams,
   workbenchParams,
 } from "@/constants/commonParam.js";
+import PreTranslateModal from "./PreTranslateModal.vue";
 export default {
   components: {
     Modal,
@@ -386,6 +371,7 @@ export default {
     RulesDropdown,
     TransStateSelect,
     TransStateBadge,
+    PreTranslateModal,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -498,16 +484,17 @@ export default {
     currentTask(newval, oldval) {
       this.task = newval;
       console.log("currentTask", newval, oldval, this.task);
-
-      this.language = commonParam.languageList.find(
-        (it) => it.name === this.task.translateType
-      );
+      // 根据任务翻译语种匹配语言配置，找不到时回退到第一个配置，避免 this.language 为空导致 .value 访问报错
+      this.language =
+        commonParam.languageList.find(
+          (it) => it.name === this.task.translateType
+        ) || commonParam.languageList[0];
       this.search.department = this.task.department; // 默认部门
       // this.setTranslateColumn();
     },
     visible: {
       async handler(newVal) {
-        // console.log("打开工作台-翻译", newVal);
+        console.log("打开工作台-翻译(原型)", newVal, this.task);
         if (newVal) {
           this.$nextTick(() => {
             // 3.设置翻译列展示的语种
@@ -1678,7 +1665,7 @@ export default {
     },
     // 设置偏好
     updatePartiality(data) {
-      updateUserPartiality(data).then((res) => {});
+      updateUserPartiality(data).then((res) => { });
     },
     exportFieldChange(value) {
       let data = {
@@ -1811,20 +1798,31 @@ export default {
 </style>
 <style scoped lang="less">
 .search-row .ant-col {
-  margin-bottom: 4px !important; /* 使用 !important 确保覆盖 Ant Design 默认样式 */
+  margin-bottom: 4px !important;
+  /* 使用 !important 确保覆盖 Ant Design 默认样式 */
 }
+
 .inline-left-align {
-  display: flex; /* 使用 Flex 布局 */
-  flex-direction: row; /* 水平排列 */
-  align-items: center; /* 垂直居中对齐 */
-  white-space: nowrap; /* 防止内容换行 */
+  display: flex;
+  /* 使用 Flex 布局 */
+  flex-direction: row;
+  /* 水平排列 */
+  align-items: center;
+  /* 垂直居中对齐 */
+  white-space: nowrap;
+
+  /* 防止内容换行 */
   & span {
-    margin-right: 8px; /* 给 span 右侧添加间距 */
+    margin-right: 8px;
+    /* 给 span 右侧添加间距 */
   }
+
   & a-input {
-    flex: 1; /* 让输入框自动填充剩余空间 */
+    flex: 1;
+    /* 让输入框自动填充剩余空间 */
   }
 }
+
 .content {
   width: 100%;
   height: 100%;
@@ -1840,6 +1838,7 @@ export default {
     width: 70%;
     height: 100%;
   }
+
   .suggest {
     width: 30%;
     // padding-top: 30px;
@@ -1868,11 +1867,13 @@ export default {
         font-size: 12px;
         font-style: normal;
         font-weight: 400;
-        line-height: 20px; /* 166.667% */
+        line-height: 20px;
+        /* 166.667% */
       }
 
       .suggentItem {
         width: 100%;
+
         .tran {
           display: flex;
           align-items: center;
@@ -1887,6 +1888,7 @@ export default {
             line-height: 22px;
           }
         }
+
         .tips {
           color: var(--text-icon-font-gy-340-placeholder, rgba(0, 0, 0, 0.4));
           /* 五级文字/常规 */
@@ -1894,9 +1896,11 @@ export default {
           font-size: 10px;
           font-style: normal;
           font-weight: 400;
-          line-height: 20px; /* 166.667% */
+          line-height: 20px;
+          /* 166.667% */
         }
       }
+
       .suggentItem:hover {
         background-color: #f1f5f6;
       }
@@ -1909,6 +1913,7 @@ export default {
       transform: translate(-50%, -50%);
     }
   }
+
   .taskInfo {
     display: flex;
     padding: 4px 0px;
@@ -1922,6 +1927,7 @@ export default {
       flex: 1 0 0;
     }
   }
+
   .form {
     display: flex;
     align-items: center;
@@ -1930,9 +1936,11 @@ export default {
     margin-bottom: 6px;
   }
 }
+
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;
 }
+
 :deep(.ant-pagination) {
   margin: 8px 0;
 }
