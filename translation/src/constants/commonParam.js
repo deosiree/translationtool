@@ -90,6 +90,16 @@ export default {
   langAudSugList: default_languageList.map(item => item.auditSuggest),
   langInterList: default_languageList.map(item => item.interpretation),
   languageMap: default_languageMap,
+  // ==================== 回写相关常量 ====================
+  /**
+   * 回写类型（与后端/现有接口保持兼容：仍使用历史枚举值）
+   * - 注意：当前项目历史上使用了 "DEFAUT"（拼写错误）作为默认类型值，不能直接改成 "DEFAULT" 否则可能影响接口。
+   */
+  writeBackTypeList: [
+    { label: "默认", value: "DEFAUT" },
+    { label: "TS文件", value: "TS" },
+    { label: "辞典", value: "DI" },
+  ],
   checkboxList: [// 工作台-展示列
     { label: '存在状态', value: 'isExist', index: 1 },
     // {label:'翻译状态',value:'translateState',index:2},
@@ -416,6 +426,10 @@ const entry_readonlyFields = [
   'maxChineseLength', // 中文字符上限
   'foreignMaxLength', // 外文字符上限
 ];
+const entryvalid_readonlyFields = [
+  'maxChineseLength', // 中文字符上限
+  'foreignMaxLength', // 外文字符上限
+];
 const entry_checkedSearchCondition = entry_searchConditionList.map(item => item.value);// 默认选中所有查询条件
 export const entryParams = {
   checkboxList: entry_checkboxList,
@@ -438,6 +452,10 @@ export const entryParams = {
   // 更新字段选项（从entry_checkboxList过滤掉不可修改列）
   updateableFields: entry_exportFields.filter(item => {
     return !entry_readonlyFields.includes(item.value);
+  }),
+  // 校验字段选项
+  validateFields: entry_exportFields.filter(item => {
+    return !entryvalid_readonlyFields.includes(item.value);
   }),
   // 更新词条相关常量（右键菜单-更新）
   updateEntry: {

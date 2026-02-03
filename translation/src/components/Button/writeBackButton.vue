@@ -1,6 +1,7 @@
 <template>
   <a-button type="primary" @click="showModal" :size="size" :class="buttonClass">{{ buttonTitle }}</a-button>
-  <CustomModal :modalTitle="buttonTitle" modalWidth="500px" :modalVisible="visible" :showCancel="false" :showOk="false" @handleClose="handleClose">
+  <CustomModal :modalTitle="buttonTitle" modalWidth="500px" :modalVisible="visible" :showCancel="false" :showOk="false"
+    @handleClose="handleClose">
     <div class="content" style="width:100%;height:100%">
       <!-- 添加加载动画 -->
       <a-spin :spinning="loading">
@@ -10,7 +11,8 @@
           </a-form-item>
           <a-form-item label="回写语种" name="language" :rules="[{ required: true, message: '请选择回写语种!' }]">
             <!-- 修改为多选 -->
-            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择" @change="languageChange" allowClear>
+            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择"
+              @change="languageChange" allowClear>
               <!-- <a-select mode="multiple" v-model:value="writeBack.language" placeholder="请选择" allowClear> -->
               <!-- <a-select-option value="英文">英文</a-select-option>
               <a-select-option value="俄文">俄文</a-select-option>
@@ -20,9 +22,9 @@
           </a-form-item>
           <a-form-item label="回写类型" name="type">
             <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
-              <a-radio value="DEFAUT">默认 </a-radio>
-              <a-radio value="TS">TS文件</a-radio>
-              <a-radio value="DI">辞典</a-radio>
+              <a-radio v-for="opt in writeBackTypeOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </a-radio>
             </a-radio-group>
             <a-tooltip placement="top">
               <template #title>
@@ -32,11 +34,13 @@
             </a-tooltip>
           </a-form-item>
           <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
-            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择" allowClear></a-select>
+            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择"
+              allowClear></a-select>
           </a-form-item>
           <a-form-item label=" " :colon="false">
             <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
             <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
+            <a-checkbox v-model:checked="writeBack.needPush" style="margin-left: 16px;">回写后推送</a-checkbox>
             <a-tooltip placement="top">
               <template #title>
                 <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
@@ -44,11 +48,11 @@
               <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
             </a-tooltip>
           </a-form-item>
-          <a-form-item label="Git分支" name="branch" :rules="[{ required: true, message: '请选择分支!' }]">
-            <a-select v-model:value="writeBack.branch" placeholder="请选择" :options="branchOptions" allowClear>
-            </a-select>
+          <a-form-item v-if="writeBack.needPush" label="Git分支" name="branch"
+            :rules="writeBack.needPush ? [{ required: true, message: '请选择分支!' }] : []">
+            <a-select v-model:value="writeBack.branch" placeholder="请选择" :options="branchOptions" allowClear />
           </a-form-item>
-          <a-form-item label="Git版本名" name="versionName">
+          <a-form-item v-if="writeBack.needPush" label="Git版本名" name="versionName">
             <a-input v-model:value="writeBack.versionName" placeholder="请输入版本名"></a-input>
           </a-form-item>
           <!-- <a-form-item label="回写Tag" name="isTag">
@@ -74,19 +78,19 @@ import CustomModal from "@/components/modal/index.vue";
 import {
   getI18nAdress,
   getBranches,
-  gitCommit,
-  gitPush,
 } from "@/http/api/workbench.js";
 import { writeBack } from "@/http/api/entryManage";
 import { getDictionary, getFileListByLang } from "@/http/api/i18Server";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { QuestionCircleOutlined } from "@ant-design/icons-vue";
+import { doCommitAndPush } from "@/utils/gitUtils";
 export default {
   components: {
     CustomModal,
     QuestionCircleOutlined,
   },
+  emits: ["submit"],
   props: {
     size: {
       type: String,
@@ -99,6 +103,20 @@ export default {
     buttonTitle: {
       type: String,
       default: "回写",
+    },
+    // 业务数据源：回写接口需要
+    dataSource: {
+      type: Array,
+      default: () => [],
+    },
+    /**
+     * submitMode:
+     * - writeBack: 组件内部直接执行回写 + git commit/push（默认，保持原行为）
+     * - emit: 仅校验表单并向外抛出参数，由外部决定“是否校验/是否回写/如何回写”
+     */
+    submitMode: {
+      type: String,
+      default: "writeBack",
     },
   },
   data() {
@@ -123,11 +141,17 @@ export default {
         tagDisabled: false,
         ip: null,
         branch: null,
-        versionName: "",
+        versionName: "writeBack",
         userName: this.$store.state.user?.userName || '',
+        needPush: false,
       },
       ipOptions: [],
       branchOptions: null,
+      writeBackTypeOptions: commonParam.writeBackTypeList || [
+        { label: "默认", value: "DEFAUT" },
+        { label: "TS文件", value: "TS" },
+        { label: "辞典", value: "DI" },
+      ],
       visible: false,
       loading: false,
     };
@@ -150,11 +174,17 @@ export default {
     },
   },
   methods: {
+    // ==================== 生命周期和初始化相关 ====================
     showModal() {
       this.visible = true;
       setModalAriaHidden(this, document);
       this.getIPs();
+      if (this.writeBack.ip) {
+        this.getBranches();
+      }
     },
+
+    // ==================== 基础数据加载（IP/分支/文件列表） ====================
     // 获取i18服务器ip
     getIPs() {
       this.ipOptions = [];
@@ -172,15 +202,12 @@ export default {
     // 获取ip对应的分支
     getBranches() {
       this.branchOptions = [];
-      getBranches(this.writeBack.ip).then((res) => {
+      // 与 gitCommitButton.vue 保持一致：接口入参为对象 { ip }
+      getBranches({ ip: this.writeBack.ip }).then((res) => {
         res.data.list.forEach((item) => {
-          // let branch = {
-          //   label: item.branch,
-          //   value: item.branch,
-          // };
           let branch = {
-            label: item.ip,
-            value: item.ip,
+            label: item,
+            value: item,
           };
           this.branchOptions.push(branch);
         });
@@ -272,58 +299,79 @@ export default {
       });
     },
 
-    // 确认
-    async handleOK() {
-      let successLanguages = [];
-      let failedLanguages = [];
-      let successmsg = "";
-      let failedmsg = "";
-      let commitSuccess = false;
+    // ==================== 表单校验与参数构建 ====================
+    async validateWriteBackForm() {
       if (!this.writeBack.ip) {
         message.error("请选择IP！");
-        return;
+        return false;
       }
-      if (this.writeBack.language.length === 0) {
+      if (!this.writeBack.language || this.writeBack.language.length === 0) {
         message.error("请选择回写语种！");
-        return;
+        return false;
       }
       if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
-        // 回写类型
         message.info("请选择" + this.writeBack.label + "!");
-        return;
+        return false;
       }
-      if (!this.writeBack.branch) {
+      if (this.writeBack.needPush && !this.writeBack.branch) {
         message.error("请选择分支！");
-        return;
+        return false;
       }
       await this.$refs.contentForm.validate();
-
-      this.loading = true;
-      const promises = [];
-      // 遍历选中的语种列表，依次执行回写操作
-      for (const language of this.writeBack.language) {
-        let params = {
+      return true;
+    },
+    buildWriteBackParamsList() {
+      const paramsList = [];
+      for (const language of this.writeBack.language || []) {
+        paramsList.push({
           translateType: language,
           isTag: this.writeBack.isTag ? 1 : 0,
           isComment: this.writeBack.isComment ? 1 : 0,
           writeType: this.writeBack.type,
           fileName: this.writeBack.file,
           i18nUrl: this.writeBack.ip,
-        };
-        promises.push(writeBack(params, this.dataSource));
-        console.log("promises.push", params, language);
+        });
       }
+      return paramsList;
+    },
+
+    // ==================== 提交（emit / 内部回写） ====================
+    async handleOK() {
+      let successLanguages = [];
+      let failedLanguages = [];
+      let successmsg = "";
+      let failedmsg = "";
+      const ok = await this.validateWriteBackForm();
+      if (!ok) return;
+
+      // emit 模式：外部接管后续流程（校验/回写/展示结果等）
+      if (this.submitMode === "emit") {
+        this.visible = false;
+        this.$emit("submit", {
+          writeBack: { ...this.writeBack },
+          paramsList: this.buildWriteBackParamsList(),
+          dataSource: this.dataSource,
+        });
+        return;
+      }
+
+      this.loading = true;
+      const promises = [];
+      const paramsList = this.buildWriteBackParamsList();
+      paramsList.forEach((params) => {
+        promises.push(writeBack(params, this.dataSource));
+      });
       await Promise.allSettled(promises).then((rls) => {
         console.log("rls", rls);
         rls.forEach((item, index) => {
           if (item.status === "rejected") {
             failedLanguages.push(
-              `${this.writeBack.language[index]}: ${item.data}`
+              `${this.writeBack.language[index]}: ${item.reason?.message || item.reason || "请求失败"}`
             );
           } else {
-            if (item.data != "") {
+            if (item.value?.data != "") {
               failedLanguages.push(
-                `${this.writeBack.language[index]}: ${item.data}`
+                `${this.writeBack.language[index]}: ${item.value?.data}`
               );
             } else {
               successLanguages.push(this.writeBack.language[index]);
@@ -341,42 +389,28 @@ export default {
       }
       this.loading = false;
 
-      // 回写完成，开始执行git推送
-      let params = {
-        ip: this.writeBack.ip,
-        branch: this.writeBack.branch,
-        versionName:
+      // 勾选“回写后推送”：回写完成 -> git commit -> git push，全部结束后再关闭弹窗
+      if (this.writeBack.needPush) {
+        const versionName =
           this.writeBack.versionName == ""
             ? this.writeBack.userName
-            : this.writeBack.userName + "-" + this.writeBack.versionName,
-      };
-      console.log("导出参数", params);
-      this.loading = true;
-      await gitCommit(params)
-        .then((res) => {
-          console.log("commit提交成功", wef);
-          commitSuccess = true;
-        })
-        .catch((error) => {
-          message.error(`commit提交失败: ${error.message || error}`);
-        })
-        .finally(() => {
+            : this.writeBack.userName + "-" + this.writeBack.versionName;
+        const commitParams = {
+          ip: this.writeBack.ip,
+          branch: this.writeBack.branch,
+          versionName,
+        };
+        const pushParams = {
+          ip: this.writeBack.ip,
+        };
+        this.loading = true;
+        try {
+          await doCommitAndPush(commitParams, pushParams);
+        } finally {
           this.loading = false;
-        });
-      if (commitSuccess) {
-        // this.loading = true;
-        await gitPush(params)
-          .then((res) => {
-            // console.log("push推送成功",qwed);
-            message.success("push推送成功");
-          })
-          .catch((error) => {
-            message.error(`push推送失败: ${error.message || error}`);
-          })
-          .finally(() => {
-            this.loading = false;
-          });
+        }
       }
+      this.visible = false;
     },
     // 关闭导出模态框
     handleClose() {

@@ -24,5 +24,12 @@ export default [
     // 原型页入口：整页导入模态框 + 内嵌 JSON/XML 配置文件原型
     component: () => import('./importConfigV2/PrototypePage.vue'),
   },
+  {
+    // 访问：http://localhost:8080/#/translate/workbench/prototype-writeback-validate.html
+    path: 'workbench/prototype-writeback-validate.html',
+    name: 'prototypeWriteBackValidate',
+    // 原型页入口：回写前校验 + 重复组处理（父子表格/勾选删除/重校验/回写/展示列设置）
+    component: () => import('./writeBackValidate/PrototypePage.vue'),
+  },
 ]
 

@@ -30,11 +30,10 @@ import CustomModal from "@/components/modal/index.vue";
 import {
   getI18nAdress,
   getBranches,
-  gitCommit,
-  gitPush,
 } from "@/http/api/workbench.js";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
+import { doGitCommit, doGitPush, doCommitAndPush } from "@/utils/gitUtils";
 export default {
   components: {
     CustomModal,
@@ -154,16 +153,11 @@ export default {
       };
       // console.log("导出参数", params);
       this.loading = true;
-      await gitCommit(params)
-        .then((res) => {
-          message.success("commit提交成功");
-        })
-        .catch((error) => {
-          console.log("commit提交失败", error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      try {
+        await doGitCommit(params);
+      } finally {
+        this.loading = false;
+      }
     },
     // push
     async pushOK() {
@@ -180,17 +174,11 @@ export default {
       let params = {
         ip: this.commitMsg.ip,
       };
-      await gitPush(params)
-        .then((res) => {
-          // console.log("push推送成功",qwed);
-          message.success("push推送成功");
-        })
-        .catch((error) => {
-          console.log("push推送失败", error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      try {
+        await doGitPush(params);
+      } finally {
+        this.loading = false;
+      }
     },
     // commit+push
     async commitPushOK() {
@@ -207,7 +195,6 @@ export default {
       this.loading = true;
 
       try {
-        console.log("节点名称", this.treeTitle);
         let vsName = this.commitMsg.versionName + " (";
         if (this.treeTitle) {
           vsName += `Model:${this.treeTitle};`;
@@ -217,19 +204,15 @@ export default {
         }
         vsName += `IP: ${this.commitMsg.ip})`;
 
-        let commitParams = {
+        const commitParams = {
           ip: this.commitMsg.ip,
           branch: this.commitMsg.branch,
           versionName: vsName,
         };
-        await gitCommit(commitParams);
-        message.success("commit提交成功");
-
-        let pushParams = {
+        const pushParams = {
           ip: this.commitMsg.ip,
         };
-        await gitPush(pushParams);
-        message.success("push推送成功");
+        await doCommitAndPush(commitParams, pushParams);
       } catch (error) {
         console.log("操作失败", error);
       } finally {
