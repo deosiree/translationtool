@@ -156,7 +156,7 @@ export default {
       try {
         await doGitCommit(params);
       } finally {
-        this.loading = false;
+          this.loading = false;
       }
     },
     // push
@@ -177,7 +177,7 @@ export default {
       try {
         await doGitPush(params);
       } finally {
-        this.loading = false;
+          this.loading = false;
       }
     },
     // commit+push

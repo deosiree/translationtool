@@ -1,6 +1,14 @@
 <template>
-  <a-button type="primary" @click="showModal" :size="size" :class="buttonClass">{{ buttonTitle }}</a-button>
-  <CustomModal :modalTitle="buttonTitle" modalWidth="500px" :modalVisible="visible" :showCancel="false" :showOk="false"
+  <!-- 按钮模式：显示按钮 -->
+  <a-button v-if="mode === 'button'" type="primary" @click="showModal" :size="size" :class="buttonClass">{{ buttonTitle }}</a-button>
+  
+  <!-- 模态框：按钮模式和模态框模式共用 -->
+  <CustomModal 
+    :modalTitle="buttonTitle" 
+    modalWidth="500px" 
+    :modalVisible="mode === 'button' ? visible : (visible || internalVisible)" 
+    :showCancel="false" 
+    :showOk="false"
     @handleClose="handleClose">
     <div class="content" style="width:100%;height:100%">
       <!-- 添加加载动画 -->
@@ -41,6 +49,7 @@
             <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
             <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
             <a-checkbox v-model:checked="writeBack.needPush" style="margin-left: 16px;">回写后推送</a-checkbox>
+            <a-checkbox v-if="enableValidation" v-model:checked="writeBack.needValidation" style="margin-left: 16px;">回写前校验</a-checkbox>
             <a-tooltip placement="top">
               <template #title>
                 <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
@@ -112,11 +121,35 @@ export default {
     /**
      * submitMode:
      * - writeBack: 组件内部直接执行回写 + git commit/push（默认，保持原行为）
-     * - emit: 仅校验表单并向外抛出参数，由外部决定“是否校验/是否回写/如何回写”
+     * - emit: 仅校验表单并向外抛出参数，由外部决定"是否校验/是否回写/如何回写"
      */
     submitMode: {
       type: String,
       default: "writeBack",
+    },
+    /**
+     * mode:
+     * - button: 显示按钮，点击打开模态框（默认）
+     * - modal: 直接显示模态框，不显示按钮
+     */
+    mode: {
+      type: String,
+      default: "button",
+      validator: (v) => ['button', 'modal'].includes(v)
+    },
+    /**
+     * visible: 仅在 mode="modal" 时生效，控制模态框显示/隐藏
+     */
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    /**
+     * enableValidation: 是否启用"回写前校验"选项
+     */
+    enableValidation: {
+      type: Boolean,
+      default: false
     },
   },
   data() {
@@ -144,7 +177,10 @@ export default {
         versionName: "writeBack",
         userName: this.$store.state.user?.userName || '',
         needPush: false,
+        needValidation: false, // 回写前校验
       },
+      // 模态框模式下的内部 visible 状态
+      internalVisible: false,
       ipOptions: [],
       branchOptions: null,
       writeBackTypeOptions: commonParam.writeBackTypeList || [
@@ -176,7 +212,11 @@ export default {
   methods: {
     // ==================== 生命周期和初始化相关 ====================
     showModal() {
-      this.visible = true;
+      if (this.mode === 'button') {
+        this.visible = true;
+      } else {
+        this.internalVisible = true;
+      }
       setModalAriaHidden(this, document);
       this.getIPs();
       if (this.writeBack.ip) {
@@ -414,7 +454,11 @@ export default {
     },
     // 关闭导出模态框
     handleClose() {
-      this.visible = false;
+      if (this.mode === 'button') {
+        this.visible = false;
+      } else {
+        this.internalVisible = false;
+      }
     },
     // 关闭弹窗后的操作
     afterClose() {
