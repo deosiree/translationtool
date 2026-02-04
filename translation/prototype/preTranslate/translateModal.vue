@@ -269,6 +269,7 @@
     </div>
   </Modal>
   <PreTranslateModal :visible="preTranslateVisible" :currentTask="task" modalTitle="预翻译"
+    :dataPreTranslate="dataPreTranslate" :language="language"
     @handleClose="preTranslateClose" @handleOK="preTranslateOK" />
   <Modal :visible="exportVisible" modalTitle="导出" @handleClose="exportClose" @handleOK="exportOK"
     @afterClose="exportAfterClose">
@@ -304,7 +305,6 @@ import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
-  preTranslate,
   getEntryInfoList,
   updateEntryList,
   importCommonExcle,
@@ -448,6 +448,7 @@ export default {
       fieldOptions: entryParams.checkboxList,
       accept: ".xls,.xlsx",
       preTranslateOkLoading: false,
+      dataPreTranslate: [], // 需要预翻译的数据
       state: {
         searchText: "",
         searchedColumn: "",
@@ -1281,29 +1282,21 @@ export default {
         }
       });
     },
+    // ==================== 预翻译相关 ====================
     // 预翻译
     preTranslation() {
       if (this.dataSource.length === 0) {
         return;
       }
-      this.preTranslateVisible = true;
-      setModalAriaHidden(this, document);
-    },
-    preTranslateOK() {
-      this.preTranslateOkLoading = true;
-      let params = {
-        taskID: this.task.id,
-        priority: this.preTran.priority,
-      };
+      // 准备需要预翻译的数据
       let dataPreTranslate = null;
       if (this.selectedRows.length == 0) {
         // 勾选为空，就翻译所有词条
-        dataPreTranslate = this.dataSource;
+        dataPreTranslate = cloneDeep(this.dataSource);
       } else {
         // 有勾选的词条，就翻译勾选
-        dataPreTranslate = this.selectedRows;
+        dataPreTranslate = cloneDeep(this.selectedRows);
       }
-      this.loading = true;
       // 将 预翻译数据 翻译都变成空，以便被预翻译覆盖
       dataPreTranslate.forEach((item) => {
         if (
@@ -1314,31 +1307,60 @@ export default {
           item[this.language.value] = "";
         }
       });
-      this.editableData = []; // 取消所有编辑状态
-      preTranslate(params, dataPreTranslate)
-        .then((res) => {
-          // 更新 预翻译数据 中的翻译数据
-          dataPreTranslate = res.data.list.map((item) => {
-            item.translate = item[this.language.value];
-            return item;
-          });
-          this.updateNewByOld(this.allData, dataPreTranslate); // 也更新一下全量数据
-        })
-        .catch((err) => {
-          message.error("预翻译失败！", err.message);
-        })
-        .finally(async () => {
-          // 校验当前页数据
-          await verifyArray_workbench_page(
-            this.pagination,
-            this.language.value,
-            this
-          );
+      // 取消所有编辑状态
+      this.editableData = {};
+      // 保存需要预翻译的数据
+      this.dataPreTranslate = dataPreTranslate;
+      // 打开预翻译模态框
+      this.preTranslateVisible = true;
+      setModalAriaHidden(this, document);
+    },
+    // 接收预翻译结果并更新dataSource
+    async preTranslateOK(result) {
+      // 检查预翻译是否成功
+      if (!result || !result.success) {
+        message.error(result?.error || "预翻译失败！");
+        this.preTranslateOkLoading = false;
+        this.preTranslateVisible = false;
+        return;
+      }
 
-          this.loading = false;
-          this.preTranslateVisible = false;
-          this.preTranslateOkLoading = false;
-        });
+      this.loading = true;
+      this.preTranslateOkLoading = true;
+      try {
+        console.log("预翻译结果(父组件)：", result)
+        // 获取预翻译后的数据
+        const translatedData = result.data || [];
+        
+        if (translatedData.length === 0) {
+          message.warning("没有获取到预翻译结果");
+          return;
+        }
+
+        // 更新dataSource中的翻译数据
+        // 使用updateNewByOld方法更新全量数据
+        this.updateNewByOld(this.allData, translatedData);
+        
+        // 同时更新当前页的dataSource
+        this.updateNewByOld(this.dataSource, translatedData);
+        
+        message.success(`预翻译成功，共翻译 ${translatedData.length} 条词条`);
+      } catch (err) {
+        message.error("处理预翻译结果失败：" + (err.message || ""));
+      } finally {
+        // 校验当前页数据
+        await verifyArray_workbench_page(
+          this.pagination,
+          this.language.value,
+          this
+        );
+
+        this.loading = false;
+        this.preTranslateVisible = false;
+        this.preTranslateOkLoading = false;
+        // 清空预翻译数据
+        this.dataPreTranslate = [];
+      }
     },
     preTranslateClose() {
       this.preTranslateVisible = false;

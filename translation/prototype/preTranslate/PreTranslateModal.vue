@@ -153,6 +153,8 @@
 <script>
 import Modal from '@/components/modal/index.vue'
 import { getClassTree } from '@/http/api/entryManage'
+import { preTranslate } from '@/http/api/workbench'
+import { message } from 'ant-design-vue'
 
 export default {
   name: 'PreTranslateModal',
@@ -172,6 +174,18 @@ export default {
     currentTask: {
       type: Object,
       default: () => ({}),
+    },
+    // 需要预翻译的数据
+    dataPreTranslate: {
+      type: Array,
+      default: () => [],
+    },
+    // 当前翻译语种信息
+    language: {
+      type: Object,
+      default: () => ({
+        value: '',
+      }),
     },
   },
   data() {
@@ -221,33 +235,95 @@ export default {
     handleClose() {
       this.$emit('handleClose')
     },
-    handleOKInternal() {
-      // 这里先不接入真实校验逻辑，仅模拟一次 loading + 事件回调
+    async handleOKInternal() {
+      if (!this.formState.priority) {
+        message.warning('请选择优先级！')
+        return
+      }
+
       this.okLoading = true
-      setTimeout(() => {
-        this.okLoading = false
+
+      try {
+        let translateResult = null
+
+        // 词条管理模式：使用 mock 数据
+        if (this.formState.priority === 'entry-manage' || this.formState.priority === 'entryManagement') {
+          translateResult = await this.mockPreTranslateForEntryManagement()
+        } else {
+          // 其他模式：调用真实 API
+          translateResult = await this.callPreTranslateAPI()
+          console.log("调用预翻译接口（子组件）1：", translateResult)
+        }
+        console.log("调用预翻译接口（子组件）2：", translateResult)
+
+        // 通过 handleOK 事件将预翻译结果返回给父组件
         this.$emit('handleOK', {
+          success: true,
+          data: translateResult,
           priority: this.formState.priority,
           taskId: this.currentTask && this.currentTask.id,
-          // 词条管理模式下，额外返回产品与条件配置，便于后续对接真实预翻译逻辑
-          mode: this.formState.priority === 'entry-manage' ? 'entry-manage' : 'engine',
-          entryManageConfig:
-            this.formState.priority === 'entry-manage'
-              ? {
-                product: this.selectedProduct,
-                attributes: this.entryManageForm.checkedAttributes.slice(),
-                targetLang: this.targetLanguageLabel,
-                sortStrategy: this.entryManageForm.sortStrategy,
-                timeRange: this.entryManageForm.useTimeRange
-                  ? {
-                    start: this.entryManageForm.startTime,
-                    end: this.entryManageForm.endTime,
-                  }
-                  : null,
-              }
-              : null,
         })
-      }, 600)
+      } catch (err) {
+        message.error('预翻译失败！' + (err.message || ''))
+        this.$emit('handleOK', {
+          success: false,
+          error: err.message || '预翻译失败',
+        })
+      } finally {
+        this.okLoading = false
+      }
+    },
+
+    // ==================== 预翻译API调用 ====================
+    /**
+     * 调用真实预翻译 API
+     */
+    async callPreTranslateAPI() {
+      const params = {
+        taskID: this.currentTask && this.currentTask.id,
+        priority: this.formState.priority,
+      }
+      try {
+        const res = await preTranslate(params, this.dataPreTranslate)
+        // 更新 预翻译数据 中的翻译数据，添加 translate 字段
+        console.log("调用预翻译接口preTranslate的原始数据（子组件）：", res, this.language.value)
+        const result = res.data.list.map((item) => {
+          item.translate = item[this.language.value];
+          return item;
+        })
+        console.log("res result", result)
+        return result
+      } catch (err) {
+        console.error("调用预翻译接口preTranslate的原始数据（子组件）数据结构错误：", err)
+        return []
+      }
+    },
+
+    /**
+     * Mock 词条管理模式的预翻译结果
+     * 参考真实接口响应格式，返回 mock 数据
+     */
+    async mockPreTranslateForEntryManagement() {
+      // 模拟 API 延迟
+      await new Promise((resolve) => setTimeout(resolve, 600))
+
+      // 根据 dataPreTranslate 生成 mock 结果
+      // 参考用户提供的响应体格式
+      const mockResult = this.dataPreTranslate.map((item) => {
+        // 为每个词条生成 mock 翻译结果
+        // 这里可以根据实际需求生成更真实的 mock 数据
+        const mockTranslation = `[Mock翻译] ${item.entry || item.id}`
+
+        return {
+          ...item,
+          // 根据 language.value 设置对应语种的翻译
+          [this.language.value]: mockTranslation,
+          translate: mockTranslation,
+          // 保持其他字段不变
+        }
+      })
+
+      return mockResult
     },
 
     // ==================== 词条管理：状态树选择 ====================
