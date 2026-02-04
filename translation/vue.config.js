@@ -25,6 +25,11 @@ module.exports = defineConfig({
   },
   configureWebpack: {
     resolve: {
+      alias: {
+        '@': require('path').resolve(__dirname, 'src'),
+        '@prototype': require('path').resolve(__dirname, 'prototype'),
+      },
+      extensions: ['.js', '.vue', '.json'],
       fallback: {
         path: require.resolve("path-browserify"),
         fs: false,

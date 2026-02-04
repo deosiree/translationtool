@@ -72,6 +72,8 @@
       <a-button type="primary" danger @click="deleteEntrys" v-if="$currentDepartment && $currentDepartment.ops.has('needDelete')">删除</a-button>
       <a-button type="primary" danger @click="forrbiddenEntrys"
         v-if="$currentDepartment && $currentDepartment.ops.has('needForbidden') && $store.state.admin">禁用</a-button>
+      <ClearFields :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="列置空"
+        @update:dataSource="handleDataSourceUpdate" />
       <ExportButton :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="导出" />
       <a-button type="primary" @click="examine" v-if="$currentDepartment && $currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
     </template>
@@ -158,6 +160,7 @@
 <script>
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
+import ClearFields from "@prototype/writeBackValidate/clearFields.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import WriteBackButton from "./writeBackButton.vue";
@@ -210,6 +213,7 @@ export default {
     CaretDownOutlined,
     CaretRightOutlined,
     ExportButton,
+    ClearFields,
     EntryStateBadge,
     TransStateBadge,
     WriteBackButton,
@@ -526,6 +530,11 @@ export default {
       // else {
       //   console.log("去除的是本产品的词条", newSelectedProducts);
       // }
+    },
+    // ==================== 数据更新处理 ====================
+    handleDataSourceUpdate(updatedData) {
+      // 更新本地数据源
+      this.$emit("update:dataSource", updatedData);
     },
     handleClose() {
       this.$emit("createClose");
