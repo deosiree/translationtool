@@ -38,5 +38,12 @@ export default [
     // 原型页入口：回写前校验 + 重复组处理（父子表格/勾选删除/重校验/回写/展示列设置）
     component: () => import('./writeBackValidate/PrototypePage.vue'),
   },
+  {
+    // 访问：http://localhost:8080/#/translate/workbench/prototype-entry-check.html
+    path: 'workbench/prototype-entry-check.html',
+    name: 'prototypeEntryCheck',
+    // 原型页入口：词条管理页面原型（用于增量式原型设计开发）
+    component: () => import('./entryCheck/index.vue'),
+  },
 ]
 
