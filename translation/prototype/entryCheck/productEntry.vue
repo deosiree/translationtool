@@ -121,6 +121,10 @@
       </template>
       <template v-slot:operate>
         <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
+          <!-- 复制属性：在 git 推送左侧新增按钮 -->
+          <a-button type="primary" size="small" @click="openCopyAttributesModal">
+            复制属性
+          </a-button>
           <GitCommitButton v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" size="small"
             buttonTitle="git推送" buttonClass="yellowBtn" :treeTitle="product.title" />
           <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
@@ -403,6 +407,12 @@
     @secondClassifyClose="secondClassifyClose" />
   <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product"
     @dictionaryClose="dictionaryClose" />
+
+  <!-- 复制属性模态框（预翻译原型扩展模式） -->
+  <CopyAttrsModal v-if="copyAttrModalVisible" :visible="copyAttrModalVisible" :mode="'copyAttributes'"
+    :modalTitle="'复制属性'" :currentTask="{}" :dataPreTranslate="dataSource" :language="{ value: search.language || '' }"
+    :currentProduct="product" :selectedEntries="selectEntry" @handleClose="onCopyAttributesClose"
+    @handleOK="onCopyAttributesOK" />
 </template>
 <script>
 import "@/assets/style/common.less";
@@ -422,6 +432,7 @@ import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@prototype/entryCheck/createVersionModal.vue";
+import CopyAttrsModal from "@prototype/entryCheck/copyAttrsModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
 import Dictionary from "@/views/entry/dictionary.vue";
 import { message, Modal, notification } from "ant-design-vue";
@@ -509,6 +520,7 @@ export default {
     TransStateBadge,
     EditReason,
     CreateVersionModal,
+    CopyAttrsModal,
     SecondClassify,
     Dictionary,
     PlusOutlined,
@@ -769,6 +781,8 @@ export default {
         // { label: "冗余词条校验", value: "checkNotUseEntry" }, // DEPRECATED：旧冗余校验已弃用（新冗余校验在“已选词条”模态框）
       ],
       ipOptions: [],
+      // 复制属性模态框
+      copyAttrModalVisible: false,
     };
   },
   created() { },
@@ -940,6 +954,43 @@ export default {
   },
   unmounted() { },
   methods: {
+    // 打开复制属性模态框
+    openCopyAttributesModal() {
+      console.log("当前选中：", this.product)
+      if (!this.product || !this.product.key) {
+        message.info("请选择产品！");
+        return;
+      }
+      this.copyAttrModalVisible = true;
+      setModalAriaHidden(this, document);
+    },
+    // 关闭复制属性模态框
+    onCopyAttributesClose() {
+      this.copyAttrModalVisible = false;
+    },
+    // 复制属性执行结果回调
+    onCopyAttributesOK(result) {
+      this.copyAttrModalVisible = false;
+      if (!result || result.success === false) {
+        if (result && result.error) {
+          message.error(result.error);
+        }
+        return;
+      }
+      // 当前为 prototype 场景：简单提示成功，并视情况刷新词条列表
+      const mode = result.mode || "copyAttributes";
+      const successCount =
+        result.data && typeof result.data.successCount === "number"
+          ? result.data.successCount
+          : undefined;
+      if (typeof successCount === "number") {
+        message.success(`复制属性任务已提交，预计影响 ${successCount} 条词条（模式：${mode}）。`);
+      } else {
+        message.success("复制属性任务已提交。");
+      }
+      // 原型阶段可选刷新，方便观察效果
+      this.refreshTable();
+    },
     async init() {
       // 获取一级分类
       await this.selectFirstClassify();
@@ -1840,7 +1891,7 @@ export default {
         // } else if (this.lastSearchType === "checkNotUseEntry") {
         //   // DEPRECATED：旧冗余校验已弃用（新冗余校验在“已选词条”模态框），本分支暂时注释保留
         //   this.getCheckNotUseEntry();
-      } else  {
+      } else {
         // 其他情况（包含普通条件查询与全量查询），沿用上一次的accurate参数
         const accurate =
           this.lastAccurate && this.lastAccurate.length
