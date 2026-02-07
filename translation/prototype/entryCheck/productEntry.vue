@@ -783,6 +783,9 @@ export default {
       ipOptions: [],
       // 复制属性模态框
       copyAttrModalVisible: false,
+      // ==================== 竞态条件修复相关 ====================
+      queryController: null, // AbortController实例，用于取消前一个请求
+      queryRequestId: null, // 版本标记，用于标识最新请求
     };
   },
   created() { },
@@ -952,8 +955,100 @@ export default {
       }
     },
   },
-  unmounted() { },
+  unmounted() {
+    // 组件销毁时取消所有进行中的请求
+    if (this.queryController) {
+      this.queryController.abort();
+      this.queryController = null;
+    }
+  },
   methods: {
+    // ==================== 竞态条件保护统一方法 ====================
+    /**
+     * 开始竞态条件保护
+     * 取消前一个请求，创建新的版本标记
+     * @returns {number} 当前请求的版本标记ID
+     */
+    startRaceConditionProtection() {
+      // 取消前一个请求（如果存在）
+      if (this.queryController) {
+        this.queryController.abort();
+      }
+      // 创建新的AbortController
+      this.queryController = new AbortController();
+      // 生成新的版本标记（时间戳）
+      const currentRequestId = Date.now();
+      this.queryRequestId = currentRequestId;
+      return currentRequestId;
+    },
+    
+    /**
+     * 检查是否是最新请求
+     * @param {number} requestId - 请求的版本标记ID
+     * @returns {boolean} 是否是最新请求
+     */
+    isLatestRequest(requestId) {
+      return requestId === this.queryRequestId;
+    },
+    
+    /**
+     * 处理竞态条件相关的错误
+     * @param {Error} err - 错误对象
+     * @param {number} requestId - 请求的版本标记ID
+     * @param {string} defaultMessage - 默认错误消息
+     * @returns {boolean} 是否应该忽略该错误（true=已忽略，false=需要处理）
+     */
+    handleRaceConditionError(err, requestId, defaultMessage = '操作失败') {
+      // 忽略AbortError（请求被取消）
+      if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
+        return true; // 已忽略
+      }
+      // 只在这是最新请求时才显示错误
+      if (this.isLatestRequest(requestId)) {
+        message.error(err?.message || defaultMessage);
+      }
+      return false; // 需要处理
+    },
+    
+    /**
+     * 安全更新表格数据（带竞态条件检查）
+     * @param {Array} list - 数据列表
+     * @param {number} total - 总数
+     * @param {number} requestId - 请求的版本标记ID
+     */
+    updateTableDataWithRaceCheck(list, total, requestId) {
+      if (this.isLatestRequest(requestId)) {
+        this.dataSource = list || [];
+        this.pagination.total = total ?? list?.length ?? 0;
+      }
+    },
+    
+    /**
+     * 安全更新loading状态（带竞态条件检查）
+     * @param {number} requestId - 请求的版本标记ID
+     * @param {boolean} value - loading状态值
+     */
+    safeUpdateLoading(requestId, value) {
+      if (this.isLatestRequest(requestId)) {
+        this.loading = value;
+      }
+    },
+    
+    /**
+     * 为请求参数添加requestId（用于启用AbortController）
+     * @param {Object} params - 请求参数对象
+     * @param {number} requestId - 请求的版本标记ID
+     * @param {string} prefix - requestId前缀，默认为'query'
+     * @returns {Object} 添加了requestId的参数对象
+     */
+    addRequestIdToParams(params, requestId, prefix = 'query') {
+      return {
+        ...params,
+        requestId: `${prefix}-${requestId}`,
+      };
+    },
+    
+    // ==================== 业务方法 ====================
     // 打开复制属性模态框
     openCopyAttributesModal() {
       console.log("当前选中：", this.product)
@@ -1169,6 +1264,10 @@ export default {
         message.info("请选择翻译语种！");
         return;
       }
+      
+      // ==================== 竞态条件保护 ====================
+      const requestId = this.startRaceConditionProtection();
+      
       let data = {
         abbr: this.search.abbr,
         entry: this.search.entry,
@@ -1218,18 +1317,23 @@ export default {
       if (accurate.length > 0) {
         params.accurate = accurate;
       }
+      // 添加requestId以启用AbortController
+      params = this.addRequestIdToParams(params, requestId);
+      
       this.loading = true;
       // 获取对应分类的词条
       getEntryByClassfy(params, data)
         .then((res) => {
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
+          // ==================== 竞态条件保护：更新数据 ====================
+          this.updateTableDataWithRaceCheck(res.data.list, res.data.totalNum, requestId);
         })
         .catch((err) => {
-          message.error(err.message);
+          // ==================== 竞态条件保护：处理错误 ====================
+          this.handleRaceConditionError(err, requestId, '查询失败');
         })
         .finally(() => {
-          this.loading = false;
+          // ==================== 竞态条件保护：更新loading ====================
+          this.safeUpdateLoading(requestId, false);
         });
     },
     // 获取词条分类
@@ -1245,6 +1349,9 @@ export default {
 
     // ==================== 校验查询（mock api，刷新列表） ====================
     async getCheckSpecialChar() {
+      // ==================== 竞态条件保护 ====================
+      const requestId = this.startRaceConditionProtection();
+      
       this.loading = true;
       try {
         const params = {
@@ -1252,18 +1359,25 @@ export default {
           search: this.search,
         };
         const res = await checkSpecialChar(params);
-        this.dataSource = (res && res.data && res.data.list) || [];
+        // ==================== 竞态条件保护：更新数据 ====================
+        const list = (res && res.data && res.data.list) || [];
         const total =
-          (res && res.data && (res.data.totalNum || res.data.total)) ??
-          this.dataSource.length;
-        this.pagination.total = total;
+          (res && res.data && (res.data.totalNum || res.data.total)) ?? list.length;
+        this.updateTableDataWithRaceCheck(list, total, requestId);
       } catch (err) {
-        message.error(err?.message || "特殊字符校验失败");
+        // ==================== 竞态条件保护：处理错误 ====================
+        if (!this.handleRaceConditionError(err, requestId, "特殊字符校验失败")) {
+          // 如果不是已忽略的错误，可以在这里添加额外处理
+        }
       } finally {
-        this.loading = false;
+        // ==================== 竞态条件保护：更新loading ====================
+        this.safeUpdateLoading(requestId, false);
       }
     },
     async getCheckMaxLength() {
+      // ==================== 竞态条件保护 ====================
+      const requestId = this.startRaceConditionProtection();
+      
       this.loading = true;
       try {
         const params = {
@@ -1271,15 +1385,19 @@ export default {
           search: this.search,
         };
         const res = await checkMaxLength(params);
-        this.dataSource = (res && res.data && res.data.list) || [];
+        // ==================== 竞态条件保护：更新数据 ====================
+        const list = (res && res.data && res.data.list) || [];
         const total =
-          (res && res.data && (res.data.totalNum || res.data.total)) ??
-          this.dataSource.length;
-        this.pagination.total = total;
+          (res && res.data && (res.data.totalNum || res.data.total)) ?? list.length;
+        this.updateTableDataWithRaceCheck(list, total, requestId);
       } catch (err) {
-        message.error(err?.message || "长度超限校验失败");
+        // ==================== 竞态条件保护：处理错误 ====================
+        if (!this.handleRaceConditionError(err, requestId, "长度超限校验失败")) {
+          // 如果不是已忽略的错误，可以在这里添加额外处理
+        }
       } finally {
-        this.loading = false;
+        // ==================== 竞态条件保护：更新loading ====================
+        this.safeUpdateLoading(requestId, false);
       }
     },
     // 查询冗余词条校验状态
@@ -1288,38 +1406,57 @@ export default {
         message.info("请选择i18nURL！");
         return;
       }
+      
+      // ==================== 竞态条件保护 ====================
+      const requestId = this.startRaceConditionProtection();
+      
       this.loading = true;
       let params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.currentProduct.key,
       };
-      await getCheckNotUseEntry(params).then(async (res) => {
+      // 添加requestId以启用AbortController
+      params = this.addRequestIdToParams(params, requestId);
+      
+      try {
+        const res = await getCheckNotUseEntry(params);
+        // ==================== 竞态条件保护：处理响应 ====================
+        if (!this.isLatestRequest(requestId)) return;
+        
         console.log("getCheckNotUseEntry:", res);
         if (res.data.state === 1) {
           // 有结果
-          this.search.hasRedundantRls = true; // 显示“重新执行”
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
+          this.search.hasRedundantRls = true; // 显示"重新执行"
+          this.updateTableDataWithRaceCheck(res.data.list, res.data.totalNum, requestId);
         } else if (res.data.state === 2) {
           // 有结果,但校验异常
-          this.search.hasRedundantRls = true; // 显示“重新执行”
+          this.search.hasRedundantRls = true; // 显示"重新执行"
           message.info(`任务执行异常`, 1);
         } else if (res.data.state === 0) {
           // 没结果没执行
-          this.dataSource = [];
-          this.pagination.total = 0;
+          this.updateTableDataWithRaceCheck([], 0, requestId);
           message.info("查询无结果,开始校验", 1);
-          await checkNotUseEntry(params).catch((err) => {
-            console.log("冗余校验执行失败", err);
+          // 继续执行校验（使用新的版本标记）
+          const checkParams = this.addRequestIdToParams(params, Date.now(), 'check');
+          await checkNotUseEntry(checkParams).catch((err) => {
+            if (!this.handleRaceConditionError(err, requestId, "冗余校验执行失败")) {
+              console.log("冗余校验执行失败", err);
+            }
           }); // 没执行所以需要执行
         } else if (res.data.state === 3) {
           // 没结果有执行
-          this.dataSource = [];
-          this.pagination.total = 0;
+          this.updateTableDataWithRaceCheck([], 0, requestId);
           message.info("查询无结果,正在校验", 1);
         }
-      });
-      this.loading = false;
+      } catch (err) {
+        // ==================== 竞态条件保护：处理错误 ====================
+        if (!this.handleRaceConditionError(err, requestId, "查询失败")) {
+          console.error("getCheckNotUseEntry失败", err);
+        }
+      } finally {
+        // ==================== 竞态条件保护：更新loading ====================
+        this.safeUpdateLoading(requestId, false);
+      }
     },
     // 重新查询冗余词条校验状态
     async reGetCheckNotUseEntry() {
@@ -1327,44 +1464,61 @@ export default {
         message.info("请选择i18nURL！");
         return;
       }
+      
+      // ==================== 竞态条件保护 ====================
+      const requestId = this.startRaceConditionProtection();
+      
       this.loading = true;
       let params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.currentProduct.key,
       };
-      await checkNotUseEntry(params)
-        .then(async (res) => {
-          this.dataSource = [];
-          this.pagination.total = 0;
-          await getCheckNotUseEntry(params).then(async (res) => {
-            if (res.data.state === 3) {
-              // 没结果有执行
-              this.search.hasRedundantRls = false; // 隐藏“重新执行”
-              message.info("正在重新校验中", 1);
-            } else {
-              let state = "";
-              switch (res.data.state) {
-                case 0:
-                  state = "不在执行中";
-                  break;
-                case 1:
-                  state = "有结果";
-                  break;
-                case 2:
-                  state = "任务执行异常";
-                  break;
-                default:
-                  state = "未知状态";
-                  break;
-              }
-              message.info(`重新校验失败,任务状态：${state}`, 1);
-            }
-          });
-        })
-        .catch((err) => {
+      // 添加requestId以启用AbortController
+      params = this.addRequestIdToParams(params, requestId);
+      
+      try {
+        await checkNotUseEntry(params);
+        // ==================== 竞态条件保护：处理响应 ====================
+        if (!this.isLatestRequest(requestId)) return;
+        
+        this.updateTableDataWithRaceCheck([], 0, requestId);
+        const checkParams = this.addRequestIdToParams(params, Date.now(), 'check');
+        const res = await getCheckNotUseEntry(checkParams);
+        
+        // 再次检查版本标记（因为这是嵌套的异步操作）
+        if (!this.isLatestRequest(requestId)) return;
+        
+        if (res.data.state === 3) {
+          // 没结果有执行
+          this.search.hasRedundantRls = false; // 隐藏"重新执行"
+          message.info("正在重新校验中", 1);
+        } else {
+          let state = "";
+          switch (res.data.state) {
+            case 0:
+              state = "不在执行中";
+              break;
+            case 1:
+              state = "有结果";
+              break;
+            case 2:
+              state = "任务执行异常";
+              break;
+            default:
+              state = "未知状态";
+              break;
+          }
+          message.info(`重新校验失败,任务状态：${state}`, 1);
+        }
+      } catch (err) {
+        // ==================== 竞态条件保护：处理错误 ====================
+        if (!this.handleRaceConditionError(err, requestId, "冗余校验执行失败")) {
           console.log("冗余校验执行失败", err);
-        });
-      this.loading = false;
+        }
+      } finally {
+        // ==================== 竞态条件保护：更新loading ====================
+        this.safeUpdateLoading(requestId, false);
+      }
     },
     // 组装表格数据
     assemblyTableData(data) {
