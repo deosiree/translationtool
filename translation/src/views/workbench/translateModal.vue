@@ -115,8 +115,12 @@
                   <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                     autocomplete="off">
                     <a-form-item :name="column.dataIndex">
-                      <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="editSave(record)"
-                        @change="changeInput(record)" />
+                      <InputIME
+                        :value="editableData[record.id][column.dataIndex]"
+                        @update:value="val => handleCellValueChange(val, record, column)"
+                        @pressEnter="editSave(record)"
+                        @change="changeInput(record)"
+                      />
                     </a-form-item>
                   </a-form>
                 </template>
@@ -317,6 +321,7 @@ import Modal from "@/components/modal/index.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import InputIME from "@/components/cellEditor/input_IME.vue";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -386,6 +391,7 @@ export default {
     RulesDropdown,
     TransStateSelect,
     TransStateBadge,
+    InputIME,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -706,6 +712,14 @@ export default {
       this.pagination.current = 1;
       this.pagination.total = this.dataSource.length;
       this.loading = false;
+    },
+    // 单元格输入更新：集中处理 editableData 写入，防止 IME 组合期间给 undefined 赋值
+    handleCellValueChange(value, record, column) {
+      const row = this.editableData[record.id];
+      if (!row) return;
+      row[column.dataIndex] = value;
+      // 保留原有 changeInput 行为（用于更新高亮等）
+      this.changeInput(record);
     },
     // 获取待翻译词条
     async getTranslateEntry() {

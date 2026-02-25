@@ -70,7 +70,11 @@
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                   autocomplete="off">
                   <a-form-item :name="column.dataIndex">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
+                    <InputIME
+                      :value="editableData[record.id][column.dataIndex]"
+                      @update:value="val => handleCellValueChange(val, record, column)"
+                      @pressEnter="edit(record)"
+                    />
                   </a-form-item>
                 </a-form>
               </template>
@@ -82,7 +86,11 @@
           <template v-if="editList.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="edit(record)" />
+                <InputIME
+                  :value="editableData[record.id][column.dataIndex]"
+                  @update:value="val => handleCellValueChange(val, record, column)"
+                  @pressEnter="edit(record)"
+                />
               </template>
               <template v-else>
                 {{ text }}
@@ -92,7 +100,11 @@
           <template v-if="column.dataIndex === 'tag'">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%" @pressEnter="edit(record)" />
+                <InputIME
+                  :value="editableData[record.id][column.dataIndex]"
+                  @update:value="val => handleCellValueChange(val, record, column)"
+                  @pressEnter="edit(record)"
+                />
                 <a-tooltip placement="top">
                   <template #title>
                     <span>多个Tag按分号分割！</span>
@@ -204,6 +216,7 @@ import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import CoverButton from "@/components/Button/coverButton/inter2value.vue";
+import InputIME from "@/components/cellEditor/input_IME.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -247,6 +260,7 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     CoverButton,
+    InputIME,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -484,6 +498,12 @@ export default {
       //   .filter((option) => option.checked)
       //   .map((option) => option.key);
       // interpretation2value_(this, this.task.transMap, verifyMethods);
+    },
+    // 单元格输入更新：集中处理 editableData 写入，防止 IME 组合期间给 undefined 赋值
+    handleCellValueChange(value, record, column) {
+      const row = this.editableData[record.id];
+      if (!row) return;
+      row[column.dataIndex] = value;
     },
     // 获取待审核词条
     getTaskEntry() {

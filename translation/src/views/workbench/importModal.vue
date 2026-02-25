@@ -321,8 +321,11 @@
                 <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
                   autocomplete="off">
                   <a-form-item :name="column.dataIndex">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;margin-top:10px"
-                      @pressEnter="editSave(record)" />
+                    <InputIME
+                      :value="editableData[record.id][column.dataIndex]"
+                      @update:value="val => handleCellValueChange(val, record, column)"
+                      @pressEnter="editSave(record)"
+                    />
                   </a-form-item>
                 </a-form>
               </template>
@@ -334,7 +337,11 @@
           <template v-if="editList.includes(column.dataIndex)">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" @pressEnter="editSave(record)" />
+                <InputIME
+                  :value="editableData[record.id][column.dataIndex]"
+                  @update:value="val => handleCellValueChange(val, record, column)"
+                  @pressEnter="editSave(record)"
+                />
               </template>
               <template v-else>
                 {{ text }}
@@ -344,7 +351,11 @@
           <template v-if="column.dataIndex === 'tag'">
             <div>
               <template v-if="editableData[record.id]">
-                <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0;width:90%" @pressEnter="editSave(record)" />
+                <InputIME
+                  :value="editableData[record.id][column.dataIndex]"
+                  @update:value="val => handleCellValueChange(val, record, column)"
+                  @pressEnter="editSave(record)"
+                />
                 <a-tooltip placement="top">
                   <template #title>
                     <span>多个Tag按分号分割！</span>
@@ -541,6 +552,7 @@ import {
   useRefRules,
 } from "@/utils/validationUtils";
 import { interpretation2value } from "@/utils/translationUtils";
+import InputIME from "@/components/cellEditor/input_IME.vue";
 import { getColPref, changeColumn } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
@@ -569,6 +581,7 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     CoverButton,
+    InputIME,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
     },
@@ -883,6 +896,12 @@ export default {
         }
       }
       return className;
+    },
+    // 单元格输入更新：集中处理 editableData 写入，防止 IME 组合期间给 undefined 赋值
+    handleCellValueChange(value, record, column) {
+      const row = this.editableData[record.id];
+      if (!row) return;
+      row[column.dataIndex] = value;
     },
     handleResizeColumn: (w, col) => {
       col.width = w;
