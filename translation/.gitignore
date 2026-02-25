@@ -49,5 +49,5 @@ coverage\.json
 /tests/file
 /../translation-assistant
 translation-assistant/
-translation-ai/
+translationtool_ai/
 translation-check/
