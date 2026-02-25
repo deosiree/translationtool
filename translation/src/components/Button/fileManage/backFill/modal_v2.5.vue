@@ -296,7 +296,7 @@ import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
 import { handleErrorNotification } from "@/utils/notificationUtils";
 export default {
-  name: "BackFillModal_v1_5",
+  name: "BackFillModal_v2_5",
   components: {
     CustomModal,
     ExportButton,
@@ -775,7 +775,7 @@ export default {
           }
         );
 
-        console.log("去重回填的响应体V2.5", result);
+        // console.log("去重回填的响应体V2.5", result);
 
         // 处理导入结果
         await this.handleImportResponse(result);
@@ -784,7 +784,7 @@ export default {
         // 尝试从error中提取响应数据
         const errorData = error?.response?.data || error?.data || error;
         // 导入模式(更新)：尝试处理错误响应
-        console.log("errorData导入模式(更新)：", errorData);
+        // console.log("errorData导入模式(更新)：", errorData);
         // 处理导入失败的响应结果
         await this.handleImportResponse(errorData);
         throw error; // 重新抛出错误，让调用方知道更新失败
@@ -799,7 +799,7 @@ export default {
       // 判断是翻译更新接口的返回（有 success 和 failed）还是通用更新接口的返回（只有 code 和 data）
       const hasSuccessField = result.success !== undefined;
       const hasFailedField = result.failed !== undefined;
-      console.log("处理导入-响应", result)
+      // console.log("处理导入-响应", result)
       if (hasSuccessField && hasFailedField) {
         // 翻译更新接口的返回结构（entryBatchImportExcel）
         if (result.code === 200) {
@@ -870,7 +870,7 @@ export default {
               }
             }
           });
-          console.log("detailsByLang", detailsByLang);
+          // console.log("detailsByLang", detailsByLang);
 
           if (Object.keys(detailsByLang).length > 0) {
             // 显示更新结果模态框（多个语种，显示tab页）
@@ -917,7 +917,7 @@ export default {
             exceptionVos: exceptionVos,
           }
         };
-        console.log("detailsByLang", detailsByLang);
+        // console.log("detailsByLang", detailsByLang);
 
         // 显示在更新结果模态框中
         this.detailsByLang = detailsByLang;
@@ -958,7 +958,7 @@ export default {
 
       // console.log("把下载词条传递给exportButton", this.$refs.failedExportRef, this.failedExportDataSource);
       if (this.$refs.failedExportRef) {
-        console.log("传递给exportButton", this.failedExportDataSource);
+        // console.log("传递给exportButton", this.failedExportDataSource);
         // 等待 prop 更新到子组件后再打开弹窗，否则子组件可能读到旧的空数组
         this.$nextTick(() => {
           this.$refs.failedExportRef.showExportModal();

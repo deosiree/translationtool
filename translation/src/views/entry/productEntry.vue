@@ -2,47 +2,132 @@
   <div class="productEntryBox" ref="productEntryBox">
     <SearchBox ref="search" @change="setTableHeight" :operate="false">
       <template v-slot:form>
-        <a-form :model="search" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-row class="search-row" style="width:100%;display:flex;gap:8px">
-            <a-form-item v-if="checkedSearchCondition.includes('entry')" label="词条" name="entry">
-              <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
+        <a-form
+          :model="search"
+          layout="inline"
+          autocomplete="off"
+          :label-col="labelCol"
+        >
+          <a-row
+            class="search-row"
+            style="width: 100%; display: flex; gap: 8px"
+          >
+            <a-form-item
+              v-if="checkedSearchCondition.includes('entry')"
+              label="词条"
+              name="entry"
+            >
+              <a-textarea
+                v-model:value="search.entry"
+                placeholder="请输入内容"
+                :auto-size="{ minRows: 1 }"
+              ></a-textarea>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('state')" label="词条状态" name="state">
-              <EntryStateSelect :entryState="search.entryState" @update:entryState="search.entryState = $event"
-                :showForbbiden="showForbbiden" @update:showForbbiden="showForbbiden = $event" />
+            <a-form-item
+              v-if="checkedSearchCondition.includes('state')"
+              label="词条状态"
+              name="state"
+            >
+              <EntryStateSelect
+                :entryState="search.entryState"
+                @update:entryState="search.entryState = $event"
+                :showForbbiden="showForbbiden"
+                @update:showForbbiden="showForbbiden = $event"
+              />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('tag')" label="tag" name="tag">
-              <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('tag')"
+              label="tag"
+              name="tag"
+            >
+              <a-input
+                v-model:value="search.tag"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('classfy1')" label="一级分类" name="classfy1">
-              <a-select v-model:value="search.classfy1" mode="tags" placeholder="请输入一级分类"
-                :fieldNames="{ label: 'title', value: 'title' }" :options='classify1Option' allowClear
-                :maxTagTextLength="3" :maxTagCount="1">
+            <a-form-item
+              v-if="checkedSearchCondition.includes('classfy1')"
+              label="一级分类"
+              name="classfy1"
+            >
+              <a-select
+                v-model:value="search.classfy1"
+                mode="tags"
+                placeholder="请输入一级分类"
+                :fieldNames="{ label: 'title', value: 'title' }"
+                :options="classify1Option"
+                allowClear
+                :maxTagTextLength="3"
+                :maxTagCount="1"
+              >
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('classfy2')" label="二级分类" name="classfy2">
-              <a-select v-model:value="search.classfy2" mode="tags" placeholder="请输入二级分类"
-                :fieldNames="{ label: 'title', value: 'title' }" :options='classify2Option' allowClear
-                :maxTagTextLength="3" :maxTagCount="1">
+            <a-form-item
+              v-if="checkedSearchCondition.includes('classfy2')"
+              label="二级分类"
+              name="classfy2"
+            >
+              <a-select
+                v-model:value="search.classfy2"
+                mode="tags"
+                placeholder="请输入二级分类"
+                :fieldNames="{ label: 'title', value: 'title' }"
+                :options="classify2Option"
+                allowClear
+                :maxTagTextLength="3"
+                :maxTagCount="1"
+              >
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource">
+            <a-form-item
+              v-if="checkedSearchCondition.includes('entrySource')"
+              label="词条来源"
+              name="entrySource"
+            >
               <!-- <a-input v-model:value="search.entrySource" placeholder="请输入内容"></a-input> -->
-              <a-select v-model:value="search.entrySource" show-search placeholder="请输入词条来源"
-                :options="entrySourceOptions" allowClear @search="handleEntrySourceSearch">
+              <a-select
+                v-model:value="search.entrySource"
+                show-search
+                placeholder="请输入词条来源"
+                :options="entrySourceOptions"
+                allowClear
+                @search="handleEntrySourceSearch"
+              >
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language">
-              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{ label: 'name', value: 'name' }"
-                :options='translateTypes' allowClear>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('language')"
+              label="翻译语种"
+              name="language"
+            >
+              <a-select
+                v-model:value="search.language"
+                placeholder="请选择"
+                :fieldNames="{ label: 'name', value: 'name' }"
+                :options="translateTypes"
+                allowClear
+              >
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('translateState')" label="翻译状态" name="translateState">
-              <TransStateSelect :translateState="search.translateState"
-                @update:translateState="search.translateState = $event" />
+            <a-form-item
+              v-if="checkedSearchCondition.includes('translateState')"
+              label="翻译状态"
+              name="translateState"
+            >
+              <TransStateSelect
+                :translateState="search.translateState"
+                @update:translateState="search.translateState = $event"
+              />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('translate')" label="翻译结果" name="translate">
-              <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('translate')"
+              label="翻译结果"
+              name="translate"
+            >
+              <a-input
+                v-model:value="search.translate"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
             <!-- <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate">
               <a-input v-model:value="search.filter_translate" placeholder="请输入内容"></a-input>
@@ -50,51 +135,148 @@
             <!-- <a-form-item label="翻译释义" name="interpretation">
               <a-input v-model:value="search.interpretation" placeholder="请输入内容"></a-input>
             </a-form-item> -->
-            <a-form-item v-if="checkedSearchCondition.includes('comment')" label="comment" name="comment">
-              <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
-            </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName">
-              <a-select v-model:value="search.diFileName" show-search placeholder="请输入辞典名称" :options="diFileNameOptions"
-                allowClear @search="handleDiFileNameSearch">
-              </a-select>
-            </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime">
-              <a-date-picker v-model:value="search.startTime_" style="width:186px" />
-            </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('endTime')" label="结束时间" name="endTime">
-              <a-date-picker v-model:value="search.endTime_" style="width:186px" />
-            </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('update')" label="修改人" name="update">
-              <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('comment')"
+              label="comment"
+              name="comment"
+            >
+              <a-input
+                v-model:value="search.comment"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
             <a-form-item
-              v-if="checkedSearchCondition.includes('searchType') && currentProduct.key && $currentDepartment && $currentDepartment.ops.has('needBranch')"
-              label="校验类型" name="searchType">
-              <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型"
-                :options='searchTypes' allowClear>
+              v-if="checkedSearchCondition.includes('diFileName')"
+              label="辞典名称"
+              name="diFileName"
+            >
+              <a-select
+                v-model:value="search.diFileName"
+                show-search
+                placeholder="请输入辞典名称"
+                :options="diFileNameOptions"
+                allowClear
+                @search="handleDiFileNameSearch"
+              >
               </a-select>
             </a-form-item>
-            <a-form-item v-if="search.searchType == 'checkNotUseEntry'" label="i18nURL" name="i18nURL">
-              <a-select v-model:value="search.i18nURL" style="width: 186px" placeholder="请选择i18nURL"
-                :options='ipOptions' allowClear>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('startTime')"
+              label="开始时间"
+              name="startTime"
+            >
+              <a-date-picker
+                v-model:value="search.startTime_"
+                style="width: 186px"
+              />
+            </a-form-item>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('endTime')"
+              label="结束时间"
+              name="endTime"
+            >
+              <a-date-picker
+                v-model:value="search.endTime_"
+                style="width: 186px"
+              />
+            </a-form-item>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('update')"
+              label="修改人"
+              name="update"
+            >
+              <a-input
+                v-model:value="search.update"
+                placeholder="请输入内容"
+              ></a-input>
+            </a-form-item>
+            <a-form-item
+              v-if="
+                checkedSearchCondition.includes('searchType') &&
+                currentProduct.key &&
+                $currentDepartment &&
+                $currentDepartment.ops.has('needBranch')
+              "
+              label="校验类型"
+              name="searchType"
+            >
+              <a-select
+                v-model:value="search.searchType"
+                style="width: 186px"
+                placeholder="请选择校验类型"
+                :options="searchTypes"
+                allowClear
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              v-if="search.searchType == 'checkNotUseEntry'"
+              label="i18nURL"
+              name="i18nURL"
+            >
+              <a-select
+                v-model:value="search.i18nURL"
+                style="width: 186px"
+                placeholder="请选择i18nURL"
+                :options="ipOptions"
+                allowClear
+              >
               </a-select>
             </a-form-item>
           </a-row>
-          <a-row style="width:100%;margin-top:8px;display:flex;gap:8px;" class="search-row" justify="end">
-            <a-button type="primary" size="middle" v-if="admin" :danger="!showForbbiden"
-              :class="{ yellowBtn: showForbbiden }" @click="changeForbbiden">
-              {{ showForbbiden ? '隐藏禁用' : '显示禁用' }}
+          <a-row
+            style="width: 100%; margin-top: 8px; display: flex; gap: 8px"
+            class="search-row"
+            justify="end"
+          >
+            <a-button
+              type="primary"
+              size="middle"
+              v-if="admin"
+              :danger="!showForbbiden"
+              :class="{ yellowBtn: showForbbiden }"
+              @click="changeForbbiden"
+            >
+              {{ showForbbiden ? "隐藏禁用" : "显示禁用" }}
             </a-button>
-            <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-            <a-button type="primary" size="middle" @click="conditionalQuery">查询</a-button>
-            <AccurSearchButton v-if="!search.searchType || search.searchType == 'getEntryByClassfy'" size="middle"
-              buttonTitle="全量查询" :fieldOptions="exportFields" @update:accurSearch="accurSearch = $event"
-              @searchFunction="conditionalQuery($event)" />
-            <a-button type="primary" size="middle" class="yellowBtn" v-if="search.hasRedundantRls"
-              @click="reGetCheckNotUseEntry">重新查询</a-button>
-            <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+            <a-button
+              type="primary"
+              size="middle"
+              class="resetBtn"
+              @click="reset"
+              >重置</a-button
+            >
+            <a-button type="primary" size="middle" @click="conditionalQuery"
+              >查询</a-button
+            >
+            <AccurSearchButton
+              v-if="
+                !search.searchType || search.searchType == 'getEntryByClassfy'
+              "
+              size="middle"
+              buttonTitle="全量查询"
+              :fieldOptions="exportFields"
+              @update:accurSearch="accurSearch = $event"
+              @searchFunction="conditionalQuery($event)"
+            />
+            <a-button
+              type="primary"
+              size="middle"
+              class="yellowBtn"
+              v-if="search.hasRedundantRls"
+              @click="reGetCheckNotUseEntry"
+              >重新查询</a-button
+            >
+            <a-popover
+              trigger="click"
+              placement="leftTop"
+              :overlayStyle="overlayStyle"
+            >
               <template #content>
-                <a-checkbox-group v-model:value="checkedSearchCondition" @change="changeSearchCondition">
+                <a-checkbox-group
+                  v-model:value="checkedSearchCondition"
+                  @change="changeSearchCondition"
+                >
                   <a-row v-for="item in searchConditionList" :key="item.value">
                     <a-col :span="24">
                       <a-checkbox :value="item.value">
@@ -104,9 +286,11 @@
                   </a-row>
                 </a-checkbox-group>
               </template>
-              <a-button type="primary" size="middle" ghost><template #icon>
-                  <SettingOutlined />
-                </template>展示条件</a-button>
+              <a-button type="primary" size="middle" ghost
+                ><template #icon>
+                  <SettingOutlined /> </template
+                >展示条件</a-button
+              >
             </a-popover>
           </a-row>
         </a-form>
@@ -114,47 +298,118 @@
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-if="isProduct()" v-slot:label>
-        产品版本： <a-select v-model:value="currentVersion" style="width: 150px" placeholder="请选择版本"
-          :options='productVersions' :fieldNames="{ label: 'name', value: 'id' }" size="small" @change="changeVersion"
-          allowClear>
+        产品版本：
+        <a-select
+          v-model:value="currentVersion"
+          style="width: 150px"
+          placeholder="请选择版本"
+          :options="productVersions"
+          :fieldNames="{ label: 'name', value: 'id' }"
+          size="small"
+          @change="changeVersion"
+          allowClear
+        >
         </a-select>
       </template>
       <template v-slot:operate>
-        <div ref="button" style="margin-bottom:8px;display:flex;gap:10px">
-          <GitCommitButton v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" size="small"
-            buttonTitle="git推送" buttonClass="yellowBtn" :treeTitle="product.title" />
-          <a-button type="primary" size="small" @click="createVersion" v-if="!createVersionFlag">批量选择</a-button>
-          <a-button type="primary" size="small" @click="selectAllEntry" v-if="createVersionFlag"
-            :loading="selectAllLoading">选择全部</a-button>
-          <a-button type="primary" size="small" @click="cancelCreate" class="yellowBtn"
-            v-if="createVersionFlag">取消选择</a-button>
-          <a-badge :count="selectEntry.length" :overflow-count="99" v-if="createVersionFlag">
-            <a-button type="primary" size="small" class="resetBtn" @click="viewCreateVersionEntry">已选词条</a-button>
+        <div ref="button" style="margin-bottom: 8px; display: flex; gap: 10px">
+          <GitCommitButton
+            v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
+            size="small"
+            buttonTitle="git推送"
+            buttonClass="yellowBtn"
+            :treeTitle="product.title"
+          />
+          <a-button
+            type="primary"
+            size="small"
+            @click="createVersion"
+            v-if="!createVersionFlag"
+            >批量选择</a-button
+          >
+          <a-button
+            type="primary"
+            size="small"
+            @click="selectAllEntry"
+            v-if="createVersionFlag"
+            :loading="selectAllLoading"
+            >选择全部</a-button
+          >
+          <a-button
+            type="primary"
+            size="small"
+            @click="cancelCreate"
+            class="yellowBtn"
+            v-if="createVersionFlag"
+            >取消选择</a-button
+          >
+          <a-badge
+            :count="selectEntry.length"
+            :overflow-count="99"
+            v-if="createVersionFlag"
+          >
+            <a-button
+              type="primary"
+              size="small"
+              class="resetBtn"
+              @click="viewCreateVersionEntry"
+              >已选词条</a-button
+            >
           </a-badge>
 
           <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
-          <a-button type="primary" size="small" :disabled="!isProduct()" @click="addEntry">
+          <a-button
+            type="primary"
+            size="small"
+            :disabled="!isProduct()"
+            @click="addEntry"
+          >
             <template #icon>
-              <PlusOutlined />
-            </template>新增
+              <PlusOutlined /> </template
+            >新增
           </a-button>
 
           <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
           <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
           <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
-          <a-button type="primary" size="small" @click="setSecondClassify" v-if="admin"
-            :disabled="!isProduct()">二级分类管理</a-button>
+          <a-button
+            type="primary"
+            size="small"
+            @click="setSecondClassify"
+            v-if="admin"
+            :disabled="!isProduct()"
+            >二级分类管理</a-button
+          >
           <!-- <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
             :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译 v1" @importSuccess="refreshTable" />
           <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
             buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
             @importSuccess="refreshTable" /> -->
-          <BackFillModal_v2_5 v-if="admin" mode="button" buttonTitle="更新翻译" modalTitle="更新翻译" size="small"
-            :showFileTypeSelect="true" :defaultAccept="'.csv'" @importSuccess="refreshTable" />
+          <BackFillModal_v2_5
+            v-if="
+              admin &&
+              $currentDepartment &&
+              $currentDepartment.ops.has('needIP')
+            "
+            mode="button"
+            buttonTitle="更新翻译"
+            modalTitle="更新翻译"
+            size="small"
+            :showFileTypeSelect="true"
+            :defaultAccept="'.csv'"
+            @importSuccess="refreshTable"
+          />
 
-          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+          <a-popover
+            trigger="click"
+            placement="leftTop"
+            :overlayStyle="overlayStyle"
+          >
             <template #content>
-              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+              <a-checkbox-group
+                v-model:value="checkedColumn"
+                @change="changeColumn"
+              >
                 <a-row v-for="item in checkboxList" :key="item.value">
                   <a-col :span="24">
                     <a-checkbox :value="item.value">
@@ -164,30 +419,65 @@
                 </a-row>
               </a-checkbox-group>
             </template>
-            <a-button type="primary" size="small"><template #icon>
-                <SettingOutlined />
-              </template>展示列</a-button>
+            <a-button type="primary" size="small"
+              ><template #icon>
+                <SettingOutlined /> </template
+              >展示列</a-button
+            >
           </a-popover>
         </div>
       </template>
       <template v-slot:data>
-        <div style="width:100%;position: absolute;">
+        <div style="width: 100%; position: absolute">
           <a-config-provider :locale="locale">
-            <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
-              :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange, onSelect: onSelect, onSelectAll: onSelectAll } : null"
-              :row-key="record => record.id" :scroll="tableHeight" :loading="loading" :rowClassName="getRowClassName"
-              :pagination="pagination" ref="entryTable" @resizeColumn="handleResizeColumn" :customRow="customRow"
-              @change="handleTableChange">
+            <a-table
+              bordered
+              class="ant-table-striped"
+              :columns="columns"
+              :data-source="dataSource"
+              :row-selection="
+                batchSelectFlag
+                  ? {
+                      selectedRowKeys: selectedRowKeys,
+                      onChange: onSelectChange,
+                      onSelect: onSelect,
+                      onSelectAll: onSelectAll,
+                    }
+                  : null
+              "
+              :row-key="(record) => record.id"
+              :scroll="tableHeight"
+              :loading="loading"
+              :rowClassName="getRowClassName"
+              :pagination="pagination"
+              ref="entryTable"
+              @resizeColumn="handleResizeColumn"
+              :customRow="customRow"
+              @change="handleTableChange"
+            >
               <template #bodyCell="{ column, record, text }">
-
                 <template v-if="column.dataIndex === 'entry'">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-form :model="editableData[record.id]" :rules="rules[record.id]"
-                        :ref="'form' + record.id.replaceAll('-', '') + column.dataIndex" autocomplete="off">
+                      <a-form
+                        :model="editableData[record.id]"
+                        :rules="rules[record.id]"
+                        :ref="
+                          'form' +
+                          record.id.replaceAll('-', '') +
+                          column.dataIndex
+                        "
+                        autocomplete="off"
+                      >
                         <a-form-item :name="column.dataIndex">
-                          <a-textarea v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0"
-                            @click="clickInput" :auto-size="{ minRows: 1 }" />
+                          <a-textarea
+                            v-model:value.lazy="
+                              editableData[record.id][column.dataIndex]
+                            "
+                            style="margin: -5px 0"
+                            @click="clickInput"
+                            :auto-size="{ minRows: 1 }"
+                          />
                         </a-form-item>
                       </a-form>
                     </template>
@@ -201,8 +491,13 @@
                 <template v-if="inputColumn.includes(column.dataIndex)">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0"
-                        @click="clickInput" />
+                      <a-input
+                        v-model:value="
+                          editableData[record.id][column.dataIndex]
+                        "
+                        style="margin: -5px 0"
+                        @click="clickInput"
+                      />
                     </template>
                     <template v-else>
                       {{ text }}
@@ -212,12 +507,25 @@
                 <template v-if="translateColumn.includes(column.dataIndex)">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-form :model="editableData[record.id]" :rules="rules[record.id]"
-                        :ref="'form' + record.id.replaceAll('-', '') + column.dataIndex" autocomplete="off">
-
+                      <a-form
+                        :model="editableData[record.id]"
+                        :rules="rules[record.id]"
+                        :ref="
+                          'form' +
+                          record.id.replaceAll('-', '') +
+                          column.dataIndex
+                        "
+                        autocomplete="off"
+                      >
                         <a-form-item :name="column.dataIndex">
-                          <a-textarea v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0"
-                            @click="clickInput" :auto-size="{ minRows: 1 }" />
+                          <a-textarea
+                            v-model:value="
+                              editableData[record.id][column.dataIndex]
+                            "
+                            style="margin: -5px 0"
+                            @click="clickInput"
+                            :auto-size="{ minRows: 1 }"
+                          />
                         </a-form-item>
                       </a-form>
                     </template>
@@ -229,9 +537,17 @@
                 <template v-if="column.dataIndex === 'classfy1'">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%"
-                        placeholder="请选择" :fieldNames="{ label: 'title', value: 'title' }" :options='classify1Option'
-                        @change="getRowClassify2Option(record)" allowClear>
+                      <a-select
+                        v-model:value="
+                          editableData[record.id][column.dataIndex]
+                        "
+                        style="width: 100%"
+                        placeholder="请选择"
+                        :fieldNames="{ label: 'title', value: 'title' }"
+                        :options="classify1Option"
+                        @change="getRowClassify2Option(record)"
+                        allowClear
+                      >
                       </a-select>
                     </template>
                     <template v-else>
@@ -242,9 +558,16 @@
                 <template v-if="column.dataIndex === 'classfy2'">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%"
-                        placeholder="请选择" :fieldNames="{ label: 'name', value: 'name' }"
-                        :options='rowClassify2Option[record.id]' allowClear>
+                      <a-select
+                        v-model:value="
+                          editableData[record.id][column.dataIndex]
+                        "
+                        style="width: 100%"
+                        placeholder="请选择"
+                        :fieldNames="{ label: 'name', value: 'name' }"
+                        :options="rowClassify2Option[record.id]"
+                        allowClear
+                      >
                       </a-select>
                     </template>
                     <template v-else>
@@ -255,19 +578,29 @@
                 <template v-if="column.dataIndex === 'tag'">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-input v-model:value="editableData[record.id][column.dataIndex]"
-                        style="margin: -5px 0;width:90%" @click="clickInput" />
+                      <a-input
+                        v-model:value="
+                          editableData[record.id][column.dataIndex]
+                        "
+                        style="margin: -5px 0; width: 90%"
+                        @click="clickInput"
+                      />
                       <a-tooltip placement="top">
                         <template #title>
                           <span>多个tag按分号分割！</span>
                         </template>
-                        <InfoCircleOutlined style="margin-left:3px" />
+                        <InfoCircleOutlined style="margin-left: 3px" />
                       </a-tooltip>
                     </template>
                     <template v-else>
                       <!-- {{ text }} -->
                       <span>
-                        <a-tag v-for="(tag, index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
+                        <a-tag
+                          v-for="(tag, index) in companyCut(text)"
+                          :key="index"
+                          color="cyan"
+                          class="tag-content"
+                        >
                           <span>{{ tag }}</span>
                         </a-tag>
                       </span>
@@ -278,18 +611,38 @@
                   <EntryStateBadge :entryState="text" />
                 </template>
                 <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
-                <template v-if="langTranslateStateList.includes(column.dataIndex)">
+                <template
+                  v-if="langTranslateStateList.includes(column.dataIndex)"
+                >
                   <TransStateBadge :translateState="text" />
                 </template>
                 <template v-if="column.dataIndex === 'operation'">
                   <div class="editable-row-operations">
                     <span v-if="editableData[record.id]">
-                      <a-button type="primary" ghost size="small" @click.stop="editSave(record.id)">保存</a-button>
-                      <a-button type="primary" ghost size="small" danger
-                        @click.stop="editCancel(record.id)">取消</a-button>
+                      <a-button
+                        type="primary"
+                        ghost
+                        size="small"
+                        @click.stop="editSave(record.id)"
+                        >保存</a-button
+                      >
+                      <a-button
+                        type="primary"
+                        ghost
+                        size="small"
+                        danger
+                        @click.stop="editCancel(record.id)"
+                        >取消</a-button
+                      >
                     </span>
                     <span v-else>
-                      <a-button type="primary" ghost size="small" @click.stop="entryDetails(record)">详情</a-button>
+                      <a-button
+                        type="primary"
+                        ghost
+                        size="small"
+                        @click.stop="entryDetails(record)"
+                        >详情</a-button
+                      >
                       <!-- <a-button type="primary" ghost size="small" @click.stop="entryUpgrade(record)">升级</a-button> -->
                     </span>
                   </div>
@@ -297,36 +650,86 @@
               </template>
               <!-- 设置表格行展开子行的样式 -->
               <template #expandIcon="props">
-                <span v-if="props.record.children != null && props.record.children.length > 0">
-                  <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
-                    @click="(e) => { props.onExpand(props.record, e); }">
+                <span
+                  v-if="
+                    props.record.children != null &&
+                    props.record.children.length > 0
+                  "
+                >
+                  <div
+                    v-if="props.expanded"
+                    style="display: inline-block; margin-right: 10px"
+                    @click="
+                      (e) => {
+                        props.onExpand(props.record, e);
+                      }
+                    "
+                  >
                     <CaretDownOutlined />
                   </div>
-                  <div v-else style="display: inline-block; margin-right: 10px"
-                    @click="(e) => { props.onExpand(props.record, e); }">
+                  <div
+                    v-else
+                    style="display: inline-block; margin-right: 10px"
+                    @click="
+                      (e) => {
+                        props.onExpand(props.record, e);
+                      }
+                    "
+                  >
                     <CaretRightOutlined />
                   </div>
                 </span>
-                <span v-else style="margin-right:23px"></span>
+                <span v-else style="margin-right: 23px"></span>
               </template>
               <!-- 设置筛选菜单 -->
-              <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+              <template
+                #customFilterDropdown="{
+                  setSelectedKeys,
+                  selectedKeys,
+                  confirm,
+                  clearFilters,
+                  column,
+                }"
+              >
                 <div style="padding: 8px">
-                  <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
+                  <a-input
+                    ref="searchInput"
+                    :placeholder="`搜索 ${column.title}`"
+                    :value="selectedKeys[0]"
                     style="width: 188px; margin-bottom: 8px; display: block"
-                    @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                    @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
-                  <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-                    @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+                    @change="
+                      (e) =>
+                        setSelectedKeys(e.target.value ? [e.target.value] : [])
+                    "
+                    @pressEnter="
+                      handleSearch(selectedKeys, confirm, column.dataIndex)
+                    "
+                  />
+                  <a-button
+                    type="primary"
+                    size="small"
+                    style="width: 90px; margin-right: 8px"
+                    @click="
+                      handleSearch(selectedKeys, confirm, column.dataIndex)
+                    "
+                  >
                     <template #icon>
-                      <SearchOutlined />
-                    </template>搜索</a-button>
-                  <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
+                      <SearchOutlined /> </template
+                    >搜索</a-button
+                  >
+                  <a-button
+                    size="small"
+                    style="width: 90px"
+                    @click="handleReset(clearFilters)"
+                    >重置</a-button
+                  >
                 </div>
               </template>
               <!-- 设置筛选图标 -->
               <template #customFilterIcon="{ filtered }">
-                <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+                <SearchOutlined
+                  :style="{ color: filtered ? '#108ee9' : undefined }"
+                />
               </template>
             </a-table>
           </a-config-provider>
@@ -342,36 +745,53 @@
         </div>
       </template>
     </DataBox>
-    <OperationArea ref="operationArea" :title="operationAreaTitle" :height="operationAreaHeight"
-      v-if="showOperationArea" @close="closeOperationArea">
+    <OperationArea
+      ref="operationArea"
+      :title="operationAreaTitle"
+      :height="operationAreaHeight"
+      v-if="showOperationArea"
+      @close="closeOperationArea"
+    >
       <template v-slot:content>
         <div class="entryDetails">
           <table>
             <tr>
               <td class="tableTitle">翻译语种</td>
-              <td v-for="lang in commonParam.languageList" :key="lang.name">{{ lang.name }}</td>
+              <td v-for="lang in commonParam.languageList" :key="lang.name">
+                {{ lang.name }}
+              </td>
             </tr>
             <tr>
               <td class="tableTitle">翻译结果</td>
-              <td v-for="lang in commonParam.languageList" :key="currentEntry[lang.value]">{{ currentEntry[lang.value]
-              }}
+              <td
+                v-for="lang in commonParam.languageList"
+                :key="currentEntry[lang.value]"
+              >
+                {{ currentEntry[lang.value] }}
               </td>
             </tr>
             <tr>
               <td class="tableTitle">翻译状态</td>
               <td v-for="lang in commonParam.languageList" :key="lang.value">
                 <template v-if="currentEntry[lang.state] === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">{{ currentEntry[lang.chineseState] }}</span>
+                  <a-badge color="#36BF7D" /><span style="color: #36bf7d">{{
+                    currentEntry[lang.chineseState]
+                  }}</span>
                 </template>
                 <template v-else-if="currentEntry[lang.state] != null">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">{{ currentEntry[lang.chineseState] }}</span>
+                  <a-badge color="#FBB31F" /><span style="color: #fbb31f">{{
+                    currentEntry[lang.chineseState]
+                  }}</span>
                 </template>
               </td>
             </tr>
             <tr>
               <td class="tableTitle">选择</td>
               <td v-for="lang in commonParam.languageList" :key="lang.value">
-                <a-checkbox :disabled="currentEntry[lang.state] != '3'" v-model:checked="currentEntry[lang.checked]">
+                <a-checkbox
+                  :disabled="currentEntry[lang.state] != '3'"
+                  v-model:checked="currentEntry[lang.checked]"
+                >
                 </a-checkbox>
               </td>
             </tr>
@@ -380,29 +800,60 @@
             <div>中文释义：{{ currentEntry.chineseInterpretation }}</div>
             <div>英文释义：{{ currentEntry.englishInterpretation }}</div>
             <div class="btnBox" v-if="admin">
-              <a-button type="primary" size="small" @click="addPublic('1')"><template #icon>
-                  <PlusOutlined />
-                </template>添加到部门公共库</a-button>
-              <a-button type="primary" size="small" style="margin-left:16px" @click="addPublic('2')"><template #icon>
-                  <PlusOutlined />
-                </template>添加到公司公共库</a-button>
+              <a-button type="primary" size="small" @click="addPublic('1')"
+                ><template #icon>
+                  <PlusOutlined /> </template
+                >添加到部门公共库</a-button
+              >
+              <a-button
+                type="primary"
+                size="small"
+                style="margin-left: 16px"
+                @click="addPublic('2')"
+                ><template #icon>
+                  <PlusOutlined /> </template
+                >添加到公司公共库</a-button
+              >
             </div>
           </div>
         </div>
       </template>
     </OperationArea>
-    <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
+    <EditReason
+      :visible="editVisible"
+      :entry="editEntry"
+      @editClose="editClose"
+      @editOk="editOk"
+    />
   </div>
-  <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry"
-    :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows"
-    @update:dataSource="selectEntry = $event" @update:selectedRowKeys="selectedRowKeys = $event"
-    @update:selectedRows="selectedRows = $event" @update:selectedProducts="selectedProducts = $event"
-    @createClose="createClose" @refresh="refreshTable" @cancelCreate="cancelCreate" />
+  <CreateVersionModal
+    :visible="createVisible"
+    :selectedProducts="selectedProducts"
+    :dataSource="selectEntry"
+    :currentProduct="product"
+    :selectedRowKeys="selectedRowKeys"
+    :selectedRows="selectedRows"
+    @update:dataSource="selectEntry = $event"
+    @update:selectedRowKeys="selectedRowKeys = $event"
+    @update:selectedRows="selectedRows = $event"
+    @update:selectedProducts="selectedProducts = $event"
+    @createClose="createClose"
+    @refresh="refreshTable"
+    @cancelCreate="cancelCreate"
+  />
 
-  <SecondClassify ref="secondClassifyRef" :visible="secondClassifyVisible" :currentProduct="product"
-    @secondClassifyClose="secondClassifyClose" />
-  <Dictionary ref="dictionaryRef" :visible="dictionaryVisible" :currentProduct="product"
-    @dictionaryClose="dictionaryClose" />
+  <SecondClassify
+    ref="secondClassifyRef"
+    :visible="secondClassifyVisible"
+    :currentProduct="product"
+    @secondClassifyClose="secondClassifyClose"
+  />
+  <Dictionary
+    ref="dictionaryRef"
+    :visible="dictionaryVisible"
+    :currentProduct="product"
+    @dictionaryClose="dictionaryClose"
+  />
 </template>
 <script>
 import "@/assets/style/common.less";
@@ -768,7 +1219,7 @@ export default {
       ipOptions: [],
     };
   },
-  created() { },
+  created() {},
   mounted() {
     this.$nextTick(() => {
       this.user = this.$store.state.user;
@@ -935,7 +1386,7 @@ export default {
       }
     },
   },
-  unmounted() { },
+  unmounted() {},
   methods: {
     async init() {
       // 获取一级分类
@@ -1318,6 +1769,13 @@ export default {
             return;
           }
           if (this.edit) {
+            this.editableData[record.id] = cloneDeep(
+              this.dataSource.find((item) => record.id === item.id)
+            );
+            console.log(
+              "this.editableData[record.id]",
+              this.editableData[record.id]
+            );
             // 打开编辑态;设置校验规则(词条管理为多列配置)
             await openSetEdit(
               record,
@@ -1447,12 +1905,10 @@ export default {
       const formRefNameList = [];
       this.columns.forEach((column) => {
         if (validateArrSum.includes(column.dataIndex)) {
-          formRefNameList.push(
-            {
-              refName: `form${id.replaceAll("-", "")}${column.dataIndex}`,
-              columnValue: column.dataIndex,
-            }
-          );
+          formRefNameList.push({
+            refName: `form${id.replaceAll("-", "")}${column.dataIndex}`,
+            columnValue: column.dataIndex,
+          });
         }
       });
       try {
@@ -1491,7 +1947,8 @@ export default {
         // 校验失败：用 notification.error 聚合展示（兼容 string/object/array）
         const normalizeErrors = (e) => {
           if (!e) return [];
-          if (typeof e === "string") return [{ columnName: "", errorMessage: e }];
+          if (typeof e === "string")
+            return [{ columnName: "", errorMessage: e }];
           if (Array.isArray(e)) return e;
           if (typeof e === "object") return [e];
           return [{ columnName: "", errorMessage: String(e) }];
@@ -1631,7 +2088,7 @@ export default {
           visualRange: type === "1" ? this.currentProduct.department : "公司",
           translateState: "3",
         };
-        updatePublicEntry(data).then((res) => { });
+        updatePublicEntry(data).then((res) => {});
       });
       message.success("添加成功！");
     },
@@ -1644,7 +2101,11 @@ export default {
         classfy1: [],
         classfy2: [],
         entryState_: [0, 1, 2, 3], // 如果查询条件为空即为全选，则使用这个词条状态来进行查询
-        entryState: this.$currentDepartment && this.$currentDepartment.ops.has("entryState3") ? "3" : null, // 查询条件中的词条状态
+        entryState:
+          this.$currentDepartment &&
+          this.$currentDepartment.ops.has("entryState3")
+            ? "3"
+            : null, // 查询条件中的词条状态
         tag: "",
         entrySource: null,
         language: null,
@@ -2103,7 +2564,7 @@ export default {
     },
     // 记录用户偏好
     recordPartiality(data) {
-      updateUserPartiality(data).then((res) => { });
+      updateUserPartiality(data).then((res) => {});
     },
     handleSearch(selectedKeys, confirm, dataIndex) {
       handleSearch(selectedKeys, confirm, dataIndex, this);

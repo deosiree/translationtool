@@ -91,7 +91,7 @@
             </template>
             去重
           </a-button>
-          <a-button v-if="hasDevPermission()" type="primary" size="middle" @click="showImportBackfillModal_v2_5">
+          <a-button v-if="hasIPPermission()" type="primary" size="middle" @click="showImportBackfillModal_v2_5">
             <template #icon>
               <ImportOutlined />
             </template>
@@ -189,7 +189,7 @@
     <!-- <BackFillModal_v2 modalTitle="去重回填 2.0" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'"
       @handleClose="handleImportBackfillClose_v2" @handleOK="handleImportBackfillOK_v2" /> -->
-    <BackFillModal_v2_5 modalTitle="去重回填 v2.5" :visible="importBackfillVisible_v2_5" :needRelationFile="true"
+    <BackFillModal_v2_5 modalTitle="去重回填" :visible="importBackfillVisible_v2_5" :needRelationFile="true"
       :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v2_5" @handleOK="handleImportBackfillOK_v2_5" />
     <BackFillModal_v1_5 modalTitle="去重回填 v1.5" :visible="importBackfillVisible_v1_5" :needRelationFile="true"
       :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v1_5" @handleOK="handleImportBackfillOK_v1_5" />
@@ -505,6 +505,11 @@ export default {
     window.onresize = null;
   },
   methods: {
+    hasIPPermission() {
+      return (
+        (this.admin && this.$currentDepartment?.ops?.has("needIP")) || false
+      );
+    },
     hasDevPermission() {
       return this.$currentDepartment?.ops?.has('dev') || false;
     },
