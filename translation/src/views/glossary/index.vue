@@ -2,51 +2,114 @@
   <div class="box" ref="box">
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
-        <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
+        <a-form
+          :model="search"
+          name="horizontal_login"
+          layout="inline"
+          autocomplete="off"
+          :label-col="labelCol"
+        >
           <a-form-item label="词条" name="entry">
-            <a-input v-model:value="search.entry" placeholder="请输入词条"></a-input>
+            <a-input
+              v-model:value="search.entry"
+              placeholder="请输入词条"
+            ></a-input>
           </a-form-item>
           <a-form-item label="翻译" name="translate">
-            <a-input v-model:value="search.translate" placeholder="请输入翻译"></a-input>
+            <a-input
+              v-model:value="search.translate"
+              placeholder="请输入翻译"
+            ></a-input>
           </a-form-item>
           <!-- <a-form-item label="翻译过滤" name="filter_translate">
             <a-input v-model:value="search.filter_translate" placeholder="请输入翻译"></a-input>
           </a-form-item> -->
           <a-form-item label="翻译类型" name="type">
-            <a-select v-model:value="search.type" style="width: 186px" placeholder="请选择翻译类型" :options='translateTypes'
-              :fieldNames="{label:'name',value:'name'}" allowClear>
+            <a-select
+              v-model:value="search.type"
+              style="width: 186px"
+              placeholder="请选择翻译类型"
+              :options="translateTypes"
+              :fieldNames="{ label: 'name', value: 'name' }"
+              allowClear
+            >
             </a-select>
           </a-form-item>
           <a-form-item label="翻译状态" name="translateState">
-            <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" :style="'width: 186px'"
-              :placeholder="'请选择翻译状态'" />
+            <TransStateSelect
+              :translateState="search.translateState"
+              @update:translateState="search.translateState = $event"
+              :style="'width: 186px'"
+              :placeholder="'请选择翻译状态'"
+            />
           </a-form-item>
           <a-form-item label="可见范围" name="visualRange">
-            <a-select v-model:value="search.visualRange" style="width: 186px" placeholder="请选择可见范围" :options='visualRanges' allowClear>
+            <a-select
+              v-model:value="search.visualRange"
+              style="width: 186px"
+              placeholder="请选择可见范围"
+              :options="visualRanges"
+              allowClear
+            >
             </a-select>
           </a-form-item>
           <a-form-item label="校验类型" name="searchType">
-            <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型" :options='searchTypes' allowClear>
+            <a-select
+              v-model:value="search.searchType"
+              style="width: 186px"
+              placeholder="请选择校验类型"
+              :options="searchTypes"
+              allowClear
+            >
             </a-select>
           </a-form-item>
         </a-form>
       </template>
       <template v-slot:operate>
-        <ResetButton :size="'middle'" :search="search" :currentPage="pagination.current" @resetData="onResetData" />
-        <a-button type="primary" size="middle" @click="getSearchClick">查询</a-button>
+        <ResetButton
+          :size="'middle'"
+          :search="search"
+          :currentPage="pagination.current"
+          @resetData="onResetData"
+        />
+        <a-button type="primary" size="middle" @click="getSearchClick"
+          >查询</a-button
+        >
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
-        <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-          <BatchSelectButton v-if="!isGetSykEntry&&!isCheckSameEntry" :size="'middle'" :columns="columns" :dataSource="dataSource"
-            :getSearch="getSearch" v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
-            v-model:selectedRows="selectedRows" v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag"
-            v-model:batchSelectVisible="batchSelectVisible" />
+        <div
+          ref="button"
+          v-if="true"
+          style="margin-bottom: 8px; display: flex; gap: 10px"
+        >
+          <BatchSelectButton
+            v-if="!isGetSykEntry && !isCheckSameEntry"
+            :size="'middle'"
+            :columns="columns"
+            :dataSource="dataSource"
+            :getSearch="getSearch"
+            v-model:search="search"
+            v-model:lastSearch="lastSearch"
+            v-model:loading="loading"
+            v-model:selectEntry="selectEntry"
+            v-model:selectedRows="selectedRows"
+            v-model:selectedRowKeys="selectedRowKeys"
+            v-model:batchSelectFlag="batchSelectFlag"
+            v-model:batchSelectVisible="batchSelectVisible"
+          />
 
-          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+          <a-popover
+            trigger="click"
+            placement="leftTop"
+            :overlayStyle="overlayStyle"
+          >
             <template #content>
-              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+              <a-checkbox-group
+                v-model:value="checkedColumn"
+                @change="changeColumn"
+              >
                 <a-row v-for="item in checkboxList" :key="item.value">
                   <a-col :span="24">
                     <a-checkbox :value="item.value">
@@ -56,24 +119,50 @@
                 </a-row>
               </a-checkbox-group>
             </template>
-            <a-button type="primary" size="middle"><template #icon>
-                <SettingOutlined />
-              </template>展示列</a-button>
+            <a-button type="primary" size="middle"
+              ><template #icon> <SettingOutlined /> </template>展示列</a-button
+            >
           </a-popover>
         </div>
       </template>
       <template v-slot:data>
-        <div style="width:100%;position: absolute;">
-          <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
-            :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="glossaryTable"
+        <div style="width: 100%; position: absolute">
+          <a-table
+            bordered
+            class="ant-table-striped"
+            :columns="columns"
+            :data-source="dataSource"
+            :row-key="(record) => record.id"
+            :scroll="tableHeight"
+            :pagination="pagination"
+            :loading="loading"
+            :rowClassName="getRowClassName"
+            ref="glossaryTable"
             @resizeColumn="handleResizeColumn"
-            :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll} : null">
-            <template #bodyCell="{ column, record, text}">
+            :row-selection="
+              batchSelectFlag
+                ? {
+                    selectedRowKeys: selectedRowKeys,
+                    onChange: onSelectChange,
+                    onSelect: onSelect,
+                    onSelectAll: onSelectAll,
+                  }
+                : null
+            "
+          >
+            <template #bodyCell="{ column, record, text }">
               <template v-if="column.dataIndex === 'translate'">
                 <div>
                   <template v-if="editableData[record.id]">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" @pressEnter="editOK(record)" style="margin: -5px 0"
-                      @click="clickInput" :ref="el => inputRefs[record.id] = el" />
+                    <!-- <a-input v-model:value="editableData[record.id][column.dataIndex]" @pressEnter="editOK(record)" style="margin: -5px 0"
+                        @click="clickInput" :ref="el => inputRefs[record.id] = el" /> -->
+                    <Input
+                      :value="editableData[record.id]?.[column.dataIndex] ?? ''"
+                      @update:value="
+                        (val) => handleTranslateChange(val, record, column)
+                      "
+                      @pressEnter="editOK(record)"
+                    />
                   </template>
                   <template v-else>
                     <span @dblclick="dbclickEdited(record.id)">{{ text }}</span>
@@ -86,11 +175,30 @@
               <template v-if="column.dataIndex === 'operation'">
                 <div class="editable-row-operations">
                   <span v-if="editableData[record.id]">
-                    <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                    <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click.stop="save(record.id)"
+                      >保存</a-button
+                    >
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      danger
+                      @click.stop="cancel(record.id)"
+                      >取消</a-button
+                    >
                   </span>
                   <span v-else>
-                    <a-button type="primary" ghost size="small" @click.stop="viewRelation(record)">详情({{record.relationCount}})</a-button>
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click.stop="viewRelation(record)"
+                      >详情({{ record.relationCount }})</a-button
+                    >
                   </span>
                 </div>
               </template>
@@ -100,7 +208,11 @@
       </template>
     </DataBox>
   </div>
-  <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
+  <RelationModal
+    :visible="relationVisible"
+    :currentData="relationData"
+    @relationClose="relationClose"
+  ></RelationModal>
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -112,6 +224,7 @@ import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
+import Input from "@/components/cellEditor/input_IME.vue";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
@@ -160,6 +273,7 @@ export default {
     TransStateSelect,
     TransStateBadge,
     RelationModal,
+    Input,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -586,7 +700,13 @@ export default {
       // record.translate = this.editableData[record.id].translate;
       // delete this.editableData[record.id];
     },
+    handleTranslateChange(value, record, column) {
+      // 行已经不在编辑态了，直接忽略，避免给 undefined 赋值
+      if (!this.editableData[record.id]) return;
 
+      // 只更新当前列，比如 translate
+      this.editableData[record.id][column.dataIndex] = value;
+    },
     // 查看详情
     viewRelation(record) {
       this.relationData = record.reslations;

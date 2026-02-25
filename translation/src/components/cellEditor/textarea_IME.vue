@@ -12,7 +12,7 @@
 
 <script>
 export default {
-  name: "EntryCellEditor",
+  name: "TextareaIME",
   props: {
     // v-model:value 绑定的值
     value: {

@@ -6,12 +6,14 @@
     @compositionstart="onCompositionStart"
     @compositionend="onCompositionEnd"
     @blur="onBlur"
+    @pressEnter="onPressEnter"
+    @change="onChange"
   />
 </template>
 
 <script>
 export default {
-  name: "EntryCellEditor",
+  name: "InputIME",
   props: {
     // v-model:value 绑定的值
     value: {
@@ -19,7 +21,7 @@ export default {
       default: "",
     },
   },
-  emits: ["update:value"],
+  emits: ["update:value", "pressEnter", "change"],
   data() {
     return {
       innerValue: this.value ?? "",
@@ -48,6 +50,14 @@ export default {
       // console.log("onCompositionEnd", v);
       // 组合结束时同步一次到父组件
       this.$emit("update:value", v);
+    },
+    onPressEnter(event) {
+      // 可选：父组件若监听 @pressEnter，则按回车时回调
+      this.$emit("pressEnter", event);
+    },
+    onChange(event) {
+      // 可选：父组件若监听 @change，则输入时回调
+      this.$emit("change", event);
     },
     onBlur() {
       // 失焦时再同步一次，确保最终值写回
