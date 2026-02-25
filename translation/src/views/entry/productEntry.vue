@@ -470,13 +470,16 @@
                         autocomplete="off"
                       >
                         <a-form-item :name="column.dataIndex">
-                          <a-textarea
+                          <!-- <a-textarea
                             v-model:value.lazy="
                               editableData[record.id][column.dataIndex]
                             "
                             style="margin: -5px 0"
                             @click="clickInput"
                             :auto-size="{ minRows: 1 }"
+                          /> -->
+                          <TextArea
+                            v-model:value="editableData[record.id][column.dataIndex]"
                           />
                         </a-form-item>
                       </a-form>
@@ -491,12 +494,15 @@
                 <template v-if="inputColumn.includes(column.dataIndex)">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-input
+                      <!-- <a-input
                         v-model:value="
                           editableData[record.id][column.dataIndex]
                         "
                         style="margin: -5px 0"
                         @click="clickInput"
+                      /> -->
+                      <Input
+                        v-model:value="editableData[record.id][column.dataIndex]"
                       />
                     </template>
                     <template v-else>
@@ -518,13 +524,16 @@
                         autocomplete="off"
                       >
                         <a-form-item :name="column.dataIndex">
-                          <a-textarea
+                          <!-- <a-textarea
                             v-model:value="
                               editableData[record.id][column.dataIndex]
                             "
                             style="margin: -5px 0"
                             @click="clickInput"
                             :auto-size="{ minRows: 1 }"
+                          /> -->
+                          <TextArea
+                            v-model:value="editableData[record.id][column.dataIndex]"
                           />
                         </a-form-item>
                       </a-form>
@@ -578,12 +587,15 @@
                 <template v-if="column.dataIndex === 'tag'">
                   <div>
                     <template v-if="editableData[record.id]">
-                      <a-input
+                      <!-- <a-input
                         v-model:value="
                           editableData[record.id][column.dataIndex]
                         "
                         style="margin: -5px 0; width: 90%"
                         @click="clickInput"
+                      /> -->
+                      <Input
+                        v-model:value="editableData[record.id][column.dataIndex]"
                       />
                       <a-tooltip placement="top">
                         <template #title>
@@ -871,6 +883,8 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import TextArea from "@/components/cellEditor/textarea_IME.vue";
+import Input from "@/components/cellEditor/input_IME.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -957,6 +971,8 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
+    TextArea,
+    Input,
     EditReason,
     CreateVersionModal,
     SecondClassify,
