@@ -1,3 +1,7 @@
+translation-assistant/
+translationtool_ai/
+translation-check/
+
 .DS_Store
  ../.git_call/
 node_modules
