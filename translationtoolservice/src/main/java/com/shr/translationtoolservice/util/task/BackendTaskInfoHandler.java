@@ -176,6 +176,8 @@ public class BackendTaskInfoHandler {
             final String separator = "-";
             if(taskType == TaskType.UPDATE_ENTRY){
                 taskIDPrefix = "update-entry";
+            }else if(taskType == TaskType.UPDATE_TRANSLATION){
+                taskIDPrefix = "update-translation";
             }else{
                 return taskIDPrefix;
             }
@@ -186,7 +188,8 @@ public class BackendTaskInfoHandler {
         }
 
         public enum TaskType{
-            UPDATE_ENTRY    // 更新词条任务
+            UPDATE_ENTRY,   // 更新词条任务
+            UPDATE_TRANSLATION
         }
 
 

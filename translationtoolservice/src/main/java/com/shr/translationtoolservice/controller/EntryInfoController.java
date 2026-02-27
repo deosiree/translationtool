@@ -16,7 +16,6 @@ import com.shr.translationtoolservice.util.JSONUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.LocalTimeUtils;
 import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
-import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TASK_STATE;
 import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TaskIDGenerator.TaskType;
 
 import io.swagger.annotations.Api;
@@ -40,9 +39,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -299,6 +296,41 @@ public class EntryInfoController extends BaseController {
     }
 
 
+    public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcleInternal(MultipartFile multipartFile,String token,String transType,MultipartFile relationFile){
+
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
+        try {
+            if(relationFile != null && !relationFile.getOriginalFilename().endsWith(".json")){
+                throw new RuntimeException(String.format("关联关系文件必须是json格式, 请检查文件后缀以及文件内容"));
+            }
+            Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
+            Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity,token,transType,toJson);
+            
+            HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
+            responseResult.setData(updateTranslationByFileVO);
+            if(updateTranslationByFileVO.hasError()){
+                updateTranslationByFileVO.setGlobalMessage(String.format("更新词条翻译时部分词条更新后存在警告和异常信息, 总共有%s个信息", updateTranslationByFileVO.exceptionNumber()));
+                responseResult.setType(HttpResponse.Type.ERROR);
+                responseResult.setCode(HttpResponse.Type.ERROR.getVal());
+                responseResult.setMessage("词条翻译更新存在异常, 请查看相关日志信息");
+            }else{
+                updateTranslationByFileVO.setGlobalMessage("更新词条翻译成功");
+                responseResult.setType(HttpResponse.Type.OK);
+                responseResult.setCode(HttpResponse.Type.OK.getVal());
+                responseResult.setMessage("词条翻译更新成功");
+            }
+
+            return responseResult;
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+            // TODO: handle exception
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
+        }
+    }
+
+
     @PostMapping("/entryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
@@ -336,6 +368,30 @@ public class EntryInfoController extends BaseController {
         } finally{
             FileInputStreamEntity.close(fileInputStreamEntity);
         }
+    }
+
+    @PostMapping("/asyncEntryImportExcle")
+    @ApiOperation("词条excle导入(更新翻译)")
+    @CrossOrigin
+    public HttpResponse<String> asyncEntryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
+                                                          HttpServletRequest httpServletRequest
+    ) {
+        final TaskType taskType = TaskType.UPDATE_TRANSLATION;
+        String token = httpServletRequest.getHeader("token");
+        String department = JWTTokenUtils.getDepartment(token);
+        String username = JWTTokenUtils.getUserName(token);
+        final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,transType,department,username); // 参数顺序必须一致
+        AsyncTaskThread<HttpResponse<UpdateEntryInfoByFileVO>> runnable = new AsyncTaskThread<HttpResponse<UpdateEntryInfoByFileVO>>(taskID,backendTaskInfoHandler) {
+
+            @Override
+            protected HttpResponse<UpdateEntryInfoByFileVO> runInternal() {
+                // TODO Auto-generated method stub
+                HttpResponse<UpdateEntryInfoByFileVO> resultVO = entryImportExcleInternal(multipartFile, token, transType, relationFile);
+                return resultVO;
+            }
+            
+        };
+        return this.submitAsyncTask(taskID, runnable, backendTaskInfoHandler, threadPoolExecutor);
     }
 
     // @PostMapping("/workImportExcleTrans")
@@ -982,58 +1038,15 @@ public class EntryInfoController extends BaseController {
         String token = request.getHeader("token");
         final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,classifyID,i18nUrl); // 参数顺序必须一致
         
-        Runnable runnable = new Runnable() {
+        AsyncTaskThread<HttpResponse<ResponseListModel<SourceEntryVO>>> runnable = new AsyncTaskThread<HttpResponse<ResponseListModel<SourceEntryVO>>>(taskID,backendTaskInfoHandler) {
+
             @Override
-            public void run() {
-                try {
-                    HttpResponse<ResponseListModel<SourceEntryVO>> resultVO = getEntrysourceListByClassfyInternal(classifyID, i18nUrl, token);
-                    TASK_STATE beforeExecuteState = backendTaskInfoHandler.getTaskExecuteState(taskID);
-                    if(beforeExecuteState != null && (beforeExecuteState == TASK_STATE.CANCELED || beforeExecuteState == TASK_STATE.CANCEL_FAILED)){
-                        backendTaskInfoHandler.setTaskResultVOs(taskID, checkResult(null, "任务执行失败, 请稍后重试"));
-                    }else{
-                        backendTaskInfoHandler.setTaskResultVOs(taskID, resultVO);
-                        backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FINISHED);    
-                    }
-                } catch (Exception e) {
-                    backendTaskInfoHandler.setTaskResultVOs(taskID, checkResult("内部子线程执行更新任务时出现异常",e.getMessage()));
-                    backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);    
-                }
+            protected HttpResponse<ResponseListModel<SourceEntryVO>> runInternal() {
+                return getEntrysourceListByClassfyInternal(classifyID, i18nUrl, token);
             }
-        };
-        Future<?> future = null;
-        try {
-            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.EXECUTING);   // 不能runnable内部才设定正在执行, 因为该请求返回后, 线程池可能没法立即执行该任务
-            future = this.threadPoolExecutor.submit(runnable);    
-        } catch(RejectedExecutionException rejectException){
-            log.error(String.format("线程池拒绝执行词条更新任务, taskID : %s", taskID), rejectException);
-            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);    
-            return error(null, "线程池拒绝执行词条更新任务, 请稍后重试");   // 任务没有提交执行, 缓存没有信息
-        } catch(NullPointerException nullException){
-            log.error(String.format("系统服务异常, 出现空指针, taskID : %s", taskID), nullException);
-            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);    
-            return error(null, "系统服务异常, runnable = null");    // 任务没有提交执行, 缓存没有信息
-        } catch (Exception e) {
-            log.error(String.format("提交更新词条任务到线程池时出现异常, taskID : %s", taskID), e);
-            // runnable可能已经执行，需要中断该任务
-            boolean isStopSuccessfully = this.backendTaskInfoHandler.stopTask(taskID, future);
-            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);
             
-            return error(null, String.format("创建更新词条任务时出现异常, 异常信息为: %s", e.getMessage()));
-        }
-        try {
-            HttpResponse<String> resposne = new HttpResponse<>();
-            resposne.setCode(HttpResponse.Type.OK.getVal());
-            resposne.setType(HttpResponse.Type.OK);     
-            resposne.setData(null);
-            resposne.setMessage("创建词条更新任务成功");
-            return resposne;
-        } catch (Exception e) {
-            log.error("创建更新词条任务时出现异常", e);
-            // runnable可能已经执行， 需要中断该任务
-            this.backendTaskInfoHandler.stopTask(taskID, future);
-            backendTaskInfoHandler.setTaskExecuteState(taskID, TASK_STATE.FAILED);
-            return error(null, String.format("创建更新词条任务时出现异常, 异常信息为: %s", e.getMessage()));
-        }
+        };
+        return this.submitAsyncTask(taskID, runnable, backendTaskInfoHandler, threadPoolExecutor);
     }
 
     @PostMapping("/updateEntryByClassfy")

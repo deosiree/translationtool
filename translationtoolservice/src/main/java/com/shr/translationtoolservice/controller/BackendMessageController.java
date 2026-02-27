@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.vo.SourceEntryVO;
+import com.shr.translationtoolservice.entity.vo.UpdateEntryInfoByFileVO;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
 import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TASK_STATE;
@@ -91,16 +92,8 @@ public class BackendMessageController extends BaseController {
 
     }
 
-    @PostMapping("/getEntrysourceListByClassfyTaskState")
-    @ApiOperation("获取更新任务的执行状态(成功,失败,执行中)")
-    @CrossOrigin
-    public HttpResponse<Map<String,Object>> getEntrysourceListByClassfyTaskState(@RequestParam String classifyID,@RequestParam String i18nUrl,HttpServletRequest request){
+    protected HttpResponse<Map<String,Object>> getTaskState(String taskID){
         final String STATE = "state";
-        final TaskType taskType = TaskType.UPDATE_ENTRY;
-        String token = request.getHeader("token");
-        String department = JWTTokenUtils.getDepartment(token);
-        String username = JWTTokenUtils.getUserName(token);
-        final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,classifyID,i18nUrl); // 参数顺序必须一致
         try {
             TASK_STATE taskExecuteState = backendTaskInfoHandler.getTaskExecuteState(taskID);
             Map<String,Object> responseMessage = new HashMap<>();
@@ -143,7 +136,15 @@ public class BackendMessageController extends BaseController {
             return error(null, e.getMessage());
         } finally{
         }
+    }
 
+    @PostMapping("/getEntrysourceListByClassfyTaskState")
+    @ApiOperation("获取更新任务的执行状态(成功,失败,执行中)")
+    @CrossOrigin
+    public HttpResponse<Map<String,Object>> getEntrysourceListByClassfyTaskState(@RequestParam String classifyID,@RequestParam String i18nUrl,HttpServletRequest request){
+        final TaskType taskType = TaskType.UPDATE_ENTRY;
+        final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,classifyID,i18nUrl); // 参数顺序必须一致
+        return this.getTaskState(taskID);
     }
 
     @PostMapping("/getEntrysourceListByClassfyResult")
@@ -159,6 +160,38 @@ public class BackendMessageController extends BaseController {
             String username = JWTTokenUtils.getUserName(token);
             final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,classifyID,i18nUrl);
             HttpResponse<ResponseListModel<SourceEntryVO>> taskResultVOs = (HttpResponse<ResponseListModel<SourceEntryVO>>) backendTaskInfoHandler.getTaskResultVOs(taskID,true);
+            return taskResultVOs == null ? ok(null) : taskResultVOs;         
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/getEntryImportExcleTaskState")
+    @ApiOperation("获取更新翻译任务的执行状态(成功,失败,执行中)")
+    @CrossOrigin
+    public HttpResponse<Map<String,Object>> getEntryImportExcleTaskState(@RequestParam("transType") String transType,HttpServletRequest request){
+        final TaskType taskType = TaskType.UPDATE_TRANSLATION;
+        String token = request.getHeader("token");
+        String department = JWTTokenUtils.getDepartment(token);
+        String username = JWTTokenUtils.getUserName(token);
+        final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,transType,department,username); // 参数顺序必须一致
+        return this.getTaskState(taskID);
+
+    }
+
+    @PostMapping("/getEntryImportExcleTaskStateResult")
+    @ApiOperation("获取更新翻译任务的结果")
+    @CrossOrigin
+    @SuppressWarnings("unchecked")
+    public HttpResponse<UpdateEntryInfoByFileVO> getEntryImportExcleTaskStateResult(@RequestParam("transType") String transType,HttpServletRequest request){
+
+        try {
+            final TaskType taskType = TaskType.UPDATE_TRANSLATION;
+            String token = request.getHeader("token");
+            String department = JWTTokenUtils.getDepartment(token);
+            String username = JWTTokenUtils.getUserName(token);
+            final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,transType,department,username); // 参数顺序必须一致
+            HttpResponse<UpdateEntryInfoByFileVO> taskResultVOs = (HttpResponse<UpdateEntryInfoByFileVO>) backendTaskInfoHandler.getTaskResultVOs(taskID,true);
             return taskResultVOs == null ? ok(null) : taskResultVOs;         
         } catch (Exception e) {
             return error(null, e.getMessage());
