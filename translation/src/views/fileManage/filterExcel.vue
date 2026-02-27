@@ -2,63 +2,173 @@
   <div class="container" ref="box">
     <SearchBox v-if="false" ref="search" @change="setTableHeight">
       <template v-slot:form>
-        <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-          <a-row class="search-row" style="width:100%;display:flex;gap:8px">
-            <a-form-item v-if="checkedSearchCondition.includes('entry')" label="词条" name="entry">
-              <a-textarea v-model:value="search.entry" placeholder="请输入内容" :auto-size="{ minRows: 1 }"></a-textarea>
+        <a-form
+          :model="search"
+          name="horizontal_login"
+          layout="inline"
+          autocomplete="off"
+          :label-col="labelCol"
+        >
+          <a-row
+            class="search-row"
+            style="width: 100%; display: flex; gap: 8px"
+          >
+            <a-form-item
+              v-if="checkedSearchCondition.includes('entry')"
+              label="词条"
+              name="entry"
+            >
+              <a-textarea
+                v-model:value="search.entry"
+                placeholder="请输入内容"
+                :auto-size="{ minRows: 1 }"
+              ></a-textarea>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('state')" label="词条状态" name="state">
-              <EntryStateSelect :entryState="search.entryState" @update:entryState="search.entryState = $event"
-                :showForbbiden="showForbbiden" @update:showForbbiden="showForbbiden = $event" />
+            <a-form-item
+              v-if="checkedSearchCondition.includes('state')"
+              label="词条状态"
+              name="state"
+            >
+              <EntryStateSelect
+                :entryState="search.entryState"
+                @update:entryState="search.entryState = $event"
+                :showForbbiden="showForbbiden"
+                @update:showForbbiden="showForbbiden = $event"
+              />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('tag')" label="tag" name="tag">
-              <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('tag')"
+              label="tag"
+              name="tag"
+            >
+              <a-input
+                v-model:value="search.tag"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('entrySource')" label="词条来源" name="entrySource">
-              <a-input v-model:value="search.entrySource" placeholder="请输入词条来源"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('entrySource')"
+              label="词条来源"
+              name="entrySource"
+            >
+              <a-input
+                v-model:value="search.entrySource"
+                placeholder="请输入词条来源"
+              ></a-input>
               <!-- <a-select v-model:value="search.entrySource" show-search placeholder="请输入词条来源"
                 :options="entrySourceOptions" allowClear @search="handleEntrySourceSearch">
               </a-select> -->
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('language')" label="翻译语种" name="language">
-              <a-select v-model:value="search.language" placeholder="请选择" :fieldNames="{ label: 'name', value: 'name' }"
-                :options="translateTypes" allowClear>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('language')"
+              label="翻译语种"
+              name="language"
+            >
+              <a-select
+                v-model:value="search.language"
+                placeholder="请选择"
+                :fieldNames="{ label: 'name', value: 'name' }"
+                :options="translateTypes"
+                allowClear
+              >
               </a-select>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('translateState')" label="翻译状态" name="translateState">
-              <TransStateSelect :translateState="search.translateState"
-                @update:translateState="search.translateState = $event" />
+            <a-form-item
+              v-if="checkedSearchCondition.includes('translateState')"
+              label="翻译状态"
+              name="translateState"
+            >
+              <TransStateSelect
+                :translateState="search.translateState"
+                @update:translateState="search.translateState = $event"
+              />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('translate')" label="翻译结果" name="translate">
-              <a-input v-model:value="search.translate" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('translate')"
+              label="翻译结果"
+              name="translate"
+            >
+              <a-input
+                v-model:value="search.translate"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('comment')" label="comment" name="comment">
-              <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('comment')"
+              label="comment"
+              name="comment"
+            >
+              <a-input
+                v-model:value="search.comment"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('diFileName')" label="辞典名称" name="diFileName">
-              <a-input v-model:value="search.diFileName" placeholder="请输入辞典名称"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('diFileName')"
+              label="辞典名称"
+              name="diFileName"
+            >
+              <a-input
+                v-model:value="search.diFileName"
+                placeholder="请输入辞典名称"
+              ></a-input>
               <!-- <a-select v-model:value="search.diFileName" show-search placeholder="请输入辞典名称" :options="diFileNameOptions"
                 allowClear @search="handleDiFileNameSearch">
               </a-select> -->
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('startTime')" label="开始时间" name="startTime">
-              <a-date-picker v-model:value="search.startTime_" style="width: 186px" />
+            <a-form-item
+              v-if="checkedSearchCondition.includes('startTime')"
+              label="开始时间"
+              name="startTime"
+            >
+              <a-date-picker
+                v-model:value="search.startTime_"
+                style="width: 186px"
+              />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('endTime')" label="结束时间" name="endTime">
-              <a-date-picker v-model:value="search.endTime_" style="width: 186px" />
+            <a-form-item
+              v-if="checkedSearchCondition.includes('endTime')"
+              label="结束时间"
+              name="endTime"
+            >
+              <a-date-picker
+                v-model:value="search.endTime_"
+                style="width: 186px"
+              />
             </a-form-item>
-            <a-form-item v-if="checkedSearchCondition.includes('update')" label="修改人" name="update">
-              <a-input v-model:value="search.update" placeholder="请输入内容"></a-input>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('update')"
+              label="修改人"
+              name="update"
+            >
+              <a-input
+                v-model:value="search.update"
+                placeholder="请输入内容"
+              ></a-input>
             </a-form-item>
           </a-row>
         </a-form>
       </template>
       <template v-slot:operate>
-        <ResetButton :size="'middle'" :search="search" :currentPage="pagination.current" @resetData="onResetData" />
-        <a-button type="primary" size="middle" @click="getSearchClick">查询</a-button>
-        <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+        <ResetButton
+          :size="'middle'"
+          :search="search"
+          :currentPage="pagination.current"
+          @resetData="onResetData"
+        />
+        <a-button type="primary" size="middle" @click="getSearchClick"
+          >查询</a-button
+        >
+        <a-popover
+          trigger="click"
+          placement="leftTop"
+          :overlayStyle="overlayStyle"
+        >
           <template #content>
-            <a-checkbox-group v-model:value="checkedSearchCondition" @change="changeSearchCondition">
+            <a-checkbox-group
+              v-model:value="checkedSearchCondition"
+              @change="changeSearchCondition"
+            >
               <a-row v-for="item in searchConditionList" :key="item.value">
                 <a-col :span="24">
                   <a-checkbox :value="item.value">
@@ -68,16 +178,23 @@
               </a-row>
             </a-checkbox-group>
           </template>
-          <a-button type="primary" size="middle" ghost><template #icon>
-              <SettingOutlined />
-            </template>展示条件</a-button>
+          <a-button type="primary" size="middle" ghost
+            ><template #icon>
+              <SettingOutlined /> </template
+            >展示条件</a-button
+          >
         </a-popover>
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" style="margin-bottom: 8px; display: flex; gap: 10px">
-          <a-upload name="file" accept=".csv" :beforeUpload="beforeUpload" :show-upload-list="false">
+          <a-upload
+            name="file"
+            accept=".csv"
+            :beforeUpload="beforeUpload"
+            :show-upload-list="false"
+          >
             <a-button type="primary" size="middle" :loading="importLoading">
               <template #icon>
                 <UploadOutlined />
@@ -85,13 +202,33 @@
               导入csv
             </a-button>
           </a-upload>
-          <a-button type="primary" size="middle" @click="handleDeduplicateExport">
+          <a-button
+            type="primary"
+            size="middle"
+            @click="handleDeduplicateExport"
+          >
             <template #icon>
               <ExportOutlined />
             </template>
             去重
           </a-button>
-          <a-button v-if="hasIPPermission()" type="primary" size="middle" @click="showImportBackfillModal_v2_5">
+          <a-button
+            v-if="hasIPPermission()"
+            type="primary"
+            size="middle"
+            @click="showImportBackfillModal_v3"
+          >
+            <template #icon>
+              <ImportOutlined />
+            </template>
+            去重回填(异步)
+          </a-button>
+          <a-button
+            v-if="hasIPPermission()"
+            type="primary"
+            size="middle"
+            @click="showImportBackfillModal_v2_5"
+          >
             <template #icon>
               <ImportOutlined />
             </template>
@@ -109,20 +246,44 @@
             </template>
             去重回填 v1.5
           </a-button> -->
-          <a-button v-if="batchDeleteFlag" type="primary" danger size="middle" @click="handleBatchDelete">
+          <a-button
+            v-if="batchDeleteFlag"
+            type="primary"
+            danger
+            size="middle"
+            @click="handleBatchDelete"
+          >
             批量删除
           </a-button>
-          <a-button v-if="deleteButtonsVisible" type="primary" danger size="middle" :loading="deleteLoading"
-            @click="handleDeleteEntries">
+          <a-button
+            v-if="deleteButtonsVisible"
+            type="primary"
+            danger
+            size="middle"
+            :loading="deleteLoading"
+            @click="handleDeleteEntries"
+          >
             删除词条
           </a-button>
-          <a-button v-if="deleteButtonsVisible" type="primary" size="middle" :loading="deleteLoading"
-            @click="handleCancelDelete">
+          <a-button
+            v-if="deleteButtonsVisible"
+            type="primary"
+            size="middle"
+            :loading="deleteLoading"
+            @click="handleCancelDelete"
+          >
             取消删除
           </a-button>
-          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
+          <a-popover
+            trigger="click"
+            placement="leftTop"
+            :overlayStyle="overlayStyle"
+          >
             <template #content>
-              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
+              <a-checkbox-group
+                v-model:value="checkedColumn"
+                @change="changeColumn"
+              >
                 <a-row v-for="item in checkboxList" :key="item.value">
                   <a-col :span="24">
                     <a-checkbox :value="item.value">
@@ -144,36 +305,78 @@
       <template v-slot:data>
         <div style="width: 100%; position: absolute">
           <a-config-provider :locale="locale">
-            <a-table bordered class="ant-table-striped" ref="fileManageTable" :columns="columns"
-              :data-source="dataSource" :row-key="(record) => record.id" :scroll="tableHeight" :pagination="pagination"
-              :loading="loading" :rowClassName="getRowClassName" @resizeColumn="handleResizeColumn" :row-selection="batchSelectFlag
-                ? {
-                  selectedRowKeys: selectedRowKeys,
-                  onChange: onSelectChange,
-                  onSelect: onSelect,
-                  onSelectAll: onSelectAll,
-                  selections: [
-                    { key: 'selectAll', text: '全部选择', onSelect: selectAllEntry },
-                    { key: 'clearAll', text: '取消选择', onSelect: clearAllEntry }
-                  ],
-                } : null" :expandable="{
-                  expandedRowKeys: expandedRowKeys,
-                  onExpandedRowsChange: (expandedRows) => {
-                    this.expandedRowKeys = expandedRows;
-                  },
-                }">
+            <a-table
+              bordered
+              class="ant-table-striped"
+              ref="fileManageTable"
+              :columns="columns"
+              :data-source="dataSource"
+              :row-key="(record) => record.id"
+              :scroll="tableHeight"
+              :pagination="pagination"
+              :loading="loading"
+              :rowClassName="getRowClassName"
+              @resizeColumn="handleResizeColumn"
+              :row-selection="
+                batchSelectFlag
+                  ? {
+                      selectedRowKeys: selectedRowKeys,
+                      onChange: onSelectChange,
+                      onSelect: onSelect,
+                      onSelectAll: onSelectAll,
+                      selections: [
+                        {
+                          key: 'selectAll',
+                          text: '全部选择',
+                          onSelect: selectAllEntry,
+                        },
+                        {
+                          key: 'clearAll',
+                          text: '取消选择',
+                          onSelect: clearAllEntry,
+                        },
+                      ],
+                    }
+                  : null
+              "
+              :expandable="{
+                expandedRowKeys: expandedRowKeys,
+                onExpandedRowsChange: (expandedRows) => {
+                  this.expandedRowKeys = expandedRows;
+                },
+              }"
+            >
               <template #expandIcon="props">
-                <span v-if="props.record.children != null && props.record.children.length > 0">
-                  <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
-                    @click="(e) => { props.onExpand(props.record, e); }">
+                <span
+                  v-if="
+                    props.record.children != null &&
+                    props.record.children.length > 0
+                  "
+                >
+                  <div
+                    v-if="props.expanded"
+                    style="display: inline-block; margin-right: 10px"
+                    @click="
+                      (e) => {
+                        props.onExpand(props.record, e);
+                      }
+                    "
+                  >
                     <CaretDownOutlined />
                   </div>
-                  <div v-else style="display: inline-block; margin-right: 10px"
-                    @click="(e) => { props.onExpand(props.record, e); }">
+                  <div
+                    v-else
+                    style="display: inline-block; margin-right: 10px"
+                    @click="
+                      (e) => {
+                        props.onExpand(props.record, e);
+                      }
+                    "
+                  >
                     <CaretRightOutlined />
                   </div>
                 </span>
-                <span v-else style="margin-right:23px"></span>
+                <span v-else style="margin-right: 23px"></span>
               </template>
             </a-table>
           </a-config-provider>
@@ -181,21 +384,59 @@
       </template>
     </DataBox>
 
-    <SelectCols v-model:visible="filterModal.visible" :loading="loading" :columns="columns"
-      @confirm="handleDeduplicateConfirm" />
-    <BackFillModal modalTitle="去重回填" :visible="importBackfillVisible" :translateTypes="translateTypes"
-      :needRelationFile="true" :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose"
-      @handleOK="handleImportBackfillOK" />
+    <SelectCols
+      v-model:visible="filterModal.visible"
+      :loading="loading"
+      :columns="columns"
+      @confirm="handleDeduplicateConfirm"
+    />
+    <BackFillModal
+      modalTitle="去重回填"
+      :visible="importBackfillVisible"
+      :translateTypes="translateTypes"
+      :needRelationFile="true"
+      :defaultAccept="'.csv'"
+      @handleClose="handleImportBackfillClose"
+      @handleOK="handleImportBackfillOK"
+    />
     <!-- <BackFillModal_v2 modalTitle="去重回填 2.0" :visible="importBackfillVisible_v2" :translateTypes="translateTypes"
       :needRelationFile="true" :defaultAccept="'.csv'" :functionMode="'updateTranslation'"
       @handleClose="handleImportBackfillClose_v2" @handleOK="handleImportBackfillOK_v2" /> -->
-    <BackFillModal_v2_5 modalTitle="去重回填" :visible="importBackfillVisible_v2_5" :needRelationFile="true"
-      :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v2_5" @handleOK="handleImportBackfillOK_v2_5" />
-    <BackFillModal_v1_5 modalTitle="去重回填 v1.5" :visible="importBackfillVisible_v1_5" :needRelationFile="true"
-      :defaultAccept="'.csv'" @handleClose="handleImportBackfillClose_v1_5" @handleOK="handleImportBackfillOK_v1_5" />
-    <ExportButton ref="exportButtonRef" :dataSource="deduplicatedDataSource" :fieldOptions_="exportFieldOptions"
-      size="middle" buttonTitle="导出去重数据" :defaultStatusCheck="false" fileNamePrefix="去重文件（去重后，送翻前）_" :hideButton="true"
-      @afterClose="handleExportAfterClose" />
+    <BackFillModal_v3
+      modalTitle="去重回填(异步)"
+      :visible="importBackfillVisible_v3"
+      :needRelationFile="true"
+      :defaultAccept="'.csv'"
+      @handleClose="handleImportBackfillClose_v3"
+      @handleOK="handleImportBackfillOK_v3"
+    />
+    <BackFillModal_v2_5
+      modalTitle="去重回填"
+      :visible="importBackfillVisible_v2_5"
+      :needRelationFile="true"
+      :defaultAccept="'.csv'"
+      @handleClose="handleImportBackfillClose_v2_5"
+      @handleOK="handleImportBackfillOK_v2_5"
+    />
+    <BackFillModal_v1_5
+      modalTitle="去重回填 v1.5"
+      :visible="importBackfillVisible_v1_5"
+      :needRelationFile="true"
+      :defaultAccept="'.csv'"
+      @handleClose="handleImportBackfillClose_v1_5"
+      @handleOK="handleImportBackfillOK_v1_5"
+    />
+    <ExportButton
+      ref="exportButtonRef"
+      :dataSource="deduplicatedDataSource"
+      :fieldOptions_="exportFieldOptions"
+      size="middle"
+      buttonTitle="导出去重数据"
+      :defaultStatusCheck="false"
+      fileNamePrefix="去重文件（去重后，送翻前）_"
+      :hideButton="true"
+      @afterClose="handleExportAfterClose"
+    />
   </div>
 </template>
 <script>
@@ -214,6 +455,7 @@ import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
 import BackFillModal_v2_5 from "@/components/Button/fileManage/backFill/modal_v2.5.vue";
 import BackFillModal_v1_5 from "@/components/Button/fileManage/backFill/modal_v1.5.vue";
+import BackFillModal_v3 from "@/components/Button/fileManage/backFill/modal_v3.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import {
   ExportOutlined,
@@ -260,6 +502,7 @@ export default {
     SelectCols,
     BackFillModal,
     BackFillModal_v2_5,
+    BackFillModal_v3,
     BackFillModal_v2,
     BackFillModal_v1_5,
     ExportButton,
@@ -274,6 +517,7 @@ export default {
       "searchCondition-fileManage"
     );
     return {
+      admin: false,
       locale: zhCN,
       labelCol: { style: { width: "84px" } },
       search: {
@@ -415,6 +659,7 @@ export default {
       importBackfillVisible_v2_5: false,
       importBackfillVisible_v2: false,
       importBackfillVisible_v1_5: false,
+      importBackfillVisible_v3: false,
       deduplicatedDataSource: [], // 存储去重后的数据，用于导出
       filterModal: {
         visible: false,
@@ -422,19 +667,19 @@ export default {
       },
       // 导出去重数据时可选的字段
       exportFieldOptions: entryParams.exportFields,
-      expandedRowKeys: [],// 存储当前所有展开行的key值。当某一行展开时，它的key会被添加到这个数组中；折叠时则会被移除。
-      searchConditionList: entryParams.searchConditionList,// 展示的查询条件框
+      expandedRowKeys: [], // 存储当前所有展开行的key值。当某一行展开时，它的key会被添加到这个数组中；折叠时则会被移除。
+      searchConditionList: entryParams.searchConditionList, // 展示的查询条件框
       checkedSearchCondition: cachedSearchCondition
         ? JSON.parse(cachedSearchCondition).displayColumn.split(",")
         : entryParams.checkedSearchCondition, // (可选)显示的查询条件框
-      translateTypes: [],// 获取翻译语种
+      translateTypes: [], // 获取翻译语种
       // entrySourceOptions: [], // 词条来源下拉框
       // diFileNameOptions: [], // 辞典名称下拉框
       // entrySourceOptions_copy: [], // 词条来源下拉框
       // diFileNameOptions_copy: [], // 辞典名称下拉框
       showForbbiden: false, // 显示/隐藏禁用
-      excludedCols: ['id', 'index', 'entry', 'operation'],// 无须比较的列, 'index', 'entry', 'operation'
-      requiredCols: ['index', 'entry', 'operation'],// 必须添加的列
+      excludedCols: ["id", "index", "entry", "operation"], // 无须比较的列, 'index', 'entry', 'operation'
+      requiredCols: ["index", "entry", "operation"], // 必须添加的列
     };
   },
   watch: {
@@ -511,7 +756,7 @@ export default {
       );
     },
     hasDevPermission() {
-      return this.$currentDepartment?.ops?.has('dev') || false;
+      return this.$currentDepartment?.ops?.has("dev") || false;
     },
     init() {
       this.reset();
@@ -558,6 +803,19 @@ export default {
     handleImportBackfillOK() {
       this.init();
       this.handleImportBackfillClose();
+    },
+    // ===================去重回填模态框 (v3版本)================================
+    // 打开去重回填模态框 (v3版本)
+    showImportBackfillModal_v3() {
+      this.importBackfillVisible_v3 = true;
+      setModalAriaHidden(this, document);
+    },
+    handleImportBackfillClose_v3() {
+      this.importBackfillVisible_v3 = false;
+    },
+    handleImportBackfillOK_v3() {
+      this.init();
+      this.handleImportBackfillClose_v3();
     },
     // ===================去重回填模态框 (v2.5版本)================================
     // 打开去重回填模态框 (v2.5版本)
@@ -633,7 +891,7 @@ export default {
         this.loading = false;
       };
       reader.readAsText(file);
-      return false;// 在文件开始上传之前阻止文件上传操作
+      return false; // 在文件开始上传之前阻止文件上传操作
     },
     // ==============去重按钮点击事件======================
     handleDeduplicateExport() {
@@ -659,7 +917,7 @@ export default {
       try {
         const data = this.dataSource;
         const params = {
-          attributes: this.filterModal.duplicateCols
+          attributes: this.filterModal.duplicateCols,
         };
 
         const res = await exportDeduplicatedData(params, data);
@@ -691,11 +949,11 @@ export default {
     },
     exportIdMap(idMap) {
       const jsonString = JSON.stringify(idMap, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
+      const blob = new Blob([jsonString], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = '去重映射.json';
+      link.download = "去重映射.json";
       link.click();
       URL.revokeObjectURL(url);
     },
@@ -718,7 +976,9 @@ export default {
         this.deleteLoading = false;
         return;
       }
-      this.dataSource = this.dataSource.filter(item => !this.selectedRowKeys.includes(item.id));
+      this.dataSource = this.dataSource.filter(
+        (item) => !this.selectedRowKeys.includes(item.id)
+      );
       this.clearAllEntry();
       this.deleteLoading = false;
       this.batchSelectFlag = false;

@@ -12,7 +12,7 @@
 
 <script>
 export default {
-  name: "TextareaIME",
+  name: "TextAreaIME",
   props: {
     // v-model:value 绑定的值
     value: {

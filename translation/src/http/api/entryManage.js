@@ -5,6 +5,9 @@ import {
   entryImportExcle_v2 as entryImportExcle_v2_mock,
   entryValidate_v2 as entryValidate_v2_mock,
   createEntrysourceListByClassfyTaskMock, // Import the new mock
+  asyncEntryImportExcle as asyncEntryImportExcle_mock,
+  getEntryImportExcleTaskState as getEntryImportExcleTaskState_mock,
+  getEntryImportExcleTaskStateResult as getEntryImportExcleTaskStateResult_mock,
 } from "./mock/entryManage";
 
 // 查询分类中新增的词条来源
@@ -253,6 +256,20 @@ export function entryImportExcle(params, data) {
   });
 }
 
+// 更新翻译（v3 异步版本，仅翻译字段）
+// 后端接口：/entryInfo/asyncEntryImportExcle
+// 语义：仅负责“提交任务”，不直接返回失败词条结果
+export function asyncEntryImportExcle(params, data) {
+  return requestMultipart({
+    url: "/entryInfo/asyncEntryImportExcle",
+    // // 临时直接指向 Apifox 本地 Mock 接口
+    // url: "http://127.0.0.1:4523/m1/5916202-5603218-default/entryInfo/asyncEntryImportExcle",
+    method: "POST",
+    params,
+    data,
+  });
+}
+
 // 更新翻译 (v2版本 - 新API)
 // 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
 export function entryImportExcle_v2(params, data) {
@@ -282,6 +299,31 @@ export function entryValidate_v2(params, data) {
     method: "POST",
     params: { ...params, mockType: undefined }, // 移除 mockType 参数
     data,
+  });
+}
+
+// ==================== entryImportExcle 异步任务查询相关（v3） ====================
+
+// 查询当前用户在指定语种下的更新任务状态
+// 后端根据 header 中的 token + transType 维度维护任务状态
+export function getEntryImportExcleTaskState(params) {
+  return request({
+    url: "/backendInfo/getEntryImportExcleTaskState",
+    // // 临时直接指向 Apifox 本地 Mock 接口
+    // url: "http://127.0.0.1:4523/m1/5916202-5603218-default/backendInfo/getEntryImportExcleTaskState",
+    method: "POST",
+    params,
+  });
+}
+
+// 查询当前用户在指定语种下的更新任务结果
+export function getEntryImportExcleTaskStateResult(params) {
+  return request({
+    url: "/backendInfo/getEntryImportExcleTaskStateResult",
+    // // 临时直接指向 Apifox 本地 Mock 接口
+    // url: "http://127.0.0.1:4523/m1/5916202-5603218-default/backendInfo/getEntryImportExcleTaskStateResult",
+    method: "POST",
+    params,
   });
 }
 

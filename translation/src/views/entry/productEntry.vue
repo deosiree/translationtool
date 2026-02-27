@@ -399,6 +399,20 @@
             :defaultAccept="'.csv'"
             @importSuccess="refreshTable"
           />
+          <BackFillModal_v3
+            v-if="
+              admin &&
+              $currentDepartment &&
+              $currentDepartment.ops.has('needIP')
+            "
+            mode="button"
+            buttonTitle="更新翻译(异步)"
+            modalTitle="更新翻译(异步)"
+            size="small"
+            :showFileTypeSelect="true"
+            :defaultAccept="'.csv'"
+            @importSuccess="refreshTable"
+          />
 
           <a-popover
             trigger="click"
@@ -877,6 +891,7 @@ import OperationArea from "@/components/operationArea/index.vue";
 import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import BackFillModal_v2 from "@/components/Button/fileManage/backFill/modal_v2.vue";
 import BackFillModal_v2_5 from "@/components/Button/fileManage/backFill/modal_v2.5.vue";
+import BackFillModal_v3 from "@/components/Button/fileManage/backFill/modal_v3.vue";
 import AccurSearchButton from "@/components/Button/accurSearchButton.vue";
 import GitCommitButton from "@/components/Button/gitCommitButton.vue";
 import EntryStateSelect from "@/components/select/entryStateSelect.vue";
@@ -946,6 +961,7 @@ import {
   setTableHeight,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
+import { normalizeEditableRow } from "@/utils/dataUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import {
   byteLength,
@@ -965,6 +981,7 @@ export default {
     BackFillModal,
     BackFillModal_v2,
     BackFillModal_v2_5,
+    BackFillModal_v3,
     AccurSearchButton,
     GitCommitButton,
     EntryStateSelect,
@@ -1785,8 +1802,8 @@ export default {
             return;
           }
           if (this.edit) {
-            this.editableData[record.id] = cloneDeep(
-              this.dataSource.find((item) => record.id === item.id)
+            this.editableData[record.id] = normalizeEditableRow(
+              cloneDeep(this.dataSource.find((item) => record.id === item.id))
             );
             console.log(
               "this.editableData[record.id]",
@@ -2395,7 +2412,7 @@ export default {
         this.dataSource.push(newData);
       }
 
-      this.editableData[newData.id] = newData;
+      this.editableData[newData.id] = normalizeEditableRow(newData);
       // 获取二级分类数据
       this.getRowClassify2Option(newData);
       // 滚动到最底部
@@ -2432,7 +2449,7 @@ export default {
 
       let index = this.dataSource.indexOf(entry);
       this.dataSource.splice(index + 1, 0, copyEntry);
-      this.editableData[copyEntry.id] = copyEntry;
+      this.editableData[copyEntry.id] = normalizeEditableRow(copyEntry);
       this.getRowClassify2Option(copyEntry);
     },
     // 获取一级分类

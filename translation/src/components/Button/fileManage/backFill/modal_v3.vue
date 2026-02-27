@@ -1,100 +1,215 @@
 <template>
-  <a-button v-if="mode === 'button'" type="primary" @click="handleButtonClick" :size="size">
+  <a-button
+    v-if="mode === 'button'"
+    type="primary"
+    @click="handleButtonClick"
+    :size="size"
+  >
     {{ buttonTitle }}
   </a-button>
 
-  <CustomModal :visible="internalVisible" :okLoading="loading" :modalTitle="modalTitle" @handleClose="handleClose"
-    @handleOK="handleOK" style="width: 800px;">
+  <CustomModal
+    :visible="internalVisible"
+    :okLoading="loading"
+    :modalTitle="modalTitle"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    style="width: 800px"
+  >
     <div class="content">
       <a-form ref="backFillForm" :model="formModel">
         <!-- 共同部分：文件类型 -->
-        <a-form-item v-if="showFileTypeSelect" label="文件类型" name="importType"
-          :rules="[{ required: true, message: '请选择!' }]">
-          <a-select v-model:value="formModel.importType" placeholder="请选择文件类型" :options='importTypes' allowClear>
+        <a-form-item
+          v-if="showFileTypeSelect"
+          label="文件类型"
+          name="importType"
+          :rules="[{ required: true, message: '请选择!' }]"
+        >
+          <a-select
+            v-model:value="formModel.importType"
+            placeholder="请选择文件类型"
+            :options="importTypes"
+            allowClear
+          >
           </a-select>
         </a-form-item>
 
         <!-- 共同部分：回填字段（回填字段） -->
-        <a-form-item :label="needRelationFile ? '回填字段' : '更新字段'" name="backfillFields"
-          :rules="[{ required: true, message: '请选择!' }]">
-          <div style="display: flex; justify-content: space-between;">
-            <a-select mode="multiple" v-model:value="formModel.backfillFields" :options="fieldOptions"
-              placeholder="请选择回填字段" allowClear style="flex: 1; margin-right: 8px;" />
-            <a-button type="link" size="small" @click="selectAllBackfillFields" style="
-              font-size: smaller;margin-top:0">全选</a-button>
+        <a-form-item
+          :label="needRelationFile ? '回填字段' : '更新字段'"
+          name="backfillFields"
+          :rules="[{ required: true, message: '请选择!' }]"
+        >
+          <div style="display: flex; justify-content: space-between">
+            <a-select
+              mode="multiple"
+              v-model:value="formModel.backfillFields"
+              :options="languageOptions"
+              :fieldNames="{ label: 'name', value: 'value' }"
+              placeholder="请选择回填字段"
+              allowClear
+              style="flex: 1; margin-right: 8px"
+            />
+            <a-button
+              type="link"
+              size="small"
+              @click="selectAllBackfillFields"
+              style="font-size: smaller; margin-top: 0"
+              >全选</a-button
+            >
           </div>
         </a-form-item>
 
         <!-- 校验模式专用：去重后送翻前文件（只有校验时才需要，用于和去重后送翻后文件+映射文件生成的总文件比较） -->
-        <a-form-item v-if="formModel.enableValidate" :label="needRelationFile ? '去重文件（去重后，送翻前）' : '原始文件'"
-          name="dedupOriginExcel" :rules="[{ required: true, validator: validatededupOriginExcel }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="backFillAccept" :max-count="1"
-            :fileList="formModel.dedupOriginExcelList" @change="handlededupOriginExcelUpload"
-            @remove="removededupOriginExcel">
-            <a-button type="primary" size="small" @click="handlededupOriginExcelChooseClick">选择</a-button>
+        <a-form-item
+          v-if="formModel.enableValidate"
+          :label="needRelationFile ? '去重文件（去重后，送翻前）' : '原始文件'"
+          name="dedupOriginExcel"
+          :rules="[{ required: true, validator: validatededupOriginExcel }]"
+        >
+          <a-upload
+            name="file"
+            :beforeUpload="beforeUpload"
+            :accept="backFillAccept"
+            :max-count="1"
+            :fileList="formModel.dedupOriginExcelList"
+            @change="handlededupOriginExcelUpload"
+            @remove="removededupOriginExcel"
+          >
+            <a-button
+              type="primary"
+              size="small"
+              @click="handlededupOriginExcelChooseClick"
+              >选择</a-button
+            >
           </a-upload>
         </a-form-item>
 
         <!-- 共同部分：去重后送翻后文件（待回填文件） -->
-        <a-form-item :label="needRelationFile ? '回填文件（去重后，送翻后）' : '更新文件'" name="dedupUpdateExcel"
-          :rules="[{ required: true, validator: validateBackFillFile }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="backFillAccept" :max-count="1"
-            :fileList="formModel.backFillFileList" @change="handleBackFillUpload" @remove="removeBackFillFile">
-            <a-button type="primary" size="small" @click="handleBackFillChooseClick">选择</a-button>
+        <a-form-item
+          :label="needRelationFile ? '回填文件（去重后，送翻后）' : '更新文件'"
+          name="dedupUpdateExcel"
+          :rules="[{ required: true, validator: validateBackFillFile }]"
+        >
+          <a-upload
+            name="file"
+            :beforeUpload="beforeUpload"
+            :accept="backFillAccept"
+            :max-count="1"
+            :fileList="formModel.backFillFileList"
+            @change="handleBackFillUpload"
+            @remove="removeBackFillFile"
+          >
+            <a-button
+              type="primary"
+              size="small"
+              @click="handleBackFillChooseClick"
+              >选择</a-button
+            >
           </a-upload>
         </a-form-item>
 
         <!-- 共同部分：词条映射 -->
-        <a-form-item v-if="needRelationFile" label="词条映射" name="relationFile"
-          :rules="[{ required: true, validator: validateIdMappingFile }]">
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="idMappingAccept" :max-count="1"
-            :fileList="formModel.relationFileList" @change="handleIdMappingUpload" @remove="removeIdMappingFile">
-            <a-button type="primary" size="small">
-              选择
-            </a-button>
+        <a-form-item
+          v-if="needRelationFile"
+          label="词条映射"
+          name="relationFile"
+          :rules="[{ required: true, validator: validateIdMappingFile }]"
+        >
+          <a-upload
+            name="file"
+            :beforeUpload="beforeUpload"
+            :accept="idMappingAccept"
+            :max-count="1"
+            :fileList="formModel.relationFileList"
+            @change="handleIdMappingUpload"
+            @remove="removeIdMappingFile"
+          >
+            <a-button type="primary" size="small"> 选择 </a-button>
           </a-upload>
         </a-form-item>
 
         <!-- 共同部分：勾选框（flex布局，尽量一行，摆不下自动换行） -->
         <a-form-item label="选项">
-          <a-row style="width:100%;display:flex;gap:8px;flex-wrap:wrap;">
-            <a-checkbox v-model:checked="formModel.enableValidate">校验</a-checkbox>
+          <a-row style="width: 100%; display: flex; gap: 8px; flex-wrap: wrap">
+            <a-checkbox v-model:checked="formModel.enableValidate"
+              >校验</a-checkbox
+            >
             <!-- 待开发：导入空值 -->
             <!-- <a-checkbox v-model:checked="formModel.emptyStringAsValue">导入空值</a-checkbox> -->
-            <a-checkbox v-model:checked="formModel.failFast">失败中止</a-checkbox>
+            <a-checkbox v-model:checked="formModel.failFast"
+              >失败中止</a-checkbox
+            >
           </a-row>
         </a-form-item>
 
         <!-- 校验模式专用：勾选了"校验"后才显示 -->
         <template v-if="formModel.enableValidate">
           <!-- 校验字段 -->
-          <a-form-item label="校验字段" name="checkFields"
-            :rules="formModel.enableValidate ? [{ required: true, message: '请选择!' }] : []">
-            <div style="display: flex; justify-content: space-between;">
-              <a-select mode="multiple" v-model:value="formModel.checkFields" :options="checkFieldOptions"
-                placeholder="请选择校验字段" allowClear />
-              <a-button type="link" size="small" @click="selectAllCheckFields" style="
-              font-size: smaller;margin-top:0">全选</a-button>
+          <a-form-item
+            label="校验字段"
+            name="checkFields"
+            :rules="
+              formModel.enableValidate
+                ? [{ required: true, message: '请选择!' }]
+                : []
+            "
+          >
+            <div style="display: flex; justify-content: space-between">
+              <a-select
+                mode="multiple"
+                v-model:value="formModel.checkFields"
+                :options="checkFieldOptions"
+                placeholder="请选择校验字段"
+                allowClear
+              />
+              <a-button
+                type="link"
+                size="small"
+                @click="selectAllCheckFields"
+                style="font-size: smaller; margin-top: 0"
+                >全选</a-button
+              >
             </div>
           </a-form-item>
 
           <!-- 校验选项勾选框（flex布局，尽量一行，摆不下自动换行） -->
           <a-form-item label="校验选项">
-            <a-row style="width:100%;display:flex;gap:8px;flex-wrap:wrap;">
-              <a-checkbox v-model:checked="formModel.checkSpecialChar">特殊字符校验</a-checkbox>
-              <a-checkbox v-model:checked="formModel.checkMaxLength">长度超限校验</a-checkbox>
+            <a-row
+              style="width: 100%; display: flex; gap: 8px; flex-wrap: wrap"
+            >
+              <a-checkbox v-model:checked="formModel.checkSpecialChar"
+                >特殊字符校验</a-checkbox
+              >
+              <a-checkbox v-model:checked="formModel.checkMaxLength"
+                >长度超限校验</a-checkbox
+              >
             </a-row>
           </a-form-item>
 
           <!-- 校验选项共用：任一规则勾选时展示“翻译列语种” -->
-          <a-form-item v-if="formModel.checkSpecialChar || formModel.checkMaxLength" label="翻译列语种"
-            name="translateAttrs">
-            <div style="display: flex; justify-content: space-between;">
-              <a-select mode="multiple" v-model:value="formModel.translateAttrs" :options="languageOptions"
-                :fieldNames="{ label: 'name', value: 'value' }" placeholder="请选择翻译列语种" allowClear
-                style="flex: 1; margin-right: 8px;" />
-              <a-button type="link" size="small" @click="selectAllValidateTranslateAttrs" style="
-                font-size: smaller;margin-top:0">全选</a-button>
+          <a-form-item
+            v-if="formModel.checkSpecialChar || formModel.checkMaxLength"
+            label="翻译列语种"
+            name="translateAttrs"
+          >
+            <div style="display: flex; justify-content: space-between">
+              <a-select
+                mode="multiple"
+                v-model:value="formModel.translateAttrs"
+                :options="languageOptions"
+                :fieldNames="{ label: 'name', value: 'value' }"
+                placeholder="请选择翻译列语种"
+                allowClear
+                style="flex: 1; margin-right: 8px"
+              />
+              <a-button
+                type="link"
+                size="small"
+                @click="selectAllValidateTranslateAttrs"
+                style="font-size: smaller; margin-top: 0"
+                >全选</a-button
+              >
             </div>
           </a-form-item>
         </template>
@@ -103,31 +218,65 @@
   </CustomModal>
 
   <!-- 校验结果模态框 -->
-  <CustomModal :visible="validationVisible" modalTitle="校验结果" :showOk="false" @handleClose="validationClose">
+  <CustomModal
+    :visible="validationVisible"
+    modalTitle="校验结果"
+    :showOk="false"
+    @handleClose="validationClose"
+  >
     <div class="validation-content">
       <!-- 显示校验通过提示 -->
-      <div v-if="isValidationSuccess" style="margin-bottom: 16px;">
-        <a-alert message="校验通过" type="success" show-icon description="所有校验项目均通过，可以继续回填" />
+      <div v-if="isValidationSuccess" style="margin-bottom: 16px">
+        <a-alert
+          message="校验通过"
+          type="success"
+          show-icon
+          description="所有校验项目均通过，可以继续回填"
+        />
       </div>
 
       <!-- 显示summary信息 -->
-      <div v-if="validation.summary" style="margin-bottom: 16px;">
+      <div v-if="validation.summary" style="margin-bottom: 16px">
         <a-descriptions :column="2" bordered size="small">
-          <a-descriptions-item label="去重前行数">{{ validation.summary.totalOriginRows || 0 }}</a-descriptions-item>
-          <a-descriptions-item label="去重后行数">{{ validation.summary.totalDedupRows || 0 }}</a-descriptions-item>
-          <a-descriptions-item label="受影响行数">{{ validation.summary.affectedRows || 0 }}</a-descriptions-item>
-          <a-descriptions-item label="将更新单元格数">{{ validation.summary.willUpdateCells || 0 }}</a-descriptions-item>
+          <a-descriptions-item label="去重前行数">{{
+            validation.summary.totalOriginRows || 0
+          }}</a-descriptions-item>
+          <a-descriptions-item label="去重后行数">{{
+            validation.summary.totalDedupRows || 0
+          }}</a-descriptions-item>
+          <a-descriptions-item label="受影响行数">{{
+            validation.summary.affectedRows || 0
+          }}</a-descriptions-item>
+          <a-descriptions-item label="将更新单元格数">{{
+            validation.summary.willUpdateCells || 0
+          }}</a-descriptions-item>
         </a-descriptions>
       </div>
 
       <!-- 显示issues列表 -->
-      <div v-if="validation.issues && validation.issues.length > 0" style="margin-bottom: 16px;">
-        <div style="margin-bottom: 8px; font-weight: 500;">校验问题列表：</div>
-        <a-table :columns="issueColumns" :dataSource="validation.issues" :pagination="{ pageSize: 10 }" size="small"
-          :scroll="{ y: 200 }">
+      <div
+        v-if="validation.issues && validation.issues.length > 0"
+        style="margin-bottom: 16px"
+      >
+        <div style="margin-bottom: 8px; font-weight: 500">校验问题列表：</div>
+        <a-table
+          :columns="issueColumns"
+          :dataSource="validation.issues"
+          :pagination="{ pageSize: 10 }"
+          size="small"
+          :scroll="{ y: 200 }"
+        >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'level'">
-              <a-tag :color="record.level === 'FATAL' ? 'red' : record.level === 'WARN' ? 'orange' : 'blue'">
+              <a-tag
+                :color="
+                  record.level === 'FATAL'
+                    ? 'red'
+                    : record.level === 'WARN'
+                    ? 'orange'
+                    : 'blue'
+                "
+              >
                 {{ record.level }}
               </a-tag>
             </template>
@@ -136,60 +285,129 @@
       </div>
 
       <!-- 显示attachments下载 -->
-      <div v-if="hasValidationInfo" style="margin-bottom: 16px;">
+      <div v-if="hasValidationInfo" style="margin-bottom: 16px">
         <div>
-          <span style="margin-right: 8px;">异常信息（全部）：</span>
-          <a-button type="link"
-            @click="downloadAttachment(validation.attachments.issueLog.downloadUrl, validation.attachments.issueLog.fileName)">下载</a-button>
+          <span style="margin-right: 8px">异常信息（全部）：</span>
+          <a-button
+            type="link"
+            @click="
+              downloadAttachment(
+                validation.attachments.issueLog.downloadUrl,
+                validation.attachments.issueLog.fileName
+              )
+            "
+            >下载</a-button
+          >
         </div>
-        <div v-if="validation.attachments.invalidExcel && validation.attachments.invalidExcel.downloadUrl"
-          style="margin-bottom: 8px;">
-          <span style="margin-right: 8px;">失败词条（部分）：</span>
-          <a-button type="link"
-            @click="downloadAttachment(validation.attachments.invalidExcel.downloadUrl, validation.attachments.invalidExcel.fileName)">下载</a-button>
+        <div
+          v-if="
+            validation.attachments.invalidExcel &&
+            validation.attachments.invalidExcel.downloadUrl
+          "
+          style="margin-bottom: 8px"
+        >
+          <span style="margin-right: 8px">失败词条（部分）：</span>
+          <a-button
+            type="link"
+            @click="
+              downloadAttachment(
+                validation.attachments.invalidExcel.downloadUrl,
+                validation.attachments.invalidExcel.fileName
+              )
+            "
+            >下载</a-button
+          >
         </div>
       </div>
     </div>
     <template #leftBottomBtn>
-      <a-button v-if="validation.canBackFill" type="primary" :loading="loading" @click="handleContinueBackFill">
+      <a-button
+        v-if="validation.canBackFill"
+        type="primary"
+        :loading="loading"
+        @click="handleContinueBackFill"
+      >
         继续回填
       </a-button>
     </template>
   </CustomModal>
 
   <!-- 更新结果模态框 -->
-  <CustomModal :visible="updateVisible && hasUpdateResult" modalTitle="更新结果" :showOk="false" @handleClose="updateClose">
+  <CustomModal
+    :visible="updateVisible && hasUpdateResult"
+    modalTitle="更新结果"
+    :showOk="false"
+    @handleClose="updateClose"
+  >
     <div class="update-content">
       <!-- 多个语种时显示tab页（翻译更新接口） -->
-      <template v-if="showUpdateTabs && detailsByLang && Object.keys(detailsByLang).length > 0">
-        <a-tabs v-model:activeKey="activeFailedLangTab" type="card" class="failure-tabs">
+      <template
+        v-if="
+          showUpdateTabs &&
+          detailsByLang &&
+          Object.keys(detailsByLang).length > 0
+        "
+      >
+        <a-tabs
+          v-model:activeKey="activeFailedLangTab"
+          type="card"
+          class="failure-tabs"
+        >
           <!-- <a-tabs v-if="showUpdateTabs && detailsByLang && Object.keys(detailsByLang).length > 0" v-model:activeKey="activeFailedLangTab"
         type="card" class="failure-tabs"> -->
           <a-tab-pane v-for="(detail, langKey) in detailsByLang" :key="langKey">
             <template #tab>
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <span :style="{ color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
+              <span style="display: inline-flex; align-items: center; gap: 6px">
+                <span
+                  :style="{
+                    color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f',
+                    fontWeight: 500,
+                  }"
+                >
                   {{ langKey }}
                 </span>
               </span>
             </template>
             <!-- 更新结果的globalMessage -->
-            <div v-if="detail.globalMessage"
-              :style="{ marginBottom: '16px', color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
-              <a-alert :description="detail.globalMessage" :type="(detail.code || 201) === 200 ? 'success' : 'error'"
-                show-icon />
+            <div
+              v-if="detail.globalMessage"
+              :style="{
+                marginBottom: '16px',
+                color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f',
+                fontWeight: 500,
+              }"
+            >
+              <a-alert
+                :description="detail.globalMessage"
+                :type="(detail.code || 201) === 200 ? 'success' : 'error'"
+                show-icon
+              />
             </div>
             <!-- 更新结果的错误信息下载 -->
-            <a-card class="failure-lang-card"
-              v-if="(detail.code || 201) === 201 && (detail.exceptionVos && detail.exceptionVos.length > 0)"
-              :bordered="true">
+            <a-card
+              class="failure-lang-card"
+              v-if="
+                (detail.code || 201) === 201 &&
+                detail.exceptionVos &&
+                detail.exceptionVos.length > 0
+              "
+              :bordered="true"
+            >
               <template #title>
                 <div class="failure-card-title">
                   <exclamation-circle-outlined class="failure-icon" />
                   <span class="lang-name">{{ langKey }}</span>
-                  <a-badge :count="(detail.failedEntryInfos?.length || 0) + (detail.exceptionVos?.length || 0)"
-                    :number-style="{ backgroundColor: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f' }"
-                    :overflow-count="999" />
+                  <a-badge
+                    :count="
+                      (detail.failedEntryInfos?.length || 0) +
+                      (detail.exceptionVos?.length || 0)
+                    "
+                    :number-style="{
+                      backgroundColor:
+                        (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f',
+                    }"
+                    :overflow-count="999"
+                  />
                 </div>
               </template>
 
@@ -198,20 +416,40 @@
                   <div class="failure-label">
                     <warning-outlined class="item-icon" />
                     <span>异常信息（全部）</span>
-                    <a-tag color="warning" style="margin-left: 8px;">{{ detail.exceptionVos.length }} 条</a-tag>
+                    <a-tag color="warning" style="margin-left: 8px"
+                      >{{ detail.exceptionVos.length }} 条</a-tag
+                    >
                   </div>
-                  <a-button type="primary" size="small" danger @click="downloadExceptionInfosByLang(langKey)">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    danger
+                    @click="downloadExceptionInfosByLang(langKey)"
+                  >
                     <template #icon><download-outlined /></template>
                     下载
                   </a-button>
                 </div>
-                <div v-if="detail.failedEntryInfos && detail.failedEntryInfos.length > 0" class="failure-item">
+                <div
+                  v-if="
+                    detail.failedEntryInfos &&
+                    detail.failedEntryInfos.length > 0
+                  "
+                  class="failure-item"
+                >
                   <div class="failure-label">
                     <file-excel-outlined class="item-icon" />
                     <span>失败词条（部分）</span>
-                    <a-tag color="error" style="margin-left: 8px;">{{ detail.failedEntryInfos.length }} 条</a-tag>
+                    <a-tag color="error" style="margin-left: 8px"
+                      >{{ detail.failedEntryInfos.length }} 条</a-tag
+                    >
                   </div>
-                  <a-button type="primary" size="small" danger @click="downloadFailedEntriesByLang(langKey)">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    danger
+                    @click="downloadFailedEntriesByLang(langKey)"
+                  >
                     <template #icon><download-outlined /></template>
                     下载
                   </a-button>
@@ -222,23 +460,52 @@
         </a-tabs>
       </template>
       <!-- 单个结果时不显示tab页，直接显示内容（通用更新接口） -->
-      <template v-else-if="!showUpdateTabs && detailsByLang && Object.keys(detailsByLang).length > 0">
+      <template
+        v-else-if="
+          !showUpdateTabs &&
+          detailsByLang &&
+          Object.keys(detailsByLang).length > 0
+        "
+      >
         <div v-for="(detail, langKey) in detailsByLang" :key="langKey">
-          <div v-if="detail.globalMessage"
-            :style="{ marginBottom: '16px', color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f', fontWeight: 500 }">
-            <a-alert :description="detail.globalMessage" :type="(detail.code || 201) === 200 ? 'success' : 'error'"
-              show-icon />
+          <div
+            v-if="detail.globalMessage"
+            :style="{
+              marginBottom: '16px',
+              color: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f',
+              fontWeight: 500,
+            }"
+          >
+            <a-alert
+              :description="detail.globalMessage"
+              :type="(detail.code || 201) === 200 ? 'success' : 'error'"
+              show-icon
+            />
           </div>
-          <a-card class="failure-lang-card"
-            v-if="(detail.code || 201) === 201 && (detail.exceptionVos && detail.exceptionVos?.length > 0)"
-            :bordered="true">
+          <a-card
+            class="failure-lang-card"
+            v-if="
+              (detail.code || 201) === 201 &&
+              detail.exceptionVos &&
+              detail.exceptionVos?.length > 0
+            "
+            :bordered="true"
+          >
             <template #title>
               <div class="failure-card-title">
                 <exclamation-circle-outlined class="failure-icon" />
                 <span class="lang-name">{{ langKey }}</span>
-                <a-badge :count="(detail.failedEntryInfos?.length || 0) + (detail.exceptionVos?.length || 0)"
-                  :number-style="{ backgroundColor: (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f' }"
-                  :overflow-count="999" />
+                <a-badge
+                  :count="
+                    (detail.failedEntryInfos?.length || 0) +
+                    (detail.exceptionVos?.length || 0)
+                  "
+                  :number-style="{
+                    backgroundColor:
+                      (detail.code || 201) === 200 ? '#52c41a' : '#ff4d4f',
+                  }"
+                  :overflow-count="999"
+                />
               </div>
             </template>
 
@@ -247,20 +514,39 @@
                 <div class="failure-label">
                   <warning-outlined class="item-icon" />
                   <span>异常信息（全部）</span>
-                  <a-tag color="warning" style="margin-left: 8px;">{{ detail.exceptionVos.length }} 条</a-tag>
+                  <a-tag color="warning" style="margin-left: 8px"
+                    >{{ detail.exceptionVos.length }} 条</a-tag
+                  >
                 </div>
-                <a-button type="primary" size="small" danger @click="downloadExceptionInfosByLang(langKey)">
+                <a-button
+                  type="primary"
+                  size="small"
+                  danger
+                  @click="downloadExceptionInfosByLang(langKey)"
+                >
                   <template #icon><download-outlined /></template>
                   下载
                 </a-button>
               </div>
-              <div v-if="detail.failedEntryInfos && detail.failedEntryInfos.length > 0" class="failure-item">
+              <div
+                v-if="
+                  detail.failedEntryInfos && detail.failedEntryInfos.length > 0
+                "
+                class="failure-item"
+              >
                 <div class="failure-label">
                   <file-excel-outlined class="item-icon" />
                   <span>失败词条（部分）</span>
-                  <a-tag color="error" style="margin-left: 8px;">{{ detail.failedEntryInfos.length }} 条</a-tag>
+                  <a-tag color="error" style="margin-left: 8px"
+                    >{{ detail.failedEntryInfos.length }} 条</a-tag
+                  >
                 </div>
-                <a-button type="primary" size="small" danger @click="downloadFailedEntriesByLang(langKey)">
+                <a-button
+                  type="primary"
+                  size="small"
+                  danger
+                  @click="downloadFailedEntriesByLang(langKey)"
+                >
                   <template #icon><download-outlined /></template>
                   下载
                 </a-button>
@@ -273,9 +559,15 @@
   </CustomModal>
 
   <!-- 隐藏的 ExportButton，用于导出失败词条 -->
-  <ExportButton ref="failedExportRef" :fileNamePrefix="failedExportLang + '更新失败_'" :dataSource="failedExportDataSource"
-    :fieldOptions_="languageOptions" :defaultStatusCheck="false" :hideButton="true"
-    @afterClose="handleFailedExportAfterClose" />
+  <ExportButton
+    ref="failedExportRef"
+    :fileNamePrefix="failedExportLang + '更新失败_'"
+    :dataSource="failedExportDataSource"
+    :fieldOptions_="languageOptions"
+    :defaultStatusCheck="false"
+    :hideButton="true"
+    @afterClose="handleFailedExportAfterClose"
+  />
 </template>
 
 <script>
@@ -284,19 +576,28 @@ import {
   ExclamationCircleOutlined,
   FileExcelOutlined,
   WarningOutlined,
-  DownloadOutlined
-} from '@ant-design/icons-vue';
+  DownloadOutlined,
+} from "@ant-design/icons-vue";
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
-import { entryBatchImportExcel_V1_5, entryValidate_v2, resolveImportTypeFromAccept, updateEntryInfosUnified } from "@/utils/excelUtils";
-import { downloadJsonFile, downloadBlobResponse, handleFileUpload, removeFile } from "@/utils/fileUtils";
+import {
+  entryBatchImportExcel_v3,
+  entryValidate_v2,
+  resolveImportTypeFromAccept,
+} from "@/utils/excelUtils";
+import {
+  downloadJsonFile,
+  downloadBlobResponse,
+  handleFileUpload,
+  removeFile,
+} from "@/utils/fileUtils";
 import { downloadFileFromUrl } from "@/http/api/download";
 import commonParam from "@/constants/commonParam.js";
 import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
 import { handleErrorNotification } from "@/utils/notificationUtils";
 export default {
-  name: "BackFillModal_v2_5",
+  name: "BackFillModal_v3",
   components: {
     CustomModal,
     ExportButton,
@@ -347,21 +648,21 @@ export default {
       formModel: {
         importType: null, // 文件类型（csv/excel）
         relationFile: null,
-        relationFileList: [],// id映射文件
+        relationFileList: [], // id映射文件
         backFillFile: null,
-        backFillFileList: [],// 去重后文件
-        backfillFields: [],// 回填字段
+        backFillFileList: [], // 去重后文件
+        backfillFields: [], // 回填字段
         // 选项勾选框
-        enableValidate: true,    // 校验（勾选后才显示校验相关字段）
-        emptyStringAsValue: false,  // 导入空值
-        failFast: false,          // 失败中止
+        enableValidate: true, // 校验（勾选后才显示校验相关字段）
+        emptyStringAsValue: false, // 导入空值
+        failFast: false, // 失败中止
         // 校验模式专用字段（勾选了enableValidate后才使用）
-        dedupOriginExcel: null,        // 去重后送翻前文件
-        dedupOriginExcelList: [],      // 去重后送翻前文件列表
-        checkFields: [],          // 校验字段（如["entry", "comment", "tag"]）
-        checkSpecialChar: false,  // 特殊字符校验
-        checkMaxLength: false,    // 长度校验
-        translateAttrs: [],// 翻译列语种
+        dedupOriginExcel: null, // 去重后送翻前文件
+        dedupOriginExcelList: [], // 去重后送翻前文件列表
+        checkFields: [], // 校验字段（如["entry", "comment", "tag"]）
+        checkSpecialChar: false, // 特殊字符校验
+        checkMaxLength: false, // 长度校验
+        translateAttrs: [], // 翻译列语种
       },
       loading: false,
       idMappingAccept: ".json",
@@ -369,29 +670,38 @@ export default {
         { label: "csv", value: "csv", accept: ".csv" },
         { label: "excel", value: "excel", accept: ".xls,.xlsx" },
       ],
-      // 更新/回填字段
-      fieldOptions: (entryParams && Array.isArray(entryParams.updateableFields)) ? entryParams.updateableFields : [],
+      // 更新/回填字段（v3 仅支持翻译字段，直接使用翻译语种配置）
+      fieldOptions:
+        commonParam && Array.isArray(commonParam.languageList)
+          ? commonParam.languageList
+          : [],
       // 校验字段
-      checkFieldOptions: (entryParams && Array.isArray(entryParams.validateFields)) ? entryParams.validateFields : [],
+      checkFieldOptions:
+        entryParams && Array.isArray(entryParams.validateFields)
+          ? entryParams.validateFields
+          : [],
       // 翻译列语种（语种名称，来自公共常量,name/value）
-      languageOptions: (commonParam && Array.isArray(commonParam.languageList)) ? commonParam.languageList : [],
+      languageOptions:
+        commonParam && Array.isArray(commonParam.languageList)
+          ? commonParam.languageList
+          : [],
       validationVisible: false, // 控制校验结果模态框显示
       // 校验结果相关状态
       validation: {
-        summary: null,        // 校验摘要信息
-        issues: [],           // 校验问题列表
+        summary: null, // 校验摘要信息
+        issues: [], // 校验问题列表
         attachments: { issueLog: [], invalidExcel: null }, // 校验附件信息
-        canBackFill: false,   // 是否可继续回填
+        canBackFill: false, // 是否可继续回填
       },
       // issues表格列定义
       issueColumns: [
-        { title: '级别', dataIndex: 'level', key: 'level', width: 80 },
-        { title: '描述', dataIndex: 'message', key: 'message', width: 300 },
-        { title: '类型', dataIndex: 'type', key: 'type', width: 150 },
+        { title: "级别", dataIndex: "level", key: "level", width: 80 },
+        { title: "描述", dataIndex: "message", key: "message", width: 300 },
+        { title: "类型", dataIndex: "type", key: "type", width: 150 },
       ],
       updateVisible: false, // 控制更新结果模态框显示
       detailsByLang: {}, // 失败信息相关状态（按语种聚合）{ "英文": { code, globalMessage, failedEntryInfos, exceptionVos } }
-      activeFailedLangTab: '', // 当前激活的失败语种标签
+      activeFailedLangTab: "", // 当前激活的失败语种标签
       failedExportDataSource: [], // 用于导出失败词条的数据源
       failedExportLang: "", // 用于导出失败词条的文件名前缀
       showUpdateTabs: false, // 是否显示tab页（多个语种时显示，单个结果时不显示）
@@ -412,11 +722,19 @@ export default {
     },
     // 判断校验是否完全成功（无任何问题）
     isValidationSuccess() {
-      return this.validation.canBackFill && (!this.validation.issues || this.validation.issues.length === 0);
+      return (
+        this.validation.canBackFill &&
+        (!this.validation.issues || this.validation.issues.length === 0)
+      );
     },
     // 判断校验是否有异常信息
     hasValidationInfo() {
-      return this.validation.attachments && (this.validation.attachments.invalidExcel || (this.validation.attachments.issueLog && this.validation.attachments.issueLog.downloadUrl));
+      return (
+        this.validation.attachments &&
+        (this.validation.attachments.invalidExcel ||
+          (this.validation.attachments.issueLog &&
+            this.validation.attachments.issueLog.downloadUrl))
+      );
     },
   },
   watch: {
@@ -454,7 +772,9 @@ export default {
     "formModel.backfillFields": {
       handler(newValue, oldValue) {
         if (newValue !== oldValue) {
-          const transBackfillFields = newValue.filter(field => commonParam.languageList.some(lang => lang.value === field));
+          const transBackfillFields = newValue.filter((field) =>
+            commonParam.languageList.some((lang) => lang.value === field)
+          );
           this.formModel.translateAttrs = transBackfillFields;
         }
       },
@@ -464,7 +784,10 @@ export default {
   mounted() {
     // 有选择器且传了 defaultAccept：根据 accept 从 importTypes 反查 value，作为默认选中
     if (this.defaultAccept && this.showFileTypeSelect) {
-      const v = resolveImportTypeFromAccept(this.defaultAccept, this.importTypes);
+      const v = resolveImportTypeFromAccept(
+        this.defaultAccept,
+        this.importTypes
+      );
       if (v) this.formModel.importType = v;
     }
     // 同步 visible
@@ -512,8 +835,10 @@ export default {
     },
     resetForm() {
       // 重置 importType：有选择器且传了 defaultAccept 时，根据 accept 反查 value，否则为 null
-      const importType = this.defaultAccept && this.showFileTypeSelect
-        ? resolveImportTypeFromAccept(this.defaultAccept, this.importTypes) : null;
+      const importType =
+        this.defaultAccept && this.showFileTypeSelect
+          ? resolveImportTypeFromAccept(this.defaultAccept, this.importTypes)
+          : null;
 
       this.formModel = {
         relationFile: null,
@@ -536,7 +861,10 @@ export default {
       // 重置模态框的相关属性
       this.validationClose();
       this.updateClose();
-      if (this.$refs.backFillForm && typeof this.$refs.backFillForm.clearValidate === 'function') {
+      if (
+        this.$refs.backFillForm &&
+        typeof this.$refs.backFillForm.clearValidate === "function"
+      ) {
         this.$refs.backFillForm.clearValidate();
       }
     },
@@ -557,19 +885,34 @@ export default {
       // 重置更新结果相关状态
       this.detailsByLang = {};
       this.failedExportDataSource = [];
-      this.activeFailedLangTab = '';
+      this.activeFailedLangTab = "";
       this.showUpdateTabs = false;
     },
 
     // ==================== 文件上传相关 ====================
     handleIdMappingUpload(info) {
-      handleFileUpload(this.formModel, info, "relationFile", "relationFileList");
+      handleFileUpload(
+        this.formModel,
+        info,
+        "relationFile",
+        "relationFileList"
+      );
     },
     handleBackFillUpload(info) {
-      handleFileUpload(this.formModel, info, "backFillFile", "backFillFileList");
+      handleFileUpload(
+        this.formModel,
+        info,
+        "backFillFile",
+        "backFillFileList"
+      );
     },
     handlededupOriginExcelUpload(info) {
-      handleFileUpload(this.formModel, info, "dedupOriginExcel", "dedupOriginExcelList");
+      handleFileUpload(
+        this.formModel,
+        info,
+        "dedupOriginExcel",
+        "dedupOriginExcelList"
+      );
     },
     handlededupOriginExcelChooseClick(e) {
       // accept 未就绪时拦截，避免弹出系统文件选择框
@@ -596,7 +939,11 @@ export default {
       return removeFile(this.formModel, "backFillFile", "backFillFileList");
     },
     removededupOriginExcel() {
-      return removeFile(this.formModel, "dedupOriginExcel", "dedupOriginExcelList");
+      return removeFile(
+        this.formModel,
+        "dedupOriginExcel",
+        "dedupOriginExcelList"
+      );
     },
 
     // ==================== 文件验证相关 ====================
@@ -631,9 +978,13 @@ export default {
           (type) => type.value === this.formModel.importType
         );
         if (selectedType) {
-          const extensions = selectedType.accept.split(",").map((ext) => ext.trim());
+          const extensions = selectedType.accept
+            .split(",")
+            .map((ext) => ext.trim());
           const fileName = file.name.toLowerCase();
-          const isValid = extensions.some((ext) => fileName.endsWith(ext.replace(".", "")));
+          const isValid = extensions.some((ext) =>
+            fileName.endsWith(ext.replace(".", ""))
+          );
           if (!isValid) {
             return Promise.reject(`请选择 ${selectedType.accept} 格式的文件！`);
           }
@@ -641,9 +992,13 @@ export default {
       } else {
         // 如果没有启用文件类型选择，使用 defaultAccept 验证
         if (this.defaultAccept) {
-          const extensions = this.defaultAccept.split(",").map((ext) => ext.trim());
+          const extensions = this.defaultAccept
+            .split(",")
+            .map((ext) => ext.trim());
           const fileName = file.name.toLowerCase();
-          const isValid = extensions.some((ext) => fileName.endsWith(ext.replace(".", "")));
+          const isValid = extensions.some((ext) =>
+            fileName.endsWith(ext.replace(".", ""))
+          );
           if (!isValid) {
             return Promise.reject(`请选择 ${this.defaultAccept} 格式的文件！`);
           }
@@ -678,8 +1033,9 @@ export default {
           try {
             if (this.formModel.enableValidate) {
               // 勾选校验时：校验是否通过；若fatal则不可回填，若warn则可回填（显示"继续回填"按钮：不再自动执行更新，改为通过"继续回填"按钮人为控制）
-              await this.handleValidation();// 
+              await this.handleValidation(); //
             } else {
+              console.log("不勾选校验时：直接执行批量更新（无需展示继续回填按钮）")
               // 不勾选校验时：直接执行批量更新（无需展示"继续回填"按钮）
               await this.handleBatchUpdate();
             }
@@ -711,12 +1067,12 @@ export default {
         };
 
         const result = await entryValidate_v2(
-          this.formModel.dedupOriginExcel,                  // dedupOriginExcel
-          this.formModel.backFillFile,                 // dedupUpdateExcel
+          this.formModel.dedupOriginExcel, // dedupOriginExcel
+          this.formModel.backFillFile, // dedupUpdateExcel
           this.needRelationFile ? this.formModel.relationFile : null, // mappingJson
-          this.formModel.checkFields,                  // checkFields
-          this.formModel.backfillFields,               // backfillFields
-          payloadOptions                               // options
+          this.formModel.checkFields, // checkFields
+          this.formModel.backfillFields, // backfillFields
+          payloadOptions // options
         );
 
         // 处理响应数据：支持嵌套的 data 结构（真实 API 可能返回 {code, data: {...}}）
@@ -755,42 +1111,38 @@ export default {
         throw error; // 重新抛出错误，让调用方知道更新失败
       }
     },
-    // 处理导入-请求
+    // 处理导入-请求（v3：仅翻译字段，走异步更新方案）
     async handleBatchUpdate() {
       try {
-        // 构建FormData（v1 API需要FormData格式）
+        // 构建 FormData
         const formData = new FormData();
         formData.append("file", this.formModel.backFillFile);
-        if (this.needRelationFile && this.formModel.relationFile) {// 注意：更新接口不需要词条映射.json文件
+        if (this.needRelationFile && this.formModel.relationFile) {
           formData.append("relationFile", this.formModel.relationFile);
         }
 
-        // 调用v2.5的批量导入API
-        let result = await updateEntryInfosUnified(
-          this.formModel.backFillFile,
-          this.formModel.backfillFields, // 转换为value格式的更新字段列表
-          null, // formData由函数内部构建
-          {
-            mappingJson: this.needRelationFile ? this.formModel.relationFile : null
-          }
+        // 根据选中的回填字段，映射出需要更新的语种列表（name/value 均来自 commonParam.languageList）
+        const translateTypeObj = (this.languageOptions || []).filter((lang) =>
+          (this.formModel.backfillFields || []).includes(lang.value)
         );
 
-        console.log("去重回填的响应体V2.5", result);
+        // 调用 v3 的异步批量导入工具函数
+        const result = await entryBatchImportExcel_v3(
+          translateTypeObj,
+          formData
+        );
+        console.log("去重回填的响应体V3", result);
 
-        // 处理导入结果
+
+        // 处理导入结果（复用现有更新结果模态框逻辑）
         await this.handleImportResponse(result);
       } catch (error) {
         handleErrorNotification(error, "更新/回填过程发生异常！");
-        // 尝试从error中提取响应数据
         const errorData = error?.response?.data || error?.data || error;
-        // 导入模式(更新)：尝试处理错误响应
-        // console.log("errorData导入模式(更新)：", errorData);
-        // 处理导入失败的响应结果
         await this.handleImportResponse(errorData);
-        throw error; // 重新抛出错误，让调用方知道更新失败
+        throw error;
       }
-      this.validationClose();// 关闭模态框
-
+      this.validationClose(); // 关闭校验结果模态框
     },
     // 处理导入-响应
     async handleImportResponse(result) {
@@ -807,7 +1159,7 @@ export default {
           const successLangs = result.success || [];
           this.hasUpdateResult = false;
           this.showUpdateTabs = false; // 多个语种，显示tab页
-          this.activeFailedLangTab = '';// 失败语种
+          this.activeFailedLangTab = ""; // 失败语种
           this.detailsByLang = {};
           // 按钮模式需要立即 emit importSuccess 事件（在组件关闭前），确保父组件能接收到
           if (this.mode === "button") {
@@ -831,8 +1183,10 @@ export default {
           let firstFailedLang = "";
 
           // 处理成功语种
-          successLangs.forEach(langValue => {
-            const lang = this.languageOptions.find(l => l.value === langValue);
+          successLangs.forEach((langValue) => {
+            const lang = this.languageOptions.find(
+              (l) => l.value === langValue
+            );
             const langName = lang ? lang.name : langValue;
             detailsByLang[langName] = {
               code: 200,
@@ -843,8 +1197,10 @@ export default {
           });
 
           // 处理失败语种：直接从 failed 对象中获取每个语种的错误信息
-          Object.keys(failed).forEach(langValue => {
-            const lang = this.languageOptions.find(l => l.value === langValue);
+          Object.keys(failed).forEach((langValue) => {
+            const lang = this.languageOptions.find(
+              (l) => l.value === langValue
+            );
             const langName = lang ? lang.name : langValue;
             const failedInfo = failed[langValue];
 
@@ -852,7 +1208,9 @@ export default {
             if (!detailsByLang[langName]) {
               detailsByLang[langName] = {
                 code: failedInfo.code || 201,
-                globalMessage: failedInfo.globalMessage || `${langName} 更新存在失败或异常信息`,
+                globalMessage:
+                  failedInfo.globalMessage ||
+                  `${langName} 更新存在失败或异常信息`,
                 failedEntryInfos: failedInfo.failedEntryInfos || [],
                 exceptionVos: failedInfo.exceptionVos || [],
               };
@@ -864,18 +1222,23 @@ export default {
               // 如果已存在（可能是成功后又失败），更新为失败状态
               if (detailsByLang[langName].code === 200) {
                 detailsByLang[langName].code = failedInfo.code || 201;
-                detailsByLang[langName].globalMessage = failedInfo.globalMessage || `${langName} 更新存在失败或异常信息`;
-                detailsByLang[langName].failedEntryInfos = failedInfo.failedEntryInfos || [];
-                detailsByLang[langName].exceptionVos = failedInfo.exceptionVos || [];
+                detailsByLang[langName].globalMessage =
+                  failedInfo.globalMessage ||
+                  `${langName} 更新存在失败或异常信息`;
+                detailsByLang[langName].failedEntryInfos =
+                  failedInfo.failedEntryInfos || [];
+                detailsByLang[langName].exceptionVos =
+                  failedInfo.exceptionVos || [];
               }
             }
           });
-          // console.log("detailsByLang", detailsByLang);
+          console.log("detailsByLang", detailsByLang);
 
           if (Object.keys(detailsByLang).length > 0) {
             // 显示更新结果模态框（多个语种，显示tab页）
             this.detailsByLang = detailsByLang;
-            this.activeFailedLangTab = firstFailedLang || Object.keys(detailsByLang)[0];
+            this.activeFailedLangTab =
+              firstFailedLang || Object.keys(detailsByLang)[0];
             this.showUpdateTabs = true; // 多个语种，显示tab页
             this.updateVisible = true;
           } else {
@@ -903,20 +1266,24 @@ export default {
         }
       } else {
         // 通用更新接口的返回结构（updateEntryInfosByFile）
-        const failedEntryInfos = result.failedEntryInfos || result.failedEntryInfos || [];
+        const failedEntryInfos =
+          result.failedEntryInfos || result.failedEntryInfos || [];
         const exceptionVos = result.exceptionVos || result.exceptionVOs || [];
         const globalMessage = result.globalMessage || "";
         const code = exceptionVos.length > 0 ? 201 : 200;
 
         // 通用更新接口：统一显示在更新结果模态框中（单个结果，不显示tab页）
-        const detailsByLang = code === 200 ? {} : {
-          "更新结果": {
-            code: code,
-            globalMessage: globalMessage || "更新存在失败或异常信息",
-            failedEntryInfos: failedEntryInfos,
-            exceptionVos: exceptionVos,
-          }
-        };
+        const detailsByLang =
+          code === 200
+            ? {}
+            : {
+                更新结果: {
+                  code: code,
+                  globalMessage: globalMessage || "更新存在失败或异常信息",
+                  failedEntryInfos: failedEntryInfos,
+                  exceptionVos: exceptionVos,
+                },
+              };
         // console.log("detailsByLang", detailsByLang);
 
         // 显示在更新结果模态框中
@@ -925,7 +1292,8 @@ export default {
         this.showUpdateTabs = false; // 单个结果，不显示tab页
         this.updateVisible = true;
         // 若更新成功，没有更新结果，则不显示模态框
-        this.hasUpdateResult = failedEntryInfos.length > 0 || exceptionVos.length > 0;
+        this.hasUpdateResult =
+          failedEntryInfos.length > 0 || exceptionVos.length > 0;
       }
 
       if (notifyTask) {
@@ -938,7 +1306,8 @@ export default {
     // ==================== 下载相关 ====================
     // 辅助方法：从 detailsByLang 中提取指定语种和字段的数据，并验证是否为空
     extractDataByLang(lang, fieldName, emptyMessage) {
-      const data = (this.detailsByLang[lang] && this.detailsByLang[lang][fieldName]) || [];
+      const data =
+        (this.detailsByLang[lang] && this.detailsByLang[lang][fieldName]) || [];
       if (data.length === 0) {
         message.warning(emptyMessage);
         return null;
@@ -947,7 +1316,11 @@ export default {
     },
     // 按语种下载失败词条
     downloadFailedEntriesByLang(lang) {
-      const failedInfos = this.extractDataByLang(lang, 'failedEntryInfos', `没有${lang}的失败词条数据可导出`);
+      const failedInfos = this.extractDataByLang(
+        lang,
+        "failedEntryInfos",
+        `没有${lang}的失败词条数据可导出`
+      );
       if (!failedInfos) return;
 
       // console.log("下载失败词条", failedInfos);
@@ -973,10 +1346,16 @@ export default {
     },
     // 按语种下载异常信息
     downloadExceptionInfosByLang(lang) {
-      const exceptionVos = this.extractDataByLang(lang, 'exceptionVos', `没有${lang}的异常信息可下载`);
+      const exceptionVos = this.extractDataByLang(
+        lang,
+        "exceptionVos",
+        `没有${lang}的异常信息可下载`
+      );
       if (!exceptionVos) return;
 
-      const prefix = commonParam.langNameList.includes(lang) ? `${lang}更新异常_` : "更新异常_";
+      const prefix = commonParam.langNameList.includes(lang)
+        ? `${lang}更新异常_`
+        : "更新异常_";
       downloadJsonFile(exceptionVos, prefix, false);
     },
     // 下载附件
@@ -987,10 +1366,10 @@ export default {
       }
 
       try {
-        await downloadFileFromUrl({ logPath: downloadUrl }).then(res => {
+        await downloadFileFromUrl({ logPath: downloadUrl }).then((res) => {
           // console.log("下载链接", res)
           downloadBlobResponse(res, fileName);
-        })
+        });
       } catch (error) {
         console.error("下载附件失败：", error);
         message.error("下载附件失败");
@@ -1006,7 +1385,10 @@ export default {
       if (storedPreferences) {
         const preferences = JSON.parse(storedPreferences);
         // 应用偏好-回填字段
-        if (preferences.backfillFields != null && preferences.backfillFields != "") {
+        if (
+          preferences.backfillFields != null &&
+          preferences.backfillFields != ""
+        ) {
           this.formModel.backfillFields = preferences.backfillFields.split(",");
         }
         // 应用偏好-导入空值
@@ -1034,22 +1416,31 @@ export default {
           this.formModel.checkMaxLength = preferences.checkMaxLength;
         }
         // 应用偏好-校验语种（特殊字符校验与长度超限校验共用）
-        if (preferences.translateAttrs != null && preferences.translateAttrs !== "") {
+        if (
+          preferences.translateAttrs != null &&
+          preferences.translateAttrs !== ""
+        ) {
           this.formModel.translateAttrs = preferences.translateAttrs.split(",");
         }
       }
     },
-    // 全选-回填字段
+    // 全选-回填字段（v3 仅翻译字段）
     selectAllBackfillFields() {
-      this.formModel.backfillFields = this.fieldOptions.map((item) => item.value);
+      this.formModel.backfillFields = this.languageOptions.map(
+        (item) => item.value
+      );
     },
     // 全选-校验字段
     selectAllCheckFields() {
-      this.formModel.checkFields = this.checkFieldOptions.map((item) => item.value);
+      this.formModel.checkFields = this.checkFieldOptions.map(
+        (item) => item.value
+      );
     },
     // 全选-翻译列语种（两个规则共用）
     selectAllValidateTranslateAttrs() {
-      this.formModel.translateAttrs = this.languageOptions.map((item) => item.value);
+      this.formModel.translateAttrs = this.languageOptions.map(
+        (item) => item.value
+      );
     },
   },
 };

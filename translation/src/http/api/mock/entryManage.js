@@ -370,3 +370,148 @@ export async function entryImportExcle(params, data) {
   const payload = extractPayloadFromFormData(data);
   return generateImportResponse(payload);
 }
+
+// ==================== v3 异步更新翻译相关 Mock ====================
+
+// 以 transType 作为 key 维护任务状态
+const asyncTaskStore = new Map();
+
+function getAsyncTaskKey(transType) {
+  return transType || "default";
+}
+
+function createAsyncTaskIfNeeded(transType) {
+  const key = getAsyncTaskKey(transType);
+  let task = asyncTaskStore.get(key);
+  if (!task) {
+    task = {
+      state: "0",          // 0：无任务；1：执行中；2：已完成
+      createdAt: null,
+      duration: 10000,     // 固定约 10 秒执行时间
+      result: null,
+      resultFetched: false,
+    };
+    asyncTaskStore.set(key, task);
+  }
+  return { key, task };
+}
+
+/**
+ * Mock: 提交异步更新任务（asyncEntryImportExcle）
+ * - 立即返回 code=200，message="创建词条更新任务成功"
+ * - 将对应 transType 的任务状态置为 1（执行中），约 10 秒后转为 2（已完成）
+ */
+export async function asyncEntryImportExcle(params, data) {
+  const transType = params?.transType || "default";
+  const { key } = createAsyncTaskIfNeeded(transType);
+  const task = {
+    state: "1",
+    createdAt: Date.now(),
+    duration: 10000,
+    // 简单固定一份结果，结构对齐真实接口
+    result: {
+      globalMessage: "更新词条翻译成功（Mock）",
+      failedEntryInfos: [],
+      exceptionVOs: [],
+    },
+    resultFetched: false,
+  };
+  asyncTaskStore.set(key, task);
+
+  // 模拟网络延迟
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  return {
+    code: 200,
+    type: "OK",
+    data: null,
+    message: "创建词条更新任务成功（Mock）",
+    operationObject: "",
+  };
+}
+
+/**
+ * Mock: 查询异步更新任务状态（getEntryImportExcleTaskState）
+ * - 约 10 秒内返回 state=1（执行中）
+ * - 10 秒后返回 state=2（执行完成）
+ * - 在结果被 getEntryImportExcleTaskStateResult 取走后，下次再查将恢复为 0
+ */
+export async function getEntryImportExcleTaskState(params) {
+  const transType = params?.transType || "default";
+  const { key, task } = createAsyncTaskIfNeeded(transType);
+
+  let currentState = task.state;
+  const now = Date.now();
+
+  if (currentState === "1" && task.createdAt && now - task.createdAt >= task.duration) {
+    currentState = "2";
+    task.state = "2";
+    asyncTaskStore.set(key, task);
+  } else if (currentState === "2" && task.resultFetched) {
+    currentState = "0";
+    task.state = "0";
+    task.createdAt = null;
+    task.resultFetched = false;
+    asyncTaskStore.set(key, task);
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  const messageMap = {
+    "0": "当前没有任务（Mock）",
+    "1": "任务执行中（Mock）",
+    "2": "任务执行成功（Mock）",
+  };
+
+  return {
+    code: 200,
+    type: "OK",
+    data: {
+      state: currentState,
+    },
+    message: messageMap[currentState] || "",
+    operationObject: "",
+  };
+}
+
+/**
+ * Mock: 获取异步更新任务结果（getEntryImportExcleTaskStateResult）
+ * - 仅当 state=2 时返回结果；否则返回空结果并提示消息
+ * - 返回后将任务标记为已取结果，后续状态查询会回到 0
+ */
+export async function getEntryImportExcleTaskStateResult(params) {
+  const transType = params?.transType || "default";
+  const { key, task } = createAsyncTaskIfNeeded(transType);
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  if (task.state !== "2") {
+    return {
+      code: 200,
+      type: "OK",
+      data: {
+        globalMessage: "任务尚未完成或无结果（Mock）",
+        failedEntryInfos: [],
+        exceptionVOs: [],
+      },
+      message: "任务尚未完成或无结果（Mock）",
+      operationObject: "",
+    };
+  }
+
+  task.resultFetched = true;
+  asyncTaskStore.set(key, task);
+
+  return {
+    code: 200,
+    type: "OK",
+    data: {
+      globalMessage: task.result?.globalMessage || "更新词条翻译成功（Mock）",
+      failedEntryInfos: task.result?.failedEntryInfos || [],
+      exceptionVOs: task.result?.exceptionVOs || [],
+    },
+    message: "词条翻译更新成功（Mock）",
+    operationObject: "",
+  };
+}
+

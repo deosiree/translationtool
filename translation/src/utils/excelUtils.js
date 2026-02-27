@@ -1,4 +1,12 @@
-import { entryImportExcle, entryImportExcle_v2, entryValidate_v2 as entryValidateApi_v2, updateEntryInfosByFile } from "@/http/api/entryManage";
+import {
+  entryImportExcle,
+  entryImportExcle_v2,
+  entryValidate_v2 as entryValidateApi_v2,
+  updateEntryInfosByFile,
+  asyncEntryImportExcle,
+  getEntryImportExcleTaskState,
+  getEntryImportExcleTaskStateResult,
+} from "@/http/api/entryManage";
 import { message, notification } from "ant-design-vue";
 import { isAllTranslationFields } from "@/utils/dataStructureUtils";
 import commonParam from "@/constants/commonParam.js";
@@ -15,6 +23,11 @@ function formatMapToString(mapObj) {
     result.push(`${key}：${valueStr}`);
   });
   return result.join("；");
+}
+
+// 通用延时工具（异步轮询用）
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -236,6 +249,188 @@ export async function entryBatchImportExcel_v2_5(translateTypeObj, formData) {
   }
   console.log('返回结果', hasCode201, returnMsg);
   return returnMsg;
+}
+
+/**
+ * 批量导入 Excel 词条 (v3版本 - 异步翻译更新，仅翻译字段)
+ * - 使用 asyncEntryImportExcle 提交任务
+ * - 使用 getEntryImportExcleTaskState / getEntryImportExcleTaskStateResult 轮询并获取结果
+ * - 返回结构尽量与 v2.5 的 entryBatchImportExcel_v2_5 保持一致，便于前端复用 handleImportResponse
+ *
+ * 流程：先按语种顺序依次提交全部任务，提交完成后统一轮询；每轮并发查询所有语种状态，
+ * 某语种完成即拉取该语种结果并移出轮询集合，直到全部语种都拿到结果。
+ *
+ * @param {Array<{name:string,value:string}>} translateTypeObj - 翻译语种列表
+ * @param {FormData} formData - 表单数据（至少包含 file，按需包含 relationFile 等）
+ * @param {Object} options - 可选参数 { intervalMs:number, maxTries:number }
+ * @returns {Promise<{code:number,success:string[],failed:Object}>}
+ */
+export async function entryBatchImportExcel_v3(
+  translateTypeObj,
+  formData,
+  options = {}
+) {
+  const intervalMs = options.intervalMs || 1000;
+  const maxTries = options.maxTries || 3600;
+
+  const successLangs = [];
+  const failedByLangName = {};
+
+  // 1. 按语种顺序依次提交任务，只做提交不轮询
+  let pending = []; // { name, value } 待轮询的语种
+  for (const lang of translateTypeObj || []) {
+    const transType = lang.value;
+    const langName = lang.name || transType;
+    try {
+      await asyncEntryImportExcle({ transType }, formData);
+      pending.push({ name: langName, value: transType });
+    } catch (error) {
+      const errMsg =
+        error?.message ||
+        error?.data?.message ||
+        error?.response?.data?.message ||
+        "提交异步更新任务失败";
+      failedByLangName[transType] = {
+        code: 500,
+        globalMessage: errMsg,
+        failedEntryInfos: [],
+        exceptionVos: [],
+      };
+    }
+  }
+
+  if (pending.length === 0) {
+    return {
+      code: Object.keys(failedByLangName).length > 0 ? 201 : 200,
+      success: successLangs,
+      failed: failedByLangName,
+    };
+  }
+
+  // 2. 统一轮询：每轮并发查所有语种状态，完成则取结果并移出
+  for (let round = 0; round < maxTries && pending.length > 0; round++) {
+    // 并发查询所有语种状态
+    const statePromises = pending.map(({ value: transType }) =>
+      getEntryImportExcleTaskState({ transType }).then(
+        (resp) => ({ transType, resp, err: null }),
+        (err) => ({ transType, resp: null, err })
+      )
+    );
+    // 等待所有状态查询完成
+    const stateResults = await Promise.all(statePromises);
+
+    const completed = []; // 本轮 state===2，待拉取结果
+    const toRemove = new Set(); // 本轮要从 pending 移除的 transType（完成或失败）
+
+    for (let i = 0; i < pending.length; i++) {
+      const item = pending[i];
+      const { resp, err } = stateResults[i];
+      // 如果查询失败，则记录失败信息
+      if (err) {
+        const errMsg =
+          err?.message ||
+          err?.data?.message ||
+          err?.response?.data?.message ||
+          "查询任务状态失败";
+        failedByLangName[item.value] = {
+          code: 500,
+          globalMessage: errMsg,
+          failedEntryInfos: [],
+          exceptionVos: [],
+        };
+        toRemove.add(item.value);
+        continue;
+      }
+      const stateData = resp?.data || resp;
+      const rawState = stateData?.taskState ?? stateData?.state ?? null;
+      const currentState = Number(rawState);
+
+      // 如果状态为2，则表示任务已完成，可以拉取结果
+      if (currentState === 2) {
+        completed.push(item);
+        toRemove.add(item.value);
+      } else if (currentState !== 1) {
+        // 如果状态不为1，则表示任务未完成，记录失败信息
+        const msg =
+          resp?.message ||
+          resp?.data?.message ||
+          `更新任务未完成，当前状态：${currentState}`;
+        failedByLangName[item.value] = {
+          code: 500,
+          globalMessage: msg,
+          failedEntryInfos: [],
+          exceptionVos: [],
+        };
+        toRemove.add(item.value);
+      }
+    }
+    // 如果本轮有任务已完成，则拉取结果
+    if (completed.length > 0) {
+      // 并发拉取所有已完成任务的结果
+      const resultPromises = completed.map((item) =>
+        getEntryImportExcleTaskStateResult({ transType: item.value }).then(
+          (res) => ({ item, res, err: false }),
+          (err) => ({ item, res: err, err: true })
+        )
+      );
+      // 等待所有结果拉取完成
+      const resultList = await Promise.all(resultPromises);
+      console.log("所有结果", resultList)
+      // 处理每个任务的结果
+      for (const { item, res, err } of resultList) {
+        const langName = item.name;
+        const langValue = item.value;
+        if (!err) {
+          successLangs.push(langValue);
+        } else {
+          console.log(`${langName}导入响应：`, res);
+          const error = res?.data || res;
+          failedByLangName[langValue] = {
+            code: error?.code || 201,
+            globalMessage:
+              error?.data?.globalMessage ||
+              error?.data?.message ||
+              error?.message ||
+              "导入存在失败或异常信息",
+            failedEntryInfos: error?.data?.failedEntryInfos || [],
+            exceptionVos:
+              error?.data?.exceptionVOs || error?.data?.exceptionVos || [],
+          };
+          console.log(
+            "记录失败结果failedByLangName",
+            langName,
+            failedByLangName[langValue]
+          );
+        }
+      }
+    }
+
+    // 更新待轮询的语种列表
+    pending = pending.filter((p) => !toRemove.has(p.value));
+
+    // 如果还有待轮询的语种，则等待一段时间后继续轮询
+    if (pending.length > 0) {
+      await sleep(intervalMs);
+    }
+  }
+
+  if (pending.length > 0) {
+    for (const item of pending) {
+      failedByLangName[item.value] = {
+        code: 500,
+        globalMessage: "轮询超时，未获取到任务结果",
+        failedEntryInfos: [],
+        exceptionVos: [],
+      };
+    }
+  }
+
+  const hasError = Object.keys(failedByLangName).length > 0;
+  return {
+    code: hasError ? 201 : 200,
+    success: successLangs,
+    failed: failedByLangName,
+  };
 }
 
 /**
