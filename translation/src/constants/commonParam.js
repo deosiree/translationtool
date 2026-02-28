@@ -136,7 +136,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "common",
       classfyID: "1",
-      ops: new Set(["needIP", "needExamine", "needDelete", "needBranch", "toolBox", "dev"]),
+      ops: new Set(["needIP", "needExamine", "needDelete", "needBranch", "toolBox", "fileUpdate", "dev"]),
       // -needIP是否需要IP地址(凡是包含ip的都同理）
       // -----1.工作台-导入：IP的显示与获取、回写辞典
       // -----2.工作台-归档，归档；
@@ -145,8 +145,6 @@ export default {
       // -----5.git推送（词条管理）;
       // -----6.配置管理-辞典管理；
       // -----7.词条管理-右键-拷贝所有（用于版本归档）（该功能为分支新建前身，已删）；
-      // -----8.词条管理-右键-更新翻译(并且是管理员)；
-      // -----9.词条管理-右键-去重回填(并且是管理员)；
       // -needExamine是否需要提交词条审核（词条管理-已选词条）
       // -needDelete是否需要删除词条（词条管理-已选词条）
       // -needBranch是否需要分支新建（用于管理产品的版本）
@@ -158,6 +156,9 @@ export default {
       // --------5.1.工作台-批量选择，勾选后才显示多选按钮（平铺有下三角可全部选择/反选；层级无全部选择）
       // -----6.词条管理-查询条件-校验类型，（其他部门没有，默认为条件查询）
       // -toolBox是否需要全局工具栏（悬浮按钮）
+      // -fileUpdate是否能通过excel文件批量写库更新
+      // -----1.词条管理-右键-更新翻译(并且是管理员)；
+      // -----2.词条管理-右键-去重回填(并且是管理员)；
       // -dev正在开发中的功能，暂时只放开给平台部
     },
     "监控系统部": {
@@ -165,7 +166,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "jk",
       classfyID: "6",
-      ops: new Set(["needIP", "needExamine", "needDelete"]),
+      ops: new Set(["needIP", "needExamine", "needDelete", "fileUpdate"]),
     },
     "装置开发部": {
       label: "装置开发部",
@@ -180,7 +181,7 @@ export default {
       ],
       value: "zz",
       classfyID: "2",
-      ops: new Set(["needExamine", "entryState3", "needForbidden"]),
+      ops: new Set(["needExamine", "entryState3", "needForbidden", "fileUpdate"]),
       // -entryState3默认词条审核状态为“已审核”
       // -needForbidden是否需要禁用词条（词条管理-已选词条）
     },

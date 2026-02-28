@@ -389,7 +389,7 @@
             v-if="
               admin &&
               $currentDepartment &&
-              $currentDepartment.ops.has('needIP')
+              $currentDepartment.ops.has('fileUpdate')
             "
             mode="button"
             buttonTitle="更新翻译"
@@ -403,7 +403,7 @@
             v-if="
               admin &&
               $currentDepartment &&
-              $currentDepartment.ops.has('needIP')
+              $currentDepartment.ops.has('fileUpdate')
             "
             mode="button"
             buttonTitle="更新翻译(异步)"

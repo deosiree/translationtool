@@ -213,7 +213,7 @@
             去重
           </a-button>
           <a-button
-            v-if="hasIPPermission()"
+            v-if="hasFileUpdatePermission()"
             type="primary"
             size="middle"
             @click="showImportBackfillModal_v3"
@@ -224,7 +224,7 @@
             去重回填(异步)
           </a-button>
           <a-button
-            v-if="hasIPPermission()"
+            v-if="hasFileUpdatePermission()"
             type="primary"
             size="middle"
             @click="showImportBackfillModal_v2_5"
@@ -750,9 +750,9 @@ export default {
     window.onresize = null;
   },
   methods: {
-    hasIPPermission() {
+    hasFileUpdatePermission() {
       return (
-        (this.admin && this.$currentDepartment?.ops?.has("needIP")) || false
+        (this.admin && this.$currentDepartment?.ops?.has("fileUpdate")) || false
       );
     },
     hasDevPermission() {
