@@ -8,6 +8,7 @@ import {
   asyncEntryImportExcle as asyncEntryImportExcle_mock,
   getEntryImportExcleTaskState as getEntryImportExcleTaskState_mock,
   getEntryImportExcleTaskStateResult as getEntryImportExcleTaskStateResult_mock,
+  getClassTreeMock,
 } from "./mock/entryManage";
 
 // 查询分类中新增的词条来源
@@ -65,10 +66,14 @@ export function checkNotUseEntry(params) {
 
 // 查询分类树
 export function getClassTree(params) {
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return getClassTreeMock(params);
+  }
   return request({
     url: "/entryInfo/getClassTree",
     method: "POST",
-    params
+    params,
   });
 }
 

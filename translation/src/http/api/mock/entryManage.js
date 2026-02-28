@@ -1,6 +1,71 @@
 import { createTaskMock } from "./backendInfo";
 
 /**
+ * Mock: 分类树数据（用于本地调试右键菜单 / 删除等交互）
+ * 只在前端传入 params.__mock 时才会被使用
+ */
+export async function getClassTreeMock(params) {
+  // 轻微延迟，模拟网络
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  const treeList = [
+    {
+      key: "dept-1",
+      title: "公共库",
+      type: "department",
+      children: [
+        {
+          key: "common-1",
+          title: "公共词条库",
+          type: "common",
+          children: [],
+        },
+        {
+          key: "classify-1",
+          title: "分类A",
+          type: "classify",
+          parentId: "dept-1",
+          children: [
+            {
+              key: "product-1",
+              title: "产品A-1",
+              type: "product",
+              parentId: "classify-1",
+              children: [
+                {
+                  key: "module-1",
+                  title: "模块A-1-1",
+                  type: "module",
+                  parentId: "product-1",
+                  children: [],
+                },
+              ],
+            },
+            {
+              key: "classify-1-1",
+              title: "子分类A-1",
+              type: "classify",
+              parentId: "classify-1",
+              children: [],
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  return {
+    code: 200,
+    type: "OK",
+    data: {
+      list: treeList,
+    },
+    message: null,
+    operationObject: "",
+  };
+}
+
+/**
  * entryManage v2 版本 API 的 Mock 实现
  * 
  * 根据新 API 文档设计，符合统一任务模型（rules + options）
