@@ -55,6 +55,9 @@ public interface EntryFileImportService {
      */
     UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,Map<String, Set<String>> idRelationMap);
 
+    UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfoEntities, String token, String transType,Map<String, Set<String>> idRelationMap);
+
+
     TaskCheckResultVO checkBeforeUpdateTranslationByFile(FileInputStreamEntity unTranslateFile,FileInputStreamEntity translatedFile,FileInputStreamEntity idRelationFile,TaskRequest taskRequest);
 
 

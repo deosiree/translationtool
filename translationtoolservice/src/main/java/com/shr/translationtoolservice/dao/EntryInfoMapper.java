@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,8 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
     int insertEntry(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity, @Param("tableName") String tableName);
 
     int updateEntryInfo(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
+
+    int batchUpdateEntryInfo(@Param("entryInfos") Collection<EntryInfoEntity> entryInfos);
 
     int updateEntryInfoForManager(@Param("entryInfoEntity") EntryInfoEntity entryInfoEntity);
 

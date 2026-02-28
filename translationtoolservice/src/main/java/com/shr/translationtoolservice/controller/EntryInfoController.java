@@ -296,41 +296,6 @@ public class EntryInfoController extends BaseController {
     }
 
 
-    public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcleInternal(MultipartFile multipartFile,String token,String transType,MultipartFile relationFile){
-
-        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
-        try {
-            if(relationFile != null && !relationFile.getOriginalFilename().endsWith(".json")){
-                throw new RuntimeException(String.format("关联关系文件必须是json格式, 请检查文件后缀以及文件内容"));
-            }
-            Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
-            Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
-            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity,token,transType,toJson);
-            
-            HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
-            responseResult.setData(updateTranslationByFileVO);
-            if(updateTranslationByFileVO.hasError()){
-                updateTranslationByFileVO.setGlobalMessage(String.format("更新词条翻译时部分词条更新后存在警告和异常信息, 总共有%s个信息", updateTranslationByFileVO.exceptionNumber()));
-                responseResult.setType(HttpResponse.Type.ERROR);
-                responseResult.setCode(HttpResponse.Type.ERROR.getVal());
-                responseResult.setMessage("词条翻译更新存在异常, 请查看相关日志信息");
-            }else{
-                updateTranslationByFileVO.setGlobalMessage("更新词条翻译成功");
-                responseResult.setType(HttpResponse.Type.OK);
-                responseResult.setCode(HttpResponse.Type.OK.getVal());
-                responseResult.setMessage("词条翻译更新成功");
-            }
-
-            return responseResult;
-        } catch (Exception e) {
-            return error(null, e.getMessage());
-            // TODO: handle exception
-        } finally{
-            FileInputStreamEntity.close(fileInputStreamEntity);
-        }
-    }
-
-
     @PostMapping("/entryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
@@ -381,17 +346,58 @@ public class EntryInfoController extends BaseController {
         String department = JWTTokenUtils.getDepartment(token);
         String username = JWTTokenUtils.getUserName(token);
         final String taskID = BackendTaskInfoHandler.TaskIDGenerator.getTaskID(taskType,transType,department,username); // 参数顺序必须一致
-        AsyncTaskThread<HttpResponse<UpdateEntryInfoByFileVO>> runnable = new AsyncTaskThread<HttpResponse<UpdateEntryInfoByFileVO>>(taskID,backendTaskInfoHandler) {
-
-            @Override
-            protected HttpResponse<UpdateEntryInfoByFileVO> runInternal() {
-                // TODO Auto-generated method stub
-                HttpResponse<UpdateEntryInfoByFileVO> resultVO = entryImportExcleInternal(multipartFile, token, transType, relationFile);
-                return resultVO;
+        FileInputStreamEntity fileInputStreamEntity = null;
+        Collection<EntryInfoEntity> entryInfosParsedOnFile;
+        Map<String, Set<String>> toJson;
+        try {
+            fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
+            entryInfosParsedOnFile = entryInfoService.parseFileToEntryInfos(fileInputStreamEntity, null);
+            if(relationFile != null && !relationFile.getOriginalFilename().endsWith(".json")){
+                throw new RuntimeException(String.format("关联关系文件必须是json格式, 请检查文件后缀以及文件内容"));
             }
-            
-        };
-        return this.submitAsyncTask(taskID, runnable, backendTaskInfoHandler, threadPoolExecutor);
+            Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
+            toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;   
+            AsyncTaskThread<HttpResponse<UpdateEntryInfoByFileVO>> runnable = new AsyncTaskThread<HttpResponse<UpdateEntryInfoByFileVO>>(taskID,backendTaskInfoHandler) {
+
+                @Override
+                protected HttpResponse<UpdateEntryInfoByFileVO> runInternal() {
+                    // // TODO Auto-generated method stub
+                    // HttpResponse<UpdateEntryInfoByFileVO> resultVO = entryImportExcleInternal(entryInfosParsedOnFile, token, transType, toJson);
+                    try {
+                        UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(entryInfosParsedOnFile,token,transType,toJson);
+                        
+                        HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
+                        responseResult.setData(updateTranslationByFileVO);
+                        if(updateTranslationByFileVO.hasError()){
+                            updateTranslationByFileVO.setGlobalMessage(String.format("更新词条翻译时部分词条更新后存在警告和异常信息, 总共有%s个信息", updateTranslationByFileVO.exceptionNumber()));
+                            responseResult.setType(HttpResponse.Type.ERROR);
+                            responseResult.setCode(HttpResponse.Type.ERROR.getVal());
+                            responseResult.setMessage("词条翻译更新存在异常, 请查看相关日志信息");
+                        }else{
+                            updateTranslationByFileVO.setGlobalMessage("更新词条翻译成功");
+                            responseResult.setType(HttpResponse.Type.OK);
+                            responseResult.setCode(HttpResponse.Type.OK.getVal());
+                            responseResult.setMessage("词条翻译更新成功");
+                        }
+
+                        return responseResult;
+                    } catch (Exception e) {
+                        return error(null, e.getMessage());
+                        // TODO: handle exception
+                    } finally{
+                        
+                    }
+                }
+                
+            };
+            return this.submitAsyncTask(taskID, runnable, backendTaskInfoHandler, threadPoolExecutor);         
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
+        }
+
+
     }
 
     // @PostMapping("/workImportExcleTrans")

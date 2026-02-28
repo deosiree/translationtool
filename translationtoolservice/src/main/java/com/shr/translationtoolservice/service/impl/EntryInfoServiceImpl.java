@@ -1892,6 +1892,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     @Transactional
     @Override
     public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy,  String token, String transType,Map<String, Set<String>> idRelationMap){
+    
+        try {
+            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
+            return this.importTransExcle(entryInfosParsedOnFile, token, transType, idRelationMap);
+        } catch (Exception e) {
+            log.error("更新词条翻译时出现异常", e); 
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfosParsedOnFile, String token,String transType, Map<String, Set<String>> idRelationMap) {
         
         UpdateEntryInfoByFileVO updateTranslationByFileVO = new UpdateEntryInfoByFileVO();
 
@@ -1909,7 +1922,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             };
             kwargs.put("translateProcessor", translateEntiityProcessor);    // 利用excel文件更新翻译，默认更新为已审核
             /* 解析文件, 生成词条 */
-            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
+            // Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
             
             /* 获取其他没送翻, 但是也应当根据送翻后的词条更新翻译的词条 */
             String getMethodName = MethodUtils.getMethodName(transType);    // 获取getTranslate方法

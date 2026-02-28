@@ -466,6 +466,16 @@ public class ConstantInterface {
         return getterMap;
     }
 
+    public static Map<String,String> translateFieldMap(){
+        Map<String,String> getterMap = new HashMap<>(); 
+        getterMap.put(ConstantInterface.CHINESE,"chinese");
+        getterMap.put(ConstantInterface.ENGLISH,"english");
+        getterMap.put(ConstantInterface.RUSSIAN,"russian");
+        getterMap.put(ConstantInterface.FRENCH,"french");
+        getterMap.put(ConstantInterface.SPANISH,"spanish");
+        return getterMap;
+    }
+
     public static Map<String,String> entryInfoEntityGetterTranslateMap(){
         Map<String,String> getterMap = new HashMap<>(); 
         getterMap.put(ConstantInterface.CHINESE,"getChinese");

@@ -93,13 +93,9 @@ public class EntryStorageServiceImpl implements EntryStorageService {
     @Transactional
     @Override
     public boolean updateEntryInfos(Collection<EntryInfoEntity> entryInfoEntities) {
-        int updateCount = 0;
-        for(EntryInfoEntity entry : entryInfoEntities){
-            log.debug(String.format("更新下一组词条, 词条id为: %s", entry.getId()));
-            int updateCountInternal = entryInfoMapper.updateEntryInfo(entry);
-            updateCount += updateCountInternal;
-        }
-        return processUpdateResult(updateCount, entryInfoEntities.size());
+        int updateCount = this.entryInfoMapper.batchUpdateEntryInfo(entryInfoEntities);
+        return true;
+
     }
 
     

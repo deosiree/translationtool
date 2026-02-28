@@ -1,13 +1,19 @@
 package com.shr.translationtoolservice.service.impl;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,9 +26,13 @@ import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.KeyValueArguments;
 import com.shr.translationtoolservice.entity.TranslateEntity;
+import com.shr.translationtoolservice.entity.DO.EntryInfoEntityDO;
 import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.TranslationStorageService;
 import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
+import com.shr.translationtoolservice.util.EntryUtils;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils.MethodEntity;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,6 +52,12 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
     @Autowired
     protected BatchInsertEntryHandler batchInsertEntryHandler;
 
+    @Autowired
+    protected EntryUtils entryUtils;
+
+    protected ThreadPoolExecutor executor = new ThreadPoolExecutor(80, 120, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+
+
     protected static final Map<String,String> TRANSLATE_GETTER_METHOD_MAP = ConstantInterface.entryInfoEntityGetterTranslateMap();
     
     protected static final Map<String,String> TRANSLATE_SETTER_METHOD_MAP = ConstantInterface.entryInfoEntitySetterTranslateMap();
@@ -50,60 +66,106 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
 
     protected static final Map<String,String> GET_TRANS_ID_METHOD_MAP = ConstantInterface.entryInfoEntityGetTranslateIDMethodMap();
 
+
+    @Transactional(rollbackFor = Exception.class)
+    protected boolean updatetTranslationsInternal(Collection<EntryInfoEntity> updateEntryInfoTemplates,Collection<TranslateEntity> translateEntities){
+
+        try {
+            /* 对于词条不存在的, 更新失败的情况目前暂时不报异常 */
+            if(updateEntryInfoTemplates != null && !updateEntryInfoTemplates.isEmpty()){
+                boolean updateEntryInfosSuccessfully = entryStorageService.updateEntryInfos(updateEntryInfoTemplates);  // 更新transID, 只要正常返回就是true
+                if(!updateEntryInfosSuccessfully){
+                    throw new RuntimeException(String.format("更新词条信息失败"));
+                }
+            }
+
+            if(translateEntities != null && !translateEntities.isEmpty()){
+                this.translateMapper.batchInsertTranslate(translateEntities);
+            }
+            return true;            
+        } catch (Exception e) {
+            log.error(null, e);
+            throw e;
+        }
+
+    }
+
     
-    
+
+    private Map<Method,Method> buildTransTypeMethodRelationMap(Class<?> clazz,Collection<String> transTypes){
+        
+        Map<String, String> translateFieldMap = ConstantInterface.translateFieldMap();
+        Map<Method,Method> translateMethodMap = new HashMap<>();    // {"getEnglish": "setEnglish"}
+        transTypes.stream().forEach((transType)->{
+            String fieldName = translateFieldMap.get(transType);
+            Method getMethod = MethodUtils.acquireMethod(clazz, fieldName, MethodUtils.DEFAULT_GET_METHOD_NAME_GENERATOR);
+            Method setMethod = MethodUtils.acquireMethod(clazz, fieldName, MethodUtils.DEFAULT_SET_METHOD_NAME_GENERATOR,String.class);
+            translateMethodMap.put(getMethod, setMethod);
+        });
+        return translateMethodMap;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean updateEntryInfoTranslation(String entryID, Map<String, String> translations,KeyValueArguments<String> kwargs) {
-        if(entryID == null || entryID.trim().isEmpty()){
-            throw new RuntimeException(String.format("没有提供更新的词条ID, 无法进行更新"));
+    public boolean updateEntryInfoTranslations(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> transTypes,KeyValueArguments<String> kwargs) {
+        if(entryInfoEntities == null || transTypes == null || transTypes.isEmpty()){
+            throw new RuntimeException("没有同时提供更新的词条信息和要更新的语种信息");
         }
-        if(translations == null || translations.isEmpty()){
-            throw new RuntimeException(String.format("没有提供更新的翻译, 无法进行更新"));
-        }
-        /**
-         *  更新翻译，创建翻译的功能应当保证同步，多线程并发会有问题
-         */
-        EntryInfoEntity selectTemplate = new EntryInfoEntity();
-        selectTemplate.setId(entryID);
-        EntryInfoEntity originalEntryInfo = entryInfoMapper.selectEntryById(selectTemplate);
-        if(originalEntryInfo == null){
-            log.debug(String.format("没有找到对应的词条, 词条的查询条件为: %s", selectTemplate.toString()));
-            return false;
-        }
-        List<EntryInfoEntity> entryInfos = new ArrayList<>();
-        entryInfos.add(originalEntryInfo);
-
-        Map<Method, Object> setMethodValueMap = new HashMap<>();    // 设定entryInfoEntitiy的翻译的属性
-        /* 更新t_entry_info的trans_id */
-        Class<? extends EntryInfoEntity> clazz = originalEntryInfo.getClass();
-        // {'英文':'xxxtransa'}
-        translations.forEach((transType,translation)->{
-            // 英文,"xxx_test "
-            String methodName = TRANSLATE_SETTER_METHOD_MAP.get(transType);
-            if(methodName == null || methodName.trim().isEmpty()){
-                throw new RuntimeException(String.format("没有找到翻译类型: %s对应的设定翻译的方法, 请检查翻译类型", transType));
+        Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
+        Map<Method, Method> transTypeMethodRelationMap = this.buildTransTypeMethodRelationMap(clazz, transTypes);
+        
+        List<EntryInfoEntityDO> selectEntryInfosByIDs = entryInfoMapper.selectEntryInfosByIDs(entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
+        /* 库里存到原始的这些词条的数据 */
+        List<EntryInfoEntity> entryInfosDB = EntryInfoEntityDO.convertFromEntities(selectEntryInfosByIDs, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList());
+        Function<EntryInfoEntity,String> func = (entry)->{return entry.getId();};
+        /* 更新翻译用的词条的模板, 还需要添加翻译信息 */
+        Map<String,List<EntryInfoEntity>> entryInfosDBMap = entryInfosDB.stream().collect(Collectors.groupingBy(func));
+        List<EntryInfoEntity> buildTransEntryInfoTemplates = new ArrayList<>();
+        for(EntryInfoEntity entryInfoEntity : entryInfoEntities){
+            String entryID = entryInfoEntity.getId();
+            if(entryID == null || entryID.trim().isEmpty()){
+                throw new RuntimeException("更新词条的词条ID为null, 检查传参");
             }
-            try {
-                Method setMethod = clazz.getMethod(methodName, String.class);
-                setMethodValueMap.put(setMethod, translation);
-                setMethod.invoke(originalEntryInfo, translation);    
-            } catch(Exception e){
-                throw new RuntimeException(e);
-            }
+            Set<MethodEntity> setMethodValues = new HashSet<>();
+            /* 文件中该词条每种语言的翻译结果 */
+            transTypeMethodRelationMap.forEach((getterMethod,setterMethod)->{
+                try {
+                    String translation = getterMethod.invoke(entryInfoEntity) != null ? String.valueOf(getterMethod.invoke(entryInfoEntity)) : null;
 
-        });
-        // 插入t_entry_info和t_translate要保证事务原子性, 否则会出现数据不一致的情况
-        /* 向t_translate表创建新的记录 */
-        List<TranslateEntity> translateEntities = batchInsertEntryHandler.buildTranslateEntity(entryInfos,new ArrayList<>(translations.keySet()),kwargs.get("department", String.class));
+                    if(translation == null || translation.trim().isEmpty()){
+                        return; // 不会将词条的翻译更新为null或""
+                    }
+                    MethodEntity setTransMethodEntity = new MethodEntity(setterMethod, translation);
+                    setMethodValues.add(setTransMethodEntity);
+                } catch(Exception e){
+                    throw new RuntimeException(String.format("更新词条翻译获取新的翻译时出现异常, 异常信息为: %s", e.getMessage()));
+                }
+            });
+            if(!entryInfosDBMap.containsKey(entryID)){
+                /* 词条不存在  */
+                log.info(String.format("更新词条翻译, id为: %s的词条不存在", entryID));
+                continue;
+            }
+            EntryInfoEntity buildTransEntryInfoTemplate = entryInfosDBMap.get(entryID).get(0);
+            if(buildTransEntryInfoTemplate.getIsDelete() == 1){
+                /* 词条被删掉了, 不存在  */
+                log.info(String.format("更新词条翻译, id为: %s的词条已删除, 无法更新翻译", entryID));
+                continue;
+            }
+            setMethodValues.stream().forEach((setMethodValue)->{setMethodValue.invoke(buildTransEntryInfoTemplate);});
+            buildTransEntryInfoTemplates.add(buildTransEntryInfoTemplate);  // buildTranslateEntity 需要利用完整的词条信息
+        }
+        List<TranslateEntity> translateEntities = this.batchInsertEntryHandler.buildTranslateEntity(buildTransEntryInfoTemplates, new ArrayList<>(transTypes), kwargs.get("department", String.class),this.executor);
         Consumer<TranslateEntity> translateEntiityProcessor = kwargs != null ? kwargs.get("translateProcessor", new TypeToken<Consumer<TranslateEntity>>(){}) : null;
         if(translateEntiityProcessor != null){
             translateEntities.stream().forEach(translateEntiityProcessor);
         }
-        entryInfos.stream().forEach((entry)->{
+
+        List<EntryInfoEntity> updateEntryInfoTemplates = buildTransEntryInfoTemplates.stream().map((entry)->{
+            String entryID = entry.getId();
             Map<Method,Object> setTransIDMethodValueMap = new HashMap<>();
-            for(Map.Entry<String,String> translationPair : translations.entrySet()){
-                String transType = translationPair.getKey();
+            for(String transType : transTypes){
+                // String transType = translationPair.getKey();
                 String getTransIDMethodName = GET_TRANS_ID_METHOD_MAP.get(transType);
                 String setTransIDMethodName = SET_TRANS_ID_METHOD_MAP.get(transType);
                 try {
@@ -118,79 +180,9 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
                 }
             }
             EntryInfoEntity updateEntryInfoTemplate = entryStorageService.buildUpdateEntryInfoTemplate(entryID,setTransIDMethodValueMap);
-            boolean updateResult = entryStorageService.updateEntryInfo(updateEntryInfoTemplate);
-            if(!updateResult){
-                throw new RuntimeException(String.format("更新词条的相关信息失败, 请稍后重试, 更新的词条的查询条件为: %s", updateEntryInfoTemplate.toString()));    // 可能的原因，更新过程中词条被删除掉,
-            }
-        });
+            return updateEntryInfoTemplate;
+        }).collect(Collectors.toList());
 
-        translateEntities.forEach((translateEntity)->{
-        
-            int insertTranslate = this.translateMapper.insertTranslate(translateEntity);
-            if(insertTranslate != 1){
-                throw new RuntimeException("插入t_translate数据失败");
-            }
-        });
-
-        return true;
+        return this.updatetTranslationsInternal(updateEntryInfoTemplates, translateEntities);
     }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public boolean updateEntryInfoTranslations(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> transTypes,KeyValueArguments<String> kwargs) {
-        if(entryInfoEntities == null || transTypes == null || transTypes.isEmpty()){
-            throw new RuntimeException("没有同时提供更新的词条信息和要更新的语种信息");
-        }
-        Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
-        Map<String,Method> transTypeGetterMethodMap = new HashMap<>();
-        transTypes.stream().forEach((transType)->{
-            if(transType.isEmpty() || transType.trim().isEmpty()){
-                throw new RuntimeException(String.format("transType为空, 无法更新对应的翻译, 提供的要更新的翻译语种包括: %s", transTypes.toString()));
-            }
-            String getMethodName = TRANSLATE_GETTER_METHOD_MAP.get(transType);
-            if(getMethodName == null || getMethodName.trim().isEmpty()){
-                throw new RuntimeException(String.format("没有找到翻译类型对应的getTranslate方法: %s", transType));
-            }
-            try {
-                Method method = clazz.getMethod(getMethodName);
-                transTypeGetterMethodMap.put(transType, method);
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(String.format("没有找到对应的方法, 方法名为: %s", getMethodName));
-            } catch (SecurityException e) {
-                throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, 方法名为: %s", clazz.getName(),getMethodName));
-            } catch (Exception e){
-                throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
-            }
-            
-        });
-        boolean updateAllSuccessfully = true;
-        for(EntryInfoEntity entryInfoEntity : entryInfoEntities){
-            String entryID = entryInfoEntity.getId();
-            if(entryID == null || entryID.trim().isEmpty()){
-                throw new RuntimeException("更新词条的词条ID为null, 检查传参");
-            }
-            Map<String,String> translations = new HashMap<>();
-            transTypeGetterMethodMap.forEach((transType,method)->{
-                try {
-                    String translation = method.invoke(entryInfoEntity) != null ? String.valueOf(method.invoke(entryInfoEntity)) : null;
-
-                    if(translation == null || translation.trim().isEmpty()){
-                        return; // 不会将词条的翻译更新为null或""
-                    }
-                    translations.put(transType, translation);
-                } catch(Exception e){
-                    throw new RuntimeException(String.format("更新词条翻译获取新的翻译时出现异常, 异常信息为: %s", e.getMessage()));
-                }
-
-            });
-            boolean updateEntryInfoTranslation = this.updateEntryInfoTranslation(entryID, translations, kwargs);
-            if(!updateEntryInfoTranslation){
-                updateAllSuccessfully = updateEntryInfoTranslation;
-                // throw new RuntimeException(String.format("更新失败, 更新的词条信息为: %s", entryInfoEntity.toString()));
-            }
-        }
-        return updateAllSuccessfully;
-        
-    }
-
 }

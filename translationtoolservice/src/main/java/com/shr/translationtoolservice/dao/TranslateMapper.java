@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -46,6 +47,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
     List<TranslateEntity> checkSykSameEntry(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
 
     int insertTranslate(@Param("translateEntity") TranslateEntity translateEntity);
+
+    int batchInsertTranslate(@Param("translateEntities") Collection<TranslateEntity> translateEntities);
     List<TranslateEntity> getTransForCheckSykEntry(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
     List<TranslateEntity> getTransForSykNotUsed(@Param("translateEntity") TranslateEntity translateEntity,@Param("offset") int offset,@Param("limit")  Integer pageSize);
 

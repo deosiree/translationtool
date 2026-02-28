@@ -1071,6 +1071,101 @@
     </update>
 
 
+    <update id="batchUpdateEntryInfo">
+        <foreach collection = "entryInfos" item = "entryInfoEntity" separator = ";">
+            update t_entry_info
+            <set>
+
+                <if test="entryInfoEntity.abbr != null  and entryInfoEntity.abbr != ''">
+                    abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.entry != null  and entryInfoEntity.entry != ''">
+                    entry = #{entryInfoEntity.entry,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.chineseInterpretation != null  and entryInfoEntity.chineseInterpretation != ''">
+                    chinese_interpretation = #{entryInfoEntity.chineseInterpretation,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.englishInterpretation != null  and entryInfoEntity.englishInterpretation != ''">
+                    english_interpretation = #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.russianInterpretation != null  and entryInfoEntity.russianInterpretation != ''">
+                    russian_interpretation = #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.frenchInterpretation != null  and entryInfoEntity.frenchInterpretation != ''">
+                    french_interpretation = #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.spanishInterpretation != null  and entryInfoEntity.spanishInterpretation != ''">
+                    spanish_interpretation = #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.entrySource != null  and entryInfoEntity.entrySource != ''">
+                    entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.entryState != null  and entryInfoEntity.entryState != ''">
+                    entry_state = #{entryInfoEntity.entryState,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.update != null  and entryInfoEntity.update != ''">
+                    `update` = #{entryInfoEntity.update,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.updateTime != null  ">
+                    update_time = #{entryInfoEntity.updateTime,jdbcType=TIMESTAMP},
+                </if>
+                <if test="entryInfoEntity.entryLabel != null  and entryInfoEntity.entryLabel != ''">
+                    entry_label = #{entryInfoEntity.entryLabel,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.partOfSpeech != null  and entryInfoEntity.partOfSpeech != ''">
+                    part_of_speech = #{entryInfoEntity.partOfSpeech,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.remark != null  and entryInfoEntity.remark != ''">
+                    remark = #{entryInfoEntity.remark,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.zhTransId != null   and entryInfoEntity.zhTransId != ''">
+                    zh_trans_id = #{entryInfoEntity.zhTransId,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.spaTransId != null   and entryInfoEntity.spaTransId != ''">
+                    spa_trans_id = #{entryInfoEntity.spaTransId,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.fraTransId != null    and entryInfoEntity.fraTransId != ''">
+                    fra_trans_id = #{entryInfoEntity.fraTransId,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.ruTransId != null  and entryInfoEntity.ruTransId != '' ">
+                    ru_trans_id = #{entryInfoEntity.ruTransId,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.enTransId != null  and entryInfoEntity.enTransId != ''  ">
+                    en_trans_id = #{entryInfoEntity.enTransId,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.classfy1 != null   and entryInfoEntity.classfy1 != ''">
+                    classfy1 = #{entryInfoEntity.classfy1,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.classfy2 != null   and entryInfoEntity.classfy2 != ''">
+                    classfy2 = #{entryInfoEntity.classfy2,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.tag != null   and entryInfoEntity.tag != ''">
+                    tag = #{entryInfoEntity.tag,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.diFileName != null  and entryInfoEntity.diFileName != ''">
+                    di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.comment != null  and entryInfoEntity.comment != ''">
+                    comment = #{entryInfoEntity.comment,jdbcType=VARCHAR},
+                </if>
+                <if test = "entryInfoEntity.entryLength != null and entryInfoEntity.entryLength != ''">
+                    entry_length = #{entryInfoEntity.entryLength,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                    source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
+                </if>
+                <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                    db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+                </if>
+                <if test = "entryInfoEntity.maxLength != null and entryInfoEntity.maxLength != ''">
+                    max_length = #{entryInfoEntity.maxLength,jdbcType=VARCHAR}
+                </if>
+            </set>
+            where id = #{entryInfoEntity.id,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+
     <update id="updateEntryInfoForManager">
         update t_entry_info
         <set>
@@ -2574,7 +2669,7 @@
     </select>
     <select id = "selectEntryInfosByIDs" resultMap = "EntryInfoEntityDOMap">
         select 
-        id,abbr,entry,max_length,
+        id,abbr,entry,max_length,is_delete,
         entry_length,chinese_interpretation,english_interpretation,
         russian_interpretation,french_interpretation,spanish_interpretation,
         entry_source,entry_state,`update`,
