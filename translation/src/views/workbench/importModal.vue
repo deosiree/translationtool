@@ -606,6 +606,8 @@ export default {
   data() {
     return {
       modalWidth: "70%",
+      // 当前登录用户信息（从 Vuex 注入），用于一些接口参数（如 departmentType）
+      user: null,
       task: {},
       filePath: "",
       filediFileName: null,
@@ -728,6 +730,10 @@ export default {
       ],
       rulesOptions: commonParam.rulesOptions,
     };
+  },
+  created() {
+    // 从全局 store 注入当前用户，避免直接读取 this.$store.state.user 为空时报错
+    this.user = (this.$store && this.$store.state && this.$store.state.user) || {};
   },
   watch: {
     currentTask(newval, oldval) {
@@ -1661,7 +1667,6 @@ export default {
 
       if (this.dataType === "file") {
         // 文件
-        // console.log(this.file)
         if (Object.keys(this.file).length === 0) {
           this.loading = false;
           this.importBtnLoading = false;
@@ -1679,7 +1684,9 @@ export default {
         formData.append("taskID", this.task.id);
         const params = {
           diFileName: this.filediFileName,
-          departmentType: this.user.department,
+          // 兼容 user 还未初始化的情况，避免读取 undefined.department 报错
+          departmentType:
+            (this.user && this.user.department) || (this.$store?.state?.user?.department ?? ""),
           templateType: this.templateType,
         };
         asyncTask = readZZExcle(params, formData)
