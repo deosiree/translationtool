@@ -18,7 +18,7 @@ spring:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false?serverTimezone=Asia/Shanghai&socketTimeout=60000
+    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false?serverTimezone=Asia/Shanghai&socketTimeout=60000&allowMultiQueries=true
     #
     #url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
 
