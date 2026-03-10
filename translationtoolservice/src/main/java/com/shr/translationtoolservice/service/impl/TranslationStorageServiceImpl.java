@@ -68,26 +68,65 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
 
 
     @Transactional(rollbackFor = Exception.class)
-    protected boolean updatetTranslationsInternal(Collection<EntryInfoEntity> updateEntryInfoTemplates,Collection<TranslateEntity> translateEntities){
-
+    protected boolean updatetTranslationsInternal(Collection<EntryInfoEntity> updateEntryInfoTemplates,Collection<TranslateEntity> translateEntities) {
+        // 使用常量定义批次大小
+        final int BATCH_SIZE = 500;
+        
         try {
-            /* 对于词条不存在的, 更新失败的情况目前暂时不报异常 */
-            if(updateEntryInfoTemplates != null && !updateEntryInfoTemplates.isEmpty()){
-                boolean updateEntryInfosSuccessfully = entryStorageService.updateEntryInfos(updateEntryInfoTemplates);  // 更新transID, 只要正常返回就是true
-                if(!updateEntryInfosSuccessfully){
-                    throw new RuntimeException(String.format("更新词条信息失败"));
+            // 处理词条信息更新
+            if (updateEntryInfoTemplates != null && !updateEntryInfoTemplates.isEmpty()) {
+                List<EntryInfoEntity> updateEntryInfoTemplatesList = new ArrayList<>(updateEntryInfoTemplates);
+                int totalSize = updateEntryInfoTemplatesList.size();
+                // 添加日志，便于监控
+                log.debug("开始批量更新词条数据，总条数：{}，批次大小：{}", totalSize, BATCH_SIZE);
+                
+                for (int i = 0; i < totalSize; i += BATCH_SIZE) {
+                    int end = Math.min(i + BATCH_SIZE, totalSize);
+                    List<EntryInfoEntity> batch = updateEntryInfoTemplatesList.subList(i, end);
+                    
+                    try {
+                        boolean updateEntryInfosSuccessfully = entryStorageService.updateEntryInfos(batch);  // 更新transID, 只要正常返回就是true
+                        if(!updateEntryInfosSuccessfully){
+                            throw new RuntimeException(String.format("更新词条信息失败"));
+                        }
+                        log.debug("第 {} 批数据更新成功，条数：{}", i / BATCH_SIZE, batch.size());
+                    } catch (Exception e) {
+                        log.error("更新词条信息失败，批次：{}，起始位置：{}", i / BATCH_SIZE, i, e);
+                        throw new RuntimeException("批量更新词条信息失败", e);
+                    }
                 }
+                
+                log.info("词条信息更新完成，总条数：{}", totalSize);
             }
-
-            if(translateEntities != null && !translateEntities.isEmpty()){
-                this.translateMapper.batchInsertTranslate(translateEntities);
+            // 批量插入翻译数据
+            if (translateEntities != null && !translateEntities.isEmpty()) {
+                List<TranslateEntity> entityList = new ArrayList<>(translateEntities);
+                int totalSize = entityList.size();
+                
+                // 添加日志，便于监控
+                log.debug("开始批量插入翻译数据，总条数：{}，批次大小：{}", totalSize, BATCH_SIZE);
+                
+                for (int i = 0; i < totalSize; i += BATCH_SIZE) {
+                    int end = Math.min(i + BATCH_SIZE, totalSize);
+                    List<TranslateEntity> batch = entityList.subList(i, end);
+                    
+                    try {
+                        this.translateMapper.batchInsertTranslate(batch);
+                        log.debug("第 {} 批数据插入成功，条数：{}", i / BATCH_SIZE, batch.size());
+                    } catch (Exception e) {
+                        log.error("批量插入失败，批次：{}，起始位置：{}", i / BATCH_SIZE, i, e);
+                        throw new RuntimeException("批量插入翻译数据失败", e);
+                    }
+                }
+                
+                log.info("翻译数据批量插入完成，总条数：{}", totalSize);
             }
-            return true;            
+            return true;
+            
         } catch (Exception e) {
-            log.error(null, e);
-            throw e;
+            log.error("updatetTranslationsInternal 执行失败", e);
+            throw e;  // 保持原异常抛出逻辑
         }
-
     }
 
     
