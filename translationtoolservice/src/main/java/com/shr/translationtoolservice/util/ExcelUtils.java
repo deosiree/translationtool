@@ -370,7 +370,7 @@ public class ExcelUtils {
                     for(int i = 0 ; i < dataLength ; i ++ ){
                         String nextValue = elementList[i];
                         // 以后考虑一下如果有这个字段, 但是单元格为空，将这个字段的值填充为"", 如果没有这个字段的列，那么这个字段的值为null
-                        if(nextValue == null || (nextValue.equals("") && !Boolean.parseBoolean(kwargs.get("emptyAsValue"))) ){
+                        if(nextValue == null || (nextValue.equals("") &&  (kwargs != null && !Boolean.parseBoolean(kwargs.get("emptyAsValue")))) ){
                             /* 单元格内容为空时跳过，该字段默认值 */
                             continue;
                         }
