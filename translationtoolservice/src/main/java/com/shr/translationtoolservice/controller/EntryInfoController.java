@@ -300,7 +300,7 @@ public class EntryInfoController extends BaseController {
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
     public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
-                                                          HttpServletRequest httpServletRequest
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,HttpServletRequest httpServletRequest
     ) {
         
         FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
@@ -310,7 +310,7 @@ public class EntryInfoController extends BaseController {
             }
             Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
             Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
-            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity, httpServletRequest.getHeader("token"),transType,toJson);
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity, httpServletRequest.getHeader("token"),transType,encoding,toJson);
             
             HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
             responseResult.setData(updateTranslationByFileVO);
@@ -338,8 +338,12 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/asyncEntryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
-    public HttpResponse<String> asyncEntryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
-                                                          HttpServletRequest httpServletRequest
+    public HttpResponse<String> asyncEntryImportExcle(
+        @RequestParam("file") MultipartFile multipartFile,
+        @RequestParam("transType") String transType,
+        @RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,
+        HttpServletRequest httpServletRequest
     ) {
         final TaskType taskType = TaskType.UPDATE_TRANSLATION;
         String token = httpServletRequest.getHeader("token");
@@ -351,7 +355,9 @@ public class EntryInfoController extends BaseController {
         Map<String, Set<String>> toJson;
         try {
             fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
-            entryInfosParsedOnFile = entryInfoService.parseFileToEntryInfos(fileInputStreamEntity, null);
+            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
+            keyValueArguments.set("encoding", encoding);
+            entryInfosParsedOnFile = entryInfoService.parseFileToEntryInfos(fileInputStreamEntity, keyValueArguments);
             if(relationFile != null && !relationFile.getOriginalFilename().endsWith(".json")){
                 throw new RuntimeException(String.format("关联关系文件必须是json格式, 请检查文件后缀以及文件内容"));
             }
@@ -1187,7 +1193,11 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/makeGroupForEntryInfosOnFiles")
     @ApiOperation("将文件中的词条解析, 并对词条进行分组")
     @CrossOrigin
-    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfosOnFiles(@RequestParam("file") MultipartFile multipartFile,@RequestParam(value =  "attributes[]",required = false) Collection<String> replicatedTargetAttributes){
+    public HttpResponse<EntryInfoGroupVO> makeGroupForEntryInfosOnFiles(
+        @RequestParam("file") MultipartFile multipartFile,
+        @RequestParam(value =  "attributes[]",required = false) Collection<String> replicatedTargetAttributes,
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding
+    ){
 
         /**
          * 
@@ -1203,7 +1213,7 @@ public class EntryInfoController extends BaseController {
          */
         FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
-            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(fileInputStreamEntity,replicatedTargetAttributes);
+            EntryInfoGroupVO entryInfoGroupVO = entryInfoService.makeGroupForEntryInfosOnFile(fileInputStreamEntity,replicatedTargetAttributes,encoding);
             return ok(entryInfoGroupVO);    
         } catch (Exception e) {
             // TODO: handle exception
@@ -1244,10 +1254,12 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/parseFileToEntryInfos")
     @ApiOperation("解析文件的内容变成词条对象")
     @CrossOrigin
-    public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,HttpServletRequest request){
+    public HttpResponse<Collection<EntryInfoEntity>> parseFileToEntryInfos(@RequestParam("file") MultipartFile multipartFile,@RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,HttpServletRequest request){
         FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
-            return ok(entryInfoService.parseFileToEntryInfos(fileInputStreamEntity, null));
+            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
+            keyValueArguments.set("encoding", encoding);
+            return ok(entryInfoService.parseFileToEntryInfos(fileInputStreamEntity, keyValueArguments));
         } catch (Exception e) {
             log.error("解析文件成词条出现异常", e);
             return error(null, e.getMessage());
@@ -1259,12 +1271,18 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/updateEntryInfosByFile")
     @ApiOperation("根据文件的词条, 指定文件中哪些列的内容要更新到库中")
     @CrossOrigin
-    public HttpResponse<UpdateEntryInfoByFileVO> updateEntryInfosByFile(@RequestParam("file") MultipartFile file,@RequestParam("columnName[]") Collection<String> columnNames,HttpServletRequest request){
+    public HttpResponse<UpdateEntryInfoByFileVO> updateEntryInfosByFile(
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("columnName[]") Collection<String> columnNames,
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,
+        HttpServletRequest request
+    ){
         FileInputStreamEntity fileInputStreamEntity = null;
         try {
             fileInputStreamEntity = FileInputStreamEntity.convertFrom(file);
             KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
             keyValueArguments.set("department", JWTTokenUtils.getDepartment(request.getHeader("token")));
+            keyValueArguments.set("encoding", encoding);
             UpdateEntryInfoByFileVO updateEntryInfoByFileVO = entryInfoService.updateEntryInfosByFile(fileInputStreamEntity, columnNames, keyValueArguments);
             if(updateEntryInfoByFileVO.hasError()){
                 return error(updateEntryInfoByFileVO, "存在异常");
@@ -1285,7 +1303,9 @@ public class EntryInfoController extends BaseController {
         @RequestParam("dedupOriginExcel") MultipartFile unTranslatedFile,
         @RequestParam("dedupUpdateExcel") MultipartFile translatedFile,
         @RequestParam(name =  "mappingJson",required = false) MultipartFile idRelationJsonFile,
-        @RequestParam("payload") String taskMessages
+        @RequestParam("payload") String taskMessages,
+        @RequestParam(name = "encodingForUnTrans",defaultValue = "GBK",required = false) String encodingForUnTranslatedFile,
+        @RequestParam(name = "encodingForTrans",defaultValue = "GBK",required = false) String encodingForTranslatedFile
     ){
         FileInputStreamEntity unTranslatedFileStreamEntitiy = null;
         FileInputStreamEntity translatedFileStreamEntity = null;
@@ -1300,7 +1320,10 @@ public class EntryInfoController extends BaseController {
                 unTranslatedFileStreamEntitiy, 
                 translatedFileStreamEntity, 
                 idRelationFileStreamEntitiy,
-                taskRequest);
+                taskRequest,
+                encodingForUnTranslatedFile,
+                encodingForTranslatedFile
+            );
             return ok(taskCheckResultVO);
         } catch (Exception e) {
             log.error("文件检查出现异常", e);

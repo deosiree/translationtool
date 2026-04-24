@@ -341,15 +341,15 @@ public class ExcelUtils {
     public <T> ParseFileInfo<T> readCSVToEntity(Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
         checkFile(fileName);
         List<T> entities = new  ArrayList<>();
-        // String charset = StringUtil.checkCharset(kwargs.get("charset"));
-        // String charset = charsetDetect(fileName);
-        // if(charset == null) charset = "UTF-8";
+        /* 获取编码模式  */
+        String encoding = StringUtil.checkEncoding(kwargs.get("encoding"));
+        if(encoding == null) encoding = "GBK";
         DateFormat electedFormat = null;
         try {
             ParseFileInfo<T> parseFileInfo = new ParseFileInfo<>();
             Method[] methodList = null;
             boolean isFindHeader = false;
-            List<String> lineTextList = parseCSVFile(in,"GBK");
+            List<String> lineTextList = parseCSVFile(in,encoding);
             if(lineTextList.isEmpty()){
                 throw new RuntimeException("文件内部没有任何内容");
             }
@@ -1776,7 +1776,15 @@ public class ExcelUtils {
         try {
             if(originalFilename.endsWith("csv")){
                 Map<String,String> keyValueMap = new HashMap<>();
-                keyValueMap.put("emptyAsValue",kwargs != null ? String.valueOf(kwargs.get("emptyAsValue",Boolean.class)) : String.valueOf(false));
+                if(kwargs == null){
+                    keyValueMap.put("emptyAsValue", String.valueOf(false));
+                    keyValueMap.put("encoding", "GBK");
+                }else{
+                    Boolean emptyAsValue = kwargs.get("emptyAsValue", Boolean.class);
+                    keyValueMap.put("emptyAsValue", emptyAsValue == null ? String.valueOf(false) : String.valueOf(emptyAsValue));
+                    String encoding = kwargs.get("encoding", String.class);
+                    keyValueMap.put("encoding", encoding == null || encoding.isEmpty() ? "GBK" : encoding);
+                }
                 return this.readCSVToEntity(clazz, in, originalFilename, keyValueMap);
             }else if(originalFilename.endsWith(".xlsx")){
                 return this.readExcelToEntity(null, clazz, in, originalFilename);

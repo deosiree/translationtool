@@ -28,7 +28,7 @@ public interface EntryFileImportService {
      * @param request
      * @return
      */
-    List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request);
+    List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,String encoding,HttpServletRequest request);
 
     List<EntryInfoEntity> importCommonExcle(FileInputStreamEntity fileInputStreamEntitiy, String taskID);
 
@@ -53,12 +53,19 @@ public interface EntryFileImportService {
      * @param transType
      * @return
      */
-    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,Map<String, Set<String>> idRelationMap);
+    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,String encoding ,Map<String, Set<String>> idRelationMap);
 
     UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfoEntities, String token, String transType,Map<String, Set<String>> idRelationMap);
 
 
-    TaskCheckResultVO checkBeforeUpdateTranslationByFile(FileInputStreamEntity unTranslateFile,FileInputStreamEntity translatedFile,FileInputStreamEntity idRelationFile,TaskRequest taskRequest);
+    TaskCheckResultVO checkBeforeUpdateTranslationByFile(
+        FileInputStreamEntity unTranslateFile,
+        FileInputStreamEntity translatedFile,
+        FileInputStreamEntity idRelationFile,
+        TaskRequest taskRequest,
+        String encodingForUnTranslatedFile,
+        String encodingForTranslatedFile
+    );
 
 
 }

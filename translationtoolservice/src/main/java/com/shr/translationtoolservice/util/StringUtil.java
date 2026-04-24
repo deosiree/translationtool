@@ -86,12 +86,12 @@ public class StringUtil {
         return builder.toString();
     }
 
-    public static String checkCharset(String charset){
-        if(charset == null){
+    public static String checkEncoding(String encoding){
+        if(encoding == null){
             return null;
         }
-        if(charset.equals("UTF-8") || charset.equals("GBK")){
-            return charset;
+        if(encoding.equals("UTF-8") || encoding.equals("GBK")){
+            return encoding;
         }
         return null;
     }

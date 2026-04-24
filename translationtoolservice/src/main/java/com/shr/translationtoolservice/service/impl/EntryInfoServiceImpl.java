@@ -880,7 +880,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,HttpServletRequest request){
+    public List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,String encoding,HttpServletRequest request){
         String fileName = fileInputStreamEntitiy.getFileName();
         List<EntryInfoEntity> entryInfoEntities = null;
         try {
@@ -915,7 +915,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 }
 
             }else if(fileName.endsWith(".csv")){
-                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, null).getParsedObjects().stream().collect(Collectors.toList());
+                Map<String,String> kwargs = new HashMap<>();
+                kwargs.put("encoding", encoding);
+                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, kwargs).getParsedObjects().stream().collect(Collectors.toList());
                 if(departmentType.equals("装置开发部")){
                     zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
                 }else{
@@ -1891,10 +1893,12 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional
     @Override
-    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy,  String token, String transType,Map<String, Set<String>> idRelationMap){
+    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy,  String token, String transType,String encoding,Map<String, Set<String>> idRelationMap){
     
         try {
-            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
+            KeyValueArguments<String> kwargs = new KeyValueArguments<>();
+            kwargs.set("encoding", encoding);
+            Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), kwargs).getParsedObjects();
             return this.importTransExcle(entryInfosParsedOnFile, token, transType, idRelationMap);
         } catch (Exception e) {
             log.error("更新词条翻译时出现异常", e); 
@@ -3819,12 +3823,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntity multipartFile,Collection<String> replicatedTargetAttributes) {
+    public EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntity multipartFile,Collection<String> replicatedTargetAttributes,String encoding) {
 
         String originalFilename = multipartFile.getFileName();
         Collection<EntryInfoEntity> entryInfoEntities = null;
         try {
-            entryInfoEntities = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), originalFilename, null).getParsedObjects();
+            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
+            keyValueArguments.set("encoding", encoding);
+            entryInfoEntities = excelUtils.parseFileToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), originalFilename, keyValueArguments).getParsedObjects();
         } catch (Exception e) {
             throw new RuntimeException(String.format("解析文件词条时出现异常, 无法进行词条去重分组, 异常信息为: %s", e.getMessage()),e);
         }
@@ -3893,10 +3899,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntity file1, FileInputStreamEntity file2,Collection<String> targetAttributes) {
+    public ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntity file1, FileInputStreamEntity file2,Collection<String> targetAttributes,KeyValueArguments<String> kwargs) {
         // TODO Auto-generated method stub
-        Collection<EntryInfoEntity> entryCollection1 = this.parseFileToEntryInfos(file1, null);
-        Collection<EntryInfoEntity> entryCollection2 = this.parseFileToEntryInfos(file2, null);
+        Collection<EntryInfoEntity> entryCollection1 = this.parseFileToEntryInfos(file1, kwargs);
+        Collection<EntryInfoEntity> entryCollection2 = this.parseFileToEntryInfos(file2, kwargs);
         DefaultEntryGroupbyStrategy entryGroupbyStrategy = new DefaultEntryGroupbyStrategy();
         entryGroupbyStrategy.addTargetAttributes(targetAttributes);
         return entryUtils.compareEntryInfos(entryCollection1, entryCollection2, entryGroupbyStrategy);
@@ -3921,7 +3927,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             if(fileInputStreamEntitiy == null){
                 return UpdateEntryInfoByFileVO.newInstance("更新词条信息失败", ExceptionVO.newInstance("没有提供更新词条的文件", "请检查是否提供词条文件"));
             }
-            Collection<EntryInfoEntity> entryInfos = this.parseFileToEntryInfos(fileInputStreamEntitiy, null);  // 属性为null: 没有对应的列，单元格没有值   
+            Collection<EntryInfoEntity> entryInfos = this.parseFileToEntryInfos(fileInputStreamEntitiy, keyValueArguments);  // 属性为null: 没有对应的列，单元格没有值   
             if(entryInfos == null){
                 return UpdateEntryInfoByFileVO.newInstance("更新词条失败", ExceptionVO.newInstance("解析文件失败, 未获取词条信息","检查提供的文件格式是否存在异常"));
             }
@@ -4004,17 +4010,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
  
     @Override
-    public TaskCheckResultVO checkBeforeUpdateTranslationByFile(FileInputStreamEntity unTranslateFile,FileInputStreamEntity translatedFile, FileInputStreamEntity idRelationFile,TaskRequest taskRequest) {
+    public TaskCheckResultVO checkBeforeUpdateTranslationByFile(
+        FileInputStreamEntity unTranslateFile,
+        FileInputStreamEntity translatedFile,
+        FileInputStreamEntity idRelationFile,
+        TaskRequest taskRequest,
+        String encodingForUnTranslatedFile,
+        String encodingForTranslatedFile
+    ) {
         // TODO Auto-generated method stub
         try {
             TaskCheckResultVO taskCheckResultVO = new TaskCheckResultVO();
             if(taskRequest == null){
                 return taskCheckResultVO;
             }
-            KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
-            keyValueArguments.set("emptyAsValue", taskRequest.getOptions().isEmptyStringAsValue());
-            ParseFileInfo<EntryInfoEntity> unTranslatedFileInfo = excelUtils.parseFileToEntity(EntryInfoEntity.class, unTranslateFile.getInputStream(), unTranslateFile.getFileName(), keyValueArguments);    
-            ParseFileInfo<EntryInfoEntity> translatedFileInfo = excelUtils.parseFileToEntity(EntryInfoEntity.class, translatedFile.getInputStream(), translatedFile.getFileName(), keyValueArguments);    
+            KeyValueArguments<String> keyValueArguments1 = new KeyValueArguments<>();
+            keyValueArguments1.set("emptyAsValue", taskRequest.getOptions().isEmptyStringAsValue());
+            keyValueArguments1.set("encoding", encodingForUnTranslatedFile);
+
+            KeyValueArguments<String> keyValueArguments2 = new KeyValueArguments<>();
+            keyValueArguments2.set("emptyAsValue", taskRequest.getOptions().isEmptyStringAsValue());
+            keyValueArguments2.set("encoding", encodingForTranslatedFile);
+
+            ParseFileInfo<EntryInfoEntity> unTranslatedFileInfo = excelUtils.parseFileToEntity(EntryInfoEntity.class, unTranslateFile.getInputStream(), unTranslateFile.getFileName(), keyValueArguments1);    
+            ParseFileInfo<EntryInfoEntity> translatedFileInfo = excelUtils.parseFileToEntity(EntryInfoEntity.class, translatedFile.getInputStream(), translatedFile.getFileName(), keyValueArguments2);    
 
             Collection<EntryInfoEntity> entryInfoOnUnTranslatedFile = unTranslatedFileInfo.getParsedObjects();
             Collection<EntryInfoEntity> entryInfoOnTranslatedFile = translatedFileInfo.getParsedObjects();

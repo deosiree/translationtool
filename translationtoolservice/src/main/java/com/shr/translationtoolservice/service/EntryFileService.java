@@ -15,7 +15,7 @@ public interface EntryFileService{
      * @param multipartFile
      * @return
      */
-    EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntity multipartFile,Collection<String> replicatedTargetAttributes);
+    EntryInfoGroupVO makeGroupForEntryInfosOnFile(FileInputStreamEntity multipartFile,Collection<String> replicatedTargetAttributes,String encoding);
 
     /**
      * 将文件的内容解析成词条对象, 没有后处理操作
@@ -32,7 +32,7 @@ public interface EntryFileService{
      * @param secondFile
      * @param targetAttributes  用于比对使用的属性名的集合
      */
-    ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntity file1,FileInputStreamEntity file2,Collection<String> targetAttributes);
+    ValueDifferenceVO<EntryInfoEntity> compareEntryInfosBetweenFiles(FileInputStreamEntity file1,FileInputStreamEntity file2,Collection<String> targetAttributes,KeyValueArguments<String> kwargs);
 
 
 

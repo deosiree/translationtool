@@ -119,13 +119,15 @@ public class WorkBenchController extends BaseController {
     //new
     public HttpResponse<ResponseListModel> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,
         @RequestParam(value = "departmentType",defaultValue = "通用平台部") String departmentType, 
-        @RequestParam("taskID") String taskID, HttpServletRequest httpServletRequest
+        @RequestParam("taskID") String taskID,
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding, 
+        HttpServletRequest httpServletRequest
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
         List<EntryInfoEntity> entryInfoEntities = null;
         FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
-            entryInfoEntities = entryInfoService.importEntitiesFromFile(fileInputStreamEntity, taskID,departmentType, httpServletRequest);
+            entryInfoEntities = entryInfoService.importEntitiesFromFile(fileInputStreamEntity, taskID,departmentType, encoding,httpServletRequest);
 
             if(entryInfoEntities == null){
                 throw new NullPointerException("entryInfoEntities == null");
