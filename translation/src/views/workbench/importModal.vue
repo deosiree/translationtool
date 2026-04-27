@@ -31,11 +31,18 @@
           <a-row :gutter="24">
             <a-col :span="16">
               <a-form-item label="词条文件" name="filefilename">
-                <a-input v-model:value="filePath" style="width:70%" size="small" placeholder="请选择词条文件" />
+                <a-input v-model:value="filePath" style="width:40%" size="small" placeholder="请选择词条文件" />
                 <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
                   <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
                 </a-upload>
                 <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
+                <span style="margin-left:16px">文件编码：</span>
+                <a-select
+                  v-model:value="fileEncoding"
+                  :options="fileEncodingOptions"
+                  size="small"
+                  style="width:100px"
+                />
               </a-form-item>
             </a-col>
             <a-col :span="8">
@@ -610,6 +617,11 @@ export default {
       user: null,
       task: {},
       filePath: "",
+      fileEncoding: "GBK",
+      fileEncodingOptions: [
+        { label: "UTF-8", value: "UTF-8" },
+        { label: "GBK", value: "GBK" },
+      ],
       filediFileName: null,
       keyWords: "",
       isExist: ALL_ISEXIST,
@@ -1682,6 +1694,7 @@ export default {
         let formData = new FormData();
         formData.append("file", this.file);
         formData.append("taskID", this.task.id);
+        formData.append("encoding", this.fileEncoding);
         const params = {
           diFileName: this.filediFileName,
           // 兼容 user 还未初始化的情况，避免读取 undefined.department 报错
@@ -2173,6 +2186,7 @@ export default {
       this.tsFile.tsFileValue = [];
       this.file = {};
       this.filePath = "";
+      this.fileEncoding = "GBK";
       this.dataLibrary = {
         node: null,
         server: null,
