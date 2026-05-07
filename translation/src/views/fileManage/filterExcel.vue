@@ -1,6 +1,13 @@
 <template>
-  <div class="container" ref="box">
-    <SearchBox v-if="false" ref="search" @change="setTableHeight">
+  <div
+    class="container"
+    ref="box"
+  >
+    <SearchBox
+      v-if="false"
+      ref="search"
+      @change="setTableHeight"
+    >
       <template v-slot:form>
         <a-form
           :model="search"
@@ -156,7 +163,10 @@
           :currentPage="pagination.current"
           @resetData="onResetData"
         />
-        <a-button type="primary" size="middle" @click="getSearchClick"
+        <a-button
+          type="primary"
+          size="middle"
+          @click="getSearchClick"
           >查询</a-button
         >
         <a-popover
@@ -169,7 +179,10 @@
               v-model:value="checkedSearchCondition"
               @change="changeSearchCondition"
             >
-              <a-row v-for="item in searchConditionList" :key="item.value">
+              <a-row
+                v-for="item in searchConditionList"
+                :key="item.value"
+              >
                 <a-col :span="24">
                   <a-checkbox :value="item.value">
                     {{ item.label }}
@@ -178,24 +191,36 @@
               </a-row>
             </a-checkbox-group>
           </template>
-          <a-button type="primary" size="middle" ghost
-            ><template #icon>
-              <SettingOutlined /> </template
-            >展示条件</a-button
+          <a-button
+            type="primary"
+            size="middle"
+            ghost
+            ><template #icon> <SettingOutlined /> </template>展示条件</a-button
           >
         </a-popover>
       </template>
     </SearchBox>
-    <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
+    <DataBox
+      :title="tableTitle"
+      :height="dataHeight"
+      :showOperate="true"
+    >
       <template v-slot:operate>
-        <div ref="button" style="margin-bottom: 8px; display: flex; gap: 10px">
+        <div
+          ref="button"
+          style="margin-bottom: 8px; display: flex; gap: 10px"
+        >
           <a-upload
             name="file"
             accept=".csv"
             :beforeUpload="beforeUpload"
             :show-upload-list="false"
           >
-            <a-button type="primary" size="middle" :loading="importLoading">
+            <a-button
+              type="primary"
+              size="middle"
+              :loading="importLoading"
+            >
               <template #icon>
                 <UploadOutlined />
               </template>
@@ -212,6 +237,7 @@
             </template>
             去重
           </a-button>
+          <!-- 去重回填(异步) -->
           <a-button
             v-if="hasFileUpdatePermission()"
             type="primary"
@@ -221,9 +247,10 @@
             <template #icon>
               <ImportOutlined />
             </template>
-            去重回填(异步)
+            去重回填
           </a-button>
-          <a-button
+          <!-- 去重回填(同步) -->
+          <!-- <a-button
             v-if="hasFileUpdatePermission()"
             type="primary"
             size="middle"
@@ -233,7 +260,7 @@
               <ImportOutlined />
             </template>
             去重回填
-          </a-button>
+          </a-button> -->
           <!-- <a-button type="primary" size="middle" @click="showImportBackfillModal">
             <template #icon>
               <ImportOutlined />
@@ -284,7 +311,10 @@
                 v-model:value="checkedColumn"
                 @change="changeColumn"
               >
-                <a-row v-for="item in checkboxList" :key="item.value">
+                <a-row
+                  v-for="item in checkboxList"
+                  :key="item.value"
+                >
                   <a-col :span="24">
                     <a-checkbox :value="item.value">
                       {{ item.label }}
@@ -293,7 +323,10 @@
                 </a-row>
               </a-checkbox-group>
             </template>
-            <a-button type="primary" size="middle">
+            <a-button
+              type="primary"
+              size="middle"
+            >
               <template #icon>
                 <SettingOutlined />
               </template>
@@ -376,7 +409,10 @@
                     <CaretRightOutlined />
                   </div>
                 </span>
-                <span v-else style="margin-right: 23px"></span>
+                <span
+                  v-else
+                  style="margin-right: 23px"
+                ></span>
               </template>
             </a-table>
           </a-config-provider>

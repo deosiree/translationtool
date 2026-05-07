@@ -1,6 +1,13 @@
 <template>
-  <div class="productEntryBox" ref="productEntryBox">
-    <SearchBox ref="search" @change="setTableHeight" :operate="false">
+  <div
+    class="productEntryBox"
+    ref="productEntryBox"
+  >
+    <SearchBox
+      ref="search"
+      @change="setTableHeight"
+      :operate="false"
+    >
       <template v-slot:form>
         <a-form
           :model="search"
@@ -232,7 +239,11 @@
             <a-button
               type="primary"
               size="middle"
-              v-if="$currentDepartment && $currentDepartment.ops.has('needForbidden') && admin"
+              v-if="
+                $currentDepartment &&
+                $currentDepartment.ops.has('needForbidden') &&
+                admin
+              "
               :danger="!showForbbiden"
               :class="{ yellowBtn: showForbbiden }"
               @click="changeForbbiden"
@@ -246,7 +257,10 @@
               @click="reset"
               >重置</a-button
             >
-            <a-button type="primary" size="middle" @click="conditionalQuery"
+            <a-button
+              type="primary"
+              size="middle"
+              @click="conditionalQuery"
               >查询</a-button
             >
             <AccurSearchButton
@@ -277,7 +291,10 @@
                   v-model:value="checkedSearchCondition"
                   @change="changeSearchCondition"
                 >
-                  <a-row v-for="item in searchConditionList" :key="item.value">
+                  <a-row
+                    v-for="item in searchConditionList"
+                    :key="item.value"
+                  >
                     <a-col :span="24">
                       <a-checkbox :value="item.value">
                         {{ item.label }}
@@ -286,9 +303,11 @@
                   </a-row>
                 </a-checkbox-group>
               </template>
-              <a-button type="primary" size="middle" ghost
-                ><template #icon>
-                  <SettingOutlined /> </template
+              <a-button
+                type="primary"
+                size="middle"
+                ghost
+                ><template #icon> <SettingOutlined /> </template
                 >展示条件</a-button
               >
             </a-popover>
@@ -296,8 +315,15 @@
         </a-form>
       </template>
     </SearchBox>
-    <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
-      <template v-if="isProduct()" v-slot:label>
+    <DataBox
+      :title="tableTitle"
+      :height="dataHeight"
+      :showOperate="true"
+    >
+      <template
+        v-if="isProduct()"
+        v-slot:label
+      >
         产品版本：
         <a-select
           v-model:value="currentVersion"
@@ -312,7 +338,10 @@
         </a-select>
       </template>
       <template v-slot:operate>
-        <div ref="button" style="margin-bottom: 8px; display: flex; gap: 10px">
+        <div
+          ref="button"
+          style="margin-bottom: 8px; display: flex; gap: 10px"
+        >
           <GitCommitButton
             v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
             size="small"
@@ -364,9 +393,7 @@
             :disabled="!isProduct()"
             @click="addEntry"
           >
-            <template #icon>
-              <PlusOutlined /> </template
-            >新增
+            <template #icon> <PlusOutlined /> </template>新增
           </a-button>
 
           <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
@@ -385,7 +412,8 @@
           <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
             buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
             @importSuccess="refreshTable" /> -->
-          <BackFillModal_v2_5
+          <!-- 更新翻译(同步) -->
+          <!-- <BackFillModal_v2_5
             v-if="
               admin &&
               $currentDepartment &&
@@ -398,7 +426,8 @@
             :showFileTypeSelect="true"
             :defaultAccept="'.csv'"
             @importSuccess="refreshTable"
-          />
+          /> -->
+          <!-- 更新翻译(异步) -->
           <BackFillModal_v3
             v-if="
               admin &&
@@ -406,8 +435,8 @@
               $currentDepartment.ops.has('fileUpdate')
             "
             mode="button"
-            buttonTitle="更新翻译(异步)"
-            modalTitle="更新翻译(异步)"
+            buttonTitle="更新翻译"
+            modalTitle="更新翻译"
             size="small"
             :showFileTypeSelect="true"
             :defaultAccept="'.csv'"
@@ -424,7 +453,10 @@
                 v-model:value="checkedColumn"
                 @change="changeColumn"
               >
-                <a-row v-for="item in checkboxList" :key="item.value">
+                <a-row
+                  v-for="item in checkboxList"
+                  :key="item.value"
+                >
                   <a-col :span="24">
                     <a-checkbox :value="item.value">
                       {{ item.label }}
@@ -433,10 +465,10 @@
                 </a-row>
               </a-checkbox-group>
             </template>
-            <a-button type="primary" size="small"
-              ><template #icon>
-                <SettingOutlined /> </template
-              >展示列</a-button
+            <a-button
+              type="primary"
+              size="small"
+              ><template #icon> <SettingOutlined /> </template>展示列</a-button
             >
           </a-popover>
         </div>
@@ -493,7 +525,9 @@
                             :auto-size="{ minRows: 1 }"
                           /> -->
                           <TextArea
-                            v-model:value="editableData[record.id][column.dataIndex]"
+                            v-model:value="
+                              editableData[record.id][column.dataIndex]
+                            "
                           />
                         </a-form-item>
                       </a-form>
@@ -516,7 +550,9 @@
                         @click="clickInput"
                       /> -->
                       <Input
-                        v-model:value="editableData[record.id][column.dataIndex]"
+                        v-model:value="
+                          editableData[record.id][column.dataIndex]
+                        "
                       />
                     </template>
                     <template v-else>
@@ -547,7 +583,9 @@
                             :auto-size="{ minRows: 1 }"
                           /> -->
                           <TextArea
-                            v-model:value="editableData[record.id][column.dataIndex]"
+                            v-model:value="
+                              editableData[record.id][column.dataIndex]
+                            "
                           />
                         </a-form-item>
                       </a-form>
@@ -609,7 +647,9 @@
                         @click="clickInput"
                       /> -->
                       <Input
-                        v-model:value="editableData[record.id][column.dataIndex]"
+                        v-model:value="
+                          editableData[record.id][column.dataIndex]
+                        "
                       />
                       <a-tooltip placement="top">
                         <template #title>
@@ -705,7 +745,10 @@
                     <CaretRightOutlined />
                   </div>
                 </span>
-                <span v-else style="margin-right: 23px"></span>
+                <span
+                  v-else
+                  style="margin-right: 23px"
+                ></span>
               </template>
               <!-- 设置筛选菜单 -->
               <template
@@ -739,8 +782,7 @@
                       handleSearch(selectedKeys, confirm, column.dataIndex)
                     "
                   >
-                    <template #icon>
-                      <SearchOutlined /> </template
+                    <template #icon> <SearchOutlined /> </template
                     >搜索</a-button
                   >
                   <a-button
@@ -783,7 +825,10 @@
           <table>
             <tr>
               <td class="tableTitle">翻译语种</td>
-              <td v-for="lang in commonParam.languageList" :key="lang.name">
+              <td
+                v-for="lang in commonParam.languageList"
+                :key="lang.name"
+              >
                 {{ lang.name }}
               </td>
             </tr>
@@ -798,7 +843,10 @@
             </tr>
             <tr>
               <td class="tableTitle">翻译状态</td>
-              <td v-for="lang in commonParam.languageList" :key="lang.value">
+              <td
+                v-for="lang in commonParam.languageList"
+                :key="lang.value"
+              >
                 <template v-if="currentEntry[lang.state] === '3'">
                   <a-badge color="#36BF7D" /><span style="color: #36bf7d">{{
                     currentEntry[lang.chineseState]
@@ -813,7 +861,10 @@
             </tr>
             <tr>
               <td class="tableTitle">选择</td>
-              <td v-for="lang in commonParam.languageList" :key="lang.value">
+              <td
+                v-for="lang in commonParam.languageList"
+                :key="lang.value"
+              >
                 <a-checkbox
                   :disabled="currentEntry[lang.state] != '3'"
                   v-model:checked="currentEntry[lang.checked]"
@@ -825,10 +876,15 @@
           <div class="details">
             <div>中文释义：{{ currentEntry.chineseInterpretation }}</div>
             <div>英文释义：{{ currentEntry.englishInterpretation }}</div>
-            <div class="btnBox" v-if="admin">
-              <a-button type="primary" size="small" @click="addPublic('1')"
-                ><template #icon>
-                  <PlusOutlined /> </template
+            <div
+              class="btnBox"
+              v-if="admin"
+            >
+              <a-button
+                type="primary"
+                size="small"
+                @click="addPublic('1')"
+                ><template #icon> <PlusOutlined /> </template
                 >添加到部门公共库</a-button
               >
               <a-button
@@ -836,8 +892,7 @@
                 size="small"
                 style="margin-left: 16px"
                 @click="addPublic('2')"
-                ><template #icon>
-                  <PlusOutlined /> </template
+                ><template #icon> <PlusOutlined /> </template
                 >添加到公司公共库</a-button
               >
             </div>
