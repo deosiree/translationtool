@@ -1390,9 +1390,6 @@
         <if test="entryInfoEntity.abbr != null ">
             and BINARY t1.abbr = #{entryInfoEntity.abbr,jdbcType=VARCHAR}
         </if>
-        <if test=" entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'TS' or entryInfoEntity.importType == 'ENUM'">
-            and BINARY t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
-        </if>
 
         <if test="entryInfoEntity.tag != null ">
             and BINARY t1.tag = #{entryInfoEntity.tag,jdbcType=VARCHAR}
@@ -1400,9 +1397,18 @@
         <if test="entryInfoEntity.comment != null">
             and BINARY t1.comment = #{entryInfoEntity.comment,jdbcType=VARCHAR}
         </if>
-        <if test="entryInfoEntity.importType == 'DB' or entryInfoEntity.importType == 'CONFIG' or entryInfoEntity.importType == 'DI' or entryInfoEntity.importType == 'ENUM'">
-            and BINARY t1.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
-        </if>
+
+        <choose>
+            <when test = "entryInfoEntity.writeType == 'DI'">
+                and BINARY t1.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
+            </when>
+            <when test = "entryInfoEntity.writeType == 'TS'">
+                and BINARY t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
+            </when>
+            <otherwise>
+
+            </otherwise>
+        </choose>
 
     </select>
 
