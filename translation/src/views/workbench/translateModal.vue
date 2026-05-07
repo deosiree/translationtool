@@ -236,7 +236,15 @@
               <div class="suggentItem" @click="suggestClick(item.title,item.id)">
                 <div class="tran">
                   <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
-                  <span>{{item.title}}（{{item.updateTime}}）</span>
+                  <div class="local-translate-meta">
+                    <span class="local-translate-title">{{ item.title }}</span>
+                    <span
+                      v-if="item.formattedUpdateTime"
+                      class="local-translate-time"
+                    >
+                      {{ item.formattedUpdateTime }}
+                    </span>
+                  </div>
                 </div>
                 <div class="tips">
                   {{item.tips}}
@@ -351,6 +359,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import key from "keymaster";
+import dayjs from "dayjs";
 import {
   clickInput,
   setModalAriaHidden,
@@ -666,6 +675,12 @@ export default {
     initTranslateEntry() {
       this.getTranslateEntry();
       this.init();
+    },
+    formatSuggestTime(value) {
+      if (!value) return "";
+      const parsed = dayjs(value);
+      if (!parsed.isValid()) return "";
+      return parsed.format("YYYY/MM/DD HH:mm");
     },
     init() {
       let _this = this;
@@ -1178,6 +1193,7 @@ export default {
                   type: "local",
                   id: item.id,
                   updateTime: item.createTime,
+                  formattedUpdateTime: this.formatSuggestTime(item.createTime),
                 };
                 this.suggest.local.push(suggent);
               });
@@ -1889,9 +1905,45 @@ export default {
         width: 100%;
         .tran {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
+          width: 100%;
 
-          span {
+          .local-translate-meta {
+            display: flex;
+            flex: 1 1 auto;
+            min-width: 0;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+          }
+
+          .local-translate-title {
+            flex: 1 1 auto;
+            min-width: 0;
+            color: var(--text-icon-font-gy-190-primary, rgba(0, 0, 0, 0.9));
+            font-family: Microsoft YaHei;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 22px;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+          }
+
+          .local-translate-time {
+            flex: 0 0 auto;
+            color: var(--text-icon-font-gy-340-placeholder, rgba(0, 0, 0, 0.4));
+            font-family: Microsoft YaHei;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 20px;
+            white-space: nowrap;
+            text-align: right;
+          }
+
+          > span {
             color: var(--text-icon-font-gy-190-primary, rgba(0, 0, 0, 0.9));
             /* 四级文字/常规 */
             font-family: Microsoft YaHei;
