@@ -183,7 +183,7 @@ export default {
       classfyID: "2",
       ops: new Set(["needExamine", "entryState3", "needForbidden", "fileUpdate"]),
       // -entryState3默认词条审核状态为“已审核”
-      // -needForbidden是否需要禁用词条（词条管理-已选词条）
+      // -needForbidden是否需要禁用词条（词条管理-已选词条，词条管理-显示禁用/隐藏禁用）
     },
     "人工智能部": {
       label: "人工智能部",

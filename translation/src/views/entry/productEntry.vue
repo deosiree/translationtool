@@ -232,7 +232,7 @@
             <a-button
               type="primary"
               size="middle"
-              v-if="admin"
+              v-if="$currentDepartment && $currentDepartment.ops.has('needForbidden') && admin"
               :danger="!showForbbiden"
               :class="{ yellowBtn: showForbbiden }"
               @click="changeForbbiden"
