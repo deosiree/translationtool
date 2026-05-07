@@ -4113,10 +4113,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     Object object =  gson.fromJson(message, Object.class);
                     wholeMessage.add(object);
                 });
-                // String logDir=  "/app/cache/log/";
-                String logDir = "E:\\work\\translation\\translationTool\\translationtool\\cache\\log\\";
-                // String logID = commonUtils.getUUID();
-                String logID = "f5698f09-99d3-462e-b835-cce5447d1c67";
+                String logDir=  "/app/cache/log/";
+                // String logDir = "E:\\work\\translation\\translationTool\\translationtool\\cache\\log\\";
+                String logID = commonUtils.getUUID();
+                // String logID = "f5698f09-99d3-462e-b835-cce5447d1c67";
                 String filePath = logDir + logID + ".log";
                 JSONUtils.exportJson(wholeMessage, filePath);
                 Attachment attachment = new Attachment();
