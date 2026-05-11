@@ -1399,10 +1399,10 @@
         </if>
 
         <choose>
-            <when test = "entryInfoEntity.writeType == 'DI'">
+            <when test = "entryInfoEntity.writeType == 'DI' and entryInfoEntity.diFileName != null">
                 and BINARY t1.di_file_name = #{entryInfoEntity.diFileName,jdbcType=VARCHAR}
             </when>
-            <when test = "entryInfoEntity.writeType == 'TS'">
+            <when test = "entryInfoEntity.writeType == 'TS' and entryInfoEntity.entrySource != null">
                 and BINARY t1.entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR}
             </when>
             <otherwise>
