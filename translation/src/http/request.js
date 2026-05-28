@@ -74,7 +74,7 @@ const controllers = {};
 // 基础配置
 const baseConfig = {
   baseURL: env.dev.baseUrl,
-  timeout: 360000, // 超时时间（注意：原代码写的是 settimeout，应该是 timeout）
+  timeout: 3600000, // 超时时间（注意：原代码写的是 settimeout，应该是 timeout）
 };
 
 // ==================== 请求拦截器（所有实例共享） ====================
