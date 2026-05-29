@@ -12,7 +12,7 @@ const service = axios.create({
   headers: { //请求头
     // 'Content-Type': 'application/json;charset=UTF-8',
   },
-  settimeout: 360000,//超时时间
+  settimeout: 720000,//超时时间
   // settimeout: 180000,//超时时间
 });
 
