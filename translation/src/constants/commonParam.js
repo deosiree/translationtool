@@ -166,7 +166,7 @@ export default {
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"],// 导入类型
       value: "jk",
       classfyID: "6",
-      ops: new Set(["needIP", "needExamine", "needDelete", "fileUpdate"]),
+      ops: new Set(["needIP", "needExamine", "needDelete", "needBranch", "fileUpdate"]),
     },
     "装置开发部": {
       label: "装置开发部",
