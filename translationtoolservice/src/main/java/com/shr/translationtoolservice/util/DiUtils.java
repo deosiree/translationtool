@@ -117,7 +117,7 @@ public class DiUtils {
 
         } catch (Exception e) {
             log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.UPDTAE_DICTIONARY + ConstantInterface.SPRIT);
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
             return ErrorCodeList.I18N_SERVER_ERROR;
         }
         return ConstantInterface.OK_STR;

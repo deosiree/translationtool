@@ -239,14 +239,18 @@ public class I18nServiceImpl implements I18nService {
                             }
 
                         } else if ("DI".equals(entryInfoEntity.getWriteType())) {
+                            String diFileName = entryInfoEntity.getDiFileName();
+                            if(StringUtils.isBlank(diFileName)){
+                                continue;
+                            }
                             //di 来源处理
                             List<EntryInfoEntity> entities;
-                            if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getDiFileName()))) {
+                            if (CollectionUtils.isEmpty(diTypeMap.get(diFileName))) {
                                 entities = new ArrayList<>();
                                 entities.add(entryInfoEntity);
-                                diTypeMap.put(entryInfoEntity.getDiFileName(), entities);
+                                diTypeMap.put(diFileName, entities);
                             } else {
-                                entities = diTypeMap.get(entryInfoEntity.getDiFileName());
+                                entities = diTypeMap.get(diFileName);
                                 for (EntryInfoEntity entryInfoEntity1 : entities){
                                     if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
                                             if(StringUtils.isBlank(entryInfoEntity1.getTag())){
