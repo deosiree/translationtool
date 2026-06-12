@@ -153,7 +153,7 @@ public class EntryUtils {
             }
         }
 
-        Set<EntryInfoReplicateCheckVO> replicatedExists = entryInfoMapper.newGetEntryInfoExists(entryInfoReplicateCheckVOs,productID,taskID);
+        Set<EntryInfoReplicateCheckVO> replicatedExists = entryInfoMapper.newGetEntryInfoExists(entryInfoReplicateCheckVOs,productID,taskID);   // 这个底层逻辑还有点不同，无法直接给workbench使用
         List<EntryInfoEntity> exitEntryInfos = new ArrayList<>();
         List<EntryInfoEntity> notExistEntryInfos = new ArrayList<>();
 

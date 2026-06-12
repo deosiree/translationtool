@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -124,7 +125,7 @@ public class WorkBenchController extends BaseController {
         HttpServletRequest httpServletRequest
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryInfoEntities = null;
+        Collection<EntryInfoEntity> entryInfoEntities = null;
         FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
         try {
             entryInfoEntities = entryInfoService.importEntitiesFromFile(fileInputStreamEntity, taskID,departmentType, encoding,httpServletRequest);

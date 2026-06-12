@@ -27,6 +27,19 @@ public class WorkBenchVO {
                 return null;
             }
         }
+
+        public static String convertTOString(EntryImportFileTypeVO entryImportFileTypeVO){
+            if(entryImportFileTypeVO == EntryImportFileTypeVO.COMMON_VERSION){
+                return "通用模板";
+            }
+            if(entryImportFileTypeVO == EntryImportFileTypeVO.NEW_FILE_VERSION){
+                return "新模板";
+            }
+            if(entryImportFileTypeVO == EntryImportFileTypeVO.OLD_FILE_VERSION){
+                return "旧模板";
+            }
+            return "";
+        }
     }
     
 }

@@ -1,6 +1,5 @@
 package com.shr.translationtoolservice.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.reflect.TypeToken;
@@ -25,6 +24,7 @@ import com.shr.translationtoolservice.service.EntryStorageService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TranslationStorageService;
 import com.shr.translationtoolservice.service.analyze.BatchMaxLengthTranslateAnalyzer;
+import com.shr.translationtoolservice.service.entry.EntryInfoEntityImportHandler;
 import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
 import com.shr.translationtoolservice.service.workflow.CheckFilePipeline;
 import com.shr.translationtoolservice.service.workflow.CheckFilePipeline.BuildOption;
@@ -48,15 +48,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.management.RuntimeErrorException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,8 +63,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -152,6 +147,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Autowired
     private CheckFilePipeline checkFilePipeline;
+
+    @Autowired
+    private EntryInfoEntityImportHandler entryInfoEntityImportHandler;
 
 
     @Override
@@ -880,66 +878,79 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public List<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,String encoding,HttpServletRequest request){
+    public Collection<EntryInfoEntity> importEntitiesFromFile(FileInputStreamEntity fileInputStreamEntitiy,String taskID,String departmentType,String encoding,HttpServletRequest request){
         String fileName = fileInputStreamEntitiy.getFileName();
-        List<EntryInfoEntity> entryInfoEntities = null;
+        Collection<EntryInfoEntity> entryInfoEntities = null;
         try {
             String token = request.getHeader("token");
             String userName = JWTTokenUtils.getUserName(token);
+            User user = new User();
+            user.setDepartment(departmentType);
+            user.setUserName(userName);
 
             TaskInfoEntity taskInfoEntity = taskInfoMapper.getTaskEntityByTaskID(taskID);
             /* 加版本号 */
             if(fileName.endsWith(".xlsx")){
-                if(departmentType.equals("装置开发部")){
-                    EntryImportFileTypeVO modeType = EntryImportFileTypeVO.parse(request.getParameter("templateType"));
-                    if(modeType == null){
-                        throw new NullPointerException("传递的modeType参数不正确或为null");
-                    }
-                    if(modeType == EntryImportFileTypeVO.NEW_FILE_VERSION){
-                        throw new Exception("暂不支持,请使用其他模板");
-                        // entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
-                        // zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                    }else if(modeType == EntryImportFileTypeVO.OLD_FILE_VERSION){
-                        List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, fileInputStreamEntitiy.getInputStream(), fileName);
-                        entryInfoEntities = new ArrayList<>();
-                        zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
-                    }else if(modeType == EntryImportFileTypeVO.COMMON_VERSION){
-                        entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
-                        zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                    }else{
-                        throw new Exception("当前不支持该文件类型: " + request.getParameter("modeType"));
-                    }
-                }else{
-                    entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
-                    ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                }
-
+                EntryImportFileTypeVO modeType = EntryImportFileTypeVO.parse(request.getParameter("templateType"));
+                // if(departmentType.equals("装置开发部")){
+                //     EntryImportFileTypeVO modeType = EntryImportFileTypeVO.parse(request.getParameter("templateType"));
+                //     if(modeType == null){
+                //         throw new NullPointerException("传递的modeType参数不正确或为null");
+                //     }
+                //     if(modeType == EntryImportFileTypeVO.NEW_FILE_VERSION){
+                //         throw new Exception("暂不支持,请使用其他模板");
+                //         // entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
+                //         // zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                //     }else if(modeType == EntryImportFileTypeVO.OLD_FILE_VERSION){
+                //         List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, fileInputStreamEntitiy.getInputStream(), fileName);
+                //         entryInfoEntities = new ArrayList<>();
+                //         zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
+                //     }else if(modeType == EntryImportFileTypeVO.COMMON_VERSION){
+                //         entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
+                //         zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                //     }else{
+                //         throw new Exception("当前不支持该文件类型: " + request.getParameter("modeType"));
+                //     }
+                // }else{
+                //     entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
+                //     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                // }
+                entryInfoEntities = entryInfoEntityImportHandler.importExcel(fileInputStreamEntitiy, user, modeType, taskInfoEntity, encoding);
             }else if(fileName.endsWith(".csv")){
-                Map<String,String> kwargs = new HashMap<>();
-                kwargs.put("encoding", encoding);
-                entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, kwargs).getParsedObjects().stream().collect(Collectors.toList());
-                if(departmentType.equals("装置开发部")){
-                    zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                }else{
-                    ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                }
+                // Map<String,String> kwargs = new HashMap<>();
+                // kwargs.put("encoding", encoding);
+                // entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, kwargs).getParsedObjects().stream().collect(Collectors.toList());
+                // if(departmentType.equals("装置开发部")){
+                //     zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                // }else{
+                //     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
+                // }
+                entryInfoEntities = entryInfoEntityImportHandler.importCSV(fileInputStreamEntitiy, user, taskInfoEntity, encoding);
             }else if(fileName.endsWith(".xml")){
-                if(departmentType.equals("装置开发部")){
-                    String template = request.getParameter("templateType");
-                    if(template == null){
-                        throw new Exception("请确定xml采用何种模板");
-                    }
-                    if(template.equals("可视化词条")){
-                        entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(),XMLUtils.XMLHandlerForEquipment.class);
-                    }else if(template.equals("装置辞典")){
-                        entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(), XMLUtils.XMLHandlerForEquipment2.class);
-                    }else{
-                        throw new Exception("当前不支持该版本的xml导入: " + template);
-                    }
-                    zzEntryHandleForXML(entryInfoEntities, userName, taskInfoEntity, fileName);
-                }else{
-                    throw new Exception("暂不支持XML导入");
-                }
+                String template = request.getParameter("templateType");
+                // if(departmentType.equals("装置开发部")){
+                //     String template = request.getParameter("templateType");
+                //     if(template == null){
+                //         throw new Exception("请确定xml采用何种模板");
+                //     }
+                //     if(template.equals("可视化词条")){
+                //         entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(),new XMLUtils.XMLHandlerForEquipment());
+                //     }else if(template.equals("装置辞典")){
+                //         entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(),new XMLUtils.XMLHandlerForEquipment2());
+                //     }else{
+                //         throw new Exception("当前不支持该版本的xml导入: " + template);
+                //     }
+                //     zzEntryHandleForXML(entryInfoEntities, userName, taskInfoEntity, fileName);
+                // }else{
+                //     throw new Exception("暂不支持XML导入");
+                // }
+                entryInfoEntities = entryInfoEntityImportHandler.importXML(fileInputStreamEntitiy, user, taskInfoEntity, template);
+            }else if(fileName.endsWith(".ts")){
+                entryInfoEntities = entryInfoEntityImportHandler.importTS(fileInputStreamEntitiy, user, taskInfoEntity);
+            }else if(fileName.endsWith(".dic")){
+                entryInfoEntities = entryInfoEntityImportHandler.importDIC(fileInputStreamEntitiy, user, taskInfoEntity, encoding);
+
+
             }else{
                 throw new RuntimeException("暂时不支持文件: " + fileName + "的词条导入功能");
             }
@@ -958,207 +969,207 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
 
-    private void ptEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
-        Date date = new Date(System.currentTimeMillis());
-        for (EntryInfoEntity entryInfoEntity : entryEntitys) {
+    // private void ptEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
+    //     Date date = new Date(System.currentTimeMillis());
+    //     for (EntryInfoEntity entryInfoEntity : entryEntitys) {
 
-            entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
-            entryInfoEntity.setUpdate(userName);
-            entryInfoEntity.setUpdateTime(date);
+    //         entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
+    //         entryInfoEntity.setUpdate(userName);
+    //         entryInfoEntity.setUpdateTime(date);
 
-            entryInfoEntity.setIsDelete(0);
-            entryInfoEntity.setIsPublic(0);
-            entryInfoEntity.setEntryState(1);
+    //         entryInfoEntity.setIsDelete(0);
+    //         entryInfoEntity.setIsPublic(0);
+    //         entryInfoEntity.setEntryState(1);
 
-            entryInfoEntity.setId(commonUtils.getUUID());
-            if (Objects.nonNull(taskInfoEntity)) {
-                entryInfoEntity.setTaskId(taskInfoEntity.getId());
-                entryInfoEntity.setProductID(taskInfoEntity.getProductId());
-                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
-            }
-            if (fileName.contains("_db_meta_common.xlsx")) {
-                entryInfoEntity.setWriteType(ConstantInterface.DI);
-                String tag = entryInfoEntity.getTag();
-                //tag 转成json
-                entryInfoEntity.setImportType(ConstantInterface.DB_META);
-                JSONObject jsonObject = JSONObject.parseObject(tag);
-                String appName = jsonObject.get("appName").toString();
-                String dbName = jsonObject.get("dbName").toString().replace(".","_");
-                String tableName = jsonObject.get("tableName").toString();
-                String fieldName = jsonObject.get("fieldName").toString();
-                entryInfoEntity.setTag( tableName + "/" + fieldName);
-                entryInfoEntity.setDiFileName("db/meta/"  +  dbName );
-            }
+    //         entryInfoEntity.setId(commonUtils.getUUID());
+    //         if (Objects.nonNull(taskInfoEntity)) {
+    //             entryInfoEntity.setTaskId(taskInfoEntity.getId());
+    //             entryInfoEntity.setProductID(taskInfoEntity.getProductId());
+    //             entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
+    //         }
+    //         if (fileName.contains("_db_meta_common.xlsx")) {
+    //             entryInfoEntity.setWriteType(ConstantInterface.DI);
+    //             String tag = entryInfoEntity.getTag();
+    //             //tag 转成json
+    //             entryInfoEntity.setImportType(ConstantInterface.DB_META);
+    //             JSONObject jsonObject = JSONObject.parseObject(tag);
+    //             String appName = jsonObject.get("appName").toString();
+    //             String dbName = jsonObject.get("dbName").toString().replace(".","_");
+    //             String tableName = jsonObject.get("tableName").toString();
+    //             String fieldName = jsonObject.get("fieldName").toString();
+    //             entryInfoEntity.setTag( tableName + "/" + fieldName);
+    //             entryInfoEntity.setDiFileName("db/meta/"  +  dbName );
+    //         }
 
 
-            if (StringUtils.isBlank(entryInfoEntity.getImportType())){
-                entryInfoEntity.setImportType(ConstantInterface.EXCEL);
-            }
-            if (StringUtils.isBlank(entryInfoEntity.getWriteType())){
-                entryInfoEntity.setWriteType(ConstantInterface.DI);
-            }
+    //         if (StringUtils.isBlank(entryInfoEntity.getImportType())){
+    //             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+    //         }
+    //         if (StringUtils.isBlank(entryInfoEntity.getWriteType())){
+    //             entryInfoEntity.setWriteType(ConstantInterface.DI);
+    //         }
 
-            if (StringUtils.isBlank(entryInfoEntity.getEntrySource())){
-                entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
-            }
+    //         if (StringUtils.isBlank(entryInfoEntity.getEntrySource())){
+    //             entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
+    //         }
 
-            String productTableName = "t_entry_info";
-            // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-            List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
-            if (CollectionUtils.isEmpty(entryEntities)) {
-                //创建新翻译
-                entryInfoEntity.setIsExist(0);
-                entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
-                entryInfoEntity.setEntryVersion(1);
-                setPTTranslateState(taskInfoEntity, entryInfoEntity);
+    //         String productTableName = "t_entry_info";
+    //         // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+    //         List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryList(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+    //         if (CollectionUtils.isEmpty(entryEntities)) {
+    //             //创建新翻译
+    //             entryInfoEntity.setIsExist(0);
+    //             entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+    //             entryInfoEntity.setEntryVersion(1);
+    //             setPTTranslateState(taskInfoEntity, entryInfoEntity);
 
-            } else {
-                entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
-                entryInfoEntity.setIsExist(1);
-            }
-        }
+    //         } else {
+    //             entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
+    //             entryInfoEntity.setIsExist(1);
+    //         }
+    //     }
 
-    }
+    // }
 
-    private void setPTTranslateState(TaskInfoEntity taskInfoEntity, EntryInfoEntity entryInfoEntity) {
-        //写入翻译字段
-        switch (taskInfoEntity.getTranslateType()) {
-            case ConstantInterface.CHINESE:
-                if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
-                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(entryInfoEntity.getZhCharLength())) {
-                    entryInfoEntity.setEntryLength(entryInfoEntity.getZhCharLength());
-                }
-                break;
-            case ConstantInterface.ENGLISH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(entryInfoEntity.getEnCharLength())) {
-                    entryInfoEntity.setEntryLength(entryInfoEntity.getEnCharLength());
-                }
-                break;
-            case ConstantInterface.SPANISH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(entryInfoEntity.getSpaCharLength())) {
-                    entryInfoEntity.setEntryLength(entryInfoEntity.getSpaCharLength());
-                }
-                break;
-            case ConstantInterface.RUSSIAN:
-                if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-                    entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(entryInfoEntity.getRuCharLength())) {
-                    entryInfoEntity.setEntryLength(entryInfoEntity.getRuCharLength());
-                }
-                break;
-            case ConstantInterface.FRENCH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(entryInfoEntity.getFraCharLength())) {
-                    entryInfoEntity.setEntryLength(entryInfoEntity.getFraCharLength());
-                }
-                break;
-        }
-    }
+    // private void setPTTranslateState(TaskInfoEntity taskInfoEntity, EntryInfoEntity entryInfoEntity) {
+    //     //写入翻译字段
+    //     switch (taskInfoEntity.getTranslateType()) {
+    //         case ConstantInterface.CHINESE:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+    //                 entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(entryInfoEntity.getZhCharLength())) {
+    //                 entryInfoEntity.setEntryLength(entryInfoEntity.getZhCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.ENGLISH:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+    //                 entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(entryInfoEntity.getEnCharLength())) {
+    //                 entryInfoEntity.setEntryLength(entryInfoEntity.getEnCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.SPANISH:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
+    //                 entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(entryInfoEntity.getSpaCharLength())) {
+    //                 entryInfoEntity.setEntryLength(entryInfoEntity.getSpaCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.RUSSIAN:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
+    //                 entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(entryInfoEntity.getRuCharLength())) {
+    //                 entryInfoEntity.setEntryLength(entryInfoEntity.getRuCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.FRENCH:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
+    //                 entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(entryInfoEntity.getFraCharLength())) {
+    //                 entryInfoEntity.setEntryLength(entryInfoEntity.getFraCharLength());
+    //             }
+    //             break;
+    //     }
+    // }
 
-    private void zzEntryHandleForXML(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
-        Date date = new Date(System.currentTimeMillis());
-        for(EntryInfoEntity entryInfoEntity : entryEntitys){
-            entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
-            entryInfoEntity.setIsDelete(0);
-            if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
-                entryInfoEntity.setUpdate(userName);
-            }
-            entryInfoEntity.setUpdateTime(date);
-            entryInfoEntity.setIsPublic(0);
-            entryInfoEntity.setEntryState(1);
-            entryInfoEntity.setId(commonUtils.getUUID());
-            if (Objects.nonNull(taskInfoEntity)) {
-                entryInfoEntity.setTaskId(taskInfoEntity.getId());
-                entryInfoEntity.setProductID(taskInfoEntity.getProductId());
-                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
-            }
-            if (StringUtils.isBlank(entryInfoEntity.getImportType())){
-                entryInfoEntity.setImportType(ConstantInterface.EXCEL);
-            }
-            String productTableName = "t_entry_info";
-            caseExisttryForXML(entryInfoEntity, taskInfoEntity,  productTableName);
-        }
-    }
+    // private void zzEntryHandleForXML(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
+    //     Date date = new Date(System.currentTimeMillis());
+    //     for(EntryInfoEntity entryInfoEntity : entryEntitys){
+    //         entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
+    //         entryInfoEntity.setIsDelete(0);
+    //         if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
+    //             entryInfoEntity.setUpdate(userName);
+    //         }
+    //         entryInfoEntity.setUpdateTime(date);
+    //         entryInfoEntity.setIsPublic(0);
+    //         entryInfoEntity.setEntryState(1);
+    //         entryInfoEntity.setId(commonUtils.getUUID());
+    //         if (Objects.nonNull(taskInfoEntity)) {
+    //             entryInfoEntity.setTaskId(taskInfoEntity.getId());
+    //             entryInfoEntity.setProductID(taskInfoEntity.getProductId());
+    //             entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
+    //         }
+    //         if (StringUtils.isBlank(entryInfoEntity.getImportType())){
+    //             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+    //         }
+    //         String productTableName = "t_entry_info";
+    //         caseExisttryForXML(entryInfoEntity, taskInfoEntity,  productTableName);
+    //     }
+    // }
 
-    private void zzEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
-        Date date = new Date(System.currentTimeMillis());
-        for(EntryInfoEntity entryInfoEntity : entryEntitys){
-            entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
-            entryInfoEntity.setIsDelete(0);
-            if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
-                entryInfoEntity.setUpdate(userName);
-            }
-            entryInfoEntity.setUpdateTime(date);
-            entryInfoEntity.setIsPublic(0);
-            entryInfoEntity.setEntryState(1);
-            entryInfoEntity.setId(commonUtils.getUUID());
-            if (Objects.nonNull(taskInfoEntity)) {
-                entryInfoEntity.setTaskId(taskInfoEntity.getId());
-                entryInfoEntity.setProductID(taskInfoEntity.getProductId());
-                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
-            }
-            if (StringUtils.isBlank(entryInfoEntity.getImportType())){
-                entryInfoEntity.setImportType(ConstantInterface.EXCEL);
-            }
-            String productTableName = "t_entry_info";
-            caseExisttry(entryInfoEntity, taskInfoEntity,  productTableName);
-        }
-    }
+    // private void zzEntryHandle(List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
+    //     Date date = new Date(System.currentTimeMillis());
+    //     for(EntryInfoEntity entryInfoEntity : entryEntitys){
+    //         entryInfoEntity.setEntryLength(entryInfoEntity.getEntry().length());
+    //         entryInfoEntity.setIsDelete(0);
+    //         if(entryInfoEntity.getUpdate() == null || entryInfoEntity.getUpdate().equals("")){
+    //             entryInfoEntity.setUpdate(userName);
+    //         }
+    //         entryInfoEntity.setUpdateTime(date);
+    //         entryInfoEntity.setIsPublic(0);
+    //         entryInfoEntity.setEntryState(1);
+    //         entryInfoEntity.setId(commonUtils.getUUID());
+    //         if (Objects.nonNull(taskInfoEntity)) {
+    //             entryInfoEntity.setTaskId(taskInfoEntity.getId());
+    //             entryInfoEntity.setProductID(taskInfoEntity.getProductId());
+    //             entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
+    //         }
+    //         if (StringUtils.isBlank(entryInfoEntity.getImportType())){
+    //             entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+    //         }
+    //         String productTableName = "t_entry_info";
+    //         caseExisttry(entryInfoEntity, taskInfoEntity,  productTableName);
+    //     }
+    // }
 
-    private void zzEntryHandle(List<ImportExcleEntry> importExcleEntries, List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
-        Date date = new Date(System.currentTimeMillis());
-        for (ImportExcleEntry importExcleEntry : importExcleEntries) {
+    // private void zzEntryHandle(List<ImportExcleEntry> importExcleEntries, List<EntryInfoEntity> entryEntitys, String userName, TaskInfoEntity taskInfoEntity, String fileName) {
+    //     Date date = new Date(System.currentTimeMillis());
+    //     for (ImportExcleEntry importExcleEntry : importExcleEntries) {
 
-            EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-            BeanUtils.copyProperties(importExcleEntry, entryInfoEntity);
-            entryInfoEntity.setAbbr(importExcleEntry.getAbbr());
-            entryInfoEntity.setEntry(importExcleEntry.getAbbr());
-            entryInfoEntity.setEntryLength(importExcleEntry.getAbbr().length());
-            entryInfoEntity.setUpdate(userName);
-            entryInfoEntity.setUpdateTime(date);
-            entryInfoEntity.setChineseInterpretation(importExcleEntry.getChineseInterpretation());
-            entryInfoEntity.setEnglishInterpretation(importExcleEntry.getEnglishInterpretation());
-            entryInfoEntity.setClassfy1(importExcleEntry.getClassfy1());
-            entryInfoEntity.setClassfy2(importExcleEntry.getClassfy2());
-            entryInfoEntity.setProductID(taskInfoEntity.getProductId());
-            entryInfoEntity.setIsDelete(0);
-            entryInfoEntity.setIsPublic(0);
-            entryInfoEntity.setEntryState(1);
-            entryInfoEntity.setTaskId(taskInfoEntity.getProductId());
-            entryInfoEntity.setId(commonUtils.getUUID());
-            if (Objects.nonNull(taskInfoEntity)) {
-                entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
-            }
-            entryInfoEntity.setImportType(ConstantInterface.EXCEL);
-            entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
-            // entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
-            entryInfoEntity.setRemark(importExcleEntry.getCreator());
-            String productTableName = "t_entry_info";
-            caseExisttry(entryInfoEntity, taskInfoEntity, importExcleEntry, productTableName);
-            entryEntitys.add(entryInfoEntity);
-        }
-    }
+    //         EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+    //         BeanUtils.copyProperties(importExcleEntry, entryInfoEntity);
+    //         entryInfoEntity.setAbbr(importExcleEntry.getAbbr());
+    //         entryInfoEntity.setEntry(importExcleEntry.getAbbr());
+    //         entryInfoEntity.setEntryLength(importExcleEntry.getAbbr().length());
+    //         entryInfoEntity.setUpdate(userName);
+    //         entryInfoEntity.setUpdateTime(date);
+    //         entryInfoEntity.setChineseInterpretation(importExcleEntry.getChineseInterpretation());
+    //         entryInfoEntity.setEnglishInterpretation(importExcleEntry.getEnglishInterpretation());
+    //         entryInfoEntity.setClassfy1(importExcleEntry.getClassfy1());
+    //         entryInfoEntity.setClassfy2(importExcleEntry.getClassfy2());
+    //         entryInfoEntity.setProductID(taskInfoEntity.getProductId());
+    //         entryInfoEntity.setIsDelete(0);
+    //         entryInfoEntity.setIsPublic(0);
+    //         entryInfoEntity.setEntryState(1);
+    //         entryInfoEntity.setTaskId(taskInfoEntity.getProductId());
+    //         entryInfoEntity.setId(commonUtils.getUUID());
+    //         if (Objects.nonNull(taskInfoEntity)) {
+    //             entryInfoEntity.setVersionID(taskInfoEntity.getVersionId());
+    //         }
+    //         entryInfoEntity.setImportType(ConstantInterface.EXCEL);
+    //         entryInfoEntity.setWriteType(ConstantInterface.EXCEL);
+    //         // entryInfoEntity.setEntrySource("import : " + ConstantInterface.EXCEL + " ; fileName" + fileName);
+    //         entryInfoEntity.setRemark(importExcleEntry.getCreator());
+    //         String productTableName = "t_entry_info";
+    //         caseExisttry(entryInfoEntity, taskInfoEntity, importExcleEntry, productTableName);
+    //         entryEntitys.add(entryInfoEntity);
+    //     }
+    // }
 
     @Override
     @Transactional
@@ -3365,161 +3376,161 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     }
 
-    private void caseExisttryForXML(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {
-        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForXML(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
-        if (CollectionUtils.isEmpty(entryEntities)) {
-            //创建新翻译
-            entryInfoEntity.setIsExist(0);
-            entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
-            entryInfoEntity.setEntryVersion(1);
-            createNewTrans(entryInfoEntity, taskInfoEntity);
-        } else {
-            entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
-            int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
-            entryInfoEntity.setEntryVersion(maxVersion);
-            entryInfoEntity.setIsExist(1);
-        }
-    }
+    // private void caseExisttryForXML(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {
+    //     // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+    //     List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForXML(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+    //     if (CollectionUtils.isEmpty(entryEntities)) {
+    //         //创建新翻译
+    //         entryInfoEntity.setIsExist(0);
+    //         entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+    //         entryInfoEntity.setEntryVersion(1);
+    //         createNewTrans(entryInfoEntity, taskInfoEntity);
+    //     } else {
+    //         entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
+    //         int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
+    //         entryInfoEntity.setEntryVersion(maxVersion);
+    //         entryInfoEntity.setIsExist(1);
+    //     }
+    // }
 
-    private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {
-        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForEquipment(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
-        if (CollectionUtils.isEmpty(entryEntities)) {
-            //创建新翻译
-            entryInfoEntity.setIsExist(0);
-            entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
-            entryInfoEntity.setEntryVersion(1);
-            createNewTrans(entryInfoEntity, taskInfoEntity);
-        } else {
-            entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
-            int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
-            entryInfoEntity.setEntryVersion(maxVersion);
-            entryInfoEntity.setIsExist(1);
-        }
-    }
+    // private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {
+    //     // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+    //     List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForEquipment(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+    //     if (CollectionUtils.isEmpty(entryEntities)) {
+    //         //创建新翻译
+    //         entryInfoEntity.setIsExist(0);
+    //         entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+    //         entryInfoEntity.setEntryVersion(1);
+    //         createNewTrans(entryInfoEntity, taskInfoEntity);
+    //     } else {
+    //         entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
+    //         int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
+    //         entryInfoEntity.setEntryVersion(maxVersion);
+    //         entryInfoEntity.setIsExist(1);
+    //     }
+    // }
 
-    private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry, String productTableName) {
-        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForEquipment(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
-        if (CollectionUtils.isEmpty(entryEntities)) {
-            //创建新翻译
-            entryInfoEntity.setIsExist(0);
-            entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
-            entryInfoEntity.setEntryVersion(1);
-            createNewTrans(entryInfoEntity, taskInfoEntity, importExcleEntry);
-        } else {
-            entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
-            int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
-            entryInfoEntity.setEntryVersion(maxVersion);
-            entryInfoEntity.setIsExist(1);
-        }
-    }
-    private void createNewTrans(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity) {
-        switch (taskInfoEntity.getTranslateType()) {
-            case ConstantInterface.CHINESE:
-                if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
-                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
-                    entryInfoEntity.setZhCharLength(entryInfoEntity.getChinese().length());
-                } else {
-                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                break;
-            case ConstantInterface.ENGLISH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
-                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
-                    entryInfoEntity.setEnCharLength(entryInfoEntity.getEnglish().length());
-                } else {
-                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                break;
-            case ConstantInterface.SPANISH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
-                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
-                    entryInfoEntity.setSpaCharLength(entryInfoEntity.getSpanish().length());
-                } else {
-                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                break;
-            case ConstantInterface.RUSSIAN:
-                if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
-                    entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
-                    entryInfoEntity.setRuCharLength(entryInfoEntity.getRussian().length());
-                } else {
-                    entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                break;
-            case ConstantInterface.FRENCH:
-                if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
-                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
-                    entryInfoEntity.setFraCharLength(entryInfoEntity.getFrench().length());
-                } else {
-                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                break;
-        }
-    }
+    // private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry, String productTableName) {
+    //     // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
+    //     List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForEquipment(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+    //     if (CollectionUtils.isEmpty(entryEntities)) {
+    //         //创建新翻译
+    //         entryInfoEntity.setIsExist(0);
+    //         entryInfoEntity.setEntryVersionID(commonUtils.getUUID());
+    //         entryInfoEntity.setEntryVersion(1);
+    //         createNewTrans(entryInfoEntity, taskInfoEntity, importExcleEntry);
+    //     } else {
+    //         entryInfoEntity.setEntryVersionID(entryEntities.get(0).getEntryVersionID());
+    //         int maxVersion = entryEntities.stream().max(Comparator.comparing(EntryInfoEntity::getEntryVersion)).get().getEntryVersion();
+    //         entryInfoEntity.setEntryVersion(maxVersion);
+    //         entryInfoEntity.setIsExist(1);
+    //     }
+    // }
+    // private void createNewTrans(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity) {
+    //     switch (taskInfoEntity.getTranslateType()) {
+    //         case ConstantInterface.CHINESE:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+    //                 entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+    //                 entryInfoEntity.setZhCharLength(entryInfoEntity.getChinese().length());
+    //             } else {
+    //                 entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             break;
+    //         case ConstantInterface.ENGLISH:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
+    //                 entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
+    //                 entryInfoEntity.setEnCharLength(entryInfoEntity.getEnglish().length());
+    //             } else {
+    //                 entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             break;
+    //         case ConstantInterface.SPANISH:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getSpanish())) {
+    //                 entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
+    //                 entryInfoEntity.setSpaCharLength(entryInfoEntity.getSpanish().length());
+    //             } else {
+    //                 entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             break;
+    //         case ConstantInterface.RUSSIAN:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getRussian())) {
+    //                 entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
+    //                 entryInfoEntity.setRuCharLength(entryInfoEntity.getRussian().length());
+    //             } else {
+    //                 entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             break;
+    //         case ConstantInterface.FRENCH:
+    //             if (StringUtils.isNotBlank(entryInfoEntity.getFrench())) {
+    //                 entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
+    //                 entryInfoEntity.setFraCharLength(entryInfoEntity.getFrench().length());
+    //             } else {
+    //                 entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             break;
+    //     }
+    // }
 
-    private void createNewTrans(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry) {
-        //写入翻译字段
-        switch (taskInfoEntity.getTranslateType()) {
-            case ConstantInterface.CHINESE:
-                if (StringUtils.isNotBlank(importExcleEntry.getChinese())) {
-                    entryInfoEntity.setChinese(importExcleEntry.getChinese());
-                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(importExcleEntry.getZhCharLength())) {
-                    entryInfoEntity.setEntryLength(importExcleEntry.getZhCharLength());
-                }
-                break;
-            case ConstantInterface.ENGLISH:
-                if (StringUtils.isNotBlank(importExcleEntry.getEnglish())) {
-                    entryInfoEntity.setEnglish(importExcleEntry.getEnglish());
-                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(importExcleEntry.getEnCharLength())) {
-                    entryInfoEntity.setEntryLength(importExcleEntry.getEnCharLength());
-                }
-                break;
-            case ConstantInterface.SPANISH:
-                if (StringUtils.isNotBlank(importExcleEntry.getSpanish())) {
-                    entryInfoEntity.setSpanish(importExcleEntry.getSpanish());
-                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(importExcleEntry.getSpaCharLength())) {
-                    entryInfoEntity.setEntryLength(importExcleEntry.getSpaCharLength());
-                }
-                break;
-            case ConstantInterface.RUSSIAN:
-                if (StringUtils.isNotBlank(importExcleEntry.getRussian())) {
-                    entryInfoEntity.setRussian(importExcleEntry.getRussian());
-                    entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(importExcleEntry.getRuCharLength())) {
-                    entryInfoEntity.setEntryLength(importExcleEntry.getRuCharLength());
-                }
-                break;
-            case ConstantInterface.FRENCH:
-                if (StringUtils.isNotBlank(importExcleEntry.getFrench())) {
-                    entryInfoEntity.setFrench(importExcleEntry.getFrench());
-                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
-                } else {
-                    entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
-                }
-                if (!Objects.isNull(importExcleEntry.getFraCharLength())) {
-                    entryInfoEntity.setEntryLength(importExcleEntry.getFraCharLength());
-                }
-                break;
-        }
-    }
+    // private void createNewTrans(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry) {
+    //     //写入翻译字段
+    //     switch (taskInfoEntity.getTranslateType()) {
+    //         case ConstantInterface.CHINESE:
+    //             if (StringUtils.isNotBlank(importExcleEntry.getChinese())) {
+    //                 entryInfoEntity.setChinese(importExcleEntry.getChinese());
+    //                 entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(importExcleEntry.getZhCharLength())) {
+    //                 entryInfoEntity.setEntryLength(importExcleEntry.getZhCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.ENGLISH:
+    //             if (StringUtils.isNotBlank(importExcleEntry.getEnglish())) {
+    //                 entryInfoEntity.setEnglish(importExcleEntry.getEnglish());
+    //                 entryInfoEntity.setEnglishTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setEnglishTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(importExcleEntry.getEnCharLength())) {
+    //                 entryInfoEntity.setEntryLength(importExcleEntry.getEnCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.SPANISH:
+    //             if (StringUtils.isNotBlank(importExcleEntry.getSpanish())) {
+    //                 entryInfoEntity.setSpanish(importExcleEntry.getSpanish());
+    //                 entryInfoEntity.setSpanishTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setSpanishTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(importExcleEntry.getSpaCharLength())) {
+    //                 entryInfoEntity.setEntryLength(importExcleEntry.getSpaCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.RUSSIAN:
+    //             if (StringUtils.isNotBlank(importExcleEntry.getRussian())) {
+    //                 entryInfoEntity.setRussian(importExcleEntry.getRussian());
+    //                 entryInfoEntity.setRussianTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setRussianTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(importExcleEntry.getRuCharLength())) {
+    //                 entryInfoEntity.setEntryLength(importExcleEntry.getRuCharLength());
+    //             }
+    //             break;
+    //         case ConstantInterface.FRENCH:
+    //             if (StringUtils.isNotBlank(importExcleEntry.getFrench())) {
+    //                 entryInfoEntity.setFrench(importExcleEntry.getFrench());
+    //                 entryInfoEntity.setFrenchTranslateState(ConstantInterface.TRANSLATED);
+    //             } else {
+    //                 entryInfoEntity.setFrenchTranslateState(ConstantInterface.UNTRANSLATED);
+    //             }
+    //             if (!Objects.isNull(importExcleEntry.getFraCharLength())) {
+    //                 entryInfoEntity.setEntryLength(importExcleEntry.getFraCharLength());
+    //             }
+    //             break;
+    //     }
+    // }
 
 
     //检查abbr 是否重复 重复返回true
@@ -4163,55 +4174,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             throw new RuntimeException("读取/写入日志文件时发生 IO 错误：" + logPath);
         }
     }
-
-    // /**
-    //  * 更新一个词条的翻译为另一个词条的翻译
-    //  * @param <E> matchedEntryInfo的数据类型
-    //  * @param entryID
-    //  * @param matchedEntryInfo
-    //  * @param transTypes
-    //  */
-    // @Transactional(rollbackFor = Exception.class)
-    // protected <E> void updateTranslationByOthers(String entryID,E matchedEntryInfo,Set<String> transTypes){
-    //     if(StringUtils.isBlank(entryID)){
-    //         throw new RuntimeException(String.format("没有提供词条的ID, 无法更新词条的翻译"));
-    //     }
-    //     Map<String, String> entryInfoEntityGetterTranslateMap = ConstantInterface.entryInfoEntityGetterTranslateMap();
-    //     Map<String,String> translations = new HashMap<>();
-
-    //     transTypes.forEach((transType)->{
-    //         String getTranslateMethodName = entryInfoEntityGetterTranslateMap.get(transType);
-    //         if(StringUtils.isBlank(getTranslateMethodName)){
-    //             throw new RuntimeException(String.format("没有获取到语言类型为: {}的getTranslate方法", transType));
-    //         }
-    //         try {
-    //             Method getTranslateMethod = EntryInfoEntity.class.getMethod(getTranslateMethodName);
-    //             String translate = getTranslateMethod.invoke(matchedEntryInfo) != null ? String.valueOf(getTranslateMethod.invoke(matchedEntryInfo)) : null;
-    //             if(StringUtils.isBlank(translate)){
-    //                 return; // 不能更新翻译为null或""
-    //             }else{
-    //                 translations.put(transType, translate);
-    //             }
-    //         } catch (Exception e){
-    //             throw new RuntimeException(String.format("利用%s更新ID为: %s的词条时出现异常, 异常信息为: %s",matchedEntryInfo.toString(),entryID,e.getMessage())); 
-    //         }
-
-    //     });
-    //     try {
-    //         boolean isUpdateSuccess = translationStorageService.updateEntryInfoTranslation(entryID, translations, null);
-    //         if(!isUpdateSuccess){
-    //             throw new RuntimeException(String.format("ID为: %s的词条未找到, 无法更新该词条的翻译", entryID)); 
-    //         }            
-    //     } catch (Exception e) {
-    //         throw new RuntimeException(String.format("利用%s更新ID为: %s的词条时出现异常",matchedEntryInfo.toString(),entryID,e.getMessage())); 
-
-    //     }
-    //     return;
-    // }
-
     
-
-
 
 }
 

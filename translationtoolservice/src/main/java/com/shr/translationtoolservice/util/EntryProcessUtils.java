@@ -88,11 +88,11 @@ public class EntryProcessUtils {
         }
     }
 
-    public List<EntryInfoEntity> buildRepeEntry(List<EntryInfoEntity> entryInfoEntities, String translateType) {
+    public List<EntryInfoEntity> buildRepeEntry(Collection<EntryInfoEntity> entryInfoEntities, String translateType) {
         return buildRepeEntry(entryInfoEntities, translateType,null);
     }
 
-    public List<EntryInfoEntity> buildRepeEntry(List<EntryInfoEntity> entryInfoEntities, String translateType,String forDepartment) {
+    public List<EntryInfoEntity> buildRepeEntry(Collection<EntryInfoEntity> entryInfoEntities, String translateType,String forDepartment) {
         List<EntryInfoEntity> newEntry = new ArrayList<>();
         //entry_translate,entryTempEntity
         Map<String, EntryInfoEntity> entryEntityMap = new HashMap<>();

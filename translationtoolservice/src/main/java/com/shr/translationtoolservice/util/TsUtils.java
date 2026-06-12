@@ -8,7 +8,6 @@ import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.TLanguage;
-import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.exception.i18nServerConnectException;
 import com.shr.translationtoolservice.exception.i18nServerParseException;
 

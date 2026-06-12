@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
@@ -42,10 +41,10 @@ import com.shr.translationtoolservice.entity.TLanguage;
 import com.shr.translationtoolservice.entity.TaskInfoEntity;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
-import com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO;
 import com.shr.translationtoolservice.entity.vo.TranslateEntitiyReplicateCheckVO;
-import com.shr.translationtoolservice.service.EntryInfoService;
-import com.shr.translationtoolservice.service.EntryTempService;
+import com.shr.translationtoolservice.service.processor.EntryImportProcessor;
+import com.shr.translationtoolservice.service.processor.converter.DICDictionaryVOConverter;
+import com.shr.translationtoolservice.service.processor.converter.TSDictionaryVOConverter;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.EntryProcessUtils;
 import com.shr.translationtoolservice.util.EntryUtils;
@@ -93,6 +92,9 @@ public class BatchInsertEntryHandler {
 
     @Autowired
     private EntryUtils entryUtils;
+
+    @Autowired
+    protected EntryImportProcessor entryImportProcessor;
 
     Map<String,String> languageSetTranslateMethodMap =  ConstantInterface.entryInfoEntitySetterTranslateMap();
 
@@ -230,60 +232,60 @@ public class BatchInsertEntryHandler {
         return tsFileList;
     }
 
-    /**
-     * 设定{@code source},{@code tag},{@code comment}以及{@code translation}（例如english,russian等） 
-     * 针对由辞典导入的词条(由dic导入的), 根据导入的词条已有的翻译,设定{@code entryInfoEntity}对应语种的翻译信息，以及source,tag,commment(通用)
-     * @param entryInfoEntity
-     * @param dictionaryVo
-     * @param tLanguages
-     */
-    protected void constructCriticalAttributesForEntryInfoEntitiy(EntryInfoEntity entryInfoEntity,DictionaryVO dictionaryVo,List<TLanguage> tLanguages){
-        /* 添加source,tag,comment */
-        entryInfoEntity.setEntry(dictionaryVo.getSource());
-        entryInfoEntity.setTag(dictionaryVo.getTag());
-        entryInfoEntity.setComment(dictionaryVo.getComments());
-        /* 添加所有的语种的翻译 */
-        Map<String, String> translationMap = dictionaryVo.getTranslation(); // {"en_US" : "xxx","zh_CN": "xxx", "ru_RU" : "xxxx"}
+    // /**
+    //  * 设定{@code source},{@code tag},{@code comment}以及{@code translation}（例如english,russian等） 
+    //  * 针对由辞典导入的词条(由dic导入的), 根据导入的词条已有的翻译,设定{@code entryInfoEntity}对应语种的翻译信息，以及source,tag,commment(通用)
+    //  * @param entryInfoEntity
+    //  * @param dictionaryVo
+    //  * @param tLanguages
+    //  */
+    // protected void constructCriticalAttributesForEntryInfoEntitiy(EntryInfoEntity entryInfoEntity,DictionaryVO dictionaryVo,List<TLanguage> tLanguages){
+    //     /* 添加source,tag,comment */
+    //     entryInfoEntity.setEntry(dictionaryVo.getSource());
+    //     entryInfoEntity.setTag(dictionaryVo.getTag());
+    //     entryInfoEntity.setComment(dictionaryVo.getComments());
+    //     /* 添加所有的语种的翻译 */
+    //     Map<String, String> translationMap = dictionaryVo.getTranslation(); // {"en_US" : "xxx","zh_CN": "xxx", "ru_RU" : "xxxx"}
 
-        for(TLanguage tLanguage : tLanguages){
-            String langCode = tLanguage.getCode();
-            String name = tLanguage.getName();
-            String setMethodName = this.languageSetTranslateMethodMap.get(name);
-            if(!translationMap.containsKey(langCode)){
-                continue;
-            }
-            try {
-                /* 设定语言属性 */
-                Method method = entryInfoEntity.getClass().getMethod(setMethodName, String.class);
-                String translate = translationMap.get(langCode);
-                method.invoke(entryInfoEntity, translate == null ? "" : translate);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                log.error(e.getMessage(), e);
-                continue;
-            }
-        }
-    }
-    /**
-     * 针对由辞典导入的词条(由dic导入的)，设定通用基本属性，
-     * 并会调用{@link constructCriticalAttributesForEntryInfoEntitiy}设定{@code source},{@code tag} {@code comment}和翻译信息(通用)
-     * @param dictionaryVo
-     * @param tLanguages
-     * @return
-     */
-    protected EntryInfoEntity constructBasicAttributesForEntryInfoEntitiy(
-        DictionaryVO dictionaryVo,
-        List<TLanguage> tLanguages
-    ){
+    //     for(TLanguage tLanguage : tLanguages){
+    //         String langCode = tLanguage.getCode();
+    //         String name = tLanguage.getName();
+    //         String setMethodName = this.languageSetTranslateMethodMap.get(name);
+    //         if(!translationMap.containsKey(langCode)){
+    //             continue;
+    //         }
+    //         try {
+    //             /* 设定语言属性 */
+    //             Method method = entryInfoEntity.getClass().getMethod(setMethodName, String.class);
+    //             String translate = translationMap.get(langCode);
+    //             method.invoke(entryInfoEntity, translate == null ? "" : translate);
+    //         } catch (Exception e) {
+    //             // TODO Auto-generated catch block
+    //             log.error(e.getMessage(), e);
+    //             continue;
+    //         }
+    //     }
+    // }
+    // /**
+    //  * 针对由辞典导入的词条(由dic导入的)，设定通用基本属性，
+    //  * 并会调用{@link constructCriticalAttributesForEntryInfoEntitiy}设定{@code source},{@code tag} {@code comment}和翻译信息(通用)
+    //  * @param dictionaryVo
+    //  * @param tLanguages
+    //  * @return
+    //  */
+    // protected EntryInfoEntity constructBasicAttributesForEntryInfoEntitiy(
+    //     DictionaryVO dictionaryVo,
+    //     List<TLanguage> tLanguages
+    // ){
 
-        EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
-        entryInfoEntity.setId(commonUtils.getUUID());
-        this.constructCriticalAttributesForEntryInfoEntitiy(entryInfoEntity, dictionaryVo, tLanguages);        
-        entryInfoEntity.setEntryState(0);
-        entryInfoEntity.setIsDelete(0);
+    //     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+    //     entryInfoEntity.setId(commonUtils.getUUID());
+    //     this.constructCriticalAttributesForEntryInfoEntitiy(entryInfoEntity, dictionaryVo, tLanguages);        
+    //     entryInfoEntity.setEntryState(0);
+    //     entryInfoEntity.setIsDelete(0);
 
-        return entryInfoEntity;
-    }
+    //     return entryInfoEntity;
+    // }
 
 
     /**
@@ -311,9 +313,9 @@ public class BatchInsertEntryHandler {
         JSONArray jsonArray = new JSONArray();
         String s = "";
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-        String taskID = taskInfoEntity.getId();
-        String productID = taskInfoEntity.getProductId();
-        String versionID = taskInfoEntity.getVersionId();
+        // String taskID = taskInfoEntity.getId();
+        // String productID = taskInfoEntity.getProductId();
+        // String versionID = taskInfoEntity.getVersionId();
 
         for (String dicRelPath : dicList) {
             Map<String, String> headerParameters = new HashMap<>();
@@ -345,25 +347,59 @@ public class BatchInsertEntryHandler {
             }
             log.info("获取到dic的词条数据, 准备创建对象: fileName: " + dicRelPath);
 
+            List<DictionaryVO> dictionaryVOs = new ArrayList<>();
             for (int i = 0; i < jsonArray.size(); i++) {
                 DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
-                EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(new DictionaryVO(dictionaryVo), languageList);
-                entryInfoEntity.setEntrySource(dicRelPath);
-                entryInfoEntity.setDiFileName(dicRelPath);
-                entryInfoEntity.setWriteType(ConstantInterface.DI);
-                entryInfoEntity.setImportType(ConstantInterface.DI);
-                entryInfoEntity.setEntryState(1);
-                entryInfoEntity.setTaskId(taskID);
-                entryInfoEntity.setProductID(productID);
-                entryInfoEntity.setVersionID(versionID);
-                entryInfoEntity.setUpdateTime(this.convertCurrentTime());
-                entryInfoEntity.setUpdate(userName);
-                entryInfoEntities.add(entryInfoEntity);
+                dictionaryVOs.add(new DictionaryVO(dictionaryVo));
+                // EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(new DictionaryVO(dictionaryVo), languageList);
+                // entryInfoEntity.setEntrySource(dicRelPath);
+                // entryInfoEntity.setDiFileName(dicRelPath);
+                // entryInfoEntity.setWriteType(ConstantInterface.DI);
+                // entryInfoEntity.setImportType(ConstantInterface.DI);
+                // entryInfoEntity.setEntryState(1);
+                // entryInfoEntity.setTaskId(taskID);
+                // entryInfoEntity.setProductID(productID);
+                // entryInfoEntity.setVersionID(versionID);
+                // entryInfoEntity.setUpdateTime(this.convertCurrentTime());
+                // entryInfoEntity.setUpdate(userName);
+                // entryInfoEntities.add(entryInfoEntity);
             }
+            DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(dicRelPath, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languageList, userName, dicRelPath);
+            // entryInfoEntities.addAll(convertFromDictionaryVOToDICEntry(dictionaryVOs, dicRelPath, dicRelPath, taskInfoEntity, userName, languageList));
+            entryInfoEntities.addAll(entryImportProcessor.convertToEntryInfos(dicDictionaryVOConverter, dictionaryVOs));
+
         }
         return entryInfoEntities;
     }
 
+    // public List<EntryInfoEntity> convertFromDictionaryVOToDICEntry(
+    //     Collection<DictionaryVO> dictionaryVOs,
+    //     String entrySource,
+    //     String diFileName,
+    //     TaskInfoEntity taskInfoEntity,
+    //     String userName,
+    //     List<TLanguage> languageList
+    // ){
+    //     List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+    //     String taskID = taskInfoEntity.getId();
+    //     String productID = taskInfoEntity.getProductId();
+    //     String versionID = taskInfoEntity.getVersionId();
+    //     for(DictionaryVO dictionaryVO : dictionaryVOs){
+    //         EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, languageList);
+    //         entryInfoEntity.setEntrySource(entrySource);
+    //         entryInfoEntity.setDiFileName(diFileName);
+    //         entryInfoEntity.setWriteType(ConstantInterface.DI);
+    //         entryInfoEntity.setImportType(ConstantInterface.DI);
+    //         entryInfoEntity.setEntryState(1);
+    //         entryInfoEntity.setTaskId(taskID);
+    //         entryInfoEntity.setProductID(productID);
+    //         entryInfoEntity.setVersionID(versionID);
+    //         entryInfoEntity.setUpdateTime(this.convertCurrentTime());
+    //         entryInfoEntity.setUpdate(userName);
+    //         entryInfoEntities.add(entryInfoEntity);
+    //     }
+    //     return entryInfoEntities;
+    // }
 
 
 
@@ -385,9 +421,9 @@ public class BatchInsertEntryHandler {
         String userName
     ){
 
-        String taskID = taskInfoEntity.getId();
-        String versionID = taskInfoEntity.getVersionId();
-        String productId = taskInfoEntity.getProductId();
+        // String taskID = taskInfoEntity.getId();
+        // String versionID = taskInfoEntity.getVersionId();
+        // String productId = taskInfoEntity.getProductId();
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         Map<String,Set<DictionaryVO>> dictionaryVOMap = new HashMap<>();    // key: ts文件名 ,value : 词条集合
         for (String tsFileNamePrefix : tsFileNamePrefixList) {
@@ -444,26 +480,60 @@ public class BatchInsertEntryHandler {
         for(Map.Entry<String,Set<DictionaryVO>> dictionaryVOEntry :dictionaryVOMap.entrySet()){
             Set<DictionaryVO> dictionaryVOs = dictionaryVOEntry.getValue();
             String tsFileNamePrefix = dictionaryVOEntry.getKey();
-            for(DictionaryVO dictionaryVO : dictionaryVOs){
+            // for(DictionaryVO dictionaryVO : dictionaryVOs){
   
-                EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, targetLanguages);
+            //     EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, targetLanguages);
 
-                entryInfoEntity.setEntrySource(tsFileNamePrefix);
-                entryInfoEntity.setEntryState(1);
-                entryInfoEntity.setTaskId(taskID);
-                entryInfoEntity.setUpdate(userName);
-                entryInfoEntity.setUpdateTime(this.convertCurrentTime());
-                entryInfoEntity.setProductID(productId);
-                entryInfoEntity.setVersionID(versionID);
-                entryInfoEntity.setImportType(ConstantInterface.TS);
-                entryInfoEntity.setWriteType(ConstantInterface.TS);
-                entryInfoEntity.setIsDelete(0);
-                entryInfoEntities.add(entryInfoEntity);
-            }
+            //     entryInfoEntity.setEntrySource(tsFileNamePrefix);
+            //     entryInfoEntity.setEntryState(1);
+            //     entryInfoEntity.setTaskId(taskID);
+            //     entryInfoEntity.setUpdate(userName);
+            //     entryInfoEntity.setUpdateTime(this.convertCurrentTime());
+            //     entryInfoEntity.setProductID(productId);
+            //     entryInfoEntity.setVersionID(versionID);
+            //     entryInfoEntity.setImportType(ConstantInterface.TS);
+            //     entryInfoEntity.setWriteType(ConstantInterface.TS);
+            //     entryInfoEntity.setIsDelete(0);
+            //     entryInfoEntities.add(entryInfoEntity);
+            // }
+            // entryInfoEntities.addAll(this.convertFromDictionaryVOToTSEntry(dictionaryVOs, tsFileNamePrefix, targetLanguages, taskInfoEntity, userName));
+
+            TSDictionaryVOConverter tsDictionaryVOConverter = new TSDictionaryVOConverter(tsFileNamePrefix, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, userName, targetLanguages);
+            entryInfoEntities.addAll(entryImportProcessor.convertToEntryInfos(tsDictionaryVOConverter, dictionaryVOs));
         }
 
         return entryInfoEntities;
     }
+
+    // public List<EntryInfoEntity> convertFromDictionaryVOToTSEntry(
+    //     Set<DictionaryVO> dictionaryVOs,
+    //     String entrySource,
+    //     List<TLanguage> targetLanguages,
+    //     TaskInfoEntity taskInfoEntity,
+    //     String userName
+    // ){
+    //     List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
+    //     String versionID = taskInfoEntity.getVersionId();
+    //     String productId = taskInfoEntity.getProductId();
+
+    //     for(DictionaryVO dictionaryVO : dictionaryVOs){
+
+    //         EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, targetLanguages);
+
+    //         entryInfoEntity.setEntrySource(entrySource);
+    //         entryInfoEntity.setEntryState(1);
+    //         entryInfoEntity.setTaskId(taskInfoEntity.getId());
+    //         entryInfoEntity.setUpdate(userName);
+    //         entryInfoEntity.setUpdateTime(this.convertCurrentTime());
+    //         entryInfoEntity.setProductID(productId);
+    //         entryInfoEntity.setVersionID(versionID);
+    //         entryInfoEntity.setImportType(ConstantInterface.TS);
+    //         entryInfoEntity.setWriteType(ConstantInterface.TS);
+    //         entryInfoEntity.setIsDelete(0);
+    //         entryInfoEntities.add(entryInfoEntity);
+    //     }
+    //     return entryInfoEntities;
+    // }
 
 
     /**
