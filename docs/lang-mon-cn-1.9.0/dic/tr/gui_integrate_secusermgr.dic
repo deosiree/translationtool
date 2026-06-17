@@ -1,0 +1,70 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工程配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Project Config",
+            "es_ES": "Config del Proyecto",
+            "ru_RU": "Конфигурация проекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Config",
+            "es_ES": "Config de Seguridad",
+            "ru_RU": "Конфигурация безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全参数信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Security params info",
+            "es_ES": "Info de parámetros de seguridad",
+            "ru_RU": "Информация о параметрах безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理配置",
+        "tag": "",
+        "translation": {
+            "en_US": "User Management Configuration",
+            "es_ES": "Configuración de gestión de usuarios",
+            "ru_RU": "Конфигурация управления пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "调试配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Debug Config",
+            "es_ES": "Config de Depuración",
+            "ru_RU": "Конфигурация отладки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改安全参数信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify security params",
+            "es_ES": "Modificar parámetros de seguridad",
+            "ru_RU": "Изменение информации о параметрах безопасности"
+        }
+    }
+]

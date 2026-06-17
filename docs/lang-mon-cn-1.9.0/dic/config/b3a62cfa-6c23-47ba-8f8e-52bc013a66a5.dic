@@ -1,0 +1,310 @@
+[
+    {
+        "comments": "",
+        "source": "数据库映射",
+        "tag": "",
+        "translation": {
+            "en_US": "DB mapping",
+            "es_ES": "Mapeo de BD",
+            "ru_RU": "Сопоставление базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "映射信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Mapping information",
+            "es_ES": "Información de mapeo",
+            "ru_RU": "Информация о сопоставлении"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值映射",
+        "tag": "/root/model/item[@key='strdef']/values[@key='ValueMap']/@desc",
+        "translation": {
+            "en_US": "Value mapping",
+            "es_ES": "Mapeo de valores",
+            "ru_RU": "Сопоставление значений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值映射队列",
+        "tag": "",
+        "translation": {
+            "en_US": "Value mapping queue",
+            "es_ES": "Cola de mapeo de valores",
+            "ru_RU": "Очередь отображения значений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域Id",
+        "tag": "/root/model/item[@key='strdef']/values[@key='DbMapInfo']/item/values[@key='fieldId']/@desc",
+        "translation": {
+            "en_US": "Domain ID",
+            "es_ES": "ID del campo",
+            "ru_RU": "ID поля"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算结果映射队列",
+        "tag": "/root/model/item[@key='kvdef']/values[@key='resultMapInfoVec']/@desc",
+        "translation": {
+            "en_US": "Calculation result mapping queue",
+            "es_ES": "Cola de mapeo de resultados de cálculo",
+            "ru_RU": "Очередь отображения результатов расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实际值",
+        "tag": "/root/model/item[@key='strdef']/values[@key='ValueMap']/item/values[@key='rValue']/@desc",
+        "translation": {
+            "en_US": "Actual value",
+            "es_ES": "Valor real",
+            "ru_RU": "Фактическое значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实际值",
+        "tag": "",
+        "translation": {
+            "en_US": "Actual value",
+            "es_ES": "Valor real",
+            "ru_RU": "Фактическое значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算组件配置",
+        "tag": "/root/info/@description",
+        "translation": {
+            "en_US": "Calculate component configuration",
+            "es_ES": "Calcular configuración de componentes",
+            "ru_RU": "Конфигурация компонента расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否计算",
+        "tag": "/root/model/item[@key='strdef']/values[@key='ValueMap']/item/values[@key='isCalc']/@desc",
+        "translation": {
+            "en_US": "Calculated",
+            "es_ES": "Calculado",
+            "ru_RU": "Рассчитано"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库映射信息",
+        "tag": "/root/model/item[@key='strdef']/values[@key='DbMapInfo']/@desc",
+        "translation": {
+            "en_US": "Database mapping information",
+            "es_ES": "Información de mapeo de BD",
+            "ru_RU": "Информация о сопоставлении базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "展示值",
+        "tag": "",
+        "translation": {
+            "en_US": "Display value",
+            "es_ES": "Valor de visualización",
+            "ru_RU": "Значение для отображения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "映射信息",
+        "tag": "/root/model/item[@key='strdef']/values[@key='MapInfo']/@desc",
+        "translation": {
+            "en_US": "Mapping information",
+            "es_ES": "Información de mapeo",
+            "ru_RU": "Информация о сопоставлении"
+        }
+    },
+    {
+        "comments": "",
+        "source": "因子映射队列",
+        "tag": "",
+        "translation": {
+            "en_US": "Factor mapping queue",
+            "es_ES": "Cola de mapeo de factores",
+            "ru_RU": "Очередь сопоставления факторов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "因子映射队列",
+        "tag": "/root/model/item[@key='kvdef']/values[@key='factorMapInfoVec']/@desc",
+        "translation": {
+            "en_US": "Factor mapping queue",
+            "es_ES": "Cola de mapeo de factores",
+            "ru_RU": "Очередь сопоставления факторов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库映射信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Database mapping information",
+            "es_ES": "Información de mapeo de BD",
+            "ru_RU": "Информация о сопоставлении базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库名",
+        "tag": "/root/model/item[@key='strdef']/values[@key='DbMapInfo']/item/values[@key='dbName']/@desc",
+        "translation": {
+            "en_US": "DB name",
+            "es_ES": "Nombre de la BD",
+            "ru_RU": "имя DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "展示值",
+        "tag": "/root/model/item[@key='strdef']/values[@key='ValueMap']/item/values[@key='dValue']/@desc",
+        "translation": {
+            "en_US": "Display value",
+            "es_ES": "Valor de visualización",
+            "ru_RU": "Значение для отображения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "可单点计算域信息",
+        "tag": "/root/model/item[@key='kvdef']/values[@key='sigCalcInfoVec']/@desc",
+        "translation": {
+            "en_US": "Field information can be calculated at a single point",
+            "es_ES": "La información del campo se puede calcular en un solo punto",
+            "ru_RU": "Информация о поле может быть рассчитана в одной точке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值映射队列",
+        "tag": "/root/model/item[@key='strdef']/values[@key='MapInfo']/item/values[@key='valueMapVec']/@desc",
+        "translation": {
+            "en_US": "Value mapping queue",
+            "es_ES": "Cola de mapeo de valores",
+            "ru_RU": "Очередь отображения значений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算组件配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate component configuration",
+            "es_ES": "Calcular configuración de componentes",
+            "ru_RU": "Конфигурация компонента расчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值映射",
+        "tag": "",
+        "translation": {
+            "en_US": "Value mapping",
+            "es_ES": "Mapeo de valores",
+            "ru_RU": "Сопоставление значений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库映射",
+        "tag": "/root/model/item[@key='strdef']/values[@key='MapInfo']/item/values[@key='dbMapInfo']/@desc",
+        "translation": {
+            "en_US": "DB mapping",
+            "es_ES": "Mapeo de BD",
+            "ru_RU": "Сопоставление базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算结果映射队列",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation result mapping queue",
+            "es_ES": "Cola de mapeo de resultados de cálculo",
+            "ru_RU": "Очередь отображения результатов расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "DB name",
+            "es_ES": "Nombre de la BD",
+            "ru_RU": "имя DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算值",
+        "tag": "/root/model/item[@key='strdef']/values[@key='ValueMap']/item/values[@key='cValue']/@desc",
+        "translation": {
+            "en_US": "Calculated value",
+            "es_ES": "Valor calculado",
+            "ru_RU": "Расчетное значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain ID",
+            "es_ES": "ID del campo",
+            "ru_RU": "ID поля"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否计算",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculated",
+            "es_ES": "Calculado",
+            "ru_RU": "Рассчитано"
+        }
+    },
+    {
+        "comments": "",
+        "source": "可单点计算域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Field information can be calculated at a single point",
+            "es_ES": "La información del campo se puede calcular en un solo punto",
+            "ru_RU": "Информация о поле может быть рассчитана в одной точке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算值",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculated value",
+            "es_ES": "Valor calculado",
+            "ru_RU": "Рассчитанное значение"
+        }
+    }
+]

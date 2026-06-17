@@ -37,9 +37,6 @@ public class EntryController extends BaseController {
     @Autowired
     private VersionTableMapper versionTableMapper;
 
-    @Autowired
-    private VersionTableService versionTableService;
-
     //查询词条信息
     @PostMapping("/searchEntry")
     @ApiOperation("词条查询")

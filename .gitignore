@@ -2,3 +2,39 @@ translation-assistant/
 translationtool_ai/
 translation_check/
 
+
+# Docker
+db/init/*.sql
+db/init/*.sql.gz
+images/
+pull-images.ps1
+
+# 环境包
+ENV_package/
+
+# 测试/临时文件
+test-*.png
+test-login.js
+review.txt
+*.tar
+
+# 构建产物
+target/
+*.class
+*.jar
+*.war
+
+# 压缩包
+*.zip
+*.gz
+*.tgz
+*.rar
+*.7z
+
+# 依赖包
+node_modules/
+vendor/
+dist/
+
+# 日志
+*.log

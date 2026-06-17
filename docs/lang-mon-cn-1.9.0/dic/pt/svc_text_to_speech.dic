@@ -1,0 +1,26 @@
+[
+    {
+        "comments": "",
+        "source": "启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

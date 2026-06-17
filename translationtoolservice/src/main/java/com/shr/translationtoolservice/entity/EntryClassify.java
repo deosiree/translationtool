@@ -81,6 +81,12 @@ public class EntryClassify implements Serializable {
     private String creator;
 
     /**
+     * 词条对应的代码版本
+     */
+    @TableField("`codeBranch`")
+    private String codeBranch;
+
+    /**
      * 部门
      */
     @TableField("`create_time`")

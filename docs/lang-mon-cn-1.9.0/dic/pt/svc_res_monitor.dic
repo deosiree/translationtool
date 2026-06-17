@@ -1,0 +1,410 @@
+[
+    {
+        "comments": "",
+        "source": "节点[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}，请进行历史数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]进程[{}({})]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]数据库[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]分区[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]目录[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}%，告警阈值：{}%, 请进行文件数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}%，告警阈值：{}%, 请进行历史数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}%，告警阈值：{}%",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 启动删除阈值告警，当前值：{:.3f}%，告警阈值：{}%",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}，请进行历史数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}/s，预计还剩 {}{} 资源枯竭，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}/s；",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "预计还剩 {}{} 资源枯竭，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[开始自动清理：{}]当前{}占用率为{}%，超过最大占用率{}%",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[自动清理提示：{}]当前{}占用率为{}%，超过最大占用率{}%，目前无清理计划",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[删除文件：{}]文件名：{} 路径：{} 大小：{} 修改时间：{} 删除结果：{}",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[删除文件：{}]文件名：{} 大小：{} 修改时间：{} 删除结果：{}",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[停止自动清理：{}]{}个文件已被清理，合计清理大小是{}，当前{}占用率是{}%。",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前占用率仍然超过最大占用率。",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "对时状态",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "重要文件：{} 发生变化，进行文件恢复,文件恢复:{}",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收百分比",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送百分比",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "值",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "百分比",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "记录时间",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样时间",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源ID",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "流量",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "包率",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘IO",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

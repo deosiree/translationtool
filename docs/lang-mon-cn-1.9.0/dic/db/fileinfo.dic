@@ -1,0 +1,2446 @@
+[
+    {
+        "comments": "",
+        "source": "有效标识_备用14",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Backup 14",
+            "es_ES": "Indicador válido_Respaldo 14",
+            "ru_RU": "Флаг валидности_Резервная 14"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性信息",
+        "tag": "",
+        "translation": {
+            "en_US": "AppExtAttrs info",
+            "es_ES": "Info de AtrExtApp",
+            "ru_RU": "AppExtAttrs info"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是显式版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Explicit version management file",
+            "es_ES": "Archivo de gestión de versiones explícitas",
+            "ru_RU": "Файл явного управления версиями?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对比结果数据包",
+        "tag": "",
+        "translation": {
+            "en_US": "Comparison result package",
+            "es_ES": "Paquete de resultados de comparación",
+            "ru_RU": "Пакет результатов сравнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否自动同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Auto sync",
+            "es_ES": "Cambio de directorio_Sinc auto",
+            "ru_RU": "Переключение каталога_Автоматическая синхронизация"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步成功数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Successful sync count",
+            "es_ES": "Conteo de sincronización exitosa",
+            "ru_RU": "Количество успешно синхронизированных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用12",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Backup 12",
+            "es_ES": "ID válida_Respaldo 12",
+            "ru_RU": "Флаг валидности_№ 12"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_锁定标识",
+        "tag": "",
+        "translation": {
+            "en_US": "AppExtAttrs_Lock flag",
+            "es_ES": "AtrExtApp_ID Bloqueo",
+            "ru_RU": "AppExtAttrs_Lock flag"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync result",
+            "es_ES": "Resultados de sincronización",
+            "ru_RU": "Результат синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用5",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 5",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 5",
+            "ru_RU": "Смена каталога attr_РезервноеКопирование 5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "顺序号",
+        "tag": "",
+        "translation": {
+            "en_US": "S/N",
+            "es_ES": "S/N",
+            "ru_RU": "Порядковый номер "
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含对比版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Included comparison versions",
+            "es_ES": "Versión de comparación incluida",
+            "ru_RU": "Включает версии сравнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用12",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 12",
+            "es_ES": "Respaldo 12",
+            "ru_RU": "Резерв 12"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录大小约束是否递归",
+        "tag": "",
+        "translation": {
+            "en_US": "Dir size constraint recursived",
+            "ru_RU": "Ограничение размера каталога рекурсивное?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Version",
+            "es_ES": "Versión",
+            "ru_RU": "Версия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他",
+        "tag": "",
+        "translation": {
+            "en_US": "Other",
+            "es_ES": "Otro",
+            "ru_RU": "Другое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Included directory info table",
+            "es_ES": "Tabla de info de directorio incluido",
+            "ru_RU": "Включает таблицу информации о каталогах"
+        }
+    },
+    {
+        "comments": "",
+        "source": "自动清理扫描周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Automatic cleaning scan cycle",
+            "es_ES": "Ciclo de escaneo de limpieza automática",
+            "ru_RU": "Цикл автоматической очистки сканирования"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_磁盘位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Disk location",
+            "es_ES": "Info del Directorio_Ubicación del disco",
+            "ru_RU": "Информация каталога_Расположение на диске"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含同步项",
+        "tag": "",
+        "translation": {
+            "en_US": "Included Sync Items",
+            "es_ES": "Elementos de Sinc Incluidos",
+            "ru_RU": "Включает элементы синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Params Config Directory Tree",
+            "es_ES": "Árbol de directorios de configuración de parámetros",
+            "ru_RU": "Дерево каталогов конфигурации параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最后修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last modified time",
+            "ru_RU": "Время последнего изменения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含全局参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Included global params",
+            "es_ES": "Contiene parámetros globales",
+            "ru_RU": "Включает глобальные параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含跨现场同步策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Included cross-site synchronization policies",
+            "es_ES": "Políticas de sincronización entre sitios incluidas",
+            "ru_RU": "Включает политики синхронизации между площадками"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于对比文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned comparison file",
+            "es_ES": "Archivo de comparación asignado",
+            "ru_RU": "Назначённый файл сравнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "手动同步数据登记表",
+        "tag": "",
+        "translation": {
+            "en_US": "Manual sync data reg table",
+            "es_ES": "Tabla de registro de datos de sinc manual",
+            "ru_RU": "Реестр данных ручной синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用9",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 9",
+            "es_ES": "Respaldo 9",
+            "ru_RU": "Резерв 9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件版本附加信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Included additional info about the file version",
+            "es_ES": "Info adicional sobre la versión del archivo incluida",
+            "ru_RU": "Включает дополнительную информацию о версии файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否对比内容升版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Compare content and upgrade versions",
+            "es_ES": "Indicador válido_Comparar contenido y versiones de actualización",
+            "ru_RU": "Флаг валидности_Сравнение содержимого и обновление версий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Included params config directory tree",
+            "es_ES": "Árbol de directorios de configuración de parámetros incluidos",
+            "ru_RU": "Включает дерево каталогов конфигурации параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Site name",
+            "es_ES": "Nombre del sitio",
+            "ru_RU": "Имя площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步开始时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync start time",
+            "es_ES": "Hora de inicio de sinc",
+            "ru_RU": "Время начала синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "File info_Creation time",
+            "es_ES": "Info de archivo_Hora de creación",
+            "ru_RU": "Информация о файле_Время создания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步操作数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync operations numbers",
+            "es_ES": "Número de operaciones de sinc",
+            "ru_RU": "Количество операций синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用13",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 13",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 13",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 13"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_是否是显式版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "AppExtAttrs_IsExplicitVersionFile",
+            "es_ES": "AtrExtApp_SeMosArcVer",
+            "ru_RU": "AppExtAttrs_IsExplicitVersionFile"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定标识",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock ID",
+            "es_ES": "ID de bloqueo",
+            "ru_RU": "ID блокировки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "大小",
+        "tag": "",
+        "translation": {
+            "en_US": "Size",
+            "es_ES": "Tamaño",
+            "ru_RU": "Размер"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Included directories",
+            "es_ES": "Directorios incluidos",
+            "ru_RU": "Включает каталоги"
+        }
+    },
+    {
+        "comments": "",
+        "source": "序号",
+        "tag": "",
+        "translation": {
+            "en_US": "No.",
+            "es_ES": "No.",
+            "ru_RU": "No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Send mode",
+            "es_ES": "Modo de envío",
+            "ru_RU": "Режим отправки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录属性标识位串",
+        "tag": "",
+        "translation": {
+            "en_US": "DIR Attr ID bit string",
+            "es_ES": "Cadena de bits de ID de propiedad del directorio",
+            "ru_RU": "Битовая строка идентификатора атрибутов каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync strategy",
+            "es_ES": "Estrategia de sinc",
+            "ru_RU": "Стратегия синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地运行数据包",
+        "tag": "",
+        "translation": {
+            "en_US": "Local run package",
+            "es_ES": "Paquete de ejecución local",
+            "ru_RU": "Локальный пакет рабочих данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "路径2",
+        "tag": "",
+        "translation": {
+            "en_US": "Path 2",
+            "es_ES": "Ruta 2",
+            "ru_RU": "Путь 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "视图名称",
+        "tag": "",
+        "translation": {
+            "en_US": "View name",
+            "es_ES": "Nombre de la vista",
+            "ru_RU": "Имя представления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否可改名",
+        "tag": "",
+        "translation": {
+            "en_US": "Rename",
+            "es_ES": "Renombrar",
+            "ru_RU": "Переименовать"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned file",
+            "es_ES": "Archivo asignado",
+            "ru_RU": "Назначенный файл"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否自动判断压缩",
+        "tag": "",
+        "translation": {
+            "en_US": "Auto compression",
+            "es_ES": "Compresión automática",
+            "ru_RU": "Автоматическое сжатие"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data type",
+            "es_ES": "Tipo de datos",
+            "ru_RU": "Тип данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_锁定描述",
+        "tag": "",
+        "translation": {
+            "en_US": "AppExtAttrs_Lock desc",
+            "es_ES": "AtrExtApp__Desc del bloqueo",
+            "ru_RU": "AppExtAttrs_Lock desc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_Site name",
+            "es_ES": "Información de red del emisor_Nombre del sitio",
+            "ru_RU": "Сетевая информация отправителя_Имя площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目的节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Dest node",
+            "es_ES": "Nodo de destino",
+            "ru_RU": "Целевой узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "虚拟链路号",
+        "tag": "",
+        "translation": {
+            "en_US": "Virtual link number",
+            "es_ES": "Número de enlace virtual",
+            "ru_RU": "Номер виртуального канала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "路径1",
+        "tag": "",
+        "translation": {
+            "en_US": "Path 1",
+            "es_ES": "Ruta 1",
+            "ru_RU": "Путь 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用13",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Backup 13",
+            "es_ES": "Indicador válido_Respaldo 13",
+            "ru_RU": "Флаг валидности_№ 13"
+        }
+    },
+    {
+        "comments": "",
+        "source": "DirAttrConf与SyncStrategy的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "DirAttrConf_SyncStrategy_LinkTable",
+            "es_ES": "DirAttrConf_SyncStrategy_TabEnl",
+            "ru_RU": "Связующая таблица между DirAttrConf и SyncStrategy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否对工程人员只读",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Read-only for engineers",
+            "es_ES": "Conmutación de directorio_Sólo lectura para ingenieros",
+            "ru_RU": "Переключатель каталогов_Только для чтения для инженеров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MD5码",
+        "tag": "",
+        "translation": {
+            "en_US": "MD5",
+            "es_ES": "MD5",
+            "ru_RU": "MD5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本冻结表",
+        "tag": "",
+        "translation": {
+            "en_US": "File Version Freeze Table",
+            "es_ES": "Tabla de congelación de versión de archivo",
+            "ru_RU": "Таблица заморозки версий файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步项",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync items",
+            "es_ES": "Elementos de sinc",
+            "ru_RU": "Элемент синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation Path",
+            "es_ES": "Ruta de Operación",
+            "ru_RU": "Путь операции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_大小",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Size",
+            "es_ES": "Tamaño de la información del archivo",
+            "ru_RU": "Информация о файле_Размер"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "Version",
+            "es_ES": "Número de versión",
+            "ru_RU": "Номер версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node",
+            "es_ES": "Nodo fuente",
+            "ru_RU": "Исходный узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用15",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Backup 15",
+            "es_ES": "ID válida_Respaldo 15",
+            "ru_RU": "Флаг валидности_Резервная 15"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用路径参数1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup path param 1",
+            "es_ES": "Ruta de respaldo de parámetro 1",
+            "ru_RU": "Параметр пути резервной копии 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Dir Info_Modification Time",
+            "es_ES": "Info del Directorio_Hora de modificación",
+            "ru_RU": "Информация каталога_Время изменения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名或应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Username or App name",
+            "es_ES": "Nombre de usuario o nombre de la aplicación",
+            "ru_RU": "Имя пользователя или имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info Table",
+            "es_ES": "Tabla de Info de Archivo",
+            "ru_RU": "Таблица информации о файлах"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用16",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 16",
+            "es_ES": "Conmutación de directorio_Respaldo 16",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 16"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名称",
+        "tag": "",
+        "translation": {
+            "en_US": "File name",
+            "es_ES": "Nombre del archivo",
+            "ru_RU": "Имя файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名称",
+        "tag": "",
+        "translation": {
+            "en_US": "DIR name",
+            "es_ES": "Nombre del directorio",
+            "ru_RU": "Имя кат"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录配置属性",
+        "tag": "",
+        "translation": {
+            "en_US": "Included dir config attrs",
+            "es_ES": "Propiedades de configuración del directorio incluido",
+            "ru_RU": "Включает конфигурационные атрибуты каталогов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否可删除",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Deleteable",
+            "es_ES": "Indicador válido_Eliminable",
+            "ru_RU": "Флаг валидности_Удаляемый"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Modification Time",
+            "es_ES": "Info de Archivo_Hora de Modificación",
+            "ru_RU": "Информация о файле_Время изменения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation type",
+            "es_ES": "Tipo de operación",
+            "ru_RU": "Тип операции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联同步策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Link sync strategy",
+            "es_ES": "Estrategia de sincronización de enlace",
+            "ru_RU": "Стратегия синхронизации связей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否对比内容升版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Compare content to upgrade version",
+            "es_ES": "Comparar contenido para actualizar la versión"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件描述",
+        "tag": "",
+        "translation": {
+            "en_US": "File description",
+            "ru_RU": "Описание файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Node Config",
+            "es_ES": "Configuración del Nodo",
+            "ru_RU": "Конфигурация узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否清理版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Clean up the version",
+            "es_ES": "Indicador válido_Limpiar la versión",
+            "ru_RU": "Флаг валидности_Очистка версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步请求目的节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync request destination node",
+            "es_ES": "Nodo de destino de la solicitud de sinc",
+            "ru_RU": "Целевой узел запроса синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于节点配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned node config",
+            "es_ES": "Configuración de nodo asignado",
+            "ru_RU": "Назначенная конфигурация узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info",
+            "es_ES": "Info de red del remitente",
+            "ru_RU": "Сетевая информация отправителя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否对工程人员只读",
+        "tag": "",
+        "translation": {
+            "en_US": "Engineer read only",
+            "es_ES": "Ingeniero solo lectura",
+            "ru_RU": "Только для чтения инженером"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息_添加后缀",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info_Add suffix",
+            "es_ES": "Info de archivo local del nodo fuente_Agregar sufijo",
+            "ru_RU": "Информация о локальном файле исходного узла_Добавление суффикса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用8",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 8",
+            "es_ES": "Respaldo 8",
+            "ru_RU": "Резерв 8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用报文类型",
+        "tag": "",
+        "translation": {
+            "en_US": "App message type",
+            "es_ES": "Tipo de mensaje de la aplicación",
+            "ru_RU": "Тип сообщения приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数值",
+        "tag": "",
+        "translation": {
+            "en_US": "Params value",
+            "es_ES": "Valor de los parámetros",
+            "ru_RU": "Значение параметра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否版本托管",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Version hosting",
+            "es_ES": "ID válida_Versión de host",
+            "ru_RU": "Флаг валидности_Хостинг версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_大小",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Size",
+            "es_ES": "Info del Directorio_Tamaño",
+            "ru_RU": "Информация каталога_Размер"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录用户权限配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory User Permission Config",
+            "es_ES": "Configuración de Permisos de Usuario de Directorio",
+            "ru_RU": "Конфигурация прав пользователя для каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件属性信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Local file attr info",
+            "es_ES": "Info de propiedades de archivo local",
+            "ru_RU": "Информация об атрибутах локального файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_子数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Sub-items count",
+            "es_ES": "Conteo de subelementos de información de directorio",
+            "ru_RU": "Информация каталога_Количество подэлементов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本组合表",
+        "tag": "",
+        "translation": {
+            "en_US": "File version combination table",
+            "es_ES": "Tabla de combinación de versiones de archivos",
+            "ru_RU": "Таблица комбинаций версий файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用3",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 3",
+            "es_ES": "Respaldo 3",
+            "ru_RU": "Резерв 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Is file",
+            "es_ES": "Es archivo",
+            "ru_RU": "Это файл"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录用户权限视图",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory User Permissions View",
+            "es_ES": "Vista de Permisos de Usuario de Directorio",
+            "ru_RU": "Представление прав пользователя для каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid",
+            "es_ES": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件组合表",
+        "tag": "",
+        "translation": {
+            "en_US": "File combination table",
+            "es_ES": "Tabla de combinación de archivos",
+            "ru_RU": "Таблица комбинаций файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否清理版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Clean version",
+            "es_ES": "Versión limpia",
+            "ru_RU": "Чистая версия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联参数配置目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Link params config directory",
+            "es_ES": "Enlace árbol de directorio de configuración de parámetros",
+            "ru_RU": "Каталог конфигурации связанных параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用16",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby16",
+            "es_ES": "Respaldo 16",
+            "ru_RU": "Резерв 16"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录属性信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Dir attr info",
+            "ru_RU": "Информация об атрибутах каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Creation time",
+            "es_ES": "Nuevo tiempo",
+            "ru_RU": "Время создания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用13",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 13",
+            "es_ES": "Respaldo 13",
+            "ru_RU": "Резерв 13"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否自动判断压缩",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Auto compression",
+            "es_ES": "ID válida_Compresión automática",
+            "ru_RU": "Флаг валидности_Автоматическое сжатие"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_线程ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_thread ID",
+            "es_ES": "Info de red del remitente_ID de hilo",
+            "ru_RU": "Сетевая информация отправителя_id потока"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本清理数量限制",
+        "tag": "",
+        "translation": {
+            "en_US": "Version cleanup quantity limit",
+            "es_ES": "Límite de cantidad de limpieza de versiones",
+            "ru_RU": "Лимит количества очищаемых версий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用12",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 12",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 12",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 12"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数关键字",
+        "tag": "",
+        "translation": {
+            "en_US": "Params keywords",
+            "es_ES": "Palabras clave de parámetros",
+            "ru_RU": "Ключевое слово параметра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否对工程人员只读",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Read-only for engineers",
+            "es_ES": "ID válido_Solo lectura para ingenieros",
+            "ru_RU": "Флаг валидностии_Только для чтения инженерами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否可移动",
+        "tag": "",
+        "translation": {
+            "en_US": "Removable",
+            "es_ES": "Removible",
+            "ru_RU": "Разрешение перемещения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性",
+        "tag": "",
+        "translation": {
+            "en_US": "DIR switch attrs",
+            "es_ES": "Atributos de cambio de directorio",
+            "ru_RU": "Переключаемый атрибут каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用7",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 7",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 7",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步失败数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync failures count",
+            "es_ES": "Conteo de fallos de sincronización",
+            "ru_RU": "Количество сбоев синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息_描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info_desc",
+            "es_ES": "Info del archivo local del nodo fuente_Desc",
+            "ru_RU": "Информация о локальном файле исходного узла_Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步运行数据包",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync running data package",
+            "es_ES": "Paquete de datos de ejecución sinc",
+            "ru_RU": "Синхронизация пакета рабочих данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "递归文件数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Recursive files count",
+            "es_ES": "Conteo de archivos recursivos",
+            "ru_RU": "Количество рекурсивных файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备注信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Remarks",
+            "es_ES": "Observaciones",
+            "ru_RU": "Информация примечания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件版本冻结表",
+        "tag": "",
+        "translation": {
+            "en_US": "Included file version freeze tables",
+            "es_ES": "Tabla de congelación de versión de archivo incluido",
+            "ru_RU": "Включает таблицы заморозки версий файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加后缀",
+        "tag": "",
+        "translation": {
+            "en_US": "Add suffix",
+            "es_ES": "Sufijación",
+            "ru_RU": "Добавить суффикс"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点名",
+        "tag": "",
+        "translation": {
+            "en_US": "Node Name",
+            "es_ES": "Nombre del nodo",
+            "ru_RU": "Имя узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程名",
+        "tag": "",
+        "translation": {
+            "en_US": "Process name",
+            "es_ES": "Nombre del proceso",
+            "ru_RU": "Имя процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_目录子文件个数约束是否递归",
+        "tag": "",
+        "translation": {
+            "en_US": "DirSwitchAttr_DirSubFilesConstraintRecursive",
+            "ru_RU": "Атрибут переключения каталога_рекурсивное ограничение количества подфайлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息_是否是显示版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info_Display version management file",
+            "es_ES": "Info de archivo local del nodo fuente_Gestión de versiones de archivo de visualización",
+            "ru_RU": "Информация о локальном файле исходного узла_Файл явного управления версиями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录属性配置",
+        "tag": "",
+        "translation": {
+            "en_US": "DIR attrs config",
+            "es_ES": "Configuración de atributos de directorio",
+            "ru_RU": "Конфигурация атрибутов каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Params description",
+            "es_ES": "Descripción de parámetros",
+            "ru_RU": "Описание параметра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_文件描述",
+        "tag": "",
+        "translation": {
+            "en_US": "FileInfo_FileDesc",
+            "ru_RU": "Информация о файле_Описание файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否可改名",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Renameable",
+            "es_ES": "Cambio de directorio_Renombrable",
+            "ru_RU": "Переключаемый атрибут_Переименовываемый"
+        }
+    },
+    {
+        "comments": "",
+        "source": "子数量限制",
+        "tag": "",
+        "translation": {
+            "en_US": "Sub-number limit",
+            "es_ES": "Límite de sub-número.",
+            "ru_RU": "Ограничение количества дочерних элементов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync nodes",
+            "es_ES": "Sinc nodos",
+            "ru_RU": "Синхронизация узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description",
+            "es_ES": "Descripción",
+            "ru_RU": "Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory info_Desc",
+            "es_ES": "Info del Directorio_Desc",
+            "ru_RU": "Информация о каталоге_Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用10",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 10",
+            "es_ES": "Respaldo 10",
+            "ru_RU": "Резерв 10"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作同步表",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation sync table",
+            "es_ES": "Tabla de sinc de operaciones",
+            "ru_RU": "Операция с таблицей синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_磁盘位置",
+        "tag": "",
+        "translation": {
+            "en_US": "File info_Disk location",
+            "es_ES": "Info de archivo_Ubicación en disco",
+            "ru_RU": "Информация о файле_Расположение диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": "unit",
+            "es_ES": "Unidad",
+            "ru_RU": "Единица измерения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用5",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup 5",
+            "es_ES": "Respaldo 5",
+            "ru_RU": "Резервная копия 5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用14",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 14",
+            "es_ES": "Conmutación de directorio_Respaldo 14",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 14"
+        }
+    },
+    {
+        "comments": "",
+        "source": "传输格式",
+        "tag": "",
+        "translation": {
+            "en_US": "Transmission format",
+            "es_ES": "Formato de transmisión",
+            "ru_RU": "Формат передачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory info",
+            "es_ES": "Info del directorio",
+            "ru_RU": "Информация о каталоге"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory type",
+            "es_ES": "Tipo de directorio",
+            "ru_RU": "Тип каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否可删除",
+        "tag": "",
+        "translation": {
+            "en_US": "DirSwitchAttr_Deletable",
+            "es_ES": "Conmutación de directorio_ Eliminable",
+            "ru_RU": "Атрибут переключения каталога_Можно ли удалить"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本冻结备注",
+        "tag": "",
+        "translation": {
+            "en_US": "Version freeze Remarks",
+            "es_ES": "Observaciones de congelación de versión",
+            "ru_RU": "Примечание к заморозке версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于目录信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned directory info table",
+            "es_ES": "Tabla de info de directorio asignada",
+            "ru_RU": "Назначённая таблица информации каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "越限类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Over-limit",
+            "es_ES": "Tipo de límite",
+            "ru_RU": "Тип выхода за пределы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本编号",
+        "tag": "",
+        "translation": {
+            "en_US": "Version No.",
+            "es_ES": "Número de versión",
+            "ru_RU": "Номер версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于目录权限视图",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned directory permission view",
+            "es_ES": "Vista de permisos de directorio asignado",
+            "ru_RU": "Назначённое представление прав каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否可删除",
+        "tag": "",
+        "translation": {
+            "en_US": "Deletable",
+            "es_ES": "Eliminable",
+            "ru_RU": "Можно ли удалить"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Included file info tables",
+            "es_ES": "Tabla de info de archivo incluida",
+            "ru_RU": "Включает таблицы информации о файлах"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全局参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Global params",
+            "es_ES": "Parámetros globales",
+            "ru_RU": "Глобальные параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用11",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 11",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 11",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 11"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用16",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Backup 16",
+            "es_ES": "Indicador válido_Respaldo 16",
+            "ru_RU": "Флаг валидности_Резервная 16"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录名",
+        "tag": "",
+        "translation": {
+            "en_US": "DIR name",
+            "es_ES": "Nombre del directorio",
+            "ru_RU": "Имя кат"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最新版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "Latest version No.",
+            "es_ES": "No. de última versión",
+            "ru_RU": "Номер последней версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "子数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Subquantity",
+            "es_ES": "Subcantidad",
+            "ru_RU": "Количество дочерних элементов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用2",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 2",
+            "es_ES": "Respaldo 2",
+            "ru_RU": "Резерв 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件属性信息",
+        "tag": "",
+        "translation": {
+            "en_US": "File attr info",
+            "ru_RU": "Информация об атрибутах файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用8",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 8",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 8",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "线程ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Thread ID",
+            "es_ES": "ID del hilo",
+            "ru_RU": "ID потока"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于同步登记信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned sync reg info",
+            "es_ES": "Información de registro de sincronización",
+            "ru_RU": "Назначенная информация синхронизации реестра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息_创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info_Creation Time",
+            "es_ES": "Hora de creación de información de directorio",
+            "ru_RU": "Информация каталога_Время создания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于对比目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned comparison directory",
+            "es_ES": "Directorio de comparación asignado",
+            "ru_RU": "Назначённый каталог сравнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用7",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 7",
+            "es_ES": "Respaldo 7",
+            "ru_RU": "Резерв 7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件托管类型",
+        "tag": "",
+        "translation": {
+            "en_US": "File hosting type",
+            "ru_RU": "Тип хостинга файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Version location",
+            "es_ES": "Ubicación de la versión",
+            "ru_RU": "Расположение версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录用户权限配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Included directory user permission config",
+            "es_ES": "Configuración de permisos de usuario del directorio incluido",
+            "ru_RU": "Включает конфигурацию прав пользователей для каталогов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步统计信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync statistics",
+            "es_ES": "Sinc estadísticas",
+            "ru_RU": "Статистическая информация синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用14",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 14",
+            "es_ES": "Respaldo 14",
+            "ru_RU": "Резерв 14"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是显示版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Displays version management files",
+            "es_ES": "Muestra archivos de gestión de versiones",
+            "ru_RU": "Отображение файлов управления версиями?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结果类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Reslut type",
+            "es_ES": "Tipo de resultado",
+            "ru_RU": "Тип результата"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否超时清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Clean up when timeout",
+            "es_ES": "Cambio de directorio_Limpiar al expirar"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否自动同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Auto sync",
+            "es_ES": "ID válida_Sincronización automática",
+            "ru_RU": "Флаг валидности_Автоматическая синхронизация"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储空间限制（M）",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage space limit (M)",
+            "es_ES": "Límite de espacio de almacenamiento (M)",
+            "ru_RU": "Лимит пространства хранения (МБ)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含目录属性",
+        "tag": "",
+        "translation": {
+            "en_US": "Included dir attrs",
+            "es_ES": "Atributos de directorio incluidos",
+            "ru_RU": "Включает атрибуты каталогов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_进程名",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_RegName",
+            "es_ES": "Info de red del remitente_RegName",
+            "ru_RU": "Сетевая информация отправителя_Имя процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_描述",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Desc",
+            "es_ES": "Info de Archivo_Desc",
+            "ru_RU": "Информация о файле_Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory location",
+            "es_ES": "Ubicación del directorio",
+            "ru_RU": "Расположение каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于参数配置目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned params config directory",
+            "es_ES": "Directorio de configuración de parámetros asignados",
+            "ru_RU": "Назначенный каталог конфигурации параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_虚拟链路号",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_Virtual link No.",
+            "es_ES": "Info de red del remitente_Número de enlace virtual",
+            "ru_RU": "Сетевая информация отправителя_Номер виртуального канала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步请求源节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync request source node",
+            "es_ES": "Nodo fuente de solicitud de sinc",
+            "ru_RU": "Исходный узел запроса синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用15",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 15",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 15",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 15"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联目录配置信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Link directory config info",
+            "es_ES": "Info de configuración del directorio de enlaces",
+            "ru_RU": "Информация конфигурации связанного каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Operational version",
+            "es_ES": "Versión operativa",
+            "ru_RU": "Версия операции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_备用11",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Backup 11",
+            "es_ES": "Indicador válido_Respaldo 11",
+            "ru_RU": "Флаг валидности_№ 11"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录组合表",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Combination Table",
+            "es_ES": "Tabla de Combinación de Catálogos",
+            "ru_RU": "Таблица комбинаций каталогов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否可改名",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Renameable",
+            "es_ES": "Indicador válido_Renombrable",
+            "ru_RU": "Флаг валидности_Переименовываемый"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_是否是显示版本管理文件",
+        "tag": "",
+        "translation": {
+            "en_US": "AppExtAttrs_IsExplicitVersionFile",
+            "es_ES": "AtrExtApp_SeMosArcVer",
+            "ru_RU": "AppExtAttrs_IsExplicitVersionFile"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报文编号",
+        "tag": "",
+        "translation": {
+            "en_US": "Message number",
+            "es_ES": "Número de mensaje",
+            "ru_RU": "Номер сообщения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Link params config directory tree",
+            "es_ES": "Árbol de directorios de configuración de parámetros de enlace",
+            "ru_RU": "Дерево каталогов конфигурации связанных параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作登记表",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation Reg Form",
+            "es_ES": "Formulario de Registro de Operaciones",
+            "ru_RU": "Форма регистрации операций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否自动同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Auto sync",
+            "es_ES": "Sinc auto",
+            "ru_RU": "Автосинхронизация"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送方网络信息_节点名",
+        "tag": "",
+        "translation": {
+            "en_US": "Sender net info_Node name",
+            "es_ES": "Info de red del remitente_Nombre del nodo",
+            "ru_RU": "Сетевая информация отправителя_Имя узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件版本附加信息",
+        "tag": "",
+        "translation": {
+            "en_US": "File version additional info",
+            "es_ES": "Info adicional de versión de archivo",
+            "ru_RU": "Дополнительная информация о версии файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件位置",
+        "tag": "",
+        "translation": {
+            "en_US": "File Location",
+            "es_ES": "Ubicación del Archivo",
+            "ru_RU": "Расположение файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否版本托管",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Version hosting",
+            "es_ES": "Cambio de directorio_Alojamiento de versiones",
+            "ru_RU": "Переключаемый атрибут_Хостинг версий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "索引属性信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Index attrs",
+            "es_ES": "Atributos del índice",
+            "ru_RU": "Атрибуты индекса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于目录",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned directory",
+            "es_ES": "Directorio asignado",
+            "ru_RU": "Назначённый каталог"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录子文件个数约束是否递归",
+        "tag": "",
+        "translation": {
+            "en_US": "Sub-files of dir constraint recursived",
+            "ru_RU": "Рекурсивность ограничения количества дочерних файлов в каталоге"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否对比内容升版本",
+        "tag": "",
+        "translation": {
+            "en_US": "DIR switch attrs_Compare content and upgrade version",
+            "es_ES": "Atributo de cambio de directorio_Comparar contenido y actualizar versión",
+            "ru_RU": "Атрибуты переключения каталога_Сравнение содержимого и обновление версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否超时清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Clean up after timeout",
+            "es_ES": "ID válido_Limpieza después de tiempo de espera",
+            "ru_RU": "Флаг валидности_Очистка после тайм-аута"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数配置包",
+        "tag": "",
+        "translation": {
+            "en_US": "Parameter Config Package",
+            "es_ES": "Paquete de configuración de parámetros",
+            "ru_RU": "Пакет конфигурации параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用10",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 10",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 10",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 10"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录信息表",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory Info Table",
+            "es_ES": "Tabla de Info de Directorio",
+            "ru_RU": "Таблица информации о каталогах"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用11",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 11",
+            "es_ES": "Respaldo 11",
+            "ru_RU": "Резерв 11"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否版本托管",
+        "tag": "",
+        "translation": {
+            "en_US": "Version hosting",
+            "es_ES": "Alojamiento de versión",
+            "ru_RU": "Использование управления версиями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息_子数量",
+        "tag": "",
+        "translation": {
+            "en_US": "File Info_Subfiles count",
+            "es_ES": "Info del Archivo_Cantidad de subarchivos",
+            "ru_RU": "Информация о файле_Количество подфайлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用6",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 6",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 6",
+            "ru_RU": "Смена каталога attr_РезервноеКопирование 6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否自动判断压缩",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Auto compression",
+            "es_ES": "Cambio de directorio_Compresión automática",
+            "ru_RU": "Переключение каталога_Автоматическое сжатие"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步结束时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync end time",
+            "es_ES": "Hora de finalización de la sincronización",
+            "ru_RU": "Время окончания синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "超期清理时间限制(天)",
+        "tag": "",
+        "translation": {
+            "en_US": "Overdue cleaning time limit (days)",
+            "es_ES": "Límite de tiempo de limpieza vencido (días)",
+            "ru_RU": "Лимит времени очистки просроченных данных (дни)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性",
+        "tag": "",
+        "translation": {
+            "en_US": "App extended attrs",
+            "es_ES": "AtrExtApp",
+            "ru_RU": "Расширенные атрибуты приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理目录",
+        "tag": "",
+        "translation": {
+            "en_US": "File management directory",
+            "es_ES": "Directorio de gestión de archivos",
+            "ru_RU": "Каталог управления файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用15",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 15",
+            "es_ES": "Respaldo 15",
+            "ru_RU": "Резерв 15"
+        }
+    },
+    {
+        "comments": "",
+        "source": "请求时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Request time",
+            "es_ES": "Hora de solicitud",
+            "ru_RU": "Время запроса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用",
+        "tag": "",
+        "translation": {
+            "en_US": "backup",
+            "es_ES": "Respaldo",
+            "ru_RU": "Резерв"
+        }
+    },
+    {
+        "comments": "",
+        "source": "锁定描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Lock description",
+            "es_ES": "Descripción del bloqueo",
+            "ru_RU": "Описание блокировки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘位置",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk location",
+            "es_ES": "Ubicación del disco",
+            "ru_RU": "Расположение на диске"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Source site",
+            "es_ES": "Sitio de origen",
+            "ru_RU": "Исходная площадка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于参数配置目录树",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned params config directory tree",
+            "es_ES": "Pertenece al árbol de configuración de parámetros",
+            "ru_RU": "Назначенное дерево каталогов конфигурации параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_目录大小约束是否递归",
+        "tag": "",
+        "translation": {
+            "en_US": "DirSwitchAttr_DirSizeConstraintRecursived",
+            "ru_RU": "Переключаемый атрибут каталога_Рекурсивное ограничение размера"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本备注",
+        "tag": "",
+        "translation": {
+            "en_US": "Version remarks",
+            "es_ES": "Comentario de Versión",
+            "ru_RU": "Примечания к версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识_是否可移动",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag_Removable",
+            "es_ES": "Indicador válido_Removible",
+            "ru_RU": "Флаг валидности_Съемный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用6",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup 6",
+            "es_ES": "Respaldo 6",
+            "ru_RU": "Резервная копия 6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否可移动",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Movable",
+            "es_ES": "Cambio de directorio_Movible",
+            "ru_RU": "Переключаемый атрибут_Перемещаемый"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_备用9",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch attr_Backup 9",
+            "es_ES": "Atributo de cambio de directorio_Respaldo 9",
+            "ru_RU": "Переключаемый атрибут каталога_Резервный 9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用报文头",
+        "tag": "",
+        "translation": {
+            "en_US": "App header",
+            "es_ES": "Encabezado de la aplicación",
+            "ru_RU": "Заголовок сообщения приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否超时清理",
+        "tag": "",
+        "translation": {
+            "en_US": "Timeout cleanup",
+            "es_ES": "Limpieza por tiempo de espera",
+            "ru_RU": "Очистка по тайм-ауту"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目的现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Dest site",
+            "es_ES": "Sitio de destino",
+            "ru_RU": "Целевая площадка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Modification time",
+            "es_ES": "Hora de modificación",
+            "ru_RU": "Время изменения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件索引包",
+        "tag": "",
+        "translation": {
+            "en_US": "Local file index package",
+            "es_ES": "Paquete de índice de archivo local",
+            "ru_RU": "Индексный пакет локальных файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息",
+        "tag": "",
+        "translation": {
+            "en_US": "File info",
+            "es_ES": "Info del archivo",
+            "ru_RU": "Информация о файле"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源节点本地文件信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Source node local file info",
+            "es_ES": "Info del archivo local del nodo fuente",
+            "ru_RU": "Информация о локальном файле исходного узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含对比文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Included comparison files",
+            "es_ES": "Archivos de comparación incluidos",
+            "ru_RU": "Включает файлы для сравнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync Type",
+            "es_ES": "Tipo de Sinc",
+            "ru_RU": "Тип синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用扩展属性_添加后缀",
+        "tag": "",
+        "translation": {
+            "en_US": "AppExtAttrs_Add Suffix",
+            "es_ES": "AtrExtApp_Añadir sufijo",
+            "ru_RU": "AppExtAttrs_Add Suffix"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名",
+        "tag": "",
+        "translation": {
+            "en_US": "File name",
+            "es_ES": "Nombre de archivo",
+            "ru_RU": "Имя файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录开关属性_是否清理版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory switch_Clean up version",
+            "es_ES": "Conmutación de directorio_Limpiar la versión",
+            "ru_RU": "Переключение каталога_Очистить версию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对比结果类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Comparison result type",
+            "es_ES": "Tipo de resultado de comparación",
+            "ru_RU": "Тип результата сравнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置操作同步表",
+        "tag": "",
+        "translation": {
+            "en_US": "Config operation sync table",
+            "ru_RU": "Таблица синхронизации операций конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用1",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 1",
+            "es_ES": "Respaldo 1",
+            "ru_RU": "Резерв 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "有效标识",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid flag",
+            "es_ES": "Indicador válido",
+            "ru_RU": "Флаг валидности"
+        }
+    }
+]

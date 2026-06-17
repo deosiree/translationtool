@@ -39,6 +39,8 @@ public interface TaskInfoMapper extends BaseMapper<TaskInfoEntity> {
     int getFinishTaskInfoTotal(@Param("userName") String userName,@Param("taskInfoEntity") TaskInfoEntity taskInfoEntity);
 
     TaskInfoEntity getTaskEntityByTaskID(String taskID);
+
+    List<TaskInfoEntity> getTaskByIDList(@Param("taskIdList") List<String> taskIdList);
 }
 
 

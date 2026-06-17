@@ -1,0 +1,170 @@
+[
+    {
+        "comments": "",
+        "source": "，未能在本地找到该表的信息",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，等待下次转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，远端执行报错，不再转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{:d}] 转发删除表操作 [表名={:s}] 到 [{:s}/{:s}] 失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，等待下次转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，远端执行报错，不再转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "未能在本地找到表 [{:s}] 的信息，不再转发该表数据",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据 [{:s}] 条件，未能在本地表 [{:s}] 中找到任何信息，不再转发该表数据",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "向远程节点 [{:s}/{:s}] 发送表 [{:s}] [{:d}-{:d}] 的数据同步请求失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，等待下次转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，远端表信息不存在，且添加表结构转发日志失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，远端表信息不存在，等待下次转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "不再转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{:d}] 转发执行 Sql 操作 [sql={:s}] 到 [{:s}/{:s}] 失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，等待下次转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "，远端执行该条sql语句报错，不再转发",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除分区表 {:s} 后, 磁盘使用率为 {:.2f}%, ",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前磁盘使用率为 {:.2f}%, 超过清理阈值 {:.2f}%, 停止阈值为 {:.2f}%, 开始清理历史库数据",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "由于磁盘越限，删除表 [{:s}] 时间戳 [{}] 前数据, ",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "已清理所有历史数据，但磁盘使用率仍高于阈值，无法继续清理, ",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "由于表数据过期, 清理表 {} 时间戳 {} 前 [{}] 条过期数据",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

@@ -1,0 +1,163 @@
+[
+    {
+        "comments": "",
+        "source": "连接实时库[hisparam]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to TDB [hisparam]!",
+            "es_ES": "La conexión a la biblioteca en tiempo real [hisparam] falló!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询实时库[hisparam]的部署应用不唯一！",
+        "tag": "",
+        "translation": {
+            "en_US": "Query TDB [hisparam] deployment application is not unique!",
+            "es_ES": "Consulta la librería en tiempo real [hisparam] para el despliegue de aplicaciones no únicas!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建平台接口实例失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to build platform interface instance!",
+            "es_ES": "¡Falla al construir una instancia de interfaz de plataforma!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[hisparam]实时库的部署应用信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the deployment application information of TDB [hisparam] !",
+            "es_ES": "Consulta [hisparam] falla en la información de la aplicación de implementación de la biblioteca en tiempo real!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize statistics task information!",
+            "es_ES": "¡Error al inicializar la información de la tarea estadística!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Started successfully",
+            "es_ES": "Éxito de lanzamiento"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the TDB [hismdl]!",
+            "es_ES": "¡No se pudo conectar a la biblioteca en tiempo real [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to re-initialize statistics task information!",
+            "es_ES": "¡No se pudo reiniciar la información de la tarea estadística!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取实时库[hismdl]地址失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get TDB [hismdl] address!",
+            "es_ES": "¡Falla al obtener la dirección de la biblioteca en tiempo real [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取当前应用值班状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the current application duty status!",
+            "es_ES": "¡Falla al obtener el estado de servicio de la aplicación actual!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reconnect to TDB [hismdl]!",
+            "es_ES": "¡La reconexión a la biblioteca en tiempo real [hismdl] falló!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit",
+            "es_ES": "Salida normal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册[hismdl]装库事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register the reloading DB event of [hismdl]!",
+            "es_ES": "Registro [hismdl] evento de carga de repositorios falló!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败:",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup failed:",
+            "es_ES": "El arranque falló:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reconnect to TDB [hismdl]!",
+            "es_ES": "¡La reconexión a la biblioteca en tiempo real [hismdl] falló!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅节点应用值班切换通知事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe node application shift notification event!",
+            "es_ES": "Nodo de suscripción aplicación de cambio de servicio notificación evento falló!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接历史库失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the history DB!",
+            "es_ES": "¡La conexión a la biblioteca de historia falló!"
+        }
+    }
+]

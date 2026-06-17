@@ -1,0 +1,39 @@
+[
+    {
+        "comments": "",
+        "source": "节点: %1 进程: %2 PID: %3 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: %1 Process: %2 PID: %3",
+            "ru_RU": "Узел:%1 Процесс:%2 PID:%3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点:%1 进程:%2 PID:%3 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: %1 | Process: %2 | PID: %3",
+            "es_ES": "Nodo: %1 Proceso: %2 PID: %3",
+            "ru_RU": "Узел:%1 Процесс:%2 PID:%3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加画面:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Add graph: %1 successfully",
+            "es_ES": "Gráfica añadida: %1 exitosamente",
+            "ru_RU": "Добавление мнемосхемы %1 успешно"
+        }
+    }
+]

@@ -1,0 +1,39 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "DO_NOT_TOUCH_EmptyEnum",
+        "tag": "",
+        "translation": {
+            "en_US": "DO_NOT_TOUCH_EmptyEnum",
+            "es_ES": "DO_NOT_TOUCH_EmptyEnum",
+            "ru_RU": "DO_NOT_TOUCH_EmptyEnum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用作样例的空枚举，勿动",
+        "tag": "enum_cfg/DNT_EmptyEnum",
+        "translation": {
+            "en_US": "Empty enumeration used as an example, do not change",
+            "ru_RU": "Пустое перечисление, используемое как пример, не изменять"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用作样例的空枚举，勿动",
+        "tag": "",
+        "translation": {
+            "en_US": "Empty enumeration used as an example, do not change",
+            "es_ES": "Se utiliza un ejemplo de enumeración vacía, no lo cambie",
+            "ru_RU": "Пустое перечисление, используемое как пример, не изменять"
+        }
+    }
+]

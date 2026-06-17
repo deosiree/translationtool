@@ -22,17 +22,26 @@ public interface EntryTempService extends IService<EntryTempEntity> {
 
     List<EntryTempEntity> getEntryTempByTaskID(String taskID);
 
-    String deleteEntryInfoByID(List<String> entryID);
+    String deleteEntryInfoByID(List<String> entryID,String productID,String versionID);
 
     int getEntryTempByTaskIDTotal(String taskID);
 
     List<EntryInfoEntity> preTranslate(HttpServletRequest request, List<EntryInfoEntity> entryInfoEntities,String taskID,String priority);
 
-    void getTemplateFile(HttpServletResponse response,String fileType       );
+    void getTemplateFile(HttpServletResponse response,String fileType ,String translateType);
 
     List<EntryInfoEntity> getEntryInfoList(String taskID,String entryState, List<String> transStates,String entry);
 
-    String updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
+    /**
+     * 更新对应任务的词条信息,返回更新失败的词条信息
+     * @param entryInfoEntities
+     * @param taskID
+     * @param request
+     * @return 更新失败的词条信息
+     */
+    List<EntryInfoEntity> updateEntryList(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
+
+    String deleteEntryInfoByTaskID(List<String> entryID, String taskID);
 
     //  ImportResultEntryVO checkExistEntry(List<EntryTempEntity> entryTempEntities);
 }

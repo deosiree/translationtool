@@ -1,0 +1,388 @@
+[
+    {
+        "comments": "",
+        "source": "幂",
+        "tag": "",
+        "translation": {
+            "en_US": "Power",
+            "es_ES": "Potencia"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未定义取值回调函数",
+        "tag": "",
+        "translation": {
+            "en_US": "Undefined callback function",
+            "es_ES": "Función de devolución de llamada no definida."
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称错误!",
+        "tag": "",
+        "translation": {
+            "en_US": "Wrong name!",
+            "es_ES": "¡Nombre incorrecto!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正弦",
+        "tag": "",
+        "translation": {
+            "en_US": "Sine",
+            "es_ES": "Seno"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown error",
+            "es_ES": "Error desconocido"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "Min",
+            "es_ES": "Mín"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未找到对应的语法树下标",
+        "tag": "",
+        "translation": {
+            "en_US": "The corresponding syntax tree subscript was not found",
+            "es_ES": "No se encontró el subíndice del árbol de sintaxis correspondiente"
+        }
+    },
+    {
+        "comments": "",
+        "source": "的符号",
+        "tag": "",
+        "translation": {
+            "en_US": "symbol",
+            "es_ES": "símbolo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解析失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Parse failed",
+            "es_ES": "Fallo de análisis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "求和",
+        "tag": "",
+        "translation": {
+            "en_US": "Sum",
+            "es_ES": "Suma"
+        }
+    },
+    {
+        "comments": "",
+        "source": "编译错误!",
+        "tag": "",
+        "translation": {
+            "en_US": "Compile Error!",
+            "es_ES": "¡Error de compilación!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "函数参数个数不匹配",
+        "tag": "",
+        "translation": {
+            "en_US": "The number of function parameters does not match",
+            "es_ES": "El número de parámetros de la función no coincide"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差Ms",
+        "tag": "",
+        "translation": {
+            "en_US": "DeltaMs",
+            "es_ES": "DeltaMs"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不能转换成字符串",
+        "tag": "",
+        "translation": {
+            "en_US": "Cannot be converted to a string",
+            "es_ES": "No se puede convertir a cadena"
+        }
+    },
+    {
+        "comments": "",
+        "source": "该类型不支持的运算符",
+        "tag": "",
+        "translation": {
+            "en_US": "Operator not supported by this type",
+            "es_ES": "Operador no soportado por este tipo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式错误!",
+        "tag": "",
+        "translation": {
+            "en_US": "Wrong expression!",
+            "es_ES": "¡Expresión incorrecta!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "立方根",
+        "tag": "",
+        "translation": {
+            "en_US": "Cbrt",
+            "es_ES": "Raíz cúbica"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不支持的运算符类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Unsupported operator type",
+            "es_ES": "Tipo de operador no soportado"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平均值",
+        "tag": "",
+        "translation": {
+            "en_US": "Avg",
+            "es_ES": "Promedio"
+        }
+    },
+    {
+        "comments": "",
+        "source": "空值不能转换成",
+        "tag": "",
+        "translation": {
+            "en_US": "Null values ​​cannot be converted to",
+            "es_ES": "No se pueden convertir valores nulos a"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "浮点数无限: {} {} {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Infinite floating point numbers: {} {} {}",
+            "es_ES": "Números flotantes infinitos: {} {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平方根",
+        "tag": "",
+        "translation": {
+            "en_US": "Sqrt",
+            "es_ES": "Raíz cuadrada"
+        }
+    },
+    {
+        "comments": "",
+        "source": "错误使用运算符",
+        "tag": "",
+        "translation": {
+            "en_US": "Incorrect use of operator",
+            "es_ES": "Uso incorrecto del operador"
+        }
+    },
+    {
+        "comments": "",
+        "source": "语句中包含非法字符:下标{}",
+        "tag": "",
+        "translation": {
+            "en_US": "The statement contains illegal characters: subscript {}",
+            "es_ES": "La declaración contiene caracteres ilegales: subíndice {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解析成功后再调用eval函数",
+        "tag": "",
+        "translation": {
+            "en_US": "After successful parsing, call the eval function",
+            "es_ES": "Después de un análisis exitoso, llamar a la función eval."
+        }
+    },
+    {
+        "comments": "",
+        "source": "后面",
+        "tag": "",
+        "translation": {
+            "en_US": "after",
+            "es_ES": "después"
+        }
+    },
+    {
+        "comments": "",
+        "source": "从下标为",
+        "tag": "",
+        "translation": {
+            "en_US": "From the symbol subscripted",
+            "es_ES": "Desde el subíndice del símbolo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}解析失败",
+        "tag": "",
+        "translation": {
+            "en_US": "{} parse failed",
+            "es_ES": "{} análisis fallido"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字符串不能转换成",
+        "tag": "",
+        "translation": {
+            "en_US": "The string cannot be converted to",
+            "es_ES": "La cadena no se puede convertir a"
+        }
+    },
+    {
+        "comments": "",
+        "source": "语句错误!",
+        "tag": "",
+        "translation": {
+            "en_US": "Sentence error!",
+            "es_ES": "¡Error de sentencia!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差s",
+        "tag": "",
+        "translation": {
+            "en_US": "DeltaS",
+            "es_ES": "DeltaS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "变量名错误!",
+        "tag": "",
+        "translation": {
+            "en_US": "Wrong variable name!",
+            "es_ES": "¡Nombre de variable incorrecto!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式过于复杂，层次超过",
+        "tag": "",
+        "translation": {
+            "en_US": "The expression is too complex, with more than",
+            "es_ES": "La expresión es demasiado compleja, con más de"
+        }
+    },
+    {
+        "comments": "",
+        "source": "余弦",
+        "tag": "",
+        "translation": {
+            "en_US": "Cosine",
+            "es_ES": "Coseno"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知的字符串运算符 '{} {} {}'",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown string operator '{} {} {}'",
+            "es_ES": "Operador de cadena desconocido '{} {} {}'"
+        }
+    },
+    {
+        "comments": "",
+        "source": "使用了未注册的函数",
+        "tag": "",
+        "translation": {
+            "en_US": "Unregistered function used",
+            "es_ES": "Función no registrada utilizada"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正切",
+        "tag": "",
+        "translation": {
+            "en_US": "Tangent",
+            "es_ES": "Tangente"
+        }
+    },
+    {
+        "comments": "",
+        "source": "解析错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Parse error",
+            "es_ES": "Error de análisis"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "Max",
+            "es_ES": "Máx."
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对值",
+        "tag": "",
+        "translation": {
+            "en_US": "ABS",
+            "es_ES": "ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "常量字符串错误!",
+        "tag": "",
+        "translation": {
+            "en_US": "Constant string error!",
+            "es_ES": "Error de cadena constante."
+        }
+    },
+    {
+        "comments": "",
+        "source": "未知的因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Unknown factors",
+            "es_ES": "Factores desconocidos"
+        }
+    }
+]

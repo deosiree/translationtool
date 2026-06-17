@@ -1,0 +1,146 @@
+[
+    {
+        "comments": "",
+        "source": "启动失败:",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建平台接口实例失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建平台接口实例失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅节点应用值班切换通知事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册[hismdl]装库事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取当前应用值班状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[hisparam]实时库的部署应用信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询实时库[hisparam]的部署应用不唯一！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hisparam]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取实时库[hismdl]地址失败!",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接历史库失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败!",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

@@ -1,0 +1,43 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "链式采样起始值",
+        "tag": "",
+        "translation": {
+            "en_US": "Chain sampling starting value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "链式采样个数",
+        "tag": "",
+        "translation": {
+            "en_US": "Number of chain samples"
+        }
+    },
+    {
+        "comments": "",
+        "source": "链式采样终止值",
+        "tag": "",
+        "translation": {
+            "en_US": "Chain sampling termination value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Insert timestamp",
+            "ru_RU": "Вставить временную метку"
+        }
+    }
+]

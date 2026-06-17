@@ -87,10 +87,10 @@ public class ProductController extends BaseController {
     @Transactional
     //返回id
     public HttpResponse<String> deleteProduct(@RequestBody List<String> idList) {
+        return checkResult("方法过期，请使用deleteEntryClassfy");
+        // String result = productService.deleteProduct(idList);
 
-        String result = productService.deleteProduct(idList);
-
-        return checkResult(result);
+        // return checkResult(result);
 
     }
 
@@ -144,9 +144,13 @@ public class ProductController extends BaseController {
         if (StringUtils.isBlank(productId)) {
             return null;
         }
-        UserProductEntity result = productService.getUserProduct(productId, request);
-
-        return checkResult(result);
+        try {
+            UserProductEntity result = productService.getUserProduct(productId, request);
+            return ok(result);    
+        } catch (Exception e) {
+            // TODO: handle exception
+            return error(null, e.getMessage());
+        }
 
     }
 

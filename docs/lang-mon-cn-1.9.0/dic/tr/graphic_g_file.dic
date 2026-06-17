@@ -1,0 +1,69 @@
+[
+    {
+        "comments": "",
+        "source": "节点: %1 进程: %2 PID: %3 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: %1 Process: %2 PID: %3",
+            "ru_RU": "Узел:%1 Процесс:%2 PID:%3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "G文件导出成功",
+        "tag": "",
+        "translation": {
+            "en_US": "G-file exported successfully",
+            "es_ES": "Archivo G exportado exitosamente",
+            "ru_RU": "Файл G успешно экспортирован"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CIME文件导出",
+        "tag": "",
+        "translation": {
+            "en_US": "Export CIME file",
+            "es_ES": "Exportar archivo CIME",
+            "ru_RU": "Экспортировать файл CIME"
+        }
+    },
+    {
+        "comments": "",
+        "source": "G文件导出",
+        "tag": "",
+        "translation": {
+            "en_US": "G-file export",
+            "es_ES": "Exportación de archivo G",
+            "ru_RU": "Экспорт G-файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CIME文件导出成功",
+        "tag": "",
+        "translation": {
+            "en_US": "CIME file export successful",
+            "es_ES": "Exportación de archivo CIME exitosa",
+            "ru_RU": "Экспорт файла CIME успешен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点:%1 进程:%2 PID:%3 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: %1 | Process: %2 | PID: %3",
+            "es_ES": "Nodo: %1 Proceso: %2 PID: %3",
+            "ru_RU": "Узел: %1 Процесс: %2 pid: %3 "
+        }
+    }
+]

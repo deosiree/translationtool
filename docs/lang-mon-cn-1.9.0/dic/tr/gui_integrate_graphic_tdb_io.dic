@@ -1,0 +1,19 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取{}状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to retrieve {} status!",
+            "ru_RU": "Сбой получения статуса {}!"
+        }
+    }
+]

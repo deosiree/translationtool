@@ -1,0 +1,659 @@
+[
+    {
+        "comments": "",
+        "source": "启动删除容量",
+        "tag": "",
+        "translation": {
+            "en_US": "Start capacity deletion",
+            "es_ES": "Inicio de eliminación de capacidad",
+            "ru_RU": "Запустить удаление емкости"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的节点资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Included node resource objects",
+            "es_ES": "Objeto de recurso del nodo incluido",
+            "ru_RU": "Включает объекты ресурсов узлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件系统资源定义",
+        "tag": "",
+        "translation": {
+            "en_US": "File system resource definition",
+            "es_ES": "Definición de recurso del sistema de archivos",
+            "ru_RU": "Определение ресурсов файловой системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否默认值",
+        "tag": "",
+        "translation": {
+            "en_US": "Default",
+            "es_ES": "Predeterminado",
+            "ru_RU": "Значение по умолчанию?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样值占比",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled value ratio",
+            "es_ES": "Proporción de valor muestreado",
+            "ru_RU": "Доля значения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联预警值",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked advance warning value",
+            "es_ES": "Valor de advertencia vinculado",
+            "ru_RU": "Значение связанного предупреждения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册名",
+        "tag": "",
+        "translation": {
+            "en_US": "Network regname",
+            "es_ES": "Nombre de registro de red",
+            "ru_RU": "Network regname"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Start time",
+            "es_ES": "Tiempo de inicio",
+            "ru_RU": "Время запуска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled data",
+            "es_ES": "Datos muestreados",
+            "ru_RU": "Дан Дискр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止删除百分比",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop percentage deletion",
+            "es_ES": "Detener la eliminación por porcentaje",
+            "ru_RU": "Остановить удаление процентов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Path",
+            "es_ES": "Ruta",
+            "ru_RU": "Путь"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample time",
+            "es_ES": "Tiempo de muestra",
+            "ru_RU": "Время дискр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Node resource",
+            "es_ES": "Recurso del nodo",
+            "ru_RU": "Ресурсы узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属的节点资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned Node Resource Object",
+            "es_ES": "Propiedad del objeto de recurso del nodo",
+            "ru_RU": "Назначенный объект ресурса узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含文件系统资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Included File System resources",
+            "es_ES": "Recursos del sistema de archivos incluidos",
+            "ru_RU": "Включает ресурсы файловой системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源定义包",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource definition package",
+            "es_ES": "Paquete de definición de recursos",
+            "ru_RU": "Пакет определения ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动删除百分比",
+        "tag": "",
+        "translation": {
+            "en_US": "Start percentage deletion",
+            "es_ES": "Iniciar eliminación de porcentaje",
+            "ru_RU": "Процент запуска удаления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否绝对路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Absolute path",
+            "es_ES": "Ruta absoluta",
+            "ru_RU": "Абсолютный путь?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Params data",
+            "es_ES": "Datos de parámetros",
+            "ru_RU": "Данные параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘容量",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk Capacity",
+            "es_ES": "Capacidad del Disco",
+            "ru_RU": "Ёмкость диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "App name",
+            "es_ES": "Nombre de la aplicación",
+            "ru_RU": "Имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样值",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample value",
+            "es_ES": "Valor de muestra",
+            "ru_RU": "Знач дискр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联是否采样",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampled link",
+            "es_ES": "Enlace muestreado",
+            "ru_RU": "Связь дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联资源配额",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked resource quota",
+            "es_ES": "Cuota de recurso vinculada",
+            "ru_RU": "Квота связанных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description",
+            "es_ES": "Descripción",
+            "ru_RU": "Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "路径类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Path type",
+            "es_ES": "Tipo de ruta",
+            "ru_RU": "Тип пути"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Node type",
+            "es_ES": "Tipo de nodo",
+            "ru_RU": "Тип узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库资源",
+        "tag": "",
+        "translation": {
+            "en_US": "DB resource",
+            "es_ES": "Recurso de BD",
+            "ru_RU": "Ресурс DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned resource object",
+            "es_ES": "Propiedad del objeto de recurso",
+            "ru_RU": "Назначенный объект ресурса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": "unit",
+            "es_ES": "Unidad",
+            "ru_RU": "Единица измерения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum",
+            "es_ES": "Máx.",
+            "ru_RU": "Maximum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值占比",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum proportion",
+            "es_ES": "Proporción máxima",
+            "ru_RU": "Доля максимального значения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Local site",
+            "es_ES": "Sitio local",
+            "ru_RU": "Локальная площадка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IP地址",
+        "tag": "",
+        "translation": {
+            "en_US": "IP address",
+            "es_ES": "Dirección IP",
+            "ru_RU": "IP-адрес"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Onsite resources",
+            "es_ES": "Recursos en sitio",
+            "ru_RU": "Ресурсы площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum time",
+            "es_ES": "Tiempo máximo",
+            "ru_RU": "Maximum time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Process resources",
+            "es_ES": "Recurso de proceso",
+            "ru_RU": "Ресурсы процессов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库目录路径",
+        "tag": "",
+        "translation": {
+            "en_US": "DB dir path",
+            "es_ES": "Ruta del directorio de base de datos",
+            "ru_RU": "Путь к каталогу DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于文件系统资源",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned resources of File System",
+            "es_ES": "Recursos asignados del sistema de archivos",
+            "ru_RU": "Назначенные ресурсы файловой системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属的现场资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned on-site resource object",
+            "es_ES": "Objeto de recurso de campo asociado",
+            "ru_RU": "Назначенный объект ресурсов площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联预警计算周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked advance warning calculation cycle",
+            "es_ES": "Período de cálculo de advertencia temprana vinculado",
+            "ru_RU": "Цикл вычисления связанного предупреждения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的文件系统资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Included file system resource objects",
+            "es_ES": "Contiene el objeto de recurso del sistema de archivos",
+            "ru_RU": "Включённые объекты ресурсов файловой системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的采样数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Included sample data",
+            "es_ES": "Datos de muestra incluidos",
+            "ru_RU": "Включает дискретизированные данные"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止删除容量",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop capacity deletion",
+            "es_ES": "Detener eliminación de capacidad",
+            "ru_RU": "Остановить удаление емкости"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的进程资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Included process resource objects",
+            "es_ES": "Objeto de recurso de proceso incluido",
+            "ru_RU": "Включённые объекты ресурсов процессов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联写历史周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Link history cycle",
+            "es_ES": "Período de historial de enlace",
+            "ru_RU": "Цикл записи истории связи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含的数据库资源对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Included DB resource objects",
+            "es_ES": "Objetos de recurso de base de datos incluidos",
+            "ru_RU": "Включает объекты ресурсов DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联采样周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked sampled cycle",
+            "es_ES": "Período muestreado vinculado",
+            "ru_RU": "Период связанной дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库类型",
+        "tag": "",
+        "translation": {
+            "en_US": "DB type",
+            "es_ES": "Tipo de base de datos",
+            "ru_RU": "Тип DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警百分比",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm percentage",
+            "es_ES": "Porcentaje de alarma",
+            "ru_RU": "Процент тревоги"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程号",
+        "tag": "",
+        "translation": {
+            "en_US": "PID",
+            "es_ES": "Número de proceso",
+            "ru_RU": "PID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联告警间隔周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked alarm interval cycle",
+            "es_ES": "Intervalo de alarma vinculado",
+            "ru_RU": "Цикл интервала связанной тревоги"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Process status",
+            "es_ES": "Estado del proceso",
+            "ru_RU": "Статус процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件系统资源",
+        "tag": "",
+        "translation": {
+            "en_US": "File system resource",
+            "es_ES": "Recurso del sistema de archivos",
+            "ru_RU": "Ресурсы файловой системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid",
+            "es_ES": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源管理包",
+        "tag": "",
+        "translation": {
+            "en_US": "System resource management package",
+            "es_ES": "Paquete de gestión de recursos del sistema",
+            "ru_RU": "Пакет управления системными ресурсами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警容量",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm capacity",
+            "es_ES": "Capacidad de alarma",
+            "ru_RU": "Емкость тревог"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上一次预警时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last advWarn time",
+            "es_ES": "Hora de la última advertencia",
+            "ru_RU": "Время последнего предупреждения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "可删除文件类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Deleteable file type",
+            "es_ES": "Tipo de archivo eliminable",
+            "ru_RU": "Удаляемый тип файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "创建时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Creation time",
+            "es_ES": "Nuevo tiempo",
+            "ru_RU": "Время создания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联模型检查周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked model check cycle",
+            "es_ES": "Ciclos de verificación de modelo vinculados",
+            "ru_RU": "Период проверки связанной модели"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值",
+        "tag": "",
+        "translation": {
+            "en_US": "Value",
+            "es_ES": "Valor",
+            "ru_RU": "Значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联告警阈值",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked alarm threshold",
+            "es_ES": "Umbral de alarma vinculado",
+            "ru_RU": "Порог связанной тревоги"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上一次告警时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last alarm time",
+            "es_ES": "Hora de la última alarma",
+            "ru_RU": "Время последней тревоги"
+        }
+    }
+]

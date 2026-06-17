@@ -1,0 +1,5465 @@
+[
+    {
+        "comments": "",
+        "source": "时序库操作员用户",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB operator",
+            "es_ES": "Operador de STDB",
+            "ru_RU": "Оператор STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史模型",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "History model",
+            "es_ES": "Modelo histórico",
+            "ru_RU": "Модель истории"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性保护日志级别",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Integrity protection log level",
+            "es_ES": "Nivel de logs de protección de integridad",
+            "ru_RU": "Уровень журналов защиты целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "EQUIPLOCATEEVENT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "EQUIPLOCATEEVENT",
+            "ru_RU": "EQUIPLOCATEEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CA文件",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "CA File",
+            "es_ES": "Archivo CA",
+            "ru_RU": "Файл ЦС"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务 sync",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "STDB service_sync",
+            "es_ES": "Servicio STDB_Sinc",
+            "ru_RU": "Служба STDB_Синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CANCEL",
+        "tag": "",
+        "translation": {
+            "en_US": "CANCEL",
+            "es_ES": "CANCEL",
+            "ru_RU": "CANCEL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SEC_PRIV_USERS_MANAGE",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_SEC_PRIV_USERS_MANAGE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_test_api",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_test_api"
+        }
+    },
+    {
+        "comments": "",
+        "source": "alarmmdl库",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "alarmmdl DB",
+            "es_ES": "Biblioteca alarmmdl",
+            "ru_RU": "Библиотека alarmmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 core",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission core",
+            "es_ES": "Core de transmisión de mensajes de red",
+            "ru_RU": "Ядро передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面字典",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "Graph dict",
+            "es_ES": "Diccionario de pantallas",
+            "ru_RU": "Словарь графиков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Security audit service",
+            "es_ES": "Servicio de auditoría de seguridad",
+            "ru_RU": "Служба аудита безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_vermng",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_vermng"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置抓包服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP packet capture service",
+            "es_ES": "Servicio de captura de paquetes FEP",
+            "ru_RU": "Сервис захвата пакетов FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CRL文件",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "CRL File",
+            "es_ES": "Archivo CRL",
+            "ru_RU": "Файл CRL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "储能EMS_V2.0",
+        "tag": "",
+        "translation": {
+            "en_US": "Energy storage EMS_V2.0",
+            "es_ES": "EMS de alm. V2.0",
+            "ru_RU": "Система управления хранением энергии EMS версии 2.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计配置",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Security Audit Config",
+            "es_ES": "Config. de auditoría de seguridad",
+            "ru_RU": "Конфигурация аудита безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "公共参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Public parameters",
+            "es_ES": "Parámetros públicos",
+            "ru_RU": "Общие параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "END",
+        "tag": "",
+        "translation": {
+            "en_US": "END",
+            "es_ES": "final",
+            "ru_RU": "Конец"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行态",
+        "tag": "",
+        "translation": {
+            "en_US": "Running status",
+            "es_ES": "Estado operativo",
+            "ru_RU": "Режим выполнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "File info",
+            "es_ES": "Info. de archivos",
+            "ru_RU": "Информация о файле"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada.run.1",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "scada.run.1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "autotest",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "autotest"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SEC",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_SEC",
+            "es_ES": "IASP_SEC",
+            "ru_RU": "IASP_SEC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "紧耦合读",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Tightly coupled reading",
+            "es_ES": "Lectura estrechamente acoplada",
+            "ru_RU": "Тесно связанное чтение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多进程同步测试",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Multi-process synchronization test",
+            "es_ES": "Prueba de sincronización multiproceso",
+            "ru_RU": "Тест синхронизации в многопроцессной среде"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库小库",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "DB repository",
+            "es_ES": "Repositorio de base de datos",
+            "ru_RU": "Репозиторий базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_NORMAL_TOOLBAR",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_GUI_NORMAL_TOOLBAR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGROPCROSS",
+        "tag": "",
+        "translation": {
+            "en_US": "FILEMGROPCROSS",
+            "es_ES": "FILEMGROPCROSS",
+            "ru_RU": "FILEMGROPCROSS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada库",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "scada DB",
+            "es_ES": "biblioteca scada",
+            "ru_RU": "Библиотека SCADA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 debug",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission debug",
+            "es_ES": "Debug de transmisión de mensajes de red",
+            "ru_RU": "Отладка передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 file",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission file",
+            "es_ES": "Archivo de transmisión de mensajes de red",
+            "ru_RU": "Файл передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全信息",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "Security Info",
+            "es_ES": "Info. de seguridad",
+            "ru_RU": "Информация о безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性保护日志天数",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Integrity protection log days",
+            "es_ES": "Días de logs de protección de integridad",
+            "ru_RU": "Количество дней хранения журналов защиты целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "products",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "products",
+            "ru_RU": "products"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "O&M",
+            "es_ES": "Servicio de gestión O&M",
+            "ru_RU": "O&M"
+        }
+    },
+    {
+        "comments": "",
+        "source": "证书文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Certificate files",
+            "es_ES": "Archivo de certificado",
+            "ru_RU": "Файлы сертификатов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库同步测试",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "DB synchronization test",
+            "es_ES": "Prueba de sincronización de base de datos",
+            "ru_RU": "Тест синхронизации базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "O&M",
+            "es_ES": "Servicio de gestión O&M",
+            "ru_RU": "Системные операции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGROP",
+        "tag": "",
+        "translation": {
+            "en_US": "FILEMGROP",
+            "es_ES": "FILEMGROP",
+            "ru_RU": "FILEMGROP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "BACKUP",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "BACKUP",
+            "es_ES": "BACKUP",
+            "ru_RU": "BACKUP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service app",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission service app",
+            "ru_RU": "Net message transmission service app"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SERVICE",
+        "tag": "",
+        "translation": {
+            "en_US": "SERVICE",
+            "es_ES": "SERVICE",
+            "ru_RU": "SERVICE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离外网服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Cross-positive isolation of external network service",
+            "es_ES": "Servicio de salida a red externa mediante aislamiento unidireccional",
+            "ru_RU": "Служба исходящего трафика во внешнюю сеть через одностороннюю изоляцию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "私钥文件",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Private key file",
+            "es_ES": "Archivo de clave privada",
+            "ru_RU": "Файл закрытого ключа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGRCONF",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "FILEMGRCONF",
+            "es_ES": "FILEMGRCONF",
+            "ru_RU": "FILEMGRCONF"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置文件服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP file service",
+            "es_ES": "Servicio de archivos FEP",
+            "ru_RU": "Служба файлов FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务_同步",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "STDB service_Sync",
+            "es_ES": "Servicio STDB_Sinc",
+            "ru_RU": "Служба STDB_Синхронизация"
+        }
+    },
+    {
+        "comments": "",
+        "source": "eventinfo库",
+        "tag": "",
+        "translation": {
+            "en_US": "eventinfo DB",
+            "es_ES": "Biblioteca eventinfo",
+            "ru_RU": "Библиотека eventinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGR_REDOWNLOAD",
+        "tag": "",
+        "translation": {
+            "en_US": "FILEMGR_REDOWNLOAD",
+            "ru_RU": "FILEMGR_REDOWNLOAD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB service",
+            "es_ES": "Servicio STDB",
+            "ru_RU": "Служба STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_upload",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_fep_upload"
+        }
+    },
+    {
+        "comments": "",
+        "source": "摘要算法",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Summary algorithm",
+            "es_ES": "Algoritmo de resumen",
+            "ru_RU": "Summary algorithm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置读写服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP reading and writing service",
+            "es_ES": "Servicio de lectura y escritura FEP",
+            "ru_RU": "Служба чтения и записи FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-forward isolation service",
+            "es_ES": "Servicio de aislamiento cruzado positivo",
+            "ru_RU": "Сервис изоляции перекрестной пересылки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net file transmission service",
+        "tag": "",
+        "translation": {
+            "en_US": "Net file transmission service",
+            "ru_RU": "Net file transmission service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "EMS_CN",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "EMS_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CROSS_SITE_STATUS",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "CROSS_SITE_STATUS",
+            "es_ES": "CROSS_SITE_STATUS",
+            "ru_RU": "CROSS_SITE_STATUS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SERVICE",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "SERVICE",
+            "es_ES": "SERVICE",
+            "ru_RU": "SERVICE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sysinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "sysinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Platform alarm service",
+            "es_ES": "Servicio de alarmas de plataforma",
+            "ru_RU": "Служба тревог платформы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "rt",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "rt",
+            "es_ES": "RT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "储能EMS_V2.0",
+        "tag": "SysType/desc",
+        "translation": {
+            "en_US": "Energy storage EMS_V2.0",
+            "es_ES": "EMS de alm. V2.0",
+            "ru_RU": "Система управления хранением энергии EMS версии 2.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非对称算法",
+        "tag": "",
+        "translation": {
+            "en_US": "Asymmetric algorithm",
+            "es_ES": "Algoritmo asimétrico",
+            "ru_RU": "Асимметричный_алгоритм"
+        }
+    },
+    {
+        "comments": "",
+        "source": "TDB operator",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "TDB operator"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_KEEPVOL",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI_KEEPVOL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "RESTORE",
+        "tag": "",
+        "translation": {
+            "en_US": "RESTORE",
+            "es_ES": "RESTORE",
+            "ru_RU": "RESTORE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVG_GL",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "SVG_GL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "证书文件",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Certificate files",
+            "es_ES": "Archivo de certificado",
+            "ru_RU": "Файлы сертификатов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络接口读",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Net interface reading",
+            "es_ES": "Lectura de interfaz de red",
+            "ru_RU": "Чтение сетевого интерфейса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_acquire",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_fep_acquire"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_TOPCOLOR",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_GUI_TOPCOLOR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "smgrtest.run.0",
+        "tag": "",
+        "translation": {
+            "en_US": "smgrtest.run.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离内网应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-positive isolation internal network application",
+            "es_ES": "Aplicación entrante a red interna a través de aislamiento unidireccional",
+            "ru_RU": "Приложение внутренней сети через одностороннюю изоляцию прямого направления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_TDB",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_TDB",
+            "es_ES": "IASP_TDB",
+            "ru_RU": "IASP_TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置遥控服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP telecontrol service",
+            "es_ES": "Servicio de telecontrol FEP",
+            "ru_RU": "Служба телеметрии FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "WEB",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "WEB",
+            "es_ES": "WEB",
+            "ru_RU": "WEB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SCD导入服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "SCD Import Service",
+            "es_ES": "Servicio de importación SCD",
+            "ru_RU": "Сервис импорта SCD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_file_async",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "svc_net_file_async"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_DRAFT",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_DRAFT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_snmp",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_fep_snmp"
+        }
+    },
+    {
+        "comments": "",
+        "source": "生成语音服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Gen voice service",
+            "es_ES": "Servicio de generación de voz",
+            "ru_RU": "Служба генерации голоса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "General calculation service",
+            "es_ES": "Servicio de cálculo general",
+            "ru_RU": "Служба общего вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sysops.run.0",
+        "tag": "",
+        "translation": {
+            "en_US": "sysops.run.0",
+            "es_ES": "sysops.run.0",
+            "ru_RU": "sysops.run.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "私钥文件",
+        "tag": "",
+        "translation": {
+            "en_US": "Private key file",
+            "es_ES": "Archivo de clave privada",
+            "ru_RU": "Файл закрытого ключа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SEC",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_SEC",
+            "es_ES": "IASP_SEC",
+            "ru_RU": "IASP_SEC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "General compute",
+            "es_ES": "Cálculo general",
+            "ru_RU": "Общий вычислитель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "GFILEEVENT",
+        "tag": "",
+        "translation": {
+            "en_US": "GFILEEVENT",
+            "ru_RU": "GFILEEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "EQUIPLOCATEEVENT",
+        "tag": "",
+        "translation": {
+            "en_US": "EQUIPLOCATEEVENT",
+            "ru_RU": "EQUIPLOCATEEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库管理员用户",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "STDB administrator",
+            "es_ES": "Administrador de STDB",
+            "ru_RU": "Пользователь-администратор STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史统计服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Historical Statistics Service",
+            "es_ES": "Servicio de estadísticas históricas",
+            "ru_RU": "Служба исторической статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Username",
+        "tag": "",
+        "translation": {
+            "en_US": "Username"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置定值服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP fixed value service",
+            "es_ES": "Servicio de valor fijo FEP",
+            "ru_RU": "Сервис фиксированных значений FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_forward_out_site1",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_net_forward_out_site1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置进程管理服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP process management service",
+            "es_ES": "Servicio de gestión de procesos FEP",
+            "ru_RU": "Служба управления процессами FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务 write",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB service_write",
+            "es_ES": "Servicio STDB_Escribir",
+            "ru_RU": "Служба STDB_Записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计容量检测周期",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Audit capacity test cycle",
+            "es_ES": "Ciclo de detección de capacidad de aud.",
+            "ru_RU": "Период проверки ёмкости аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "auth",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "auth"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输2",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net file transmission 2",
+            "es_ES": "Transmisión de archivos de red 2",
+            "ru_RU": "Передача файлов по сети 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计容量检测周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit capacity test cycle",
+            "es_ES": "Ciclo de detección de capacidad de aud.",
+            "ru_RU": "Цикл тестирования аудиторской ёмкости"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统信息访问",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "System info access",
+            "es_ES": "Acceso a info. del sistema",
+            "ru_RU": "Доступ к системной информации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源状态监控",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Resource status monitoring",
+            "es_ES": "Monitoreo de estado de recursos",
+            "ru_RU": "Мониторинг статуса ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置转发服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP forwarding service",
+            "es_ES": "Servicio de reenvío FEP",
+            "ru_RU": "Служба перенаправления FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算验证",
+        "tag": "MtProc/desc",
+        "translation": {
+            "en_US": "General calculation verification",
+            "es_ES": "Validación de cálculo general",
+            "ru_RU": "Общая проверка расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_test_api",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_test_api"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 app",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission app",
+            "es_ES": "App de transmisión de mensajes de red",
+            "ru_RU": "Приложение для передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CRC算法",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "CRC algorithm",
+            "es_ES": "Algoritmo CRC",
+            "ru_RU": "Алгоритм CRC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性保护日志级别",
+        "tag": "",
+        "translation": {
+            "en_US": "Integrity protection log level",
+            "es_ES": "Nivel de logs de protección de integridad",
+            "ru_RU": "Уровень журналов защиты целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理服务",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Sysmgr service",
+            "es_ES": "Servicio de gestión del sistema",
+            "ru_RU": "Служба Sysmgr"
+        }
+    },
+    {
+        "comments": "",
+        "source": "顺控",
+        "tag": "",
+        "translation": {
+            "en_US": "Sequence control",
+            "es_ES": "Control de seq",
+            "ru_RU": "Последовательный контроль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_test_alarm",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_test_alarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service debug",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission service debug",
+            "ru_RU": "Net message transmission service debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_CURVE_DAY",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_GUI_CURVE_DAY"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网安应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Net security applications",
+            "es_ES": "Aplicaciones de seguridad de red",
+            "ru_RU": "Приложения сетевой безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全认证服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Security Auth Service",
+            "ru_RU": "Служба сертификации безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护服务",
+        "tag": "MtProc/desc",
+        "translation": {
+            "en_US": "Maintenance Service",
+            "ru_RU": "Служба обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史参数",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "Historical parameter",
+            "es_ES": "Parámetros históricos",
+            "ru_RU": "Исторический параметр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGROPCROSS",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "FILEMGROPCROSS",
+            "es_ES": "FILEMGROPCROSS",
+            "ru_RU": "FILEMGROPCROSS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_peersite",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_net_peersite"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对称算法",
+        "tag": "",
+        "translation": {
+            "en_US": "Symmetric algorithm",
+            "es_ES": "Algoritmo simétrico",
+            "ru_RU": "Симметричный алгоритм"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对时服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Time synchronization",
+            "es_ES": "Sincronización de tiempo",
+            "ru_RU": "Синхронизация времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用用户",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup user",
+            "es_ES": "Usuario de respaldo",
+            "ru_RU": "Пользователь резервного копирования"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AUDIT",
+        "tag": "",
+        "translation": {
+            "en_US": "AUDIT",
+            "es_ES": "Auditoría auditoría",
+            "ru_RU": "AUDIT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "EMS_CN",
+        "tag": "",
+        "translation": {
+            "en_US": "EMS_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史秒级采样服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Historical Second-level Sampling Service",
+            "ru_RU": "Служба посекундной исторической дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "APPGUIEVENT",
+        "tag": "",
+        "translation": {
+            "en_US": "APPGUIEVENT",
+            "es_ES": "APPGUIEVENT",
+            "ru_RU": "APPGUIEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 file",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission file",
+            "es_ES": "Archivo de transmisión de mensajes de red",
+            "ru_RU": "Файл передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "客户端白名单",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Client white list",
+            "es_ES": "Lista blanca de clientes",
+            "ru_RU": "Белый_список_клиентов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务_写入",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "STDB service_Write",
+            "es_ES": "Servicio STDB_Escribir",
+            "ru_RU": "Служба STDB_Запись"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ASKREGISTER",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "ASKREGISTER",
+            "es_ES": "REGISTRO DE CENIZAS",
+            "ru_RU": "ASKREGISTER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "INT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "INT",
+            "ru_RU": "INT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "mt",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "mt",
+            "es_ES": "mt",
+            "ru_RU": "mt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理",
+        "tag": "",
+        "translation": {
+            "en_US": "File management",
+            "es_ES": "Gestión de archivos",
+            "ru_RU": "Управление файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service file",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission service file",
+            "ru_RU": "Net message transmission service file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史模型",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "History model",
+            "es_ES": "Modelo histórico",
+            "ru_RU": "Историческая модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 core",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission core",
+            "es_ES": "Core de transmisión de mensajes de red",
+            "ru_RU": "Ядро передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史模型",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "History model",
+            "es_ES": "Modelo histórico",
+            "ru_RU": "Историческая модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Audit Config",
+            "es_ES": "Config. de auditoría de seguridad",
+            "ru_RU": "Конфигурация аудита безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CROSS_SITE",
+        "tag": "",
+        "translation": {
+            "en_US": "CROSS_SITE",
+            "es_ES": "CROSS_SITE",
+            "ru_RU": "CROSS_SITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SYS",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_SYS",
+            "es_ES": "IASP_SYS",
+            "ru_RU": "IASP_SYS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "STDB service",
+            "es_ES": "Servicio STDB",
+            "ru_RU": "Служба STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "alarm应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "alarm_App",
+            "es_ES": "alarma_Aplicación",
+            "ru_RU": "будильник_App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件异步传输服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Asynchronous file transfer service",
+            "es_ES": "Servicio de Transferencia de Archivos Asíncrona",
+            "ru_RU": "Служба асинхронной передачи файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PREPARE",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "PREPARE",
+            "es_ES": "PREPARE",
+            "ru_RU": "PREPARE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算模型",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "calculation model",
+            "es_ES": "Modelo de cálculo",
+            "ru_RU": "Вычислительная модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SYSOPS",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_SYSOPS",
+            "es_ES": "IASP_SYSOPS",
+            "ru_RU": "IASP_SYSOPS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库同步测试",
+        "tag": "",
+        "translation": {
+            "en_US": "DB synchronization test",
+            "es_ES": "Prueba de sincronización de base de datos",
+            "ru_RU": "Тест синхронизации базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置文件服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP file service",
+            "es_ES": "Servicio de archivos FEP",
+            "ru_RU": "Служба файлов FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离内网应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Cross-positive isolation internal network application",
+            "es_ES": "Aplicación entrante a red interna a través de aislamiento unidireccional",
+            "ru_RU": "Приложение внутренней сети через одностороннюю изоляцию прямого направления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置应用",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP App",
+            "es_ES": "Aplicación FEP",
+            "ru_RU": "Приложение FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Platform alarm service",
+            "es_ES": "Servicio de alarmas de plataforma",
+            "ru_RU": "Служба тревог платформы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "cmd_exec",
+        "tag": "",
+        "translation": {
+            "en_US": "cmd_exec"
+        }
+    },
+    {
+        "comments": "",
+        "source": "EMS_GL",
+        "tag": "",
+        "translation": {
+            "en_US": "EMS_GL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AUDIT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "AUDIT",
+            "es_ES": "Auditoría auditoría",
+            "ru_RU": "AUDIT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库读写测试",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB read and write test",
+            "es_ES": "Prueba de lectura y escritura TDB",
+            "ru_RU": "Тест чтения и записи TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源模型",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "Resource model",
+            "es_ES": "Modelo de recursos",
+            "ru_RU": "Модель ресурса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务 write",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "STDB service_write",
+            "es_ES": "Servicio STDB_Escribir",
+            "ru_RU": "Служба STDB_Записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "写操作",
+        "tag": "",
+        "translation": {
+            "en_US": "Write operation",
+            "es_ES": "Operación de escritura",
+            "ru_RU": "Операция записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_CURVE_DAY",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI_CURVE_DAY"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否启用完整性保护",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Enabled integrity protection",
+            "es_ES": "¿Habilitar protección de integridad?",
+            "ru_RU": "Защита целостности включена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SYSMGR",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_SYSMGR",
+            "es_ES": "IASP_SYSMGR",
+            "ru_RU": "IASP_SYSMGR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Username",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Username"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算模型",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "calculation model",
+            "es_ES": "Modelo de cálculo",
+            "ru_RU": "Вычислительная модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置计算服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP computing services",
+            "es_ES": "Servicios de computación FEP",
+            "ru_RU": "Службы вычислений FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CRL文件",
+        "tag": "",
+        "translation": {
+            "en_US": "CRL File",
+            "es_ES": "Archivo CRL",
+            "ru_RU": "Файл CRL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_forward_out_site1",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_net_forward_out_site1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离外网服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-positive isolation of external network service",
+            "es_ES": "Servicio de salida a red externa mediante aislamiento unidireccional",
+            "ru_RU": "Служба исходящего трафика во внешнюю сеть через одностороннюю изоляцию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_acquire",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_fep_acquire"
+        }
+    },
+    {
+        "comments": "",
+        "source": "rt",
+        "tag": "",
+        "translation": {
+            "en_US": "rt",
+            "es_ES": "RT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录管理",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "User login management",
+            "es_ES": "Gestión de login de usuarios",
+            "ru_RU": "Управление входом пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非对称算法",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Asymmetric algorithm",
+            "es_ES": "Algoritmo asimétrico",
+            "ru_RU": "Асимметричный_алгоритм"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI",
+            "es_ES": "IASP_GUI",
+            "ru_RU": "IASP_GUI"
+        }
+    },
+    {
+        "comments": "",
+        "source": "zero",
+        "tag": "",
+        "translation": {
+            "en_US": "zero",
+            "es_ES": "zero",
+            "ru_RU": "ноль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "WRITE",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "WRITE",
+            "es_ES": "WRITE",
+            "ru_RU": "WRITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "agc/avc数据采集服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "AGC/AVC data collection service",
+            "es_ES": "Servicio de recolección de datos AGC/AVC",
+            "ru_RU": "Сервис сбора данных AGC/AVC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库默认用户",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB default user",
+            "es_ES": "Usuario predeterminado de STDB",
+            "ru_RU": "Пользователь STDB по умолчанию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CONFIG",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "CONFIG",
+            "es_ES": "CONFIG",
+            "ru_RU": "КОНФИГ"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_ALARM",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "IASP_ALARM",
+            "es_ES": "IASP_ALARM",
+            "ru_RU": "IASP_ALARM"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库跨现场",
+        "tag": "EventGroup/desc",
+        "translation": {
+            "en_US": "TDB across sites",
+            "es_ES": "TDB entre sitios",
+            "ru_RU": "TDB между сайтами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史重统计服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Re-statistics Service",
+            "ru_RU": "Служба пересчета исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_his_sample_sec",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "svc_his_sample_sec",
+            "es_ES": "svc_his_sample_sec",
+            "ru_RU": "svc_his_sample_sec"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SDB operator",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "SDB operator"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全密码",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Security Pswd",
+            "es_ES": "Contraseña segura",
+            "ru_RU": "Код безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_crypto",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_crypto"
+        }
+    },
+    {
+        "comments": "",
+        "source": "agvcmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "agvcmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网安应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Net security applications",
+            "es_ES": "Aplicaciones de seguridad de red",
+            "ru_RU": "Приложения сетевой безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "mt",
+        "tag": "",
+        "translation": {
+            "en_US": "mt",
+            "es_ES": "mt",
+            "ru_RU": "mt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置计算服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP computing services",
+            "es_ES": "Servicios de computación FEP",
+            "ru_RU": "Службы вычислений FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Scada app",
+            "es_ES": "Aplicación SCADA",
+            "ru_RU": "Приложение SCADA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置转发服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP forwarding service",
+            "es_ES": "Servicio de reenvío FEP",
+            "ru_RU": "Служба перенаправления FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多进程同步测试",
+        "tag": "",
+        "translation": {
+            "en_US": "Multi-process synchronization test",
+            "es_ES": "Prueba de sincronización multiproceso",
+            "ru_RU": "Тест синхронизации в многопроцессной среде"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_FILLDB",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_GUI_FILLDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "抓包配置",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "Capture packet config",
+            "es_ES": "Configuración de captura de paquetes",
+            "ru_RU": "Конфигурация захвата пакетов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVC_ASYNC_WRITE",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "SVC_ASYNC_WRITE",
+            "es_ES": "SVC_ASYNC_WRITE",
+            "ru_RU": "SVC_ASYNC_WRITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_file_async",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_net_file_async"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全信息",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "Security Info",
+            "es_ES": "Info. de seguridad",
+            "ru_RU": "Информация о безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "异步文件传输服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Asynchronous file transfer service",
+            "es_ES": "Servicio de transferencia async. de archivos",
+            "ru_RU": "Асинхронный сервис передачи файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_peersite",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_net_peersite"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net file transmission service",
+            "es_ES": "Transmisión de archivos de red",
+            "ru_RU": "Служба передачи файлов по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "GATE_CN",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "GATE_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "auth",
+        "tag": "",
+        "translation": {
+            "en_US": "auth"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_audit",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_audit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "alarmmdl库",
+        "tag": "",
+        "translation": {
+            "en_US": "alarmmdl DB",
+            "es_ES": "Biblioteca alarmmdl",
+            "ru_RU": "Библиотека alarmmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "UNREGISTER",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "UNREGISTER",
+            "es_ES": "UNREGISTER",
+            "ru_RU": "UNREGISTER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_syslog",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_fep_syslog"
+        }
+    },
+    {
+        "comments": "",
+        "source": "COMMIT",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "COMMIT",
+            "es_ES": "COMMIT",
+            "ru_RU": "COMMIT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置定值服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP fixed value service",
+            "es_ES": "Servicio de valor fijo FEP",
+            "ru_RU": "Сервис фиксированных значений FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_test_alarm",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_test_alarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件异步传输服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Asynchronous file transfer service",
+            "ru_RU": "Асинхронная служба передачи файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源模型",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource model",
+            "es_ES": "Modelo de recursos",
+            "ru_RU": "Модель ресурса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算验证",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "General calculation verification",
+            "es_ES": "Validación de cálculo general",
+            "ru_RU": "Общая проверка расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_sys_dog",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_sys_dog"
+        }
+    },
+    {
+        "comments": "",
+        "source": "BACKUP",
+        "tag": "",
+        "translation": {
+            "en_US": "BACKUP",
+            "es_ES": "BACKUP",
+            "ru_RU": "BACKUP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名",
+        "tag": "",
+        "translation": {
+            "en_US": "User name",
+            "es_ES": "Usuario",
+            "ru_RU": "Имя пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统信息访问",
+        "tag": "",
+        "translation": {
+            "en_US": "System info access",
+            "es_ES": "Acceso a info. del sistema",
+            "ru_RU": "Доступ к системной информации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada库",
+        "tag": "",
+        "translation": {
+            "en_US": "scada DB",
+            "es_ES": "biblioteca scada",
+            "ru_RU": "Библиотека SCADA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SWITCH",
+        "tag": "",
+        "translation": {
+            "en_US": "SWITCH",
+            "es_ES": "SWITCH",
+            "ru_RU": "SWITCH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统运维",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysops ",
+            "es_ES": "Operación y mantenimiento del sistema",
+            "ru_RU": "Системные операции "
+        }
+    },
+    {
+        "comments": "",
+        "source": "APPGUIEVENT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "APPGUIEVENT",
+            "es_ES": "APPGUIEVENT",
+            "ru_RU": "APPGUIEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_AUTO_GRAPH",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI_AUTO_GRAPH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "STDB service",
+            "es_ES": "Servicio STDB",
+            "ru_RU": "Служба STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源模型",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "Resource model",
+            "es_ES": "Modelo de recursos",
+            "ru_RU": "Модель ресурса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "加密套件",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Cipher suite ",
+            "es_ES": "Suite de cifrado",
+            "ru_RU": "Набор шифров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务 sync",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB service_sync",
+            "es_ES": "Servicio STDB_Sinc",
+            "ru_RU": "Служба STDB_Синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离服务",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Cross-forward isolation service",
+            "es_ES": "Servicio de aislamiento cruzado positivo",
+            "ru_RU": "Сервис изоляции перекрестной пересылки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_proxy",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_proxy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "加密套件",
+        "tag": "",
+        "translation": {
+            "en_US": "Cipher suite ",
+            "es_ES": "Suite de cifrado",
+            "ru_RU": "Набор шифров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计日志保存时(月)",
+        "tag": "",
+        "translation": {
+            "en_US": "Time of audit log save (month)",
+            "es_ES": "Tiempo de guardado de logs de aud. (meses)",
+            "ru_RU": "Время сохранения журнала аудита (месяц)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AVC计算和控制服务",
+        "tag": "",
+        "translation": {
+            "en_US": "AVC Computing and Control Services",
+            "es_ES": "Servicios de Computación y Control AVC",
+            "ru_RU": "Услуги вычислений и управления AVC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置进程管理服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP process management service",
+            "es_ES": "Servicio de gestión de procesos FEP",
+            "ru_RU": "Служба управления процессами FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SCD导入服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "SCD Import Service",
+            "es_ES": "Servicio de importación SCD",
+            "ru_RU": "Сервис импорта SCD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MON_CHECK",
+        "tag": "",
+        "translation": {
+            "en_US": "MON_CHECK"
+        }
+    },
+    {
+        "comments": "",
+        "source": "GATE_CN",
+        "tag": "",
+        "translation": {
+            "en_US": "GATE_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库同步测试",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "DB synchronization test",
+            "es_ES": "Prueba de sincronización de base de datos",
+            "ru_RU": "Тест синхронизации базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表:%1，向导修改成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Report: %1, modified via wizard successfully",
+            "ru_RU": "Отчёт: %1, успешно изменён с помощью мастера"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MON_CHECK",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "MON_CHECK"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada.run.1",
+        "tag": "",
+        "translation": {
+            "en_US": "scada.run.1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net file transmission service",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net file transmission service",
+            "ru_RU": "Net file transmission service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离内网服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-positive isolation internal network service",
+            "es_ES": "Servicio de entrada a la red interna mediante aislamiento unidireccional hacia adelante",
+            "ru_RU": "Сервис внутренней сети через одностороннюю изоляцию прямого направления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_NORMAL_TOOLBAR",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI_NORMAL_TOOLBAR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PROC_STOP",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "PROC_STOP",
+            "es_ES": "PROC_STOP",
+            "ru_RU": "PROC_STOP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件同步",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Sync local file",
+            "es_ES": "Sinc. de archivos locales",
+            "ru_RU": "Синхронизация локального файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ASKREGISTER",
+        "tag": "",
+        "translation": {
+            "en_US": "ASKREGISTER",
+            "es_ES": "REGISTRO DE CENIZAS",
+            "ru_RU": "ASKREGISTER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PREPARE",
+        "tag": "",
+        "translation": {
+            "en_US": "PREPARE",
+            "es_ES": "PREPARE",
+            "ru_RU": "PREPARE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置读写服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP reading and writing service",
+            "es_ES": "Servicio de lectura y escritura FEP",
+            "ru_RU": "Служба чтения и записи FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "RELOAD",
+        "tag": "",
+        "translation": {
+            "en_US": "RELOAD",
+            "ru_RU": "RELOAD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr service",
+            "es_ES": "Servicio de gestión del sistema",
+            "ru_RU": "Служба Sysmgr"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性保护日志天数",
+        "tag": "",
+        "translation": {
+            "en_US": "Integrity protection log days",
+            "es_ES": "Días de logs de protección de integridad",
+            "ru_RU": "Количество дней хранения журналов защиты целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_scada",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_scada"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计容量阈值(GB)",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Audit capacity threshold (GB)",
+            "es_ES": "Umbral de capacidad de auditoría (GB)",
+            "ru_RU": "Порог ёмкости аудита (ГБ)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 debug",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission debug",
+            "es_ES": "Debug de transmisión de mensajes de red",
+            "ru_RU": "Отладка передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置遥控服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP telecontrol service",
+            "es_ES": "Servicio de telecontrol FEP",
+            "ru_RU": "Служба телеметрии FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service app",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission service app",
+            "ru_RU": "Net message transmission service app"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务_写入",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "STDB service_Write",
+            "es_ES": "Servicio STDB_Escribir",
+            "ru_RU": "Служба STDB_Запись"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MON",
+        "tag": "",
+        "translation": {
+            "en_US": "MON"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Alarm Service",
+            "es_ES": "Servicio de alarmas",
+            "ru_RU": "Сервис оповещений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app_comm应用",
+        "tag": "",
+        "translation": {
+            "en_US": "app_comm App",
+            "es_ES": "Aplicación app_comm",
+            "ru_RU": "Приложение app_comm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVG_GL",
+        "tag": "",
+        "translation": {
+            "en_US": "SVG_GL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_his_sample",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_his_sample",
+            "es_ES": "Svc_his_sample (en inglés)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "REGISTER",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "REGISTER",
+            "es_ES": "registro",
+            "ru_RU": "REGISTER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全密码",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Pswd",
+            "es_ES": "Contraseña segura",
+            "ru_RU": "Код безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada库",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "scada DB",
+            "es_ES": "biblioteca scada",
+            "ru_RU": "Библиотека SCADA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置文件服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP file service",
+            "es_ES": "Servicio de archivos FEP",
+            "ru_RU": "Служба файлов FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库表信息配置",
+        "tag": "",
+        "translation": {
+            "en_US": "HDB Table Configuration",
+            "ru_RU": "Конфигурация таблиц HDB (историческая база данных)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置通信监视服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP comm monitor service",
+            "es_ES": "Servicio de monitoreo de comunicaciones FEP",
+            "ru_RU": "Сервис мониторинга связи FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "紧耦合读",
+        "tag": "",
+        "translation": {
+            "en_US": "Tightly coupled reading",
+            "es_ES": "Lectura estrechamente acoplada",
+            "ru_RU": "Тесно связанное чтение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库表信息配置",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "HDB Table Configuration",
+            "ru_RU": "Конфигурация таблиц HDB (историческая база данных)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性保护检测周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Integrity protection test cycle",
+            "es_ES": "Ciclo de detección de protección de integridad",
+            "ru_RU": "Период проверки защиты целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data",
+            "es_ES": "Datos históricos",
+            "ru_RU": "Исторические данные"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全通用服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "General security service",
+            "ru_RU": "Общая служба безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "eventinfo库",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "eventinfo DB",
+            "es_ES": "Biblioteca eventinfo",
+            "ru_RU": "Библиотека eventinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "LOGOUT",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "LOGOUT",
+            "es_ES": "Cerrar sesión",
+            "ru_RU": "ВЫХОД"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源状态监控",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource status monitoring",
+            "es_ES": "Monitoreo de estado de recursos",
+            "ru_RU": "Мониторинг статуса ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全信息",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "Security Info",
+            "es_ES": "Info. de seguridad",
+            "ru_RU": "Информация о безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史采样服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Historical Sampling Service",
+            "es_ES": "Servicio de Muestreo Histórico",
+            "ru_RU": "Служба исторической дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_ALARM_FORWARD",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_ALARM_FORWARD",
+            "es_ES": "IASP_ALARM_FORWARD (en inglés)",
+            "ru_RU": "IASP_ALARM_FORWARD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "GFILEEVENT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "GFILEEVENT",
+            "ru_RU": "GFILEEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "smgrtest.run.0",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "smgrtest.run.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CANCEL",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "CANCEL",
+            "es_ES": "CANCEL",
+            "ru_RU": "CANCEL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库起停refmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "DB start/stop refmdl",
+            "es_ES": "Inicio/parada de base de datos refmdl",
+            "ru_RU": "Запуск/остановка базы данных refmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SYSMGR",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_SYSMGR",
+            "es_ES": "IASP_SYSMGR",
+            "ru_RU": "IASP_SYSMGR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_test_switch",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_test_switch"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_DRAFT",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_DRAFT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVCTOSVC_SYNC_WRITE",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "SVCTOSVC_SYNC_WRITE",
+            "es_ES": "SVCTOSVC_SYNC_WRITE",
+            "ru_RU": "SVCTOSVC_SYNC_WRITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SEC_PRIV_USERS_MANAGE",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_SEC_PRIV_USERS_MANAGE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史统计服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Historical Statistics Service",
+            "es_ES": "Servicio de estadísticas históricas",
+            "ru_RU": "Служба исторической статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计容量告警比例",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit capacity alarm ratio",
+            "es_ES": "Proporción de alarma de capacidad de aud.",
+            "ru_RU": "Процент предупреждения о ёмкости аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_forward_in_1",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_net_forward_in_1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算",
+        "tag": "",
+        "translation": {
+            "en_US": "General compute",
+            "es_ES": "Cálculo general",
+            "ru_RU": "Общий вычислитель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码",
+        "tag": "",
+        "translation": {
+            "en_US": "Password",
+            "es_ES": "Contraseña",
+            "ru_RU": "Пароль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输1",
+        "tag": "",
+        "translation": {
+            "en_US": "Net file transfer 1",
+            "es_ES": "Transmisión de archivos de red 1",
+            "ru_RU": "Передача файлов по сети 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计容量阈值(GB)",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit capacity threshold (GB)",
+            "es_ES": "Umbral de capacidad de auditoría (GB)",
+            "ru_RU": "Порог ёмкости аудита (ГБ)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库默认用户",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "STDB default user",
+            "es_ES": "Usuario predeterminado de STDB",
+            "ru_RU": "Пользователь STDB по умолчанию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AVC计算和控制服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "AVC Computing and Control Services",
+            "es_ES": "Servicios de Computación y Control AVC",
+            "ru_RU": "Услуги вычислений и управления AVC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "agvcmdl",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "agvcmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SYNC",
+        "tag": "",
+        "translation": {
+            "en_US": "SYNC",
+            "es_ES": "SYNC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输1",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net file transfer 1",
+            "es_ES": "Transmisión de archivos de red 1",
+            "ru_RU": "Передача файлов по сети 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_his_sample_sec",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_his_sample_sec",
+            "es_ES": "svc_his_sample_sec",
+            "ru_RU": "svc_his_sample_sec"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算模型",
+        "tag": "",
+        "translation": {
+            "en_US": "calculation model",
+            "es_ES": "Modelo de cálculo",
+            "ru_RU": "Вычислительная модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关系库操作员用户",
+        "tag": "",
+        "translation": {
+            "en_US": "RDB operator",
+            "es_ES": "Operador RDB",
+            "ru_RU": "Оператор_RDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_forward_in_site4",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_net_forward_in_site4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务_同步",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB service_Sync",
+            "es_ES": "Servicio STDB_Sinc",
+            "ru_RU": "Служба STDB_Синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_tool",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_tool"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_ALARM",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_ALARM",
+            "es_ES": "IASP_ALARM",
+            "ru_RU": "IASP_ALARM"
+        }
+    },
+    {
+        "comments": "",
+        "source": "COMMIT",
+        "tag": "",
+        "translation": {
+            "en_US": "COMMIT",
+            "es_ES": "COMMIT",
+            "ru_RU": "COMMIT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PROC_STOP",
+        "tag": "",
+        "translation": {
+            "en_US": "PROC_STOP",
+            "es_ES": "PROC_STOP",
+            "ru_RU": "PROC_STOP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "算法名",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Name of algorithm",
+            "es_ES": "Nombre de algoritmo",
+            "ru_RU": "Имя алгоритма"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AGC计算和控制服务",
+        "tag": "",
+        "translation": {
+            "en_US": "AGC Calculation and Control Services",
+            "es_ES": "Servicios de Cálculo y Control AGC",
+            "ru_RU": "Сервисы расчёта и управления AGC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源模型",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "Resource model",
+            "es_ES": "Modelo de recursos",
+            "ru_RU": "Модель ресурса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PUBLISH",
+        "tag": "",
+        "translation": {
+            "en_US": "PUBLISH",
+            "es_ES": "PUBLISH",
+            "ru_RU": "PUBLISH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm Service",
+            "es_ES": "Servicio de alarmas",
+            "ru_RU": "Сервис оповещений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVC_ASYNC_WRITE",
+        "tag": "",
+        "translation": {
+            "en_US": "SVC_ASYNC_WRITE",
+            "es_ES": "SVC_ASYNC_WRITE",
+            "ru_RU": "SVC_ASYNC_WRITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算服务",
+        "tag": "",
+        "translation": {
+            "en_US": "General calculation service",
+            "es_ES": "Servicio de cálculo general",
+            "ru_RU": "Общий вычислительный сервис"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MON_CN",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "MON_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "客户端白名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Client white list",
+            "es_ES": "Lista blanca de clientes",
+            "ru_RU": "Белый_список_клиентов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全认证服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Security Auth Service",
+            "es_ES": "Servicio de Autenticación de Seguridad",
+            "ru_RU": "Служба сертификации безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配套摘要算法",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Matched summary algorithm",
+            "es_ES": "Algoritmo de resumen asociado",
+            "ru_RU": "Алгоритм сводки совпадений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Info",
+            "es_ES": "Info. de seguridad",
+            "ru_RU": "Информация о безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_audit",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_audit"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Password",
+        "tag": "",
+        "translation": {
+            "en_US": "Password"
+        }
+    },
+    {
+        "comments": "",
+        "source": "hisdata.run.1",
+        "tag": "",
+        "translation": {
+            "en_US": "hisdata.run.1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CONFIG",
+        "tag": "",
+        "translation": {
+            "en_US": "CONFIG",
+            "es_ES": "CONFIG",
+            "ru_RU": "КОНФИГ"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sitein",
+        "tag": "",
+        "translation": {
+            "en_US": "sitein"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app_comm应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "app_comm App",
+            "es_ES": "Aplicación app_comm",
+            "ru_RU": "Приложение app_comm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史秒级采样服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Historical Second-level Sampling Service",
+            "es_ES": "Servicio de muestreo histórico a nivel de segundo",
+            "ru_RU": "Сервис выборки исторических данных второго уровня"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件同步",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Sync local file",
+            "es_ES": "Sinc. de archivos locales",
+            "ru_RU": "Синхронизация локального файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Security audit service",
+            "es_ES": "Servicio de auditoría de seguridad",
+            "ru_RU": "Служба аудита безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计容量告警比例",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Audit capacity alarm ratio",
+            "es_ES": "Proporción de alarma de capacidad de aud.",
+            "ru_RU": "Процент предупреждения о ёмкости аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全通用服务",
+        "tag": "",
+        "translation": {
+            "en_US": "General security service",
+            "ru_RU": "Общая служба безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "REGISTER",
+        "tag": "",
+        "translation": {
+            "en_US": "REGISTER",
+            "es_ES": "registro",
+            "ru_RU": "REGISTER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVG_CN",
+        "tag": "",
+        "translation": {
+            "en_US": "SVG_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "fe库",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "Fe DB",
+            "es_ES": "biblioteca fe",
+            "ru_RU": "Библиотека фронтенда"
+        }
+    },
+    {
+        "comments": "",
+        "source": "auth",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "auth"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_proxy",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_fep_proxy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "RELOAD",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "RELOAD",
+            "ru_RU": "RELOAD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "LOGIN",
+        "tag": "",
+        "translation": {
+            "en_US": "LOGIN",
+            "es_ES": "LOGIN",
+            "ru_RU": "ВХОД"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Maintenance Service",
+            "es_ES": "Servicio de maint.",
+            "ru_RU": "Сервис обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "紧耦合读",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Tightly coupled reading",
+            "es_ES": "Lectura estrechamente acoplada",
+            "ru_RU": "Тесно связанное чтение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性保护检测周期",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Integrity protection test cycle",
+            "es_ES": "Ciclo de detección de protección de integridad",
+            "ru_RU": "Период проверки защиты целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "WRITE",
+        "tag": "",
+        "translation": {
+            "en_US": "WRITE",
+            "es_ES": "WRITE",
+            "ru_RU": "WRITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置进程管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP process management service",
+            "es_ES": "Servicio de gestión de procesos FEP",
+            "ru_RU": "Служба управления процессами FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CRC算法",
+        "tag": "",
+        "translation": {
+            "en_US": "CRC algorithm",
+            "es_ES": "Algoritmo CRC",
+            "ru_RU": "Алгоритм CRC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_tool",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_tool"
+        }
+    },
+    {
+        "comments": "",
+        "source": "UPLOAD_RESULT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "UPLOAD_RESULT",
+            "es_ES": "UPLOAD_RESULT",
+            "ru_RU": "UPLOAD_RESULT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "systest.run.0",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "systest.run.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络接口读",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Net interface reading",
+            "es_ES": "Lectura de interfaz de red",
+            "ru_RU": "Чтение сетевого интерфейса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面字典",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph dict",
+            "es_ES": "Diccionario de pantallas",
+            "ru_RU": "Словарь графиков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对等现场转发服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "peer-to-peer on-site forwarding service",
+            "es_ES": "Servicio de Reenvío de Campo entre Pares",
+            "ru_RU": "Одноранговый сервис пересылки на площадке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库读写测试",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "TDB read and write test",
+            "es_ES": "Prueba de lectura y escritura TDB",
+            "ru_RU": "Тест чтения и записи TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录管理",
+        "tag": "",
+        "translation": {
+            "en_US": "User login management",
+            "es_ES": "Gestión de login de usuarios",
+            "ru_RU": "Управление входом пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "General calculation service",
+            "es_ES": "Servicio de cálculo general",
+            "ru_RU": "Общий вычислительный сервис"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库跨现场",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB across sites",
+            "es_ES": "TDB entre sitios",
+            "ru_RU": "TDB между сайтами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "O&M",
+            "es_ES": "Servicio de gestión O&M",
+            "ru_RU": "O&M"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史模型",
+        "tag": "",
+        "translation": {
+            "en_US": "History model",
+            "es_ES": "Modelo histórico",
+            "ru_RU": "Историческая модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_GUI",
+            "es_ES": "IASP_GUI",
+            "ru_RU": "IASP_GUI"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务_写入",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB service_Write",
+            "es_ES": "Servicio STDB_Escribir",
+            "ru_RU": "Служба STDB_Запись"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_FILEMGR",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_FILEMGR",
+            "es_ES": "IASP_FILEMGR",
+            "ru_RU": "IASP_FILEMGR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库管理员用户",
+        "tag": "",
+        "translation": {
+            "en_US": "STDB administrator",
+            "es_ES": "Administrador de STDB",
+            "ru_RU": "Пользователь-администратор STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史参数",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "Historical parameter",
+            "es_ES": "Parámetros históricos",
+            "ru_RU": "Параметры истории"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Historical data",
+            "es_ES": "Datos históricos",
+            "ru_RU": "Исторические данные"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "File management service",
+            "es_ES": "Servicio de gestión de archivos",
+            "ru_RU": "Сервис управления файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CROSS_SITE_SYNC",
+        "tag": "",
+        "translation": {
+            "en_US": "CROSS_SITE_SYNC",
+            "es_ES": "CROSS_SITE_SYNC",
+            "ru_RU": "CROSS_SITE_SYNC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AUTH",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "AUTH",
+            "ru_RU": "AUTH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "System info access",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "System info access",
+            "ru_RU": "System info access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "agcavc应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "agcavc App",
+            "es_ES": "Aplicación AGCAVC",
+            "ru_RU": "Приложение agcavc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "UPLOAD_RESULT",
+        "tag": "",
+        "translation": {
+            "en_US": "UPLOAD_RESULT",
+            "es_ES": "UPLOAD_RESULT",
+            "ru_RU": "UPLOAD_RESULT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_his_sample_sec",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_his_sample_sec",
+            "es_ES": "svc_his_sample_sec",
+            "ru_RU": "svc_his_sample_sec"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据处理",
+        "tag": "",
+        "translation": {
+            "en_US": "Data processing",
+            "ru_RU": "Обработка данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面字典",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "Graph dict",
+            "es_ES": "Diccionario de pantallas",
+            "ru_RU": "Словарь графиков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用配置",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "App Config",
+            "es_ES": "Config de la aplicación",
+            "ru_RU": "Конфигурация приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "LOGOUT",
+        "tag": "",
+        "translation": {
+            "en_US": "LOGOUT",
+            "es_ES": "Cerrar sesión",
+            "ru_RU": "ВЫХОД"
+        }
+    },
+    {
+        "comments": "",
+        "source": "UNREGISTER",
+        "tag": "",
+        "translation": {
+            "en_US": "UNREGISTER",
+            "es_ES": "UNREGISTER",
+            "ru_RU": "UNREGISTER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SYNC",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "SYNC",
+            "es_ES": "SYNC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_FILLDB",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI_FILLDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史重统计服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Historical Re-statistics Service",
+            "ru_RU": "Служба пересчета исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sysops.run.0",
+        "tag": "AppDeploy/desc",
+        "translation": {
+            "en_US": "sysops.run.0",
+            "es_ES": "sysops.run.0",
+            "ru_RU": "sysops.run.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "TEST",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "TEST",
+            "es_ES": "examen",
+            "ru_RU": "TEST"
+        }
+    },
+    {
+        "comments": "",
+        "source": "自动化测试",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Automated test",
+            "es_ES": "Prueba automatizada",
+            "ru_RU": "Автоматизированное тестирование"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PUBLISH",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "PUBLISH",
+            "es_ES": "PUBLISH",
+            "ru_RU": "PUBLISH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance Service",
+            "es_ES": "Servicio de maint.",
+            "ru_RU": "Сервис обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_forward_in_site4",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_net_forward_in_site4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对时服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Time synchronization",
+            "es_ES": "Sincronización de tiempo",
+            "ru_RU": "Синхронизация времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada库",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "scada DB",
+            "es_ES": "biblioteca scada",
+            "ru_RU": "Библиотека SCADA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "File info",
+            "es_ES": "Info. de archivos",
+            "ru_RU": "Информация о файле"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SWITCH",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "SWITCH",
+            "es_ES": "SWITCH",
+            "ru_RU": "SWITCH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_ALARM",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_ALARM",
+            "es_ES": "IASP_ALARM",
+            "ru_RU": "IASP_ALARM"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库小库",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "DB repository",
+            "es_ES": "Repositorio de base de datos",
+            "ru_RU": "Репозиторий базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Sysmgr service",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Sysmgr service",
+            "ru_RU": "Sysmgr service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_AUTO_GRAPH",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_GUI_AUTO_GRAPH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库小库",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "DB repository",
+            "es_ES": "Repositorio de base de datos",
+            "ru_RU": "Репозиторий базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "HDB",
+            "es_ES": "Lib. histórica",
+            "ru_RU": "База данных истории"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用用户",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Backup user",
+            "es_ES": "Usuario de respaldo",
+            "ru_RU": "Пользователь резервного копирования"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Password",
+            "es_ES": "Contraseña",
+            "ru_RU": "Пароль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "算法名",
+        "tag": "",
+        "translation": {
+            "en_US": "Name of algorithm",
+            "es_ES": "Nombre de algoritmo",
+            "ru_RU": "Имя алгоритма"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVCTOSVC_SYNC_WRITE",
+        "tag": "",
+        "translation": {
+            "en_US": "SVCTOSVC_SYNC_WRITE",
+            "es_ES": "SVCTOSVC_SYNC_WRITE",
+            "ru_RU": "SVCTOSVC_SYNC_WRITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对称算法",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "Symmetric algorithm",
+            "es_ES": "Algoritmo simétrico",
+            "ru_RU": "Симметричный алгоритм"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_hisdata_stacal",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_hisdata_stacal",
+            "es_ES": "svc_hisdata_stacal",
+            "ru_RU": "svc_hisdata_stacal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "写操作",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Write operation",
+            "es_ES": "Operación de escritura",
+            "ru_RU": "Операция записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "systest.run.0",
+        "tag": "",
+        "translation": {
+            "en_US": "systest.run.0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "zero",
+        "tag": "AppDeploy/desc",
+        "translation": {
+            "en_US": "zero",
+            "es_ES": "zero",
+            "ru_RU": "ноль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息",
+        "tag": "",
+        "translation": {
+            "en_US": "File info",
+            "es_ES": "Info. de archivos",
+            "ru_RU": "Информация о файле"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SDB operator",
+        "tag": "",
+        "translation": {
+            "en_US": "SDB operator"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面字典",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "Graph dict",
+            "es_ES": "Diccionario de pantallas",
+            "ru_RU": "Словарь мнемосхемы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_ALARM_FORWARD",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "IASP_ALARM_FORWARD",
+            "es_ES": "IASP_ALARM_FORWARD (en inglés)",
+            "ru_RU": "IASP_ALARM_FORWARD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AGC/AVC画面操作服务",
+        "tag": "",
+        "translation": {
+            "en_US": "AGC/AVC Graph operation service",
+            "es_ES": "Servicio de operación de gráficos AGC/AVC",
+            "ru_RU": "Служба операций графика AGC/AVC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "生成语音服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Gen voice service",
+            "es_ES": "Servicio de generación de voz",
+            "ru_RU": "Служба генерации голоса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置遥控服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP telecontrol service",
+            "es_ES": "Servicio de telecontrol FEP",
+            "ru_RU": "Служба телеметрии FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dbmt",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dbmt",
+            "es_ES": "svc_dbmt",
+            "ru_RU": "svc_dbmt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史采样服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Sampling Service",
+            "es_ES": "Servicio de Muestreo Histórico",
+            "ru_RU": "Служба выборки исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_syslog",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_fep_syslog"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SVG_CN",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "SVG_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全认证服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Auth Service",
+            "es_ES": "Servicio de Autenticación de Seguridad",
+            "ru_RU": "Служба сертификации безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PROC_STATUS",
+        "tag": "",
+        "translation": {
+            "en_US": "PROC_STATUS",
+            "es_ES": "PROC_STATUS",
+            "ru_RU": "PROC_STATUS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "SCD导入服务",
+        "tag": "",
+        "translation": {
+            "en_US": "SCD Import Service",
+            "es_ES": "Servicio de importación SCD",
+            "ru_RU": "Сервис импорта SCD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离外网应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-positive isolation of external network application",
+            "es_ES": "Aplicación de red saliente a través de aislamiento unidireccional",
+            "ru_RU": "Приложение внешней сети через одностороннюю изоляцию прямого направления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "User name",
+            "es_ES": "Usuario",
+            "ru_RU": "Имя пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计日志保存时(月)",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Time of audit log save (month)",
+            "es_ES": "Tiempo de guardado de logs de aud. (meses)",
+            "ru_RU": "Время сохранения журнала аудита (месяц)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "EMS_GL",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "EMS_GL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "抓包配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Capture packet config",
+            "es_ES": "Configuración de captura de paquetes",
+            "ru_RU": "Конфигурация захвата пакетов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Config",
+            "es_ES": "Config de la aplicación",
+            "ru_RU": "Конфигурация приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AGC计算和控制服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "AGC Calculation and Control Services",
+            "es_ES": "Servicios de Cálculo y Control AGC",
+            "ru_RU": "Сервисы расчёта и управления AGC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "hisdata.run.1",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "hisdata.run.1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "异步文件传输服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Asynchronous file transfer service",
+            "es_ES": "Servicio de transferencia async. de archivos",
+            "ru_RU": "Асинхронный сервис передачи файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算模型",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "calculation model",
+            "es_ES": "Modelo de cálculo",
+            "ru_RU": "Вычислительная модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_proxy",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_fep_proxy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务_同步",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "STDB service_Sync",
+            "es_ES": "Servicio STDB_Sinc",
+            "ru_RU": "Служба STDB_Синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_FILEMGR",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_FILEMGR",
+            "es_ES": "IASP_FILEMGR",
+            "ru_RU": "IASP_FILEMGR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务 sync",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "STDB service_sync",
+            "es_ES": "Servicio STDB_Sinc",
+            "ru_RU": "Служба STDB_Синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_WEBMGR",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_WEBMGR",
+            "es_ES": "IASP_WEBMGR",
+            "ru_RU": "IASP_WEBMGR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本地文件同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync local file",
+            "es_ES": "Sinc. de archivos locales",
+            "ru_RU": "Синхронизация локального файла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Password",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Password"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_snmp",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_fep_snmp"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件信息",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "File info",
+            "es_ES": "Info. de archivos",
+            "ru_RU": "Информация о файле"
+        }
+    },
+    {
+        "comments": "",
+        "source": "autotest",
+        "tag": "",
+        "translation": {
+            "en_US": "autotest"
+        }
+    },
+    {
+        "comments": "",
+        "source": "zero",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "zero",
+            "es_ES": "zero",
+            "ru_RU": "zero"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关系库操作员用户",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "RDB operator",
+            "es_ES": "Operador RDB",
+            "ru_RU": "Оператор_RDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_his_sample",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "svc_his_sample"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_proxy",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_proxy"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AUTH",
+        "tag": "",
+        "translation": {
+            "en_US": "AUTH",
+            "ru_RU": "AUTH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ALARMTOVIEWER",
+        "tag": "",
+        "translation": {
+            "en_US": "ALARMTOVIEWER\t",
+            "es_ES": "ALARMTOVIEWER",
+            "ru_RU": "ALARMTOVIEWER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史采样服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Historical Sampling Service",
+            "ru_RU": "Служба исторической дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SYS",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_SYS",
+            "es_ES": "IASP_SYS",
+            "ru_RU": "IASP_SYS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MON",
+        "tag": "SysType/name",
+        "translation": {
+            "en_US": "MON"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录管理",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "User login management",
+            "es_ES": "Gestión de login de usuarios",
+            "ru_RU": "Управление входом пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史统计服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Statistics Service",
+            "es_ES": "Servicio de estadísticas históricas",
+            "ru_RU": "Служба исторической статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件异步传输服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Asynchronous file transfer service",
+            "es_ES": "Servicio de Transferencia de Archivos Asíncrona",
+            "ru_RU": "Служба асинхронной передачи файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置读写服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP reading and writing service",
+            "es_ES": "Servicio de lectura y escritura FEP",
+            "ru_RU": "Служба чтения и записи FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "监控",
+        "tag": "SysType/desc",
+        "translation": {
+            "en_US": "monitor",
+            "ru_RU": "Монитор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统运维",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Sysops ",
+            "es_ES": "Operación y mantenimiento del sistema",
+            "ru_RU": "Системные операции "
+        }
+    },
+    {
+        "comments": "",
+        "source": "DOWNLOAD_STATUS",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "DOWNLOAD_STATUS",
+            "es_ES": "descargad_status",
+            "ru_RU": "DOWNLOAD_STATUS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置定值服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP fixed value service",
+            "es_ES": "Servicio de valor fijo FEP",
+            "ru_RU": "Сервис фиксированных значений FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否启用完整性保护",
+        "tag": "",
+        "translation": {
+            "en_US": "Enabled integrity protection",
+            "es_ES": "¿Habilitar protección de integridad?",
+            "ru_RU": "Включенная защита целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_sys_dog",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_sys_dog"
+        }
+    },
+    {
+        "comments": "",
+        "source": "alarm应用",
+        "tag": "",
+        "translation": {
+            "en_US": "alarm_App",
+            "es_ES": "alarma_Aplicación",
+            "ru_RU": "будильник_App"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGR_REDOWNLOAD",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "FILEMGR_REDOWNLOAD",
+            "ru_RU": "FILEMGR_REDOWNLOAD"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络接口读",
+        "tag": "",
+        "translation": {
+            "en_US": "Net interface reading",
+            "es_ES": "Lectura de interfaz de red",
+            "ru_RU": "Чтение сетевого интерфейса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "TDB operator",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB operator"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_NET",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_NET",
+            "es_ES": "IASP_NET",
+            "ru_RU": "IASP_NET"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库操作员用户",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "STDB operator",
+            "es_ES": "Operador de STDB",
+            "ru_RU": "Оператор STDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "MON_CN",
+        "tag": "",
+        "translation": {
+            "en_US": "MON_CN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SDB",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_SDB",
+            "es_ES": "IASP_SDB",
+            "ru_RU": "IASP_SDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史秒级采样服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Second-level Sampling Service",
+            "es_ES": "Servicio de muestreo histórico a nivel de segundo",
+            "ru_RU": "Сервис выборки исторических данных второго уровня"
+        }
+    },
+    {
+        "comments": "",
+        "source": "WEB",
+        "tag": "",
+        "translation": {
+            "en_US": "WEB",
+            "es_ES": "WEB",
+            "ru_RU": "WEB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AGC/AVC画面操作服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "AGC/AVC Graph operation service",
+            "es_ES": "Servicio de operación de gráficos AGC/AVC",
+            "ru_RU": "Служба операций графика AGC/AVC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "TEXTTOSPEECH",
+        "tag": "",
+        "translation": {
+            "en_US": "TEXTTOSPEECH",
+            "es_ES": "TEXTTOSPEECH",
+            "ru_RU": "TEXTTOSPEECH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "agcavc应用",
+        "tag": "",
+        "translation": {
+            "en_US": "agcavc App",
+            "es_ES": "Aplicación AGCAVC",
+            "ru_RU": "Приложение agcavc"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dbmt",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dbmt",
+            "es_ES": "svc_dbmt",
+            "ru_RU": "svc_dbmt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输",
+        "tag": "",
+        "translation": {
+            "en_US": "Net file transmission service",
+            "es_ES": "Transmisión de archivos de red",
+            "ru_RU": "Служба передачи файлов по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "HISDBCONFIGEVENT",
+        "tag": "",
+        "translation": {
+            "en_US": "HISDBCONFIGEVENT",
+            "ru_RU": "HISDBCONFIGEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CROSS_SITE_STATUS",
+        "tag": "",
+        "translation": {
+            "en_US": "CROSS_SITE_STATUS",
+            "es_ES": "CROSS_SITE_STATUS",
+            "ru_RU": "CROSS_SITE_STATUS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CA文件",
+        "tag": "",
+        "translation": {
+            "en_US": "CA File",
+            "es_ES": "Archivo CA",
+            "ru_RU": "Файл ЦС"
+        }
+    },
+    {
+        "comments": "",
+        "source": "摘要算法",
+        "tag": "",
+        "translation": {
+            "en_US": "Summary algorithm",
+            "es_ES": "Algoritmo de resumen",
+            "ru_RU": "Summary algorithm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical parameter",
+            "es_ES": "Parámetros históricos",
+            "ru_RU": "Параметры истории"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_fep_upload",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_fep_upload"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库",
+        "tag": "",
+        "translation": {
+            "en_US": "HDB",
+            "es_ES": "Lib. histórica",
+            "ru_RU": "База данных истории"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库起停refmdl",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "DB start/stop refmdl",
+            "es_ES": "Inicio/parada de base de datos refmdl",
+            "ru_RU": "Запуск/остановка базы данных refmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Sysmgr service",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr service",
+            "ru_RU": "Sysmgr service"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service debug",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission service debug",
+            "ru_RU": "Net message transmission service debug"
+        }
+    },
+    {
+        "comments": "",
+        "source": "顺控",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Sequence control",
+            "es_ES": "Control de seq",
+            "ru_RU": "Последовательный контроль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_scada",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_scada"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service core",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission service core",
+            "ru_RU": "Net message transmission service core"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源状态监控",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Resource status monitoring",
+            "es_ES": "Monitoreo de estado de recursos",
+            "ru_RU": "Мониторинг статуса ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离内网服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Cross-positive isolation internal network service",
+            "es_ES": "Servicio de entrada a la red interna mediante aislamiento unidireccional hacia adelante",
+            "ru_RU": "Сервис внутренней сети через одностороннюю изоляцию прямого направления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SYSOPS",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_SYSOPS",
+            "es_ES": "IASP_SYSOPS",
+            "ru_RU": "IASP_SYSOPS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表:%1，向导修改成功",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Report: %1, modified via wizard successfully",
+            "ru_RU": "Отчёт: %1, успешно изменён с помощью мастера"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_hisdata_stacal",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_hisdata_stacal",
+            "es_ES": "svc_hisdata_stacal",
+            "ru_RU": "svc_hisdata_stacal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "agc/avc数据采集服务",
+        "tag": "",
+        "translation": {
+            "en_US": "AGC/AVC data collection service",
+            "es_ES": "Servicio de recolección de datos AGC/AVC",
+            "ru_RU": "Сервис сбора данных AGC/AVC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_MAINTAIN",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_MAINTAIN",
+            "es_ES": "IASP_MAINTAIN",
+            "ru_RU": "IASP_MAINTAIN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_TDB",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_TDB",
+            "es_ES": "IASP_TDB",
+            "ru_RU": "IASP_TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置通信监视服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "FEP comm monitor service",
+            "es_ES": "Servicio de monitoreo de comunicaciones FEP",
+            "ru_RU": "Сервис мониторинга связи FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库小库",
+        "tag": "",
+        "translation": {
+            "en_US": "DB repository",
+            "es_ES": "Repositorio de base de datos",
+            "ru_RU": "Репозиторий базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service core",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission service core",
+            "ru_RU": "Net message transmission service core"
+        }
+    },
+    {
+        "comments": "",
+        "source": "products",
+        "tag": "",
+        "translation": {
+            "en_US": "products",
+            "ru_RU": "products"
+        }
+    },
+    {
+        "comments": "",
+        "source": "END",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "END",
+            "es_ES": "final",
+            "ru_RU": "Конец"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理服务",
+        "tag": "",
+        "translation": {
+            "en_US": "File management service",
+            "es_ES": "Servicio de gestión de archivos",
+            "ru_RU": "Сервис управления файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "TEST",
+        "tag": "",
+        "translation": {
+            "en_US": "TEST",
+            "es_ES": "examen",
+            "ru_RU": "TEST"
+        }
+    },
+    {
+        "comments": "",
+        "source": "function_config",
+        "tag": "",
+        "translation": {
+            "en_US": "function_config",
+            "ru_RU": "function_config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGROP",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "FILEMGROP",
+            "es_ES": "FILEMGROP",
+            "ru_RU": "FILEMGROP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置抓包服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP packet capture service",
+            "es_ES": "Servicio de captura de paquetes FEP",
+            "ru_RU": "Сервис захвата пакетов FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计服务",
+        "tag": "",
+        "translation": {
+            "en_US": "Security audit service",
+            "es_ES": "Servicio de auditoría de seguridad",
+            "ru_RU": "Служба аудита безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "functions",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "functions",
+            "ru_RU": "Функции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密钥参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Key parameters",
+            "es_ES": "Parámetros de clave",
+            "ru_RU": "Ключевые параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "LOGIN",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "LOGIN",
+            "es_ES": "LOGIN",
+            "ru_RU": "ВХОД"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台告警服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Platform alarm service",
+            "es_ES": "Servicio de alarmas de plataforma",
+            "ru_RU": "Служба тревог платформы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "FILEMGRCONF",
+        "tag": "",
+        "translation": {
+            "en_US": "FILEMGRCONF",
+            "es_ES": "FILEMGRCONF",
+            "ru_RU": "FILEMGRCONF"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_vermng",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_dcd_vermng"
+        }
+    },
+    {
+        "comments": "",
+        "source": "TEXTTOSPEECH",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "TEXTTOSPEECH",
+            "es_ES": "TEXTTOSPEECH",
+            "ru_RU": "TEXTTOSPEECH"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_MAINTAIN",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_MAINTAIN",
+            "es_ES": "IASP_MAINTAIN",
+            "ru_RU": "IASP_MAINTAIN"
+        }
+    },
+    {
+        "comments": "",
+        "source": "fe库",
+        "tag": "",
+        "translation": {
+            "en_US": "Fe DB",
+            "es_ES": "biblioteca fe",
+            "ru_RU": "Библиотека фронтенда"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "FEP App",
+            "es_ES": "Aplicación FEP",
+            "ru_RU": "Приложение FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_NET",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_NET",
+            "es_ES": "IASP_NET",
+            "ru_RU": "IASP_NET"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_KEEPVOL",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "IASP_GUI_KEEPVOL"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置转发服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "FEP forwarding service",
+            "es_ES": "Servicio de reenvío FEP",
+            "ru_RU": "Служба перенаправления FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CROSS_SITE",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "CROSS_SITE",
+            "es_ES": "CROSS_SITE",
+            "ru_RU": "CROSS_SITE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行态",
+        "tag": "Mode/desc",
+        "translation": {
+            "en_US": "Running status",
+            "es_ES": "Estado operativo",
+            "ru_RU": "Режим выполнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "BEGIN",
+        "tag": "",
+        "translation": {
+            "en_US": "BEGIN",
+            "es_ES": "BEGIN",
+            "ru_RU": "НАЧАЛО"
+        }
+    },
+    {
+        "comments": "",
+        "source": "RESTORE",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "RESTORE",
+            "es_ES": "RESTORE",
+            "ru_RU": "RESTORE"
+        }
+    },
+    {
+        "comments": "",
+        "source": "cmd_exec",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "cmd_exec"
+        }
+    },
+    {
+        "comments": "",
+        "source": "autotest",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "autotest"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络文件传输2",
+        "tag": "",
+        "translation": {
+            "en_US": "Net file transmission 2",
+            "es_ES": "Transmisión de archivos de red 2",
+            "ru_RU": "Передача файлов по сети 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "BEGIN",
+        "tag": "EventOperation/desc",
+        "translation": {
+            "en_US": "BEGIN",
+            "es_ES": "BEGIN",
+            "ru_RU": "НАЧАЛО"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_SDB",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_SDB",
+            "es_ES": "IASP_SDB",
+            "ru_RU": "IASP_SDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配套摘要算法",
+        "tag": "",
+        "translation": {
+            "en_US": "Matched summary algorithm",
+            "es_ES": "Algoritmo de resumen asociado",
+            "ru_RU": "Алгоритм сводки совпадений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dcd_crypto",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_dcd_crypto"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "File management service",
+            "es_ES": "Servicio de gestión de archivos",
+            "ru_RU": "Служба управления файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "监控",
+        "tag": "",
+        "translation": {
+            "en_US": "monitor",
+            "ru_RU": "Монитор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "current_product",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "current_product"
+        }
+    },
+    {
+        "comments": "",
+        "source": "zero",
+        "tag": "SysType/name",
+        "translation": {
+            "en_US": "zero"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "System info access",
+        "tag": "",
+        "translation": {
+            "en_US": "System info access",
+            "ru_RU": "System info access"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "File management",
+            "es_ES": "Gestión de archivos",
+            "ru_RU": "Управление файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_file_async",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_net_file_async"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_net_forward_in_1",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_net_forward_in_1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "生成语音服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Gen voice service",
+            "es_ES": "Servicio de generación de voz",
+            "ru_RU": "Служба генерации голоса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "HISDBCONFIGEVENT",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "HISDBCONFIGEVENT",
+            "ru_RU": "HISDBCONFIGEVENT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_test_switch",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "svc_test_switch"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨正向隔离外网应用",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Cross-positive isolation of external network application",
+            "es_ES": "Aplicación de red saliente a través de aislamiento unidireccional",
+            "ru_RU": "Приложение внешней сети через одностороннюю изоляцию прямого направления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "functions",
+        "tag": "",
+        "translation": {
+            "en_US": "functions",
+            "ru_RU": "Функции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_HISDB",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_HISDB",
+            "ru_RU": "IASP_HISDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Net message transmission service file",
+        "tag": "",
+        "translation": {
+            "en_US": "Net message transmission service file",
+            "ru_RU": "Net message transmission service file"
+        }
+    },
+    {
+        "comments": "",
+        "source": "公共参数",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "Public parameters",
+            "es_ES": "Parámetros públicos",
+            "ru_RU": "Общие параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "写操作",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "Write operation",
+            "es_ES": "Operación de escritura",
+            "ru_RU": "Операция записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "function_config",
+        "tag": "Conf/desc",
+        "translation": {
+            "en_US": "function_config",
+            "ru_RU": "function_config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_HISDATA",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_HISDATA",
+            "es_ES": "IASP_HISDATA",
+            "ru_RU": "IASP_HISDATA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据处理",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "en_US": "Data processing",
+            "ru_RU": "Обработка данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "current_product",
+        "tag": "",
+        "translation": {
+            "en_US": "current_product"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_HISDATA",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_HISDATA",
+            "es_ES": "IASP_HISDATA",
+            "ru_RU": "IASP_HISDATA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_his_sample",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_his_sample",
+            "es_ES": "Svc_his_sample (en inglés)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密钥参数",
+        "tag": "ConfInfo/desc",
+        "translation": {
+            "en_US": "Key parameters",
+            "es_ES": "Parámetros de clave",
+            "ru_RU": "Ключевые параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对等现场转发服务",
+        "tag": "",
+        "translation": {
+            "en_US": "peer-to-peer on-site forwarding service",
+            "es_ES": "Servicio de Reenvío de Campo entre Pares",
+            "ru_RU": "Одноранговый сервис пересылки на площадке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sysinfo",
+        "tag": "TdbDef/desc",
+        "translation": {
+            "en_US": "sysinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "自动化测试",
+        "tag": "",
+        "translation": {
+            "en_US": "Automated test",
+            "es_ES": "Prueba automatizada",
+            "ru_RU": "Автоматизированное тестирование"
+        }
+    },
+    {
+        "comments": "",
+        "source": "异步文件传输服务",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "Asynchronous file transfer service",
+            "es_ES": "Servicio de transferencia async. de archivos",
+            "ru_RU": "Асинхронный сервис передачи файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "sitein",
+        "tag": "AppDef/desc",
+        "translation": {
+            "en_US": "sitein"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ALARMTOVIEWER",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "ALARMTOVIEWER\t",
+            "es_ES": "ALARMTOVIEWER",
+            "ru_RU": "ALARMTOVIEWER"
+        }
+    },
+    {
+        "comments": "",
+        "source": "INT",
+        "tag": "",
+        "translation": {
+            "en_US": "INT",
+            "ru_RU": "INT"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_GUI_TOPCOLOR",
+        "tag": "",
+        "translation": {
+            "en_US": "IASP_GUI_TOPCOLOR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通用计算验证",
+        "tag": "",
+        "translation": {
+            "en_US": "General calculation verification",
+            "es_ES": "Validación de cálculo general",
+            "ru_RU": "Общая проверка расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_HISDB",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_HISDB",
+            "ru_RU": "IASP_HISDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史参数",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "Historical parameter",
+            "es_ES": "Parámetros históricos",
+            "ru_RU": "Параметры истории"
+        }
+    },
+    {
+        "comments": "",
+        "source": "fe库",
+        "tag": "TdbRun/desc",
+        "translation": {
+            "en_US": "Fe DB",
+            "es_ES": "biblioteca fe",
+            "ru_RU": "Библиотека фронтенда"
+        }
+    },
+    {
+        "comments": "",
+        "source": "scada应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Scada app",
+            "es_ES": "Aplicación SCADA",
+            "ru_RU": "Приложение SCADA"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_dbmt",
+        "tag": "MtProc/desc",
+        "translation": {
+            "en_US": "svc_dbmt",
+            "es_ES": "svc_dbmt",
+            "ru_RU": "svc_dbmt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "fe库",
+        "tag": "TdbMt/desc",
+        "translation": {
+            "en_US": "Fe DB",
+            "es_ES": "biblioteca fe",
+            "ru_RU": "Библиотека фронтенда"
+        }
+    },
+    {
+        "comments": "",
+        "source": "DOWNLOAD_STATUS",
+        "tag": "",
+        "translation": {
+            "en_US": "DOWNLOAD_STATUS",
+            "es_ES": "descargad_status",
+            "ru_RU": "DOWNLOAD_STATUS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时序库服务 write",
+        "tag": "SvcProc/desc",
+        "translation": {
+            "en_US": "STDB service_write",
+            "es_ES": "Servicio STDB_Escribir",
+            "ru_RU": "Служба STDB_Записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CROSS_SITE_SYNC",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "CROSS_SITE_SYNC",
+            "es_ES": "CROSS_SITE_SYNC",
+            "ru_RU": "CROSS_SITE_SYNC"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络消息传输 app",
+        "tag": "CoreProc/desc",
+        "translation": {
+            "en_US": "Net message transmission app",
+            "es_ES": "App de transmisión de mensajes de red",
+            "ru_RU": "Приложение для передачи сообщений по сети"
+        }
+    },
+    {
+        "comments": "",
+        "source": "PROC_STATUS",
+        "tag": "EventFunction/desc",
+        "translation": {
+            "en_US": "PROC_STATUS",
+            "es_ES": "PROC_STATUS",
+            "ru_RU": "PROC_STATUS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "前置计算服务",
+        "tag": "",
+        "translation": {
+            "en_US": "FEP computing services",
+            "es_ES": "Servicios de computación FEP",
+            "ru_RU": "Службы вычислений FEP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "IASP_WEBMGR",
+        "tag": "EventSubsys/desc",
+        "translation": {
+            "en_US": "IASP_WEBMGR",
+            "es_ES": "IASP_WEBMGR",
+            "ru_RU": "IASP_WEBMGR"
+        }
+    }
+]

@@ -1,0 +1,66 @@
+[
+    {
+        "comments": "",
+        "source": "用户信息",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户修改密码",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户修改电话信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户删除电话",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户修改电话信息成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户修改邮箱信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户删除邮箱信息",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户修改邮箱信息成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

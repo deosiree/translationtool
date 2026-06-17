@@ -102,4 +102,11 @@
          where t1.id =  #{versionID,jdbcType=VARCHAR} and t1.product_id = t2.id
     </select>
 
+    <select id="getVersionByIDs" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_version where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")"> #{id,jdbcType=VARCHAR} </foreach>
+    </select>
+
 </mapper>

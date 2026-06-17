@@ -1,0 +1,256 @@
+[
+    {
+        "comments": "",
+        "source": "diskWIO",
+        "tag": "",
+        "translation": {
+            "en_US": "DiskWIO",
+            "ru_RU": "DiskWIO"
+        }
+    },
+    {
+        "comments": "",
+        "source": "outTraffic",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "OutTraffic",
+            "ru_RU": "outTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "outPpsTraffic",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "OutPpsTraffic",
+            "ru_RU": "outPpsTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "handle",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle",
+            "ru_RU": "Дескриптор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "diskSize",
+        "tag": "",
+        "translation": {
+            "en_US": "DiskSize",
+            "ru_RU": "DiskSize"
+        }
+    },
+    {
+        "comments": "",
+        "source": "mem(MB)",
+        "tag": "",
+        "translation": {
+            "en_US": "Mem(MB)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "inTraffic",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "InTraffic",
+            "ru_RU": "InTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "connNum",
+        "tag": "",
+        "translation": {
+            "en_US": "ConnNum",
+            "ru_RU": "ConnNum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "handle",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "Handle",
+            "ru_RU": "Дескриптор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "mem(KB)",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "Mem(KB)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "diskRIO",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "DiskRIO",
+            "ru_RU": "DiskRIO"
+        }
+    },
+    {
+        "comments": "",
+        "source": "connNum",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "ConnNum",
+            "ru_RU": "ConnNum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "timesync",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "Timesync",
+            "ru_RU": "timesync"
+        }
+    },
+    {
+        "comments": "",
+        "source": "memory",
+        "tag": "",
+        "translation": {
+            "en_US": "Memory",
+            "ru_RU": "Память"
+        }
+    },
+    {
+        "comments": "",
+        "source": "diskRIO",
+        "tag": "",
+        "translation": {
+            "en_US": "DiskRIO",
+            "ru_RU": "DiskRIO"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "mem(MB)",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "Mem(MB)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "inPpsTraffic",
+        "tag": "",
+        "translation": {
+            "en_US": "InPpsTraffic",
+            "ru_RU": "inPpsTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "memory",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "Memory",
+            "ru_RU": "Память"
+        }
+    },
+    {
+        "comments": "",
+        "source": "mem(KB)",
+        "tag": "",
+        "translation": {
+            "en_US": "Mem(KB)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "timesync",
+        "tag": "",
+        "translation": {
+            "en_US": "Timesync",
+            "ru_RU": "timesync"
+        }
+    },
+    {
+        "comments": "",
+        "source": "cpu",
+        "tag": "",
+        "translation": {
+            "en_US": "CPU"
+        }
+    },
+    {
+        "comments": "",
+        "source": "cpu",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "CPU"
+        }
+    },
+    {
+        "comments": "",
+        "source": "inPpsTraffic",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "InPpsTraffic",
+            "ru_RU": "inPpsTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "outPpsTraffic",
+        "tag": "",
+        "translation": {
+            "en_US": "OutPpsTraffic",
+            "ru_RU": "outPpsTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "diskWIO",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "DiskWIO",
+            "ru_RU": "DiskWIO"
+        }
+    },
+    {
+        "comments": "",
+        "source": "inTraffic",
+        "tag": "",
+        "translation": {
+            "en_US": "InTraffic",
+            "ru_RU": "InTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "outTraffic",
+        "tag": "",
+        "translation": {
+            "en_US": "OutTraffic",
+            "ru_RU": "outTraffic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "diskSize",
+        "tag": "SampleData/name",
+        "translation": {
+            "en_US": "DiskSize",
+            "ru_RU": "DiskSize"
+        }
+    }
+]

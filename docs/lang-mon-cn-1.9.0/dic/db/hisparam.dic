@@ -1,0 +1,507 @@
+[
+    {
+        "comments": "",
+        "source": "参数1",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 1",
+            "es_ES": "Parámetro 1",
+            "ru_RU": "Параметр 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于工作日描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned workday description",
+            "es_ES": "Descripción de jornada laboral asignada",
+            "ru_RU": "Назначенное описание рабочего дня"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作日时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Workday hours",
+            "es_ES": "Tiempo de día laboral",
+            "ru_RU": "Рабочее время"
+        }
+    },
+    {
+        "comments": "",
+        "source": "失效时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Expiration time",
+            "es_ES": "Tiempo de expiración",
+            "ru_RU": "Время истечения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属数据时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned data time period description?",
+            "es_ES": "​​Descripción del período de tiempo de datos asignado​",
+            "ru_RU": "Описание назначенного периода данных?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Alias",
+            "es_ES": "Alias",
+            "ru_RU": "Псевд"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含工作日时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Included working days",
+            "es_ES": "Días laborales incluidos",
+            "ru_RU": "Включает рабочие дни"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基本参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic Params",
+            "es_ES": "Parámetros básicos",
+            "ru_RU": "Базовые параметры"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结束时间",
+        "tag": "",
+        "translation": {
+            "en_US": "End Time",
+            "es_ES": "Hora de finalización",
+            "ru_RU": "Время окончания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作日描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Workday description",
+            "es_ES": "Descripción de jornada laboral",
+            "ru_RU": "Описание рабочего дня"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计所有采样点",
+        "tag": "",
+        "translation": {
+            "en_US": "Count all sampling points",
+            "es_ES": "Contar todos los puntos de muestreo",
+            "ru_RU": "Подсчёт всех точек дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否使用别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Use alias",
+            "es_ES": "Usar alias",
+            "ru_RU": "Использование псевдонима"
+        }
+    },
+    {
+        "comments": "",
+        "source": "滞后时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Lag time",
+            "es_ES": "Tiempo de retraso",
+            "ru_RU": "Время задержки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Data period description",
+            "es_ES": "Descripción del período de datos",
+            "ru_RU": "Описание периода данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description",
+            "es_ES": "Descripción",
+            "ru_RU": "Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "编号",
+        "tag": "",
+        "translation": {
+            "en_US": "No.",
+            "es_ES": "No.",
+            "ru_RU": "No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数3",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 3",
+            "es_ES": "Parámetro 3",
+            "ru_RU": "Параметр 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数2",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 2",
+            "es_ES": "Parámetro 2",
+            "ru_RU": "Параметр 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Cycle Unit",
+            "es_ES": "Unidad de ciclo",
+            "ru_RU": "Единица цикла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Daytime description",
+            "es_ES": "Descripción del día",
+            "ru_RU": "Описание дневного периода"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Data period time",
+            "es_ES": "Período de tiempo de datos",
+            "ru_RU": "Время периода данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression",
+            "es_ES": "Expresión",
+            "ru_RU": "Выражение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "默认采样周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Default sampling cycle",
+            "es_ES": "Ciclo de muestreo predeterminado",
+            "ru_RU": "Цикл дискретизации по умолчанию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最长存储时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Max storage time",
+            "es_ES": "Tiempo máximo de almacenamiento",
+            "ru_RU": "Максимальное время хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 2",
+            "es_ES": "Parámetro de respaldo 2",
+            "ru_RU": "Резервный параметр 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期数目",
+        "tag": "",
+        "translation": {
+            "en_US": "Cycle Number",
+            "es_ES": "Conteo de ciclos",
+            "ru_RU": "Количество циклов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单表秒级采样点数上限",
+        "tag": "",
+        "translation": {
+            "en_US": "Upper limit of sampling points per second for a single meter",
+            "ru_RU": "Верхний предел количества точек дискретизации на уровне секунд для одной таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Verify",
+            "es_ES": "Verificar",
+            "ru_RU": "Пров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含日时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Included day time",
+            "es_ES": "Hora del día incluida",
+            "ru_RU": "Включает дневной временной интервал"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Day time",
+            "es_ES": "Horario diurno",
+            "ru_RU": "Дневное время"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 1",
+            "es_ES": "Parámetro de respaldo 1",
+            "ru_RU": "Резервный параметр 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数4",
+        "tag": "",
+        "translation": {
+            "en_US": "Param 4",
+            "es_ES": "Parámetro 4",
+            "ru_RU": "Параметр 4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库类型",
+        "tag": "",
+        "translation": {
+            "en_US": "HDB type",
+            "es_ES": "Tipo de BD de historial",
+            "ru_RU": "Тип HDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计公式",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical formula",
+            "es_ES": "Fórmula estadística",
+            "ru_RU": "Формула статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Period time",
+            "es_ES": "Tiempo de ciclo",
+            "ru_RU": "Время цикла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计间隔ms",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical interval ms",
+            "es_ES": "Intervalo estadístico ms",
+            "ru_RU": "Интервал статистики мс"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Working hours",
+            "es_ES": "Horas de trabajo",
+            "ru_RU": "Рабочее время"
+        }
+    },
+    {
+        "comments": "",
+        "source": "默认采样范围",
+        "tag": "",
+        "translation": {
+            "en_US": "Default sampling range",
+            "es_ES": "Rango de muestreo predeterminado",
+            "ru_RU": "Диапазон дискретизации по умолчанию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算间隔ms",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation interval ms",
+            "es_ES": "Intervalo de cálculo ms",
+            "ru_RU": "Интервал расчёта (мс)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样并发线程数",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampling concurrent threads",
+            "es_ES": "Hilos concurrentes de muestreo",
+            "ru_RU": "Количество параллельных потоков дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基本参数包",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic parameter package",
+            "es_ES": "Paquete de parámetros básicos",
+            "ru_RU": "Пакет базовых параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective time",
+            "es_ES": "Hora efectiva",
+            "ru_RU": "Время начала действия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数3",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 3",
+            "es_ES": "Parámetro de respaldo 3",
+            "ru_RU": "Резервный параметр 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否记录OID修改历史",
+        "tag": "",
+        "translation": {
+            "en_US": "Record Oid history",
+            "es_ES": "Registrar historial de Oid",
+            "ru_RU": "Запись истории изменения OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid",
+            "es_ES": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属日时段描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned day period description",
+            "es_ES": "Descripción del período de día asignado",
+            "ru_RU": "Назначённое описание дневного периода"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起始时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Start time",
+            "es_ES": "Hora de inicio",
+            "ru_RU": "Время начала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单表全部采样点数上限",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum sampling points per table",
+            "ru_RU": "Максимальное количество точек дискретизации на одну таблицу"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含数据时段时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Included data period time",
+            "es_ES": "Período de tiempo de los datos incluidos",
+            "ru_RU": "Включает временной интервал данных"
+        }
+    }
+]

@@ -1,0 +1,8 @@
+services:
+  translation-ui:
+    build: .
+    image: translation-ui:latest
+    container_name: translation-ui
+    ports:
+      - "18000:80"
+    restart: unless-stopped

@@ -1,0 +1,64 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出中，当前表名：{}，该表导出进度：[{} / {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "In the export of historical data, the current table name is {}, and the export progress of this table is [{}/{}]",
+            "es_ES": "En la exportación de datos históricos, nombre de la tabla actual: {}, progreso de la exportación de esta tabla: [{} / {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据转移成功，表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data transfer succeeded, table name: {}",
+            "es_ES": "Datos históricos transferidos con éxito, nombre de la tabla: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据转移中，表名：{}，该表转移进度：[{} / {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "In historical data transfer, table name: {}, table transfer progress: [{} / {}]",
+            "es_ES": "En la transferencia de datos históricos, nombre de la tabla: {}, progreso de la transferencia de esta tabla: [{} / {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入中，当前表名：{}，该表导入进度：[{} / {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data import in progress, current table: {}, import progress for this table: [{} / {}]",
+            "es_ES": "Importación de datos históricos, nombre de la tabla actual: {}, progreso de importación de esta tabla: [{} / {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出成功，表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data export successful, table name: {}",
+            "es_ES": "Los datos históricos se exportaron exitosamente. Nombre de la tabla: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入成功，表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data import successful, table name: {}",
+            "es_ES": "Importación exitosa de datos históricos. Nombre de la tabla: {}"
+        }
+    }
+]

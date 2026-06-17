@@ -1,0 +1,284 @@
+[
+    {
+        "comments": "",
+        "source": "画面: %1，版本归零成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, version reset to zero succeeded",
+            "ru_RU": "График:%1, сброс версии успешен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改应用:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify App: %1 successfully",
+            "es_ES": "Modificar aplicación: %1 exitosamente",
+            "ru_RU": "Успешное изменение приложения: %1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，版本归零失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, reset to zero failed.",
+            "es_ES": "Gráfico:%1, fallo al restablecer versión",
+            "ru_RU": "Мнемосхема: %1, сбой сброса версии в ноль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面分类:%1，删除成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph category [%1] deleted successfully",
+            "es_ES": "Tipo de gráfica:%1, eliminado con éxito",
+            "ru_RU": "Тип графика:%1, успешно удален"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，清除历史成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph:%1, cleared history successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加画面子分类:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Subcategory of graph [%1] added successfully",
+            "es_ES": "Subcategoría de gráfica añadida: %1 exitosamente",
+            "ru_RU": "Успешное добавление подкатегории мнемосхемы: %1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加画面:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Add graph: %1 successfully",
+            "es_ES": "Gráfica añadida: %1 exitosamente",
+            "ru_RU": "График: %1 успешно добавлен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面: %1，清空历史版本成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, successfully cleared historical versions",
+            "ru_RU": "График:%1, исторические версии очищены"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点:%1 进程:%2 PID:%3 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: %1 | Process: %2 | PID: %3",
+            "es_ES": "Nodo: %1 Proceso: %2 PID: %3",
+            "ru_RU": "Узел: %1 Процесс: %2 pid: %3 "
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加画面子分类: %1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Add graph subcategory: %1 successfully",
+            "ru_RU": "Подкатегория графика:%1 успешно добавлена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除应用:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Deleting App: %1 succeeded",
+            "es_ES": "Eliminar App: %1 exitosamente",
+            "ru_RU": "Удаление приложения: %1 выполнено успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，清除历史失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph:%1, failed to clear history"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，草稿清除成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph:%1, draft cleared successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保存画面: %1 从版本: %2 到草稿 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Saved graph: %1 from version: %2 to draft successfully",
+            "ru_RU": "График:%1 успешно сохранен из версии:%2 в черновик"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图元:%1，删除成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Icon: %1, deleted successfully",
+            "es_ES": "Icono: %1, eliminado exitosamente",
+            "ru_RU": "Значок:%1, успешно удален"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保存画面:%1 到草稿 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1 saved to draft successfully",
+            "es_ES": "Guardar gráfica: %1 en borrador exitosamente",
+            "ru_RU": "Мнемосхема: %1 успешно сохранена в черновик"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保存画面: %1 到草稿 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Save graph: %1 to draft successfully",
+            "ru_RU": "Сохранение графика:%1 в черновик успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面: %1，版本归零失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, version reset to zero failed",
+            "ru_RU": "Граф: %1, сброс версии на ноль не удалс"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，删除成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, deleted successfully",
+            "es_ES": "Gráfica:%1, eliminado con éxito",
+            "ru_RU": "График:%1, успешно удален"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图元类型:%1，删除成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Icon type: %1, deleted successfully",
+            "es_ES": "Tipo de icono:%1, eliminado exitosamente",
+            "ru_RU": "Тип примитива: %1, успешно удалён"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加应用:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Add App: %1 successfully",
+            "es_ES": "Agregar aplicación: %1 exitosamente",
+            "ru_RU": "Приложение %1 успешно добавлено"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面: %1，清空历史版本失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1; failed to clear historical versions",
+            "ru_RU": "График:%1, не удалось очистить версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "添加项目:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Add project:%1 successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，清空历史版本成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, historical versions cleared successfully",
+            "es_ES": "Gráfico:%1, versiones históricas borradas",
+            "ru_RU": "График:%1, исторические версии очищены"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点: %1 进程: %2 PID: %3 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: %1 Process: %2 PID: %3",
+            "ru_RU": "Узел:%1 Процесс:%2 PID:%3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保存画面:%1 从版本:%2 到草稿 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1 draft saved from version: %2",
+            "es_ES": "Gráfica guardada: %1 de la versión:%2 a borrador exitosamente",
+            "ru_RU": "Мнемосхема: %1 успешно сохранена из версии %2 в черновик"
+        }
+    },
+    {
+        "comments": "",
+        "source": "保存图元:%1 成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Saved icon: %1 Successfully",
+            "es_ES": "Icono guardado: %1 exitosamente",
+            "ru_RU": "Успешное сохранение примитива: %1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，清空历史版本失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, failed to clear historical versions.",
+            "es_ES": "Gráfico:%1, Fallo al borrar versiones históricas",
+            "ru_RU": "График:%1, не удалось очистить версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面:%1，版本归零成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph: %1, reset to zero successfully",
+            "es_ES": "Gráfico:%1, Restablecimiento Versión Exitoso",
+            "ru_RU": "График:%1, сброс версии успешен"
+        }
+    }
+]

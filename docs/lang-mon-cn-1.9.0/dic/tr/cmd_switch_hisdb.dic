@@ -1,0 +1,318 @@
+[
+    {
+        "comments": "",
+        "source": "旧库清理成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Old db cleared successfully",
+            "es_ES": "Base de datos antigua limpiada exitosamente",
+            "ru_RU": "Старая база данных успешно очищена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]删除服务成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Successfully deleted the service based on command line [{}]",
+            "es_ES": "Servicio eliminado exitosamente basado en Cmd [{}]",
+            "ru_RU": "Служба успешно удалена на основе командной строки [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]停止服务失败, code=[{}], msg=[{}], error=[{}],",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop service based on command line [{}], code=[{}], msg=[{}], error=[{}],",
+            "es_ES": "Error al detener el servicio basado en Cmd [{}], código=[{}], mensaje=[{}], error=[{}],",
+            "ru_RU": "Не удалось остановить службу по командной строке [{}], код=[{}], сообщение=[{}], ошибка=[{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目前历史数据库类型[{}]不支持",
+        "tag": "",
+        "translation": {
+            "en_US": "Currently, HDB type [{}] is not supported",
+            "es_ES": "Actualmente, el tipo de BD histórica [{}] no es compatible",
+            "ru_RU": "Тип исторической базы данных [{}] не поддерживается"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除历史数据库[{}]缓存目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete cache dir from HDB [{}]",
+            "es_ES": "Error al eliminar el directorio de caché de la BD histórica [{}]",
+            "ru_RU": "Не удалось удалить кэш-директорию из исторической базы данных [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]停服务成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Successfully stopped the service based on command line [{}]",
+            "es_ES": "Servicio detenido exitosamente basado en Cmd [{}]",
+            "ru_RU": "Служба успешно остановлена по командной строке [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]删除[{}]服务成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Based on command line [{}], delete [{}] service successfully",
+            "es_ES": "Basado en Cmd [{}], el servicio [{}] se eliminó con éxito",
+            "ru_RU": "По командной строке [{}], служба [{}] успешно удалена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化库成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Init db successfully",
+            "es_ES": "Base de datos iniciada exitosamente",
+            "ru_RU": "База данных успешно инициализирована"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标历史数据库类型[{}]不支持",
+        "tag": "",
+        "translation": {
+            "en_US": "The destination HDB type [{}] is not supported",
+            "es_ES": "El tipo de BD de historial objetivo [{}] no es compatible",
+            "ru_RU": "Тип целевой HDB [{}] не поддерживается"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新库初始化成功，但是删除旧库安装目录[{}]失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The initialization of the new library was successful, but the deletion of the old library installation directory [{}] failed"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]安装新服务成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Installed successfully the new service based on command line [{}]",
+            "es_ES": "Servicio instalado exitosamente basado en Cmd [{}]",
+            "ru_RU": "Установка новой службы по командной строке [{}] выполнена успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除历史数据库[{}]目录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Deleting HDB [{}] dir succeeded",
+            "es_ES": "Eliminar exitosamente el directorio de la BD histórica [{}]",
+            "ru_RU": "Удаление каталога НDB [{}] успешно "
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]重新加载服务失败, code=[{}], msg=[{}], error=[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reload service based on command line [{}], code=[{}], msg=[{}], error=[{}]",
+            "es_ES": "Error al recargar el servicio basado en Cmd [{}], código=[{}], msg=[{}], error=[{}]",
+            "ru_RU": "Сбой перезагрузки службы по командной строке [{}], code=[{}], msg=[{}], error=[{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]安装服务失败, code={}, errorMsg={}",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to install service based on command line [{}], code={}, errorMsg={}",
+            "es_ES": "No se pudo instalar el servicio basado en Cmd [{}], código={}, errorMsg={}",
+            "ru_RU": "Не удалось установить службу по командной строке [{}], код={}, сообщение об ошибке={}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前历史数据库类型[{}]，目标历史数据库类型[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Current HDB type [{}], destination HDB type [{}]",
+            "es_ES": "Tipo de BD histórica actual [{}], tipo de BD histórica objetivo [{}]",
+            "ru_RU": "Текущий тип HDB [{}], целевой тип HDB [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取当前历史数据库类型失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to retrieve the current HDB type",
+            "es_ES": "No se pudo recuperar el tipo de BD histórica actual",
+            "ru_RU": "Не удалось получить текущий тип исторической базы данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标历史数据库类型为sqlite, 无需安装和启动服务, 目标库初始化成功",
+        "tag": "",
+        "translation": {
+            "en_US": "The destination HDB type is SQLite, and there is no need to install or start services. The destination db initialization is successful",
+            "es_ES": "El tipo de BD histórica objetivo es SQLite, y no es necesario instalar o iniciar servicios. La inicialización de la BD de destino fue exitosa",
+            "ru_RU": "Целевой тип исторической базы данных — SQLite, установка или запуск служб не требуется. Инициализация целевой базы данных успешна"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除历史数据库[{}]目录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Deleting HDB [{}] dir failed",
+            "es_ES": "Error al eliminar el directorio de la BD histórica [{}]",
+            "ru_RU": "Удаление каталога НDB [{}] не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目标历史数据库类型为taos,将由历史库服务来启动服务并创建库, 目标库初始化成功",
+        "tag": "",
+        "translation": {
+            "en_US": "The destination HDB type is taos, and the HDB service will start the service and create the DB. The destination DB initialization is successful",
+            "es_ES": "El tipo de BD de historial objetivo es taos, y el servicio de BD histórica iniciará el servicio y creará la BD. La inicialización de la BD de destino fue exitosa",
+            "ru_RU": "Целевой тип исторической базы данных — taos, служба исторической базы данных запустит службу и создаст базу данных. Инициализация целевой базы данных успешна"
+        }
+    },
+    {
+        "comments": "",
+        "source": "暂不支持切换到 highgo 数据库",
+        "tag": "",
+        "translation": {
+            "en_US": "Switching to highgo db is currently not supported",
+            "es_ES": "Actualmente no se admite el cambio a la BD highgo",
+            "ru_RU": "Переключение на базу данных highgo в настоящее время не поддерживается"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除历史数据库[{}]缓存目录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete HDB [{}] cache dir successfully",
+            "es_ES": "Eliminar el directorio de caché de la BD histórica [{}] exitosamente",
+            "ru_RU": "Кэш-директория исторической базы данных [{}] успешно удалена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 服务状态: {}",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Service status: {}",
+            "es_ES": "{} Estado del servicio: {}",
+            "ru_RU": "{} Статус службы: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "新库初始化成功，但是删除旧库目录[{}]失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The initialization of the new DB was successful, but the deletion of the old DB dir [{}] failed",
+            "es_ES": "La inicialización de la nueva BD fue exitosa, pero la eliminación del directorio de la biblioteca antigua [{}] falló",
+            "ru_RU": "Успешная инициализация новой DB, но сбой удаления каталога старой DB [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本工具不支持在 Windows 平台使用，请在 Linux 平台使用",
+        "tag": "",
+        "translation": {
+            "en_US": "This tool is not supported on the Windows platform. Please use it on the Linux platform.",
+            "es_ES": "Esta herramienta no es compatible para su uso en la plataforma Windows. Úsela en la plataforma Linux",
+            "ru_RU": "Этот инструмент не поддерживается на платформе Windows. Пожалуйста, используйте его на платформе Linux"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]停止服务成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Successfully stopped the service based on command line [{}]",
+            "es_ES": "Servicio detenido exitosamente basado en Cmd[{}]",
+            "ru_RU": "Сервис успешно остановлен по командной строке [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]重新加载服务成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Reload service successfully based on command line [{}]",
+            "es_ES": "Servicio recargado exitosamente basado en Cmd [{}]",
+            "ru_RU": "Успешная перезагрузка службы по командной строке [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]删除服务失败, code=[{}], msg=[{}], error=[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to delete service based on command line [{}], code=[{}], msg=[{}], error=[{}]",
+            "es_ES": "Error al eliminar el servicio basado en Cmd [{}], código=[{}], msg=[{}], error=[{}]",
+            "ru_RU": "Сбой удаления службы по командной строке [{}], code=[{}], msg=[{}], error=[{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "根据命令行[{}]停止服务失败, code=[{}], msg=[{}], error=[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to stop service based on command line [{}], code=[{}], msg=[{}], error=[{}]",
+            "es_ES": "Error al detener el servicio basado en Cmd [{}], código=[{}], msg=[{}], error=[{}]",
+            "ru_RU": "Сбой остановки службы по командной строке [{}], code=[{}], msg=[{}], error=[{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前类型与目标历史数据库类型[{}]相同，无法切换",
+        "tag": "",
+        "translation": {
+            "en_US": "The current type is the same as the destination HDB type [{}] and cannot be switched",
+            "es_ES": "El tipo actual es el mismo que el tipo de BD histórica de destino [{}] y no se puede cambiar",
+            "ru_RU": "Текущий тип совпадает с типом целевой исторической базы [{}] и не может быть переключен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "清除旧库服务失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to clear old db service",
+            "es_ES": "Error al limpiar el servicio de BD antigua",
+            "ru_RU": "Сбой службы очистки старой DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{}]初始化脚本所在目录[{}]不存在",
+        "tag": "",
+        "translation": {
+            "en_US": "The initialization script dir for [{}] at [{}] does not exist.",
+            "es_ES": "El script de inicialización [{}] del directorio [{}] no existe",
+            "ru_RU": "Директория скрипта инициализации для [{}] в [{}] не существует."
+        }
+    }
+]

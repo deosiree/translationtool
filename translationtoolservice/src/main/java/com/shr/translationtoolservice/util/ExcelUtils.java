@@ -7,21 +7,19 @@ package com.shr.translationtoolservice.util;
  * @Date 2023/8/30 0030 9:52
  **/
 
-import cn.afterturn.easypoi.cache.manager.IFileLoader;
 import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
 import com.shr.translationtoolservice.dao.EntryClassifyMapper;
 import com.shr.translationtoolservice.dao.TranslateMapper;
 import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.entity.vo.ImportExcleVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +27,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.FileOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.net.URLEncoder;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.springframework.util.StringUtils.capitalize;
 
@@ -60,6 +60,17 @@ public class ExcelUtils {
     @Autowired
     private EntryClassifyMapper entryClassifyMapper;
 
+    public static Set<Character> specialCharacterForCSV = new HashSet<>();
+
+    static{
+
+        specialCharacterForCSV.add('\n');
+        specialCharacterForCSV.add('\t');
+        specialCharacterForCSV.add('\b');
+        specialCharacterForCSV.add('\r');
+        specialCharacterForCSV.add('\f');
+    }
+
     /**
      * Excel表头对应Entity属性 解析封装javabean
      *
@@ -71,11 +82,386 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
+    public <T> ParseFileInfo<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
-        List<T> excelForBeans = readNewExcel(classzz, workbook, excelHeads);  //解析Excel
-        return excelForBeans;
+        return readNewExcel(classzz, workbook, excelHeads);  //解析Excel
+    }
+
+    private static String charsetDetect(String filePath){
+
+
+        return null;
+    }
+
+    private static String postProcessSubText(String subText){
+        if(subText == null){
+            return null;
+        }
+        if(subText.equals("")){
+            return subText;
+        }else if(subText.equals("\"")){
+            return null;
+        }
+        if(subText.startsWith("\"")){
+            if(subText.endsWith("\"")){
+                String processedSubText = subText.substring(1,subText.length() - 1);
+                // 如果字符串里面"不成对出现就有问题
+                boolean skip = false;
+                StringBuilder builder = new StringBuilder();
+                for(int idx = 0 ; idx < processedSubText.length() ; idx ++ ){
+                    char next = processedSubText.charAt(idx);
+                    builder.append(next);
+                    if(next == '"'){
+                        if(idx + 1 < processedSubText.length() && processedSubText.charAt(idx + 1) == '"'){
+                            idx ++;
+                        }else{
+                            skip = true;    
+                            break;   
+                        }
+                    }
+                }
+                if(skip) return null;
+                return builder.toString();
+            }else{
+                return null;
+            }
+        }else{
+            return subText;
+        }
+    }
+
+    /**
+    *   先找到最近的两个逗号
+        如果第一个后面紧跟"，则看第二个逗号前面是不是"
+            如果是，则取这两个逗号之间的内容，
+            否则,找下一个符合前面是"的逗号，如果到最后一个字符，如果前面是"，则取这两个"之间的内容，如果不是，则报错
+        如果第一个后面不是"，则取下一个逗号前面的所有
+        如果取的内容前后有",则判断剩余的内容，如果剩余的内容只有一个'"',则取下一个','
+     * @param lineText
+     * @return
+     */
+    private static String[] CSVParse(String lineText){
+        if(lineText == null){
+            return new String[0];
+        }
+        int textLength = lineText.length();
+        if(textLength == 0){
+            return new String[0];
+        }
+        List<String> textList = new ArrayList<>();
+        int leftCommaIndex = -1;
+        for(int i = 0 ; i < textLength ; i ++ ){
+            char nextChar = lineText.charAt(i);
+            if(nextChar == ','){
+                String subText = lineText.substring(leftCommaIndex + 1, i);
+                String processedText = postProcessSubText(subText);
+                if(processedText == null){
+                    // 不符合要求
+                    continue;
+                }
+                textList.add(processedText);
+                leftCommaIndex = i;
+            }else{
+                // if(i + 1 == textLength){
+                //     // 最后一个了
+                //     String processedText = postProcessSubText(lineText.substring(leftCommaIndex + 1, textLength));
+                //     if(processedText == null){
+                //         throw new RuntimeException("提供的csv文件存在异常");
+                //     }
+                //     textList.add(processedText);
+                // }
+            }
+        }
+        String processedText = postProcessSubText(lineText.substring(leftCommaIndex + 1 , textLength));
+        if(processedText == null){
+            throw new RuntimeException("解析的这一行数据存在异常: 该行数据为: " + lineText);
+        }
+        textList.add(processedText);
+        return textList.toArray(new String[textList.size()]);
+    }
+
+    private static <T> void buildColumnNameProjection(List<Map<String,String>> entryNameProjectionList,Class<T> classzz){
+        if(classzz == ImportExcleEntry.class){
+            entryNameProjectionList.add(ImportExcleEntry.aliasMap);
+        }else{
+            entryNameProjectionList.add(ConstantInterface.constructEntryName());
+        }
+    }
+
+    private static boolean isColumnForField(List<Map<String,String>> entryNameProjectionList,String fieldName,String headerName){
+
+        for(Map<String,String> entryNameProjection : entryNameProjectionList){
+            if(entryNameProjection.get(fieldName) != null && entryNameProjection.get(fieldName).equals(headerName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static <T> Method[] methodListFromCSV(String lineText,Class<T> classzz){
+        return methodListFromCSV(lineText, classzz, null);
+    }
+
+    public static <T> Method[] methodListFromCSV(String lineText,Class<T> classzz,Map<String,String> methodRedirect){
+        if(methodRedirect == null){
+            methodRedirect = new HashMap<>();
+        }
+        if(classzz == null){
+            throw new RuntimeException("没有提供classzz");
+        }
+        // List<Method> methodList = new ArrayList<>();
+        String[] elementList = ExcelUtils.CSVParse(lineText);
+        Method[] methodList = new Method[elementList.length];
+        /* 获得属性名-(表头名1，表头名2,……)映射表 */
+        List<Map<String,String>> entryNameProjectionList = new ArrayList<>();
+        buildColumnNameProjection(entryNameProjectionList,classzz);
+
+        for(int i = 0 ; i < elementList.length ; i ++ ){
+            String nextHeader = elementList[i];
+            if(nextHeader == null || nextHeader.equals("")){
+                methodList[i] = null;
+                continue;
+            }
+            boolean isFindMethod = false;
+            Class<? super T> currentClass = classzz;
+            while (currentClass != null) {
+                for(Field field : currentClass.getDeclaredFields()){
+                    String fieldName = field.getName();
+                    String headerName = nextHeader;
+                    if(methodRedirect != null && methodRedirect.containsKey(headerName)){
+                        headerName = methodRedirect.get(headerName);
+                    }
+                    if(isColumnForField(entryNameProjectionList, fieldName, headerName)){
+                    // if(entryNameProjection.get(fieldName) != null && entryNameProjection.get(fieldName).equals(headerName)){
+                        String methodName =  MethodUtils.setMethodName(fieldName);
+                        Method method = null;
+                        try {
+                            method = classzz.getMethod(methodName, field.getType());
+                        } catch (NoSuchMethodException e) {
+                            // TODO Auto-generated catch block
+                            throw new RuntimeException(e);
+                        } catch (SecurityException e) {
+                            // TODO Auto-generated catch block
+                            throw new RuntimeException(e);
+                        }
+                        if(method == null){
+                            throw new RuntimeException("没有获取到methodName: \"" + methodName + "\"方法");
+                        }
+                        isFindMethod = true;
+                        // methodList.add(method);
+                        methodList[i] = method;
+                    }
+                }
+                currentClass = currentClass.getSuperclass();
+            }
+            if(!isFindMethod){
+                /* 没有找到说明该单元格的内容无效 */
+                // throw new RuntimeException("当前单元格内容为: " + nextHeader + "没有找到对应的方法");
+                methodList[i] = null;
+            }
+        }
+
+        return methodList;
+    }
+    /**
+     * 是否有成对的"
+     * @param textLine
+     * @return
+     */
+    public boolean checkCSVLine(String textLine){
+        int length = textLine.length();
+        int quotaCount = 0;
+        for(int i = 0; i < length ; i ++ ){
+            if(textLine.charAt(i) == '\"'){
+                quotaCount ++;
+            }
+        }
+        return quotaCount % 2 == 0;
+    }
+
+    public List<String> parseCSVFile(InputStream in,String charset) throws Exception{
+        InputStreamReader inputStreamReader = charset == null || charset.trim().isEmpty() ? new InputStreamReader(in) : new InputStreamReader(in,charset);
+        BufferedReader reader = new BufferedReader(inputStreamReader);
+        List<String> lineTextList = new ArrayList<>();
+        String nextLine = null;
+        String beforeLine = "";
+        while ((nextLine = reader.readLine()) != null) {    
+            if(nextLine.equals("")){
+                /* 过滤掉空行 */
+                continue;   
+            }
+            if((int)nextLine.charAt(0) == 65279){
+                // UTF-8 +BOM 格式
+                nextLine = nextLine.substring(1,nextLine.length());
+                if(nextLine.equals("")) continue;
+            }
+            if(beforeLine.equals("")){
+                try {
+                    CSVParse(nextLine);
+                    lineTextList.add(nextLine);
+                    beforeLine = "";
+                } catch (Exception e) {
+                    /* 说明当前行解析不正常，说明可能有单元格的文本有换行符 */
+                    beforeLine += nextLine;
+                }
+            }else{
+                try {
+                    CSVParse(beforeLine + '\n' + nextLine);
+                    lineTextList.add(beforeLine + '\n' + nextLine);
+                    beforeLine = "";
+                } catch (Exception e) {
+                    /* 说明当前行解析不正常，说明可能有单元格的文本有换行符 */
+                    beforeLine += ('\n' + nextLine);
+                }
+            }            
+        }
+        return lineTextList;
+    }
+
+    private void checkMethodList(Method[] methods){
+        Set<String> methodName = new HashSet<>();
+        boolean isFindEntry = false;
+        for(Method method : methods){
+            if(method == null){
+                continue;
+            }
+            if(method.getName().equals("setEntry")){
+                isFindEntry = true;
+            }
+            if(methodName.contains(method.getName())){
+                throw new RuntimeException("当前csv文件有多行被解析为向同一个属性写入数据, 该方法名为: " + method.getName());
+            }
+            methodName.add(method.getName());
+        }
+        if(!isFindEntry)
+            throw new RuntimeException("当前解析的csv文件没有词条对应的列");
+    }
+
+    public <T> ParseFileInfo<T> readCSVToEntity(Class<T> classzz,InputStream in,String fileName,Map<String,String> kwargs) throws Exception{
+        checkFile(fileName);
+        List<T> entities = new  ArrayList<>();
+        /* 获取编码模式  */
+        String encoding = StringUtil.checkEncoding(kwargs.get("encoding"));
+        if(encoding == null) encoding = "GBK";
+        DateFormat electedFormat = null;
+        try {
+            ParseFileInfo<T> parseFileInfo = new ParseFileInfo<>();
+            Method[] methodList = null;
+            boolean isFindHeader = false;
+            List<String> lineTextList = parseCSVFile(in,encoding);
+            if(lineTextList.isEmpty()){
+                throw new RuntimeException("文件内部没有任何内容");
+            }
+            for(String lineText : lineTextList){
+                String[] elementList = ExcelUtils.CSVParse(lineText);
+                if(!isFindHeader){
+                    // 第一个非空行,代表表头    
+                    parseFileInfo.setColumnName(elementList);
+                    methodList = methodListFromCSV(lineText, classzz);
+                    isFindHeader = true;
+                    checkMethodList(methodList);
+                }else{
+                    if(methodList == null){
+                        throw new RuntimeException("methodList为null");
+                    }
+                    int dataLength = elementList.length;
+                    T instance= null; 
+                    for(int i = 0 ; i < dataLength ; i ++ ){
+                        String nextValue = elementList[i];
+                        // 以后考虑一下如果有这个字段, 但是单元格为空，将这个字段的值填充为"", 如果没有这个字段的列，那么这个字段的值为null
+                        if(nextValue == null || (nextValue.equals("") &&  (kwargs != null && !Boolean.parseBoolean(kwargs.get("emptyAsValue")))) ){
+                            /* 单元格内容为空时跳过，该字段默认值 */
+                            continue;
+                        }
+                        /* 校验get方法的参数个数以及类型 */
+                        if(i >= methodList.length){
+                            /* 当该单元格超过了方法对应行的所在列，此时退出，后续单元格的内容不进行处理了 */
+                            break;  
+                        }
+                        Method method = methodList[i];
+                        if(method == null){
+                            /* method为null，反应该单元格的内容无法映射到entryinfo的属性上,所以跳过这一列 */
+                            continue;
+                        }
+                        if(instance == null){
+                            instance = classzz.newInstance();
+                        }
+                        Class<?> paramTypes[] = method.getParameterTypes();
+                        try {
+                            if(paramTypes.length != 1){
+                                throw new RuntimeException("取得的方法的参数个数不等于1");
+                            }
+                            Class<?> paramType = paramTypes[0];
+                            /* 执行get方法 */
+                            if(paramType != String.class){
+                                if(nextValue.equals("")){
+                                    continue;   // 跳过,非字符串类型的数据就跳过
+                                }
+                                Object convertedValue = convertType(paramType, nextValue);
+                                if(convertedValue.getClass() != paramType){
+                                    // convertType失效
+                                    if(paramType == Date.class){
+                                        if(electedFormat != null){
+                                            convertedValue = electedFormat.parse(nextValue);
+                                        }else{
+                                            try {
+                                                convertedValue = LocalTimeUtils.formatForFile.parse(nextValue);
+                                                electedFormat = LocalTimeUtils.formatForFile;
+                                            } catch (Exception e) {
+                                                try {
+                                                    convertedValue = LocalTimeUtils.format2ForFile.parse(nextValue);
+                                                    electedFormat = LocalTimeUtils.format2ForFile;
+                                                    
+                                                } catch (Exception firstException) {
+                                                    // TODO: handle exception
+                                                    try {
+                                                        convertedValue = LocalTimeUtils.format3ForFile.parse(nextValue);
+                                                        electedFormat = LocalTimeUtils.format3ForFile;
+
+                                                    } catch (Exception secondException) {
+                                                        // TODO: handle exception
+                                                        throw new RuntimeException(secondException);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+                                method.invoke(instance, convertedValue);
+                            }else{
+                                if(method.getName().equals("setEntry")){
+                                    if(nextValue == null || nextValue.equals("")){
+                                        throw new RuntimeException("当前解析csv文件发现存在词条为null或空字符串");
+                                    }
+                                }
+                                method.invoke(instance, nextValue);
+                            }
+                        } catch (IllegalArgumentException e) {
+                            // TODO: handle exception
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; 获取其参数值: " + nextValue + "时显示参数类型不符合要求", e);
+                        } catch (InvocationTargetException e){
+                            throw new RuntimeException("调用方法method: " + method.getName() + "; 获取其参数值: " + nextValue + "执行时报错", e);
+                        }
+                    }
+                    if(instance == null){
+                        /* 表头的内容无法映射到对象的属性上，在return前会打印相关信息 */
+                        continue;
+                    }
+                    entities.add(instance);
+                }
+            }
+            if(entities.isEmpty()){
+                log.debug("当前解析的文件没有获取到任何词条,header信息为: " + lineTextList.get(0));
+            }
+            parseFileInfo.setParsedObjects(entities);
+            return parseFileInfo;
+        } catch (Exception e) {
+            throw e;
+        } finally{
+
+        }
     }
 
 
@@ -90,10 +476,10 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readZZExcelToEntity(Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
+    public <T> List<T> readZZExcelToEntity(String translateType,Class<T> classzz, InputStream in, String fileName, List<ExcelHead> excelHeads) throws Exception {
         checkFile(fileName);    //是否EXCEL文件
         Workbook workbook = getWorkBoot(in, fileName); //兼容新老版本
-        List<T> excelForBeans = readExcel(classzz, workbook, excelHeads);  //解析Excel
+        List<T> excelForBeans = readExcel(translateType,classzz, workbook, excelHeads);  //解析Excel
         return excelForBeans;
     }
 
@@ -107,8 +493,8 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readExcelToEntity(Class<T> classzz, InputStream in, String fileName) throws Exception {
-        return readExcelToEntity(classzz, in, fileName, null);
+    public <T> ParseFileInfo<T> readExcelToEntity(String translateType ,Class<T> classzz, InputStream in, String fileName) throws Exception {
+        return readExcelToEntity(translateType,classzz, in, fileName, null);
     }
 
 
@@ -122,8 +508,8 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    public <T> List<T> readZZExcelToEntity(Class<T> classzz, InputStream in, String fileName) throws Exception {
-        return readZZExcelToEntity(classzz, in, fileName, null);
+    public <T> List<T> readZZExcelToEntity(String translateType,Class<T> classzz, InputStream in, String fileName) throws Exception {
+        return readZZExcelToEntity(translateType,classzz, in, fileName, null);
     }
 
     /**
@@ -133,7 +519,7 @@ public class ExcelUtils {
      * @throws Exception
      */
     public void checkFile(String fileName) throws Exception {
-        if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
+        if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls") || fileName.endsWith(".csv"))) {
             throw new Exception("不是Excel文件！");
         }
     }
@@ -165,7 +551,7 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    private <T> List<T> readExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
+    private <T> List<T> readExcel(String translateType,Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
         List<T> beans = new ArrayList<T>();
         int sheetNum = workbook.getNumberOfSheets();
         for (int sheetIndex = 0; sheetIndex < sheetNum; sheetIndex++) {
@@ -248,6 +634,16 @@ public class ExcelUtils {
 
                     headCell.setCellType(Cell.CELL_TYPE_STRING);
                     String headName = headCell.getStringCellValue().trim();
+                /*    if ((headName.equals("英文术语") ||
+                            headName.equals("西文术语") ||
+                            headName.equals("俄文术语") ||
+                            headName.equals("法文术语") ||
+                            headName.equals("术语英文释义")||
+                            headName.equals("术语法文释义")||
+                            headName.equals("术语俄文释义")||
+                            headName.equals("术语西文释义")) && !headName.contains(translateType)){
+                        break;
+                    }*/
                     log.info(" **** 当前列头为 " + headName + " **** ");
                     if (headName.equals("展开（缩写采用单驼峰,首字母大写）")) {
                         int a = 0;
@@ -258,10 +654,12 @@ public class ExcelUtils {
                             headName.equals("西文术语") ||
                             headName.equals("俄文术语") ||
                             headName.equals("中文术语") ||
+                            headName.equals("法文术语") ||
                             headName.equals("ABB类全驼峰") ||
                             headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
                             headName.equals("单多驼峰搭配下划线（继保类似）") ||
                             headName.equals("展开（缩写可采用单/多驼峰）")) {
+
                         Row head1 = sheet.getRow(firstRowNum + 1);
                         Cell headCell1 = head1.getCell(cellIndex);
                         headCell1.setCellType(Cell.CELL_TYPE_STRING);
@@ -304,7 +702,7 @@ public class ExcelUtils {
                             classfyMethod.invoke(instance, convertType(field.getType(), sheetName.trim()));
                             isClassfy1 = false;
                         }
-
+                        System.out.println(field.getName());
                         if (headName.equalsIgnoreCase(ImportExcleEntry.aliasMap.get(field.getName()))) {
                             String methodName = MethodUtils.setMethodName(field.getName());
                             System.out.println(methodName);
@@ -400,9 +798,10 @@ public class ExcelUtils {
      * @return
      * @throws Exception
      */
-    private <T> List<T> readNewExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
+    private <T> ParseFileInfo<T> readNewExcel(Class<T> classzz, Workbook workbook, List<ExcelHead> excelHeads) throws Exception {
         List<T> beans = new ArrayList<T>();
         int sheetNum = workbook.getNumberOfSheets();
+        ParseFileInfo<T> parseFileInfo = new ParseFileInfo<>();
         for (int sheetIndex = 0; sheetIndex < sheetNum; sheetIndex++) {
             //判断分类
             boolean isWrite = false;
@@ -416,6 +815,8 @@ public class ExcelUtils {
             Row head = sheet.getRow(firstRowNum);
             if (head == null)
                 continue;
+            String[] columnNames = this.getFileColumns(head);
+            parseFileInfo.setColumnName(columnNames);
             short firstCellNum = head.getFirstCellNum();
             short lastCellNum = head.getLastCellNum();
 
@@ -610,7 +1011,8 @@ public class ExcelUtils {
 
             }
         }
-        return beans;
+        parseFileInfo.setParsedObjects(beans);
+        return parseFileInfo;
     }
 
     /**
@@ -722,6 +1124,210 @@ public class ExcelUtils {
         public static String getMethodName(String propertyName) {
             return GET_PREFIX + capitalize(propertyName);
         }
+
+        public static Collection<Method> methods(Class<?> clazz,Collection<String> fieldNames,Function<String,String> methodNameGetFunction){
+            Collection<Method> methods = new ArrayList<>();
+            fieldNames.stream().forEach((fieldName)->{
+                try {
+                    String methodName = methodNameGetFunction.apply(fieldName);
+                    Method method = clazz.getMethod(methodName);
+                    methods.add(method);
+                } catch(Exception e){
+                    e.printStackTrace();;
+                }
+
+            });
+            return methods;
+        }
+
+        public static final Function<String,String> DEFAULT_GET_METHOD_NAME_GENERATOR = (t)->{return t != null ? MethodUtils.getMethodName(t) : "";};
+
+        public static final Function<String,String> DEFAULT_SET_METHOD_NAME_GENERATOR = (t)->{return t != null ? MethodUtils.setMethodName(t) : "";};
+
+        /**
+         * 获取指定属性名的方法
+         * @param <T>
+         * @param clazz
+         * @param fieldName
+         * @param methodNameGenerator
+         * @param parameterTypes
+         * @return
+         */
+        public static <T> Method acquireMethod(Class<T> clazz,String fieldName,Function<String,String> methodNameGenerator,Class<?>... parameterTypes){
+            if(clazz == null){
+                throw new NullPointerException("clazz为null");
+            }
+            if(fieldName.isEmpty() || fieldName.trim().isEmpty()){
+
+            }
+            String methodName = "";
+            try {
+                methodName = methodNameGenerator.apply(fieldName);
+                Method method = clazz.getMethod(methodName, parameterTypes);
+                return method;
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(String.format("没有找到对应的方法, 方法名为: %s",methodName));
+            } catch (SecurityException e) {
+                throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, 方法名为: %s", clazz.getName(),methodName));
+            } catch (Exception e){
+                throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
+            }
+        }
+
+
+        public static class MethodDefinition{
+
+            public String methodName;
+
+            public Class<?>[] parameterTypes;
+
+            public MethodDefinition(String methodName) {
+                this.methodName = methodName;
+            }
+
+            public MethodDefinition(String methodName, Class<?>... parameterTypes) {
+                this.methodName = methodName;
+                this.parameterTypes = parameterTypes;
+            }
+
+            public String getMethodName() {
+                return methodName;
+            }
+
+            public Class<?>[] getParameterTypes() {
+                return parameterTypes;
+            }
+        }
+
+        public static class MethodEntity{
+
+            Method method;
+            /* 方法实际调用时的传参 */
+            Object[] params;
+
+            public MethodEntity(Method method) {
+                this.method = method;
+            }
+
+            public MethodEntity(Method method, Object... params) {
+                this.method = method;
+                this.params = params;
+            }
+
+            public Method getMethod() {
+                return method;
+            }
+
+            public void setParams(Object... params) {
+                this.params = params;
+            }
+
+            public Object[] getParams() {
+                return params;
+            }
+
+            public Object invoke(Object instance){
+                try {
+                    Object objectValue = this.method.invoke(instance,this.getParams());
+                    return objectValue;
+                } catch (IllegalAccessException e) {
+                    // TODO Auto-generated catch block
+                    throw new RuntimeException(String.format("该对象在更新方法中无法调用方法: %s", this.method.getName()));
+                } catch (IllegalArgumentException e) {
+                    // TODO Auto-generated catch block
+                    throw new RuntimeException(String.format("方法: %s对应的参数不符合要求, 参数列表: %s, 请检查", this.method.getName(),this.params.toString()));
+                } catch (InvocationTargetException e) {
+                    // TODO Auto-generated catch block
+                    throw new RuntimeException(e);
+                }
+            }
+            
+        }
+
+        public static class PropertyMethods<T>{
+
+            public Class<T> clazz = null;
+
+            public Method getMethod = null;
+
+            public Method setMethod = null;
+
+            public PropertyMethods(Class<T> clazz,MethodDefinition getMethodDefinition,MethodDefinition setMethodDefinition){
+ 
+                this.clazz = clazz;
+                String getMethodName = MethodUtils.getMethodName(getMethodDefinition.getMethodName());
+                String setMethodName = MethodUtils.setMethodName(setMethodDefinition.getMethodName());
+
+                try {
+                    Method getMethod = clazz.getMethod(getMethodName,getMethodDefinition.getParameterTypes());
+                    this.getMethod = getMethod;
+
+                    Method setMethod = clazz.getMethod(setMethodName,setMethodDefinition.getParameterTypes());
+                    this.setMethod = setMethod;
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(String.format("没有找到对应的方法, get方法名为: %s, set方法名为: %s", getMethodName,setMethodName));
+                } catch (SecurityException e) {
+                    throw new RuntimeException(String.format("类与方法不匹配, 类名为 :%s, get方法名为: %s, set方法名为: %s", clazz.getName(),getMethodName,setMethodName));
+                } catch (Exception e){
+                    throw new RuntimeException(String.format("出现其他异常, 异常信息为: %s", e.getMessage()));
+                }
+            }
+
+
+            public Class<T> getClazz() {
+                return clazz;
+            }
+
+
+            public Method getGetMethod() {
+                return getMethod;
+            }
+
+
+            public Method getSetMethod() {
+                return setMethod;
+            }
+
+
+            @Override
+            public int hashCode() {
+                final int prime = 31;
+                int result = 1;
+                result = prime * result + ((clazz == null) ? 0 : clazz.hashCode());
+                result = prime * result + ((getMethod == null) ? 0 : getMethod.hashCode());
+                result = prime * result + ((setMethod == null) ? 0 : setMethod.hashCode());
+                return result;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                PropertyMethods other = (PropertyMethods) obj;
+                if (clazz == null) {
+                    if (other.clazz != null)
+                        return false;
+                } else if (!clazz.equals(other.clazz))
+                    return false;
+                if (getMethod == null) {
+                    if (other.getMethod != null)
+                        return false;
+                } else if (!getMethod.equals(other.getMethod))
+                    return false;
+                if (setMethod == null) {
+                    if (other.setMethod != null)
+                        return false;
+                } else if (!setMethod.equals(other.setMethod))
+                    return false;
+                return true;
+            }
+
+        }
+        
     }
 
 
@@ -738,6 +1344,12 @@ public class ExcelUtils {
             //查找翻译
             TranslateEntity translateEntity = null;
             switch (transType) {
+                case ConstantInterface.CHINESE:
+                    translateEntity = translateMapper.selectById(entryInfoEntity.getZhTransId());
+                    if (Objects.nonNull(translateEntity)) {
+                        outputExcel.setTranslate(translateEntity.getTranslate());
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
                     if (Objects.nonNull(translateEntity)) {
@@ -795,7 +1407,10 @@ public class ExcelUtils {
      * heards：字段名也就是excel首行
      * excelName：sheet名
      */
-    public void getWorkBook(List<?> dataList, HttpServletResponse response, List<String> exportFields, List<String> heards, String excelName) {
+    public void getWorkBook(ByteArrayOutputStream byteArrayOutputStream,List<?> dataList, List<String> exportFields, List<String> heards, String excelName) {
+        if(byteArrayOutputStream == null){
+            throw new NullPointerException("byteArrayOutputStream == null");
+        }
         // 创建工作簿对象
         Workbook workbook = new XSSFWorkbook();
         // 创建工作表对象
@@ -880,6 +1495,7 @@ public class ExcelUtils {
             // 获取数据对象
             Object dataObj = dataList.get(rowIndex);
             // 遍历导出字段列表
+            CellStyle cellStyle = workbook.createCellStyle();
             for (int colIndex = 0; colIndex < exportFields.size(); colIndex++) {
                 String fieldName = exportFields.get(colIndex);
 
@@ -891,7 +1507,7 @@ public class ExcelUtils {
                     Object fieldValue = method.invoke(dataObj);
                     // 创建单元格并设置字段值
                     Cell dataCell = dataRow.createCell(colIndex);
-                    CellStyle cellStyle = workbook.createCellStyle();
+
                     cellStyle.setAlignment(HorizontalAlignment.CENTER);//设置水平居中
                     cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);//设置垂直居中
                     sheet.setColumnWidth(colIndex, 256 * 25 + 184);//设置宽度 这里的25对应excel中的列宽
@@ -915,7 +1531,8 @@ public class ExcelUtils {
                     } else if (fieldValue instanceof Number) {
                         dataCell.setCellValue(((Number) fieldValue).doubleValue());
                     } else if (fieldValue instanceof Date) {
-                        dataCell.setCellValue((Date) fieldValue);
+                        String dateString = LocalTimeUtils.formatForFile.format(fieldValue);
+                        dataCell.setCellValue(dateString);
                     } else if (fieldValue instanceof Boolean) {
                         dataCell.setCellValue((Boolean) fieldValue);
                     } else {
@@ -933,21 +1550,39 @@ public class ExcelUtils {
         }
 
 
-        // 设置响应头信息
         try {
-            excelName = URLEncoder.encode(excelName, "UTF-8");
-            response.setContentType("application/octet-stream;charset=UTF-8");
-            response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".xlsx");
-            response.addHeader("Pargam", "no-cache");
-            response.addHeader("Cache-Control", "no-cache");
-            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-
-            // 将工作簿写入响应输出流中
-            workbook.write(response.getOutputStream());
-            workbook.close();
+            // if(byteArrayOutputStream == null)
+            workbook.write(byteArrayOutputStream);
+            
         } catch (IOException e) {
-            e.printStackTrace();
+            // TODO Auto-generated catch block
+            log.error("向byte缓冲输出流写入数据时报错", e);
+
+        } finally{
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                log.error("关闭workbook的流时报错", e);
+            }
         }
+
+
+        // // 设置响应头信息
+        // try {
+            // excelName = URLEncoder.encode(excelName, "UTF-8");
+        //     response.setContentType("application/octet-stream;charset=UTF-8");
+        //     response.setHeader("Content-disposition", "attachment;filename=" + excelName + ".xlsx");
+        //     response.addHeader("Pargam", "no-cache");
+        //     response.addHeader("Cache-Control", "no-cache");
+        //     response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+        //     // 将工作簿写入响应输出流中
+        //     workbook.write(response.getOutputStream());
+        //     workbook.close();
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
     }
 
 
@@ -975,6 +1610,248 @@ public class ExcelUtils {
         // workbook.write(fos);
         return workbook;
 
+
+    }
+    /**
+     * CSV每个单元格文本的内容修正，如果text中存在'"'或','或特殊字符例如'\n'，则首尾添加'"',
+     * 如果text中出现一个'"',则再添加一个'""
+     * 
+     * @param text
+     * @return  如果{@code text}是null,则返回null；如果{@code text}是空字符串，则返回""；
+     */
+    public static String processStringToSaveForCSV(String text){
+        if(text == null){
+            return null;
+        }
+        int length = text.length();
+        if(length == 0){
+            return text;
+        }
+        StringBuilder builder = new StringBuilder();
+        boolean containsSpecialChar = false;
+        for(int i = 0; i < length ; i ++ ){
+            char nextChar = text.charAt(i);
+            if(nextChar == '"'){
+                builder.append("\"\"");
+                containsSpecialChar = true;
+            }else if(nextChar == ','){
+                containsSpecialChar = true;
+                builder.append(nextChar);
+            }else{
+                if(specialCharacterForCSV.contains(nextChar)){
+                    containsSpecialChar = true;
+                }
+                builder.append(nextChar);
+            }
+        }
+        if(containsSpecialChar){
+            return "\"" + builder.toString() + "\"";
+        }else{
+            return builder.toString();
+        }
+    }
+    /**
+     * 如果{@code textList}是null，则返回null；如果{@code textList}是空的，则返回"\n"；
+     * @param textList
+     * @return
+     */
+    public static String csvBuildLine(List<String> textList){
+        if(textList == null){
+            return null;
+        }
+        int size = textList.size();
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0 ; i < size ; i ++ ){
+            builder.append(processStringToSaveForCSV(textList.get(i)));
+            if(i + 1 != size){
+                builder.append(",");
+            }
+        }
+        builder.append("\n");
+        return builder.toString();
+    }
+
+    public static <T extends EntryInfoEntityForExcel> void csvBuildLines(List<String> entityLines,List<T> entities,List<Method> methodList){
+        if(entityLines == null){
+            throw new NullPointerException("entityLines == null");
+        }
+        for(EntryInfoEntityForExcel entity : entities){
+            if(entity == null){
+                continue;
+            }
+            List<String> entityContents = new ArrayList<>();
+            for(Method method : methodList){
+                try {
+                    method.invoke(entity);
+                    Object fieldValue = method.invoke(entity);
+                    if(fieldValue == null){
+                        entityContents.add("");
+                    }else{
+                        if(method.getReturnType() == Date.class){
+                            fieldValue = LocalTimeUtils.formatForFile.format(fieldValue);
+                        }
+                        entityContents.add(String.valueOf(fieldValue));
+                    }
+                }catch (IllegalArgumentException e){
+                    throw new RuntimeException("函数名: " + method.getName() + "在默认无参调用时报IllegalArgumentException异常");
+                }catch (SecurityException e) {
+                // TODO Auto-generated catch block
+                    throw new RuntimeException(e);
+                }catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+
+            }
+            String entityLine = csvBuildLine(entityContents);
+            if(entityLine == null){
+                throw new NullPointerException("entityLine为null");
+            }
+            entityLines.add(entityLine);
+        }
+        return ;
+    }
+
+    public <T extends EntryInfoEntityForExcel> List<String> exportEntitiesToCSV(List<T> entities,Class<T> classzz,List<String> exportFields,List<String> columnNames){
+        
+        // 设置响应头信息
+        try {
+            if(entities == null || exportFields == null || columnNames == null){
+                throw new RuntimeException("entities == null || exportFields == null || columnNames == null");
+            }
+            if(exportFields.size() != columnNames.size()){
+                throw new RuntimeException("exportFields.size() != columnNames.size()");
+            }
+            List<Method> methodList = new ArrayList<>(exportFields.size());
+            // 写header
+            String columnLine = csvBuildLine(columnNames);
+            if(columnLine == null || !columnLine.endsWith("\n")){
+                throw new NullPointerException("columnLine == null || !columnLine.endsWith(\"\n\")");
+            }
+            for(String field: exportFields){
+                String methodName = MethodUtils.getMethodName(field);
+                Method method = null;
+                try {
+                    method = classzz.getMethod(methodName);
+                    if(method == null){
+                        throw new NullPointerException("MethodUtils.getMethodName(field)返回结果为null, field: " + field);
+                    }
+                }catch (NoSuchMethodException e) {
+                        // TODO Auto-generated catch block
+                    throw new RuntimeException("没有名称为: " + methodName + "的方法");
+                } catch (Exception e) {
+                   throw new RuntimeException("获取methodName: " + methodName + "的方法时异常", e);
+                }
+                methodList.add(method);
+            }
+            // 写entities
+            List<String> contentLines = new ArrayList<>(entities.size() + 1);
+            contentLines.add(columnLine);
+            csvBuildLines(contentLines,entities, methodList);
+            return contentLines;
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        } finally{
+            // response.setContentType("application/octet-stream;charset=" + charsetName);
+            // response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".csv");
+            // response.addHeader("Pargam", "no-cache");
+            // response.addHeader("Cache-Control", "no-cache");
+            // response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            // /* outputstream流必须在header之后写 */
+            // try {
+            //     outputStream = response.getOutputStream();
+            //     if(columnLine != null) outputStream.write(columnLine.getBytes(charsetName));
+            //     if(entityLines != null){
+            //         for(String entityLine : entityLines){
+            //             outputStream.write(entityLine.getBytes(charsetName));
+            //         }
+            //     }
+            // }catch (Exception e){
+            //     log.error(null, e);
+            // } 
+        }
+    }
+
+
+    public <T> ParseFileInfo<T> parseFileToEntity(Class<T> clazz,InputStream in,String originalFilename,KeyValueArguments<String> kwargs){
+        try {
+            if(originalFilename.endsWith("csv")){
+                Map<String,String> keyValueMap = new HashMap<>();
+                if(kwargs == null){
+                    keyValueMap.put("emptyAsValue", String.valueOf(false));
+                    keyValueMap.put("encoding", "GBK");
+                }else{
+                    Boolean emptyAsValue = kwargs.get("emptyAsValue", Boolean.class);
+                    keyValueMap.put("emptyAsValue", emptyAsValue == null ? String.valueOf(false) : String.valueOf(emptyAsValue));
+                    String encoding = kwargs.get("encoding", String.class);
+                    keyValueMap.put("encoding", encoding == null || encoding.isEmpty() ? "GBK" : encoding);
+                }
+                return this.readCSVToEntity(clazz, in, originalFilename, keyValueMap);
+            }else if(originalFilename.endsWith(".xlsx")){
+                return this.readExcelToEntity(null, clazz, in, originalFilename);
+            }else{
+                throw new RuntimeException("不支持当前的文件格式, 文件不是csv和xlsx类型");
+            }                 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+   
+    }
+
+    public String[] getFileColumns(Row head){
+        short firstCellNum = head.getFirstCellNum();
+        short lastCellNum = head.getLastCellNum();
+        String[] columns = new String[lastCellNum - firstCellNum];
+        for(int cellIndex = firstCellNum; cellIndex < lastCellNum; cellIndex++){
+            Cell headCell = head.getCell(cellIndex);
+            String columnName = headCell.getStringCellValue();
+            columns[cellIndex - firstCellNum] = columnName;
+        }
+        return columns;
+    }
+
+    public <T> Collection<String> getAttributesByFileColumns(Map<String,String> columnNameAttributeMap,String[] columnLine){
+        Collection<String> attributes = new HashSet<>();
+        for(String columnName : columnLine){
+            columnNameAttributeMap.forEach((field,targetColumnName)->{
+                if(targetColumnName.equals(columnName)){
+                    attributes.add(field);
+                }
+            });
+        }   
+        return attributes;
+    }
+
+
+
+    public class ParseFileInfo<T>{
+
+        Collection<T> parsedObjects;
+
+        String[] columnName;
+
+        public ParseFileInfo() {
+        }
+
+        public ParseFileInfo(Collection<T> parsedObjects, String[] columnName) {
+            this.parsedObjects = parsedObjects;
+            this.columnName = columnName;
+        }
+
+        public Collection<T> getParsedObjects() {
+            return parsedObjects;
+        }
+
+        public String[] getColumnName() {
+            return columnName;
+        }
+
+        public void setParsedObjects(Collection<T> parsedObjects) {
+            this.parsedObjects = parsedObjects;
+        }
+
+        public void setColumnName(String[] columnName) {
+            this.columnName = columnName;
+        }
 
     }
 }

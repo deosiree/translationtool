@@ -44,4 +44,11 @@
             </if>
         </where>
     </select>
+
+    <select id="getProductByIDs" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_product where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")"> #{id,jdbcType=VARCHAR} </foreach>
+    </select>
 </mapper>

@@ -1,0 +1,707 @@
+[
+    {
+        "comments": "",
+        "source": " 登录失败，指纹仪初始化失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, fingerprint device initialization failed!",
+            "es_ES": "Inicio de sesión fallido, la inicialización del dispositivo de huella dactilar falló."
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，未进行初始化设置！！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, no initialization Settings!!",
+            "es_ES": "¡Fallo al cerrar sesión, no hay configuraciones de inicialización!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登出成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout successfully",
+            "es_ES": "Cierre de sesión con éxito"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，密码复杂度较低！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, password complexity is low!",
+            "es_ES": "¡Fallo al cerrar sesión, la complejidad de la contraseña es baja!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，双因子校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, double factor check failed!",
+            "es_ES": "¡Fallo al iniciar sesión, falló la verificación de doble factor!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码复杂度不够！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "The password complexity is not enough! user",
+            "es_ES": "¡La complejidad de la contraseña no es suficiente! usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，密码已失效！！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, password is invalid!!",
+            "es_ES": "¡Fallo al cerrar sesión, la contraseña es inválida!!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 密码重置成功！",
+        "tag": "",
+        "translation": {
+            "en_US": "Password reset successfully!",
+            "es_ES": "¡Restablecimiento de contraseña exitoso!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登出失败，密码已失效",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} failed to log out, password has expired",
+            "es_ES": "Usuario {} no pudo cerrar sesión, la contraseña ha expirado",
+            "ru_RU": "Пользователь {} не смог выйти, пароль истек"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，UKey初始化失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, UKey initialization failed",
+            "es_ES": "Error de inicio de sesión del usuario {}, fallo en la inicialización de UKey",
+            "ru_RU": "Вход пользователя {} не удался, инициализация UKey не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，未进行初始化设置！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, no initialization Settings!",
+            "es_ES": "Fallo al iniciar sesión, ¡no se configuraron ajustes!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，双因子校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Log out failed, double factor check failed!",
+            "es_ES": "¡Fallo al cerrar sesión, falló la verificación de doble factor!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录信息生成失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to generate login information!",
+            "es_ES": "Fallo al generar la información de inicio de sesión!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 密码重置成功",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} password reset successful",
+            "es_ES": "Usuario {} restablecimiento de contraseña exitoso",
+            "ru_RU": "Пользователь {}: успешный сброс пароля"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码已使用，请修改，用户 {} 密码重置失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Password has been used, please change it. User {}'s password reset failed",
+            "es_ES": "La contraseña ha sido utilizada, por favor cámbiela. Falló el restablecimiento de contraseña del usuario {}",
+            "ru_RU": "Пароль уже использован, пожалуйста, измените его. Сброс пароля пользователя {} не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码重置",
+        "tag": "",
+        "translation": {
+            "en_US": "Password Reset",
+            "es_ES": "Restablecimiento de contraseña"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 已登录，登录失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logged in, login failed!",
+            "es_ES": "¡Sesión iniciada, inicio de sesión fallido!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码复杂度不够，用户 {} 密码重置失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Insufficient password complexity, user {} password reset failed",
+            "es_ES": "Complejidad de contraseña insuficiente, error al restablecer la contraseña del usuario {}",
+            "ru_RU": "Недостаточная сложность пароля, сброс пароля пользователя {} не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，密码复杂度较低",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, password complexity is low",
+            "es_ES": "Error de inicio de sesión del usuario {}, la complejidad de la contraseña es baja",
+            "ru_RU": "Вход пользователя {} не удался, низкая сложность пароля"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 已登录，登录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} is already logged in; login failed",
+            "es_ES": "Usuario {} ha iniciado sesión, inicio de sesión fallido",
+            "ru_RU": "Пользователь {} вошел, вход не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登出失败，已被锁定",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} failed to log out and has been locked",
+            "es_ES": "El usuario {} no pudo cerrar sesión y ha sido bloqueado",
+            "ru_RU": "Пользователь {} не смог выйти и был заблокирован"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，APP不可多次登录",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, APP cannot log in multiple times",
+            "es_ES": "Error de inicio de sesión del usuario {}, la APP no puede iniciar sesión varias veces",
+            "ru_RU": "Вход пользователя {} не удался, приложение не поддерживает множественный вход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点：",
+        "tag": "",
+        "translation": {
+            "en_US": "Node:",
+            "es_ES": "Nodo:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]工具[{}]用户[{}]登录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] Tool [{}] User [{}] Login Successful",
+            "es_ES": "Nodo [{}] Herramienta [{}] Usuario [{}] Inicio de sesión exitoso",
+            "ru_RU": "Узел [{}] Инструмент [{}] Пользователь [{}] Вход успешен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，双因子校验失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed; two-factor verification failed",
+            "es_ES": "Error de inicio de sesión del usuario {}, falló la verificación de dos factores",
+            "ru_RU": "Сбой входа пользователя {}; не пройдена двухфакторная проверка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码生成失败！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Password generation failed! user",
+            "es_ES": "¡Generación de contraseña fallida! usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登出失败，密码复杂度较低",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} failed to log out due to low password complexity",
+            "es_ES": "Usuario {} no pudo cerrar sesión, baja complejidad de contraseña",
+            "ru_RU": "Выход пользователя {} не выполнен из-за низкой сложности пароля"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登出失败，双因子校验失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} failed to log out; two-factor verification failed",
+            "es_ES": "Error al cerrar sesión del usuario {}, falló la verificación de dos factores",
+            "ru_RU": "Пользователь {} не смог выйти, двухфакторная проверка не пройдена"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，密码复杂度较低！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failure, password complexity is low!",
+            "es_ES": "Error de inicio de sesión, ¡la complejidad de la contraseña es baja!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，指纹校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, fingerprint verification failed!",
+            "es_ES": "¡Fallo de inicio de sesión, falló la verificación de huella dactilar!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，用户信息认证失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, user info auth failed",
+            "es_ES": "Fallo de inicio de sesión del usuario {}, falló la autenticación de la información del usuario",
+            "ru_RU": "Пользователь {}: сбой входа, сбой аутентификации информации о пользователе"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点：{} 工具：{} 用户：{} 登录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: {} Tool: {} User: {} login successful",
+            "es_ES": "Nodo: {} herramientas: {} usuario: {} inicio de sesión exitoso"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Login successfully",
+            "es_ES": "Inicio de sesión exitoso"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户：",
+        "tag": "",
+        "translation": {
+            "en_US": "Users:",
+            "es_ES": "Usuarios:"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Log out failed!",
+            "es_ES": "¡Fallo al cerrar sesión!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，用户未录入指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed; the user has not registered a fingerprint",
+            "es_ES": "Fallo en el inicio de sesión del usuario {}, el usuario no ingresó la huella digital",
+            "ru_RU": "Вход пользователя {} не удался, пользователь не ввел отпечаток"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 密码重置失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} password reset failed",
+            "es_ES": "Fallo en el restablecimiento de contraseña del usuario {}",
+            "ru_RU": "Сброс пароля пользователя {} не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed",
+            "es_ES": "Fallo de inicio de sesión"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败。",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed.",
+            "es_ES": "Fallo al iniciar sesión."
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，已被锁定！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, locked!",
+            "es_ES": "Fallo al iniciar sesión, ¡bloqueado!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出成功！",
+        "tag": "",
+        "translation": {
+            "en_US": " logout successful！",
+            "es_ES": " ¡Cierre de sesión exitoso!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，UKey校验失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failure, UKey verification failure!",
+            "es_ES": "Error de inicio de sesión, ¡fallo de verificación UKey!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点：{} 工具：{} 用户：{} 登出成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Node: {} Tool: {} User: {} Logout successful",
+            "es_ES": "Nodo: {} herramienta: {} usuario: {} se ha iniciado sesión con éxito"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，密码已失效",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, password has expired",
+            "es_ES": "Error de inicio de sesión del usuario {}, la contraseña ha expirado",
+            "ru_RU": "Пользователь {}: сбой входа, срок действия пароля истек"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，UKey校验失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, UKey verification failed",
+            "es_ES": "Falló el inicio de sesión del usuario {}, falló la verificación de UKey",
+            "ru_RU": "Вход пользователя {} не удался, проверка UKey не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限校验失败！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Permission verification failed! user",
+            "es_ES": "¡Error en la verificación de permisos! El usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码已使用过，请勿重复使用！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Password has been used, do not reuse! user",
+            "es_ES": "¡La contraseña ha sido utilizada, no la reutilices! usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 异常登录访问， 认证失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} attempted abnormal login; auth failed",
+            "ru_RU": "Пользователь {}: аномальный доступ при входе, сбой аутентификации"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，密码已失效！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, password is invalid!",
+            "es_ES": "¡Fallo de inicio de sesión, la contraseña es inválida!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，已被锁定",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed and has been locked",
+            "es_ES": "El inicio de sesión del usuario {} falló y ha sido bloqueado",
+            "ru_RU": "Вход пользователя {} не удался и пользователь заблокирован"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码生成失败，用户 {} 密码重置失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Password generation failed, user {} password reset failed",
+            "es_ES": "Error en la generación de contraseña, usuario {} no pudo restablecer la contraseña",
+            "ru_RU": "Генерация пароля не удалась, сброс пароля пользователя {} не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登出成功",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} successfully logged out",
+            "es_ES": "Usuario {} cerró sesión exitosamente",
+            "ru_RU": "Пользователь {} успешно вышел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名或密码错误，用户 {} 登录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Username or password error; user {} login failed",
+            "es_ES": "Error de nombre de usuario o contraseña, usuario {} inicio de sesión fallido",
+            "ru_RU": "Неверное имя пользователя или пароль. Вход пользователя {} не выполнен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名或密码错误！用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "Incorrect username or password! user",
+            "es_ES": "¡Nombre de usuario o contraseña incorrectos! usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]工具[{}]用户[{}]登出成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] Tool [{}] User [{}] Logged out successfully",
+            "es_ES": "Nodo [{}] Herramienta [{}] Usuario [{}] Cierre de sesión exitoso",
+            "ru_RU": "Узел [{}], инструмент [{}], пользователь [{}] успешно вышел из системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 密码重置失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Password reset failed!",
+            "es_ES": "¡Fallo en el restablecimiento de la contraseña!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户名或密码错误，用户 {} 登出失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Username or password error; user {} failed to log out",
+            "es_ES": "Error de nombre de usuario o contraseña, usuario {} no pudo cerrar sesión",
+            "ru_RU": "Ошибка имени пользователя или пароля, пользователь {} не смог выйти"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登出失败，已被锁定！！",
+        "tag": "",
+        "translation": {
+            "en_US": "Logout failed, locked!!",
+            "es_ES": "¡Fallo al cerrar sesión, bloqueado!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限校验失败，用户 {} 登录失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Permission verification failed, user {} login failed",
+            "es_ES": "La verificación de permisos falló, el inicio de sesión del usuario {} falló",
+            "ru_RU": "Сбой проверки прав доступа, сбой входа пользователя: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，指纹校验失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, fingerprint verification failed",
+            "es_ES": "Fallo en el inicio de sesión del usuario {}, fallo en la verificación de huella digital",
+            "ru_RU": "Вход пользователя {} не удался, проверка отпечатка не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录信息生成失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login info generation failed",
+            "es_ES": "Fallo en la generación de información de inicio de sesión del usuario {}",
+            "ru_RU": "Генерация информации для входа пользователя {} не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，指纹仪初始化失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed, fingerprint scanner initialization failed",
+            "es_ES": "Usuario {} falló al iniciar sesión, fallo en la inicialización del escáner de huellas dactilares",
+            "ru_RU": "Вход пользователя {} не удался, инициализация сканера отпечатков не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，UKey初始化失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, UKey initialization failed!",
+            "es_ES": "Fallo de inicio de sesión, falló la inicialización de UKey."
+        }
+    },
+    {
+        "comments": "",
+        "source": "工具：",
+        "tag": "",
+        "translation": {
+            "en_US": "Tool:",
+            "es_ES": "Herramienta:"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 身份认证失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Authentication failed!",
+            "es_ES": "¡Autenticación fallida!"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，APP不允许多次登录！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, APP does not allow multiple logins!",
+            "es_ES": "¡Fallo de inicio de sesión, la aplicación no permite múltiples inicios de sesión!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登出失败，用户密码未初始化",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} failed to log out; the user password has not been initialized",
+            "es_ES": "Fallo en el cierre de sesión del usuario {}, la contraseña del usuario no está inicializada",
+            "ru_RU": "Сбой выхода пользователя {}; пароль пользователя не инициализирован"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，用户未录入指纹！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, user did not enter fingerprint!",
+            "es_ES": "¡Fallo de inicio de sesión, el usuario no ingresó la huella dactilar!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户注销",
+        "tag": "",
+        "translation": {
+            "en_US": "User logout",
+            "es_ES": "Cierre de sesión del usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，未进行初始化设置",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed due to missing initialization settings",
+            "es_ES": "Error de inicio de sesión del usuario {} sin configuraciones de inicialización",
+            "ru_RU": "Вход пользователя {} не удался без настроек инициализации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 认证失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} auth failed",
+            "es_ES": "Error de autenticación del usuario {}",
+            "ru_RU": "Аутентификация пользователя {} не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 {} 登录失败，用户录入UKey与实际不匹配",
+        "tag": "",
+        "translation": {
+            "en_US": "User {} login failed; the entered UKey does not match the actual one",
+            "ru_RU": "Сбой входа пользователя {}; введенный UKey не соответствует действительному"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户 ",
+        "tag": "",
+        "translation": {
+            "en_US": "User",
+            "es_ES": "Usuario"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 登录失败，用户认证信息错误！",
+        "tag": "",
+        "translation": {
+            "en_US": "Login failed, user authentication information is incorrect!",
+            "es_ES": "Fallo de inicio de sesión, la información de autenticación del usuario es incorrecta."
+        }
+    }
+]

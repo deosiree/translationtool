@@ -1,0 +1,376 @@
+[
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离内网应用",
+            "tag": "AppDef/desc",
+            "translation": {
+                "ru_RU": "Приложение внутренней сети через одностороннюю изоляцию прямого направления"
+            }
+        },
+        "interpretation": "译文长度:143,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离内网应用",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Приложение внутренней сети через одностороннюю изоляцию прямого направления"
+            }
+        },
+        "interpretation": "译文长度:143,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离外网应用",
+            "tag": "AppDef/desc",
+            "translation": {
+                "ru_RU": "Приложение внешней сети через одностороннюю изоляцию прямого направления"
+            }
+        },
+        "interpretation": "译文长度:137,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离外网应用",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Приложение внешней сети через одностороннюю изоляцию прямого направления"
+            }
+        },
+        "interpretation": "译文长度:137,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史秒级采样服务",
+            "tag": "ProcDef/desc",
+            "translation": {
+                "ru_RU": "Сервис выборки исторических данных второго уровня"
+            }
+        },
+        "interpretation": "译文长度:93,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史秒级采样服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Сервис выборки исторических данных второго уровня"
+            }
+        },
+        "interpretation": "译文长度:93,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史重统计服务",
+            "tag": "ProcDef/desc",
+            "translation": {
+                "ru_RU": "Служба пересчета исторических данных"
+            }
+        },
+        "interpretation": "译文长度:69,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史重统计服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Служба пересчета исторических данных"
+            }
+        },
+        "interpretation": "译文长度:69,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "文件异步传输服务",
+            "tag": "ProcDef/desc",
+            "translation": {
+                "ru_RU": "Служба асинхронной передачи файлов"
+            }
+        },
+        "interpretation": "译文长度:65,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "文件异步传输服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Служба асинхронной передачи файлов"
+            }
+        },
+        "interpretation": "译文长度:65,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离内网服务",
+            "tag": "ProcDef/desc",
+            "translation": {
+                "ru_RU": "Сервис внутренней сети через одностороннюю изоляцию прямого направления"
+            }
+        },
+        "interpretation": "译文长度:135,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离内网服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Сервис внутренней сети через одностороннюю изоляцию прямого направления"
+            }
+        },
+        "interpretation": "译文长度:135,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "对等现场转发服务",
+            "tag": "ProcDef/desc",
+            "translation": {
+                "ru_RU": "Одноранговый сервис пересылки на площадке"
+            }
+        },
+        "interpretation": "译文长度:78,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "对等现场转发服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Одноранговый сервис пересылки на площадке"
+            }
+        },
+        "interpretation": "译文长度:78,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离外网服务",
+            "tag": "ProcDef/desc",
+            "translation": {
+                "ru_RU": "Служба исходящего трафика во внешнюю сеть через одностороннюю изоляцию"
+            }
+        },
+        "interpretation": "译文长度:132,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "跨正向隔离外网服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Служба исходящего трафика во внешнюю сеть через одностороннюю изоляцию"
+            }
+        },
+        "interpretation": "译文长度:132,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "网络消息传输 app",
+            "tag": "CoreProc/desc",
+            "translation": {
+                "ru_RU": "Приложение для передачи сообщений по сети"
+            }
+        },
+        "interpretation": "译文长度:77,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "网络消息传输 app",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Приложение для передачи сообщений по сети"
+            }
+        },
+        "interpretation": "译文长度:77,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "文件异步传输服务",
+            "tag": "SvcProc/desc",
+            "translation": {
+                "ru_RU": "Асинхронная служба передачи файлов"
+            }
+        },
+        "interpretation": "译文长度:65,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "文件异步传输服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Асинхронная служба передачи файлов"
+            }
+        },
+        "interpretation": "译文长度:65,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史秒级采样服务",
+            "tag": "SvcProc/desc",
+            "translation": {
+                "ru_RU": "Служба посекундной исторической дискретизации"
+            }
+        },
+        "interpretation": "译文长度:87,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史秒级采样服务",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Служба посекундной исторической дискретизации"
+            }
+        },
+        "interpretation": "译文长度:87,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史库表信息配置",
+            "tag": "Conf/desc",
+            "translation": {
+                "ru_RU": "Конфигурация таблиц HDB (историческая база данных)"
+            }
+        },
+        "interpretation": "译文长度:90,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "历史库表信息配置",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Конфигурация таблиц HDB (историческая база данных)"
+            }
+        },
+        "interpretation": "译文长度:90,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "审计日志保存时(月)",
+            "tag": "ConfInfo/desc",
+            "translation": {
+                "ru_RU": "Время сохранения журнала аудита (месяц)"
+            }
+        },
+        "interpretation": "译文长度:72,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "审计日志保存时(月)",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Время сохранения журнала аудита (месяц)"
+            }
+        },
+        "interpretation": "译文长度:72,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "审计容量告警比例",
+            "tag": "ConfInfo/desc",
+            "translation": {
+                "ru_RU": "Процент предупреждения о ёмкости аудита"
+            }
+        },
+        "interpretation": "译文长度:74,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "审计容量告警比例",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Процент предупреждения о ёмкости аудита"
+            }
+        },
+        "interpretation": "译文长度:74,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "完整性保护检测周期",
+            "tag": "ConfInfo/desc",
+            "translation": {
+                "ru_RU": "Период проверки защиты целостности"
+            }
+        },
+        "interpretation": "译文长度:65,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "完整性保护检测周期",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Период проверки защиты целостности"
+            }
+        },
+        "interpretation": "译文长度:65,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "完整性保护日志级别",
+            "tag": "ConfInfo/desc",
+            "translation": {
+                "ru_RU": "Уровень журналов защиты целостности"
+            }
+        },
+        "interpretation": "译文长度:67,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "完整性保护日志级别",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Уровень журналов защиты целостности"
+            }
+        },
+        "interpretation": "译文长度:67,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "完整性保护日志天数",
+            "tag": "ConfInfo/desc",
+            "translation": {
+                "ru_RU": "Количество дней хранения журналов защиты целостности"
+            }
+        },
+        "interpretation": "译文长度:99,限制:64"
+    },
+    {
+        "entry": {
+            "comments": "",
+            "source": "完整性保护日志天数",
+            "tag": "",
+            "translation": {
+                "ru_RU": "Количество дней хранения журналов защиты целостности"
+            }
+        },
+        "interpretation": "译文长度:99,限制:64"
+    }
+]

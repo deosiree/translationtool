@@ -1,0 +1,70 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal operation",
+            "es_ES": "Operación normal",
+            "ru_RU": "Нормальная работа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化网络事件失败，退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize net events, exit",
+            "es_ES": "Fallo al inicializar los eventos de red, salir",
+            "ru_RU": "Не удалось инициализировать сетевые события, выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化时序库失败，重连中...",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize the STDB, reconnecting...",
+            "es_ES": "Fallo al inicializar el TDB, reconectando...",
+            "ru_RU": "Не удалось инициализировать STDB, повторное подключение..."
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化数据库失败，退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize the db, exit",
+            "es_ES": "Fallo al inicializar la base de datos, salir",
+            "ru_RU": "Не удалось инициализировать базу данных, выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit",
+            "es_ES": "Salir normalmente",
+            "ru_RU": "Нормальный выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup successfully",
+            "es_ES": "iniciado con éxito",
+            "ru_RU": "Успешный запуск"
+        }
+    }
+]

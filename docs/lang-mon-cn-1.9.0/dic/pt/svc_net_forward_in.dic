@@ -1,0 +1,34 @@
+[
+    {
+        "comments": "",
+        "source": "从现场[{}]接收节点状态查询回复失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "向现场[{}]发送节点状态查询报文失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "从现场[{}]接收节点状态查询回复失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "内网跨正向隔离服务准备退出,对端现场[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

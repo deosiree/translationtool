@@ -1,0 +1,50 @@
+[
+    {
+        "comments": "",
+        "source": "CIME文件导出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点:%1 进程:%2 PID:%3 ",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "CIME文件导出成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "G文件导出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点:%1 进程:%2 PID:%3 ",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "G文件导出成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

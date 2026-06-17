@@ -176,4 +176,17 @@ public class TaskInfoEntity implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    public static class TaskInfoEntityVO extends TaskInfoEntity{
+
+        public String codeBranch;
+
+        public String getCodeBranch() {
+            return codeBranch;
+        }
+
+        public void setCodeBranch(String codeBranch) {
+            this.codeBranch = codeBranch;
+        }
+    }
 }

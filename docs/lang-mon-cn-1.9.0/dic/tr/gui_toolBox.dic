@@ -1,0 +1,60 @@
+[
+    {
+        "comments": "",
+        "source": "相同路径的实际目录已存在，为避免托管状态变化，不插入配置",
+        "tag": "",
+        "translation": {
+            "en_US": "The actual dir with the same path already exists, to avoid changes in the managed state, the config is not inserted.",
+            "es_ES": "El directorio real con la misma ruta ya existe. Para evitar cambios en el estado gestionado, no se inserta la configuración.",
+            "ru_RU": "Фактическая директория с тем же путем уже существует. Во избежание изменений в управляемом состоянии конфигурация не вставлена."
+        }
+    },
+    {
+        "comments": "",
+        "source": "网关机监视工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Gateway monitor"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基础配置工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Basic config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统还原工具",
+        "tag": "",
+        "translation": {
+            "en_US": "System restore"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网关机配置工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Gateway config"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理界面",
+        "tag": "",
+        "translation": {
+            "en_US": "System manager"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统备份工具",
+        "tag": "",
+        "translation": {
+            "en_US": "System backup"
+        }
+    }
+]

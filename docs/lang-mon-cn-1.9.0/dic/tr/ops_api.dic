@@ -1,0 +1,82 @@
+[
+    {
+        "comments": "",
+        "source": "日志等级设置成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Log level setting succeeded",
+            "ru_RU": "Установка уровня журнала выполнена успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日志等级失效时间(单位：秒)",
+        "tag": "",
+        "translation": {
+            "en_US": "Log level invalidation time (unit: seconds)",
+            "ru_RU": "Время истечения уровня журнала (единица: с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数无效",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid param",
+            "ru_RU": "Недействительный параметр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "设置日志等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Set log level",
+            "ru_RU": "Настройка уровня журнала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日志等级枚举(整数值，如 Debug：1)",
+        "tag": "",
+        "translation": {
+            "en_US": "Log level enumeration (integer value, e.g., Debug: 1)",
+            "ru_RU": "Перечисление уровня журнала (целочисленное значение, например Debug: 1)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "outTimeS参数无效",
+        "tag": "",
+        "translation": {
+            "en_US": "outTimeS param is invalid",
+            "ru_RU": "Недействительный параметр outTimeS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数丢失，日志等级设置失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Parameter lost, log level setting failed",
+            "ru_RU": "Отсутствуют параметры, сбой настройки уровня журнала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "level参数无效",
+        "tag": "",
+        "translation": {
+            "en_US": "level param is invalid",
+            "ru_RU": "Недействительный параметр уровня"
+        }
+    }
+]

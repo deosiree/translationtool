@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <!-- 自定义变量 -->
+    <property name="appName" value="syhr-logback" />
+    <property name="dev.log.filePath" value="log"/>
+    <!-- 日志文件名称, 可随便命名 -->
+    <property name="baseFile" value="syhr-logback" />
+
+    <!-- 项目所在盘符的根目录下, 也可以指定具体盘符位置, 如：E:\\app\\ouyangjun-logback\\logs -->
+    <property name="rootPath" value="/home/shr/translationtoolservice/logs" />
+
+    <!-- 日志输出格式 -->
+    <property name="pattern" value="%X{thread} [%date{yyyy-MM-dd HH:mm:ss.SSS}] %level %logger{36} %line - %msg%n"/>
+
+    <!-- 设置上下文名称 -->
+    <contextName>${appName}</contextName>
+
+    <!-- 把日志在控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+
+            <!-- 设置字符集 -->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <!--输出INFO日志-->
+    <appender name="INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${dev.log.filePath}/info/translationtoolserviceinfo.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印INFO日志 -->
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--输出ERROR日志-->
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${dev.log.filePath}/error/translationtoolserviceinfo.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印ERROR日志 -->
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--输出WARN日志-->
+    <appender name="WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${dev.log.filePath}/warn/translationtoolserviceinfo.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印WARN日志 -->
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <root level="debug">
+        <!-- 生产环境,可以不需要再控制台输出日志 -->
+        <appender-ref ref="STDOUT" />
+
+        <!-- 异步输出日志到磁盘文件中 -->
+        <appender-ref ref="INFO" />
+
+        <!-- 错误文件,需要实时输出到磁盘中 -->
+        <appender-ref ref="ERROR" />
+
+        <appender-ref ref="WARN" />
+
+
+
+    </root>
+
+</configuration>

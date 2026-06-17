@@ -1,0 +1,2239 @@
+[
+    {
+        "comments": "",
+        "source": "实时库定义",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB definition",
+            "es_ES": "Definición de TDB",
+            "ru_RU": "Определение RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属应用定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned App definition",
+            "es_ES": "Definición de la aplicación asignada",
+            "ru_RU": "Назначённое определение приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前重启次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Current restart times",
+            "es_ES": "Número actual de reinicios",
+            "ru_RU": "Текущее количество перезапусков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日志等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Log level",
+            "es_ES": "Nivel de registro",
+            "ru_RU": "Уровень журнала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app0",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app0",
+            "es_ES": "Iniciar nodo local dependiente App_App0",
+            "ru_RU": "Запуск зависимого приложения этого узла_app0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType3",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType3",
+            "es_ES": "siteType3",
+            "ru_RU": "siteType3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Node",
+            "es_ES": "Nodo",
+            "ru_RU": "Узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType1",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site_siteType1",
+            "es_ES": "Sitio efectivo_siteType1",
+            "ru_RU": "Действующий сайт_siteType1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app5",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app5",
+            "es_ES": "Iniciar nodo local dependiente App_App5",
+            "ru_RU": "Запуск зависимого приложения этого узла_app5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "固定事件号",
+        "tag": "",
+        "translation": {
+            "en_US": "Fixed event ID",
+            "es_ES": "ID de evento fijo",
+            "ru_RU": "Фиксированный идентификатор события"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库正在装库标志",
+        "tag": "",
+        "translation": {
+            "en_US": "Load DB Flag",
+            "es_ES": "Indicador de Carga de BD",
+            "ru_RU": "Флаг загрузки DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType8",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType8",
+            "es_ES": "siteType8",
+            "ru_RU": "siteType8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Type",
+            "es_ES": "Tipo",
+            "ru_RU": "Тип"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak2",
+        "tag": "",
+        "translation": {
+            "en_US": "bak2",
+            "es_ES": "bak2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak7",
+        "tag": "",
+        "translation": {
+            "en_US": "bak7",
+            "es_ES": "bak7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "健康状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Health status",
+            "es_ES": "Estado de salud",
+            "ru_RU": "Состояние здоровья"
+        }
+    },
+    {
+        "comments": "",
+        "source": "扩展实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "Extended instance No.",
+            "es_ES": "Número extendido de instancia",
+            "ru_RU": "Номер расширенного экземпляра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用故障时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance app fault time",
+            "es_ES": "Tiempo de falla de la aplicación de maint.",
+            "ru_RU": "Время сбоя приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "态",
+        "tag": "",
+        "translation": {
+            "en_US": "Mode",
+            "es_ES": "Modo",
+            "ru_RU": "Mode"
+        }
+    },
+    {
+        "comments": "",
+        "source": "依赖的应用定义",
+        "tag": "",
+        "translation": {
+            "en_US": "App definition of dependencies",
+            "es_ES": "Definición de dependencias de la aplicación",
+            "ru_RU": "Определение зависимого приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app5",
+        "tag": "",
+        "translation": {
+            "en_US": "app5",
+            "es_ES": "app5",
+            "ru_RU": "app5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "版本号",
+        "tag": "",
+        "translation": {
+            "en_US": "Version",
+            "es_ES": "No. de versión",
+            "ru_RU": "Номер версии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app2",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app2",
+            "es_ES": "Iniciar sitio local dependiente App_App2",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType9",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType9",
+            "es_ES": "Sitio inválido_siteType9",
+            "ru_RU": "Invalid site_siteType9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不检查进程心跳",
+        "tag": "",
+        "translation": {
+            "en_US": "Disable process heartbeat check",
+            "es_ES": "Desactivar la verificación del latido del proceso",
+            "ru_RU": "Отключить проверку heartbeat процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr status",
+            "es_ES": "Estado del gestor del sistema",
+            "ru_RU": "Sysmgr status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "R-RTDB (Running Real-Time DataBase)",
+            "es_ES": "RTDB",
+            "ru_RU": "R-RTDB (Running Real-Time DataBase)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动稳定时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup stability time",
+            "es_ES": "Tiempo de estabilidad al inicio",
+            "ru_RU": "Время стабильности запуска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak3",
+        "tag": "",
+        "translation": {
+            "en_US": "bak3",
+            "es_ES": "bak3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用模块",
+        "tag": "",
+        "translation": {
+            "en_US": "App module",
+            "es_ES": "Módulo de la aplicación",
+            "ru_RU": "Модуль приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak8",
+        "tag": "",
+        "translation": {
+            "en_US": "bak8",
+            "es_ES": "bak8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用部署",
+        "tag": "",
+        "translation": {
+            "en_US": "App Deployment",
+            "es_ES": "Despliegue de la aplicación",
+            "ru_RU": "Развёртывание приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启用音响",
+        "tag": "",
+        "translation": {
+            "en_US": "Enable audio",
+            "es_ES": "Habilitar audio",
+            "ru_RU": "Включить звук"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType7",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site_siteType7",
+            "es_ES": "Sitio efectivo_siteType7",
+            "ru_RU": "Действующий сайт_siteType7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大重启次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum restarts",
+            "es_ES": "Máximo de reinicios",
+            "ru_RU": "Максимальное количество перезапусков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务功能项",
+        "tag": "",
+        "translation": {
+            "en_US": "Service function item",
+            "es_ES": "Elemento de función de servicio",
+            "ru_RU": "Функция службы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用是否正在操作",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether the maintenance application is in operation",
+            "es_ES": "Verificar si la aplicación de maint. está en operación",
+            "ru_RU": "Проверить выполнение операции приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用实时库配置",
+        "tag": "",
+        "translation": {
+            "en_US": "A-RTDB",
+            "es_ES": "TDB",
+            "ru_RU": "A-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType2",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType2",
+            "es_ES": "siteType2",
+            "ru_RU": "siteType2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平台配置包",
+        "tag": "",
+        "translation": {
+            "en_US": "Platform Config Package",
+            "es_ES": "Paquete de configuración de plataforma",
+            "ru_RU": "Пакет конфигурации платформы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Service process",
+            "es_ES": "Proceso de servicio",
+            "ru_RU": "Процесс службы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app0",
+        "tag": "",
+        "translation": {
+            "en_US": "app0",
+            "es_ES": "app0",
+            "ru_RU": "app0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Duty node",
+            "es_ES": "Nodo de turno",
+            "ru_RU": "Дежурный узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否存在维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "M-RTDB exists",
+            "es_ES": "MTDB existe",
+            "ru_RU": "Наличие M-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app1",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app1",
+            "es_ES": "Iniciar nodo local dependiente App_App1",
+            "ru_RU": "Запуск зависимого приложения этого узла_app1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班优先级",
+        "tag": "",
+        "translation": {
+            "en_US": "Duty priority",
+            "es_ES": "Prioridad de turno",
+            "ru_RU": "Приоритет дежурства"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件操作项定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event action item definition",
+            "es_ES": "Definición de ítem de acción de evento",
+            "ru_RU": "Определение элементов операций событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType7",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType7",
+            "es_ES": "siteType7",
+            "ru_RU": "siteType7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点虚拟/交换机ip1",
+        "tag": "",
+        "translation": {
+            "en_US": "Node virtual/switch ip1",
+            "es_ES": "Nodo virtual/interruptor ip1",
+            "ru_RU": "Виртуальный / коммутаторный ip1 узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动稳定时间[s]",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup stability time [s]",
+            "es_ES": "Tiempo de estabilidad de inicio [s]",
+            "ru_RU": "Время стабилизации после запуска [с]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否随应用扩展",
+        "tag": "",
+        "translation": {
+            "en_US": "Extend by App",
+            "es_ES": "Extender por aplicación",
+            "ru_RU": "Расширять вместе с приложением"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值",
+        "tag": "",
+        "translation": {
+            "en_US": "Value",
+            "es_ES": "Valor",
+            "ru_RU": "Значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重启策略",
+        "tag": "",
+        "translation": {
+            "en_US": "Restart strategy",
+            "es_ES": "Estrategia de reinicio",
+            "ru_RU": "Политика перезапуска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "固定id",
+        "tag": "",
+        "translation": {
+            "en_US": "Fixed ID",
+            "es_ES": "ID fijo",
+            "ru_RU": "Фиксированный ID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "态定义",
+        "tag": "",
+        "translation": {
+            "en_US": "State Definition",
+            "es_ES": "Definición del Estado",
+            "ru_RU": "Определение Статуса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件功能项配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Function Item Config",
+            "es_ES": "Config del ítem de función de evento",
+            "ru_RU": "Конфигурация элементов функций событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "程序路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Program path",
+            "es_ES": "Ruta del programa",
+            "ru_RU": "Путь программы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否为目的现场节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Dest on-site node",
+            "es_ES": "Nodo de destino del sitio",
+            "ru_RU": "Целевой узел целевой площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启用故障恢复",
+        "tag": "",
+        "translation": {
+            "en_US": "Enable fault recovery",
+            "es_ES": "Habilitar recuperación de fallos",
+            "ru_RU": "Включить восстановление после сбоев"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak1",
+        "tag": "",
+        "translation": {
+            "en_US": "bak1",
+            "es_ES": "bak1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType1",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType1",
+            "es_ES": "Sitio inválido_siteType1",
+            "ru_RU": "Invalid site_siteType1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak6",
+        "tag": "",
+        "translation": {
+            "en_US": "bak6",
+            "es_ES": "bak6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB",
+            "es_ES": "TDB",
+            "ru_RU": "RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Source field name",
+            "es_ES": "Nombre del campo de origen",
+            "ru_RU": "Имя исходной площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app9",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app9",
+            "es_ES": "Iniciar nodo local dependiente App_App9",
+            "ru_RU": "Запуск зависимого приложения этого узла_app9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Status description",
+        "tag": "",
+        "translation": {
+            "en_US": "Status description",
+            "ru_RU": "Status description"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连通状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Connected status",
+            "es_ES": "Estado conectado",
+            "ru_RU": "Статус подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件功能项定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event function definition",
+            "es_ES": "Definición de función de evento",
+            "ru_RU": "Определение элементов функций событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app7",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app7",
+            "es_ES": "Inicia la aplicación local dependiente_app7",
+            "ru_RU": "Запуск зависимого приложения этого узла_app7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Config",
+            "es_ES": "Configuraciones",
+            "ru_RU": "Конфиг"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Type of valid site",
+            "es_ES": "Tipo de sitio válido",
+            "ru_RU": "Тип площадки вступления в силу"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app4",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app4",
+            "es_ES": "Iniciar nodo local dependiente App_App4",
+            "ru_RU": "Запуск зависимого приложения этого узла_app4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "心跳",
+        "tag": "",
+        "translation": {
+            "en_US": "Heartbeat",
+            "es_ES": "Latido del corazón",
+            "ru_RU": "Heartbeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Operation Description",
+            "es_ES": "Descripción de la Operación",
+            "ru_RU": "Описание операции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app6",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app6",
+            "es_ES": "Iniciar sitio local dependiente App_App6",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType4",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType4",
+            "es_ES": "siteType4",
+            "ru_RU": "siteType4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Node App",
+            "es_ES": "Aplicación de nodo",
+            "ru_RU": "Приложение узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Config info",
+            "es_ES": "Info de Config",
+            "ru_RU": "Информация конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType9",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType9",
+            "es_ES": "siteType9",
+            "ru_RU": "siteType9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属应用模型",
+        "tag": "",
+        "translation": {
+            "en_US": " Assigned App model",
+            "es_ES": " Modelo de la aplicación asignado",
+            "ru_RU": "Принадлежащая модель приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance nodes",
+            "es_ES": "Nodo de maint.",
+            "ru_RU": "Узел обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "模式版本",
+        "tag": "",
+        "translation": {
+            "en_US": "Schema version",
+            "es_ES": "Versión de esquema",
+            "ru_RU": "Версия модели"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用类型",
+        "tag": "",
+        "translation": {
+            "en_US": "App type",
+            "es_ES": "Tipo de aplicación",
+            "ru_RU": "Тип приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用集合",
+        "tag": "",
+        "translation": {
+            "en_US": "App set",
+            "es_ES": "Conjunto de la aplicación",
+            "ru_RU": "Набор приложений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络最大缓存消息个数",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum number of net cache messages",
+            "es_ES": "Número máximo de mensajes en caché de red",
+            "ru_RU": "Макс. количество сообщений сетевого кэша"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行部署包",
+        "tag": "",
+        "translation": {
+            "en_US": "Run deployment package",
+            "es_ES": "Ejecutar paquete de despliegue",
+            "ru_RU": "Пакет развертывания выполнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属事件组",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned event group",
+            "es_ES": "Grupo de eventos asignado",
+            "ru_RU": "Назначенная группа событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType5",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site_siteType5",
+            "es_ES": "Sitio efectivo_siteType5",
+            "ru_RU": "Действующий сайт_siteType5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用时运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Run in backup mode",
+            "es_ES": "Ejecutar en modo de respaldo",
+            "ru_RU": "Выполнение в резервном режиме"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app1",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app1",
+            "es_ES": "Iniciar sitio local dependiente App_App1",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app6",
+        "tag": "",
+        "translation": {
+            "en_US": "app6",
+            "es_ES": "app6",
+            "ru_RU": "app6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否维护进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process",
+            "es_ES": "Proceso de maint.",
+            "ru_RU": "Обслуживание процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理主节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr duty node",
+            "es_ES": "Nodo de turno del sysmgr",
+            "ru_RU": "Sysmgr duty node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app1",
+        "tag": "",
+        "translation": {
+            "en_US": "app1",
+            "es_ES": "app1",
+            "ru_RU": "app1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid",
+            "es_ES": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Site",
+            "es_ES": "Sitio",
+            "ru_RU": "Площ"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType5",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType5",
+            "es_ES": "Sitio inválido_siteType5",
+            "ru_RU": "Invalid site_siteType5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动次序",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup sequence",
+            "es_ES": "Seq de inicio",
+            "ru_RU": "Порядок запуска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Process type",
+            "es_ES": "Tipo de proceso",
+            "ru_RU": "Тип процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site",
+            "es_ES": "Sitio efectivo",
+            "ru_RU": "Активный сайт"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发事件",
+        "tag": "",
+        "translation": {
+            "en_US": "On-site forwarded events",
+            "es_ES": "Eventos reenviados en sitio",
+            "ru_RU": "Событие пересылки на площадке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用定义",
+        "tag": "",
+        "translation": {
+            "en_US": "App Definition",
+            "es_ES": "Definición de Aplicación",
+            "ru_RU": "Определение приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Config",
+            "es_ES": "Config de la aplicación",
+            "ru_RU": "Конфигурация приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault time",
+            "es_ES": "Hora de falla",
+            "ru_RU": "Время сбоя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用进程",
+        "tag": "",
+        "translation": {
+            "en_US": "App process",
+            "es_ES": "Proceso de la aplicación",
+            "ru_RU": "Процесс приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType0",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType0",
+            "es_ES": "Sitio inválido_siteType0",
+            "ru_RU": "Invalid site_siteType0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点虚拟/交换机ip2",
+        "tag": "",
+        "translation": {
+            "en_US": "Node virtual/switch ip2",
+            "es_ES": "Nodo virtual/interruptor ip2",
+            "ru_RU": "Виртуальный / коммутаторный ip2 узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件子系统配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Subsystem Config",
+            "es_ES": "Config del Subsistema de Eventos",
+            "ru_RU": "Конфигурация подсистемы событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app8",
+        "tag": "",
+        "translation": {
+            "en_US": "app8",
+            "es_ES": "app8",
+            "ru_RU": "app8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app8",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app8",
+            "es_ES": "Iniciar nodo local dependiente App_App8",
+            "ru_RU": "Запуск зависимого приложения этого узла_app8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app5",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app5",
+            "es_ES": "Iniciar sitio local dependiente App_App5",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned config",
+            "es_ES": "Configuración asignada",
+            "ru_RU": "Назначённая конфигурация"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络注册名",
+        "tag": "",
+        "translation": {
+            "en_US": "Network regname",
+            "es_ES": "Nombre de registro de red",
+            "ru_RU": "Network regname"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程号",
+        "tag": "",
+        "translation": {
+            "en_US": "PID",
+            "es_ES": "PID",
+            "ru_RU": "PID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件操作项配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event action Item Config",
+            "es_ES": "Config de ítem de acción de evento",
+            "ru_RU": "Конфигурация элементов операций событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType9",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site_siteType9",
+            "es_ES": "Sitio efectivo_siteType9",
+            "ru_RU": "Действующий сайт_siteType9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AppColl与AppDef的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "AppColl_AppDef_LinkTable",
+            "es_ES": "ColApp_DefApp_TabEnl",
+            "ru_RU": "AppColl_AppDef_LinkTable"
+        }
+    },
+    {
+        "comments": "",
+        "source": "同步源现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync source site",
+            "es_ES": "Sitio de origen de sinc",
+            "ru_RU": "Исходная площадка синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用描述",
+        "tag": "",
+        "translation": {
+            "en_US": "App description",
+            "es_ES": "Descripción de la aplicación",
+            "ru_RU": "Описание приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app3",
+        "tag": "",
+        "translation": {
+            "en_US": "app3",
+            "es_ES": "app3",
+            "ru_RU": "app3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType7",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType7",
+            "es_ES": "Sitio inválido_siteType7",
+            "ru_RU": "Invalid site_siteType7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak5",
+        "tag": "",
+        "translation": {
+            "en_US": "bak5",
+            "es_ES": "bak5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "命令行参数",
+        "tag": "",
+        "translation": {
+            "en_US": "Cmd params",
+            "es_ES": "Parámetros de comando",
+            "ru_RU": "Параметры командной строки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType5",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType5",
+            "es_ES": "siteType5",
+            "ru_RU": "siteType5"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库装库",
+        "tag": "",
+        "translation": {
+            "en_US": "Load R-RTDB",
+            "es_ES": "Cargar RTDB",
+            "ru_RU": "Загрузка R-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理可值班",
+        "tag": "",
+        "translation": {
+            "en_US": "Sysmgr available on duty",
+            "es_ES": "Sysmgr disponible en servicio",
+            "ru_RU": "Sysmgr available on duty"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault description",
+            "es_ES": "Descripción de la falla",
+            "ru_RU": "Описание сбоя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用",
+        "tag": "",
+        "translation": {
+            "en_US": "application",
+            "es_ES": "Aplicar",
+            "ru_RU": "Приложение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType2",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType2",
+            "es_ES": "Sitio inválido_siteType2",
+            "ru_RU": "Invalid site_siteType2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发代理节点IP",
+        "tag": "",
+        "translation": {
+            "en_US": "Onsite forwarding proxy node IP",
+            "es_ES": "IP del nodo proxy de reenvío en sitio",
+            "ru_RU": "IP-адрес прокси-узла пересылки на площадке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "固定标识",
+        "tag": "",
+        "translation": {
+            "en_US": "Fixed ID",
+            "es_ES": "ID fijo",
+            "ru_RU": "Фиксированный идентификатор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Node status",
+            "es_ES": "Estado del nodo",
+            "ru_RU": "Статус узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障进程数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Fault processes count",
+            "es_ES": "Conteo de procesos con fallas",
+            "ru_RU": "Количество аварийных процессов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用进程配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Process",
+            "es_ES": "Proceso de la aplicación",
+            "ru_RU": "Процесс приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description",
+            "es_ES": "Descripción",
+            "ru_RU": "Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app6",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app6",
+            "es_ES": "Inicia la aplicación local dependiente_app6",
+            "ru_RU": "Запуск зависимого приложения этого узла_app6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发信息",
+        "tag": "",
+        "translation": {
+            "en_US": "On-site forwarding info",
+            "es_ES": "Info de reenvío en sitio",
+            "ru_RU": "Информация пересылки на площадке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app3",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app3",
+            "es_ES": "Iniciar nodo local dependiente App_App3",
+            "ru_RU": "Запуск зависимого приложения этого узла_app3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AppModule与ProcDef的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "AppModule_ProcDef_LinkTable",
+            "es_ES": "ModApp_ProcDef_TabEnl",
+            "ru_RU": "Промежуточная таблица AppModule и ProcDef"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app0",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app0",
+            "es_ES": "Iniciar sitio local dependiente App_App0",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统",
+        "tag": "",
+        "translation": {
+            "en_US": "System",
+            "es_ES": "Sistema",
+            "ru_RU": "Система"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目的现场名",
+        "tag": "",
+        "translation": {
+            "en_US": "Dest site name",
+            "es_ES": "Nombre del sitio de destino",
+            "ru_RU": "Имя целевой площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用模块配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App Module",
+            "es_ES": "Módulo de la aplicación",
+            "ru_RU": "Модуль приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统定义包",
+        "tag": "",
+        "translation": {
+            "en_US": "System definition package",
+            "es_ES": "Paquete de definición del sistema",
+            "ru_RU": "Пакет системного определения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次心跳时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last heartbeat time",
+            "es_ES": "Último tiempo de latido",
+            "ru_RU": "Время последнего heartbeat"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件子系统定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event subsystem definition",
+            "es_ES": "Definición del subsistema de eventos",
+            "ru_RU": "Определение подсистемы событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统类型",
+        "tag": "",
+        "translation": {
+            "en_US": "System type",
+            "es_ES": "Tipo de sistema",
+            "ru_RU": "Тип системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用是否启动完成",
+        "tag": "",
+        "translation": {
+            "en_US": "Check whether the maintenance application has been started",
+            "es_ES": "Verificar si la aplicación de maint. ha sido iniciada",
+            "ru_RU": "Проверить завершение запуска приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用故障时退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Exit on app fault",
+            "es_ES": "Salir por fallo de la aplicación",
+            "ru_RU": "Выход при сбое приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库同步",
+        "tag": "",
+        "translation": {
+            "en_US": "Sync R-RTDB",
+            "es_ES": "Sincronizar RTDB",
+            "ru_RU": "Синхронизация R-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "通讯端口",
+        "tag": "",
+        "translation": {
+            "en_US": "Comm port",
+            "es_ES": "Puerto de comunicación",
+            "ru_RU": "Порт связи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "扩展应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Extended app",
+            "es_ES": "Aplicación extendida",
+            "ru_RU": "Расширенное приложение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值班时运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Run in duty mode",
+            "es_ES": "Ejecutar en modo de turno",
+            "ru_RU": "Выполнение во время дежурства"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场网络状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site net status",
+            "es_ES": "Estado de red entre sitios",
+            "ru_RU": "Состояние сети между площадками"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance process",
+            "es_ES": "Proceso de maint.",
+            "ru_RU": "Процесс обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App",
+            "es_ES": "Iniciar sitio local dependiente App",
+            "ru_RU": "Запуск зависимого приложения этой площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "故障时退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Exit on fault",
+            "es_ES": "Salir en caso de fallo",
+            "ru_RU": "Выйт при сбое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络组名",
+        "tag": "",
+        "translation": {
+            "en_US": "Net group name",
+            "es_ES": "Nombre del grupo de red",
+            "ru_RU": "Имя сетевой группы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用2",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 2",
+            "es_ES": "Respaldo 2",
+            "ru_RU": "Резерв 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件组配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Group",
+            "es_ES": "Grupo de Eventos",
+            "ru_RU": "Группа событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app7",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app7",
+            "es_ES": "Inicia la aplicación de campo local dependiente_app7",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType4",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_sitetype4",
+            "es_ES": "Sitio inválido_sitetype4",
+            "ru_RU": "Invalid site_sitetype4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护服务进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance SP",
+            "es_ES": "Maint. SP",
+            "ru_RU": "Процесс SP"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app7",
+        "tag": "",
+        "translation": {
+            "en_US": "app7",
+            "es_ES": "app7",
+            "ru_RU": "app7"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库值班节点",
+        "tag": "",
+        "translation": {
+            "en_US": "R-RTDB duty node",
+            "es_ES": "Nodo de Turno de RTDB",
+            "ru_RU": "Дежурный узел R-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType6",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType6",
+            "es_ES": "Sitio inválido_siteType6",
+            "ru_RU": "Invalid site_siteType6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "汇报启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Report startup success",
+            "es_ES": "Informe de inicio exitoso",
+            "ru_RU": "Успешный запуск отчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType0",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType0",
+            "es_ES": "siteType0",
+            "ru_RU": "siteType0"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护实时库",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance RTDB",
+            "es_ES": "Maint. TDB",
+            "ru_RU": "Обслуживание RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Site type",
+            "es_ES": "Tipo de sitio",
+            "ru_RU": "Тип площадки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app2",
+        "tag": "",
+        "translation": {
+            "en_US": "app2",
+            "es_ES": "app2",
+            "ru_RU": "app2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件项配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Item",
+            "es_ES": "Ítem de Evento",
+            "ru_RU": "Элементы событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm count",
+            "es_ES": "Tiempos de alarma",
+            "ru_RU": "Количество тревог"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType2",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site_siteType2",
+            "es_ES": "Sitio efectivo_siteType2",
+            "ru_RU": "Действующий сайт_siteType2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "在线时运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Running online",
+            "es_ES": "Ejecutando en línea",
+            "ru_RU": "Выполнение в онлайн-режиме"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统核心进程",
+        "tag": "",
+        "translation": {
+            "en_US": "System core process",
+            "es_ES": "Proceso central del sistema",
+            "ru_RU": "Базовый процесс системы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App",
+            "es_ES": "Iniciar nodo local dependiente App",
+            "ru_RU": "Запуск зависимого приложения этого узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app4",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app4",
+            "es_ES": "Iniciar sitio local dependiente App_App4",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app9",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app9",
+            "es_ES": "Iniciar sitio local dependiente App_App9",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用库配置",
+        "tag": "",
+        "translation": {
+            "en_US": "App db config",
+            "es_ES": "Configuración de la base de datos de la aplicación",
+            "ru_RU": "Конфигурация DB приложений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Full app name",
+            "es_ES": "Nombre completo de la aplicación",
+            "ru_RU": "Полное имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所在应用模块",
+        "tag": "",
+        "translation": {
+            "en_US": "App module",
+            "es_ES": "Módulo de la aplicación",
+            "ru_RU": "Модуль приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "服务提供者",
+        "tag": "",
+        "translation": {
+            "en_US": "Service provider",
+            "es_ES": "Proveedor de servicios",
+            "ru_RU": "Поставщик службы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance app running status",
+            "es_ES": "Estado de ejecución de la aplicación de maint.",
+            "ru_RU": "Статус работы приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "禁用进程数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Disabled processes count",
+            "es_ES": "Conteo de procesos deshabilitados",
+            "ru_RU": "Количество отключённых процессов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site",
+            "es_ES": "Sitio inválido",
+            "ru_RU": "Недействительная площадка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用启动时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maintenance app start time",
+            "es_ES": "Hora de inicio de la aplicación de maint.",
+            "ru_RU": "Время запуска приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app9",
+        "tag": "",
+        "translation": {
+            "en_US": "app9",
+            "es_ES": "app9",
+            "ru_RU": "app9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否正在操作",
+        "tag": "",
+        "translation": {
+            "en_US": "In operation",
+            "es_ES": "En operación",
+            "ru_RU": "Выполняется операция"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联的节点",
+        "tag": "",
+        "translation": {
+            "en_US": " Linked node",
+            "es_ES": " Nodo vinculado",
+            "ru_RU": "Связанный узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "app4",
+        "tag": "",
+        "translation": {
+            "en_US": "app4",
+            "es_ES": "app4",
+            "ru_RU": "app4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Running status",
+            "es_ES": "Estado de ejecución",
+            "ru_RU": "Статус работы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "基础应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Base app name",
+            "es_ES": "Nombre de la aplicación base",
+            "ru_RU": "Базовое имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType3",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_siteType3",
+            "es_ES": "Sitio inválido_siteType3",
+            "ru_RU": "Invalid site_siteType3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Included Config",
+            "es_ES": "Config Incluida",
+            "ru_RU": "Включает конфигурацию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场心跳",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site heartbeat",
+            "es_ES": "Latido entre sitios",
+            "ru_RU": "Heartbeat между площадками"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起效现场_siteType8",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective site_siteType8",
+            "es_ES": "Sitio efectivo_siteType8",
+            "ru_RU": "Действующий сайт_siteType8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属应用集合",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned app set",
+            "es_ES": "Conjunto de la aplicación asignadas",
+            "ru_RU": "Назначённый набор приложений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "M-RTDB",
+            "es_ES": "MTDB",
+            "ru_RU": "M-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "AppModule与AppTdbDef的中间表",
+        "tag": "",
+        "translation": {
+            "en_US": "AppModule_AppTdbDef_LinkTable",
+            "es_ES": "AppModule_AppTdbDef_TabEnl",
+            "ru_RU": "Промежуточная таблица AppModule и AppTdbDef"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType6",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType6",
+            "es_ES": "siteType6",
+            "ru_RU": "siteType6"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工具进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Tool process",
+            "es_ES": "Proceso de herramienta",
+            "ru_RU": "Процесс инструмента"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是第三方",
+        "tag": "",
+        "translation": {
+            "en_US": "Is third party",
+            "es_ES": "Es de terceros",
+            "ru_RU": "Является сторонним"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件项定义",
+        "tag": "",
+        "translation": {
+            "en_US": "Event item definition",
+            "es_ES": "Definición de ítem de evento",
+            "ru_RU": "Определение элементов событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不起效现场_siteType8",
+        "tag": "",
+        "translation": {
+            "en_US": "Invalid site_sitetype8",
+            "es_ES": "Sitio inválido_sitetype8",
+            "ru_RU": "Invalid site_sitetype8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Start time",
+            "es_ES": "Hora de inicio",
+            "ru_RU": "Время запуска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本节点应用_app2",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local node App_app2",
+            "es_ES": "Iniciar nodo local dependiente App_App2",
+            "ru_RU": "Запуск зависимого приложения этого узла_app2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据冻结时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Freeze timestamp",
+            "es_ES": "Marca de tiempo de congelación",
+            "ru_RU": "Временная метка заморозки данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否本现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Local site",
+            "es_ES": "Sitio local",
+            "ru_RU": "Локальная площадка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用库",
+        "tag": "",
+        "translation": {
+            "en_US": "App db",
+            "es_ES": "BD la aplicación",
+            "ru_RU": "DB приложений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "状态描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Status description",
+            "es_ES": "Descripción del estado",
+            "ru_RU": "Описание статуса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Report startup success",
+        "tag": "",
+        "translation": {
+            "en_US": "Report startup success",
+            "es_ES": "Informe de inicio exitoso",
+            "ru_RU": "Отчет об успешном запуске"
+        }
+    },
+    {
+        "comments": "",
+        "source": "累计重启次数",
+        "tag": "",
+        "translation": {
+            "en_US": "Cumulative restart times",
+            "es_ES": "Número acumulado de reinicios",
+            "ru_RU": "Суммарное количество перезапусков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场转发节点IP",
+        "tag": "",
+        "translation": {
+            "en_US": "IP address of the onsite forwarding node",
+            "es_ES": "Dirección IP del nodo de reenvío en sitio",
+            "ru_RU": "IP-адрес узла пересылки на площадке"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件功能项",
+        "tag": "",
+        "translation": {
+            "en_US": "Event function item",
+            "es_ES": "Elemento de función de evento",
+            "ru_RU": "Элементы функций событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次响应时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last response time",
+            "es_ES": "Último tiempo de respuesta",
+            "ru_RU": "Время последнего ответа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字节顺序",
+        "tag": "",
+        "translation": {
+            "en_US": "Byte order",
+            "es_ES": "Orden de bytes",
+            "ru_RU": "Порядок байтов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用1",
+        "tag": "",
+        "translation": {
+            "en_US": "Standby 1",
+            "es_ES": "Respaldo 1",
+            "ru_RU": "Резерв 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak4",
+        "tag": "",
+        "translation": {
+            "en_US": "bak4",
+            "es_ES": "bak4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "siteType1",
+        "tag": "",
+        "translation": {
+            "en_US": "siteType1",
+            "es_ES": "siteType1",
+            "ru_RU": "siteType1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bak9",
+        "tag": "",
+        "translation": {
+            "en_US": "bak9",
+            "es_ES": "bak9"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app8",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app8",
+            "es_ES": "Iniciar sitio local dependiente App_App8",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动依赖的本现场应用_app3",
+        "tag": "",
+        "translation": {
+            "en_US": "Start dependent local site App_app3",
+            "es_ES": "Iniciar sitio local dependiente App_App3",
+            "ru_RU": "Запуск зависимого приложения этой площадки_app3"
+        }
+    }
+]

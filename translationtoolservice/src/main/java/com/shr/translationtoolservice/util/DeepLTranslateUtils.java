@@ -44,5 +44,13 @@ public class DeepLTranslateUtils {
         }
         return null;
     }
+/*    Translator translator;
 
+    public DeepLTranslateUtils() throws Exception {
+        String authKey = "4e97acfd-4c5f-4382-9197-3bcf58b3fdee:fx";  // Replace with your key
+        translator = new Translator(authKey);
+        TextResult result =
+                translator.translateText("Hello, world!", null, "fr");
+        System.out.println(result.getText()); // "Bonjour, le monde !"
+    }*/
 }

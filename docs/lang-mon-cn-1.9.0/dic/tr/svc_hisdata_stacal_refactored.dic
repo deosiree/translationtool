@@ -1,0 +1,163 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reconnect to TDB [hismdl]!",
+            "es_ES": "No se pudo reconectar con TDB [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接历史库失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the history DB!",
+            "es_ES": "¡Fallo al conectar con la base de datos histórica!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to re-initialize statistics task information!",
+            "es_ES": "¡Fallo al reinicializar la información de la tarea de estadísticas!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册[hismdl]装库事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register the reloading DB event of [hismdl]!",
+            "es_ES": "Fallo al registrar el evento de recarga DB de [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hisparam]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to TDB [hisparam]!",
+            "es_ES": "No se pudo conectar al TDB [hisparam]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the TDB [hismdl]!",
+            "es_ES": "No se pudo conectar al TDB [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取当前应用值班状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the current application duty status!",
+            "es_ES": "Fallo al obtener el estado de turno de la aplicación actual!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询实时库[hisparam]的部署应用不唯一！",
+        "tag": "",
+        "translation": {
+            "en_US": "Query TDB [hisparam] deployment application is not unique!",
+            "es_ES": "Consulta TDB [hisparam] la aplicación de despliegue no es única!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Started successfully",
+            "es_ES": "Inicio exitoso"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败:",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup failed:",
+            "es_ES": "Fallo en el inicio:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建平台接口实例失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to build platform interface instance!",
+            "es_ES": "Fallo al construir la instancia de la interfaz de plataforma!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit",
+            "es_ES": "Salida normal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reconnect to TDB [hismdl]!",
+            "es_ES": "No se pudo reconectar con TDB [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize statistics task information!",
+            "es_ES": "Fallo al inicializar la información de la tarea de estadísticas."
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[hisparam]实时库的部署应用信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the deployment application information of TDB [hisparam] !",
+            "es_ES": "Fallo al consultar la información de la aplicación desplegada del TDB [hisparam]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅节点应用值班切换通知事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe node application shift notification event!",
+            "es_ES": "¡Fallo al suscribirse al evento de notificación de cambio de aplicación de nodo!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取实时库[hismdl]地址失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get TDB [hismdl] address!",
+            "es_ES": "No se pudo obtener la dirección del TDB [hismdl]!"
+        }
+    }
+]

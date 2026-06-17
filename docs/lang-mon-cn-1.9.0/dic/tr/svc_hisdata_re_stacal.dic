@@ -1,0 +1,163 @@
+[
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reconnect to RTDB [hismdl]!",
+            "ru_RU": "Не удалось переподключиться к RTDB [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hismdl]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the TDB [hismdl]!",
+            "ru_RU": "Подключение к RTDB [hismdl] не удалось!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup successfully",
+            "ru_RU": "Успешный запуск"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅节点应用值班切换通知事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe to node application shift notification event!",
+            "ru_RU": "Не удалось подписаться на событие уведомления о смене дежурства узлового приложения!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit",
+            "ru_RU": "Нормальный выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "注册[hismdl]装库事件失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to register the reloading DB event of [hismdl]!",
+            "ru_RU": "Сбой регистрации события загрузки DB [hismdl]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize statistics task information!",
+            "ru_RU": "Сбой инициализации информации о статистических задачах!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接实时库[hisparam]失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to TDB [hisparam]!",
+            "ru_RU": "Подключение к RTDB [hisparam] не удалось!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询[hisparam]实时库的部署应用信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the deployment application information of RTDB [hisparam] !",
+            "ru_RU": "Не удалось запросить информацию о приложении развертывания RTDB [hisparam]!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新初始化统计任务信息失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to re-initialize statistics task information!",
+            "ru_RU": "Сбой повторной инициализации информации о статистических задачах!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询实时库[hisparam]的部署应用不唯一！",
+        "tag": "",
+        "translation": {
+            "en_US": "Query RTDB [hisparam] deployment application is not unique!",
+            "ru_RU": "Приложение развертывания RTDB [hisparam] не уникально!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接历史库失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to connect to the HDB!",
+            "ru_RU": "Сбой подключения к HDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取实时库[hismdl]地址失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to get TDB [hismdl] address!",
+            "ru_RU": "Получение адреса RTDB [hismdl] не удалось!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败:",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup failed:",
+            "ru_RU": "Сбой запуска:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取当前应用值班状态失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to obtain the current application duty status!",
+            "ru_RU": "Сбой получения текущего статуса дежурства приложения!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "构建平台接口实例失败！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to build platform interface instance!",
+            "ru_RU": "Сбой создания экземпляра интерфейса платформы!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新连接实时库[hismdl]失败!",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reconnect to RTDB [hismdl]!",
+            "ru_RU": "Не удалось переподключиться к RTDB [hismdl]!"
+        }
+    }
+]

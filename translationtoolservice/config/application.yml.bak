@@ -1,0 +1,144 @@
+spring:
+  servlet:
+    multipart:
+      #      取消上传文件大小限制
+      max-file-size: -1
+      max-request-size: -1
+
+  redis:
+    database: 0
+    host: 10.16.196.50
+    #    host: 10.4.252.102
+    password: 210093
+    port: 6379
+    timeout: 0
+    deviceChannel: device
+
+  application:
+    name: translationTool
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false?serverTimezone=Asia/Shanghai&socketTimeout=60000
+    #
+    #url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+
+    username: root
+    password: 123456
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+server:
+  port: 18001
+  tomcat:
+      relaxed-query-chars: ['[',']','`','^','\','|']
+
+
+
+#logging:
+ # config: ./logback-spring.xml
+
+translate:
+  #  百度翻译api信息
+  baidu:
+    #url: https://api.fanyi.baidu.com/api/trans/vip/translate
+    url: https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1
+    appid: 20230705001734655
+    securityKey: tGq6U8CfAaztFjBO7WT8
+  #  DeepL翻译api信息
+  deepl:
+    url: https://api.deepl-pro.com
+    #我的
+    #key: b253ec17-0877-4a1f-81cb-72c5f824b32c:dp
+    key: 4595ec64-b32f-4b00-93ff-9a6351d25b88:dp
+  #  有道翻译api信息
+  youdao:
+    url: https://openapi.youdao.com/api
+    appKey: aCwCTdgEH1lVY1DEfTXjnIV8dJbgD8sZ
+    appKeyID: 12539761968f9072
+
+
+logging.level.com.shr.translationtoolservice.dao: debug
+mybatis:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.shr.translationtoolservice.entity
+  ##configuration:
+   # cache-enable: true
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #call-setters-on-nulls: true
+
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    com.shr.translationtoolservice.dao: debug
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.shr.translationtoolservice.entity
+  #configuration:
+   # cache-enable: true
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #call-setters-on-nulls: true
+#是否开启swagger
+swagger:
+  enabled: true
+
+ldap:
+  ldapURL: ldap://10.17.196.129:389
+  accountSuffix: "@sp5000.com"
+  base: "DC=sp5000,DC=com"
+  user: "Administrator"
+  password: "Admin@1234"
+
+log:
+  level: debug
+
+I18server:
+  #local
+  #url: http://localhost:18099/
+  #linx
+  url: http://10.17.14.250:18099/
+
+ConfigFile:
+  zh_CN:
+    zzUrl: "config/zh_CN/zz.xlsx"
+    commonUrl: "config/zh_CN/common.xlsx"
+    jkUrl: "config/zh_CN/jk.xlsx"
+  en_US:
+    zzUrl: "config/en_US/zz.xlsx"
+    commonUrl: "config/en_US/common.xlsx"
+    jkUrl: "config/en_US/jk.xlsx"
+  es_ES:
+    zzUrl: "config/es_ES/zz.xlsx"
+    commonUrl: "config/es_ES/common.xlsx"
+    jkUrl: "config/es_ES/jk.xlsx"
+  fr_FR:
+    zzUrl: "config/fr_FR/zz.xlsx"
+    commonUrl: "config/fr_FR/common.xlsx"
+    jkUrl: "config/fr_FR/jk.xlsx"
+  ru_RU:
+    zzUrl: "config/ru_RU/zz.xlsx"
+    commonUrl: "config/ru_RU/common.xlsx"
+    jkUrl: "config/ru_RU/jk.xlsx"
+
+
+  zzUrl: "config/zz.xlsx"
+  en_zzUrl: "config/en_zz.xlsx"
+  es_zzUrl: "config/es_zz.xlsx"
+  fra_zzUrl: "config/fra_zz.xlsx"
+  ru_zzUrl: "config/ru_zz.xlsx"
+
+  commonUrl: "config/common.xlsx"
+  en_commonUrl: "config/en_common.xlsx"
+  es_commonUrl: "config/es_common.xlsx"
+  fra_commonUrl: "config/fra_common.xlsx"
+  ru_commonUrl: "config/ru_common.xlsx"
+
+  jkUrl: "config/jk.xlsx"
+  en_jkUrl: "config/en_jk.xlsx"
+  es_jkUrl: "config/es_jk.xlsx"
+  fra_jkUrl: "config/fra_jk.xlsx"
+  ru_jkUrl: "config/ru_jk.xlsx"
+  #linx
+  #url: "./config/import.xls"
+
+

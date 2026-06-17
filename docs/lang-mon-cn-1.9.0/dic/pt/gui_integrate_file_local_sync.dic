@@ -1,0 +1,66 @@
+[
+    {
+        "comments": "",
+        "source": "用户:{%1} 上传文件{%2}至目录{%3}失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 上传文件{%2}至目录{%3}成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 从服务目录{%2}下载文件{%3}至目录{%4}失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 从服务目录{%2}下载文件{%3}至目录{%4}成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 从服务目录下载至本地压缩包{%2}失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 从服务目录下载至本地压缩包{%2}成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 从服务目录{%2}下载文件{%3}至目录{%4}失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 从服务目录{%2}下载文件{%3}至目录{%4}成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

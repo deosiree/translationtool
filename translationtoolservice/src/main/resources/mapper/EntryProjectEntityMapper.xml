@@ -64,4 +64,5 @@
     <update id="auditById" parameterType="String">
         update t_entry_project set entry_state = #{state,jdbcType=VARCHAR} where id = #{id,jdbcType=VARCHAR}
     </update>
+
 </mapper>

@@ -1,0 +1,78 @@
+[
+    {
+        "comments": "",
+        "source": "防火墙",
+        "tag": "",
+        "translation": {
+            "en_US": "Firewall1",
+            "ru_RU": "test"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "防火墙",
+        "tag": "tabBarName",
+        "translation": {
+            "en_US": "Firewall"
+        }
+    },
+    {
+        "comments": "",
+        "source": "entry1",
+        "tag": "",
+        "translation": {
+            "en_US": "entry1_en"
+        }
+    },
+    {
+        "comments": "1",
+        "source": "字节顺序",
+        "tag": "",
+        "translation": {
+            "en_US": "Byte order",
+            "es_ES": "Orden de bytes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "entry1",
+        "tag": "root/@idx_0/aaa",
+        "translation": {
+            "en_US": "entry1_en"
+        }
+    },
+    {
+        "comments": "1",
+        "source": "字节顺序111",
+        "tag": "",
+        "translation": {
+            "en_US": "Byte order 111",
+            "es_ES": "Orden de bytes 111"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字节顺序111",
+        "tag": "",
+        "translation": {
+            "en_US": "Byte order 111",
+            "es_ES": "Orden de bytes 111"
+        }
+    },
+    {
+        "comments": "",
+        "source": "transtest",
+        "tag": "",
+        "translation": {
+            "en_US": "fe2323221"
+        }
+    }
+]

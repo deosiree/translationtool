@@ -1,0 +1,80 @@
+[
+    {
+        "comments": "",
+        "source": "审计工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit Tool",
+            "es_ES": "Herramienta de Auditoría",
+            "ru_RU": "Инструмент аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "导出审计日志:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Export audit logs: {}",
+            "es_ES": "Exportar registros de auditoría: {}",
+            "ru_RU": "Экспорт логов аудита: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分析统计审计日志",
+        "tag": "",
+        "translation": {
+            "en_US": "Analyze audit logs statistically",
+            "es_ES": "Analizar y analizar estadísticamente los registros de auditoría",
+            "ru_RU": "Анализировать и статистически анализировать логи аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计分析",
+        "tag": "",
+        "translation": {
+            "en_US": "Security Audit Analysis",
+            "es_ES": "Auditoría de Seguridad",
+            "ru_RU": "Анализ аудита безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit Config",
+            "es_ES": "Config de auditoría",
+            "ru_RU": "Конфигурация аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询审计日志",
+        "tag": "",
+        "translation": {
+            "en_US": "Query audit logs",
+            "es_ES": "Consultar registros de auditoría",
+            "ru_RU": "Запрос логов аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改审计配置数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Modify audit config data",
+            "es_ES": "Modificar datos de configuración de auditoría",
+            "ru_RU": "Изменить данные конфигурации аудита"
+        }
+    }
+]

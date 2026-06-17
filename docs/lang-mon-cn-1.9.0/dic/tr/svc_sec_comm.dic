@@ -1,0 +1,91 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非法篡改审计日志, 现在开始恢复. 审计时间:{},等级:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "The audit log has been tampered with illegally. Restoration is starting. Audit time: {}, Level: {}",
+            "ru_RU": "Незаконное вмешательство в журнал аудита, начало восстановления. Время аудита: {}, уровень: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup successfully",
+            "ru_RU": "Успешный запуск"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化网络事件失败，退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize net events, exit",
+            "ru_RU": "Сбой инициализации сетевых событий, выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit",
+            "ru_RU": "Нормальный выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化时序库失败，重连中...",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize the STDB, reconnecting...",
+            "ru_RU": "Сбой инициализации STDB, переподключение..."
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化数据库失败，退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to initialize the db, exit",
+            "ru_RU": "Сбой инициализации DB, выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常运行",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal operation",
+            "ru_RU": "Нормальная работа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    }
+]

@@ -1,0 +1,26 @@
+[
+    {
+        "comments": "",
+        "source": "svc_calc_general初始化失败退出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_calc_general启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_calc_general正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

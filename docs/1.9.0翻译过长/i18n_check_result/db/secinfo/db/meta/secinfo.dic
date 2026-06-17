@@ -1,0 +1,2770 @@
+[
+    {
+        "comments": "",
+        "source": "登录成功",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Вход выполнен успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Вход выполнен успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接超时",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Тайм-аут подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接超时",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Тайм-аут подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户注销",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Выход пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户注销",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Выход пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "越权访问",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Доступ с превышением полномочий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "越权访问",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Доступ с превышением полномочий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录接入异常",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Исключение доступа при входе"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录接入异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Исключение доступа при входе"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除用户",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Удалить пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除用户",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Удалить пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改用户信息",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Изменить информацию пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改用户信息",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменить информацию пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限修改",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Изменение прав доступа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "权限修改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменение прав доступа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性告警",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Тревога о целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "完整性告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Тревога о целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改配置",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Изменить конфигурацию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "修改配置",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменить конфигурацию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除配置",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Удалить конфигурацию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除配置",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Удалить конфигурацию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "顺控",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Последовательное управление"
+        }
+    },
+    {
+        "comments": "",
+        "source": "顺控",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Последовательное управление"
+        }
+    },
+    {
+        "comments": "",
+        "source": "遥调",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Телерегулирование"
+        }
+    },
+    {
+        "comments": "",
+        "source": "遥调",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Телерегулирование"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接异常",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Аномалия подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномалия подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用接入",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Доступ к приложению"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用接入",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Доступ к приложению"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据交互",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Взаимодействие данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据交互",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Взаимодействие данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程异常",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Аномалия процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномалия процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据备份",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Резервное копирование данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据备份",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Резервное копирование данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据恢复",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Восстановление данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据恢复",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Восстановление данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计记录访问",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Запись аудита доступа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计记录访问",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Запись аудита доступа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间和日期修改",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Дата и время изменения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间和日期修改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Дата и время изменения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CPU使用越限",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Использование CPU превышает лимит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CPU使用越限",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Использование CPU превышает лимит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存使用越限",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Превышение лимита использования оперативной памяти"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存使用越限",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Превышение лимита использования оперативной памяти"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘使用越限",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Превышено использование диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘使用越限",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Превышено использование диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不符合安全策略的访问",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Доступ, не соответствующий политике безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不符合安全策略的访问",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Доступ, не соответствующий политике безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "流量使用越限",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Использование трафика превышает лимит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "流量使用越限",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Использование трафика превышает лимит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄使用越限",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Превышение использования дескриптора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄使用越限",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Превышение использования дескриптора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用故障",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Сбой приложения Node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用故障",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сбой приложения Node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用恢复",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Восстановление приложения узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点应用恢复",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Восстановление приложения узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用故障",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Сбой приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用故障",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сбой приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用恢复",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Восстановление приложения Maint."
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护应用恢复",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Восстановление приложения Maint."
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程恢复",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Восстановление процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程恢复",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Восстановление процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换开始",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Начало переключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换开始",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Начало переключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换成功",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Переключение успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Переключение успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换失败",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Сбой переключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "切换失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сбой переключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他资源告警",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Тревога других ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "其他资源告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Тревога других ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面编辑",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Редактировать график"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面编辑",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Редактировать график"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表编辑",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Редактировать отчёт"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表编辑",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Редактировать отчёт"
+        }
+    },
+    {
+        "comments": "",
+        "source": "定值修改",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Изменение уставки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "定值修改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменение уставки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "定值操作",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Операция с уставкой"
+        }
+    },
+    {
+        "comments": "",
+        "source": "定值操作",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Операция с уставкой"
+        }
+    },
+    {
+        "comments": "",
+        "source": "人工置数",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Ручной ввод данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "人工置数",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Ручной ввод данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "取消人工置数",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Отменить ручную установку значения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "取消人工置数",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Отменить ручную установку значения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起停通道配置",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Конфигурация каналов пуска/останова"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起停通道配置",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Конфигурация каналов пуска/останова"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数设定",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Настройка параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "参数设定",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Настройка параметров"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据封锁",
+        "tag": "auditEventDefine/name",
+        "translation": {
+            "ru_RU": "Блокировка данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据封锁",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Блокировка данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户登录类",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Класс входа пользователей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置更改",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Изменение конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置更改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменение конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置更改",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Изменение конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置更改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменение конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置更改",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Изменение конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "配置更改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Изменение конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "auditEventDefine/type",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统资源使用异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аномальное использование системных ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计_完整性告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Аудит безопасности_Тревога целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计_完整性告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аудит безопасности_Тревога целостности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计_访问审计信息",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Аудит безопасности_Доступ к информации аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全审计_访问审计信息",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Аудит безопасности_Доступ к информации аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_权限修改",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление безопасностью - Модификация разрешений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_权限修改",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление безопасностью - Модификация разрешений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理_新增用户",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление пользователями_Добавить пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理_新增用户",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями_Добавить пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理_删除用户",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление пользователями_Удалить пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理_删除用户",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями_Удалить пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理_节点应用恢复",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Sysmgr_Восстановление приложения узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理_节点应用恢复",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Sysmgr_Восстановление приложения узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理_维护应用故障",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Sysmgr_Неисправность приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统管理_维护应用故障",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Sysmgr_Неисправность приложения обслуживания"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库_一致性处理失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "TDB_Проверка согласованности не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库_一致性处理失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "TDB_Проверка согласованности не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑画面成功",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Графика_редактирование мнемосхемы выполнено успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑画面成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Графика_редактирование мнемосхемы выполнено успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑画面失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Графика_Редактирование графика не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑画面失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Графика_Редактирование графика не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑报表成功",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Графика_редактирование отчета выполнено успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑报表成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Графика_редактирование отчета выполнено успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑报表失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Графика_Редактировать отчет не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形_编辑报表失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Графика_Редактировать отчет не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库_一致性处理成功",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "RTDB_Успешная обработка согласованности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库_一致性处理成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "RTDB_Успешная обработка согласованности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库_发生主备冲突",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "TDB_Конфликт основной резервной копии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库_发生主备冲突",
+        "tag": "",
+        "translation": {
+            "ru_RU": "TDB_Конфликт основной резервной копии"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_进程注册异常",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Исключение регистрации процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_进程注册异常",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Исключение регистрации процесса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_句柄使用告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "O&M_Тревога использования дескриптора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_句柄使用告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "O&M_Тревога использования дескриптора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_磁盘使用告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Sysops_Сигнал тревоги по использованию диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_磁盘使用告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Sysops_Сигнал тревоги по использованию диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_内存使用预警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Sysops_Предупреждение о использовании памяти"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_内存使用预警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Sysops_Предупреждение о использовании памяти"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_磁盘使用预警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Sysops_Оповещение о использовании диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运维管理_磁盘使用预警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Sysops_Оповещение о использовании диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源管理_句柄使用预警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление ресурсами_Сигнал тревоги использования дескриптора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源管理_句柄使用预警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление ресурсами_Сигнал тревоги использования дескриптора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_节点离线告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Сигнализация об отключении узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_节点离线告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Сигнализация об отключении узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_节点切网告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Тревога переключения сети узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_节点切网告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Тревога переключения сети узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_远程节点链路连接",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Подключение канала удаленного узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_远程节点链路连接",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Подключение канала удаленного узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_远程节点链路断开",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Отключение канала удаленного узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_远程节点链路断开",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Отключение канала удаленного узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_历史报文告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Авария исторических сообщений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_历史报文告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Авария исторических сообщений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_异常报文告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Сигнал тревоги об аномальном сообщении"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_异常报文告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Сигнал тревоги об аномальном сообщении"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理_连接超时告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление пользователями_Тревога тайм-аута подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户管理_连接超时告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление пользователями_Тревога тайм-аута подключения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_队列负载告警",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Сеть_Сигнал тревоги по нагрузке очереди"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络_队列负载告警",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Сеть_Сигнал тревоги по нагрузке очереди"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_登录失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление безопасностью_Неудачный вход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_登录失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление безопасностью_Неудачный вход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_登出失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление безопасностью_Выход не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_登出失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление безопасностью_Выход не удался"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_网络文件操作",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление файлами_Операции с сетевыми файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_网络文件操作",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление файлами_Операции с сетевыми файлами"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_目录越限",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление файлами_каталог превышает лимит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_目录越限",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление файлами_каталог превышает лимит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_修改目录配置",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление файлами_Изменение конфигурации каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_修改目录配置",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление файлами_Изменение конфигурации каталога"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_修改属性成功",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление файлами_Изменение атрибутов успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_修改属性成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление файлами_Изменение атрибутов успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_操作失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление файлами_Операция не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_操作失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление файлами_Операция не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_修改属性失败",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управ. Файл._Измен. атрибутов не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_修改属性失败",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управ. Файл._Измен. атрибутов не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_数据恢复",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление безопасностью_Восстановление данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全管理_数据恢复",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление безопасностью_Восстановление данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理工具_操作成功",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Инструмент управления файлами_Операция выполнена успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理工具_操作成功",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Инструмент управления файлами_Операция выполнена успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_关键文件变更",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Управление файлами_Изменение ключевых файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件管理_关键文件变更",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Управление файлами_Изменение ключевых файлов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库_备份",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "База данных истории_Резервное копирование"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史库_备份",
+        "tag": "",
+        "translation": {
+            "ru_RU": "База данных истории_Резервное копирование"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视_修改配置",
+        "tag": "AlarmItem/desc",
+        "translation": {
+            "ru_RU": "Монитор ресурсов_Изменить конфигурацию"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视_修改配置",
+        "tag": "",
+        "translation": {
+            "ru_RU": "Монитор ресурсов_Изменить конфигурацию"
+        }
+    }
+]

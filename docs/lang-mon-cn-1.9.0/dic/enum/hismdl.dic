@@ -1,0 +1,1340 @@
+[
+    {
+        "comments": "",
+        "source": "hismdl",
+        "tag": "",
+        "translation": {
+            "en_US": "hismdl",
+            "es_ES": "hismdl",
+            "ru_RU": "hismdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分钟",
+        "tag": "",
+        "translation": {
+            "en_US": "Minutes",
+            "es_ES": "min",
+            "ru_RU": "Минута"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "2-byte signed integer",
+            "es_ES": "Entero con signo de 2 bytes",
+            "ru_RU": "2-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日期（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Date (s)",
+            "es_ES": "Fecha (s)",
+            "ru_RU": "Дата(ы)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "旬",
+        "tag": "",
+        "translation": {
+            "en_US": "Ten-day",
+            "es_ES": "Período de diez días",
+            "ru_RU": "Десятидневный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "天",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Day",
+            "ru_RU": "День"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不存历史",
+        "tag": "",
+        "translation": {
+            "en_US": "No history",
+            "es_ES": "No guardar historial",
+            "ru_RU": "Отмена сохранения в историю"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单精度浮点数",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-precision floating point numbers",
+            "es_ES": "Números de punto flotante de simple precisión",
+            "ru_RU": "Числа с плавающей запятой одинарной точности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续数组（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Sequential Array (Secondary)",
+            "ru_RU": "Симбиотический непрерывный массив (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Timestamp (s)",
+            "es_ES": "Marca de tiempo (s)",
+            "ru_RU": "Метка времени (с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生连续链表（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Non-symbiotic Sequential Linked List (Secondary)",
+            "ru_RU": "Несимбиотический непрерывный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "普通OID",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "General OID",
+            "ru_RU": "Обычный OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "分钟",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Minutes",
+            "ru_RU": "Минута"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多对多关系（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Many-to-Many Relationship (Primary)",
+            "ru_RU": "Отношение многие ко многим (ведущее)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差（s）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Time difference (s)",
+            "ru_RU": "Разница во времени (с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "256",
+        "tag": "",
+        "translation": {
+            "en_US": "256",
+            "es_ES": "256",
+            "ru_RU": "256"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "1-byte signed integer",
+            "es_ES": "Entero con signo de 1 byte",
+            "ru_RU": "1-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "天",
+        "tag": "",
+        "translation": {
+            "en_US": "Day",
+            "es_ES": "Día",
+            "ru_RU": "День"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件存储",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Event Storage",
+            "ru_RU": "Хранение событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data type",
+            "es_ES": "Tipo de dato",
+            "ru_RU": "Тип данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "空值",
+        "tag": "",
+        "translation": {
+            "en_US": "Empty value",
+            "es_ES": "Valor vacío",
+            "ru_RU": "Пустое значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4字节有符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "4-byte signed integer",
+            "ru_RU": "4-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结构体",
+        "tag": "",
+        "translation": {
+            "en_US": "Struct",
+            "es_ES": "Estructura",
+            "ru_RU": "Структура"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1",
+        "tag": "",
+        "translation": {
+            "en_US": "1",
+            "es_ES": "1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2字节无符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "2-byte unsigned integer",
+            "ru_RU": "2-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳（ms）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Timestamp (ms)",
+            "ru_RU": "Метка времени (мс)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Timestamp",
+            "ru_RU": "Метка времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生连续链表（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-symbiotic Sequential Linked List (Primary)",
+            "es_ES": "Lista enlazada cont. no simbiótica (primaria)",
+            "ru_RU": "Несимбиотический непрерывный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in hismdl",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "enum in hismdl",
+            "ru_RU": "перечисление в hismdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "位串",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Bitstring",
+            "ru_RU": "Битовая строка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续链表（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Sequential Linked List (Primary)",
+            "ru_RU": "Симбиотический непрерывный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "年",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Year",
+            "ru_RU": "Год"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多对多关系（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Many-to-Many Relationship (Secondary)",
+            "es_ES": "Relación muchos a muchos (secundaria)",
+            "ru_RU": "Отношение многие-ко-многим (вторичное)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2",
+        "tag": "",
+        "translation": {
+            "en_US": "2",
+            "es_ES": "2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "小时",
+        "tag": "",
+        "translation": {
+            "en_US": "Hour",
+            "es_ES": "hrs",
+            "ru_RU": "Час"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象数据",
+        "tag": "",
+        "translation": {
+            "en_US": "Object data",
+            "es_ES": "Datos de objeto",
+            "ru_RU": "Данные объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4字节无符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "4-byte unsigned integer",
+            "ru_RU": "4-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "8-byte unsigned integer",
+            "es_ES": "Entero sin signo de 8 bytes",
+            "ru_RU": "8-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生离散链表（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-symbiotic Discrete Linked List (Primary)",
+            "es_ES": "Lista enlazada disc. no simbiótica (primaria)",
+            "ru_RU": "Несимбиотический дискретный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间单位",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Time unit",
+            "ru_RU": "Единица времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件存储",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Storage",
+            "es_ES": "Eventos",
+            "ru_RU": "Хранение событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "旬",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Ten-day",
+            "ru_RU": "Декада"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双向关联（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Bidirectional Association (Primary)",
+            "es_ES": "Asociación bidireccional (primaria)",
+            "ru_RU": "Двунаправленная связь (основная)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双向关联（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Bidirectional Association (Primary)",
+            "ru_RU": "Двунаправленная связь (основная)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据存储方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical Data Storage Methods",
+            "es_ES": "Forma de almac. de datos históricos",
+            "ru_RU": "Способы хранения исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单向字段引用（多跨库）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Unidirectional Field Reference (Multi-Cross-DB)",
+            "ru_RU": "Однонаправленная ссылка на поле (несколько кросс-DB)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生连续链表（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Non-symbiotic Sequential Linked List (Primary)",
+            "ru_RU": "Несимбиотический непрерывный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生循环（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Cycle (Primary)",
+            "es_ES": "Ciclo simbiótico (primaria)",
+            "ru_RU": "Симбиотический цикл (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object ID",
+            "es_ES": "ID de objeto",
+            "ru_RU": "ID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Object time scale",
+            "es_ES": "Marca de tiempo del objeto",
+            "ru_RU": "Метка времени объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1字节有符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "1-byte signed integer",
+            "ru_RU": "1-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2字节有符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "2-byte signed integer",
+            "ru_RU": "2-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳（ms）",
+        "tag": "",
+        "translation": {
+            "en_US": "Timestamp (ms)",
+            "es_ES": "Marca de tiempo (ms)",
+            "ru_RU": "Метка времени (мс)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生离散链表（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-symbiotic Discrete Linked List (Secondary)",
+            "es_ES": "Lista enlazada disc. no simbiótica (secundaria)",
+            "ru_RU": "Несимбиотический дискретный связный список (Вторичный)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据存储方式",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Historical Data Storage Methods",
+            "ru_RU": "Способы хранения исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "月",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Month",
+            "ru_RU": "Месяц"
+        }
+    },
+    {
+        "comments": "",
+        "source": "年",
+        "tag": "",
+        "translation": {
+            "en_US": "Year",
+            "es_ES": "años",
+            "ru_RU": "Год"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生离散链表（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Non-symbiotic Discrete Linked List (Primary)",
+            "ru_RU": "Несимбиотический дискретный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续链表（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Sequential Linked List (Primary)",
+            "es_ES": "Lista enlazada cont. simbiótica (primaria)",
+            "ru_RU": "Симбиотический последовательный связный список (первичный)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不存历史",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "No history",
+            "ru_RU": "Отмена сохранения в историю"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Time difference (s)",
+            "es_ES": "Diferencia horaria (s)",
+            "ru_RU": "Разница времени (с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4",
+        "tag": "",
+        "translation": {
+            "en_US": "4",
+            "es_ES": "4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in hismdl",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in hismdl",
+            "es_ES": "enum en hismdl",
+            "ru_RU": "перечисление в hismdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续数组（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Sequential Array (Primary)",
+            "ru_RU": "Симбиотический непрерывный массив (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "布尔",
+        "tag": "",
+        "translation": {
+            "en_US": "Boolean",
+            "es_ES": "Booleano",
+            "ru_RU": "Булевый"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双向关联（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Bidirectional Link (Secondary)",
+            "es_ES": "Asociación bidireccional (secundaria)",
+            "ru_RU": "Двунаправленная ассоциация (вторичная)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续链表（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Sequential Linked List (Secondary)",
+            "es_ES": "Lista enlazada cont. simbiótica (secundaria)",
+            "ru_RU": "Симбиотический непрерывный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双精度浮点数",
+        "tag": "",
+        "translation": {
+            "en_US": "Double-precision floating point number",
+            "es_ES": "Número de punto flotante de doble precisión",
+            "ru_RU": "Число с плавающей запятой двойной точности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨库多关联",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Cross-DB Multiple Join",
+            "ru_RU": "Множественное соединение между DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "位",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Bit",
+            "ru_RU": "Бит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Week",
+            "ru_RU": "Неделя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象OID",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Object OID",
+            "ru_RU": "OID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨库单关联",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Cross-DB Single Join",
+            "ru_RU": "Одиночное соединение между DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计存储",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Statistical Storage",
+            "ru_RU": "Хранение Cтатистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "2字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "2-byte unsigned integer",
+            "es_ES": "Entero sin signo de 2 bytes",
+            "ru_RU": "2-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双向关联（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Bidirectional Link (Secondary)",
+            "ru_RU": "Двунаправленная связь (ведомая)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "4-byte unsigned integer",
+            "es_ES": "Entero sin signo de 4 bytes",
+            "ru_RU": "4-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Time unit",
+            "es_ES": "Unidad de tiempo",
+            "ru_RU": "Единица времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生内联链表（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Non-symbiotic Inline Linked List (Secondary)",
+            "ru_RU": "Несимбиотический встроенный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "位串",
+        "tag": "",
+        "translation": {
+            "en_US": "Bitstring",
+            "es_ES": "Cadena de bits",
+            "ru_RU": "Битовая строка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续数组（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Sequential Array (Secondary)",
+            "es_ES": "Arreglo cont. simbiótico (secundaria)",
+            "ru_RU": "Симбиотический непрерывный массив (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多对多关系（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Many-to-Many Relationship (Primary)",
+            "es_ES": "Relación muchos a muchos (primaria)",
+            "ru_RU": "Многие-ко-многим отношение (Основное)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据来源",
+        "tag": "",
+        "translation": {
+            "en_US": "Data source",
+            "es_ES": "Fuentes de datos",
+            "ru_RU": "Источник данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生离散链表（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Discrete Linked List (Primary)",
+            "es_ES": "Lista enlazada disc. simbiótica (primaria)",
+            "ru_RU": "Симбиотический дискретный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1字节无符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "1-byte unsigned integer",
+            "ru_RU": "1-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳（s）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Timestamp (s)",
+            "ru_RU": "Метка времени (с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结构体",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Struct",
+            "ru_RU": "Структура"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生内联链表（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-symbiotic Inline Linked List (Secondary)",
+            "es_ES": "Lista enlazada inline no simb. (secundaria)",
+            "ru_RU": "Несимбиотический встроенный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "空值",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Empty value",
+            "ru_RU": "Пустое значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象ID",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Object ID",
+            "ru_RU": "ID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生循环（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Cycle (Primary)",
+            "ru_RU": "Симбиотический цикл (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object OID",
+            "es_ES": "OID del objeto",
+            "ru_RU": "Oid объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生离散链表（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Non-symbiotic Discrete Linked List (Secondary)",
+            "ru_RU": "Несимбиотический дискретный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "季",
+        "tag": "",
+        "translation": {
+            "en_US": "Quarter",
+            "es_ES": "estación",
+            "ru_RU": "Квартал"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生离散链表（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Discrete Linked List (Primary)",
+            "ru_RU": "Симбиотический дискретный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "布尔",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Boolean",
+            "ru_RU": "Булевый"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生连续链表（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-symbiotic Sequential Linked List (Secondary)",
+            "es_ES": "Lista enlazada cont. no simbiótica (secundaria)",
+            "ru_RU": "Несимбиотический непрерывный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差（ms）",
+        "tag": "",
+        "translation": {
+            "en_US": "Time difference (ms)",
+            "es_ES": "Diferencia horaria (ms)",
+            "ru_RU": "Разница времени (мс)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨库多关联",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-DB Multiple Join",
+            "es_ES": "Asociación múltiple entre BD",
+            "ru_RU": "Кросс-базовое множественное соединение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨库单关联",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-DB Single Join",
+            "es_ES": "Asociación única entre BD",
+            "ru_RU": "Кросс-базовое одиночное соединение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "月",
+        "tag": "",
+        "translation": {
+            "en_US": "Month",
+            "es_ES": "mes",
+            "ru_RU": "Месяц"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单向引用",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Unidirectional Reference",
+            "ru_RU": "Однонаправленная ссылка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生循环（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Cycle (Secondary)",
+            "ru_RU": "Симбиотический цикл (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周",
+        "tag": "",
+        "translation": {
+            "en_US": "Week",
+            "es_ES": "semanas",
+            "ru_RU": "Неделя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字符串",
+        "tag": "",
+        "translation": {
+            "en_US": "String",
+            "es_ES": "cadena",
+            "ru_RU": "Строка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1字节无符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "1-byte unsigned integer",
+            "es_ES": "Entero sin signo de 1 byte",
+            "ru_RU": "1-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样+事件存储",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Sampling + Event storage",
+            "ru_RU": "Дискретизация + хранение событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "日期（s）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Date (s)",
+            "ru_RU": "Дата(ы)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样存储",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Sample Storage",
+            "ru_RU": "Хранение дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样存储",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample Storage",
+            "es_ES": "Muestreo",
+            "ru_RU": "Хранение образцов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "小时",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Hour",
+            "ru_RU": "Час"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计存储",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical Storage",
+            "es_ES": "Estadísticas",
+            "ru_RU": "Статистическое хранение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象时标",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Object time scale",
+            "ru_RU": "Метка времени объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "位",
+        "tag": "",
+        "translation": {
+            "en_US": "Bit",
+            "es_ES": "Bit",
+            "ru_RU": "Бит"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8字节有符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "8-byte signed integer",
+            "ru_RU": "8-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象数据",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Object data",
+            "ru_RU": "Данные объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差（ms）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Time difference (ms)",
+            "ru_RU": "Разница во времени (мс)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样+事件存储",
+        "tag": "",
+        "translation": {
+            "en_US": "Sampling + Event storage",
+            "es_ES": "Almacenamiento de muestreo + evento",
+            "ru_RU": "Дискретизация + хранение событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "8-byte signed integer",
+            "es_ES": "Entero con signo de 8 bytes",
+            "ru_RU": "8-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间戳",
+        "tag": "",
+        "translation": {
+            "en_US": "Timestamp",
+            "es_ES": "Marca de tiempo",
+            "ru_RU": "Метка времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "季",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Quarter",
+            "ru_RU": "Квартал"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生循环（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Cycle (Secondary)",
+            "es_ES": "Ciclo simbiótico (secundaria)",
+            "ru_RU": "Симбиотический цикл (Вторичный)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单向字段引用（多跨库）",
+        "tag": "",
+        "translation": {
+            "en_US": "Unidirectional Field Reference (Multi-Cross-DB)",
+            "es_ES": "Ref. unidireccional (multi-BD)",
+            "ru_RU": "Однонаправленная ссылка на поле (несколько кросс-DB)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生内联链表（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-symbiotic Inline Linked List (Primary)",
+            "es_ES": "Lista enlazada inline no simb. (primaria)",
+            "ru_RU": "Несимбиотический встроенный связный список (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多对多关系（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Many-to-Many Relationship (Secondary)",
+            "ru_RU": "Отношение многие ко многим (ведомое)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8",
+        "tag": "",
+        "translation": {
+            "en_US": "8",
+            "es_ES": "8",
+            "ru_RU": "8"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单向引用",
+        "tag": "",
+        "translation": {
+            "en_US": "Unidirectional Reference",
+            "es_ES": "Referencia unidireccional",
+            "ru_RU": "Односторонняя ссылка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据类型",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Data type",
+            "ru_RU": "Тип данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据来源",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Data source",
+            "ru_RU": "Источник данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生离散链表（从）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Discrete Linked List (Secondary)",
+            "es_ES": "Lista enlazada disc. simbiótica (secundaria)",
+            "ru_RU": "Симбиотический дискретный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续链表（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Sequential Linked List (Secondary)",
+            "ru_RU": "Симбиотический непрерывный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字符串",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "String",
+            "ru_RU": "Строка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单精度浮点数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Single-precision floating point numbers",
+            "ru_RU": "Число с плавающей запятой одинарной точности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "4字节有符号整数",
+        "tag": "",
+        "translation": {
+            "en_US": "4-byte signed integer",
+            "es_ES": "Entero con signo de 4 bytes",
+            "ru_RU": "4-байтовое знаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "8字节无符号整数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "8-byte unsigned integer",
+            "ru_RU": "8-байтовое беззнаковое целое"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双精度浮点数",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Double-precision floating point number",
+            "ru_RU": "Число с плавающей запятой двойной точности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生离散链表（从）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Symbiotic Discrete Linked List (Secondary)",
+            "ru_RU": "Симбиотический дискретный связный список (ведомый)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "普通OID",
+        "tag": "",
+        "translation": {
+            "en_US": "General OID",
+            "es_ES": "OID general",
+            "ru_RU": "Обычный OID"
+        }
+    },
+    {
+        "comments": "",
+        "source": "共生连续数组（主）",
+        "tag": "",
+        "translation": {
+            "en_US": "Symbiotic Sequential Array (Primary)",
+            "es_ES": "Arreglo cont. simbiótico (primaria)",
+            "ru_RU": "Симбиотический непрерывный массив (ведущий)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非共生内联链表（主）",
+        "tag": "enum_cfg/hismdl",
+        "translation": {
+            "en_US": "Non-symbiotic Inline Linked List (Primary)",
+            "ru_RU": "Несимбиотический встроенный связный список (ведущий)"
+        }
+    }
+]

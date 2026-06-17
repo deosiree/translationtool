@@ -1,0 +1,30 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 校验应用{%2}库{%3}成功",
+        "tag": "",
+        "translation": {
+            "en_US": "User:{%1} verified application{%2} DB{%3} successfully",
+            "es_ES": "Usuario:{%1} verificó la aplicación{%2} biblioteca{%3} con éxito",
+            "ru_RU": "Пользователь: {%1} успешная проверка DB: {%3} приложения: {%2}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 校验应用{%2}库{%3}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User:{%1} failed to verify application{%2} DB{%3}",
+            "es_ES": "Usuario:{%1} no pudo verificar la aplicación{%2} biblioteca{%3}",
+            "ru_RU": "Пользователь:{%1} не прошел проверку приложения{%2} библиотеки{%3}"
+        }
+    }
+]

@@ -1,0 +1,625 @@
+[
+    {
+        "comments": "",
+        "source": "周期计算",
+        "tag": "",
+        "translation": {
+            "en_US": "Period calculation",
+            "es_ES": "Cálculo de ciclo",
+            "ru_RU": "Расчет цикла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对值",
+        "tag": "",
+        "translation": {
+            "en_US": "Abs",
+            "es_ES": "ABS",
+            "ru_RU": "ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "触发计算",
+        "tag": "",
+        "translation": {
+            "en_US": "Trigger calculation",
+            "es_ES": "Cálculo de activación",
+            "ru_RU": "Вычисление по триггеру"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差Ms",
+        "tag": "",
+        "translation": {
+            "en_US": "DeltaMs",
+            "es_ES": "DeltaMs",
+            "ru_RU": "ДельтаМс"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正切",
+        "tag": "",
+        "translation": {
+            "en_US": "Tangent",
+            "es_ES": "Tangente",
+            "ru_RU": "Тангенс"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "M-RTDB",
+            "ru_RU": "M-RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平方根",
+        "tag": "",
+        "translation": {
+            "en_US": "Sqrt",
+            "es_ES": "Raíz cuadrada",
+            "ru_RU": "Sqrt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点遥信全或(1分2合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Dual-point remote signal OR (1 Open 2 Close)",
+            "es_ES": "Telesignal de dos puntos OR (1 Abierto 2 Cerrado)",
+            "ru_RU": "Двухточечный телесигнал ИЛИ (1 разомкнут, 2 замкнут)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Maximum",
+            "ru_RU": "Maximum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "余弦",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Cosine",
+            "ru_RU": "Косинус"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "Minimum",
+            "es_ES": "Mín",
+            "ru_RU": "Минимум"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点遥信全或(0分1合)",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Single-point telesignal OR (0 Open, 1 Close)",
+            "ru_RU": "Общее \"ИЛИ\" для одноточечной телесигнализации (0 - отключено, 1 - включено)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "",
+        "translation": {
+            "en_US": "R-RTDB (Running Real-Time DataBase)",
+            "es_ES": "RTDB",
+            "ru_RU": "RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务类型",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Computing task type",
+            "ru_RU": "Тип вычислительной задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "第一条",
+        "tag": "",
+        "translation": {
+            "en_US": "First",
+            "es_ES": "Primero",
+            "ru_RU": "Пер"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差s",
+        "tag": "",
+        "translation": {
+            "en_US": "DeltaS",
+            "es_ES": "DeltaS",
+            "ru_RU": "DeltaS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1分钟",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "1 min",
+            "ru_RU": "1 минута"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点事故总(1分2合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Double-point total fault (1 Open 2 Close)",
+            "es_ES": "Total de accidentes de dos puntos (1 Abierto 2 Cerrado)",
+            "ru_RU": "Двухточечный общий аварииный сигнал (1 разомкнут, 2 замкнут)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点遥信全与(0分1合)",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Single-point telesignal AND (0 Open, 1 Close)",
+            "ru_RU": "Общее \"И\" для одноточечной телесигнализации (0 - отключено, 1 - включено)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正弦",
+        "tag": "",
+        "translation": {
+            "en_US": "Sine",
+            "es_ES": "Seno",
+            "ru_RU": "Синус"
+        }
+    },
+    {
+        "comments": "",
+        "source": "运行库",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "R-RTDB (Running Real-Time DataBase)",
+            "ru_RU": "R-RTDB (Running Real-Time DataBase)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "快捷函数",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Shortcut functions",
+            "ru_RU": "Быстрая функция"
+        }
+    },
+    {
+        "comments": "",
+        "source": "快捷函数",
+        "tag": "",
+        "translation": {
+            "en_US": "Shortcut functions",
+            "es_ES": "Funciones rápidas",
+            "ru_RU": "Быстрая функция"
+        }
+    },
+    {
+        "comments": "",
+        "source": "立方根",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Cbrt",
+            "ru_RU": "Cbrt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Computing task type",
+            "es_ES": "Tipo de tarea de cómputo",
+            "ru_RU": "Тип вычислительной задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "触发计算",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Trigger calculation",
+            "ru_RU": "Вычисление по триггеру"
+        }
+    },
+    {
+        "comments": "",
+        "source": "幂",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Power",
+            "ru_RU": "Степень"
+        }
+    },
+    {
+        "comments": "",
+        "source": "幂",
+        "tag": "",
+        "translation": {
+            "en_US": "Power",
+            "es_ES": "Potencia",
+            "ru_RU": "Мощность"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全或",
+        "tag": "",
+        "translation": {
+            "en_US": "OR"
+        }
+    },
+    {
+        "comments": "",
+        "source": "10秒",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "10s",
+            "ru_RU": "10 с"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点遥信全与(1分2合)",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Double-point telesignal AND (1 Open 2 Close)",
+            "ru_RU": "Двухточечный телесигнал И (1 отключено, 2 включено)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum",
+            "es_ES": "Máx.",
+            "ru_RU": "Maximum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平均值",
+        "tag": "",
+        "translation": {
+            "en_US": "AVG",
+            "es_ES": "Valor promedio",
+            "ru_RU": "AVG"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平均值",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "AVG",
+            "es_ES": "Valor promedio",
+            "ru_RU": "AVG"
+        }
+    },
+    {
+        "comments": "",
+        "source": "calcmdl",
+        "tag": "",
+        "translation": {
+            "en_US": "calcmdl",
+            "es_ES": "calcmdl"
+        }
+    },
+    {
+        "comments": "",
+        "source": "立方根",
+        "tag": "",
+        "translation": {
+            "en_US": "Cbrt",
+            "es_ES": "Cbrt",
+            "ru_RU": "Кубический корень"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全与",
+        "tag": "",
+        "translation": {
+            "en_US": "AND"
+        }
+    },
+    {
+        "comments": "",
+        "source": "求和",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Sum",
+            "ru_RU": "Sum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "平方根",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Sqrt",
+            "ru_RU": "Sqrt"
+        }
+    },
+    {
+        "comments": "",
+        "source": "余弦",
+        "tag": "",
+        "translation": {
+            "en_US": "Cosine",
+            "es_ES": "Coseno",
+            "ru_RU": "Косинус"
+        }
+    },
+    {
+        "comments": "",
+        "source": "维护库",
+        "tag": "",
+        "translation": {
+            "en_US": "MTDB",
+            "es_ES": "MTDB",
+            "ru_RU": "MTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点遥信全与(0分1合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-point telesignal AND (0 Open, 1 Close)",
+            "es_ES": "Telesignal de un solo punto AND (0 Abierto 1 Cerrado)",
+            "ru_RU": "Одноточечный телесигнал И (1 Открыто 2 Закрыто)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "第一条",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "First",
+            "ru_RU": "Пер"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation period",
+            "es_ES": "Ciclo de cálculo",
+            "ru_RU": "Цикл расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "10秒",
+        "tag": "",
+        "translation": {
+            "en_US": "10s",
+            "es_ES": "10 s",
+            "ru_RU": "10 секунд"
+        }
+    },
+    {
+        "comments": "",
+        "source": "周期计算",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Period calculation",
+            "ru_RU": "Циклическое вычисление"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点遥信全或(1分2合)",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Dual-point remote signal OR (1 Open 2 Close)",
+            "ru_RU": "Двухточечный телесигнал ИЛИ (1 разомкнут, 2 замкнут)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正切",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Tangent",
+            "ru_RU": "Тангенс"
+        }
+    },
+    {
+        "comments": "",
+        "source": "求和",
+        "tag": "",
+        "translation": {
+            "en_US": "Sum",
+            "es_ES": "Suma",
+            "ru_RU": "Сумма"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对值",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Abs",
+            "ru_RU": "ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "5秒",
+        "tag": "",
+        "translation": {
+            "en_US": "5s",
+            "es_ES": "5 s",
+            "ru_RU": "5 с"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Minimum",
+            "ru_RU": "Минимум"
+        }
+    },
+    {
+        "comments": "",
+        "source": "1分钟",
+        "tag": "",
+        "translation": {
+            "en_US": "1 min",
+            "es_ES": "1 minuto",
+            "ru_RU": "1 минута"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差s",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "DeltaS",
+            "ru_RU": "Разница во времени, с"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连库模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Connect database mode",
+            "es_ES": "Modo de biblioteca de enlaces",
+            "ru_RU": "Режим подключения к DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连库模式",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Connect database mode",
+            "ru_RU": "Режим подключения к DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点事故总(1分2合)",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Double-point total fault (1 Open 2 Close)",
+            "ru_RU": "Двухточечный общий аварииный сигнал (1 разомкнут, 2 замкнут)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算周期",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Calculation period",
+            "ru_RU": "Период расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点事故总(0分1合)",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Single-point total fault (0 Open, 1 Close)",
+            "ru_RU": "Общая авария для одной точки (0 - отключено, 1 - включено)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正弦",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "Sine",
+            "ru_RU": "Синус"
+        }
+    },
+    {
+        "comments": "",
+        "source": "双点遥信全与(1分2合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Double-point telesignal AND (1 Open 2 Close)",
+            "es_ES": "Telesignal de dos puntos AND (1 Abierto 2 Cerrado)",
+            "ru_RU": "Двухточечный телесигнал И (1 отключено, 2 включено)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "5秒",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "5s",
+            "ru_RU": "5 с"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点遥信全或(0分1合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-point telesignal OR (0 Open, 1 Close)",
+            "es_ES": "Telesignal de un solo punto OR (1 Abierto 2 Cerrado)",
+            "ru_RU": "Общее \"ИЛИ\" для одноточечной телесигнализации (0 - отключено, 1 - включено)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单点事故总(0分1合)",
+        "tag": "",
+        "translation": {
+            "en_US": "Single-point total fault (0 Open, 1 Close)",
+            "es_ES": "Total de accidentes de un solo punto (0 Abierto, 1 Cerrado)",
+            "ru_RU": "Единичный сигнал аварии (0 — Открыто, 1 — Закрыто)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间差Ms",
+        "tag": "enum_cfg/calcmdl",
+        "translation": {
+            "en_US": "DeltaMs",
+            "ru_RU": "Разница во времени, мс"
+        }
+    }
+]

@@ -1,0 +1,1252 @@
+[
+    {
+        "comments": "",
+        "source": "密码",
+        "tag": "",
+        "translation": {
+            "en_US": "Password",
+            "es_ES": "Contraseña",
+            "ru_RU": "Пароль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告知",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Notify",
+            "ru_RU": "Оповещение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "紧急",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Exigency",
+            "ru_RU": "Срочный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "角色多分配",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Multiple role assignments",
+            "ru_RU": "Множественное назначение ролей"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "密码",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Password"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "警告",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "密码+指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "Password+Fingerprint"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "密码+Ukey",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Password+Ukey"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "功能项多分配",
+        "tag": "",
+        "translation": {
+            "en_US": "Multiple assignment of function items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录认证方式",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Login auth method",
+            "ru_RU": "Способ аутентификации пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "白名单",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Whitelist",
+            "ru_RU": "Белый список"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能项二次验证",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Secondary verification of functional items",
+            "ru_RU": "Вторичная проверка функции"
+        }
+    },
+    {
+        "comments": "",
+        "source": "紧急",
+        "tag": "",
+        "translation": {
+            "en_US": "Exigency",
+            "es_ES": "Urgencia",
+            "ru_RU": "Срочный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警等级",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Alarm Level",
+            "ru_RU": "Ур Трев"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "告知",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Inform"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "黑名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Blacklist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "指纹",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Fingerprint",
+            "ru_RU": "Отпечаток"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "功能项二次验证",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Secondary verification of functional items"
+        }
+    },
+    {
+        "comments": "",
+        "source": "角色类型",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Role Type",
+            "ru_RU": "Тип роли"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "是",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Yes"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告知",
+        "tag": "",
+        "translation": {
+            "en_US": "Notify",
+            "es_ES": "Informar",
+            "ru_RU": "Сообщить"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "白名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Whitelist"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Password",
+            "ru_RU": "Пароль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计日志级别",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Audit log level",
+            "ru_RU": "Уровень журнала аудита"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重要",
+        "tag": "",
+        "translation": {
+            "en_US": "Important",
+            "es_ES": "Importancia",
+            "ru_RU": "Важность"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "用户认证信息类型",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "User authentication info type"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "操作员",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "operator"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "未登录角色",
+        "tag": "",
+        "translation": {
+            "en_US": "Unlogged role"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Message"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Node type",
+            "es_ES": "Tipo de nodo",
+            "ru_RU": "Тип узла"
+        }
+    },
+    {
+        "comments": "",
+        "source": "一般",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal",
+            "es_ES": "Normal",
+            "ru_RU": "Обычный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Info",
+            "es_ES": "Mensaje",
+            "ru_RU": "Информация"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "secinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "secinfo"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "enum in secinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in secinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in secinfo",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "enum in secinfo",
+            "ru_RU": "перечисление в secinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计员",
+        "tag": "",
+        "translation": {
+            "en_US": "Auditor",
+            "es_ES": "Auditor",
+            "ru_RU": "Аудитор"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "激活状态",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Activation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "True",
+            "es_ES": "Verdadero",
+            "ru_RU": " Истина"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "次要",
+        "tag": "",
+        "translation": {
+            "en_US": "Secondary"
+        }
+    },
+    {
+        "comments": "",
+        "source": "角色多分配",
+        "tag": "",
+        "translation": {
+            "en_US": "Multiple role assignments",
+            "es_ES": "Asignación múltiple de roles",
+            "ru_RU": "Множественное назначение ролей"
+        }
+    },
+    {
+        "comments": "",
+        "source": "黑名单",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Blacklist",
+            "ru_RU": "Чёрный список"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户认证信息类型",
+        "tag": "",
+        "translation": {
+            "en_US": "User authentication info type",
+            "es_ES": "Tipo de información de autenticación de usuario",
+            "ru_RU": "Тип информации для аутентификации пользователя"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "系统节点",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "System Node"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未登录角色",
+        "tag": "",
+        "translation": {
+            "en_US": "Unlogged role",
+            "es_ES": "Rol no registrado",
+            "ru_RU": "Роль без регистрации"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "错误",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Error"
+        }
+    },
+    {
+        "comments": "",
+        "source": "管理员",
+        "tag": "",
+        "translation": {
+            "en_US": "Admin",
+            "es_ES": "Administrador",
+            "ru_RU": "Администратор"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "审计日志级别",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit log level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码+Ukey",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Password+Ukey",
+            "ru_RU": "Пароль + Ukey"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "重要",
+        "tag": "",
+        "translation": {
+            "en_US": "Importance"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能项多分配",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Multiple assignment of function items",
+            "ru_RU": "Множественное назначение функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作员",
+        "tag": "",
+        "translation": {
+            "en_US": "operator",
+            "es_ES": "Operador",
+            "ru_RU": "Оператор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "次要",
+        "tag": "",
+        "translation": {
+            "en_US": "Secondary",
+            "es_ES": "Secundario",
+            "ru_RU": "Второстепенный"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "管理员",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Admin"
+        }
+    },
+    {
+        "comments": "",
+        "source": "角色类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Role Type",
+            "es_ES": "Tipo de rol",
+            "ru_RU": "Тип роли"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "审计员",
+        "tag": "",
+        "translation": {
+            "en_US": "Auditor"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "信息",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Message"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "告警等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm level"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "紧急",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Exigency"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "是",
+        "tag": "",
+        "translation": {
+            "en_US": "Yes"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "enum in secinfo",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "enum in secinfo"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "指纹",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Fingerprint"
+        }
+    },
+    {
+        "comments": "",
+        "source": "一般",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Normal",
+            "ru_RU": "Норма"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统节点",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "System Node",
+            "ru_RU": "Системный узел"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "角色多分配",
+        "tag": "",
+        "translation": {
+            "en_US": "Multiple role assignments"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户认证信息类型",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "User authentication info type",
+            "ru_RU": "Тип информации об аутентификации пользователя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是",
+        "tag": "",
+        "translation": {
+            "en_US": "True",
+            "es_ES": "Sí",
+            "ru_RU": "Да"
+        }
+    },
+    {
+        "comments": "",
+        "source": "Ukey",
+        "tag": "",
+        "translation": {
+            "en_US": "Ukey",
+            "es_ES": "Ukey"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "Ukey",
+        "tag": "",
+        "translation": {
+            "en_US": "Ukey"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能项多分配",
+        "tag": "",
+        "translation": {
+            "en_US": "Multiple assignment of function items",
+            "es_ES": "Asignación múltiple de elementos de función",
+            "ru_RU": "Множественное назначение функциональных элементов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "黑名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Blacklist",
+            "es_ES": "Lista negra",
+            "ru_RU": "Чёрные списки"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "角色类型",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Role Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "登录认证方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Login auth method",
+            "es_ES": "Método de autenticación de inicio de sesión",
+            "ru_RU": "Метод аутентификации входа"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统外节点",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Node outside the system",
+            "ru_RU": "Внешний узел системы"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "节点校验方式",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Node verification method"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "黑名单",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Blacklist"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "一般",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点类型",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Node type",
+            "ru_RU": "Тип узла"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "密码+指纹",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Password+Fingerprint"
+        }
+    },
+    {
+        "comments": "",
+        "source": "信息",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Info",
+            "ru_RU": "Инф"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "登录认证方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Login auth method"
+        }
+    },
+    {
+        "comments": "",
+        "source": "管理员",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Admin",
+            "ru_RU": "Администратор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能项二次验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Secondary verification of functional items",
+            "es_ES": "Verificación secundaria de elementos funcionales",
+            "ru_RU": "Вторичная проверка функции"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "功能项多分配",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Multiple assignment of function items"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "密码+Ukey",
+        "tag": "",
+        "translation": {
+            "en_US": "Password+Ukey"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "警告",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Alarm"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码+指纹",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Password+Fingerprint",
+            "ru_RU": "Пароль + отпечаток пальца"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "节点类型",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Node Type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "secinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "secinfo",
+            "es_ES": "secinfo"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "功能项二次验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Secondary verification of functional items"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "密码",
+        "tag": "",
+        "translation": {
+            "en_US": "Password"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "未登录角色",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Unlogged role"
+        }
+    },
+    {
+        "comments": "",
+        "source": "操作员",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "operator",
+            "ru_RU": "Оператор"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "节点校验方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Node verification method"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "secinfo",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "secinfo"
+        }
+    },
+    {
+        "comments": "",
+        "source": "错误",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Error",
+            "ru_RU": "Ошибка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码+指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "Password+Fingerprint",
+            "es_ES": "Contraseña + Huella dactilar",
+            "ru_RU": "Пароль + отпечаток пальца"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "白名单",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Whitelist"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "否",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "Fingerprint",
+            "es_ES": "Huella dactilar",
+            "ru_RU": "Отпечаток"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "操作员",
+        "tag": "",
+        "translation": {
+            "en_US": "operator"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重要",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Important",
+            "ru_RU": "Важно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计员",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Auditor",
+            "ru_RU": "Аудитор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "密码+Ukey",
+        "tag": "",
+        "translation": {
+            "en_US": "Password+Ukey",
+            "es_ES": "Contraseña + Ukey",
+            "ru_RU": "Пароль + Ukey"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统节点",
+        "tag": "",
+        "translation": {
+            "en_US": "System Node",
+            "es_ES": "Nodo del sistema",
+            "ru_RU": "Системный узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "审计日志级别",
+        "tag": "",
+        "translation": {
+            "en_US": "Audit log level",
+            "es_ES": "Nivel de registro de auditoría",
+            "ru_RU": "Уровень журнала аудита"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "告知",
+        "tag": "",
+        "translation": {
+            "en_US": "Inform"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点校验方式",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Node verification method",
+            "ru_RU": "Способ проверки узла"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "系统外节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Node outside the system"
+        }
+    },
+    {
+        "comments": "",
+        "source": "次要",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Secondary",
+            "ru_RU": "Второстепенный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统外节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Node outside the system",
+            "es_ES": "Nodo fuera del sistema",
+            "ru_RU": "Внешний узел системы"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "系统节点",
+        "tag": "",
+        "translation": {
+            "en_US": "System Node"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "紧急",
+        "tag": "",
+        "translation": {
+            "en_US": "Exigency"
+        }
+    },
+    {
+        "comments": "",
+        "source": "激活状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Activation",
+            "es_ES": "Activación",
+            "ru_RU": "Состояние активации"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "审计日志级别",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Audit log level"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "次要",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Secondary"
+        }
+    },
+    {
+        "comments": "",
+        "source": "未登录角色",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Unlogged role",
+            "ru_RU": "Незалогиненная роль"
+        }
+    },
+    {
+        "comments": "",
+        "source": "激活状态",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Activation",
+            "ru_RU": "Состояние активации"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "管理员",
+        "tag": "",
+        "translation": {
+            "en_US": "Admin"
+        }
+    },
+    {
+        "comments": "",
+        "source": "否",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "False",
+            "es_ES": "Falso",
+            "ru_RU": "Ложь"
+        }
+    },
+    {
+        "comments": "",
+        "source": "否",
+        "tag": "",
+        "translation": {
+            "en_US": "False",
+            "es_ES": "No",
+            "ru_RU": "Ложь"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "否",
+        "tag": "",
+        "translation": {
+            "en_US": "No"
+        }
+    },
+    {
+        "comments": "",
+        "source": "enum in secinfo",
+        "tag": "",
+        "translation": {
+            "en_US": "enum in secinfo",
+            "es_ES": "enum en secinfo",
+            "ru_RU": "перечисление в secinfo"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "角色类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Role Type"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "激活状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Activation"
+        }
+    },
+    {
+        "comments": "",
+        "source": "警告",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Warning",
+            "ru_RU": "Предупр"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "系统外节点",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Node outside the system"
+        }
+    },
+    {
+        "comments": "",
+        "source": "警告",
+        "tag": "",
+        "translation": {
+            "en_US": "Warning",
+            "es_ES": "Alarma",
+            "ru_RU": "Предупреждение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点校验方式",
+        "tag": "",
+        "translation": {
+            "en_US": "Node verification method",
+            "es_ES": "Método de verificación de nodo",
+            "ru_RU": "Способ проверки узла"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "告警等级",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Alarm level"
+        }
+    },
+    {
+        "comments": "",
+        "source": "白名单",
+        "tag": "",
+        "translation": {
+            "en_US": "Whitelist",
+            "es_ES": "Lista blanca",
+            "ru_RU": "Белый список"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "角色多分配",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Multiple role assignments"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "审计员",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Auditor"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "节点类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Node Type"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "用户认证信息类型",
+        "tag": "",
+        "translation": {
+            "en_US": "User authentication info type"
+        }
+    },
+    {
+        "comments": "",
+        "source": "告警等级",
+        "tag": "",
+        "translation": {
+            "en_US": "Alarm Level",
+            "es_ES": "Nivel de alarma",
+            "ru_RU": "Ур Трев"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "Ukey",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Ukey"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "登录认证方式",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Login auth method"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Error"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "一般",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Normal"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "重要",
+        "tag": "enum_cfg/secinfo",
+        "translation": {
+            "en_US": "Importance"
+        }
+    },
+    {
+        "comments": "enum_cfg/secinfo",
+        "source": "指纹",
+        "tag": "",
+        "translation": {
+            "en_US": "Fingerprint"
+        }
+    },
+    {
+        "comments": "",
+        "source": "错误",
+        "tag": "",
+        "translation": {
+            "en_US": "Error",
+            "es_ES": "Error",
+            "ru_RU": "Ошибка"
+        }
+    }
+]

@@ -1,0 +1,106 @@
+[
+    {
+        "comments": "",
+        "source": "获取上次 tcp 心跳时间失败",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "心跳超时",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "链路状态未知",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收到断开报文",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收到心跳确认报文",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "[{:s}] 网络组",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点 [{}] [{:s}] 网络组服务收到异常报文信息，丢弃",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "远程 [{:s}/{:s}] 网络组",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点 [{}] 与远程节点 [{}] 的 [{}] 网已连通",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点 [{}] 与远程节点 [{}] 的 [{}] 网已断开",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "远程 [{:s}/{:s}] 网络组",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点 [{}] 与远程节点 [{}] 的网络已连通",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    },
+    {
+        "comments": "",
+        "source": "本节点 [{}] 与远程节点 [{}] 的网络已断开",
+        "tag": "",
+        "translation": {
+            "en_US": ""
+        }
+    }
+]

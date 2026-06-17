@@ -5,6 +5,9 @@ import com.shr.translationtoolservice.entity.SecondClassify;
 import com.shr.translationtoolservice.service.SecondClassifyInterface;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+
+import io.micrometer.core.instrument.util.StringUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +32,9 @@ public class SecondClassifyServiceImpl implements SecondClassifyInterface {
 
     @Override
     public String addSecondClassify(SecondClassify secondClassify, HttpServletRequest request) {
+        if(StringUtils.isBlank(secondClassify.getName())){
+            return "二级分类不允许为空";
+        }
         String id = commonUtils.getUUID();
         secondClassify.setId(id);
         String token = request.getHeader("token");
@@ -36,7 +42,10 @@ public class SecondClassifyServiceImpl implements SecondClassifyInterface {
         secondClassify.setCreator(userName);
         Date date = new Date(System.currentTimeMillis());
         secondClassify.setCreateTime(date);
-        secondClassifyMapper.insert(secondClassify);
+        int insertResult = secondClassifyMapper.insert(secondClassify);
+        if(insertResult != 1){
+            return "";
+        }
         return id;
     }
 
@@ -47,9 +56,12 @@ public class SecondClassifyServiceImpl implements SecondClassifyInterface {
     }
 
     @Override
-    public Integer updateSecondClassify(SecondClassify secondClassify) {
+    public String updateSecondClassify(SecondClassify secondClassify) {
+        if(StringUtils.isBlank(secondClassify.getName())){
+            return "二级分类不允许为空";
+        }
         Integer i = secondClassifyMapper.updateByPrimaryKeySelective(secondClassify);
-        return i;
+        return i == 1 ? "更新成功" : "更新失败";
     }
 
     @Override

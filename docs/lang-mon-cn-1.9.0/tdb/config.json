@@ -1,0 +1,513 @@
+{
+  "config": [
+    {
+      "appName": "sysops.run.0",
+      "databases": [
+        {
+          "dbName": "mmidict",
+          "tables": [
+            {
+              "name": "DecisionCollect",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DecisionExpression",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName":"element"
+                }
+              ]
+            },
+            {
+              "name": "DictElementDir",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictElementItem",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictApplication",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictGraphDir",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictReportDir",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictGraphItem",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictReportItem",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictGraphDirDisplayGroup",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictGraphDirDisplay",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictElementPoint",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictElementStateInfo",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictElementGroup",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictReportDirDisplayGroup",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "DictReportDirDisplay",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            },
+            {
+              "name": "CfgDataTableSet",
+              "fieldList": [
+                {
+                  "fieldName": "tableType"
+                }
+              ]
+            },
+            {
+              "name": "CfgAppExchangeDefine",
+              "fieldList": [
+                {
+                  "fieldName": "alias"
+                }
+              ]
+            },
+            {
+              "name": "CfgElementTypeDefine",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "CfgPicTypeDefine",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "dbName": "secinfo",
+          "tables": [
+            {
+              "name": "SecFuncGroup",
+              "fieldList": [
+                {
+                  "fieldName": "alias"
+                }
+              ]
+            },
+            {
+              "name": "SecFuncItem",
+              "fieldList": [
+                {
+                  "fieldName": "alias"
+                }
+              ]
+            },
+            {
+              "name": "AlarmItem",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "SecFuncGroupClass",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName": "alias"
+                }
+              ]
+            },
+            {
+              "name": "SecRole",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName": "loginPic"
+                }
+              ]
+            },
+            {
+              "name": "SecUser",
+              "fieldList": [
+                {
+                  "fieldName": "loginPic"
+                }
+              ]
+            },
+            {
+              "name": "SecSysConf",
+              "fieldList": [
+                {
+                  "fieldName": "confName"
+                }
+              ]
+            },
+            {
+              "name": "auditEventDefine",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName": "type"
+                },{
+                  "fieldName": "classType"
+                }
+              ]
+            },
+            {
+              "name": "SecWorkSpace",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "appName": "hisdb.run.0",
+      "databases": [
+        {
+          "dbName": "hisparam",
+          "tables": [
+            {
+              "name": "HisPeriodTime",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "HisStaFormula",
+              "fieldList": [
+                {
+                  "fieldName": "name"
+                },
+                {
+                  "fieldName": "desc"
+                },
+                {
+                  "fieldName":"alias"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "appName": "sysmgr.run.0",
+      "databases": [
+        {
+          "dbName": "sysmdl",
+          "tables": [
+            {
+              "name": "SysType",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "TdbDef",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "AppDef",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "AppColl",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "ProcDef",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "AppModule",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "EventSubsys",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "EventFunction",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "EventOperation",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "EventGroup",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "EventItem",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "ToolProc",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "Mode",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "Sys",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "Site",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "AppDeploy",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "MtProc",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "TdbMt",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "Node",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "CoreProc",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "SvcProc",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "TdbRun",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "SiteTransInfo",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "Conf",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            },
+            {
+              "name": "ConfInfo",
+              "fieldList": [
+                {
+                  "fieldName": "desc"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

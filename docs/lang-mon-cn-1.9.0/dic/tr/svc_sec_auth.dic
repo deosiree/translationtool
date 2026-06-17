@@ -1,0 +1,50 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新启动",
+        "tag": "",
+        "translation": {
+            "en_US": "Restart",
+            "es_ES": "Reiniciar",
+            "ru_RU": "Перезапуск"
+        }
+    },
+    {
+        "comments": "",
+        "source": "正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "Normal exit",
+            "es_ES": "Salir normalmente",
+            "ru_RU": "Нормальный выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup successfully",
+            "es_ES": "iniciado con éxito",
+            "ru_RU": "Успешный запуск"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Startup Failed",
+            "es_ES": "Fallo en el inicio.",
+            "ru_RU": "Запуск не удался"
+        }
+    }
+]

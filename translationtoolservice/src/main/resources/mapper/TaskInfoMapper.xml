@@ -15,7 +15,7 @@
         <result property="entryAuditor" column="entry_auditor" jdbcType="VARCHAR"/>
         <result property="translator" column="translator" jdbcType="VARCHAR"/>
         <result property="translationAuditor" column="translation_auditor" jdbcType="VARCHAR"/>
-        <result property="description" column=" description" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
         <result property="state" column="state" jdbcType="VARCHAR"/>
         <result property="versionId" column="version_id" jdbcType="VARCHAR"/>
         <result property="importTime" column="import_time" jdbcType="TIMESTAMP"/>
@@ -66,6 +66,9 @@
         where t1.is_delete = 0
         <if test="taskInfoEntity.productId != null  and taskInfoEntity.productId != ''">
             and t2.id = #{taskInfoEntity.productId ,jdbcType=VARCHAR}
+        </if>
+        <if test = "taskInfoEntity.productName != null and taskInfoEntity.productName != ''">
+            and t2.name like CONCAT('%','${taskInfoEntity.productName}','%')
         </if>
 
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
@@ -124,7 +127,9 @@
         <if test="taskInfoEntity.productId != null  and taskInfoEntity.productId != ''">
             and t2.id = #{taskInfoEntity.productId ,jdbcType=VARCHAR}
         </if>
-
+        <if test = "taskInfoEntity.productName != null and taskInfoEntity.productName != ''">
+            and t2.name like CONCAT('%','${taskInfoEntity.productName}','%')
+        </if>
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.`name` like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -190,8 +195,8 @@
         (t1.entry_auditor = #{userName,jdbcType=VARCHAR}  )
         or (t1.developer = #{userName,jdbcType=VARCHAR} )
         or (t1.translator = #{userName,jdbcType=VARCHAR} )
-        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} ) )
-
+        or ( t1.translation_auditor = #{userName,jdbcType=VARCHAR} )
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -211,7 +216,7 @@
             and t1.creator = #{taskInfoEntity.creator }
         </if>
 
-        order by t1.delivery_time DESC
+        order by t1.delivery_time DESC,t1.id
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -228,7 +233,8 @@
         (t1.entry_auditor =  #{userName,jdbcType=VARCHAR} )
         or  (t1.developer =  #{userName,jdbcType=VARCHAR}  )
          or  (t1.translator =  #{userName,jdbcType=VARCHAR}   )
-         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  )  )
+         or ( t1.translation_auditor =  #{userName,jdbcType=VARCHAR}  )
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -257,7 +263,8 @@
         ((entry_auditor = #{userName,jdbcType=VARCHAR} )
         or (developer = #{userName,jdbcType=VARCHAR} )
         or (translator = #{userName,jdbcType=VARCHAR})
-        or (translation_auditor = #{userName,jdbcType=VARCHAR}))
+        or (translation_auditor = #{userName,jdbcType=VARCHAR})
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -290,7 +297,8 @@
         ((entry_auditor = #{userName,jdbcType=VARCHAR})
         or (developer =  #{userName,jdbcType=VARCHAR} )
         or (translator = #{userName,jdbcType=VARCHAR})
-        or (translation_auditor =  #{userName,jdbcType=VARCHAR} ))
+        or (translation_auditor =  #{userName,jdbcType=VARCHAR} )
+        or ( t1.creator = #{userName,jdbcType=VARCHAR} ) )
         <if test="taskInfoEntity.name != null  and taskInfoEntity.name != ''">
             and t1.name  like CONCAT('%','${taskInfoEntity.name}','%' )
         </if>
@@ -314,5 +322,13 @@
     <select id="getTaskEntityByTaskID" resultType="com.shr.translationtoolservice.entity.TaskInfoEntity">
      select   <include refid="Base_Column_List"/>
       from t_task_info where id =  #{taskID}
+    </select>
+    <select id="getTaskByIDList" resultType="com.shr.translationtoolservice.entity.TaskInfoEntity">
+        select   <include refid="Base_Column_List"/>
+        from t_task_info where id  in (
+        <foreach collection="taskIdList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
     </select>
 </mapper>

@@ -1,0 +1,210 @@
+[
+    {
+        "comments": "",
+        "source": "请选择要导入的文件的路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Please select the path of the file to be imported",
+            "ru_RU": "Выберите путь к файлу для импорта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出全部完成",
+        "tag": "",
+        "translation": {
+            "en_US": "The export of historical data has been fully completed",
+            "ru_RU": "Экспорт всех исторических данных завершен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全通用服务",
+        "tag": "ProcDef/desc",
+        "translation": {
+            "en_US": "General security service",
+            "ru_RU": "Общая служба безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出成功!",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data export successful!",
+            "es_ES": "¡¡ la exportación de datos históricos fue exitosa!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入成功，表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data imported successfully, table name: {}",
+            "es_ES": "Datos históricos importados con éxito, nombre de la tabla: {}",
+            "ru_RU": "Исторические данные успешно импортированы, имя таблицы: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入成功!",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data import successful!",
+            "es_ES": "¡¡ la importación de datos históricos fue exitosa!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出进度：{} - {}，本时间片 {} 条",
+        "tag": "",
+        "translation": {
+            "en_US": "Progress of exporting historical data: {} - {}, {} records from this time slot"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入进度：{} - {}，本时间片 {} 条",
+        "tag": "",
+        "translation": {
+            "en_US": "Progress of importing historical data: {} - {}, {} records in this time slot"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出进度：{}/{}个时间片: {} - {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Progress of exporting historical data: {}/{} time slices: {} - {}",
+            "ru_RU": "Прогресс экспорта исторических данных: {}/{} временных срезов ({} – {})"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入全部完成",
+        "tag": "",
+        "translation": {
+            "en_US": "The import of historical data has been fully completed",
+            "ru_RU": "Импорт всех исторических данных завершен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出成功，表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data export successful, table name: {}",
+            "es_ES": "Exportación de datos históricos exitosa, nombre de la tabla: {}",
+            "ru_RU": "Экспорт исторических данных успешен, имя таблицы: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面[{}]发布成功",
+        "tag": "",
+        "translation": {
+            "en_US": "The graph [{}] has been successfully published",
+            "ru_RU": "Успешная публикация мнемосхемы [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "请选择要导入的文件的路径",
+        "tag": "importwidget::ImportDisplayWidget",
+        "translation": {
+            "en_US": "Please select the path of the file to be imported",
+            "ru_RU": "Выберите путь к файлу для импорта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入中，当前表名：{}，该表导入进度：[{} / {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data import in progress, current table: {}, import progress for this table: [{} / {}]",
+            "es_ES": "Importación de datos históricos en curso, tabla actual: {}, progreso de importación para esta tabla: [{} / {}]",
+            "ru_RU": "Импорт исторических данных в процессе, текущая таблица: {}, прогресс импорта для этой таблицы: [{} / {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入成功，日期：{}，表名：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Historical data import successful, date: {}, table name: {}",
+            "ru_RU": "Импорт исторических данных выполнен успешно, дата: {}, имя таблицы: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "安全通用服务",
+        "tag": "",
+        "translation": {
+            "en_US": "General security service",
+            "ru_RU": "Общая служба безопасности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出中，当前表名：{}，该表导出进度：[{} / {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "In the export of historical data, the current table name is {}, and the export progress of this table is [{}/{}]",
+            "es_ES": "En la exportación de datos históricos, el nombre actual de la tabla es {}, y el progreso de exportación de esta tabla es [{}/{}]",
+            "ru_RU": "При экспорте исторических данных текущее имя таблицы {}, прогресс экспорта этой таблицы [{}/{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导出中，时间片：{} - {}，表名：{}，进度：{}/{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Exporting historical data; time slice: {} - {}, table name: {}, progress: {}/{}",
+            "ru_RU": "Экспорт исторических данных; временной срез: {} - {}, имя таблицы: {}, прогресс: {}/{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入进度：{}/{}个时间片: {} - {}",
+        "tag": "",
+        "translation": {
+            "en_US": "Progress of importing historical data: {}/{} time slices: {} - {}",
+            "ru_RU": "Прогресс импорта исторических данных: {}/{} временных срезов: {} - {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入中，时间片：{} - {}，表名：{}，进度：{}/{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Importing historical data; time slice: {} - {}, table name: {}, progress: {}/{}",
+            "ru_RU": "Импорт исторических данных; временной срез: {} - {}, имя таблицы: {}, прогресс: {}/{}"
+        }
+    }
+]

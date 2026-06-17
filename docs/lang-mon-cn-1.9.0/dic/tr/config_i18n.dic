@@ -1,0 +1,19 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "搜索:",
+        "tag": "",
+        "translation": {
+            "en_US": "Search:",
+            "ru_RU": "Поиск:"
+        }
+    }
+]

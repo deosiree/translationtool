@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @ClassName TaskInfoVo  web 交互实体
@@ -130,6 +131,8 @@ public class TaskInfoVo {
      * 翻译类型
      */
     private String translateType;
+
+    public List<String> ignore;         // 分支新建功能, 设定忽略的ts和dic文件的名称
 
 
 

@@ -1,0 +1,1707 @@
+[
+    {
+        "comments": "",
+        "source": "是否验证",
+        "tag": "",
+        "translation": {
+            "en_US": "Verified Required",
+            "es_ES": "Verificar",
+            "ru_RU": "Выполнение проверки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "来源",
+        "tag": "",
+        "translation": {
+            "en_US": "Source",
+            "es_ES": "Fuente",
+            "ru_RU": "Источник"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用DOUBLE3",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup DOUBLE 3",
+            "es_ES": "Respaldo DOBLE 3",
+            "ru_RU": "Резервный DOUBLE 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否主键",
+        "tag": "",
+        "translation": {
+            "en_US": "Primary key",
+            "es_ES": "Clave primaria",
+            "ru_RU": "Первичный ключ?"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源数据周期单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Source data cycle unit",
+            "es_ES": "Unidad de ciclo de datos de origen",
+            "ru_RU": "Единица измерения цикла исходных данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_和",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate results and"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Task status",
+            "es_ES": "Estado de la misión",
+            "ru_RU": "Состояние задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字段ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Field ID",
+            "es_ES": "ID del campo",
+            "ru_RU": "ID поля"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对最小值时间",
+        "tag": "",
+        "translation": {
+            "en_US": "ABS Minimum time",
+            "es_ES": "Tiempo Mínimo ABS",
+            "ru_RU": "Время абсолютного минимума"
+        }
+    },
+    {
+        "comments": "",
+        "source": "失效时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Expiration time",
+            "es_ES": "Tiempo de expiración",
+            "ru_RU": "Время истечения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大绝对值",
+        "tag": "",
+        "translation": {
+            "en_US": "MAX of ABS",
+            "es_ES": "MAX de ABS",
+            "ru_RU": "MAX of ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用时间戳1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup timestamp 1",
+            "es_ES": "Marca de tiempo de respaldo 1",
+            "ru_RU": "Резервная метка времени 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ModelCommon",
+        "tag": "",
+        "translation": {
+            "en_US": "ModelCommon",
+            "es_ES": "ModelCommon",
+            "ru_RU": "ModelCommon"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本周期中间结果_和",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate results of this cycle _ and"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "ABS Minimum",
+            "es_ES": "Mínimo ABS",
+            "ru_RU": "Минимум ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源条件列OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Source condition column Oid",
+            "es_ES": "Columna de condición de fuente Oid",
+            "ru_RU": "OID исходного столбца условия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "别名",
+        "tag": "",
+        "translation": {
+            "en_US": "Alias",
+            "es_ES": "Alias",
+            "ru_RU": "Псевд"
+        }
+    },
+    {
+        "comments": "",
+        "source": "变化存储阈值",
+        "tag": "",
+        "translation": {
+            "en_US": "change storage threshold"
+        }
+    },
+    {
+        "comments": "",
+        "source": "obj3",
+        "tag": "",
+        "translation": {
+            "en_US": "obj3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属事件存储表",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned event storage table",
+            "es_ES": "Tabla de almacenamiento de eventos asignada",
+            "ru_RU": "Назначенная таблица хранения событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计任务2",
+        "tag": "",
+        "translation": {
+            "en_US": "including statistical task 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时表名",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB table name",
+            "es_ES": "Nombre de la tabla TDB",
+            "ru_RU": "Имя таблицы RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起始值",
+        "tag": "",
+        "translation": {
+            "en_US": "initial value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联任务状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked task status",
+            "es_ES": "Estado de la tarea vinculada",
+            "ru_RU": "Статус связанной задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样存储表",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample Storage Table",
+            "es_ES": "Tabla de Almacenamiento de Muestras",
+            "ru_RU": "Таблица хранения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample time",
+            "es_ES": "Tiempo de muestra",
+            "ru_RU": "Время дискр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计任务1",
+        "tag": "",
+        "translation": {
+            "en_US": "includes statistical task 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否起效",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective",
+            "es_ES": "Efectivo",
+            "ru_RU": "Действует"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重统计下次时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Re-statistics next time",
+            "es_ES": "Próximo tiempo de recuento",
+            "ru_RU": "Следующее время пересчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于历史对象",
+        "tag": "",
+        "translation": {
+            "en_US": "belonging to historical objects"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Minimum time",
+            "es_ES": "Tiempo mínimo",
+            "ru_RU": "Время минимума"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "Minimum",
+            "es_ES": "Mínimo",
+            "ru_RU": "Минимум"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_个数",
+        "tag": "",
+        "translation": {
+            "en_US": "number of intermediate results"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间计算表",
+        "tag": "",
+        "translation": {
+            "en_US": "Middle calculation table",
+            "es_ES": "Tabla de cálculo intermedio",
+            "ru_RU": "Промежуточная таблица вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件定义",
+        "tag": "",
+        "translation": {
+            "en_US": "event definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源列名",
+        "tag": "",
+        "translation": {
+            "en_US": "Source column name",
+            "es_ES": "Nombre de col de origen",
+            "ru_RU": "Исходное имя столбца"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否统计",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical or Not",
+            "es_ES": "Estadística habilitada",
+            "ru_RU": "Выполнение статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "App name",
+            "es_ES": "Nombre de la aplicación",
+            "ru_RU": "Имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对最大值时间",
+        "tag": "",
+        "translation": {
+            "en_US": "ABS Maximum time",
+            "es_ES": "Tiempo Máximo ABS",
+            "ru_RU": "Время абсолютного максимума"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用DOUBLE1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup DOUBLE 1",
+            "es_ES": "Respaldo DOBLE 1",
+            "ru_RU": "Резервный DOUBLE 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ModelSta",
+        "tag": "",
+        "translation": {
+            "en_US": "modelsta",
+            "es_ES": "ModelSta"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源数据列名3",
+        "tag": "",
+        "translation": {
+            "en_US": "Source column name 3",
+            "es_ES": "Nombre de la col de origen 3",
+            "ru_RU": "Исходное имя столбца данных 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本周期中间结果_最小值发生时刻",
+        "tag": "",
+        "translation": {
+            "en_US": "time of occurrence of the minimum value of the intermediate result in this cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最小值发生时刻",
+        "tag": "",
+        "translation": {
+            "en_US": "time of minimum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含事件存储表",
+        "tag": "",
+        "translation": {
+            "en_US": "Included event storage tables",
+            "es_ES": "Tabla de almacenamiento de eventos incluida",
+            "ru_RU": "Включает таблицы хранения событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含采样流式统计表",
+        "tag": "",
+        "translation": {
+            "en_US": "contains a sampling flow statistical table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum",
+            "es_ES": "Máximo",
+            "ru_RU": "Maximum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重统计结束时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Re-statistics end time",
+            "es_ES": "Hora de finalización de re-estadísticas",
+            "ru_RU": "Время окончания пересчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "秒级存储时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage timestamp(s)",
+            "es_ES": "Marca de tiempo de almacenamiento(s)",
+            "ru_RU": "Метка времени хранения на уровне секунд"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源表类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Source table type",
+            "es_ES": "Tipo de tabla fuente",
+            "ru_RU": "Тип исходной таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件路径",
+        "tag": "",
+        "translation": {
+            "en_US": "event path"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下次时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Next timestamp",
+            "es_ES": "Próxima marca de tiempo",
+            "ru_RU": "Следующая метка времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含采样存储表",
+        "tag": "",
+        "translation": {
+            "en_US": "Included sample storage tables",
+            "es_ES": "Tabla de almacenamiento de muestras incluidas",
+            "ru_RU": "Включает таблицы хранения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大存储时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum storage time",
+            "es_ES": "Tiempo máximo de almacenamiento",
+            "ru_RU": "Максимальное время хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计计数",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical counting",
+            "es_ES": "Conteo estadístico",
+            "ru_RU": "Счетчик статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属字典",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned dictionary",
+            "es_ES": "Diccionarios afiliados",
+            "ru_RU": "Назначённый словарь"
+        }
+    },
+    {
+        "comments": "",
+        "source": "绝对和",
+        "tag": "",
+        "translation": {
+            "en_US": "ABS Sum",
+            "es_ES": "Suma ABS",
+            "ru_RU": "Сум ABS"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数值3",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 3",
+            "es_ES": "Parámetro de respaldo 3",
+            "ru_RU": "Резервный параметр 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计流式计算表",
+        "tag": "",
+        "translation": {
+            "en_US": "contains statistical flow calculation tables"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源表名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Source table name",
+            "es_ES": "Nombre de la tabla de origen",
+            "ru_RU": "Исходное наименование таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": " 起效时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Effective time",
+            "es_ES": "Hora efectiva",
+            "ru_RU": "Время начала действия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Object type",
+            "es_ES": "Tipo de objeto",
+            "ru_RU": "Тип объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计公式",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical formula",
+            "es_ES": "Fórmula estadística",
+            "ru_RU": "Формула статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计模型",
+        "tag": "",
+        "translation": {
+            "en_US": "Included statistical models",
+            "es_ES": "Modelo estadístico incluido",
+            "ru_RU": "Включает статистические модели"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate result"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计任务",
+        "tag": "",
+        "translation": {
+            "en_US": "Included statistical tasks",
+            "es_ES": "Tareas estadísticas incluidas",
+            "ru_RU": "Включает статистические задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本周期中间结果_最大值发生时刻",
+        "tag": "",
+        "translation": {
+            "en_US": "time of occurrence of the maximum value of the intermediate results in this cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最后计算时间",
+        "tag": "",
+        "translation": {
+            "en_US": "final calculation time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_起始值",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate result_start value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工作时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Working hours",
+            "es_ES": "Horas de trabajo",
+            "ru_RU": "Рабочее время"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务执行状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Task execution status",
+            "es_ES": "Estado de ejecución de la tarea",
+            "ru_RU": "Статус выполнения задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object ID",
+            "es_ES": "ID de objeto",
+            "ru_RU": "ID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_最后计算时间",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate results _ final calculation time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下次存储时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Next storage timestamp",
+            "es_ES": "Próxima marca de tiempo de almacenamiento",
+            "ru_RU": "Метка времени следующего сохранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据源表",
+        "tag": "",
+        "translation": {
+            "en_US": "Data source table",
+            "es_ES": "Tabla de fuente de datos",
+            "ru_RU": "Таблица источника данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "OID列表",
+        "tag": "",
+        "translation": {
+            "en_US": "oid list"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计状态",
+        "tag": "",
+        "translation": {
+            "en_US": "statistical status"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计模型",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical Models",
+            "es_ES": "Modelo estadístico",
+            "ru_RU": "Статистическая Модель"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是调试数据点",
+        "tag": "",
+        "translation": {
+            "en_US": "is it debugging data points"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属存储对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned storage objects",
+            "es_ES": "Objeto de almacenamiento asignado",
+            "ru_RU": "Назначенные объекты хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源条件列TIME",
+        "tag": "",
+        "translation": {
+            "en_US": "Source condition column TIME",
+            "es_ES": "Columna de condición de fuente TIME",
+            "ru_RU": "Исходный столбец условия TIME"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含中间计算表",
+        "tag": "",
+        "translation": {
+            "en_US": "Included intermediate calculation tables",
+            "es_ES": "Tabla de cálculo intermedia incluida",
+            "ru_RU": "Включает таблицы промежуточных вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用1",
+        "tag": "",
+        "translation": {
+            "en_US": "standby 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计任务3",
+        "tag": "",
+        "translation": {
+            "en_US": "includes statistical task 3"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage timestamp",
+            "es_ES": "Marca de tiempo de almacenamiento",
+            "ru_RU": "Метка времени хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属统计任务",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned statistical task",
+            "es_ES": "Misiones estadísticas",
+            "ru_RU": "Назначенная статистическая задача"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时库名",
+        "tag": "",
+        "translation": {
+            "en_US": "TDB name",
+            "es_ES": "Nombre de TDB",
+            "ru_RU": "Имя TDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "启动重统计",
+        "tag": "",
+        "translation": {
+            "en_US": "Re-statistics",
+            "es_ES": "Reestadísticas",
+            "ru_RU": "Запуск пересчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_终止值",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate consequence termination value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件OID",
+        "tag": "",
+        "translation": {
+            "en_US": "event oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最长事件时长",
+        "tag": "",
+        "translation": {
+            "en_US": "maximum event duration"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Data length",
+            "es_ES": "Longitud de datos",
+            "ru_RU": "Длина данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "个数",
+        "tag": "",
+        "translation": {
+            "en_US": "quantity"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储对象历史记录",
+        "tag": "",
+        "translation": {
+            "en_US": "Object storage history",
+            "es_ES": "Historial de almacenamiento de objetos",
+            "ru_RU": "Хранение исторических записей объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重统计开始时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Re-statistics start time",
+            "es_ES": "Inicio del recuento",
+            "ru_RU": "Время начала пересчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于开始动作",
+        "tag": "",
+        "translation": {
+            "en_US": "belonging to the starting action"
+        }
+    },
+    {
+        "comments": "",
+        "source": "obj2",
+        "tag": "",
+        "translation": {
+            "en_US": "obj2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "和",
+        "tag": "",
+        "translation": {
+            "en_US": "Sum",
+            "es_ES": "Suma",
+            "ru_RU": "Sum"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计执行周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistics execution cycle",
+            "es_ES": "Ciclo de ejecución de estadísticas",
+            "ru_RU": "Цикл выполнения статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "所属采样存储表",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned sample storage table",
+            "es_ES": "Tabla de almacenamiento de muestras asignadas",
+            "ru_RU": "Назначенная таблица хранения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计数据周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical data cycle",
+            "es_ES": "Ciclo de datos estadísticos",
+            "ru_RU": "Цикл статистических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计前导",
+        "tag": "",
+        "translation": {
+            "en_US": "Included statistical predecessors",
+            "es_ES": "Priorizaciones estadísticas incluidas",
+            "ru_RU": "Включает статистические предшественники"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含任务状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Included task statuses",
+            "es_ES": "Estado de tarea incluido",
+            "ru_RU": "Включает состояния задач"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本周期中间结果_个数",
+        "tag": "",
+        "translation": {
+            "en_US": "number of intermediate results in this cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "线程数量",
+        "tag": "",
+        "translation": {
+            "en_US": "Thread count",
+            "es_ES": "Contador de hilos",
+            "ru_RU": "Количество потоков"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Data type",
+            "es_ES": "Tipo de datos",
+            "ru_RU": "Тип данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实时表ID",
+        "tag": "",
+        "translation": {
+            "en_US": "RTDB table ID",
+            "es_ES": "ID de la tabla TDB",
+            "ru_RU": "ID таблицы RTDB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical objects",
+            "es_ES": "Objetos estadísticos",
+            "ru_RU": "Объект статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含统计对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Included statistical objects",
+            "es_ES": "Objetos estadísticos incluidos",
+            "ru_RU": "Включает статистические объекты"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件存储表",
+        "tag": "",
+        "translation": {
+            "en_US": "Event Storage Table",
+            "es_ES": "Tabla de Almacenamiento de Eventos",
+            "ru_RU": "Таблица хранения событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Time unit",
+            "es_ES": "Unidad de tiempo",
+            "ru_RU": "Единица времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象Key",
+        "tag": "",
+        "translation": {
+            "en_US": "Object key",
+            "es_ES": "Clave del objeto",
+            "ru_RU": "Ключ объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源数据列名2",
+        "tag": "",
+        "translation": {
+            "en_US": "Source column name 2",
+            "es_ES": "Nombre de la col de origen 2",
+            "ru_RU": "Исходное имя столбца данных 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数值1",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 1",
+            "es_ES": "Parámetro de respaldo 1",
+            "ru_RU": "Резервный параметр 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计前导",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical predecessor",
+            "es_ES": "Precursor estadístico",
+            "ru_RU": "Префикс Cтатистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报文长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Message length",
+            "es_ES": "Longitud de mensaje",
+            "ru_RU": "Длина сообщения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计流式计算表",
+        "tag": "",
+        "translation": {
+            "en_US": "statistical flow calculation table"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用DOUBLE2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup DOUBLE 2",
+            "es_ES": "Respaldo DOBLE 2",
+            "ru_RU": "Резервный DOUBLE 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_最大值",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate consequence maximum value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含存储对象历史记录",
+        "tag": "",
+        "translation": {
+            "en_US": "Included storage object histories",
+            "es_ES": "Historial de objetos de almacenamiento incluidos",
+            "ru_RU": "Включает истории объектов хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含结束动作定义",
+        "tag": "",
+        "translation": {
+            "en_US": "includes end action definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计约束条件",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical constraints",
+            "es_ES": "Restricciones estadísticas",
+            "ru_RU": "Условие ограничения статистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于结束动作",
+        "tag": "",
+        "translation": {
+            "en_US": "belonging to the end action"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计任务类型",
+        "tag": "",
+        "translation": {
+            "en_US": "statistical task types"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ModelEvent",
+        "tag": "",
+        "translation": {
+            "en_US": "ModelEvent",
+            "es_ES": "EventoModelo",
+            "ru_RU": "ModelEvent"
+        }
+    },
+    {
+        "comments": "",
+        "source": "秒级下次存储时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Next storage timestamp(s)",
+            "es_ES": "Siguiente marca de tiempo de almacenamiento(s)",
+            "ru_RU": "Метка времени следующего сохранения на уровне секунд"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源数据列名4",
+        "tag": "",
+        "translation": {
+            "en_US": "Source column name 4",
+            "es_ES": "Nombre de col de origen 4",
+            "ru_RU": "Исходное имя столбца данных 4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止统计",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop counting",
+            "es_ES": "Detener conteo",
+            "ru_RU": "Остановить статистику"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值发生时刻",
+        "tag": "",
+        "translation": {
+            "en_US": "maximum value occurrence time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前值",
+        "tag": "",
+        "translation": {
+            "en_US": "Current value",
+            "es_ES": "Valor actual",
+            "ru_RU": "Текущее значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样存储周期",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample storage cycle",
+            "es_ES": "Ciclo de almacenamiento de muestras",
+            "ru_RU": "Цикл хранения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "DB name",
+            "es_ES": "Nombre de la BD",
+            "ru_RU": "имя DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "结束动作名",
+        "tag": "",
+        "translation": {
+            "en_US": "End action name",
+            "es_ES": "Nombre de la acción final",
+            "ru_RU": "Имя завершающего действия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Storage type",
+            "es_ES": "Tipo de almacenamiento",
+            "ru_RU": "Тип хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "终止值",
+        "tag": "",
+        "translation": {
+            "en_US": "termination value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "ModelSample",
+        "tag": "",
+        "translation": {
+            "en_US": "ModelSample",
+            "es_ES": "ModeloMuestra",
+            "ru_RU": "ModelSample"
+        }
+    },
+    {
+        "comments": "",
+        "source": "来源类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Source type",
+            "es_ES": "Tipo de fuente",
+            "ru_RU": "Тип источника"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Current timestamp",
+            "es_ES": "Marca de tiempo actual",
+            "ru_RU": "Текущая метка времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用2",
+        "tag": "",
+        "translation": {
+            "en_US": "standby 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样存储列",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample storage column",
+            "es_ES": "Col de almacenamiento de muestras",
+            "ru_RU": "Столбец хранения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "本周期中间结果_最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "the minimum value of the intermediate result in this cycle"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于多对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Belongs to multiple objects",
+            "es_ES": "Objetos múltiples asignados",
+            "ru_RU": "Относится к нескольким объектам"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用",
+        "tag": "",
+        "translation": {
+            "en_US": "backup",
+            "es_ES": "Respaldo",
+            "ru_RU": "Резерв"
+        }
+    },
+    {
+        "comments": "",
+        "source": "最大值时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum time",
+            "es_ES": "Tiempo máximo",
+            "ru_RU": "Maximum time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "oid",
+            "es_ES": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否支持流式统计",
+        "tag": "",
+        "translation": {
+            "en_US": "does it support streaming statistics"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含开始动作定义",
+        "tag": "",
+        "translation": {
+            "en_US": "includes start action definition"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含事件存储列",
+        "tag": "",
+        "translation": {
+            "en_US": "Included event storage columns",
+            "es_ES": "Cols de almacenamiento de eventos incluidas",
+            "ru_RU": "Включает столбцы хранения событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "嵌套层次",
+        "tag": "",
+        "translation": {
+            "en_US": "Nested hierarchy",
+            "es_ES": "Jerarquía anidada",
+            "ru_RU": "Уровень вложенности"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否存储所有点",
+        "tag": "",
+        "translation": {
+            "en_US": "whether to store all points"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含存储对象历史信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Included info about the history of stored objects",
+            "es_ES": "Información sobre el historial de objetos almacenados incluida",
+            "ru_RU": "Включает информацию об истории объектов хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "起始动作名",
+        "tag": "",
+        "translation": {
+            "en_US": "Start name",
+            "es_ES": "Nombre de inicio",
+            "ru_RU": "Имя начального действия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重统计当前时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Re-statistics current time",
+            "es_ES": "Re-estadísticas tiempo actual",
+            "ru_RU": "Текущее время пересчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数值4",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 4",
+            "es_ES": "Parámetro de respaldo 4",
+            "ru_RU": "Резервный параметр 4"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_最大值发生时刻",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate consequence maximum value occurrence time"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否是绝对值统计",
+        "tag": "",
+        "translation": {
+            "en_US": "is it an absolute value statistic"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务执行时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Task execution time",
+            "ru_RU": "Время выполнения задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_最小值",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate consequence minimum value"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用参数值2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup param 2",
+            "es_ES": "Parámetro de respaldo 2",
+            "ru_RU": "Резервный параметр 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含采样存储列",
+        "tag": "",
+        "translation": {
+            "en_US": "Included sample storage columns",
+            "es_ES": "Columnas de muestreo incluidas",
+            "ru_RU": "Включает столбцы хранения дискретизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件存储列",
+        "tag": "",
+        "translation": {
+            "en_US": "Event storage columns",
+            "es_ES": "Cols de almacenamiento de eventos",
+            "ru_RU": "Столбцы хранения событий"
+        }
+    },
+    {
+        "comments": "",
+        "source": "obj1",
+        "tag": "",
+        "translation": {
+            "en_US": "obj1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据字典",
+        "tag": "",
+        "translation": {
+            "en_US": "Data dictionary",
+            "es_ES": "Diccionario de datos",
+            "ru_RU": "Словарь данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计任务",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical tasks",
+            "es_ES": "Misiones estadísticas",
+            "ru_RU": "Статистические задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重统计对象描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Re-statistics object description",
+            "es_ES": "Descripción del objeto de re-estadísticas",
+            "ru_RU": "Описание объекта пересчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "事件条件",
+        "tag": "",
+        "translation": {
+            "en_US": "event conditions"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Task ID",
+            "es_ES": "ID de tarea",
+            "ru_RU": "ID задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "备用时间戳2",
+        "tag": "",
+        "translation": {
+            "en_US": "Backup timestamp 2",
+            "es_ES": "Marca de tiempo de respaldo 2",
+            "ru_RU": "Резервная метка времени 2"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据时段",
+        "tag": "",
+        "translation": {
+            "en_US": "Data period",
+            "es_ES": "Período de datos",
+            "ru_RU": "Период данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源数据列名1",
+        "tag": "",
+        "translation": {
+            "en_US": "Source column name 1",
+            "es_ES": "Nombre de col de origen 1",
+            "ru_RU": "Исходное имя столбца данных 1"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象起源",
+        "tag": "",
+        "translation": {
+            "en_US": "Object origin",
+            "es_ES": "Origen del objeto",
+            "ru_RU": "Происхождение объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Execution timestamp",
+            "es_ES": "Marca de tiempo de ejecución",
+            "ru_RU": "Метка времени выполнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "存储对象",
+        "tag": "",
+        "translation": {
+            "en_US": "Stored Object",
+            "es_ES": "Objeto almacenado",
+            "ru_RU": "Объект хранения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据偏移",
+        "tag": "",
+        "translation": {
+            "en_US": "Data offset",
+            "es_ES": "Desplazamiento de datos",
+            "ru_RU": "Смещение данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object OID",
+            "es_ES": "OID del objeto",
+            "ru_RU": "OID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计时段",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical period",
+            "es_ES": "Período estadístico",
+            "ru_RU": "Период Cтатистики"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "源表时间单位",
+        "tag": "",
+        "translation": {
+            "en_US": "Source table time unit",
+            "es_ES": "Unidad de tiempo de la tabla fuente",
+            "ru_RU": "Единица времени исходной таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "中间结果_最小值发生时刻",
+        "tag": "",
+        "translation": {
+            "en_US": "intermediate consequence _ time of minimum value occurrence"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统计时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Statistical time",
+            "es_ES": "Tiempo estadístico",
+            "ru_RU": "Время статистики"
+        }
+    }
+]

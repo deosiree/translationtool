@@ -1,0 +1,344 @@
+[
+    {
+        "comments": "",
+        "source": "动态模版画面不支持更新[path]和[condition]",
+        "tag": "",
+        "translation": {
+            "en_US": "The dynamic template graph does not support updating [path] and [condition]",
+            "es_ES": "El gráfico de plantilla dinámica no admite la actualización de [ruta] y [condición]",
+            "ru_RU": "Мнемосхема динамического шаблона не поддерживает обновление [path] и [condition]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面[{}]发布失败",
+        "tag": "",
+        "translation": {
+            "en_US": "The graph [{}] failed to publish",
+            "ru_RU": "Сбой публикации мнемосхемы [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形和报表列表均为空",
+        "tag": "",
+        "translation": {
+            "en_US": "Both the graph and report lists are empty",
+            "es_ES": "Tanto las listas de gráficos como de informes están vacías",
+            "ru_RU": "Списки графиков и отчётов пусты"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面[{}]涉及合成光字的画面{}不存在，操作中止",
+        "tag": "",
+        "translation": {
+            "en_US": "The picture [{}] involving synthesized light characters does not exist, operation aborted"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表发布失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to publish report",
+            "es_ES": "No se pudo publicar el informe",
+            "ru_RU": "Сбой публикации отчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "复制失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Copy failed",
+            "es_ES": "Copia fallida",
+            "ru_RU": "Копирование не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面[{}]里合成光字牌[{}]涉及合成的画面[{}]下暂无光字牌元素",
+        "tag": "",
+        "translation": {
+            "en_US": "In graph [{}], the composite annunciator [{}] involves a graph [{}] that is currently without any annunciator elements",
+            "ru_RU": "В мнемосхеме [{}] для составного светового табло [{}] в связанной мнемосхеме [{}] отсутствуют элементы светового табло"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表前景部分重命名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failure to rename the foreground part of the report",
+            "ru_RU": "Сбой переименования переднего плана отчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面发布成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph published successfully",
+            "es_ES": "Gráfico publicado con éxito",
+            "ru_RU": "График опубликован успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面前景部分刷新失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to refresh the foreground part of the graph",
+            "es_ES": "No se pudo actualizar la parte de primer plano del gráfico",
+            "ru_RU": "Не удалось обновить передний план графика"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重名画面文件删除失败，画面复制失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Duplicate graph file deletion failed, failed to copy graph",
+            "es_ES": "Error al eliminar el archivo de gráfico duplicado, error al copiar el gráfico",
+            "ru_RU": "Сбой удаления файла мнемосхемы с дублирующимся именем, ошибка копирования мнемосхемы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表重命名成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Success in renaming the report",
+            "ru_RU": "Успешное переименование отчета"
+        }
+    },
+    {
+        "comments": "",
+        "source": "一键改名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "One-click renaming failed",
+            "ru_RU": "Не удалось переименовать одним кликом"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "图形画面文件为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The graph file is empty",
+            "es_ES": "El archivo de gráfico está vacío",
+            "ru_RU": "Файл графической мнемосхемы пуст"
+        }
+    },
+    {
+        "comments": "",
+        "source": "功能类",
+        "tag": "auditEventDefine/classType",
+        "translation": {
+            "en_US": "functional category",
+            "ru_RU": "Категория функций"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面重名，新画面已覆盖原有画面",
+        "tag": "",
+        "translation": {
+            "en_US": "The graph names are duplicated, and the new graph has replaced the original one",
+            "es_ES": "Los nombres de los gráficos son duplicados, y el nuevo gráfico ha reemplazado al original",
+            "ru_RU": "Имена графиков дублируются, новый график заменил оригинальный"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发布失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Publish failed",
+            "es_ES": "Fallo en la publicación",
+            "ru_RU": "Публикация не удалась"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表发布成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Report published successfully",
+            "es_ES": "Informe publicado con éxito",
+            "ru_RU": "Отчёт опубликован успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面发布失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to publish graph",
+            "es_ES": "No se pudo publicar el gráfico",
+            "ru_RU": "Не удалось опубликовать график"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表部分刷新失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to refresh partial report",
+            "es_ES": "Error al actualizar el informe parcial",
+            "ru_RU": "Не удалось обновить частичный отчёт"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面[{}]合成光字存在异常，操作中止",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph [{}] composite annunciator error. Operation aborted.",
+            "ru_RU": "Аномалия при синтезе световых табло для мнемосхемы [{}], операция прервана"
+        }
+    },
+    {
+        "comments": "",
+        "source": "获取画面对象信息失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to retrieve graph object info",
+            "es_ES": "No se pudo obtener la información del objeto gráfico",
+            "ru_RU": "Сбой получения информации об объекте мнемосхемы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面前景无改动",
+        "tag": "",
+        "translation": {
+            "en_US": "The foreground of the graph is unchanged.",
+            "es_ES": "El primer plano del gráfico no ha cambiado",
+            "ru_RU": "Передний план графика не изменился"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表无改动",
+        "tag": "",
+        "translation": {
+            "en_US": "Report unchanged",
+            "es_ES": "Informe sin cambios",
+            "ru_RU": "Отчет без изменений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "动态模版画面草稿版本不支持更新[path]和[condition]",
+        "tag": "",
+        "translation": {
+            "en_US": "Draft version of the graph in dynamic template does not support updating [path] and [condition]",
+            "ru_RU": "Черновая версия мнемосхемы в динамическом шаблоне не поддерживает обновление [path] и [condition]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "XML草稿文件加载失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to load XML draft file",
+            "ru_RU": "Сбой загрузки XML-файла черновика"
+        }
+    },
+    {
+        "comments": "",
+        "source": "XML文件加载失败",
+        "tag": "",
+        "translation": {
+            "en_US": "XML file loading failed",
+            "es_ES": "Error al cargar el archivo XML",
+            "ru_RU": "Сбой загрузки файла XML"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面前景刷新成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Graph foreground refresh successfully",
+            "es_ES": "Actualización del primer plano del gráfico con éxito",
+            "ru_RU": "Обновление переднего плана мнемосхемы выполнено успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面前景部分重命名失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failure to rename the foreground part of the graph",
+            "ru_RU": "Сбой переименования переднего плана мнемосхемы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面[{}]发布成功",
+        "tag": "",
+        "translation": {
+            "en_US": "The graph [{}] has been successfully published",
+            "ru_RU": "Успешная публикация мнемосхемы [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "历史数据导入中，日期：{}，当前表名：{}，该表导入进度：[{} / {}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Importing historical data; date: {}, current table: {}, table import progress: [{} / {}]",
+            "ru_RU": "Импорт исторических данных, дата: {}, текущее имя таблицы: {}, прогресс импорта таблицы: [{} / {}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "画面前景重命名成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Success in renaming the foreground of the graph",
+            "ru_RU": "Успешное переименование переднего плана мнемосхемы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表文件为空",
+        "tag": "",
+        "translation": {
+            "en_US": "The report file is empty",
+            "es_ES": "El archivo de informe está vacío",
+            "ru_RU": "Файл отчета пуст"
+        }
+    },
+    {
+        "comments": "",
+        "source": "报表刷新成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Report refreshed successfully",
+            "es_ES": "Informe actualizado exitosamente",
+            "ru_RU": "Успешное обновление отчета"
+        }
+    }
+]

@@ -1,0 +1,30 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1}同步文件{%2}成功",
+        "tag": "",
+        "translation": {
+            "en_US": "User [%1] synchronized file [%2] successfully",
+            "es_ES": "Usuario: {%1} sincronizó el archivo {%2} exitosamente",
+            "ru_RU": "Пользователь: {%1} успешно синхронизировал файл {%2}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户:{%1} 同步文件{%2}失败",
+        "tag": "",
+        "translation": {
+            "en_US": "User:{%1} failed to sync file {%2}",
+            "es_ES": "Usuario: {%1} no pudo sinc el archivo {%2}",
+            "ru_RU": "Пользователь:{%1} не смог синхронизировать файл {%2}"
+        }
+    }
+]

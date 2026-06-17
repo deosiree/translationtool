@@ -1,0 +1,69 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视工具修改{}参数信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource Monitor Tool modifies {} param info",
+            "es_ES": "La herramienta de monitoreo de recursos modifica la información del parámetro {}",
+            "ru_RU": "Инструмент монитора ресурсов: изменение информации о параметрах {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视工具",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource Monitor Tool",
+            "es_ES": "Herramientas de monitoreo de recursos"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源监视管理",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource Monitor",
+            "es_ES": "Monitor de Recursos",
+            "ru_RU": "Монитор ресурсов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场",
+        "tag": "",
+        "translation": {
+            "en_US": "Site",
+            "es_ES": "Sitio",
+            "ru_RU": "Площ"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点",
+        "tag": "",
+        "translation": {
+            "en_US": "Node",
+            "es_ES": "nodo",
+            "ru_RU": "Узел"
+        }
+    },
+    {
+        "comments": "",
+        "source": "进程",
+        "tag": "",
+        "translation": {
+            "en_US": "Process",
+            "es_ES": "Proceso",
+            "ru_RU": "Проц"
+        }
+    }
+]

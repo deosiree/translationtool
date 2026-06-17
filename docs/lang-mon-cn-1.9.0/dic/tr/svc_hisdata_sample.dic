@@ -1,0 +1,80 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重新初始化hismdl_p_database首地址失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to reinitialize the hismdl_p_database start address",
+            "es_ES": "No se pudo reinicializar la primera dirección de hismdl_Padatabase",
+            "ru_RU": "Не удалось повторно инициализировать первый адрес hismdl_padatabase"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前应用切换数据库连接失败，可能因为没有创建连接池，请检查",
+        "tag": "",
+        "translation": {
+            "en_US": "The current application failed to switch db connections, possibly because the connection pool was not created. Please check.",
+            "es_ES": "La aplicación actual no pudo cambiar las conexiones de BD, posiblemente porque no se ha creado un grupo de conexiones. Verifique",
+            "ru_RU": "Сбой переключения соединения с DB в текущем приложении, возможно, пул соединений не был создан. Выполните проверку."
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "{} exits normally",
+            "es_ES": "{} sale normalmente",
+            "ru_RU": "{} Нормальный выход"
+        }
+    },
+    {
+        "comments": "",
+        "source": "订阅切换通知失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to subscribe to switch notifications",
+            "es_ES": "Error en la notificación de cambio de suscripción",
+            "ru_RU": "Не удалось подписаться на уведомления о переключении"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{}启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "{} started successfully",
+            "es_ES": "{} iniciado con éxito",
+            "ru_RU": "{} успешно запущен"
+        }
+    },
+    {
+        "comments": "",
+        "source": "查询当前节点值班状态失败，请检查配置！",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to query the current node duty status, please check the configuration!",
+            "es_ES": "No se pudo consultar el estado de turno del nodo actual, ¡por favor revise la configuración!",
+            "ru_RU": "Не удалось запросить текущий статус дежурства узла, проверьте конфигурацию!"
+        }
+    },
+    {
+        "comments": "",
+        "source": "插入时标",
+        "tag": "",
+        "translation": {
+            "en_US": "Insert timestamp",
+            "es_ES": "Insertar marca de tiempo",
+            "ru_RU": "Вставить временную метку"
+        }
+    }
+]

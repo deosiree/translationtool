@@ -1,0 +1,20 @@
+[
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "系统",
+        "tag": "",
+        "translation": {
+            "en_US": "System",
+            "es_ES": "Sistema",
+            "ru_RU": "Система"
+        }
+    }
+]

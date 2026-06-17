@@ -1,0 +1,1219 @@
+[
+    {
+        "comments": "",
+        "source": "批量同步结果最大缓存",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum cache of batch sync results",
+            "es_ES": "Máximo caché de resultados de sinc por lotes",
+            "ru_RU": "Максимальный кэш результатов пакетной синхронизации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Field length",
+            "es_ES": "Info de rango_Longitud del campo",
+            "ru_RU": "Информация о домене значений_Длина домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain name",
+            "es_ES": "Info del campo de bandera_Nombre del campo",
+            "ru_RU": "Информация о флаговом домене_Имя домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "写库标志",
+        "tag": "",
+        "translation": {
+            "en_US": "Write DB flag",
+            "es_ES": "Indicador de escritura en BD",
+            "ru_RU": "Флаг записи в базу данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "批量同步结果最大时间(s)",
+        "tag": "",
+        "translation": {
+            "en_US": "Maximum time for batch sync results (s)",
+            "es_ES": "Tiempo máximo para resultados de sinc por lotes (s)",
+            "ru_RU": "Макс. время результатов пакетной синхронизации (с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Field info_Field name",
+            "es_ES": "Info del campo_Nombre del campo",
+            "ru_RU": "Информация о домене значений: имя домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "统一计算周期（s）",
+        "tag": "",
+        "translation": {
+            "en_US": "Uniform Computing Cycle (s)",
+            "es_ES": "Ciclo de computación unificada (s)",
+            "ru_RU": "Единый цикл вычислений (с)"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联结果层级",
+        "tag": "",
+        "translation": {
+            "en_US": "Associated result levels",
+            "es_ES": "Niveles de resultado de enlace",
+            "ru_RU": "Уровень связанных результатов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息_表ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Table Info_Table ID",
+            "es_ES": "Info de tabla_ID de tabla",
+            "ru_RU": "Информация о таблице_ID таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Table info",
+            "es_ES": "Info de la Tabla",
+            "ru_RU": "Инф табл"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Included calculation results",
+            "es_ES": "Resultados de cálculo incluidos",
+            "ru_RU": "Включает результаты вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息_对象OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info_Object OID",
+            "es_ES": "Info de objeto_OID de objeto",
+            "ru_RU": "Информация об объекте_OID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Object path",
+            "es_ES": "Ruta del objeto",
+            "ru_RU": "Путь объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含计算因子对象模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Included calculation factor object templates",
+            "es_ES": "Modelos incluidos para calcular objetos de factor",
+            "ru_RU": "Включает шаблоны объектов вычислительных факторов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "不需要解析",
+        "tag": "",
+        "translation": {
+            "en_US": "No parsing required",
+            "es_ES": "No se requiere análisis",
+            "ru_RU": "Разбор не требуется"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation time",
+            "es_ES": "Tiempo de cálculo",
+            "ru_RU": "Время расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_Domain length",
+            "es_ES": "Info del campo de tiempo_Longitud del campo",
+            "ru_RU": "Информация о домене времени_Длина домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息_表名",
+        "tag": "",
+        "translation": {
+            "en_US": "Table info_Table name",
+            "es_ES": "Info de tabla_Nombre de tabla",
+            "ru_RU": "Информация о таблице_Имя таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "作为计算因子",
+        "tag": "",
+        "translation": {
+            "en_US": "As a calculation factor",
+            "es_ES": "Como factor de cálculo",
+            "ru_RU": "В качестве фактора вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain ID",
+            "es_ES": "ID del campo",
+            "ru_RU": "ID домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "任务名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Task name",
+            "es_ES": "Nombre de la tarea",
+            "ru_RU": "Имя задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "App name",
+            "es_ES": "Nombre de la aplicación",
+            "ru_RU": "Имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_ Domain name",
+            "es_ES": "Info del campo de tiempo_Nombre del campo",
+            "ru_RU": "Информация о домене времени_Имя домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Description",
+            "es_ES": "Descripción",
+            "ru_RU": "Описание"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算标志",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation flag",
+            "es_ES": "Indicador de cálculo",
+            "ru_RU": "Флаг расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算模板包",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation template package",
+            "es_ES": "Paquete de modelo de cálculo",
+            "ru_RU": "Пакет шаблонов расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag field info",
+            "es_ES": "Info del campo de bandera",
+            "ru_RU": "Информация о поле флага"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算分组配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation group config",
+            "es_ES": "Configuración del grupo de cálculo",
+            "ru_RU": "Конфигурация группы расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain name",
+            "es_ES": "Nombre del campo",
+            "ru_RU": "Имя домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式模板串",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression template string",
+            "es_ES": "Cadena del modelo de expresión",
+            "ru_RU": "Строка шаблона выражения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全局配置表",
+        "tag": "",
+        "translation": {
+            "en_US": "Global Config Table",
+            "es_ES": "Tabla de configuración global",
+            "ru_RU": "Таблица глобальной конфигурации"
+        }
+    },
+    {
+        "comments": "",
+        "source": "应用计算",
+        "tag": "",
+        "translation": {
+            "en_US": "App compute",
+            "es_ES": "Cálculo de la aplicación",
+            "ru_RU": "Вычисление приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "字符串值",
+        "tag": "",
+        "translation": {
+            "en_US": "String value",
+            "es_ES": "Valor de cadena",
+            "ru_RU": "Значение строки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务周期时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate task cycle time",
+            "es_ES": "Calcular tiempo de ciclo de tarea",
+            "ru_RU": "Расчёт времени цикла задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息_对象路径",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info_Object path",
+            "es_ES": "Info del objeto_Ruta del objeto",
+            "ru_RU": "Информация об объекте_Путь объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子对象模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor object template",
+            "es_ES": "Modelo de objeto de factor de cálculo",
+            "ru_RU": "Шаблон объекта фактора расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Expression",
+            "es_ES": "Expresión",
+            "ru_RU": "Выражение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算结果模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation result template",
+            "es_ES": "Modelo de resultado de cálculo",
+            "ru_RU": "Шаблон результатов расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Time Domain info_Domain type",
+            "es_ES": "Info del campo de tiempo_Tipo de campo",
+            "ru_RU": "Информация о домене времени_Тип домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算相关表信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate relevant table info",
+            "es_ES": "Calcular info de tabla relevante",
+            "ru_RU": "Расчет информации связанных таблиц"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation expression",
+            "es_ES": "Expresión",
+            "ru_RU": "Выражение расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "链接类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Link type",
+            "es_ES": "Tipo de enlace",
+            "ru_RU": "Тип связи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于计算结果模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Belongs to calculation result template",
+            "es_ES": "Modelo de resultado de cálculo asignado",
+            "ru_RU": "Относится к шаблону результатов вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain type",
+            "es_ES": "Info del campo_Tipo de campo",
+            "ru_RU": "Инф о домене_Тип домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info_DB name",
+            "es_ES": "Info de BD_Nombre BD",
+            "ru_RU": "Информация о DB_имя DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "Instance No.",
+            "es_ES": "No. de instancia",
+            "ru_RU": "Номер экземпляра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算周期秒数",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation cycle in seconds",
+            "es_ES": "Ciclo de cálculo en segundos",
+            "ru_RU": "Период вычисления в секундах"
+        }
+    },
+    {
+        "comments": "",
+        "source": "整型值",
+        "tag": "",
+        "translation": {
+            "en_US": "Integer value",
+            "es_ES": "Valor entero",
+            "ru_RU": "Целочисленное значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Field type",
+            "es_ES": "Tipo de campo",
+            "ru_RU": "Тип домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "入口函数",
+        "tag": "",
+        "translation": {
+            "en_US": "Entry function",
+            "es_ES": "Función de entrada",
+            "ru_RU": "Входная функция"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_链接类型",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info_Link type",
+            "es_ES": "Info de BD_Tipo de enlace",
+            "ru_RU": "Информация о DB_Тип связи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表信息_表描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Table info_Table desc",
+            "es_ES": "Info de la tabla_Desc de la tabla",
+            "ru_RU": "Информация о таблице_Описание таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain length",
+            "es_ES": "Info del campo_Longitud del campo",
+            "ru_RU": "Инф о домене_Длина домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "延时秒数",
+        "tag": "",
+        "translation": {
+            "en_US": "Delay seconds",
+            "es_ES": "Segundos de retraso",
+            "ru_RU": "Задержка в секундах"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain type",
+            "es_ES": "Info del campo de bandera_Tipo de campo",
+            "ru_RU": "Информация о флаговом домене_Тип домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算模板信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked computing template info",
+            "es_ES": "Info del modelo de computación vinculado",
+            "ru_RU": "Информация о шаблоне связанного вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算包",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation package",
+            "es_ES": "Paquete de cálculo",
+            "ru_RU": "Пакет расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Time Domain info_Domain Id",
+            "es_ES": "Info del campo de tiempo_ID de campo",
+            "ru_RU": "Информация о домене времени_id домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation factor",
+            "es_ES": "Factor de cálculo",
+            "ru_RU": "Фактор расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info",
+            "es_ES": "Info de BD",
+            "ru_RU": "Информация о DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked result",
+            "es_ES": "Resultado vinculado",
+            "ru_RU": "Результат связанного вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象条件字符串",
+        "tag": "",
+        "translation": {
+            "en_US": "Object condition string",
+            "es_ES": "Cadena de condición de objeto",
+            "ru_RU": "Строка условия объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info_Instance No.",
+            "es_ES": "Info de BD_No. de instancia",
+            "ru_RU": "Информация о DB_Номер экземпляра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain Id",
+            "es_ES": "Info del campo de bandera_ID de campo",
+            "ru_RU": "Информация о флаговом домене_Идентификатор домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "全局包",
+        "tag": "",
+        "translation": {
+            "en_US": "Global package",
+            "es_ES": "Paquete global",
+            "ru_RU": "Глобальный пакет"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算线程数",
+        "tag": "",
+        "translation": {
+            "en_US": "Count threads",
+            "es_ES": "Contar hilos",
+            "ru_RU": "Количество потоков вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库信息_应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "DB Info_App name",
+            "es_ES": "Info de BD_Nombre de la aplicación",
+            "ru_RU": "Информация о DB_Имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "非目标模板关联表",
+        "tag": "",
+        "translation": {
+            "en_US": "Non-target template associated table",
+            "es_ES": "Tabla de enlaces de modelo no objetivo",
+            "ru_RU": "Связанная таблица нецелевого шаблона"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算表达式",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked expression",
+            "es_ES": "Expresión vinculada",
+            "ru_RU": "Выражение связанного вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain length",
+            "es_ES": "Longitud del campo",
+            "ru_RU": "Длина домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculation result",
+            "es_ES": "Resultado del cálculo",
+            "ru_RU": "Результат расчёта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Field type",
+            "es_ES": "Info de rango_Tipo de campo",
+            "ru_RU": "Информация о домене значений_Тип домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印计算过程",
+        "tag": "",
+        "translation": {
+            "en_US": "Print calculation procedure",
+            "es_ES": "Imprimir procedimiento de cálculo",
+            "ru_RU": "Печать процесса вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "下次执行时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Next execution time",
+            "es_ES": "Próxima hora de ejecución",
+            "ru_RU": "Время следующего выполнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info",
+            "es_ES": "Info del campo de tiempo",
+            "ru_RU": "Информация о домене времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Field desc",
+            "es_ES": "Info de rango_Desc de campo",
+            "ru_RU": "Информация о домене значений_Описание домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算对象信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Compute object info",
+            "es_ES": "Calcular info del objeto",
+            "ru_RU": "Информация об объекте вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息_对象条件字符串",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info_Object condition string",
+            "es_ES": "Info de objeto_Cadena de condiciones del objeto",
+            "ru_RU": "Информация об объекте_Строка условия объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned calculation results",
+            "es_ES": "Resultados de cálculo asignados",
+            "ru_RU": "Назначённые результаты вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag Domain info_Domain desc",
+            "es_ES": "Info del campo de bandera_Desc del campo",
+            "ru_RU": "Информация о флаговом домене_Описание домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain description",
+            "es_ES": "Descripción del campo",
+            "ru_RU": "Описание домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Db info",
+            "es_ES": "Info de BD",
+            "ru_RU": "Информация о DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "打印日志",
+        "tag": "",
+        "translation": {
+            "en_US": "Print log",
+            "es_ES": "Imprimir registro",
+            "ru_RU": "Печать журнала"
+        }
+    },
+    {
+        "comments": "",
+        "source": "编号",
+        "tag": "",
+        "translation": {
+            "en_US": "No.",
+            "es_ES": "No.",
+            "ru_RU": "No."
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain name",
+            "es_ES": "Info del campo_Nombre del campo",
+            "ru_RU": "Инф о домене_Имя домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算任务类型",
+        "tag": "",
+        "translation": {
+            "en_US": "Computing task type",
+            "es_ES": "Tipo de tarea de cómputo",
+            "ru_RU": "Тип вычислительной задачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Object info",
+            "es_ES": "Info del objeto",
+            "ru_RU": "Информация об объекте"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "DB name",
+            "es_ES": "Nombre de la BD",
+            "ru_RU": "имя DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain desc",
+            "es_ES": "Info de campo_Desc de campo",
+            "ru_RU": "Инф о домене_Описание домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "时间域信息_域描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Time domain info_Domain desc",
+            "es_ES": "Info del campo de tiempo_Desc del campo",
+            "ru_RU": "Информация о домене времени_Описание домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "上次执行时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Last execution time",
+            "es_ES": "Última hora de ejecución",
+            "ru_RU": "Время последнего выполнения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "是否有效",
+        "tag": "",
+        "translation": {
+            "en_US": "Valid",
+            "es_ES": "Válido",
+            "ru_RU": "Valid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表描述",
+        "tag": "",
+        "translation": {
+            "en_US": "Table description",
+            "es_ES": "Descripción de la Tabla",
+            "ru_RU": "Описание таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "bool值",
+        "tag": "",
+        "translation": {
+            "en_US": "Boolean value",
+            "es_ES": "Valor booleano",
+            "ru_RU": "Булево значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "标志域信息_域长度",
+        "tag": "",
+        "translation": {
+            "en_US": "Flag domain info_Domain length",
+            "es_ES": "Info del campo de bandera_Longitud del campo",
+            "ru_RU": "Информация о флаговом домене_Длина домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算时按单点处理",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate as single point",
+            "es_ES": "Calcular como punto único",
+            "ru_RU": "Обработка как одиночная точка при расчете"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算相关库信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate relevant database info",
+            "es_ES": "Calcular info relevante de BD",
+            "ru_RU": "Расчет информации связанных DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "计算相关字段信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Calculate relevant field info",
+            "es_ES": "Calcular info de campo relevante",
+            "ru_RU": "Вычисление информации о соответствующих полях"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表名",
+        "tag": "",
+        "translation": {
+            "en_US": "Table name",
+            "es_ES": "Nombre de la tabla",
+            "ru_RU": "Имя таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算配置",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked computing config",
+            "es_ES": "Config de computación vinculada",
+            "ru_RU": "Конфигурация связанного вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info",
+            "es_ES": "Info de rango",
+            "ru_RU": "Информация о домене значений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象搜索模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Object search pattern",
+            "es_ES": "Modo de búsqueda de objetos",
+            "ru_RU": "Режим поиска объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info_Domain Id",
+            "es_ES": "Info del campo_Id del campo",
+            "ru_RU": "Инф о домене_ID домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "浮点值",
+        "tag": "",
+        "translation": {
+            "en_US": "Floating point value",
+            "es_ES": "Valor de punto flotante",
+            "ru_RU": "Значение с плавающей запятой"
+        }
+    },
+    {
+        "comments": "",
+        "source": "属于计算结果分组",
+        "tag": "",
+        "translation": {
+            "en_US": "Assigned calculation result group",
+            "es_ES": "Grupo de resultados de cálculo asignado",
+            "ru_RU": "Назначённая группа результатов вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_实例号",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info_Instance No.",
+            "es_ES": "Info de BD_No. de instancia",
+            "ru_RU": "Информация о DB_Номер экземпляра"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_数据库名",
+        "tag": "",
+        "translation": {
+            "en_US": "Database Info_Database name",
+            "es_ES": "Info de BD_Nombre BD",
+            "ru_RU": "Информация о DB_имя DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值域信息_域Id",
+        "tag": "",
+        "translation": {
+            "en_US": "Range info_Field Id",
+            "es_ES": "Info de rango_Id de campo",
+            "ru_RU": "Информация о домене значений_Id домена"
+        }
+    },
+    {
+        "comments": "",
+        "source": "多因子处理模式",
+        "tag": "",
+        "translation": {
+            "en_US": "Multifactor processing mode",
+            "es_ES": "Modo de procesamiento multifactorial",
+            "ru_RU": "Режим многофакторной обработки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "表ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Table ID",
+            "es_ES": "ID de tabla",
+            "ru_RU": "ID таблицы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "oid",
+        "tag": "",
+        "translation": {
+            "en_US": "Oid",
+            "es_ES": "Oid"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包含计算因子",
+        "tag": "",
+        "translation": {
+            "en_US": "Included calculation factors",
+            "es_ES": "Factor de computación incluido",
+            "ru_RU": "Включает вычислительные факторы"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_应用名",
+        "tag": "",
+        "translation": {
+            "en_US": "Db info_App name",
+            "es_ES": "Info de BD_Nombre de la aplicación",
+            "ru_RU": "Информация о DB_Имя приложения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "来源计算结果",
+        "tag": "",
+        "translation": {
+            "en_US": "Source calculation result",
+            "es_ES": "Resultado de cálculo de origen",
+            "ru_RU": "Исходный результат вычислений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "库信息_链接类型",
+        "tag": "",
+        "translation": {
+            "en_US": "DB info_Link type",
+            "es_ES": "Info de BD_Tipo de enlace",
+            "ru_RU": "Информация о DB_Тип связи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "条件模板串",
+        "tag": "",
+        "translation": {
+            "en_US": "Conditional template string",
+            "es_ES": "Cadena de modelo condicional",
+            "ru_RU": "Шаблонная строка условия"
+        }
+    },
+    {
+        "comments": "",
+        "source": "无符号整型值",
+        "tag": "",
+        "translation": {
+            "en_US": "Unsigned integer value",
+            "es_ES": "Valor de entero sin signo",
+            "ru_RU": "Беззнаковое целочисленное значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对象OID",
+        "tag": "",
+        "translation": {
+            "en_US": "Object OID",
+            "es_ES": "OID del objeto",
+            "ru_RU": "OID объекта"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "关联计算配置模板",
+        "tag": "",
+        "translation": {
+            "en_US": "Linked computing config template",
+            "es_ES": "Modelo de configuración de computación vinculada",
+            "ru_RU": "Шаблон конфигурации связанного вычисления"
+        }
+    },
+    {
+        "comments": "",
+        "source": "域信息",
+        "tag": "",
+        "translation": {
+            "en_US": "Domain info",
+            "es_ES": "Info del campo",
+            "ru_RU": "Инф о домене"
+        }
+    }
+]

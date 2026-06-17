@@ -18,18 +18,36 @@ spring:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #url: jdbc:mysql://localhost:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false?serverTimezone=Asia/Shanghai&socketTimeout=60000&allowMultiQueries=true
     #
-    url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    #url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
 
     username: root
     password: 123456
+    # 连接池配置
+    initial-size: 5                # 初始化连接数
+    min-idle: 5                    # 最小空闲连接数（建议不要设为0）
+    max-active: 20                 # 最大活跃连接数
+    max-wait: 60000                # 获取连接的最大等待时间
+    
+    # 关键：连接有效性检测（解决通信失败的核心）
+    test-while-idle: true          # 空闲时检测连接有效性
+    test-on-borrow: true           # 获取连接时检测有效性（关键）
+    test-on-return: false          # 归还连接时不检测（性能考虑）
+    validation-query: SELECT 1     # 检测连接的SQL（MySQL专用）
+    validation-query-timeout: 3    # 检测超时时间（秒）
+    time-between-eviction-runs-millis: 60000  # 空闲连接回收检测周期
+    min-evictable-idle-time-millis: 1800000   # 连接最小空闲时间（30分钟）
+    remove-abandoned: true         # 移除泄露的连接
+    remove-abandoned-timeout: 180  # 泄露连接超时时间（秒）
+    log-abandoned: true            # 记录泄露连接日志
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
 server:
-  port: 18002
-
+  port: 18003
+  tomcat:
+    relaxed-query-chars: ['[',']','`','^','\','[','|']
 
 #logging:
  # config: ./logback-spring.xml
@@ -37,13 +55,16 @@ server:
 translate:
   #  百度翻译api信息
   baidu:
-    url: https://api.fanyi.baidu.com/api/trans/vip/translate
+    #url: https://api.fanyi.baidu.com/api/trans/vip/translate
+    url: https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1
     appid: 20230705001734655
     securityKey: tGq6U8CfAaztFjBO7WT8
   #  DeepL翻译api信息
   deepl:
     url: https://api.deepl-pro.com
-    key: b253ec17-0877-4a1f-81cb-72c5f824b32c:dp
+    #我的
+    #key: b253ec17-0877-4a1f-81cb-72c5f824b32c:dp
+    key: 4595ec64-b32f-4b00-93ff-9a6351d25b88:dp
   #  有道翻译api信息
   youdao:
     url: https://openapi.youdao.com/api
@@ -87,14 +108,51 @@ log:
   level: debug
 
 I18server:
-  #url: http://10.17.70.25:18099/
+  #local
+  #url: http://localhost:18099/
   #linx
-  url: http://10.17.14.101:18099/
-  #url: http://10.16.193.63:18099/
+  url: http://10.17.14.250:18099/
+
 ConfigFile:
-  zzUrl: "src/main/resources/config/zz.xlsx"
-  commonUrl: "src/main/resources/config/common.xlsx"
-  jkUrl: "src/main/resources/config/jk.xlsx"
+  zh_CN:
+    zzUrl: "config/zh_CN/zz.xlsx"
+    commonUrl: "config/zh_CN/common.xlsx"
+    jkUrl: "config/zh_CN/jk.xlsx"
+  en_US:
+    zzUrl: "config/en_US/zz.xlsx"
+    commonUrl: "config/en_US/common.xlsx"
+    jkUrl: "config/en_US/jk.xlsx"
+  es_ES:
+    zzUrl: "config/es_ES/zz.xlsx"
+    commonUrl: "config/es_ES/common.xlsx"
+    jkUrl: "config/es_ES/jk.xlsx"
+  fr_FR:
+    zzUrl: "config/fr_FR/zz.xlsx"
+    commonUrl: "config/fr_FR/common.xlsx"
+    jkUrl: "config/fr_FR/jk.xlsx"
+  ru_RU:
+    zzUrl: "config/ru_RU/zz.xlsx"
+    commonUrl: "config/ru_RU/common.xlsx"
+    jkUrl: "config/ru_RU/jk.xlsx"
+
+
+  zzUrl: "config/zz.xlsx"
+  en_zzUrl: "config/en_zz.xlsx"
+  es_zzUrl: "config/es_zz.xlsx"
+  fra_zzUrl: "config/fra_zz.xlsx"
+  ru_zzUrl: "config/ru_zz.xlsx"
+
+  commonUrl: "config/common.xlsx"
+  en_commonUrl: "config/en_common.xlsx"
+  es_commonUrl: "config/es_common.xlsx"
+  fra_commonUrl: "config/fra_common.xlsx"
+  ru_commonUrl: "config/ru_common.xlsx"
+
+  jkUrl: "config/jk.xlsx"
+  en_jkUrl: "config/en_jk.xlsx"
+  es_jkUrl: "config/es_jk.xlsx"
+  fra_jkUrl: "config/fra_jk.xlsx"
+  ru_jkUrl: "config/ru_jk.xlsx"
   #linx
   #url: "./config/import.xls"
 

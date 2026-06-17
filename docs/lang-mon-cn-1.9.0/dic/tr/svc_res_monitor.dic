@@ -1,0 +1,828 @@
+[
+    {
+        "comments": "",
+        "source": "失败。",
+        "tag": "",
+        "translation": {
+            "en_US": "failed.",
+            "es_ES": "fallido.",
+            "ru_RU": "не удался."
+        }
+    },
+    {
+        "comments": "",
+        "source": "[停止自动清理：{}]{}个文件已被清理，合计清理大小是{}，当前{}占用率是{}%。",
+        "tag": "",
+        "translation": {
+            "en_US": "[Stop automatic cleaning: {}] {} files have been cleaned, with a total cleaning size of {}, and the current {} occupancy rate is {}%.",
+            "es_ES": "[Parar limpieza: {}] {} archivos limpiados, tamaño {}, ocupación {}%",
+            "ru_RU": "[Остановка автоматической очистки: {}] {} файлы очищены, общий размер очистки {}, текущий уровень занятости {} равен {}%."
+        }
+    },
+    {
+        "comments": "",
+        "source": "%，超过最大占用率",
+        "tag": "",
+        "translation": {
+            "en_US": "%, exceeds the maximum occupancy rate",
+            "es_ES": "%, excede la tasa máxima de ocupación",
+            "ru_RU": "%, превышает максимальный уровень занятости"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]进程[{}({})]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] Process [{} ({})]",
+            "es_ES": "Nodo [{}] Proceso [{} ({})]",
+            "ru_RU": "Узел [{}] Процесс [{} ({})]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "个文件已被清理，合计清理大小是",
+        "tag": "",
+        "translation": {
+            "en_US": "Files have been cleaned up, the total cleanup size is",
+            "es_ES": "Los archivos han sido limpiados, el tamaño total de la limpieza es",
+            "ru_RU": "Файлы очищены, общий размер очистки составляет"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}，请进行文件数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": "{} threshold alarm, current value: {:.3f} {}, alarm threshold: {} {}, please organize file data",
+            "ru_RU": "{} Пороговое оповещение, текущее значение: {:.3f} {}, Порог оповещения: {} {}, пожалуйста, проведите обработку файловых данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存",
+        "tag": "",
+        "translation": {
+            "en_US": "Memory",
+            "es_ES": "Memoria",
+            "ru_RU": "Память"
+        }
+    },
+    {
+        "comments": "",
+        "source": "内存值",
+        "tag": "",
+        "translation": {
+            "en_US": "Memory value",
+            "es_ES": "Valor de memoria",
+            "ru_RU": "Значение памяти"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}%，告警阈值：{}%, 请进行文件数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Threshold alarm, current value: {:.3f}%, alarm threshold: {}%, please organize file data",
+            "ru_RU": "{} Пороговая тревога, текущее значение: {:.3f}%, порог тревоги: {}%, выполните упорядочивание файловых данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}/s；",
+        "tag": "",
+        "translation": {
+            "en_US": "{} resource advance warning, resource growth rate: {:.3f}{}/s;",
+            "ru_RU": "{} Предупреждение о ресурсах, скорость роста ресурса: {:.3f}{}/с;"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 正常退出",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_res_monitor exits normally",
+            "es_ES": "svc_res_monitor sale normalmente",
+            "ru_RU": "svc_res_monitor завершает работу нормально"
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收",
+        "tag": "",
+        "translation": {
+            "en_US": "Receive",
+            "es_ES": "Recibir",
+            "ru_RU": "Прием"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除文件：",
+        "tag": "",
+        "translation": {
+            "en_US": "Delete files:",
+            "es_ES": "Eliminar archivos:",
+            "ru_RU": "Удалить файлы:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘写速率",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk write rate",
+            "es_ES": "Tasa de escritura en disco",
+            "ru_RU": "Скорость записи на диск"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘读速率",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk read rate",
+            "es_ES": "Tasa de lectura de disco",
+            "ru_RU": "Скорость чтения диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件大小：",
+        "tag": "",
+        "translation": {
+            "en_US": "File size:",
+            "es_ES": "Tamaño del archivo:",
+            "ru_RU": "Размер файла:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 启动删除阈值告警，当前值：{:.3f}%，告警阈值：{}%",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Activate deleting threshold alarm, current value: {:.3f}%, Alarm threshold: {}%",
+            "es_ES": "Alarma elim. {}, valor: {:.3f}%, umbral: {}%",
+            "ru_RU": "{} Запуск пороговой тревоги удаления, текущее значение: {:.3f}%, порог тревоги: {}%"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场收包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site packet receiving rate",
+            "es_ES": "Tasa de recepción de paquetes entre sitios",
+            "ru_RU": "Межсайтовый коэффициент приема пакетов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]数据库[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] DB [{}]",
+            "es_ES": "Nodo [{}] Base de datos [{}]",
+            "ru_RU": "Узел [{}] База данных [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "重要文件：{} 发生变化，进行文件恢复,文件恢复:{}",
+        "tag": "",
+        "translation": {
+            "en_US": "Important file: {} changed, perform file recovery, file recovery: {}",
+            "es_ES": "Archivo impor.: {} cambió, recup.: {}",
+            "ru_RU": "Важный файл: {} изменён, выполняется восстановление файла, восстановление файла: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件最后修改时间：",
+        "tag": "",
+        "translation": {
+            "en_US": "Last modified:",
+            "es_ES": "Última modificación:",
+            "ru_RU": "Последнее изменение:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "预计还剩 {}{} 资源枯竭，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "Expected to run out of resources in {}{}, resource advance warning value: {}{}, advance warning calculation time [{}-{}]",
+            "ru_RU": "Ожидается истощение ресурсов через {}{}, предупредительное значение ресурса: {}{}, время расчёта предупреждения [{}-{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Success",
+            "es_ES": "Éxito",
+            "ru_RU": "Успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "采样时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Sample time",
+            "es_ES": "Tiempo de muestra",
+            "ru_RU": "Время дискр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前磁盘占用率是",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage is",
+            "es_ES": "El uso actual del disco es",
+            "ru_RU": "Текущее использование диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Packet rate",
+            "es_ES": "Tasa de paquetes",
+            "ru_RU": "Скорость пакетов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]目录[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": " Node [{}] DIR [{}]",
+            "es_ES": " Nodo [{}] Directorio [{}]",
+            "ru_RU": "Узел [{}] Каталог [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Flow rate",
+            "es_ES": "Tasa de flujo",
+            "ru_RU": "Скорость потока"
+        }
+    },
+    {
+        "comments": "",
+        "source": "目录【",
+        "tag": "",
+        "translation": {
+            "en_US": "Directory [",
+            "es_ES": "Directorio [",
+            "ru_RU": "Директория ["
+        }
+    },
+    {
+        "comments": "",
+        "source": "停止自动清理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Stop automatic cleanup:",
+            "es_ES": "Detener limpieza automática:",
+            "ru_RU": "Остановить автоматическую очистку:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "连接数",
+        "tag": "",
+        "translation": {
+            "en_US": "Connect count",
+            "es_ES": "Conteo de conexiones",
+            "ru_RU": "Количество соединений"
+        }
+    },
+    {
+        "comments": "",
+        "source": "CPU利用率",
+        "tag": "",
+        "translation": {
+            "en_US": "CPU utilization",
+            "es_ES": "Utilización de CPU",
+            "ru_RU": "Использование процессора"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件路径：",
+        "tag": "",
+        "translation": {
+            "en_US": "File path:",
+            "es_ES": "Ruta del archivo:",
+            "ru_RU": "Путь к файлу:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场发送流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site sending traffic ",
+            "es_ES": "Tráfico de envío entre sitios ",
+            "ru_RU": "Межсайтовый исходящий трафик"
+        }
+    },
+    {
+        "comments": "",
+        "source": "现场[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Site [{}]",
+            "es_ES": "Sitio [{}]",
+            "ru_RU": "Сайт [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络接收流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Net receive traffic",
+            "es_ES": "Tráfico de recepción de red",
+            "ru_RU": "Прием сетевого трафика"
+        }
+    },
+    {
+        "comments": "",
+        "source": "资源ID",
+        "tag": "",
+        "translation": {
+            "en_US": "Resource ID",
+            "es_ES": "ID de recurso",
+            "ru_RU": "ID ресурса"
+        }
+    },
+    {
+        "comments": "",
+        "source": "删除结果：",
+        "tag": "",
+        "translation": {
+            "en_US": "Deletion results:",
+            "es_ES": "Resultados de eliminación:",
+            "ru_RU": "Результаты удаления:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[删除文件：{}]文件名：{} 路径：{} 大小：{} 修改时间：{} 删除结果：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Delete file: {}] File name: {} Path: {} Size: {} Modified time: {} Delete result: {}",
+            "es_ES": "[Elim. archivo: {}] Nombre: {} Ruta: {} Tamaño: {} Modif.: {} Result.: {}",
+            "ru_RU": "[Удалить файл: {}] Имя файла: {} Путь: {} Размер: {} Время изменения: {} Результат удаления: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前磁盘占用率为",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage is",
+            "es_ES": "El uso actual del disco es",
+            "ru_RU": "Текущее использование диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "交换区",
+        "tag": "",
+        "translation": {
+            "en_US": "swap area"
+        }
+    },
+    {
+        "comments": "",
+        "source": "开始自动清理：",
+        "tag": "",
+        "translation": {
+            "en_US": "Start automatic cleanup:",
+            "es_ES": "Iniciar limpieza automática:",
+            "ru_RU": "Начать автоматическую очистку:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送网络流量值",
+        "tag": "",
+        "translation": {
+            "en_US": "Send net traffic value",
+            "es_ES": "Valor de tráfico de envío de red",
+            "ru_RU": "Отправить значение сетевого трафика"
+        }
+    },
+    {
+        "comments": "",
+        "source": "单位",
+        "tag": "",
+        "translation": {
+            "en_US": "unit",
+            "es_ES": "Unidad",
+            "ru_RU": "Единица измерения"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[开始自动清理：{}]当前{}占用率为{}%，超过最大占用率{}%。",
+        "tag": "",
+        "translation": {
+            "en_US": "[Starting automatic cleaning: {}] The current {} occupancy rate is {}%, exceeding the maximum occupancy rate {}%.",
+            "es_ES": "[Limpieza auto: {}] Ocupación {}% supera {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 启动删除阈值告警，当前值：{:.3f}{}，告警阈值：{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "{} trigger deletion threshold alert., current value: {:.3f} {}, alarm threshold: {} {}",
+            "ru_RU": "{} Запустить пороговое предупреждение для удаления, текущее значение: {:.3f} {}, пороговое значение предупреждения: {} {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]分区[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] Zone [{}]",
+            "es_ES": "Nodo [{}] Partición [{}]",
+            "ru_RU": "Узел [{}] Зона [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络收包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Net packet receiving rate",
+            "es_ES": "Tasa de recepción de paquetes de red",
+            "ru_RU": "Скорость приема сетевых пакетов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄数",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle Count",
+            "es_ES": "Conteo de manejadores",
+            "ru_RU": "Количество дескрипторов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}，请进行历史数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Threshold alarm, current value: {:.3f}{}, Alarm threshold: {}{}, please organize historical data",
+            "es_ES": "Alarma umbral {}, valor: {:.3f}{}, umbral: {} {}",
+            "ru_RU": "{} Пороговая тревога, текущее значение: {:.3f}{}, порог тревоги: {}{}, выполните упорядочивание исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "对时状态",
+        "tag": "",
+        "translation": {
+            "en_US": "Time Sync",
+            "es_ES": "Estado de sincronización de tiempo",
+            "ru_RU": "Статус синхронизации времени"
+        }
+    },
+    {
+        "comments": "",
+        "source": "svc_res_monitor 启动成功",
+        "tag": "",
+        "translation": {
+            "en_US": "svc_res_monitor started successfully",
+            "es_ES": "svc_res_monitor se inició con éxito",
+            "ru_RU": "svc_res_monitor started successfully"
+        }
+    },
+    {
+        "comments": "",
+        "source": "。当前磁盘占用率仍然超过最大占用率。",
+        "tag": "",
+        "translation": {
+            "en_US": "The current disk usage still exceeds the maximum usage.",
+            "es_ES": "El uso actual del disco aún excede el uso máximo.",
+            "ru_RU": "Текущее использование диска все еще превышает максимальное."
+        }
+    },
+    {
+        "comments": "",
+        "source": "[自动清理提示：{}]当前{}占用率为{}%，超过最大占用率{}%",
+        "tag": "",
+        "translation": {
+            "en_US": "[Auto cleaning prompt: {}] The current {} occupancy rate is {}%, exceeding the maximum occupancy rate {}%"
+        }
+    },
+    {
+        "comments": "",
+        "source": "】大小越限，开始自动清理",
+        "tag": "",
+        "translation": {
+            "en_US": "] size exceeded, automatic cleaning starts",
+            "es_ES": "] El tamaño excedido, comienza la limpieza automática.",
+            "ru_RU": "] размер превышен, начинается автоматическая очистка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收网络流量值",
+        "tag": "",
+        "translation": {
+            "en_US": "Receive net traffic value",
+            "es_ES": "Valor de tráfico de recepción de red",
+            "ru_RU": "Получить значение сетевого трафика"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}/s，预计还剩 {}{} 资源枯竭，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "{} resource advance warning, resource growth rate: {:.3f}{}/s, estimated {}{} remaining until resource depletion, resource advance warning value: {}{}, advance warning calculation time [{}-{}]",
+            "ru_RU": "{} Предупреждение о ресурсах, скорость роста ресурса: {:.3f}{}/с, осталось примерно {}{} до истощения ресурса, порог тревоги: {}{}, время расчёта предупреждения [{}-{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "记录时间",
+        "tag": "",
+        "translation": {
+            "en_US": "Record time",
+            "es_ES": "Hora de grabación",
+            "ru_RU": "Время записи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘IO",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk IO",
+            "es_ES": "E/S de disco",
+            "ru_RU": "Дисковый ввод-вывод"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场发包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site packet sending rate",
+            "es_ES": "Tasa de envío de paquetes entre sitios",
+            "ru_RU": "Межсайтовый коэффициент отправки пакетов"
+        }
+    },
+    {
+        "comments": "",
+        "source": "跨现场接收流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Cross-site receiving traffic ",
+            "es_ES": "Tráfico de recepción entre sitios ",
+            "ru_RU": "Межсайтовый входящий трафик"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}%，告警阈值：{}%",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Threshold alarm, current value: {:.3f}%, Alarm threshold: {}%",
+            "es_ES": "Alarma umbral {}, valor: {:.3f}%, umbral: {}%",
+            "ru_RU": "{} Пороговая тревога, текущее значение: {:.3f}%, порог тревоги: {}%"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[开始自动清理：{}]当前{}占用率为{}%，超过最大占用率{}%",
+        "tag": "",
+        "translation": {
+            "en_US": "[Starting automatic cleaning: {}] The current {} occupancy rate is {}%, exceeding the maximum occupancy rate {}%",
+            "es_ES": "[limpieza automática iniciada: {}] ocupación actual {}%, ocupación máxima {}% excedida",
+            "ru_RU": "[Начало автоматической очистки: {}] Текущий уровень занятости {} равен {}%, превышает максимальный уровень занятости {}%"
+        }
+    },
+    {
+        "comments": "",
+        "source": "百分比",
+        "tag": "",
+        "translation": {
+            "en_US": "Percent",
+            "es_ES": "Porcentaje",
+            "ru_RU": "Процент"
+        }
+    },
+    {
+        "comments": "",
+        "source": "磁盘值",
+        "tag": "",
+        "translation": {
+            "en_US": "Disk value",
+            "es_ES": "Valor de disco",
+            "ru_RU": "Значение диска"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}%，告警阈值：{}%, 请进行历史数据整理",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Threshold alarm, current value: {:.3f}%, alarm threshold: {}%, please organize historical data",
+            "ru_RU": "{} Пороговая тревога, текущее значение: {:.3f}%, порог тревоги: {}%, выполните упорядочивание исторических данных"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点[{}]",
+        "tag": "",
+        "translation": {
+            "en_US": "Node [{}] ",
+            "es_ES": "Nodo [{}] ",
+            "ru_RU": "Узел [{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "成功。",
+        "tag": "",
+        "translation": {
+            "en_US": "successfully.",
+            "es_ES": "con éxito.",
+            "ru_RU": "успешно."
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络发送流量",
+        "tag": "",
+        "translation": {
+            "en_US": "Net send traffic",
+            "es_ES": "Tráfico de envío de red",
+            "ru_RU": "Отправка сетевого трафика"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 资源预警，资源增长速度：{:.3f}{}，资源预警值：{}{}，预警计算时间【{}-{}】",
+        "tag": "",
+        "translation": {
+            "en_US": "{} resource advance warning, resource growth rate: {:.3f}{}, resource advance warning value: {}{}, advance warning calculation time [{}-{}]",
+            "es_ES": "{} advertencia de recurso, tasa de crecimiento de recursos: {:.3f} {}, valor de advertencia de recurso: {} {}, tiempo de cálculo de advertencia [{}-{}]",
+            "ru_RU": "{} Предупреждение о ресурсах, скорость роста ресурса: {:.3f}{}, порог тревоги: {}{}, время расчёта предупреждения [{}-{}]"
+        }
+    },
+    {
+        "comments": "",
+        "source": "失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed",
+            "es_ES": "Falló",
+            "ru_RU": "Не удалось"
+        }
+    },
+    {
+        "comments": "",
+        "source": "{} 阈值告警，当前值：{:.3f}{}，告警阈值：{}{}",
+        "tag": "",
+        "translation": {
+            "en_US": "{} Threshold alarm, current value: {:.3f}{}, alarm threshold: {}{}",
+            "es_ES": "{} Umbral de alarma, valor actual: {:.3f}{}, umbral de alarma: {}{}",
+            "ru_RU": "{} Пороговая тревога, текущее значение: {:.3f}{}, порог тревоги: {}{}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[自动清理提示：{}]当前{}占用率为{}%，超过最大占用率{}%，目前无清理计划",
+        "tag": "",
+        "translation": {
+            "en_US": "[Auto cleaning prompt: {}] The current {} occupancy rate is {}%, exceeding the maximum occupancy rate {}%, and there is currently no cleaning plan",
+            "es_ES": "[sugerencia de limpieza automática: {}] la ocupación actual {} es de {}%. La ocupación máxima es de {}%. Actualmente no hay planes de limpieza",
+            "ru_RU": "[Подсказка автоматической очистки: {}] Текущий уровень занятости {} равен {}%, превышает максимальный уровень {}%, плана очистки нет"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送",
+        "tag": "",
+        "translation": {
+            "en_US": "Send",
+            "es_ES": "Enviar",
+            "ru_RU": "Отпр"
+        }
+    },
+    {
+        "comments": "",
+        "source": "句柄",
+        "tag": "",
+        "translation": {
+            "en_US": "Handle",
+            "es_ES": "Manejar",
+            "ru_RU": "Дескриптор"
+        }
+    },
+    {
+        "comments": "",
+        "source": "发送百分比",
+        "tag": "",
+        "translation": {
+            "en_US": "Percentage sent",
+            "es_ES": "Porcentaje enviado",
+            "ru_RU": "Процент передачи"
+        }
+    },
+    {
+        "comments": "",
+        "source": "文件名：",
+        "tag": "",
+        "translation": {
+            "en_US": "File name:",
+            "es_ES": "Nombre del archivo:",
+            "ru_RU": "Имя файла:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "[删除文件：{}]文件名：{} 大小：{} 修改时间：{} 删除结果：{}",
+        "tag": "",
+        "translation": {
+            "en_US": "[Delete file: {}] File name: {} Size: {} Modified time: {} Delete result: {}",
+            "es_ES": "[Eliminar archivo: {}] Nombre del archivo: {} Tamaño: {} Hora de modificación: {} Resultado de eliminación: {}",
+            "ru_RU": "[Удалить файл: {}] Имя файла: {} Размер: {} Время изменения: {} Результат удаления: {}"
+        }
+    },
+    {
+        "comments": "",
+        "source": "值",
+        "tag": "",
+        "translation": {
+            "en_US": "Value",
+            "es_ES": "Valor",
+            "ru_RU": "Значение"
+        }
+    },
+    {
+        "comments": "",
+        "source": "名称",
+        "tag": "",
+        "translation": {
+            "en_US": "Name",
+            "es_ES": "Nombre",
+            "ru_RU": "Имя"
+        }
+    },
+    {
+        "comments": "",
+        "source": "当前占用率仍然超过最大占用率。",
+        "tag": "",
+        "translation": {
+            "en_US": "The current occupancy rate still exceeds the maximum occupancy rate.",
+            "es_ES": "La tasa de ocupación actual aún excede la tasa máxima de ocupación.",
+            "ru_RU": "Текущая загрузка диска по-прежнему превышает предельно допустимое значение."
+        }
+    },
+    {
+        "comments": "",
+        "source": "接收百分比",
+        "tag": "",
+        "translation": {
+            "en_US": "Reception percentage",
+            "es_ES": "Porcentaje de recepción",
+            "ru_RU": "Процент приёма"
+        }
+    },
+    {
+        "comments": "",
+        "source": "网络发包率",
+        "tag": "",
+        "translation": {
+            "en_US": "Net packet rate",
+            "es_ES": "Tasa de paquetes de red",
+            "ru_RU": "Скорость сетевых пакетов"
+        }
+    }
+]

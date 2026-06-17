@@ -1,0 +1,120 @@
+[
+    {
+        "comments": "",
+        "source": "验证失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Verification failed",
+            "es_ES": "Validación fallida",
+            "ru_RU": "Сбой проверки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "初始化词条",
+        "tag": "",
+        "translation": {
+            "en_US": "init entry"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库准备失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Return of Load DB Preparation failed",
+            "es_ES": "Error al preparar la recarga de BD",
+            "ru_RU": "Сбой подготовки к загрузке DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库失败",
+        "tag": "",
+        "translation": {
+            "en_US": "Failed to load the database",
+            "es_ES": "No se pudo cargar la BD",
+            "ru_RU": "Сбой загрузки DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行验证操作",
+        "tag": "",
+        "translation": {
+            "en_US": "Execute validation operations",
+            "es_ES": "Realice operaciones de validación",
+            "ru_RU": "Выполнить операции проверки"
+        }
+    },
+    {
+        "comments": "",
+        "source": "工具：",
+        "tag": "",
+        "translation": {
+            "en_US": "Tool:",
+            "es_ES": "Herramientas:",
+            "ru_RU": "Инструменты:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "用户: ",
+        "tag": "",
+        "translation": {
+            "en_US": "User:",
+            "es_ES": "Usuario:",
+            "ru_RU": "Пользователь:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "验证成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Validated successfully",
+            "es_ES": "Validado con éxito",
+            "ru_RU": "Успешная проверка"
+        }
+    },
+    {
+        "comments": "",
+        "source": "装库成功",
+        "tag": "",
+        "translation": {
+            "en_US": "Database loading succeeded",
+            "es_ES": "Escritura en la base de datos exitosa",
+            "ru_RU": "Загрузка DB выполнена успешно"
+        }
+    },
+    {
+        "comments": "",
+        "source": "节点：",
+        "tag": "",
+        "translation": {
+            "en_US": "Node:",
+            "es_ES": "Nodo:",
+            "ru_RU": "Узел:"
+        }
+    },
+    {
+        "comments": "",
+        "source": "数据库装库插件",
+        "tag": "",
+        "translation": {
+            "en_US": "The plugin of Load DB",
+            "es_ES": "Plugin de recarga de BD",
+            "ru_RU": "Плагин загрузки DB"
+        }
+    },
+    {
+        "comments": "",
+        "source": "执行装库操作",
+        "tag": "",
+        "translation": {
+            "en_US": "Execute Load DB",
+            "es_ES": "Realice operaciones de carga",
+            "ru_RU": "Выполнить операции загрузки"
+        }
+    }
+]

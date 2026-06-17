@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shr.translationtoolservice.dao.ResponseMapper">
+
+
+    <resultMap id="ResponseMap" type="com.shr.translationtoolservice.entity.ResponseEntity">
+        <result property="taskId" column="id" jdbcType="VARCHAR"/>
+        <result property="task" column="task" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="dataType" column = "data_type" jdbcType="VARCHAR"/>
+        <result property="updateTime" column = "update_time" jdbcType = "DATE"/>
+        <result property="createTime" column = "create_time" jdbcType = "DATE"/>
+
+    </resultMap>
+
+    
+    <sql id = "column">
+        id,
+        task,
+        content,
+        data_type,
+        create_time,
+        update_time
+    </sql>
+
+
+    <sql id = "column_with_prefix">
+        ${tbl}.id,
+        ${tbl}.task,
+        ${tbl}.content,
+        ${tbl}.data_type,
+        ${tbl}.create_time,
+        ${tbl}.update_time
+    </sql>
+
+    <insert id = "insertBatchResponse">
+        insert into t_response <include refid = "column"></include>
+        values 
+        <foreach collection = "responseEntityList" item = "data" separator = ",">
+            (#{data.taskId},#{data.task},#{data.content},#{data.data_type},NOW(),NOW())
+        </foreach>
+    </insert>
+
+    <insert id = "insertResponse">
+        insert into t_response(<include refid = "column"></include>)
+        values 
+            (#{taskId},#{task},#{content},#{dataType},NOW(),NOW())
+    </insert>
+
+    <update id = "updateResponse">
+        update t_response set content = #{content,jdbcType = VARCHAR},update_time = NOW() 
+        where id = #{taskId,jdbcType = VARCHAR} and data_type = #{dataType,jdbcType = VARCHAR} and task = #{task,jdbcType = VARCHAR}
+    </update>
+
+    <select id = "getResponseByTaskId" resultMap = "ResponseMap">
+        select <include refid = "column"></include>
+        from t_response
+        where id = #{taskId,jdbcType=VARCHAR} and task = #{task,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType = VARCHAR}
+    
+    </select>
+
+</mapper>
