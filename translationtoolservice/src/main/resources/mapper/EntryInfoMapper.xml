@@ -2673,22 +2673,34 @@
             </choose>
         </where>
     </select>
-    <select id = "selectEntryInfosByIDs" resultMap = "EntryInfoEntityDOMap">
+    <select id = "selectEntryInfosByIDs" resultMap = "BaseResultMap">
         select 
-        id,abbr,entry,max_length,is_delete,
-        entry_length,chinese_interpretation,english_interpretation,
-        russian_interpretation,french_interpretation,spanish_interpretation,
-        entry_source,entry_state,`update`,
-        update_time,version_id,entry_label,tag,
-        part_of_speech,classify_id,remark,is_public,
-        import_type,write_type,entry_version_type,parent_id,
-        di_file_name,classfy1,classfy2,comment,source_table,db_record_id,
-        en_trans_id,zh_trans_id,ru_trans_id,fra_trans_id,spa_trans_id
-        from t_entry_info 
+        t2.id,t2.abbr,t2.entry,t2.max_length,t2.is_delete,
+        t2.entry_length,t2.chinese_interpretation,t2.english_interpretation,
+        t2.russian_interpretation,t2.french_interpretation,t2.spanish_interpretation,
+        t2.entry_source,t2.entry_state,t2.`update`,
+        t2.update_time,t2.version_id,t2.entry_label,t2.tag,
+        t2.part_of_speech,t2.classify_id,t2.remark,t2.is_public,
+        t2.import_type,t2.write_type,t2.entry_version_type,t2.parent_id,
+        t2.di_file_name,t2.classfy1,t2.classfy2,t2.comment,t2.source_table,t2.db_record_id,
+        t2.en_trans_id,t2.zh_trans_id,t2.ru_trans_id,t2.fra_trans_id,t2.spa_trans_id,t2.entry_version,
+        en.translate as english,en.translate_state as englishTranslateState,en.public_state as englishPublicState,
+        ru.translate as russian,ru.translate_state as russianTranslateState,ru.public_state as russianPublicState,
+        fra.translate as french,fra.translate_state as frenchTranslateState,fra.public_state as frenchPublicState,
+        spa.translate as spanish,spa.translate_state as spanishTranslateState,spa.public_state as spanishPublicState,
+        zh.translate as chinese,zh.translate_state as chineseTranslateState,zh.public_state as chinesePublicState,
+        zh.char_length as zh_char_length, en.char_length as en_char_length,
+        ru.char_length as ru_char_length, fra.char_length as fra_char_length, spa.char_length as spa_char_length
+        from t_entry_info t2 
+        left JOIN t_translate en ON t2.en_trans_id = en.id
+        left JOIN t_translate ru ON t2.ru_trans_id = ru.id
+        left JOIN t_translate fra ON t2.fra_trans_id = fra.id
+        left JOIN t_translate spa ON t2.spa_trans_id = spa.id
+        left JOIN t_translate zh ON t2.zh_trans_id = zh.id
         <where>
             <choose>
                 <when test = "entryIDs != null and !entryIDs.isEmpty()">
-                    id in 
+                    t2.id in 
                     <foreach item = "entryID" collection = "entryIDs" open = "(" close = ")" separator = ",">
                         #{entryID}
                     </foreach>

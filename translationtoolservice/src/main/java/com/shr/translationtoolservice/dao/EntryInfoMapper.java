@@ -103,7 +103,7 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     int forrbiddenEntry(@Param("idList") Set<String> idList);
 
-    List<EntryInfoEntityDO> selectEntryInfosByIDs(@Param("entryIDs") List<String> entryIdList);
+    List<EntryInfoEntity> selectEntryInfosByIDs(@Param("entryIDs") List<String> entryIdList);
 
     Set<String> selectEntryInfoIDsByConditions(
         @Param("ids") List<String> ids,

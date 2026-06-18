@@ -2118,8 +2118,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                     }
                 }
 
-                List<EntryInfoEntityDO> otherEntryInfoDOs = entryInfoMapper.selectEntryInfosByIDs(searchIDs.stream().collect(Collectors.toList()));
-                List<EntryInfoEntity> otherEntryInfos = EntryInfoEntityDO.convertFromEntities(otherEntryInfoDOs, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList());
+                List<EntryInfoEntity> otherEntryInfos = entryInfoMapper.selectEntryInfosByIDs(searchIDs.stream().collect(Collectors.toList()));
                 for(EntryInfoEntity otherEntryInfo : otherEntryInfos){
                     setMethod.invoke(otherEntryInfo, translate);
                 }
@@ -2436,9 +2435,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }        
         Set<String> entryIDs = entryInfoMapper.selectEntryInfoIDsByEntryTransConditions(entryInfoEntityTemplate, null,productIDs, clearMatchSet,targetStartTimeStr,targetEndTimeStr,offset,pageSize);
 
-        List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(entryIDs.stream().collect(Collectors.toList()));
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(entryIDs.stream().collect(Collectors.toList()));
         EntryInfoVO entryInfoVO = new EntryInfoVO();
-        entryInfoVO.setEntryInfoEntities(EntryInfoEntityDO.convertFromEntities(entryInfoEntities, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList()));
+        entryInfoVO.setEntryInfoEntities(entryInfoEntities);
 
         String totalNumber = entryInfoMapper.countEntryIDsByConditions(entryInfoEntityTemplate,null,productIDs, clearMatchSet,targetStartTimeStr,targetEndTimeStr);
 
@@ -3843,9 +3842,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             null,
             null,pageSize,offset);
         List<String> idList = selectInfosByProductRelationEntity.stream().map(ProductRelationEntity::getEntryId).collect(Collectors.toList());
-        List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(idList);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(idList);
         EntryInfoVO entryInfoVO = new EntryInfoVO();
-        entryInfoVO.setEntryInfoEntities(EntryInfoEntityDO.convertFromEntities(entryInfoEntities, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList()));
+        entryInfoVO.setEntryInfoEntities(entryInfoEntities);
 
         String totalNumber = entryInfoMapper.countEntryIDsByConditions(null,null,productIDSet,null,null,null);
 

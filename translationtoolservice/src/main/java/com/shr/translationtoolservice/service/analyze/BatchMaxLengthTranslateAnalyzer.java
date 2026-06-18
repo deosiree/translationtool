@@ -79,9 +79,7 @@ public class BatchMaxLengthTranslateAnalyzer implements TranslateAnalyzer<Collec
         if(ids.isEmpty()){
             return false;
         }
-        List<EntryInfoEntity> entryByIDs = EntryInfoEntityDO.convertFromEntities(
-            entryInfoMapper.selectEntryInfosByIDs(ids.stream().collect(Collectors.toList())), 
-            (entryDO)->{return EntryInfoEntityDO.convertFromEntity(entryDO);}).collect(Collectors.toList());
+        List<EntryInfoEntity> entryByIDs = entryInfoMapper.selectEntryInfosByIDs(ids.stream().collect(Collectors.toList()));
         if(entryByIDs == null){
             throw new NullPointerException("根据id查询不到对应的词条");
         }

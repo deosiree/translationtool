@@ -219,11 +219,8 @@ public class CheckFilePipeline implements Pipeline {
             if(entities.isEmpty()){
                 return entityPairForComparsions;
             }
-            List<EntryInfoEntityDO> entryInfoDOs = entryInfoMapper.selectEntryInfosByIDs(entities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
-            Function<EntryInfoEntity,String> func = (entry)->{return entry.getId();};
-            Map<String, List<EntryInfoEntity>> entryInfoIDMap = entities.stream().collect(Collectors.groupingBy(func));
-                
-            List<EntryInfoEntity> entryInfosInDB = EntryInfoEntityDO.convertFromEntities(entryInfoDOs, (entryDO)->{return EntryInfoEntityDO.convertFromEntity(entryDO);}).collect(Collectors.toList());
+            List<EntryInfoEntity> entryInfosInDB = entryInfoMapper.selectEntryInfosByIDs(entities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
+            Map<String, List<EntryInfoEntity>> entryInfoIDMap = entities.stream().collect(Collectors.groupingBy(entry -> entry.getId()));
 
 
             entryInfosInDB.stream().forEach((entryInfoInDB)->{

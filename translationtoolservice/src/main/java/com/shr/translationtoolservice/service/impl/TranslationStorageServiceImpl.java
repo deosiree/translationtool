@@ -153,9 +153,7 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
         Class<EntryInfoEntity> clazz = EntryInfoEntity.class;
         Map<Method, Method> transTypeMethodRelationMap = this.buildTransTypeMethodRelationMap(clazz, transTypes);
         
-        List<EntryInfoEntityDO> selectEntryInfosByIDs = entryInfoMapper.selectEntryInfosByIDs(entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
-        /* 库里存到原始的这些词条的数据 */
-        List<EntryInfoEntity> entryInfosDB = EntryInfoEntityDO.convertFromEntities(selectEntryInfosByIDs, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList());
+        List<EntryInfoEntity> entryInfosDB = entryInfoMapper.selectEntryInfosByIDs(entryInfoEntities.stream().map(EntryInfoEntity::getId).collect(Collectors.toList()));
         Function<EntryInfoEntity,String> func = (entry)->{return entry.getId();};
         /* 更新翻译用的词条的模板, 还需要添加翻译信息 */
         Map<String,List<EntryInfoEntity>> entryInfosDBMap = entryInfosDB.stream().collect(Collectors.groupingBy(func));
