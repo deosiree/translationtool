@@ -33,8 +33,8 @@ spring:
       test-on-return: false                    # 归还连接时不检测
       validation-query: SELECT 1               # 检测用 SQL
       validation-query-timeout: 3              # 检测超时（秒）
-      keep-alive: true                         # 无条件验证所有空闲连接
-      time-between-eviction-runs-millis: 8000  # 空闲回收检测周期（8秒）
+      keep-alive: false                        # 关闭周期性批量验证（避免 CPU 飙升）
+      time-between-eviction-runs-millis: 60000 # 空闲回收检测周期（60秒）
       remove-abandoned: true                   # 移除泄露连接
       remove-abandoned-timeout: 180            # 泄露连接超时（秒）
       log-abandoned: true                      # 记录泄露日志

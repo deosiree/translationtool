@@ -18,8 +18,9 @@ spring:
       test-on-return: false
       validation-query: SELECT 1
       validation-query-timeout: 3
-      keep-alive: true                   # 每次回收周期无条件验证所有空闲连接（不依赖 minEvictableIdleTimeMillis）
-      time-between-eviction-runs-millis: 30000
+      # 关闭 keepAlive（避免周期性批量重建连接导致 CPU 飙升），靠 testOnBorrow 验证即可
+      keep-alive: false
+      time-between-eviction-runs-millis: 60000
       remove-abandoned: true
       remove-abandoned-timeout: 180
       log-abandoned: true
