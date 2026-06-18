@@ -4,10 +4,10 @@ translation_check/
 
 
 # Docker
-db/init/*.sql
-db/init/*.sql.gz
 images/
-pull-images.ps1
+
+# 全量数据（本地用，不上传）
+db/init/run.sql
 
 # 环境包
 ENV_package/

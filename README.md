@@ -122,7 +122,7 @@ docker compose logs translationtoolservice
 |---|---|---|---|
 | `admin` | `admin123` | 管理员 | 通用平台部 |
 
-> 本系统默认走 LDAP 认证。内网无 LDAP 时自动降级到本地兜底账户（即上表），详见 [[references/auth-fallback]]。
+> 本系统默认走 LDAP 认证。内网无 LDAP 时自动降级到本地兜底账户（即上表）。
 
 ---
 
@@ -154,7 +154,7 @@ docker compose build translationtoolservice && docker compose up -d
 
 ## 常见问题
 
-- **Q: 登录报 `Communications link failure`？** → [[references/db-connection-pool]]
-- **Q: 登录显示"部门信息未找到"？** → [[references/department-setup]]
+- **Q: 登录报 `Communications link failure`？** → 连接池配置问题，使用 `keepAlive=true` + `testOnBorrow=true` 解决
+- **Q: 登录显示"部门信息未找到"？** → 数据库编码问题，用 `UNHEX('E9809A...')` 写入 UTF-8 字节
 - **Q: 访问后返回 502？** → 后端尚未启动完成，等 30 秒再刷新
 - **Q: 外网如何部署？** → 见上方式一（[使用已导出的镜像](#方式一使用已导出的镜像推荐最快)）
