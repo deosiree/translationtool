@@ -1,12 +1,20 @@
-const { defineConfig } = require('@vue/cli-service')
+const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: false,
   devServer: {
-    client: {
-      overlay: {
-        //当出现编译错误或告警时  是否在浏览器中全屏覆盖
-        runtimeErrors: false,
+    client: { overlay: { runtimeErrors: false } },
+    proxy: {
+      // 主后端
+      "^/(userLogin|userManage|entry|backendInfo|checkManage|product|configManage|Syk|taskManage|translate|workbench|version|secondClassify|entryInfo|I18Sever|userPartiality|test)":
+        {
+          target: "http://localhost:18001",
+          changeOrigin: true,
+        },
+      // 术语 Agent
+      "/agent": {
+        target: "http://localhost:18002",
+        changeOrigin: true,
       },
     },
   },
@@ -16,20 +24,20 @@ module.exports = defineConfig({
       builderOptions: {
         extraResources: [
           {
-            from: 'env',                // 源文件夹（相对于项目根目录）
-            to: 'env',        // 目标文件夹（相对于打包后的应用的资源目录）
-          }
+            from: "env", // 源文件夹（相对于项目根目录）
+            to: "env", // 目标文件夹（相对于打包后的应用的资源目录）
+          },
         ],
-      }
-    }
+      },
+    },
   },
   configureWebpack: {
     resolve: {
       alias: {
-        '@': require('path').resolve(__dirname, 'src'),
-        '@prototype': require('path').resolve(__dirname, 'prototype'),
+        "@": require("path").resolve(__dirname, "src"),
+        "@prototype": require("path").resolve(__dirname, "prototype"),
       },
-      extensions: ['.js', '.vue', '.json'],
+      extensions: [".js", ".vue", ".json"],
       fallback: {
         path: require.resolve("path-browserify"),
         fs: false,
@@ -38,4 +46,4 @@ module.exports = defineConfig({
       },
     },
   },
-})
+});
