@@ -1,9 +1,22 @@
 """Pydantic schemas for the terminology learning agent API."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 from pydantic import BaseModel, Field
+
+
+# ── Wrapper: match Java backend response format ──
+
+
+class JavaResponse(BaseModel):
+    """Generic wrapper matching the Java backend response format.
+
+    Frontend axios interceptor expects: {code: 200, data: {...}, message: "..."}
+    """
+    code: int = 200
+    message: str = "success"
+    data: Any = None
 
 
 # ── Request schemas ──
@@ -21,18 +34,18 @@ class TermReviewRequest(BaseModel):
     comment: Optional[str] = Field(None, max_length=512, description="Optional reviewer comment")
 
 
-# ── Response schemas ──
+# ── Data schemas (wrapped inside JavaResponse.data) ──
 
 
-class TermLearningRunResponse(BaseModel):
-    """Response for a submitted terminology learning request."""
+class TermLearningRunData(BaseModel):
+    """Data returned by a submitted terminology learning request."""
     task_id: str = Field(..., description="Audit record ID for tracking")
     status: str = Field(..., description="Current state: 'completed' if term existed, 'pending_review' if new term")
     message: str = Field(..., description="Human-readable summary")
 
 
-class AuditRecordResponse(BaseModel):
-    """Detailed audit record returned by GET /agent/term-learning/{id}."""
+class AuditRecordData(BaseModel):
+    """Detailed audit record."""
     id: str
     source_text: str
     context: Optional[str] = None
@@ -50,13 +63,13 @@ class AuditRecordResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class AuditListResponse(BaseModel):
-    """List of pending audit records."""
-    items: list[AuditRecordResponse]
+class AuditListData(BaseModel):
+    """List of audit records."""
+    items: list[AuditRecordData]
     total: int
 
 
-class HealthResponse(BaseModel):
-    """Health check response."""
+class HealthData(BaseModel):
+    """Health check data."""
     status: str = "ok"
     service: str = "Terminology Learning Agent"

@@ -60,6 +60,7 @@ services:
       - "18000:80"
     depends_on:
       - translationtoolservice
+      - terminology-agent
     restart: unless-stopped
 
   terminology-agent:
