@@ -1,19 +1,20 @@
--- Translation Tool Database Schema
--- For GitHub Release
--- Business data (entries, translations) is in the Docker image tarball
+-- MySQL dump 10.13  Distrib 8.1.0, for Linux (x86_64)
+--
+-- Host: localhost    Database: translationtool
+-- ------------------------------------------------------
+-- Server version	8.1.0
 
-CREATE DATABASE IF NOT EXISTS `translationtool` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
-USE `translationtool`;
-
--- Translation Tool Database Schema
--- For GitHub Release - table structure only
--- Business data is in Docker image tarball
-
-CREATE TABLE `t_authority` (
-  `id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '主键',
-  `authority_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '权限名称',
-  `authority_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '权限代码',
-  `uri` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '权限uri',
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+tf8mb4_bin NOT NULL COMMENT '权限uri',
   `menu_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '菜单id',
   `rank` int DEFAULT NULL COMMENT '排序',
   PRIMARY KEY (`id`,`uri`) USING BTREE
