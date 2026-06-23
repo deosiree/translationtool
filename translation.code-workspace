@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "translation"
+		},
+		{
+			"path": "../../../Default-Obsidian/huiyanSkills"
+		},
+		{
+			"path": "terminology-agent"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

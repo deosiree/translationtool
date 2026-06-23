@@ -22,9 +22,21 @@ from app.graph.nodes.update_termstore import update_termstore_node
 
 
 def _route_after_discover(state: TermState) -> Literal["analyze_context", END]:
-    """If a match was found, end the workflow; otherwise continue."""
+    """根据术语发现状态决定工作流的下一步路由。
+
+    如果发现了新术语，则继续进入上下文分析阶段；否则结束工作流。
+
+    Args:
+        state (TermState): 包含当前工作流状态的字典，其中 'is_new_term' 键指示是否发现了新术语。
+
+    Returns:
+        Literal["analyze_context", END]: 如果存在新术语，返回 "analyze_context" 以继续处理；
+                                          否则返回 END 以终止工作流。
+    """
+    # 如果发现了新术语，则进入上下文分析阶段
     if state.get("is_new_term"):
         return "analyze_context"
+    # 否则结束工作流
     return END
 
 
