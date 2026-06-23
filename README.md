@@ -8,13 +8,14 @@
 
 ## 技术栈
 
-| 层 | 技术 | 版本 |
-|---|---|---|
-| **前端** | Vue 3 + Ant Design Vue | Node.js 16.x (构建), nginx (运行) |
-| **后端** | Spring Boot 2.7.7 + MyBatis-Plus + Druid | JDK 11 (运行时) |
-| **数据库** | MySQL 8.0 | — |
-| **缓存** | Redis 7 (Alpine) | — |
-| **反向代理** | nginx Alpine (内嵌于前端容器) | — |
+| 层 | 技术 | 版本 | 目录 |
+|---|---|---|---|
+| **前端** | Vue 3 + Ant Design Vue + Electron | Node.js 20.x | `translation/` |
+| **AI 术语代理** | Python FastAPI + LangGraph | Python >= 3.11 | `terminology-agent/` |
+| **后端服务** | Spring Boot 2.7.7 + MyBatis-Plus + Druid | JDK 11 (编译), JDK 8 (运行) | `translationtoolservice/` |
+| **数据库** | MySQL 8.0 | — | — |
+| **缓存** | Redis 7 (Alpine) | — | — |
+| **反向代理** | nginx Alpine (内嵌于前端容器) | — | — |
 
 ---
 
@@ -28,6 +29,106 @@
 | `OpenJDK11U-jdk_x64_windows_hotspot_11.0.26_4.msi` | 175 MB | JDK 11（如需本地编译后端） |
 | `apache-maven-3.9.16-bin.zip` | 9.4 MB | Maven（如需本地编译后端） |
 | ~~`OpenJDK8U-...msi`~~ | ~~89 MB~~ | **不需要**，JDK 11 向下兼容 1.8 |
+
+---
+
+## 镜像源配置（国内加速）
+
+国内首次搭建时，npm / pip / Maven 下载依赖极慢，建议先配置镜像源：
+
+### npm / pnpm 镜像
+
+```powershell
+# npm 配置淘宝镜像
+npm config set registry https://registry.npmmirror.com
+
+# pnpm 配置淘宝镜像
+pnpm config set registry https://registry.npmmirror.com
+
+# Electron 二进制文件镜像
+pnpm config set electron_mirror https://npmmirror.com/mirrors/electron/
+```
+
+### pip 镜像（terminology-agent）
+
+```bash
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+### Maven 镜像（translationtoolservice）
+
+在 `%USERPROFILE%\.m2\settings.xml` 中添加：
+
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>aliyunmaven</id>
+      <mirrorOf>central</mirrorOf>
+      <name>阿里云公共仓库</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </mirror>
+  </mirrors>
+</settings>
+```
+
+---
+
+## 本地开发
+
+### 前端开发（translation/）
+
+```powershell
+cd translation
+pnpm install
+pnpm run serve
+# 访问 http://localhost:8080
+```
+
+> 如果 `pnpm install` 卡住，见上方 [镜像源配置](#镜像源配置国内加速)。
+
+### Python AI 代理（terminology-agent）
+
+```powershell
+cd terminology-agent
+
+# 创建虚拟环境并安装依赖
+pip install -e .
+# 或使用 venv:
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .
+
+# 复制环境变量配置
+copy .env.example .env
+# 编辑 .env 填入你的 LLM_API_KEY（DeepSeek / OpenAI 等）
+
+# 启动服务
+uvicorn app.main:app --host 0.0.0.0 --port 18002 --reload
+```
+
+### Java 后端（translationtoolservice）
+
+```powershell
+# 1. 确保已安装 JDK（项目提供）
+# 项目提供了 JDK 切换脚本：
+.\use-jdk8.ps1    # 切换到 JDK 8（运行时兼容）
+.\use-jdk20.ps1   # 切换到 JDK 20（如需新版）
+
+# 2. 确保已安装 Maven（ENV_package 中提供了 apache-maven-3.9.16）
+
+# 3. 编译打包
+cd translationtoolservice
+mvn clean package -DskipTests
+
+# 4. 运行
+java -jar target\translationtoolservice-0.0.1-SNAPSHOT.jar
+```
+
+> 首次 `mvn package` 会下载大量依赖，请先配置 [Maven 镜像源](#maven-镜像translationtoolservice)。
 
 ---
 
