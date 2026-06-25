@@ -3,6 +3,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: false,
   devServer: {
+    port: 18000,
     client: { overlay: { runtimeErrors: false } },
     proxy: {
       // 主后端

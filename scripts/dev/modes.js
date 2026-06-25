@@ -1,4 +1,4 @@
-const { BROWSER_URL, UI_PROXY_SCRIPTS } = require("./services");
+const { BROWSER_URL } = require("./services");
 
 /**
  * 7 种根目录 dev 命令的单一配置源。
@@ -8,37 +8,30 @@ const MODES = {
   "dev:ui": {
     local: ["ui"],
     docker: ["java", "agent", "infra"],
-    proxy: "serve",
   },
   "dev:java": {
     local: ["java"],
     docker: ["ui", "agent", "infra"],
-    proxy: null,
   },
   "dev:agent": {
     local: ["agent"],
     docker: ["ui", "java", "infra"],
-    proxy: null,
   },
   "dev:ui-java": {
     local: ["ui", "java"],
     docker: ["agent", "infra"],
-    proxy: "dockerPy",
   },
   "dev:ui-agent": {
     local: ["ui", "agent"],
     docker: ["java", "infra"],
-    proxy: "dockerJava",
   },
   "dev:java-agent": {
     local: ["java", "agent"],
     docker: ["ui", "infra"],
-    proxy: null,
   },
   dev: {
     local: ["ui", "java", "agent"],
     docker: ["infra"],
-    proxy: "dev",
   },
 };
 
@@ -66,11 +59,6 @@ function expandDockerLayers(docker) {
   return [...new Set(out)].sort((a, b) => (order[a] ?? 9) - (order[b] ?? 9));
 }
 
-function getUiScript(modeConfig) {
-  if (!modeConfig.proxy) return null;
-  return UI_PROXY_SCRIPTS[modeConfig.proxy];
-}
-
 function getLocalPanes(modeName) {
   const cfg = MODES[modeName];
   if (!cfg) return [];
@@ -80,9 +68,7 @@ function getLocalPanes(modeName) {
   for (const layer of order) {
     if (!cfg.local.includes(layer)) continue;
     if (layer === "ui") {
-      const script = getUiScript(cfg);
-      if (!script) continue;
-      panes.push({ layer: "ui", title: "UI", dir: "translation", script });
+      panes.push({ layer: "ui", title: "UI", dir: "translation", script: "serve" });
     } else if (layer === "java") {
       panes.push({
         layer: "java",
@@ -125,7 +111,6 @@ module.exports = {
   listModes,
   resolveMode,
   expandDockerLayers,
-  getUiScript,
   getLocalPanes,
   formatStackSummary,
 };

@@ -45,16 +45,8 @@ const SERVICES = {
 
 const INFRA_LAYERS = ["mysql", "redis"];
 
-const UI_PROXY_SCRIPTS = {
-  serve: "serve",
-  dev: "dev",
-  dockerJava: "dev:dockerJava",
-  dockerPy: "dev:dockerPy",
-};
-
 module.exports = {
   BROWSER_URL,
   SERVICES,
   INFRA_LAYERS,
-  UI_PROXY_SCRIPTS,
 };
