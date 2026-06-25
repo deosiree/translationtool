@@ -1,5 +1,7 @@
 # 系统架构
 
+← [[README]] · [项目根 README](../README.md) | Agent 测试 → [[references/agent-testing]] · [agent-testing.md](agent-testing.md)
+
 ## 容器架构
 
 ```
@@ -72,9 +74,18 @@ translationtool/
 │   │       └── application-docker.yml  # Docker 环境配置
 │   ├── Dockerfile                # 后端容器构建（shrbase:0.3 → JDK 11）
 │   └── pom.xml
+├── terminology-agent/            # AI 术语 Agent（FastAPI + LangGraph）
+│   ├── app/                      # 业务代码 + 共置 tests/
+│   ├── devtools/                 # Trace Demo（不参与 pytest）
+│   └── README.md                 # 模块入口
+├── references/                   # 开发/部署/测试文档沉淀
+│   ├── agent-testing.md          # Agent 测试与 Trace 可视化
+│   └── 本地开发.md
 ├── db/init/                      # MySQL 初始化脚本
 ├── ENV_package/                  # 离线环境包（镜像、JDK、Maven）
 ├── docker-compose.yml            # Docker Compose 编排
 ├── pull-images.ps1               # 国内镜像拉取脚本
 └── README.md
 ```
+
+Agent 测试与轨迹可视化详见 [[references/agent-testing]] · [agent-testing.md](agent-testing.md)。

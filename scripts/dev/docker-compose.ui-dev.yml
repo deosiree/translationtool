@@ -1,0 +1,7 @@
+# 本地 Java/Agent 时，translation-ui 将 API 代理到 host.docker.internal
+services:
+  translation-ui:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./scripts/dev/.generated/nginx-ui.conf:/etc/nginx/conf.d/default.conf:ro

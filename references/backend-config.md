@@ -23,7 +23,8 @@ spring:
     password: 123456
 ```
 
-- `mysql` 是 Docker Compose 中的服务名，Docker DNS 自动解析
+- `mysql` 是 Docker Compose 中的服务名，Docker DNS 自动解析（**仅容器内 Java 进程**）
+- 本机 `mvn spring-boot:run` 须用环境变量把 URL 改为 `127.0.0.1:3306`（见 [[references/本地开发]] 附录 Java）
 - `socketTimeout=60000`：查询超时 60 秒
 - `connectTimeout=5000`：连接超时 5 秒
 

@@ -63,7 +63,7 @@ allow = ["Bash(cat .gitignore 2>/dev/null || echo \"No .gitignore found\")", "Ba
 # bash = "enforce" (default) jails each command in an OS sandbox (macOS now;
 # graceful fallback elsewhere); "off" disables it. network allows egress.
 # workspace_root = ""            # default: current working directory
-# allow_write = ["/tmp"]          # extra dirs writers may also modify
+allow_write = ["F:\\Documents\\Default-Obsidian"]          # extra dirs writers may also modify
 bash    = "enforce"
 network = true
 

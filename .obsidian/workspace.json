@@ -11,14 +11,12 @@
             "id": "dfe478da5a640e98",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "vscode-editor",
               "state": {
-                "file": "README.md",
-                "mode": "source",
-                "source": false
+                "file": "terminology-agent/devtools/trace_agent_demo.py"
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "trace_agent_demo"
             }
           }
         ]
@@ -180,22 +178,27 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "bases:新建数据库": false
+      "bases:新建数据库": false,
+      "vscode-editor:新建代码文件": false
     }
   },
   "active": "dfe478da5a640e98",
   "lastOpenFiles": [
+    "terminology-agent/app/schemas/__pycache__/converters.cpython-312.pyc",
+    "terminology-agent/app/core/__pycache__/exceptions.cpython-312.pyc",
+    "terminology-agent/app/core/__pycache__/__init__.cpython-312.pyc",
+    "terminology-agent/app/core/__pycache__/response.cpython-312.pyc",
+    "terminology-agent/app/core/__pycache__",
+    "terminology-agent/app/schemas/converters.py",
+    "terminology-agent/app/core/exceptions.py",
+    "terminology-agent/app/core/response.py",
+    "terminology-agent/app/core/__init__.py",
+    "terminology-agent/app/core",
+    "repository-pattern-three-layer.md",
+    "references/agent-testing.md",
+    "docs/agents/trace_agent_demo.html",
+    "README.md",
     "references/本地开发.md",
-    "translation/node_modules/electron/dist/electron.exe",
-    "translation/node_modules/electron/dist/d3dcompiler_47.dll",
-    "translation/node_modules/clipboardy/fallbacks/windows/clipboard_x86_64.exe",
-    "translation/node_modules/clipboardy/fallbacks/windows/clipboard_i686.exe",
-    "translation/node_modules/app-builder-bin/win/x64/app-builder.exe",
-    "translation/node_modules/app-builder-bin/win/ia32/app-builder.exe",
-    "translation/node_modules/@esbuild/win32-x64/esbuild.exe",
-    "translation/node_modules/7zip-bin/win/x64/7za.exe",
-    "translation/node_modules/7zip-bin/win/ia32/7za.exe",
-    "use-jdk8.ps1",
     "translation_check/readme.md",
     "translationtool_ai/translation-assistant/README.md",
     "translationtool_ai/translation-assistant/PROJECT_SUMMARY.md",
@@ -226,10 +229,6 @@
     "translation/node_modules/yorkie/node_modules/yallist/README.md",
     "translation/node_modules/yorkie/node_modules/normalize-path/README.md",
     "translation/node_modules/yorkie/node_modules/lru-cache/README.md",
-    "translation/node_modules/yorkie/node_modules/get-stream/readme.md",
-    "translation/node_modules/yorkie/node_modules/execa/readme.md",
-    "translation/node_modules/yorkie/node_modules/cross-spawn/README.md",
-    "translation/node_modules/yorkie/node_modules/cross-spawn/CHANGELOG.md",
-    "translation/node_modules/yorkie/HOOKS.md"
+    "translation/node_modules/yorkie/node_modules/get-stream/readme.md"
   ]
 }

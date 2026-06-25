@@ -79,14 +79,47 @@ pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 本地开发
 
-### 前端开发（translation/）
+### 一键全栈（推荐）
+
+```powershell
+cd F:\Documents\Repertory\Sieyuan\translationtool
+pnpm setup && pnpm install
+pnpm -C translationtoolservice install && pnpm -C terminology-agent install
+pnpm dev
+# → http://localhost:18000
+```
+
+根目录 7 种 `pnpm dev:*` 命令保证 **UI + Java + Agent + infra 四层全栈**；详见 [[references/本地开发]] · [references/本地开发.md](references/本地开发.md)。
+
+| 命令 | 本地 | Docker |
+|------|------|--------|
+| `pnpm dev` | UI + Java + Agent | infra |
+| `pnpm dev:ui` | UI | Java + Agent + infra |
+| `pnpm dev:java` | Java | UI + Agent + infra |
+| `pnpm dev:agent` | Agent | UI + Java + infra |
+
+需 **Windows Terminal**（`wt.exe`）自动分 pane；无 wt 时脚本会打印手动命令。
+
+### 仅前端（translation/）
 
 ```powershell
 cd translation
 pnpm install
-pnpm run serve
-# 访问 http://localhost:8080
+pnpm dev:ui   # 或在仓库根目录执行
 ```
+
+**dev server proxy 四档**（根命令自动选择，手动调试见 `translation/package.json`）：
+
+| 命令 | Java | Agent |
+|------|------|-------|
+| `serve` | Docker :18001 | Docker :18002 |
+| `dev` | 本机 :18001 | 本机 :18002 |
+| `dev:dockerJava` | :18001 | :18002 |
+| `dev:dockerPy` | :18001 | :18002 |
+
+访问 **http://localhost:18000**（webpack dev server 与 Docker UI 统一端口）。
+
+整体验收（不改代码）：`docker compose up -d` → http://localhost:18000
 
 > 如果 `pnpm install` 卡住，见上方 [镜像源配置](#镜像源配置国内加速)。
 
@@ -95,20 +128,25 @@ pnpm run serve
 ```powershell
 cd terminology-agent
 
-# 创建虚拟环境并安装依赖
-pip install -e .
+# 创建虚拟环境并安装依赖（含 pytest 等开发工具）
+pip install -e ".[dev]"
 # 或使用 venv:
 python -m venv .venv
 .venv\Scripts\activate
-pip install -e .
+pip install -e ".[dev]"
 
 # 复制环境变量配置
 copy .env.example .env
 # 编辑 .env 填入你的 LLM_API_KEY（DeepSeek / OpenAI 等）
 
+# 运行测试（无需 MySQL / LLM Key）
+pytest -v
+
 # 启动服务
 uvicorn app.main:app --host 0.0.0.0 --port 18002 --reload
 ```
+
+> 测试用例清单与 Agent Trace 可视化见 [[references/agent-testing]] · [references/agent-testing.md](references/agent-testing.md)。Agent 模块详情见 [[terminology-agent/README]] · [terminology-agent/README.md](terminology-agent/README.md)。
 
 ### Java 后端（translationtoolservice）
 
@@ -239,6 +277,29 @@ docker compose build translation-ui && docker compose up -d
 cd translationtoolservice && mvn package -DskipTests && cd ..
 docker compose build translationtoolservice && docker compose up -d
 ```
+
+---
+
+## 参考文档 (References)
+
+详细开发、部署、配置与 Agent 测试文档见 `references/` 目录。
+
+| 文档 | 说明 |
+|------|------|
+| [[references/README]] | References 总索引 |
+| [references/README.md](references/README.md) | ↑ 同上（Markdown 链接） |
+| [[references/本地开发]] | Agent 优先本地开发、场景 A/B |
+| [references/本地开发.md](references/本地开发.md) | ↑ 同上 |
+| [[references/agent-testing]] | **Agent 测试用例与 Trace 可视化** |
+| [references/agent-testing.md](references/agent-testing.md) | ↑ 同上 |
+| [[references/architecture]] | 系统架构 |
+| [references/architecture.md](references/architecture.md) | ↑ 同上 |
+| [[references/docker-deploy]] | Docker 部署 |
+| [references/docker-deploy.md](references/docker-deploy.md) | ↑ 同上 |
+| [[references/release-guide]] | 发布流程 |
+| [references/release-guide.md](references/release-guide.md) | ↑ 同上 |
+
+Agent 模块入口：[[terminology-agent/README]] · [terminology-agent/README.md](terminology-agent/README.md)
 
 ---
 

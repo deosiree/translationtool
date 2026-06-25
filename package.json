@@ -1,5 +1,16 @@
 {
-  "dependencies": {
-    "playwright": "^1.61.0"
+  "name": "translationtool",
+  "private": true,
+  "description": "词条翻译工具 — 根目录一键本地开发",
+  "scripts": {
+    "infra": "docker compose up -d mysql redis",
+    "setup": "node scripts/check-dev-env.js",
+    "dev": "node scripts/dev/prepare-stack.js dev && node scripts/dev/launch.js dev",
+    "dev:ui": "node scripts/dev/prepare-stack.js dev:ui && node scripts/dev/launch.js dev:ui",
+    "dev:java": "node scripts/dev/prepare-stack.js dev:java && node scripts/dev/launch.js dev:java",
+    "dev:agent": "node scripts/dev/prepare-stack.js dev:agent && node scripts/dev/launch.js dev:agent",
+    "dev:ui-java": "node scripts/dev/prepare-stack.js dev:ui-java && node scripts/dev/launch.js dev:ui-java",
+    "dev:ui-agent": "node scripts/dev/prepare-stack.js dev:ui-agent && node scripts/dev/launch.js dev:ui-agent",
+    "dev:java-agent": "node scripts/dev/prepare-stack.js dev:java-agent && node scripts/dev/launch.js dev:java-agent"
   }
 }

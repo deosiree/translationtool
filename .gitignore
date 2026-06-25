@@ -31,6 +31,11 @@ target/
 *.rar
 *.7z
 
+# 环境变量（勿提交密钥）
+terminology-agent/.env
+translationtoolservice/.env.local
+translationtoolservice/.env.serve.local
+
 # 依赖包
 node_modules/
 vendor/
