@@ -9,17 +9,17 @@ spring:
     username: root
     password: 123456
     druid:
-      # 连接池配置（解决 Docker 环境下空闲连接被 MySQL 关闭后无校验的问题）
+      # 连接池配置：靠 test-on-borrow 在每次取连接时验证，无需 keep-alive 后台轮询
       initial-size: 5
       min-idle: 5
       max-active: 20
       max-wait: 60000
-      test-on-borrow: true               # 每次借连接前先 SELECT 1 验证（关键）
+      test-while-idle: true
+      test-on-borrow: true # 每次借连接前先 SELECT 1 验证（关键）
       test-on-return: false
       validation-query: SELECT 1
       validation-query-timeout: 3
-      # 关闭 keepAlive（避免周期性批量重建连接导致 CPU 飙升），靠 testOnBorrow 验证即可
-      keep-alive: false
+      keep-alive: false # 关闭 keepAlive（避免周期性批量重建连接导致 CPU 飙升），靠 testOnBorrow 验证即可
       time-between-eviction-runs-millis: 60000
       remove-abandoned: true
       remove-abandoned-timeout: 180

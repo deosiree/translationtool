@@ -20,6 +20,7 @@ COPY --from=builder /build/target/translationtoolservice-0.0.1-SNAPSHOT.jar ./ap
 
 # 复制配置文件
 COPY src/main/resources/application.yml ./config/application.yml
+COPY src/main/resources/application-docker.yml ./config/application-docker.yml
 COPY src/main/resources/config/ ./config/
 COPY src/main/resources/logback-spring.xml ./config/
 
@@ -32,4 +33,4 @@ ENTRYPOINT ["java", \
     "-Dsun.jnu.encoding=UTF-8", \
     "-Dspring.profiles.active=docker", \
     "-jar", "./app.jar", \
-    "--spring.config.location=./config/application.yml"]
+    "--spring.config.location=file:./config/"]

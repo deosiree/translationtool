@@ -25,4 +25,4 @@ ENTRYPOINT ["java", \
     "-Dsun.jnu.encoding=UTF-8", \
     "-Dspring.profiles.active=docker", \
     "-jar", "./app.jar", \
-    "--spring.config.location=./config/application.yml"]
+    "--spring.config.location=file:./config/"]

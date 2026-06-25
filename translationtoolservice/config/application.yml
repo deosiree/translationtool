@@ -18,29 +18,29 @@ spring:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false?serverTimezone=Asia/Shanghai&socketTimeout=60000&allowMultiQueries=true
+    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&socketTimeout=60000&connectTimeout=5000&allowMultiQueries=true&autoReconnect=true
     #
     #url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
 
     username: root
     password: 123456
     # 连接池配置
-    initial-size: 5                # 初始化连接数
-    min-idle: 5                    # 最小空闲连接数（建议不要设为0）
-    max-active: 20                 # 最大活跃连接数
-    max-wait: 60000                # 获取连接的最大等待时间
-    
-    # 关键：连接有效性检测（解决通信失败的核心）
-    test-while-idle: true          # 空闲时检测连接有效性
-    test-on-borrow: true           # 获取连接时检测有效性（关键）
-    test-on-return: false          # 归还连接时不检测（性能考虑）
-    validation-query: SELECT 1     # 检测连接的SQL（MySQL专用）
-    validation-query-timeout: 3    # 检测超时时间（秒）
-    time-between-eviction-runs-millis: 60000  # 空闲连接回收检测周期
-    min-evictable-idle-time-millis: 1800000   # 连接最小空闲时间（30分钟）
-    remove-abandoned: true         # 移除泄露的连接
-    remove-abandoned-timeout: 180  # 泄露连接超时时间（秒）
-    log-abandoned: true            # 记录泄露连接日志
+    druid:
+      initial-size: 5         # 初始化连接数
+      min-idle: 5             # 最小空闲连接数（建议不要设为0）
+      max-active: 20          # 最大活跃连接数
+      max-wait: 60000         # 获取连接的最大等待时间
+      # 关键：连接有效性检测（解决通信失败的核心）
+      test-while-idle: true   # 空闲时检测连接有效性
+      test-on-borrow: true    # 获取连接时检测有效性（关键）
+      test-on-return: false   # 归还连接时不检测（性能考虑）
+      validation-query: SELECT 1     # 检测连接的SQL（MySQL专用）
+      validation-query-timeout: 3    # 检测超时时间（秒）
+      keep-alive: false              # 连接保持活跃（false）
+      time-between-eviction-runs-millis: 60000  # 空闲连接回收间隔（毫秒）
+      remove-abandoned: true                # 移除废弃连接（true）
+      remove-abandoned-timeout: 180         # 废弃连接超时时间（秒）
+      log-abandoned: true                   # 记录废弃连接日志（true）
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER

@@ -1,0 +1,22 @@
+{
+
+  "name": "translationtoolservice-dev",
+
+  "private": true,
+
+  "description": "本机 Java 后端启动脚本（读取 .env.local，无需手敲环境变量）",
+
+  "scripts": {
+
+    "dev": "env-cmd -f .env.local mvn spring-boot:run -DskipTests"
+
+  },
+
+  "devDependencies": {
+
+    "env-cmd": "^10.1.0"
+
+  }
+
+}
+
