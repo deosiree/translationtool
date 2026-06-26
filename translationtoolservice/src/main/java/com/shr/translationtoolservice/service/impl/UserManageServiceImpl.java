@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.service.impl;
 
 import ch.qos.logback.classic.pattern.LineOfCallerConverter;
 import cn.hutool.core.lang.tree.TreeUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.dao.MenuMapper;
 import com.shr.translationtoolservice.dao.RoleMapper;
 import com.shr.translationtoolservice.dao.UserMapper;
@@ -93,108 +94,94 @@ public class UserManageServiceImpl implements UserManageService {
 
     @Override
     public List<UserDetailsVo> getUserPermission(String filter) {
-        List<UserDetailsVo> userDetailsAllVos = new ArrayList<>();
-        // key -> department , value -> ldapUsers
-        Map<String, List<LDAPUser>> allUser = ldapUtils.getAllUser();
-
-        //匹配指定条件结果
-        if (StringUtils.isNotBlank(filter)) {
-            //部门匹配
-            if (!CollectionUtils.isEmpty(allUser.get(filter))) {
-
-                UserDetailsVo userDetailsDepartVo = new UserDetailsVo();
-                userDetailsDepartVo.setName(filter);
-                userDetailsDepartVo.setType(ConstantInterface.DEPARTMENT);
-                List<UserDetailsVo> userDetailsVos = constructLdapList(allUser.get(filter), filter, "");
-                userDetailsDepartVo.setChildren(userDetailsVos);
-                userDetailsAllVos.add(userDetailsDepartVo);
-                return userDetailsAllVos;
-            }
-        }
-
-        //全量构建
-        Set<String> ldapUserSet = allUser.keySet();
-        Iterator<String> iterator = ldapUserSet.iterator();
-        while (iterator.hasNext()) {
-            UserDetailsVo userDetailsDepartVo = new UserDetailsVo();
-            String department = iterator.next();
-
-            List<LDAPUser> ldapUsers = allUser.get(department);
-            List<UserDetailsVo> userDetailsVos = constructLdapList(ldapUsers, department, filter);
-            if (CollectionUtils.isEmpty(userDetailsVos)) {
-                continue;
-            }
-            userDetailsDepartVo.setName(department);
-            userDetailsDepartVo.setType("department");
-            userDetailsDepartVo.setChildren(userDetailsVos);
-            userDetailsAllVos.add(userDetailsDepartVo);
-            //userDetailsVo.setChildren(allUser.get(department));
-        }
-
-
-        return userDetailsAllVos;
-
+        return buildUserPermissionFromDb(filter);
     }
 
-    private List<UserDetailsVo> constructLdapList(List<LDAPUser> ldapUsers, String department, String filter) {
-        List<UserDetailsVo> userDetailsVos = new ArrayList<>();
-        for (LDAPUser ldapUser : ldapUsers) {
-            UserDetailsVo userDetailsVo = new UserDetailsVo();
+    private List<UserDetailsVo> buildUserPermissionFromDb(String filter) {
+        Map<String, User> userById = aggregateUsersWithRoles();
+        List<User> allDbUsers = userMapper.selectList(new QueryWrapper<>());
+        for (User dbUser : allDbUsers) {
+            userById.putIfAbsent(dbUser.getId(), dbUser);
+        }
 
-            String name = ldapUser.getName();
-            if (!StringUtils.isBlank(filter) && !name.equals(filter)) {
+        String keyword = StringUtils.isNotBlank(filter) ? filter.trim() : "";
+        Map<String, List<User>> usersByDepartment = new LinkedHashMap<>();
+        for (User user : userById.values()) {
+            String department = StringUtils.isBlank(user.getDepartment()) ? "" : user.getDepartment();
+            if (StringUtils.isNotBlank(keyword)
+                    && !department.contains(keyword)
+                    && !user.getUserName().contains(keyword)) {
                 continue;
             }
-            User user = userMapper.getPermissionByNameAndDepartment(name, department);
-            userDetailsVo.setType(ConstantInterface.USER);
-            userDetailsVo.setName(name);
-
-            if (!Objects.isNull(user)) {
-                userDetailsVo.setDepartment(user.getDepartment());
-                //角色信息添加
-                if (user.getRoleName().contains(ConstantInterface.TRANSLATOR)) {
-                    userDetailsVo.setTranslator(true);
-                } else {
-                    userDetailsVo.setTranslator(false);
-                }
-                if (user.getRoleName().contains(ConstantInterface.DEVELOPER)) {
-                    userDetailsVo.setDeveloper(true);
-                } else {
-                    userDetailsVo.setDeveloper(false);
-                }
-                if (user.getRoleName().contains(ConstantInterface.TRANSLATE_AUDITOR)) {
-                    userDetailsVo.setTranslateReviewer(true);
-                } else {
-                    userDetailsVo.setTranslateReviewer(false);
-                }
-                if (user.getRoleName().contains(ConstantInterface.ENTRY_AUDITOR)) {
-                    userDetailsVo.setEntryReviewer(true);
-                } else {
-                    userDetailsVo.setEntryReviewer(false);
-                }
-                if (user.getRoleName().contains(ConstantInterface.ADMIN)) {
-                    userDetailsVo.setAdmin(true);
-                } else {
-                    userDetailsVo.setAdmin(false);
-                }
-                if(user.getRoleName().contains(ConstantInterface.DEVELOP_ADMIN)){
-                    userDetailsVo.setDevelopAdmin(true);
-                }else{
-                    userDetailsVo.setDevelopAdmin(false);
-                }
-
-            }else {
-                userDetailsVo.setTranslator(false);
-                userDetailsVo.setDeveloper(false);
-                userDetailsVo.setTranslateReviewer(false);
-                userDetailsVo.setEntryReviewer(false);
-                userDetailsVo.setAdmin(false);
-                userDetailsVo.setDevelopAdmin(false);
-                userDetailsVo.setDepartment(department);
-            }
-            userDetailsVos.add(userDetailsVo);
+            usersByDepartment.computeIfAbsent(department, key -> new ArrayList<>()).add(user);
         }
-        return userDetailsVos;
+
+        List<UserDetailsVo> result = new ArrayList<>();
+        for (Map.Entry<String, List<User>> entry : usersByDepartment.entrySet()) {
+            List<UserDetailsVo> children = new ArrayList<>();
+            for (User user : entry.getValue()) {
+                UserDetailsVo userVo = new UserDetailsVo();
+                userVo.setType(ConstantInterface.USER);
+                userVo.setName(user.getUserName());
+                userVo.setDepartment(entry.getKey());
+                fillRoleCheckboxes(userVo, user.getRoleName());
+                children.add(userVo);
+            }
+            if (CollectionUtils.isEmpty(children)) {
+                continue;
+            }
+            UserDetailsVo departmentVo = new UserDetailsVo();
+            departmentVo.setName(entry.getKey());
+            departmentVo.setType(ConstantInterface.DEPARTMENT);
+            departmentVo.setDepartment(entry.getKey());
+            departmentVo.setChildren(children);
+            result.add(departmentVo);
+        }
+        return result;
+    }
+
+    private Map<String, User> aggregateUsersWithRoles() {
+        List<User> usersWithRoles = getUserInfo(new User(), -1, -1);
+        Map<String, User> userById = new LinkedHashMap<>();
+        for (User user : usersWithRoles) {
+            userById.merge(user.getId(), user, (existing, incoming) -> {
+                mergeRoleLists(existing, incoming);
+                return existing;
+            });
+        }
+        return userById;
+    }
+
+    private void mergeRoleLists(User target, User source) {
+        if (CollectionUtils.isEmpty(source.getRoleId())) {
+            return;
+        }
+        if (target.getRoleId() == null) {
+            target.setRoleId(new ArrayList<>());
+        }
+        if (target.getRoleName() == null) {
+            target.setRoleName(new ArrayList<>());
+        }
+        for (int i = 0; i < source.getRoleId().size(); i++) {
+            String roleId = source.getRoleId().get(i);
+            if (!target.getRoleId().contains(roleId)) {
+                target.getRoleId().add(roleId);
+                if (source.getRoleName() != null && source.getRoleName().size() > i) {
+                    target.getRoleName().add(source.getRoleName().get(i));
+                }
+            }
+        }
+    }
+
+    private void fillRoleCheckboxes(UserDetailsVo userDetailsVo, List<String> roleNames) {
+        List<String> roles = roleNames != null ? roleNames : Collections.emptyList();
+        userDetailsVo.setAdmin(roles.contains(ConstantInterface.ADMIN));
+        userDetailsVo.setDeveloper(roles.contains(ConstantInterface.DEVELOPER));
+        userDetailsVo.setTranslator(roles.contains(ConstantInterface.TRANSLATOR));
+        userDetailsVo.setEntryReviewer(roles.contains(ConstantInterface.ENTRY_AUDITOR));
+        userDetailsVo.setTranslateReviewer(roles.contains(ConstantInterface.TRANSLATE_AUDITOR));
+        userDetailsVo.setDevelopAdmin(roles.contains(ConstantInterface.DEVELOP_ADMIN));
+        userDetailsVo.setSuperAdmin(roles.contains(ConstantInterface.SUPER_ADMIN));
     }
 
     @Override
@@ -318,6 +305,11 @@ public class UserManageServiceImpl implements UserManageService {
                 // 开发管理员
                 roleIdList.add(roleMap.get(ConstantInterface.DEVELOP_ADMIN).getId());
                 roleNameList.add(roleMap.get(ConstantInterface.DEVELOP_ADMIN).getRoleName());
+            }
+            if (userDetailsVo.getSuperAdmin()) {
+                // 超级管理员
+                roleIdList.add(roleMap.get(ConstantInterface.SUPER_ADMIN).getId());
+                roleNameList.add(roleMap.get(ConstantInterface.SUPER_ADMIN).getRoleName());
             }
             user.setRoleName(roleNameList);
             user.setRoleId(roleIdList);

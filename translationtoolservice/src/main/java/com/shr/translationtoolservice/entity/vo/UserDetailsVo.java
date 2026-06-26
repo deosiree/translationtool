@@ -22,6 +22,7 @@ public class UserDetailsVo {
     private String type;
     private String department;
     private Boolean developAdmin;
+    private Boolean superAdmin;
 
     private Boolean readState;
     private Boolean writeState;
