@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     llm_model: str
     llm_temperature: float
 
+    # LangSmith（可选；未配 LANGSMITH_API_KEY 时不启用上报）
+    langsmith_tracing: bool = False
+    langsmith_api_key: str | None = None
+    langsmith_project: str = "translationtool-agent"
+
     @property
     def database_url(self) -> str:
         """组装 SQLAlchemy 同步连接 URL（engine 侧再换 aiomysql）。"""

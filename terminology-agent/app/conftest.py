@@ -27,6 +27,15 @@ from httpx import ASGITransport, AsyncClient
 FIXTURES_DIR = Path(__file__).parent / "testing" / "fixtures"
 
 
+@pytest.fixture(autouse=True)
+def _langsmith_test_project(monkeypatch):
+    """pytest 触发的 trace 上报至 translationtool-agent[domain](test)。"""
+    monkeypatch.setattr(
+        "app.graph.shared.langsmith_tracing._TRACING_TEST_MODE",
+        True,
+    )
+
+
 @pytest.fixture
 def sample_entry_oid() -> str:
     """含 %1/%2 占位符的 OID 样例词条。"""

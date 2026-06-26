@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.graph.pre_translate.builder import build_pre_translate_graph
 from app.graph.pre_translate.state import PreTranslateState
+from app.graph.shared.langsmith_tracing import PRE_TRANSLATE_DOMAIN, domain_run_context
 
 
 class PreTranslateGraph:
@@ -57,4 +58,5 @@ class PreTranslateGraph:
             "trace": [],
         }
         config = {"configurable": {"session": session}}
-        return await self.graph.ainvoke(initial, config)
+        with domain_run_context(PRE_TRANSLATE_DOMAIN):
+            return await self.graph.ainvoke(initial, config)

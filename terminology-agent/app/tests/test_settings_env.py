@@ -8,10 +8,19 @@ from pydantic_core import PydanticUndefined
 from config.settings import Settings
 
 
+_OPTIONAL_SETTINGS_DEFAULTS = frozenset({
+    "langsmith_tracing",
+    "langsmith_api_key",
+    "langsmith_project",
+})
+
+
 @pytest.mark.unit
 def test_settings_fields_have_no_python_defaults():
     """业务配置不得写死在 Python 中，必填项由 .env 提供。"""
     for name, field in Settings.model_fields.items():
+        if name in _OPTIONAL_SETTINGS_DEFAULTS:
+            continue
         assert field.default is PydanticUndefined, (
             f"{name} 不应有 Python 默认值，请在 .env 中配置"
         )
