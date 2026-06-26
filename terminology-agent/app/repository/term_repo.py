@@ -23,23 +23,6 @@ class TermRepository:
 
     # ── 术语库检索（只读 t_translate）──
 
-    async def find_by_chinese(self, chinese: str) -> list[TranslateEntry]:
-        """按中文词条精确查找 — 旧版 TermLearningGraph discover 节点使用。"""
-        stmt = (
-            select(TranslateEntry)
-            .where(
-                TranslateEntry.entry == chinese,
-                TranslateEntry.delete_state == 0,
-                or_(
-                    TranslateEntry.translate_state == "3",
-                    TranslateEntry.translate_state.is_(None),
-                ),
-            )
-            .limit(20)
-        )
-        result = await self._session.execute(stmt)
-        return list(result.scalars().all())
-
     async def find_exact(
         self,
         entry: str,

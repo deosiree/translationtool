@@ -36,8 +36,9 @@ uvicorn app.main:app --host 0.0.0.0 --port 18002 --reload
 ## 测试
 
 ```powershell
-pytest -v                       # 全量用例，无需 MySQL / LLM Key
-pytest app/services/tests -v    # 只跑 Service 层
+pytest -v                       # 全量用例（50），无需 MySQL / LLM Key
+pytest app/services/pre_translate/tests -v
+pytest app/graph/pre_translate/tests -v
 ```
 
 完整用例清单、逐条运行命令、TDD 工作流见 [[references/agent-testing]] · [agent-testing.md](../references/agent-testing.md)。
@@ -59,10 +60,11 @@ pytest app/services/tests -v    # 只跑 Service 层
 
 | 路径 | 作用 |
 |------|------|
-| `app/services/pre_translate_service.py` | 工作台批量 RAG 预翻译 |
-| `app/services/term_audit_service.py` | 审核列表/详情/确认入库 |
-| `app/graph/` | LangGraph 工作流与节点（阶段二与 PreTranslate 合并） |
-| `app/graph/trace_utils.py` | Trace 工具（测试与 Demo 共用） |
+| `app/services/pre_translate/` | 批量预翻译领域编排（`service.py` 入口） |
+| `app/services/term_audit/` | 审核列表/详情/确认入库 |
+| `app/graph/pre_translate/` | LangGraph 工作流域（State / Nodes / Edges / Builder / Runner） |
+| [`app/graph/pre_translate/README.md`](app/graph/pre_translate/README.md) | PreTranslate 域 SSOT（**双轨 Mermaid**） |
+| `app/graph/README.md` | Graph 层索引与三要素映射 |
 | `app/api/router.py` | HTTP 接口（`/agent/*`） |
 | `app/repository/term_repo.py` | 术语库 / audit 数据访问 |
 | `app/schemas/agent.py` | 请求/响应 Pydantic 模型 |
@@ -70,7 +72,36 @@ pytest app/services/tests -v    # 只跑 Service 层
 | `app/**/tests/` | 共置测试（TDD 友好） |
 | `devtools/trace_agent_demo.py` | Interactive Trace Demo |
 
-**分层约定**：`router` 只做 HTTP 解析、委托与响应包装；业务逻辑进 `app/services/`。
+## 全项目结构
+
+```
+terminology-agent/app/
+├── api/                    # HTTP 薄壳
+├── services/               # 领域编排
+│   ├── pre_translate/
+│   └── term_audit/
+├── graph/                  # LangGraph 工作流
+│   ├── README.md
+│   ├── shared/
+│   └── pre_translate/      # 见 graph/pre_translate/README.md
+├── repository/
+├── schemas/
+├── models/
+├── core/
+├── conftest.py
+├── testing/fixtures/
+└── main.py
+```
+
+结构标准 skill：[`项目结构-py-langGraph`](F:/Documents/Default-Obsidian/huiyanSkills/proj-skills/项目结构-py-langGraph/SKILL.md)
+
+**分层约定**：
+
+- `router` — HTTP 薄壳
+- `services/<domain>/service.py` — 领域编排（类比前端 `views/<domain>/index.vue`）
+- `graph/<workflow>/runner.py` — LangGraph 单条执行入口
+- `graph/<workflow>/builder.py` — StateGraph 组装与 compile
+- `graph/<workflow>/nodes/` — 节点；`edges/` — 条件边
 
 ---
 

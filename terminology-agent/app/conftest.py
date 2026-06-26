@@ -80,20 +80,31 @@ def mock_repo(mock_translate_entry, mock_fuzzy_entries):
 
 
 @pytest.fixture
-def pre_translate_service(mock_repo):
-    """注入 mock repo 的 PreTranslateService。"""
-    from app.services.pre_translate_service import PreTranslateService
+def pre_translate_service(mock_repo, monkeypatch):
+    """注入 mock TermRepository 的 PreTranslateService。"""
+
+    def repo_factory(_session):
+        return mock_repo
+
+    monkeypatch.setattr(
+        "app.graph.pre_translate.nodes.features.io.retrieve_similar.TermRepository",
+        repo_factory,
+    )
+    monkeypatch.setattr(
+        "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",
+        repo_factory,
+    )
+
+    from app.services.pre_translate import PreTranslateService
 
     session = AsyncMock()
-    service = PreTranslateService(session)
-    service._repo = mock_repo
-    return service
+    return PreTranslateService(session)
 
 
 @pytest.fixture
 def term_audit_service(mock_repo):
     """注入 mock repo 的 TermAuditService。"""
-    from app.services.term_audit_service import TermAuditService
+    from app.services.term_audit import TermAuditService
 
     session = AsyncMock()
     service = TermAuditService(session)
@@ -143,8 +154,8 @@ def sample_audit_record():
         matched_term=None,
         match_confidence=None,
         is_new_term=1,
-        suggested_translation="[Agent] admin",
-        llm_reasoning="未找到相似术语",
+        suggested_translation="Mock LLM перевод",
+        llm_reasoning="基于LLM机翻：术语库未命中",
         review_status="pending",
         review_comment=None,
         error=None,
@@ -156,7 +167,7 @@ def sample_audit_record():
         department="通用平台部",
         confidence=0.45,
         similar_terms=[],
-        retrieval_method="hybrid",
+        retrieval_method="none",
         source_type="workbench_agent",
         created_at=now,
         updated_at=now,

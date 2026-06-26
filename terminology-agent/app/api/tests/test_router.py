@@ -21,6 +21,7 @@ async def test_health(api_client):
 @pytest.mark.api
 async def test_batch_pretranslate_response_shape(api_client, monkeypatch):
     """POST /agent/pre-translate/batch 响应应含 list、auto_count、pending_count。"""
+
     async def fake_batch(self, **kwargs):
         return {
             "list": [{"id": "e1", "entry": "test", "agent_meta": {"confidence": 1.0, "review_status": "auto_approved", "suggested_translation": "t", "similar_terms": [], "retrieval_method": "exact", "reasoning": ""}}],
@@ -29,7 +30,7 @@ async def test_batch_pretranslate_response_shape(api_client, monkeypatch):
         }
 
     monkeypatch.setattr(
-        "app.api.router.PreTranslateService.batch_pre_translate",
+        "app.api.router.PreTranslateService.run_batch",
         fake_batch,
     )
 

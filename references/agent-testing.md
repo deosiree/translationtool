@@ -2,22 +2,24 @@
 
 ← [[README]] · [项目根 README](../README.md) | [[references/本地开发]] · [本地开发](本地开发.md) | [[terminology-agent/README]] · [Agent README](../terminology-agent/README.md)
 
-本文档是 **terminology-agent** 测试与 Agent 轨迹可视化的单一事实来源（SSOT）。默认 **无需 MySQL、无需 LLM Key** 即可跑完全部 15 个用例。
+本文档是 **terminology-agent** 测试与 Agent 轨迹可视化的单一事实来源（SSOT）。默认 **无需 MySQL、无需 LLM Key** 即可跑完全部 **50** 个用例（LLM 节点用 mock）。
 
 ---
 
 ## 1. 概述
 
-测试采用 **共置 `tests/`** 目录：与源码同层，改 `pre_translate_service.py` 时可直接打开旁边测试做 TDD 红绿。
+测试采用 **共置 `tests/`** 目录：与源码同层，改 `services/pre_translate/service.py` 时可直接打开旁边测试做 TDD 红绿。
 
 ```
 terminology-agent/app/
-├── conftest.py                    # 全局 fixtures
-├── testing/fixtures/              # 样例 JSON
-├── services/tests/                # 纯函数 + PreTranslateService
-├── api/tests/                     # FastAPI 路由
-├── graph/tests/                   # LangGraph 条件路由
-└── schemas/tests/                 # Pydantic 契约
+├── conftest.py                              # 全局 fixtures
+├── testing/fixtures/                        # 样例 JSON
+├── services/
+│   ├── pre_translate/tests/                 # PreTranslateService 契约
+│   └── term_audit/tests/                    # TermAuditService 契约
+├── api/tests/                               # FastAPI 路由
+├── graph/pre_translate/tests/               # LangGraph 节点/边/图集成
+└── schemas/tests/                           # Pydantic 契约
 ```
 
 环境准备见 [[references/本地开发]] §0；安装开发依赖：
@@ -40,7 +42,7 @@ pip install -e ".[dev]"
 | `mock_translate_entry` | 模拟 `t_translate` 精确匹配行 |
 | `mock_fuzzy_entries` | 模拟模糊匹配候选 |
 | `mock_repo` | AsyncMock TermRepository |
-| `pre_translate_service` | 注入 mock repo 的 PreTranslateService |
+| `pre_translate_service` | 注入 mock TermRepository 的 PreTranslateService |
 | `api_client` | httpx AsyncClient + dependency_overrides |
 | `sample_audit_record` | 模拟 pending audit ORM 对象 |
 
@@ -53,47 +55,25 @@ pip install -e ".[dev]"
 
 ---
 
-## 3. 测试用例清单（15）
+## 3. 测试用例概览（50）
 
-### 3.1 `@pytest.mark.unit` — 纯函数（3）
+主要分组：
 
-| 用例 | 文件 | 验证什么 | 关联源码 | 单独运行 |
-|------|------|----------|----------|----------|
-| `test_strip_placeholders_removes_percent_n` | `app/services/tests/test_helpers.py` | `%1/%2` 占位符剥离后再比相似度 | `_strip_placeholders` | `pytest app/services/tests/test_helpers.py::test_strip_placeholders_removes_percent_n -v` |
-| `test_similarity_identical_is_one` | 同上 | 相同串 → 相似度 1.0 | `_similarity` | `pytest app/services/tests/test_helpers.py::test_similarity_identical_is_one -v` |
-| `test_parse_target_lang_splits_on_dash` | 同上 | `中文-俄文` → `俄文` | `_parse_target_lang` | `pytest app/services/tests/test_helpers.py::test_parse_target_lang_splits_on_dash -v` |
+| Marker / 目录 | 数量 | 说明 |
+|---------------|------|------|
+| `@pytest.mark.unit` | 10+ | `utils/retrieval`、`domain/translation_source`、`mappers` |
+| `@pytest.mark.graph` | 18+ | edges、意图节点、assess、图集成、translate_suggest |
+| `@pytest.mark.service` | 11 | `PreTranslateService` + `TermAuditService` 契约 |
+| `@pytest.mark.api` | 8 | FastAPI 路由 |
+| schemas / settings | 6 | Pydantic 与环境变量 |
 
-### 3.2 `@pytest.mark.service` — Service 层 Mock Repo（5）
+**PreTranslate 主链路**：`PreTranslateService` → `PreTranslateGraph`（`retrieve_similar` → `rerank` → `resolve_translation_source` → term/llm → `assess_route` → `write_result`）。
 
-| 用例 | 文件 | 验证什么 | 关联源码 | 单独运行 |
-|------|------|----------|----------|----------|
-| `test_exact_match_auto_approved` | `app/services/tests/test_pre_translate_service.py` | 精确匹配 → `auto_approved`、回填译文、不写 audit | `PreTranslateService.batch_pre_translate` | `pytest app/services/tests/test_pre_translate_service.py::test_exact_match_auto_approved -v` |
-| `test_fuzzy_match_respects_threshold` | 同上 | 低相似度 → `needs_human` + `create_pretranslate_audit` | `_retrieve_similar` 模糊分支 | `pytest app/services/tests/test_pre_translate_service.py::test_fuzzy_match_respects_threshold -v` |
-| `test_no_match_low_confidence_pending` | 同上 | 无命中 → confidence=0.45、`hybrid` | `_retrieve_similar` 兜底 | `pytest app/services/tests/test_pre_translate_service.py::test_no_match_low_confidence_pending -v` |
-| `test_skips_child_entries` | 同上 | 含 `parentID` 的子词条跳过 | `batch_pre_translate` 循环 | `pytest app/services/tests/test_pre_translate_service.py::test_skips_child_entries -v` |
-| `test_agent_meta_shape` | 同上 | `agent_meta` 六字段契约 + `similar_terms` 结构 | `agent_meta` 构造 | `pytest app/services/tests/test_pre_translate_service.py::test_agent_meta_shape -v` |
+无命中场景：`retrieval_method=none`，走 LLM 机翻，Agent 说明前缀 **基于LLM机翻**（测试中 mock LLM，不调用真实 API）。
 
-### 3.3 `@pytest.mark.api` — FastAPI 端点（3）
+### 3.1 历史清单（已迁移）
 
-| 用例 | 文件 | 验证什么 | 关联源码 | 单独运行 |
-|------|------|----------|----------|----------|
-| `test_health` | `app/api/tests/test_router.py` | `GET /agent/health` 返回 `{ code, data.status }` | `router.health` | `pytest app/api/tests/test_router.py::test_health -v` |
-| `test_batch_pretranslate_response_shape` | 同上 | `POST /agent/pre-translate/batch` 响应含 `list/auto_count/pending_count` | `router.batch_pre_translate` | `pytest app/api/tests/test_router.py::test_batch_pretranslate_response_shape -v` |
-| `test_review_approved_merge_to_store` | 同上 | `approved` 审核 → `insert_translate` 写入术语库 | `router.review_term` | `pytest app/api/tests/test_router.py::test_review_approved_merge_to_store -v` |
-
-### 3.4 `@pytest.mark.graph` — LangGraph 路由（2）
-
-| 用例 | 文件 | 验证什么 | 关联源码 | 单独运行 |
-|------|------|----------|----------|----------|
-| `test_route_after_discover_new_term` | `app/graph/tests/test_term_learning_graph.py` | 新术语 → 路由到 `analyze_context` | `_route_after_discover` | `pytest app/graph/tests/test_term_learning_graph.py::test_route_after_discover_new_term -v` |
-| `test_route_after_discover_existing` | 同上 | 已有术语 → 路由到 `END` | `_route_after_discover` | `pytest app/graph/tests/test_term_learning_graph.py::test_route_after_discover_existing -v` |
-
-### 3.5 Schemas — Pydantic 契约（2，无 marker）
-
-| 用例 | 文件 | 验证什么 | 关联源码 | 单独运行 |
-|------|------|----------|----------|----------|
-| `test_audit_record_coerce_is_new_term` | `app/schemas/tests/test_agent_schemas.py` | MySQL TINYINT(1) → `bool` | `AuditRecordData._coerce_is_new_term` | `pytest app/schemas/tests/test_agent_schemas.py::test_audit_record_coerce_is_new_term -v` |
-| `test_pretranslate_batch_data_list_alias` | 同上 | 字段 `entry_list` / JSON 别名 `list` | `PreTranslateBatchData` | `pytest app/schemas/tests/test_agent_schemas.py::test_pretranslate_batch_data_list_alias -v` |
+原 `BatchOrchestrator` / `orchestration/` 测试已并入 `app/services/pre_translate/tests/`；原 `graph/tests/` 已迁入 `app/graph/pre_translate/tests/`。
 
 ---
 
@@ -102,13 +82,14 @@ pip install -e ".[dev]"
 在 `terminology-agent/` 目录下执行：
 
 ```powershell
-# 全量（15 用例）
+# 全量（50 用例）
 pytest -v
 
-# 按模块（改 service 时最常用）
-pytest app/services/tests -v
+# 按模块
+pytest app/services/pre_translate/tests -v
+pytest app/services/term_audit/tests -v
 pytest app/api/tests -v
-pytest app/graph/tests -v
+pytest app/graph/pre_translate/tests -v
 pytest app/schemas/tests -v
 
 # 按 marker
@@ -126,13 +107,10 @@ pytest -k "route_after_discover" -v
 
 ## 5. TDD 红绿工作流
 
-1. 改 `app/services/pre_translate_service.py`（或对应模块源码）
-2. **RED**：在同目录 `tests/test_*.py` 写失败断言
-3. **GREEN**：改实现直到 `pytest app/services/tests -v` 全绿
-4. **REFACTOR**：提取纯函数 / dataclass，测试仍绿
-5. Cursor 侧边栏展开 `services/` 可同时看到源码与 tests
-
-后续 PreTranslate 迁 LangGraph 时：在 `app/graph/tests/` 新增 graph 测试，**`app/services/tests/` 行为契约测试保持不变**。
+1. 改 `app/graph/pre_translate/` 或 `app/services/<domain>/` 对应模块
+2. **RED**：在同级 `tests/` 写失败断言
+3. **GREEN**：`pytest -v` 全绿
+4. **REFACTOR**：nodes/edges 分层，测试仍绿
 
 ---
 
@@ -144,7 +122,7 @@ pytest -k "route_after_discover" -v
 
 | 方式 | 适用场景 | 操作 |
 |------|----------|------|
-| **Cursor Testing 面板** | 浏览 / 点跑 15 个用例 | 侧边栏 Testing → 展开 `app/**/tests` → 点击运行 |
+| **Cursor Testing 面板** | 浏览 / 点跑 50 个用例 | 侧边栏 Testing → 展开 `app/**/tests` → 点击运行 |
 | **`trace_agent_demo.py`** | LangGraph 静态图 + PreTranslate 逐步 trace | 见 §6.2 |
 | **FastAPI Swagger** | 在线调 API、观察 JSON 响应 | 启动 Agent 后访问 http://localhost:18002/docs |
 | **术语学习前端** | 业务结果（待审核列表、置信度） | [[references/本地开发]] → http://localhost:18000 |
@@ -179,16 +157,16 @@ pip install -e ".[dev]"   # 含 ipython、pillow
 | `No module named 'config.settings'` | 先运行 **cell 0**（路径引导） |
 | `asyncio.run() cannot be called from a running event loop` | cell 2a 使用 **`await`**，不要用 `asyncio.run()`（Interactive 已自带事件循环） |
 
-### 6.3 Trace 工具 API（`app/graph/trace_utils.py`）
+### 6.3 Trace 工具 API
 
 测试与 Demo 共用，保证「测试绿 = trace 可复现」：
 
-| 函数 | 作用 |
+| 模块 / 函数 | 作用 |
 |------|------|
-| `render_graph_png(compiled_graph)` | 导出 LangGraph Mermaid PNG 字节流 |
-| `build_pretranslate_trace_steps(retrieval, threshold)` | 根据检索结果构建 trace 步骤列表 |
-| `collect_pretranslate_trace(service, ...)` | 对单条词条执行 `_retrieve_similar` 并返回 trace |
-| `format_astream_events(events)` | 将 LangGraph `astream_events` 格式化为可读文本 |
+| `app/graph/shared/visualization.py` → `render_graph_png` | 导出 LangGraph Mermaid PNG 字节流 |
+| `app/graph/pre_translate/utils/trace.py` → `build_pretranslate_trace_steps` | 根据终态 state 构建 trace 步骤列表 |
+| `app/graph/pre_translate/utils/trace.py` → `collect_pretranslate_trace` | 对单条词条跑 PreTranslateGraph 并返回 trace |
+| `app/graph/pre_translate/utils/trace.py` → `format_astream_events` | 将 LangGraph `astream_events` 格式化为可读文本 |
 
 ### 6.4 PreTranslate Trace 流程
 

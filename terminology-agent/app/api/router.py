@@ -16,8 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.response import ok
 from app.models.database import get_session
-from app.services.pre_translate_service import PreTranslateService
-from app.services.term_audit_service import TermAuditService
+from app.services.pre_translate import PreTranslateService
+from app.services.term_audit import TermAuditService
 from app.schemas.agent import (
     TermReviewRequest,
     AuditListData,
@@ -57,8 +57,7 @@ async def batch_pre_translate(
       auto_count    自动回填数量
       pending_count 写入 term_agent_audit 数量
     """
-    service = PreTranslateService(session)
-    result = await service.batch_pre_translate(
+    result = await PreTranslateService(session).run_batch(
         entries=body.entries,
         task_id=taskID,
         task_name=body.task_name,

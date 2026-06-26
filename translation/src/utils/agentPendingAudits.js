@@ -14,8 +14,8 @@ export const USE_AUDIT_MOCK = false;
 const RETRIEVAL_METHOD_LABELS = {
   exact: "精确匹配",
   fuzzy: "模糊匹配",
+  none: "术语库未命中",
   mock_hybrid: "混合 Mock",
-  hybrid: "混合检索",
 };
 
 /**
@@ -116,7 +116,7 @@ export function appendPendingFromPreTranslate({
     const mockTranslation =
       meta.suggested_translation ||
       item.agent_meta?.similar_terms?.[0]?.translate ||
-      (item.entry ? `[Agent] ${item.entry}` : "");
+      "";
 
     pendingItems.push({
       id: auditId,
@@ -177,7 +177,7 @@ export function getMockPendingAudits() {
       entry_info_id: "mock-entry-002",
       task_id: "mock-task-001",
       source_text: "admin",
-      suggested_translation: "[Agent] admin",
+      suggested_translation: "[Agent Mock] admin",
       target_lang: "俄文",
       task_name: "【Mock】俄文翻译任务",
       product_name: "通用平台部产品",
