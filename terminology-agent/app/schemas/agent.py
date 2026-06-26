@@ -6,17 +6,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 # ── 请求体 ──
-
-
-class TermLearningRunRequest(BaseModel):
-    """POST /agent/term-learning/run — 旧版单条术语发现入口。"""
-    source_text: str = Field(..., min_length=1, max_length=1024, description="待检查的中文词条")
-    context: Optional[str] = Field(None, max_length=2048, description="可选上下文")
 
 
 class TermReviewRequest(BaseModel):
@@ -28,29 +22,13 @@ class TermReviewRequest(BaseModel):
 class PreTranslateBatchRequest(BaseModel):
     """POST /agent/pre-translate/batch — 工作台批量 Agent 预翻译。
 
-    兼容两种 body：
-      - 纯数组：[{ id, entry, russian, ... }]（旧调用方式）
-      - 对象：{ entries, task_name, product_name, target_lang, department }
+    Body 必须为对象：{ entries, task_name, product_name, target_lang, department }
     """
     entries: list[dict] = Field(default_factory=list, description="工作台词条列表，结构与 Java preTranslate 一致")
     task_name: Optional[str] = Field(None, description="任务名称，供术语学习列表展示")
     product_name: Optional[str] = Field(None, description="产品名称")
     target_lang: Optional[str] = Field(None, description="目标语种，如「俄文」")
     department: Optional[str] = Field(None, description="部门所属，对应术语库 visual_range")
-
-
-def parse_batch_body(raw: Any) -> PreTranslateBatchRequest:
-    """解析 POST /pre-translate/batch 请求体。
-
-    Args:
-        raw: 前端 JSON，纯词条数组或含 entries 的对象。
-
-    Returns:
-        校验后的 PreTranslateBatchRequest。
-    """
-    if isinstance(raw, list):
-        return PreTranslateBatchRequest(entries=raw)
-    return PreTranslateBatchRequest.model_validate(raw)
 
 
 # ── 响应 data 层 ──
@@ -61,13 +39,6 @@ class SimilarTermData(BaseModel):
     entry: str = Field(..., description="参考词条原文")
     translate: str = Field(..., description="参考词条已有译文")
     score: Optional[float] = Field(None, description="相似度分数 0~1")
-
-
-class TermLearningRunData(BaseModel):
-    """单条术语发现 run 接口的 data 字段。"""
-    task_id: str = Field(..., description="audit 记录 id，用于轮询/审核")
-    status: str = Field(..., description="completed | pending | approved | rejected")
-    message: str = Field(..., description="可读摘要")
 
 
 class AuditRecordData(BaseModel):

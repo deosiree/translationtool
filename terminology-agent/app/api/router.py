@@ -7,26 +7,23 @@
   GET  /health                      健康检查
   POST /pre-translate/batch         工作台 Agent 批量预翻译
   GET  /term-learning/list          术语学习待审核列表
+  GET  /term-learning/{id}          审核详情
   POST /term-learning/{id}/review   人工确认 / 拒绝（approved 时 MergeToStore）
-  POST /term-learning/run             旧版单条术语发现（保留兼容）
 """
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.response import ok
 from app.models.database import get_session
 from app.services.pre_translate_service import PreTranslateService
 from app.services.term_audit_service import TermAuditService
-from app.services.term_learning_run_service import TermLearningRunService
 from app.schemas.agent import (
-    TermLearningRunRequest,
     TermReviewRequest,
-    TermLearningRunData,
     AuditListData,
+    PreTranslateBatchRequest,
     PreTranslateBatchData,
     HealthData,
-    parse_batch_body,
 )
 from app.schemas.converters import audit_to_data
 
@@ -39,22 +36,9 @@ async def health():
     return ok(HealthData())
 
 
-@router.post("/term-learning/run", summary="单条术语发现")
-async def run_term_learning(
-    body: TermLearningRunRequest,
-    session: AsyncSession = Depends(get_session),
-):
-    """旧版单条术语发现 — LangGraph TermLearningGraph 入口（保留兼容）。"""
-    data = await TermLearningRunService(session).run(
-        source_text=body.source_text,
-        context=body.context,
-    )
-    return ok(data)
-
-
 @router.post("/pre-translate/batch", summary="批量预翻译")
 async def batch_pre_translate(
-    request: Request,
+    body: PreTranslateBatchRequest,
     taskID: str | None = None,
     confidenceThreshold: float = 0.8,
     session: AsyncSession = Depends(get_session),
@@ -65,25 +49,22 @@ async def batch_pre_translate(
       taskID              翻译任务 id
       confidenceThreshold 置信度阈值，默认 0.8
 
-    Body（二选一）:
-      - List[dict]  纯词条数组（向后兼容）
-      - { entries, task_name, product_name, target_lang, department }
+    Body:
+      { entries, task_name, product_name, target_lang, department }
 
     Response.data:
       list          每条含 agent_meta；auto_approved 项带译文
       auto_count    自动回填数量
       pending_count 写入 term_agent_audit 数量
     """
-    batch_req = parse_batch_body(await request.json())
-
     service = PreTranslateService(session)
     result = await service.batch_pre_translate(
-        entries=batch_req.entries,
+        entries=body.entries,
         task_id=taskID,
-        task_name=batch_req.task_name,
-        product_name=batch_req.product_name,
-        target_lang=batch_req.target_lang,
-        department=batch_req.department,
+        task_name=body.task_name,
+        product_name=body.product_name,
+        target_lang=body.target_lang,
+        department=body.department,
         confidence_threshold=confidenceThreshold,
     )
     return ok(PreTranslateBatchData(**result))

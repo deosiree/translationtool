@@ -35,9 +35,9 @@ class TermAgentAudit(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_new_id)
     source_text: Mapped[str] = mapped_column(String(1024), nullable=False, comment="词条原文")
-    context: Mapped[str | None] = mapped_column(Text, nullable=True, comment="可选上下文（旧版单条术语发现流程保留）")
+    context: Mapped[str | None] = mapped_column(Text, nullable=True, comment="可选上下文")
 
-    # ── 旧版「术语发现」字段，兼容 TermLearningGraph ──
+    # ── LangGraph 术语发现字段（阶段二合并前保留列）──
     matched_term: Mapped[str | None] = mapped_column(String(1024), nullable=True, comment="术语库已有翻译")
     match_confidence: Mapped[float | None] = mapped_column(Float, nullable=True, comment="匹配置信度")
     is_new_term: Mapped[bool] = mapped_column(Integer, default=False, comment="是否为新术语（ORM 存 0/1）")

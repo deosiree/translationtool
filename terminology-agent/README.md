@@ -61,8 +61,7 @@ pytest app/services/tests -v    # 只跑 Service 层
 |------|------|
 | `app/services/pre_translate_service.py` | 工作台批量 RAG 预翻译 |
 | `app/services/term_audit_service.py` | 审核列表/详情/确认入库 |
-| `app/services/term_learning_run_service.py` | 单条术语发现编排 |
-| `app/graph/` | LangGraph 工作流与节点 |
+| `app/graph/` | LangGraph 工作流与节点（阶段二与 PreTranslate 合并） |
 | `app/graph/trace_utils.py` | Trace 工具（测试与 Demo 共用） |
 | `app/api/router.py` | HTTP 接口（`/agent/*`） |
 | `app/repository/term_repo.py` | 术语库 / audit 数据访问 |

@@ -109,14 +109,6 @@ class TermRepository:
 
     # ── term_agent_audit 审核记录 ──
 
-    async def create_audit(self, *, source_text: str, context: str | None = None) -> TermAgentAudit:
-        """创建空 audit — 旧版 POST /term-learning/run 入口。"""
-        record = TermAgentAudit(source_text=source_text, context=context)
-        self._session.add(record)
-        await self._session.commit()
-        await self._session.refresh(record)
-        return record
-
     async def create_pretranslate_audit(
         self,
         *,

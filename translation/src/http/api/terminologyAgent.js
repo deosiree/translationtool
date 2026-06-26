@@ -62,20 +62,6 @@ import request from "../request";
  */
 
 /**
- * 旧版单条术语发现（POST /agent/term-learning/run）
- * @param {string} sourceText - 中文词条
- * @param {string} [context] - 可选上下文
- * @returns {Promise<{ data: { task_id: string, status: string, message: string } }>}
- */
-export function runTermLearning(sourceText, context) {
-  return request({
-    url: "/agent/term-learning/run",
-    method: "POST",
-    data: { source_text: sourceText, context: context || null },
-  });
-}
-
-/**
  * 获取单条 audit 详情
  * @param {string} auditId
  * @returns {Promise<{ data: AuditRecord }>}

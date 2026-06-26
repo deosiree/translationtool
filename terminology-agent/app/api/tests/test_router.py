@@ -47,6 +47,18 @@ async def test_batch_pretranslate_response_shape(api_client, monkeypatch):
 
 
 @pytest.mark.api
+async def test_batch_pretranslate_rejects_array_body(api_client):
+    """POST /agent/pre-translate/batch 纯数组 body 应返回 code=202 参数错误。"""
+    resp = await api_client.post(
+        "/agent/pre-translate/batch",
+        json=[{"id": "e1", "entry": "test"}],
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["code"] == 202
+
+
+@pytest.mark.api
 async def test_list_term_learning_audits_pagination(
     api_client, monkeypatch, sample_audit_record
 ):

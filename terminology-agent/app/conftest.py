@@ -102,17 +102,6 @@ def term_audit_service(mock_repo):
 
 
 @pytest.fixture
-def term_learning_run_service(mock_repo):
-    """注入 mock repo / graph 的 TermLearningRunService。"""
-    from app.services.term_learning_run_service import TermLearningRunService
-
-    session = AsyncMock()
-    service = TermLearningRunService(session, graph_factory=MagicMock())
-    service._repo = mock_repo
-    return service
-
-
-@pytest.fixture
 async def api_client(monkeypatch):
     """httpx AsyncClient — mock engine lifespan，不连 MySQL。"""
     from contextlib import asynccontextmanager
