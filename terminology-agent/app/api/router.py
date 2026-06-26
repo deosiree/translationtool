@@ -1,137 +1,126 @@
-"""FastAPI router for terminology learning agent endpoints."""
+"""FastAPI 路由 — 术语学习 Agent HTTP 接口。
 
-from fastapi import APIRouter, Depends, HTTPException
+路由前缀：/agent（见 app/main.py）
+前端 dev proxy：vue.config.js → localhost:18002
+
+主要端点：
+  GET  /health                      健康检查
+  POST /pre-translate/batch         工作台 Agent 批量预翻译
+  GET  /term-learning/list          术语学习待审核列表
+  POST /term-learning/{id}/review   人工确认 / 拒绝（approved 时 MergeToStore）
+  POST /term-learning/run             旧版单条术语发现（保留兼容）
+"""
+
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.response import ok
 from app.models.database import get_session
-from app.repository.term_repo import TermRepository
-from app.graph.graph import TermLearningGraph
+from app.services.pre_translate_service import PreTranslateService
+from app.services.term_audit_service import TermAuditService
+from app.services.term_learning_run_service import TermLearningRunService
 from app.schemas.agent import (
     TermLearningRunRequest,
     TermReviewRequest,
-    JavaResponse,
     TermLearningRunData,
-    AuditRecordData,
     AuditListData,
+    PreTranslateBatchData,
     HealthData,
+    parse_batch_body,
 )
+from app.schemas.converters import audit_to_data
 
-router = APIRouter(tags=["terminology-learning"])
-
-
-def _ok(data) -> JavaResponse:
-    """Wrap response data in the format expected by the frontend axios interceptor."""
-    return JavaResponse(code=200, message="success", data=data)
+router = APIRouter(tags=["术语学习"])
 
 
-@router.get("/health")
+@router.get("/health", summary="健康检查")
 async def health():
-    """Health check endpoint."""
-    return _ok(HealthData())
+    """存活探针，Docker / 本地开发健康检查。"""
+    return ok(HealthData())
 
 
-@router.post("/term-learning/run", status_code=201)
+@router.post("/term-learning/run", summary="单条术语发现")
 async def run_term_learning(
     body: TermLearningRunRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    """Submit a Chinese term for terminology learning.
+    """旧版单条术语发现 — LangGraph TermLearningGraph 入口（保留兼容）。"""
+    data = await TermLearningRunService(session).run(
+        source_text=body.source_text,
+        context=body.context,
+    )
+    return ok(data)
 
-    The workflow:
-        1. Checks if the term already exists in the terminology store.
-        2. If found → returns immediately with existing translation.
-        3. If new → runs context analysis + LLM suggestion, then
-           creates an audit record pending human review.
+
+@router.post("/pre-translate/batch", summary="批量预翻译")
+async def batch_pre_translate(
+    request: Request,
+    taskID: str | None = None,
+    confidenceThreshold: float = 0.8,
+    session: AsyncSession = Depends(get_session),
+):
+    """工作台「Agent翻译」批量预翻译。
+
+    Query:
+      taskID              翻译任务 id
+      confidenceThreshold 置信度阈值，默认 0.8
+
+    Body（二选一）:
+      - List[dict]  纯词条数组（向后兼容）
+      - { entries, task_name, product_name, target_lang, department }
+
+    Response.data:
+      list          每条含 agent_meta；auto_approved 项带译文
+      auto_count    自动回填数量
+      pending_count 写入 term_agent_audit 数量
     """
-    repo = TermRepository(session)
-    existing = await repo.find_by_chinese(body.source_text)
+    batch_req = parse_batch_body(await request.json())
 
-    if existing:
-        best = existing[0]
-        return _ok(TermLearningRunData(
-            task_id="",
-            status="completed",
-            message=f"Term '{body.source_text}' already exists → '{best.translate}' (confidence=1.0)",
-        ))
-
-    audit = await repo.create_audit(
-        source_text=body.source_text,
-        context=body.context,
+    service = PreTranslateService(session)
+    result = await service.batch_pre_translate(
+        entries=batch_req.entries,
+        task_id=taskID,
+        task_name=batch_req.task_name,
+        product_name=batch_req.product_name,
+        target_lang=batch_req.target_lang,
+        department=batch_req.department,
+        confidence_threshold=confidenceThreshold,
     )
-
-    graph = TermLearningGraph()
-    final_state = await graph.run(
-        source_text=body.source_text,
-        context=body.context,
-        audit_id=audit.id,
-        session=session,
-    )
-
-    review_status = final_state.get("review_status", "pending")
-
-    if review_status == "pending":
-        msg = (
-            f"Term '{body.source_text}' is new. "
-            f"LLM suggested: '{final_state.get('suggested_translation', 'N/A')}'. "
-            f"Awaiting human review (task_id={audit.id})."
-        )
-    else:
-        msg = f"Term '{body.source_text}' processing completed (status={review_status})."
-
-    return _ok(TermLearningRunData(
-        task_id=audit.id,
-        status=review_status,
-        message=msg,
-    ))
+    return ok(PreTranslateBatchData(**result))
 
 
-@router.get("/term-learning/pending")
+@router.get("/term-learning/list", summary="待审核列表")
 async def list_pending(
-    limit: int = 50,
+    page: int = 1,
+    pageSize: int = Query(20, alias="pageSize"),
     session: AsyncSession = Depends(get_session),
 ):
-    """List all audit records awaiting human review."""
-    repo = TermRepository(session)
-    records = await repo.list_pending_audits(limit=limit)
-    items = [AuditRecordData.model_validate(r) for r in records]
-    return _ok(AuditListData(items=items, total=len(items)))
+    """术语学习页 — 待人工确认列表（分页）。"""
+    records, total = await TermAuditService(session).list_pending(
+        page=page, page_size=pageSize
+    )
+    items = [audit_to_data(r) for r in records]
+    return ok(AuditListData(entry_list=items, total=total))
 
 
-@router.get("/term-learning/{audit_id}")
-async def get_audit_status(
-    audit_id: str,
-    session: AsyncSession = Depends(get_session),
-):
-    """Get the full audit record for a specific learning request."""
-    repo = TermRepository(session)
-    record = await repo.get_audit(audit_id)
-    if record is None:
-        raise HTTPException(status_code=404, detail=f"Audit record {audit_id} not found")
-    return _ok(AuditRecordData.model_validate(record))
+@router.get("/term-learning/{audit_id}", summary="审核详情")
+async def get_audit_status(audit_id: str, session: AsyncSession = Depends(get_session)):
+    """单条 audit 详情（轮询 / 调试）。"""
+    record = await TermAuditService(session).get_audit_or_raise(audit_id)
+    return ok(audit_to_data(record))
 
 
-@router.post("/term-learning/{audit_id}/review")
+@router.post("/term-learning/{audit_id}/review", summary="审核确认/拒绝")
 async def review_term(
     audit_id: str,
     body: TermReviewRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    """Submit a human review decision for a pending term suggestion."""
-    repo = TermRepository(session)
-    record = await repo.get_audit(audit_id)
-    if record is None:
-        raise HTTPException(status_code=404, detail=f"Audit record {audit_id} not found")
-    if record.review_status != "pending":
-        raise HTTPException(
-            status_code=409,
-            detail=f"Audit record {audit_id} already has final status '{record.review_status}'",
-        )
+    """术语学习页 — 确认或拒绝。
 
-    await repo.update_audit(
-        audit_id,
-        review_status=body.action,
-        review_comment=body.comment,
+    approved 且术语库尚无精确匹配时，调用 insert_translate 写入 t_translate（MergeToStore）。
+    """
+    record = await TermAuditService(session).review(
+        audit_id, action=body.action, comment=body.comment
     )
-
-    updated = await repo.get_audit(audit_id)
-    return _ok(AuditRecordData.model_validate(updated))
+    return ok(audit_to_data(record))

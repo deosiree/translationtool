@@ -1,0 +1,19 @@
+[
+  {
+    "id": "entry-001",
+    "entry": "正在查询第 %1/%2 个路径的OID...",
+    "russian": "",
+    "comment": "OID query"
+  },
+  {
+    "id": "entry-002",
+    "entry": "admin",
+    "russian": "",
+    "parentID": "parent-1"
+  },
+  {
+    "id": "entry-003",
+    "entry": "",
+    "russian": ""
+  }
+]

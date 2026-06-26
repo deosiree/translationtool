@@ -1,7 +1,7 @@
-"""Node: Update Term Store — persist an approved term back to the agent audit table.
+"""节点：Update Term Store — 将审核结果写回 term_agent_audit 表。
 
-In the current MVP, we update the `term_agent_audit` record to reflect the
-approved status. A future enhancement can write into `t_translate` directly.
+当前 MVP 仅更新 ``term_agent_audit`` 记录。
+后续可增强为审核通过后直接写入 ``t_translate``。
 """
 
 from langgraph.types import RunnableConfig
@@ -11,7 +11,7 @@ from app.repository.term_repo import TermRepository
 
 
 async def update_termstore_node(state: TermState, config: RunnableConfig) -> TermState:
-    """Persist the final approved (or rejected) state to the database."""
+    """把最终状态（通过 / 拒绝 / 待审）持久化到数据库。"""
     session = config["configurable"]["session"]
     audit_id = config["configurable"]["audit_id"]
     repo = TermRepository(session)

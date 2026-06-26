@@ -1,34 +1,37 @@
-"""Data access layer for terminology store and agent audit records."""
+"""术语库与 Agent 审核表的数据访问层。
+
+职责划分：
+  - 读 t_translate：预翻译 RAG 检索（精确 / 模糊）
+  - 写 term_agent_audit：低于阈值的 needs_human 记录
+  - 写 t_translate：人工审核通过后 MergeToStore
+"""
 
 from typing import Sequence
 
-from sqlalchemy import select, or_
+from sqlalchemy import func, select, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.term import TermAgentAudit, TranslateEntry
 
 
 class TermRepository:
-    """Read-write access to term store.
-
-    - Reads from the existing `t_translate` table for term discovery.
-    - Writes agent workflow state to the agent-owned `term_agent_audit` table.
-    """
+    """异步 SQLAlchemy 仓储，供 PreTranslateService 与 router 使用。"""
 
     def __init__(self, session: AsyncSession):
+        """注入异步数据库会话。"""
         self._session = session
 
-    # ── Discovery (read from existing term store) ──
+    # ── 术语库检索（只读 t_translate）──
 
     async def find_by_chinese(self, chinese: str) -> list[TranslateEntry]:
-        """Search `t_translate` by Chinese term (exact and fuzzy)."""
+        """按中文词条精确查找 — 旧版 TermLearningGraph discover 节点使用。"""
         stmt = (
             select(TranslateEntry)
             .where(
                 TranslateEntry.entry == chinese,
                 TranslateEntry.delete_state == 0,
                 or_(
-                    TranslateEntry.translate_state == "3",  # approved
+                    TranslateEntry.translate_state == "3",
                     TranslateEntry.translate_state.is_(None),
                 ),
             )
@@ -37,8 +40,62 @@ class TermRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def find_exact(
+        self,
+        entry: str,
+        target_lang: str | None,
+        department: str | None,
+    ) -> TranslateEntry | None:
+        """精确匹配 — 对齐 Java TranslateMapper.getVersionSuggestTrans。
+
+        条件：entry 完全一致 + translate_state=3 + 可选 type/visual_range。
+        排序：last_use_time DESC，取最新一条。
+        """
+        conditions = [
+            TranslateEntry.entry == entry,
+            TranslateEntry.delete_state == 0,
+            TranslateEntry.translate_state == "3",
+        ]
+        if target_lang:
+            conditions.append(TranslateEntry.type == target_lang)
+        if department:
+            conditions.append(TranslateEntry.visual_range == department)
+
+        stmt = (
+            select(TranslateEntry)
+            .where(*conditions)
+            .order_by(desc(TranslateEntry.last_use_time))
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def find_fuzzy(
+        self,
+        entry: str,
+        target_lang: str | None,
+        department: str | None,
+        limit: int = 10,
+    ) -> list[TranslateEntry]:
+        """模糊匹配 — 去掉 % 占位符后取前 20 字做 LIKE 检索。"""
+        core = entry.replace("%", "").strip()
+        keyword = core[: min(len(core), 20)] if core else entry[:20]
+        conditions = [
+            TranslateEntry.entry.like(f"%{keyword}%"),
+            TranslateEntry.delete_state == 0,
+            TranslateEntry.translate_state == "3",
+        ]
+        if target_lang:
+            conditions.append(TranslateEntry.type == target_lang)
+        if department:
+            conditions.append(TranslateEntry.visual_range == department)
+
+        stmt = select(TranslateEntry).where(*conditions).limit(limit)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def search_by_keyword(self, keyword: str, limit: int = 20) -> list[TranslateEntry]:
-        """Fuzzy search by Chinese term containing keyword."""
+        """通用关键词搜索 — 预留扩展。"""
         stmt = (
             select(TranslateEntry)
             .where(
@@ -50,13 +107,52 @@ class TermRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    # ── Audit records (agent-owned table) ──
+    # ── term_agent_audit 审核记录 ──
 
     async def create_audit(self, *, source_text: str, context: str | None = None) -> TermAgentAudit:
-        """Create a new audit record for the learning workflow."""
+        """创建空 audit — 旧版 POST /term-learning/run 入口。"""
+        record = TermAgentAudit(source_text=source_text, context=context)
+        self._session.add(record)
+        await self._session.commit()
+        await self._session.refresh(record)
+        return record
+
+    async def create_pretranslate_audit(
+        self,
+        *,
+        entry_info_id: str | None,
+        task_id: str | None,
+        task_name: str | None,
+        product_name: str | None,
+        target_lang: str | None,
+        department: str | None,
+        source_text: str,
+        suggested_translation: str | None,
+        confidence: float | None,
+        similar_terms: list | None,
+        retrieval_method: str | None,
+        llm_reasoning: str | None,
+    ) -> TermAgentAudit:
+        """工作台 Agent 预翻译 needs_human 时写入待审核队列。
+
+        字段与前端 terminologyAgent 列表列、AuditRecordData schema 对齐。
+        """
         record = TermAgentAudit(
             source_text=source_text,
-            context=context,
+            suggested_translation=suggested_translation,
+            llm_reasoning=llm_reasoning,
+            review_status="pending",
+            is_new_term=True,
+            entry_info_id=entry_info_id,
+            task_id=task_id,
+            task_name=task_name,
+            product_name=product_name,
+            target_lang=target_lang,
+            department=department,
+            confidence=confidence,
+            similar_terms=similar_terms or [],
+            retrieval_method=retrieval_method,
+            source_type="workbench_agent",
         )
         self._session.add(record)
         await self._session.commit()
@@ -64,7 +160,7 @@ class TermRepository:
         return record
 
     async def update_audit(self, audit_id: str, **fields) -> TermAgentAudit | None:
-        """Update fields on an audit record."""
+        """按 id 更新 audit 字段（审核状态、备注等）。"""
         record = await self._session.get(TermAgentAudit, audit_id)
         if record is None:
             return None
@@ -76,16 +172,71 @@ class TermRepository:
         return record
 
     async def get_audit(self, audit_id: str) -> TermAgentAudit | None:
-        """Fetch a single audit record by ID."""
+        """按 id 查询单条 audit 记录。"""
         return await self._session.get(TermAgentAudit, audit_id)
 
-    async def list_pending_audits(self, limit: int = 50) -> Sequence[TermAgentAudit]:
-        """List audits awaiting human review."""
+    async def list_pending_audits(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[Sequence[TermAgentAudit], int]:
+        """术语学习页数据源 — 分页返回 review_status=pending 记录及总数。"""
+        base_filter = TermAgentAudit.review_status == "pending"
+
+        count_stmt = (
+            select(func.count())
+            .select_from(TermAgentAudit)
+            .where(base_filter)
+        )
+        total = (await self._session.execute(count_stmt)).scalar_one()
+
+        offset = (page - 1) * page_size
         stmt = (
             select(TermAgentAudit)
-            .where(TermAgentAudit.review_status == "pending")
+            .where(base_filter)
             .order_by(TermAgentAudit.created_at.desc())
-            .limit(limit)
+            .offset(offset)
+            .limit(page_size)
         )
         result = await self._session.execute(stmt)
-        return result.scalars().all()
+        return result.scalars().all(), total
+
+    # ── 术语库写入（MergeToStore）──
+
+    async def insert_translate(
+        self,
+        *,
+        entry: str,
+        translate: str,
+        target_lang: str | None,
+        department: str | None,
+    ) -> TranslateEntry:
+        """审核通过后写入 t_translate。
+
+        translate_state='3' 表示已审核；与 Java 术语库入库语义一致。
+        若 find_exact 已存在则跳过（由 router.review_term 调用方判断）。
+        """
+        from datetime import datetime
+
+        record = TranslateEntry(
+            id=self._new_translate_id(),
+            entry=entry,
+            translate=translate,
+            type=target_lang,
+            visual_range=department,
+            translate_state="3",
+            delete_state=0,
+            public_state=0,
+            last_use_time=datetime.now(),
+        )
+        self._session.add(record)
+        await self._session.commit()
+        await self._session.refresh(record)
+        return record
+
+    @staticmethod
+    def _new_translate_id() -> str:
+        """生成 t_translate 主键（32 位 hex）。"""
+        import uuid
+        return uuid.uuid4().hex[:32]

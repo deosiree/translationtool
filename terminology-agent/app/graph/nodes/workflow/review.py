@@ -1,17 +1,16 @@
-"""Node: Review — placeholder that sets review_status to "pending" for human review."""
+"""节点：Review — 将建议译文标记为待人工审核。"""
 
 from app.graph.state import TermState
 
 
 async def review_node(state: TermState) -> TermState:
-    """Mark the suggested translation as pending human review.
+    """把 LLM 建议译文置为 ``pending``，等待人工确认。
 
-    The actual review happens via the REST API (POST /agent/term-learning/{id}/review).
-    This node simply transitions the state so the workflow can persist and wait.
+    实际审核通过 REST API 完成（POST /agent/term-learning/{id}/review）。
+    本节点只负责状态流转，便于工作流持久化后挂起等待。
     """
     state["review_status"] = "pending"
 
-    # If no suggestion was generated (e.g. LLM failure), mark as error
     if state.get("error") or state.get("suggested_translation") is None:
         state["review_status"] = "rejected"
         state["error"] = state.get("error") or "No translation suggestion available."

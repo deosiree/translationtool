@@ -1,0 +1,11 @@
+{
+  "name": "terminology-agent-dev",
+  "private": true,
+  "description": "本机 Agent 启动脚本（.env 由 pydantic-settings 加载）",
+  "scripts": {
+    "dev": "cross-env AGENT_PORT=18002 python -m uvicorn app.main:app --host 0.0.0.0 --port 18002 --reload"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

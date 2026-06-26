@@ -1,4 +1,4 @@
-"""Node: Discover — check if the term exists in the terminology store."""
+"""节点：Discover — 在术语库中检查词条是否已存在。"""
 
 from langgraph.types import RunnableConfig
 
@@ -7,15 +7,15 @@ from app.repository.term_repo import TermRepository
 
 
 async def discover_node(state: TermState, config: RunnableConfig) -> TermState:
-    """Query the term store to see whether `source_text` already exists.
+    """查询术语库，判断 ``source_text`` 是否已有收录。
 
-    If found:
-      - matched_term ← the existing translation
+    若已存在：
+      - matched_term ← 已有译文
       - is_new_term ← False
-      - next_node ← "end" (no need to continue)
-    If NOT found:
+      - next_node ← "end"（无需继续后续节点）
+    若不存在：
       - is_new_term ← True
-      - next_node ← "analyze_context" (continue the workflow)
+      - next_node ← "analyze_context"（进入上下文分析）
     """
     session = config["configurable"]["session"]
     repo = TermRepository(session)

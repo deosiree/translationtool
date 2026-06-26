@@ -1,66 +1,47 @@
-"""LangGraph state graph definition for the terminology learning workflow.
+"""术语学习 LangGraph 状态图定义。
 
-Flow:
-  discover ──👉 (found?) ──yes──➤ [end]
+流程：
+  discover ──👉 (已存在?) ──是──➤ [结束]
                     │
-                    no
+                    否
                     ▼
-            analyze_context ──➤ llm_suggest ──➤ review ──➤ update_termstore ──➤ end
+            analyze_context ──➤ llm_suggest ──➤ review ──➤ update_termstore ──➤ 结束
 """
-
-from typing import Literal
 
 from langgraph.graph import StateGraph, END
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.graph.nodes import (
+    analyze_context_node,
+    discover_node,
+    llm_suggest_node,
+    review_node,
+    update_termstore_node,
+)
+from app.graph.routes import route_after_discover
 from app.graph.state import TermState
-from app.graph.nodes.discover import discover_node
-from app.graph.nodes.analyze_context import analyze_context_node
-from app.graph.nodes.llm_suggest import llm_suggest_node
-from app.graph.nodes.review import review_node
-from app.graph.nodes.update_termstore import update_termstore_node
-
-
-def _route_after_discover(state: TermState) -> Literal["analyze_context", END]:
-    """根据术语发现状态决定工作流的下一步路由。
-
-    如果发现了新术语，则继续进入上下文分析阶段；否则结束工作流。
-
-    Args:
-        state (TermState): 包含当前工作流状态的字典，其中 'is_new_term' 键指示是否发现了新术语。
-
-    Returns:
-        Literal["analyze_context", END]: 如果存在新术语，返回 "analyze_context" 以继续处理；
-                                          否则返回 END 以终止工作流。
-    """
-    # 如果发现了新术语，则进入上下文分析阶段
-    if state.get("is_new_term"):
-        return "analyze_context"
-    # 否则结束工作流
-    return END
 
 
 class TermLearningGraph:
-    """Encapsulates the LangGraph state graph for term learning."""
+    """术语学习 LangGraph 工作流封装。
+
+    负责注册节点、连边、编译图，并提供 ``run()`` 一次性执行入口。
+    """
 
     def __init__(self):
         builder = StateGraph(TermState)
 
-        # Register nodes
         builder.add_node("discover", discover_node)
         builder.add_node("analyze_context", analyze_context_node)
         builder.add_node("llm_suggest", llm_suggest_node)
         builder.add_node("review", review_node)
         builder.add_node("update_termstore", update_termstore_node)
 
-        # Entry point
         builder.set_entry_point("discover")
 
-        # Edges
-        builder.add_conditional_edges("discover", _route_after_discover)
+        builder.add_conditional_edges("discover", route_after_discover)
         builder.add_edge("analyze_context", "llm_suggest")
         builder.add_edge("llm_suggest", "review")
-        # review always goes to update_termstore to persist state
         builder.add_edge("review", "update_termstore")
         builder.add_edge("update_termstore", END)
 
@@ -74,16 +55,16 @@ class TermLearningGraph:
         audit_id: str,
         session: AsyncSession,
     ) -> TermState:
-        """Execute the terminology-learning workflow.
+        """执行完整的术语学习工作流。
 
         Args:
-            source_text: The Chinese term to check.
-            context: Optional surrounding text for disambiguation.
-            audit_id: ID of the persisted audit record.
-            session: Async SQLAlchemy session for DB access.
+            source_text: 待检查的中文词条。
+            context: 可选上下文，供 analyze_context / llm_suggest 消歧。
+            audit_id: 已创建的 term_agent_audit 记录 id。
+            session: 异步 SQLAlchemy 会话，供 discover / update_termstore 访问数据库。
 
         Returns:
-            The final TermState after all nodes have run.
+            所有节点执行完毕后的最终 TermState。
         """
         initial_state: TermState = {
             "source_text": source_text,
@@ -99,8 +80,6 @@ class TermLearningGraph:
             "next_node": None,
         }
 
-        # Pass session + audit_id via RunnableConfig so nodes that need DB
-        # access (discover_node, update_termstore_node) can read them.
         config = {
             "configurable": {
                 "session": session,
