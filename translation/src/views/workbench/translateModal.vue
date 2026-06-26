@@ -274,32 +274,17 @@
       </div>
     </div>
   </Modal>
-  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="preTranslateClose"
-    @handleOK="preTranslateOK" @afterClose="preTranslateAfterClose">
-    <div style="width:100%;height:100%">
-      <a-form ref="formRef" name="custom-validation" autocomplete='off' :label-col="labelCol" :model="preTran">
-        <a-form-item label="优先级" name="priority" :rules="[{ required: true, message: '请选择优先级!' }]">
-          <a-select v-model:value="preTran.priority" placeholder="请选择" allowClear>
-            <a-select-option value="shuyuku">术语库</a-select-option>
-            <a-select-option value="deepl">DeepL翻译</a-select-option>
-            <a-select-option value="youdao">有道翻译</a-select-option>
-            <a-select-option value="baidu">百度翻译</a-select-option>
-            <a-select-option value="google">Google翻译</a-select-option>
-            <a-select-option value="module">本地模型</a-select-option>
-            <a-select-option value="synthesis">
-              综合优先级
-              <a-tooltip placement="top">
-                <template #title>
-                  <span>使用所有的翻译引擎进行翻译，取出现次数最多的翻译为当前词条的翻译！</span>
-                </template>
-                <info-circle-outlined style="float:right;color:#FBB31F;margin-top:5px" />
-              </a-tooltip>
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-form>
-    </div>
-  </Modal>
+  <PreTranslateModal
+    :visible="preTranslateVisible"
+    modalTitle="预翻译"
+    :currentTask="task"
+    :dataPreTranslate="dataPreTranslate"
+    :language="language"
+    :department="search.department"
+    @handleClose="preTranslateClose"
+    @handleOK="preTranslateOK"
+    @afterClose="preTranslateAfterClose"
+  />
   <Modal :visible="exportVisible" modalTitle="导出" @handleClose="exportClose" @handleOK="exportOK" @afterClose="exportAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="exportForm" name="custom-validation" :model="exportModal">
@@ -326,6 +311,7 @@
 <script>
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
+import PreTranslateModal from "@/components/preTranslate/PreTranslateModal.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
@@ -333,7 +319,6 @@ import InputIME from "@/components/cellEditor/input_IME.vue";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
-  preTranslate,
   getEntryInfoList,
   updateEntryList,
   importCommonExcle,
@@ -351,7 +336,6 @@ import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import {
   QuestionCircleOutlined,
   SearchOutlined,
-  InfoCircleOutlined,
   DownOutlined,
   SettingOutlined,
   CheckOutlined,
@@ -390,9 +374,9 @@ import commonParam, {
 export default {
   components: {
     Modal,
+    PreTranslateModal,
     QuestionCircleOutlined,
     SearchOutlined,
-    InfoCircleOutlined,
     DownOutlined,
     SettingOutlined,
     CheckOutlined,
@@ -437,6 +421,7 @@ export default {
       selectedRowKeys: [],
       selectedRows: [],
       preTranslateVisible: false,
+      dataPreTranslate: [],
       selectTitle: "",
       selectedRowIndex: null,
       selectedArr: {
@@ -463,10 +448,6 @@ export default {
       },
       spinning: false,
       timer: null,
-      preTran: {
-        priority: null,
-      },
-      labelCol: { style: { width: "80px" } },
       chineseInterpretation: "",
       englishInterpretation: "",
       rules: {},
@@ -476,7 +457,6 @@ export default {
       },
       fieldOptions: entryParams.checkboxList,
       accept: ".xls,.xlsx",
-      preTranslateOkLoading: false,
       state: {
         searchText: "",
         searchedColumn: "",
@@ -1329,25 +1309,12 @@ export default {
       if (this.dataSource.length === 0) {
         return;
       }
-      this.preTranslateVisible = true;
-      setModalAriaHidden(this, document);
-    },
-    preTranslateOK() {
-      this.preTranslateOkLoading = true;
-      let params = {
-        taskID: this.task.id,
-        priority: this.preTran.priority,
-      };
       let dataPreTranslate = null;
-      if (this.selectedRows.length == 0) {
-        // 勾选为空，就翻译所有词条
-        dataPreTranslate = this.dataSource;
+      if (this.selectedRows.length === 0) {
+        dataPreTranslate = cloneDeep(this.dataSource);
       } else {
-        // 有勾选的词条，就翻译勾选
-        dataPreTranslate = this.selectedRows;
+        dataPreTranslate = cloneDeep(this.selectedRows);
       }
-      this.loading = true;
-      // 将 预翻译数据 翻译都变成空，以便被预翻译覆盖
       dataPreTranslate.forEach((item) => {
         if (
           Object.keys(this.editableData).some(
@@ -1357,37 +1324,72 @@ export default {
           item[this.language.value] = "";
         }
       });
-      this.editableData = []; // 取消所有编辑状态
-      preTranslate(params, dataPreTranslate)
-        .then((res) => {
-          // 更新 预翻译数据 中的翻译数据
-          dataPreTranslate = res.data.list.map((item) => {
-            item.translate = item[this.language.value];
-            return item;
-          });
-          this.updateNewByOld(this.allData, dataPreTranslate); // 也更新一下全量数据
-        })
-        .catch((err) => {
-          message.error("预翻译失败！", err.message);
-        })
-        .finally(async () => {
-          // 校验当前页数据
-          await verifyArray_workbench_page(
-            this.pagination,
-            this.language.value,
-            this
-          );
-
-          this.loading = false;
-          this.preTranslateVisible = false;
-          this.preTranslateOkLoading = false;
-        });
+      this.editableData = {};
+      this.dataPreTranslate = dataPreTranslate;
+      this.preTranslateVisible = true;
+      setModalAriaHidden(this, document);
     },
+    /**
+     * 预翻译弹窗确认回调：Agent 模式仅回填 auto_approved 条目，并展示 auto/pending 计数
+     * @param {{ success: boolean, data?: Array<Object>, priority?: string, meta?: { autoCount: number, pendingCount: number, mock?: boolean }, error?: string }} result
+     * @returns {Promise<void>}
+     */
+    async preTranslateOK(result) {
+      if (!result || !result.success) {
+        message.error(result?.error || "预翻译失败！");
+        this.preTranslateVisible = false;
+        return;
+      }
+
+      this.loading = true;
+      try {
+        const translatedData = result.data || [];
+        if (translatedData.length === 0) {
+          message.warning("没有获取到预翻译结果");
+          return;
+        }
+
+        if (result.priority === "agent") {
+          const autoFilled = translatedData.filter(
+            (item) =>
+              !item.agent_meta ||
+              item.agent_meta.review_status === "auto_approved"
+          );
+          this.updateNewByOld(this.allData, autoFilled);
+          this.updateNewByOld(this.dataSource, autoFilled);
+        } else {
+          this.updateNewByOld(this.allData, translatedData);
+          this.updateNewByOld(this.dataSource, translatedData);
+        }
+
+        if (result.priority === "agent" && result.meta) {
+          const { autoCount, pendingCount, mock } = result.meta;
+          const suffix = mock ? "（Mock）" : "";
+          message.success(
+            `Agent 预翻译完成${suffix}：自动回填 ${autoCount} 条，待审核 ${pendingCount} 条`
+          );
+        } else {
+          message.success(`预翻译成功，共翻译 ${translatedData.length} 条词条`);
+        }
+      } catch (err) {
+        message.error("处理预翻译结果失败：" + (err.message || ""));
+      } finally {
+        await verifyArray_workbench_page(
+          this.pagination,
+          this.language.value,
+          this
+        );
+        this.loading = false;
+        this.preTranslateVisible = false;
+      }
+    },
+    /** 关闭预翻译弹窗 */
     preTranslateClose() {
       this.preTranslateVisible = false;
     },
+    /** 预翻译弹窗关闭后清空选中词条 */
     preTranslateAfterClose() {
-      this.preTran.priority = null;
+      this.dataPreTranslate = [];
     },
     clickInput(event) {
       event.stopPropagation();
