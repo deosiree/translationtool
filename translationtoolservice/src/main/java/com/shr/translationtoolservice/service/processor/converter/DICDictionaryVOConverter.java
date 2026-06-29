@@ -1,7 +1,7 @@
 package com.shr.translationtoolservice.service.processor.converter;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
@@ -14,8 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DICDictionaryVOConverter extends DictionaryVOConverter{
 
+    protected String entrySource;
 
-    protected List<TLanguage> languageList;
+    protected String taskID;
+
+    protected String productID;
+
+    protected String versionID;
 
     protected String userName;
 
@@ -27,20 +32,23 @@ public class DICDictionaryVOConverter extends DictionaryVOConverter{
         String productID, 
         String versionID,
         CommonUtils commonUtils, 
-        List<TLanguage> languageList, 
+        Set<TLanguage> tLanguages,
         String userName, 
         String diFileName) {
 
-        super(entrySource, taskID, productID, versionID, commonUtils);
+        super(tLanguages, commonUtils);
         
-        this.languageList = languageList;
+        this.entrySource = entrySource;
+        this.taskID = taskID;
+        this.productID = productID;
+        this.versionID = versionID;
         this.userName = userName;
         this.diFileName = diFileName;
     }
 
     @Override
     public EntryInfoEntity apply(DictionaryVO dictionaryVO) {
-        EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, languageList);
+        EntryInfoEntity entryInfoEntity = super.apply(dictionaryVO);
         entryInfoEntity.setEntrySource(entrySource);
         entryInfoEntity.setDiFileName(diFileName);
         entryInfoEntity.setWriteType(ConstantInterface.DI);

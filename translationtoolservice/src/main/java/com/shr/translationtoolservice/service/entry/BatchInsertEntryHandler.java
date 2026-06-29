@@ -364,7 +364,7 @@ public class BatchInsertEntryHandler {
                 // entryInfoEntity.setUpdate(userName);
                 // entryInfoEntities.add(entryInfoEntity);
             }
-            DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(dicRelPath, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languageList, userName, dicRelPath);
+            DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(dicRelPath, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languageList.stream().collect(Collectors.toSet()), userName, dicRelPath);
             // entryInfoEntities.addAll(convertFromDictionaryVOToDICEntry(dictionaryVOs, dicRelPath, dicRelPath, taskInfoEntity, userName, languageList));
             entryInfoEntities.addAll(entryImportProcessor.convertToEntryInfos(dicDictionaryVOConverter, dictionaryVOs));
 
@@ -498,7 +498,7 @@ public class BatchInsertEntryHandler {
             // }
             // entryInfoEntities.addAll(this.convertFromDictionaryVOToTSEntry(dictionaryVOs, tsFileNamePrefix, targetLanguages, taskInfoEntity, userName));
 
-            TSDictionaryVOConverter tsDictionaryVOConverter = new TSDictionaryVOConverter(tsFileNamePrefix, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, userName, targetLanguages);
+            TSDictionaryVOConverter tsDictionaryVOConverter = new TSDictionaryVOConverter(tsFileNamePrefix, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, userName, targetLanguages.stream().collect(Collectors.toSet()));
             entryInfoEntities.addAll(entryImportProcessor.convertToEntryInfos(tsDictionaryVOConverter, dictionaryVOs));
         }
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -193,7 +194,9 @@ public class EntryInfoEntityImportHandler extends AbstractEntryImportHandler<Ent
         XMLInfoContainer<DictionaryVO> xmlInfoContainer = tsParser.parse(fileInputStreamEntitiy.getInputStream(), targetLanguage.getCode());
         Collection<DictionaryVO> dictionaryVOs = xmlInfoContainer.getCollection();
 
-        TSDictionaryVOConverter tsDictionaryVOConverter = new TSDictionaryVOConverter(entrySource, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(),commonUtils, userName, Arrays.asList(new TLanguage[]{targetLanguage}));
+        Set<TLanguage> tLanguages = new HashSet<>();
+        tLanguages.add(targetLanguage);
+        TSDictionaryVOConverter tsDictionaryVOConverter = new TSDictionaryVOConverter(entrySource, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(),commonUtils, userName, tLanguages);
 
         Collection<EntryInfoEntity> entryInfoEntities = entryImportProcessor.convertToEntryInfos(tsDictionaryVOConverter, dictionaryVOs);
 
@@ -224,7 +227,7 @@ public class EntryInfoEntityImportHandler extends AbstractEntryImportHandler<Ent
         String entrySource = "pt/" + processedFileName;    // 获取词条文件名
         String writeFileName = "tr/" + processedFileName;
         /* 获取词条信息 */
-        DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(entrySource, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languages, userName, writeFileName);
+        DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(entrySource, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languages.stream().collect(Collectors.toSet()), userName, writeFileName);
 
         Collection<EntryInfoEntity> entryInfoEntities = entryImportProcessor.convertToEntryInfos(dicDictionaryVOConverter, dictionaryVOs);
 

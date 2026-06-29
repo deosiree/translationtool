@@ -1,8 +1,8 @@
 package com.shr.translationtoolservice.service.processor.converter;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
@@ -13,32 +13,18 @@ import com.shr.translationtoolservice.util.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class DictionaryVOConverter extends AbstractDictionaryVOConverter<DictionaryVO> {
+public class DictionaryVOConverter extends AbstractDictionaryVOConverter<DictionaryVO> {
 
 
-    protected String entrySource;
-
-    protected String taskID;
-
-    protected String productID;
-
-    protected String versionID;
+    protected Set<TLanguage> tLanguages;
 
     protected CommonUtils commonUtils;
 
     Map<String,String> languageSetTranslateMethodMap =  ConstantInterface.entryInfoEntitySetterTranslateMap();
 
 
-    public DictionaryVOConverter(
-        String entrySource, 
-        String taskID, 
-        String productID, 
-        String versionID,
-        CommonUtils commonUtils) {
-        this.entrySource = entrySource;
-        this.taskID = taskID;
-        this.productID = productID;
-        this.versionID = versionID;
+    public DictionaryVOConverter(Set<TLanguage> tLanguages, CommonUtils commonUtils) {
+        this.tLanguages = tLanguages;
         this.commonUtils = commonUtils;
     }
 
@@ -51,7 +37,7 @@ public abstract class DictionaryVOConverter extends AbstractDictionaryVOConverte
      */
     protected EntryInfoEntity constructBasicAttributesForEntryInfoEntitiy(
         DictionaryVO dictionaryVo,
-        List<TLanguage> tLanguages
+        Set<TLanguage> tLanguages
     ){
 
         EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
@@ -70,7 +56,7 @@ public abstract class DictionaryVOConverter extends AbstractDictionaryVOConverte
      * @param dictionaryVo
      * @param tLanguages
      */
-    protected void constructCriticalAttributesForEntryInfoEntitiy(EntryInfoEntity entryInfoEntity,DictionaryVO dictionaryVo,List<TLanguage> tLanguages){
+    protected void constructCriticalAttributesForEntryInfoEntitiy(EntryInfoEntity entryInfoEntity,DictionaryVO dictionaryVo,Set<TLanguage> tLanguages){
         /* 添加source,tag,comment */
         entryInfoEntity.setEntry(dictionaryVo.getSource());
         entryInfoEntity.setTag(dictionaryVo.getTag());
@@ -96,6 +82,13 @@ public abstract class DictionaryVOConverter extends AbstractDictionaryVOConverte
                 continue;
             }
         }
+    }
+
+    @Override
+    public EntryInfoEntity apply(DictionaryVO dictionaryVO) {
+        // TODO Auto-generated method stub
+        EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, this.tLanguages);
+        return entryInfoEntity;
     }
 
 

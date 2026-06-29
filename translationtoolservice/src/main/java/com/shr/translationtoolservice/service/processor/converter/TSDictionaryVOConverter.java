@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.service.processor.converter;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
@@ -14,9 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TSDictionaryVOConverter extends DictionaryVOConverter {
 
-    protected String userName;
+    protected String entrySource;
 
-    List<TLanguage> targetLanguages;
+    protected String taskID;
+
+    protected String productID;
+
+    protected String versionID;
+
+    protected String userName;
 
 
     public TSDictionaryVOConverter(
@@ -26,17 +33,20 @@ public class TSDictionaryVOConverter extends DictionaryVOConverter {
         String versionID,
         CommonUtils commonUtils, 
         String userName, 
-        List<TLanguage> targetLanguages) {
+        Set<TLanguage> targetLanguages) {
             
-        super(entrySource, taskID, productID, versionID, commonUtils);
+        super(targetLanguages, commonUtils);
         this.userName = userName;
-        this.targetLanguages = targetLanguages;
+        this.entrySource = entrySource;
+        this.taskID = taskID;
+        this.productID = productID;
+        this.versionID = versionID;
     }
 
 
     @Override
     public EntryInfoEntity apply(DictionaryVO dictionaryVO) {
-        EntryInfoEntity entryInfoEntity = this.constructBasicAttributesForEntryInfoEntitiy(dictionaryVO, targetLanguages);
+        EntryInfoEntity entryInfoEntity = super.apply(dictionaryVO);
 
         entryInfoEntity.setEntrySource(entrySource);
         entryInfoEntity.setEntryState(1);
