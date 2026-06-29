@@ -1,8 +1,12 @@
 -- =============================================================================
 -- 术语学习 Agent 审核表 term_agent_audit
 -- 用途：工作台 Agent 预翻译 confidence < 阈值时，词条进入此表待人工确认
--- 执行：Get-Content db\opt\add-term-agent-audit.sql | docker exec -i translation-mysql mysql -uroot -p123456 translationtool
+-- 执行（PowerShell 必须指定 UTF-8 编码）：
+--   Get-Content db\opt\add-term-agent-audit.sql -Encoding utf8 | docker exec -i translation-mysql mysql --default-character-set=utf8mb4 -uroot -p123456 translationtool
 -- =============================================================================
+
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 CREATE TABLE IF NOT EXISTS term_agent_audit (
     id VARCHAR(64) NOT NULL PRIMARY KEY,

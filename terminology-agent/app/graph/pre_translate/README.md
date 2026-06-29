@@ -169,6 +169,32 @@ flowchart LR
 
 ## 9. Phase 2+ 扩展点
 
+### Phase 3：Grep ∥ RAG 并行检索（设计，P2 未改主图）
+
+Phase 2 已建 `term_word` 表与 Grep 线数据层；Phase 3 在 `retrieve_similar` 前/旁路并行：
+
+```mermaid
+flowchart TB
+  IN["source_text + target_lang + department"]
+  subgraph parallel [Phase3 retrieve 子图]
+    GREP["Grep 线 — live keyword lookup on term_word"]
+    RAG["RAG 线 — t_translate exact + fuzzy"]
+  end
+  MERGE["merge_candidates"]
+  RERANK["rerank_candidates"]
+  IN --> GREP
+  IN --> RAG
+  GREP --> MERGE --> RERANK
+  RAG --> MERGE
+```
+
+| 线 | 语料 | 匹配方式 | 标记 |
+|----|------|----------|------|
+| **Grep** | `term_word` | Trie 拆词 + `WordRepository.find_by_word`；可选子串 LIKE | `retrieval_source: grep` |
+| **RAG** | `t_translate` | exact / fuzzy（现有） | `retrieval_source: rag` |
+
+Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引。消歧键 `(word, comment, target_lang)`；`department` 仅运行时过滤。
+
 - `TranslationSource.HYBRID` → `nodes/features/llm/decompose_compose.py`（未建）
 - `retrieval_method=decomposed` 子图插入 `exact` 未命中后
 - `analyze_context_node` 已存在于 `nodes/features/rules/`，主图 P1 未接入

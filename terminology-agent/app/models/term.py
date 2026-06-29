@@ -96,7 +96,7 @@ class TranslateEntry(Base):
 
 
 class EntryInfo(Base):
-    """t_entry_info — 工作台词条主表（只读，后续可扩展关联查询）。"""
+    """t_entry_info — 工作台词条主表（只读，term_word 建库 join 用）。"""
 
     __tablename__ = "t_entry_info"
     __table_args__ = {"extend_existing": True}
@@ -104,7 +104,33 @@ class EntryInfo(Base):
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     entry: Mapped[str | None] = mapped_column(String(1024), comment="词条")
     entry_state: Mapped[int | None] = mapped_column(Integer, comment="词条状态")
-    en_trans_id: Mapped[str | None] = mapped_column(String(64), comment="英文翻译 id")
+    task_id: Mapped[str | None] = mapped_column(String(255), comment="任务 id")
     product_id: Mapped[str | None] = mapped_column(String(255), comment="产品 id")
+    comment: Mapped[str | None] = mapped_column(String(255), comment="消歧 comment")
+    zh_trans_id: Mapped[str | None] = mapped_column(String(64), comment="中文翻译 id")
+    en_trans_id: Mapped[str | None] = mapped_column(String(64), comment="英文翻译 id")
+    ru_trans_id: Mapped[str | None] = mapped_column(String(255), comment="俄文翻译 id")
+    fra_trans_id: Mapped[str | None] = mapped_column(String(255), comment="法文翻译 id")
+    spa_trans_id: Mapped[str | None] = mapped_column(String(255), comment="西文翻译 id")
     remark: Mapped[str | None] = mapped_column(Text, comment="备注")
     is_delete: Mapped[int] = mapped_column(Integer, default=0, comment="0=有效")
+
+
+class TaskInfo(Base):
+    """t_task_info — 只读，term_word 矛盾溯源 JOIN 用。"""
+
+    __tablename__ = "t_task_info"
+    __table_args__ = {"extend_existing": True}
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    name: Mapped[str | None] = mapped_column(String(255), comment="任务名字")
+
+
+class Product(Base):
+    """t_product — 只读，term_word 矛盾溯源 JOIN 用。"""
+
+    __tablename__ = "t_product"
+    __table_args__ = {"extend_existing": True}
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    name: Mapped[str | None] = mapped_column(String(255), comment="产品名字")
