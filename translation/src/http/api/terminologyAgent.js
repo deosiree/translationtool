@@ -19,6 +19,7 @@ import request from "../request";
  * @property {string} entry - 参考词条原文
  * @property {string} translate - 参考词条已有译文
  * @property {number} [score] - 相似度 0~1
+ * @property {string} [retrieval_source] - rag | grep | rag+grep
  */
 
 /**
@@ -28,7 +29,7 @@ import request from "../request";
  * @property {"auto_approved"|"needs_human"} review_status - 分流结果
  * @property {string} [suggested_translation] - 建议译文
  * @property {SimilarTerm[]} similar_terms - 参考术语
- * @property {string} retrieval_method - exact | fuzzy | hybrid | mock_hybrid
+ * @property {string} retrieval_method - exact | fuzzy | grep | hybrid | decomposed | none | mock_hybrid
  * @property {string} reasoning - Agent 说明
  */
 

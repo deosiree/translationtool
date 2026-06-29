@@ -107,6 +107,7 @@ import { InfoCircleOutlined } from "@ant-design/icons-vue";
 import { preTranslate } from "@/http/api/workbench";
 import { agentPreTranslate } from "@/http/api/terminologyAgent";
 import { appendPendingFromPreTranslate } from "@/utils/agentPendingAudits";
+import { applyAgentBackfill } from "@/utils/agentPreTranslateBackfill";
 import { message } from "ant-design-vue";
 
 /** Agent 后端就绪后使用真实 API */
@@ -254,7 +255,7 @@ export default {
     },
 
     /**
-     * 调用 Agent 批量预翻译；auto_approved 条目映射到 translate 列，API 不可用时回退 mock
+     * 调用 Agent 批量预翻译；auto_approved 条目映射到 language.value 与 translate，API 不可用时回退 mock
      * @returns {Promise<{ list: Array<Object>, meta: { autoCount: number, pendingCount: number, threshold: number, mock?: boolean } }>}
      */
     async callAgentPreTranslate() {
@@ -273,15 +274,10 @@ export default {
       try {
         const res = await agentPreTranslate(params, this.dataPreTranslate);
         const data = res.data || {};
-        const list = (data.list || []).map((item) => {
-          const autoApproved =
-            !item.agent_meta ||
-            item.agent_meta.review_status === "auto_approved";
-          if (autoApproved && item[this.language.value]) {
-            item.translate = item[this.language.value];
-          }
-          return item;
-        });
+        const langField = this.language.value;
+        const list = (data.list || []).map((item) =>
+          applyAgentBackfill({ ...item }, langField)
+        );
         return {
           list,
           meta: {

@@ -48,8 +48,14 @@
                     :pagination="false"
                     size="small"
                     row-key="entry"
-                    style="min-width: 320px"
-                  />
+                    style="min-width: 380px"
+                  >
+                    <template #bodyCell="{ column, record: term }">
+                      <template v-if="column.key === 'retrieval_source'">
+                        {{ formatRetrievalSource(term.retrieval_source) }}
+                      </template>
+                    </template>
+                  </a-table>
                 </template>
                 <a-button type="link" size="small">
                   {{ record.similar_terms.length }} 条
@@ -116,11 +122,17 @@
 </template>
 
 <script>
+/**
+ * 术语学习 — Agent 预翻译待审核页。
+ *
+ * Phase 3a：参考术语 Popover 增加「来源」列（RAG / Grep / RAG+Grep）。
+ */
 import { listPendingAudits, reviewTerm } from "@/http/api/terminologyAgent";
 import {
   mergePendingAudits,
   removeLocalPendingAudit,
   formatRetrievalMethod,
+  formatRetrievalSource,
   formatConfidence,
   formatEntryText,
 } from "@/utils/agentPendingAudits";
@@ -217,6 +229,12 @@ export default {
           key: "translate",
           ellipsis: true,
         },
+        {
+          title: "来源",
+          dataIndex: "retrieval_source",
+          key: "retrieval_source",
+          width: 80,
+        },
       ],
     };
   },
@@ -225,6 +243,7 @@ export default {
   },
   methods: {
     formatRetrievalMethod,
+    formatRetrievalSource,
     formatConfidence,
     formatEntryText,
     confidenceColor(confidence) {

@@ -1,5 +1,7 @@
 /**
- * Agent 预翻译待审核记录的 localStorage 桥接（Phase 1 演示）。
+ * Agent 预翻译待审核记录的 localStorage 桥接。
+ *
+ * Phase 3a：``formatRetrievalMethod`` / ``formatRetrievalSource`` 支持 Grep 线展示。
  *
  * @typedef {import('../http/api/terminologyAgent').AuditRecord} AuditRecord
  * @typedef {import('../http/api/terminologyAgent').AgentMeta} AgentMeta
@@ -11,16 +13,32 @@ export const AGENT_PENDING_AUDITS_KEY = "agent-pending-audits";
 /** Phase 1：API 返回空列表时是否回退 mock 数据；后端就绪后设为 false */
 export const USE_AUDIT_MOCK = false;
 
+/** retrieval_method 代码 → 中文标签（含 Phase 3a Grep / hybrid） */
 const RETRIEVAL_METHOD_LABELS = {
   exact: "精确匹配",
   fuzzy: "模糊匹配",
+  grep: "Grep 关键字",
+  hybrid: "混合检索",
+  decomposed: "拆解拼装",
   none: "术语库未命中",
   mock_hybrid: "混合 Mock",
 };
 
 /**
+ * 参考术语检索来源 → 中文展示（Popover「来源」列）
+ * @param {string} [source] - rag | grep | rag+grep
+ * @returns {string}
+ */
+export function formatRetrievalSource(source) {
+  if (source === "grep") return "Grep";
+  if (source === "rag") return "RAG";
+  if (source === "rag+grep") return "RAG+Grep";
+  return source || "-";
+}
+
+/**
  * 检索方式代码 → 中文展示标签
- * @param {string} [method] - exact | fuzzy | hybrid | mock_hybrid
+ * @param {string} [method] - exact | fuzzy | grep | hybrid | decomposed | none | mock_hybrid
  * @returns {string}
  */
 export function formatRetrievalMethod(method) {
