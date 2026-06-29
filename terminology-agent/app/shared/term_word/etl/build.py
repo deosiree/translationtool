@@ -1,37 +1,14 @@
-"""全量建 term_word 索引 — 从 t_translate + t_entry_info 离线导入。
-
-用法（terminology-agent 根目录）：
-  python -m devtools.build_word_index --dry-run
-  python -m devtools.build_word_index --rebuild
-  python -m devtools.build_word_index --lang 俄文
-"""
+"""term_word 全量建库编排 — 从 t_translate + t_entry_info 导入。"""
 
 from __future__ import annotations
-
-import argparse
-import asyncio
-import sys
-from pathlib import Path
-
-
-def _find_agent_root() -> Path:
-    candidate = Path(__file__).resolve().parents[1]
-    if (candidate / "config" / "settings.py").is_file():
-        return candidate
-    raise RuntimeError("找不到 terminology-agent 根目录")
-
-
-_ROOT = _find_agent_root()
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
 
 from sqlalchemy import select
 
 from app.models.database import AsyncSessionLocal
-from app.models.term import TranslateEntry, EntryInfo
+from app.models.term import EntryInfo, TranslateEntry
 from app.repository.word_repo import WordRepository
-from app.word.conflict import detect_translate_mismatches
-from app.word.join_entry_info import (
+from app.shared.term_word.etl.conflict import detect_translate_mismatches
+from app.shared.term_word.etl.join_entry_info import (
     build_term_word_payload,
     index_entry_infos_by_trans_id,
 )
@@ -104,26 +81,3 @@ async def build_word_index(
         stats["conflicts"] = len(conflicts)
         stats["words_written"] = len(rows)
         return stats
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Build term_word index from t_translate")
-    parser.add_argument("--dry-run", action="store_true", help="只统计，不写库")
-    parser.add_argument("--rebuild", action="store_true", help="清空后重建")
-    parser.add_argument("--lang", dest="target_lang", default=None, help="限定目标语种")
-    args = parser.parse_args()
-
-    stats = asyncio.run(
-        build_word_index(
-            dry_run=args.dry_run,
-            rebuild=args.rebuild,
-            target_lang=args.target_lang,
-        )
-    )
-    print("term_word build stats:")
-    for key, value in stats.items():
-        print(f"  {key}: {value}")
-
-
-if __name__ == "__main__":
-    main()

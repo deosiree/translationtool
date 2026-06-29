@@ -27,7 +27,7 @@ async def run_single_pre_translate(
 
     Args:
         session: SQLAlchemy 异步会话。
-        entry: 工作台词条 dict，须含 ``entry`` 字段。
+        entry: 工作台词条 dict，须含 ``entry`` 字段；``comment`` 可选，供 Grep 消歧。
         task_id: 翻译任务 id。
         task_name: 任务名称。
         product_name: 产品名称。
@@ -46,6 +46,7 @@ async def run_single_pre_translate(
         department=department,
         confidence_threshold=confidence_threshold,
         entry_info_id=entry.get("id"),
+        entry_comment=entry.get("comment"),
         task_id=task_id,
         task_name=task_name,
         product_name=product_name,

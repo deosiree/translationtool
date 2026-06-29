@@ -5,8 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.word.conflict import detect_translate_mismatches
-from app.word.join_entry_info import build_term_word_payload, index_entry_infos_by_trans_id
+from app.shared.term_word.etl.build import build_word_index
+from app.shared.term_word.etl.conflict import detect_translate_mismatches
+from app.shared.term_word.etl.join_entry_info import build_term_word_payload, index_entry_infos_by_trans_id
 
 
 @pytest.mark.unit
@@ -48,8 +49,6 @@ def test_conflict_detection_with_task_product_provenance():
 
 @pytest.mark.unit
 async def test_build_word_index_dry_run_stats():
-    from devtools.build_word_index import build_word_index
-
     tr = SimpleNamespace(
         id="t1",
         entry="测试",
@@ -79,7 +78,7 @@ async def test_build_word_index_dry_run_stats():
     mock_ctx.__aenter__ = AsyncMock(return_value=mock_session)
     mock_ctx.__aexit__ = AsyncMock(return_value=None)
 
-    with patch("devtools.build_word_index.AsyncSessionLocal", return_value=mock_ctx):
+    with patch("app.shared.term_word.etl.build.AsyncSessionLocal", return_value=mock_ctx):
         stats = await build_word_index(dry_run=True)
 
     assert stats["words_to_write"] == 1

@@ -24,6 +24,7 @@ class PreTranslateGraph:
         department: str | None,
         confidence_threshold: float,
         entry_info_id: str | None = None,
+        entry_comment: str | None = None,
         task_id: str | None = None,
         task_name: str | None = None,
         product_name: str | None = None,
@@ -37,6 +38,7 @@ class PreTranslateGraph:
             department: 部门/可视范围。
             confidence_threshold: 自动批准置信度阈值。
             entry_info_id: 工作台词条 id。
+            entry_comment: 消歧 comment（来自 entry.comment）。
             task_id: 翻译任务 id。
             task_name: 任务名称。
             product_name: 产品名称。
@@ -51,6 +53,7 @@ class PreTranslateGraph:
             "department": department,
             "confidence_threshold": confidence_threshold,
             "entry_info_id": entry_info_id,
+            "entry_comment": (entry_comment or "").strip(),
             "task_id": task_id,
             "task_name": task_name,
             "product_name": product_name,

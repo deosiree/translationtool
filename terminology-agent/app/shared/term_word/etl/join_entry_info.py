@@ -4,11 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.word.constants import (
-    LANG_TRANS_ID_ATTR,
-    WORD_STATUS_APPROVED,
-    WORD_STATUS_PENDING,
-)
+from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_PENDING
+from app.shared.term_word.etl.constants import LANG_TRANS_ID_ATTR
 
 
 def trans_id_attr_for_lang(target_lang: str | None) -> str | None:

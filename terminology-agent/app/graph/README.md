@@ -57,9 +57,12 @@
 1. 会改 state 并执行 I/O 或 LLM？ → `nodes/features/<kind>/`
 2. 只读 state 决定下一节点？ → `edges/after_<node>.py`
 3. 只读 state 写策略字段？ → `nodes/intentions/`
-4. 纯函数、无副作用？ → `utils/`
-5. 枚举 / 格式化？ → `domain/`
+4. 纯函数、无副作用、**仅本 workflow**？ → `<workflow>/utils/`
+5. 枚举 / 格式化？ → `<workflow>/domain/`
 6. 注册到 StateGraph？ → `builder.py`
+7. 跨 workflow 的 graph 工具（tracing 等）？ → [`shared/`](shared/)
+8. 跨 **graph + repository** 的在线纯逻辑？ → [`../shared/<topic>/`](../shared/)（如 [`term_word`](../shared/term_word/README.md)）
+9. 离线建库库代码？ → [`../shared/<topic>/etl/`](../shared/)；CLI 入口 → [`../../scripts/`](../../scripts/)；**含 DB/I/O 则进 `repository/`**
 
 ---
 
@@ -68,3 +71,4 @@
 - graph 根目录平铺 `routes.py`、`*_graph.py`、`trace_utils.py`
 - 条件边函数放进 `nodes/`
 - 新建 `graph/<workflow>/` 却不写 README
+- 在 `app/` 根新建与实体同名的包（如 `app/word/`）；跨层共享用 `app/shared/<topic>/`

@@ -6,7 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.word.constants import CONFLICT_TYPE_TRANSLATE_MISMATCH, CONFLICT_RESOLUTION_OPEN
+from app.models.word_constants import CONFLICT_RESOLUTION_OPEN, CONFLICT_TYPE_TRANSLATE_MISMATCH
 
 
 @dataclass

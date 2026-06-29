@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.word.conflict import detect_translate_mismatches, disambiguation_key
+from app.shared.term_word.etl.conflict import detect_translate_mismatches, disambiguation_key
 
 
 @pytest.mark.unit

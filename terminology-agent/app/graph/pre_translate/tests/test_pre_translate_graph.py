@@ -1,4 +1,7 @@
-"""PreTranslateGraph 集成测试 — mock Repo + LLM。"""
+"""PreTranslateGraph 集成测试 — mock Term/Word Repo + LLM。
+
+Phase 3a：``mock_word_repo`` 与 ``test_graph_grep_whole_sentence_auto`` 覆盖 Grep 整句路径。
+"""
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -10,6 +13,7 @@ from app.graph.pre_translate.runner import PreTranslateGraph
 
 @pytest.fixture
 def mock_graph_repo(mock_translate_entry):
+    """AsyncMock TermRepository — 默认无 RAG 命中。"""
     repo = AsyncMock()
     repo.find_exact = AsyncMock(return_value=None)
     repo.find_fuzzy = AsyncMock(return_value=[])
@@ -17,22 +21,51 @@ def mock_graph_repo(mock_translate_entry):
     return repo
 
 
-@pytest.mark.graph
-@pytest.mark.asyncio
-async def test_graph_exact_auto_approved(mock_graph_repo, mock_translate_entry):
-    mock_graph_repo.find_exact.return_value = mock_translate_entry
+@pytest.fixture
+def mock_word_repo():
+    """AsyncMock WordRepository — Grep Trie / find_by_word 默认空。"""
+    repo = AsyncMock()
+    repo.list_distinct_words = AsyncMock(return_value=[])
+    repo.find_by_word = AsyncMock(return_value=[])
+    return repo
 
-    def repo_factory(_session):
+
+def _patch_repos(mock_graph_repo, mock_word_repo):
+    """patch Term/WordRepository 与 write_result，供图集成测注入 mock。"""
+    def term_factory(_session):
         return mock_graph_repo
 
+    def word_factory(_session):
+        return mock_word_repo
+
+    return (
+        patch(
+            "app.graph.pre_translate.nodes.features.io.retrieve_similar.TermRepository",
+            term_factory,
+        ),
+        patch(
+            "app.graph.pre_translate.nodes.features.io.retrieve_similar.WordRepository",
+            word_factory,
+        ),
+        patch(
+            "app.repository.trie_cache.WordRepository",
+            word_factory,
+        ),
+        patch(
+            "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",
+            term_factory,
+        ),
+    )
+
+
+@pytest.mark.graph
+@pytest.mark.asyncio
+async def test_graph_exact_auto_approved(mock_graph_repo, mock_word_repo, mock_translate_entry):
+    mock_graph_repo.find_exact.return_value = mock_translate_entry
+
     session = AsyncMock()
-    with patch(
-        "app.graph.pre_translate.nodes.features.io.retrieve_similar.TermRepository",
-        repo_factory,
-    ), patch(
-        "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",
-        repo_factory,
-    ):
+    patches = _patch_repos(mock_graph_repo, mock_word_repo)
+    with patches[0], patches[1], patches[2], patches[3]:
         final = await PreTranslateGraph().run(
             source_text="正在查询第 %1/%2 个路径的OID...",
             target_lang="俄文",
@@ -49,7 +82,7 @@ async def test_graph_exact_auto_approved(mock_graph_repo, mock_translate_entry):
 
 @pytest.mark.graph
 @pytest.mark.asyncio
-async def test_graph_no_match_llm_path(mock_graph_repo):
+async def test_graph_no_match_llm_path(mock_graph_repo, mock_word_repo):
     async def fake_translate(state):
         state["suggested_translation"] = "Новый перевод LLM"
         state["confidence"] = 0.65
@@ -57,17 +90,9 @@ async def test_graph_no_match_llm_path(mock_graph_repo):
         state["trace"] = [{"stage": "translate_suggest", "ok": True}]
         return state
 
-    def repo_factory(_session):
-        return mock_graph_repo
-
     session = AsyncMock()
-    with patch(
-        "app.graph.pre_translate.nodes.features.io.retrieve_similar.TermRepository",
-        repo_factory,
-    ), patch(
-        "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",
-        repo_factory,
-    ), patch(
+    patches = _patch_repos(mock_graph_repo, mock_word_repo)
+    with patches[0], patches[1], patches[2], patches[3], patch(
         "app.graph.pre_translate.builder.translate_suggest_node",
         fake_translate,
     ):
@@ -85,3 +110,33 @@ async def test_graph_no_match_llm_path(mock_graph_repo):
     assert final["llm_reasoning"].startswith("基于LLM机翻")
     assert final["review_status"] == "needs_human"
     mock_graph_repo.create_pretranslate_audit.assert_called_once()
+
+
+@pytest.mark.graph
+@pytest.mark.asyncio
+async def test_graph_grep_whole_sentence_auto(mock_graph_repo, mock_word_repo):
+    """Grep 整句唯一命中 → retrieval_method=grep、auto_approved。"""
+    mock_graph_repo.find_exact.return_value = None
+    mock_graph_repo.find_fuzzy.return_value = []
+    mock_word_repo.list_distinct_words.return_value = ["按钮"]
+    mock_word_repo.find_by_word.return_value = [
+        SimpleNamespace(word="按钮", translate="Кнопка", comment="")
+    ]
+
+    session = AsyncMock()
+    patches = _patch_repos(mock_graph_repo, mock_word_repo)
+    with patches[0], patches[1], patches[2], patches[3]:
+        final = await PreTranslateGraph().run(
+            source_text="按钮",
+            target_lang="俄文",
+            department=None,
+            confidence_threshold=0.8,
+            entry_comment="",
+            session=session,
+        )
+
+    assert final["retrieval_method"] == "grep"
+    assert final["exact_hit"] is True
+    assert final["review_status"] == "auto_approved"
+    assert final["suggested_translation"] == "Кнопка"
+    assert final["similar_terms"][0]["retrieval_source"] == "grep"

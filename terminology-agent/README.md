@@ -36,7 +36,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 18002 --reload
 ## 测试
 
 ```powershell
-pytest -v                       # 全量用例（50），无需 MySQL / LLM Key
+pytest -v                       # 全量用例（81），无需 MySQL / LLM Key
 pytest app/services/pre_translate/tests -v
 pytest app/graph/pre_translate/tests -v
 ```
@@ -67,6 +67,10 @@ pytest app/graph/pre_translate/tests -v
 | `app/graph/README.md` | Graph 层索引与三要素映射 |
 | `app/api/router.py` | HTTP 接口（`/agent/*`） |
 | `app/repository/term_repo.py` | 术语库 / audit 数据访问 |
+| `app/repository/word_repo.py` | term_word Grep 线数据访问 + trie 缓存 |
+| [`app/shared/term_word/README.md`](app/shared/term_word/README.md) | term_word 库代码（在线 trie/extract + 离线 etl/） |
+| `scripts/build_word_index.py` | term_word 全量建库 CLI（`python -m scripts.build_word_index`） |
+| `app/models/word.py` | term_word ORM（`TermWord` / `TermWordConflict`） |
 | `app/schemas/agent.py` | 请求/响应 Pydantic 模型 |
 | `app/conftest.py` | pytest 共享 fixtures |
 | `app/**/tests/` | 共置测试（TDD 友好） |
@@ -75,22 +79,25 @@ pytest app/graph/pre_translate/tests -v
 ## 全项目结构
 
 ```
-terminology-agent/app/
-├── api/                    # HTTP 薄壳
-├── services/               # 领域编排
-│   ├── pre_translate/
-│   └── term_audit/
-├── graph/                  # LangGraph 工作流
-│   ├── README.md
-│   ├── shared/
-│   └── pre_translate/      # 见 graph/pre_translate/README.md
-├── repository/
-├── schemas/
-├── models/
-├── core/
-├── conftest.py
-├── testing/fixtures/
-└── main.py
+terminology-agent/
+├── app/                        # 运行时库代码（≈ 前端 src/）
+│   ├── api/
+│   ├── services/
+│   ├── graph/
+│   ├── shared/term_word/       # trie, extract, etl/
+│   ├── repository/
+│   └── ...
+├── scripts/
+│   └── build_word_index.py     # 建库 CLI 薄壳
+└── devtools/
+    └── trace_agent_demo.py     # 本地 trace 调试
+```
+
+**term_word 建库**（terminology-agent 根目录）：
+
+```powershell
+python -m scripts.build_word_index --dry-run
+python -m scripts.build_word_index --rebuild
 ```
 
 结构标准 skill：[`项目结构-py-langGraph`](F:/Documents/Default-Obsidian/huiyanSkills/proj-skills/项目结构-py-langGraph/SKILL.md)
@@ -102,6 +109,7 @@ terminology-agent/app/
 - `graph/<workflow>/runner.py` — LangGraph 单条执行入口
 - `graph/<workflow>/builder.py` — StateGraph 组装与 compile
 - `graph/<workflow>/nodes/` — 节点；`edges/` — 条件边
+- `shared/term_word/` — 在线 Grep（trie/extract）+ 离线 ETL（`etl/`）；建库 CLI 见 `scripts/build_word_index.py`
 
 ---
 

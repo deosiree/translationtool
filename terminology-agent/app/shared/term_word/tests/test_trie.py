@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.word.trie import Trie
+from app.shared.term_word.trie import Trie
 
 
 @pytest.mark.unit

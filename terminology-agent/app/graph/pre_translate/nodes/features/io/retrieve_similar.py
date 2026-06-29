@@ -1,71 +1,167 @@
-"""功能节点：retrieve_similar — 术语库 exact + fuzzy 检索。"""
+"""功能节点：retrieve_similar — RAG ∥ Grep 并行检索 + merge。
+
+Phase 3a：在单节点内 ``asyncio.gather`` 并行执行 RAG（t_translate）与 Grep（term_word），
+再经 ``merge_candidates`` 合并候选并写入 ``PreTranslateState``。
+"""
 
 from __future__ import annotations
 
+import asyncio
+
 from langgraph.types import RunnableConfig
 
+from app.graph.pre_translate.constants import ENABLE_GREP_RETRIEVE, TRIE_CACHE_TTL_SEC
 from app.graph.pre_translate.state import PreTranslateState
+from app.graph.pre_translate.utils.entry_context import resolve_entry_comment
+from app.graph.pre_translate.utils.grep_retrieve import GrepRetrieveResult, grep_retrieve_candidates
+from app.graph.pre_translate.utils.merge_candidates import merge_candidates
+from app.graph.pre_translate.utils.rag_retrieve import rag_retrieve
+from app.models.term import EntryInfo
 from app.repository.term_repo import TermRepository
+from app.repository.word_repo import WordRepository
+from app.repository.trie_cache import load_trie_for_lang
+
+
+async def _resolve_comment(state: PreTranslateState, session) -> str:
+    """解析 Grep 消歧 comment：优先 state.entry_comment，否则查 entry_info。
+
+    Args:
+        state: 当前图状态，含 ``entry_comment`` / ``entry_info_id``。
+        session: 异步 DB 会话，用于 ``EntryInfo`` 回退查询。
+
+    Returns:
+        规范化后的 comment 字符串；无则 ``''``（与 term_word 建库一致）。
+    """
+    direct = state.get("entry_comment")
+    if direct is not None and str(direct).strip():
+        return resolve_entry_comment(entry_comment=str(direct))
+
+    entry_info_id = state.get("entry_info_id")
+    if entry_info_id:
+        row = await session.get(EntryInfo, entry_info_id)
+        if row is not None:
+            raw = getattr(row, "comment", None)
+            if isinstance(raw, str):
+                return resolve_entry_comment(entry_info_comment=raw)
+    return ""
+
+
+async def _grep_retrieve(
+    session,
+    *,
+    source_text: str,
+    target_lang: str | None,
+    department: str | None,
+    entry_comment: str,
+) -> GrepRetrieveResult:
+    """Grep 线检索：Trie 拆词 + 批量 ``WordRepository.find_by_word``。
+
+    Args:
+        session: 异步 DB 会话。
+        source_text: 待译词条原文。
+        target_lang: 目标语种；空则跳过 Grep。
+        department: 部门过滤（非消歧键）。
+        entry_comment: 消歧 comment，传入 find_by_word。
+
+    Returns:
+        ``GrepRetrieveResult``；``ENABLE_GREP_RETRIEVE=False`` 或无语种时为空结果。
+    """
+    if not ENABLE_GREP_RETRIEVE or not target_lang:
+        return GrepRetrieveResult([], False, None, [])
+
+    trie = await load_trie_for_lang(
+        session, target_lang, ttl_sec=TRIE_CACHE_TTL_SEC
+    )
+    word_repo = WordRepository(session)
+
+    async def lookup(word: str):
+        return await word_repo.find_by_word(
+            word,
+            target_lang=target_lang,
+            comment=entry_comment,
+            department=department,
+        )
+
+    words_to_check: set[str] = set()
+    await lookup(source_text.strip())
+    words_to_check.add(source_text.strip())
+    for w in trie.segment(source_text.strip()):
+        words_to_check.add(w)
+
+    lookup_cache: dict[str, list] = {}
+    for w in words_to_check:
+        lookup_cache[w] = await lookup(w)
+
+    def sync_lookup(word: str) -> list:
+        return lookup_cache.get(word, [])
+
+    return grep_retrieve_candidates(
+        source_text=source_text,
+        trie=trie,
+        lookup=sync_lookup,
+    )
 
 
 async def retrieve_similar_node(
     state: PreTranslateState,
     config: RunnableConfig,
 ) -> PreTranslateState:
-    """查术语库，写入 retrieval_method / similar_terms / 候选译文（exact 直出）。"""
+    """RAG + Grep 并行检索，merge 后写入 state。
+
+    Args:
+        state: 输入含 ``source_text`` / ``target_lang`` / ``department`` 等。
+        config: LangGraph 配置；``configurable.session`` 注入各 I/O 节点。
+
+    Returns:
+        更新 ``retrieval_method``、``similar_terms``（含 ``retrieval_source``）、
+        ``grep_hits``、``rag_grep_conflict`` 等检索字段的 state。
+    """
     session = config["configurable"]["session"]
-    repo = TermRepository(session)
+    term_repo = TermRepository(session)
     source_entry = state["source_text"]
     target_lang = state.get("target_lang")
     department = state.get("department")
+    entry_comment = await _resolve_comment(state, session)
+    state["entry_comment"] = entry_comment
 
-    exact = await repo.find_exact(source_entry, target_lang, department)
-    if exact and exact.translate:
-        state["retrieval_method"] = "exact"
-        state["retrieval_confidence"] = 1.0
-        state["confidence"] = 1.0
-        state["exact_hit"] = True
-        state["fuzzy_hit"] = False
-        state["suggested_translation"] = exact.translate
-        state["similar_terms"] = [
-            {
-                "entry": exact.entry or source_entry,
-                "translate": exact.translate,
-                "score": 1.0,
-            }
-        ]
-        state["trace"] = [{"stage": "retrieve_similar", "retrieval_method": "exact"}]
-        return state
-
-    fuzzy_matches = await repo.find_fuzzy(
-        source_entry, target_lang, department, limit=5
+    rag_result, grep_result = await asyncio.gather(
+        rag_retrieve(
+            term_repo,
+            source_text=source_entry,
+            target_lang=target_lang,
+            department=department,
+        ),
+        _grep_retrieve(
+            session,
+            source_text=source_entry,
+            target_lang=target_lang,
+            department=department,
+            entry_comment=entry_comment,
+        ),
     )
-    raw_similar: list[dict] = []
-    for match in fuzzy_matches:
-        if not match.translate:
-            continue
-        raw_similar.append(
-            {
-                "entry": match.entry or "",
-                "translate": match.translate,
-                "entry_raw": match.entry or "",
-            }
-        )
 
-    state["exact_hit"] = False
-    state["similar_terms"] = raw_similar
-    if raw_similar:
-        state["retrieval_method"] = "fuzzy"
-        state["fuzzy_hit"] = True
-    else:
-        state["retrieval_method"] = "none"
-        state["fuzzy_hit"] = False
-        state["retrieval_confidence"] = 0.0
-        state["confidence"] = 0.0
-        state["suggested_translation"] = None
-        state["similar_terms"] = []
+    merged = merge_candidates(rag_result, grep_result)
+
+    state["retrieval_method"] = merged.retrieval_method
+    state["exact_hit"] = merged.exact_hit
+    state["fuzzy_hit"] = merged.fuzzy_hit
+    state["grep_hit"] = merged.grep_hit
+    state["grep_hits"] = merged.grep_hits
+    state["rag_grep_conflict"] = merged.rag_grep_conflict
+    state["similar_terms"] = merged.similar_terms
+    state["suggested_translation"] = merged.suggested_translation
+    state["retrieval_confidence"] = merged.retrieval_confidence
+    state["confidence"] = merged.confidence
+
+    if grep_result.ambiguous_words:
+        state["error"] = f"Grep 歧义: {', '.join(grep_result.ambiguous_words)}"
 
     state["trace"] = [
-        {"stage": "retrieve_similar", "retrieval_method": state["retrieval_method"]}
+        {
+            "stage": "retrieve_similar",
+            "retrieval_method": merged.retrieval_method,
+            "grep_hit_count": len(merged.grep_hits),
+            "rag_grep_conflict": merged.rag_grep_conflict,
+        }
     ]
     return state

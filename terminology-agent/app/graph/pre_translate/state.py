@@ -1,4 +1,7 @@
-"""PreTranslate LangGraph 工作流状态定义。"""
+"""PreTranslate LangGraph 工作流状态定义。
+
+Phase 3a 扩展：``entry_comment``、Grep 检索字段及 ``retrieval_source`` 候选标记。
+"""
 
 from __future__ import annotations
 
@@ -15,16 +18,20 @@ class PreTranslateState(TypedDict, total=False):
     department: str | None
     confidence_threshold: float
     entry_info_id: str | None
+    entry_comment: str  # Grep 消歧键；来自 entry.comment 或 entry_info
     task_id: str | None
     task_name: str | None
     product_name: str | None
 
     # ── 检索 ──
-    retrieval_method: Literal["exact", "fuzzy", "none"]
+    retrieval_method: Literal["exact", "fuzzy", "grep", "hybrid", "none"]
     retrieval_confidence: float
-    similar_terms: list
+    similar_terms: list  # 每项可含 retrieval_source: rag | grep | rag+grep
     exact_hit: bool
     fuzzy_hit: bool
+    grep_hit: bool  # Grep 线是否有任意命中
+    grep_hits: list  # Grep 候选快照（trace / 调试）
+    rag_grep_conflict: bool  # RAG 与 Grep 整句译法不一致
 
     # ── 意图 / 译文 ──
     translation_source: Literal["term", "llm", "hybrid"]

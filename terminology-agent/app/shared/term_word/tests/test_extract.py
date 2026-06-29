@@ -2,8 +2,8 @@
 
 import pytest
 
-from app.word.extract import extract_words, unique_words
-from app.word.trie import Trie
+from app.shared.term_word.extract import extract_words, unique_words
+from app.shared.term_word.trie import Trie
 
 
 @pytest.mark.unit

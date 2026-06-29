@@ -195,6 +195,18 @@ flowchart TB
 
 Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引。消歧键 `(word, comment, target_lang)`；`department` 仅运行时过滤。
 
+**代码位置**（refactor 后）：
+
+| 组件 | 路径 |
+|------|------|
+| Trie 拆词 / extract | [`shared/term_word/`](../../shared/term_word/) |
+| Grep 检索编排 | [`utils/grep_retrieve.py`](utils/grep_retrieve.py) |
+| Trie 进程缓存 | [`repository/trie_cache.py`](../../repository/trie_cache.py) |
+| DB lookup | [`repository/word_repo.py`](../../repository/word_repo.py) |
+| 离线建库 ETL | [`shared/term_word/etl/`](../../shared/term_word/etl/) |
+| 建库 CLI | [`scripts/build_word_index.py`](../../../scripts/build_word_index.py) |
+| 域 SSOT | [`shared/term_word/README.md`](../../shared/term_word/README.md) |
+
 - `TranslationSource.HYBRID` → `nodes/features/llm/decompose_compose.py`（未建）
 - `retrieval_method=decomposed` 子图插入 `exact` 未命中后
 - `analyze_context_node` 已存在于 `nodes/features/rules/`，主图 P1 未接入

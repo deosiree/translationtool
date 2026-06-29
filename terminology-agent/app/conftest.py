@@ -90,14 +90,37 @@ def mock_repo(mock_translate_entry, mock_fuzzy_entries):
 
 @pytest.fixture
 def pre_translate_service(mock_repo, monkeypatch):
-    """注入 mock TermRepository 的 PreTranslateService。"""
+    """注入 mock Term/WordRepository 与空 Trie 的 PreTranslateService（含 Grep 线 stub）。"""
 
     def repo_factory(_session):
         return mock_repo
 
+    def word_repo_factory(_session):
+        repo = AsyncMock()
+        repo.list_distinct_words = AsyncMock(return_value=[])
+        repo.find_by_word = AsyncMock(return_value=[])
+        return repo
+
+    async def empty_trie(*_args, **_kwargs):
+        from app.shared.term_word.trie import Trie
+
+        return Trie()
+
     monkeypatch.setattr(
         "app.graph.pre_translate.nodes.features.io.retrieve_similar.TermRepository",
         repo_factory,
+    )
+    monkeypatch.setattr(
+        "app.graph.pre_translate.nodes.features.io.retrieve_similar.WordRepository",
+        word_repo_factory,
+    )
+    monkeypatch.setattr(
+        "app.repository.trie_cache.WordRepository",
+        word_repo_factory,
+    )
+    monkeypatch.setattr(
+        "app.graph.pre_translate.nodes.features.io.retrieve_similar.load_trie_for_lang",
+        empty_trie,
     )
     monkeypatch.setattr(
         "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",

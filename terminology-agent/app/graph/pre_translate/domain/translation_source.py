@@ -6,7 +6,7 @@ from enum import Enum
 
 
 class TranslationSource(str, Enum):
-    """预翻译结果来源 — P1 仅启用 TERM / LLM，HYBRID 预留 Phase 2。"""
+    """预翻译结果来源 — term / llm / hybrid（Phase 3a 启用 hybrid）。"""
 
     TERM = "term"
     LLM = "llm"
@@ -16,7 +16,7 @@ class TranslationSource(str, Enum):
 SOURCE_LABEL: dict[TranslationSource, str] = {
     TranslationSource.TERM: "基于术语",
     TranslationSource.LLM: "基于LLM机翻",
-    TranslationSource.HYBRID: "基于术语+LLM机翻",
+    TranslationSource.HYBRID: "基于混合检索",
 }
 
 

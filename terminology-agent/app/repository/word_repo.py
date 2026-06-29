@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.word import TermWord, TermWordConflict
 from app.models.term import TaskInfo, Product
-from app.word.constants import CONFLICT_RESOLUTION_OPEN, WORD_STATUS_APPROVED
+from app.models.word_constants import CONFLICT_RESOLUTION_OPEN, WORD_STATUS_APPROVED
 
 
 @dataclass
@@ -37,7 +37,18 @@ class WordRepository:
         department: str | None = None,
         status: str = WORD_STATUS_APPROVED,
     ) -> list[TermWord]:
-        """Grep lookup — department 为运行时过滤，非消歧键。"""
+        """Grep lookup — ``comment`` 为消歧键，``department`` 为运行时过滤。
+
+        Args:
+            word: 关键字（整句或 Trie 词级片段）。
+            target_lang: 目标语种。
+            comment: 消歧 comment；``None`` 时不按 comment 过滤。
+            department: 部门可见范围；空则不过滤。
+            status: 行状态，默认 ``approved``。
+
+        Returns:
+            匹配的 ``TermWord`` 行列表；多行表示 ambiguous。
+        """
         conditions = [
             TermWord.word == word,
             TermWord.target_lang == target_lang,
@@ -49,6 +60,32 @@ class WordRepository:
             conditions.append(TermWord.department == department)
 
         stmt = select(TermWord).where(*conditions)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_distinct_words(
+        self,
+        target_lang: str,
+        *,
+        status: str = WORD_STATUS_APPROVED,
+    ) -> list[str]:
+        """按语种列出 DISTINCT ``word``（approved），供 Grep Trie 构建。
+
+        Args:
+            target_lang: 目标语种。
+            status: 行状态，Agent Grep 默认 ``approved``。
+
+        Returns:
+            去重后的 word 文本列表。
+        """
+        stmt = (
+            select(TermWord.word)
+            .where(
+                TermWord.target_lang == target_lang,
+                TermWord.status == status,
+            )
+            .distinct()
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

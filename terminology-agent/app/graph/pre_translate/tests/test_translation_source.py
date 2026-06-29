@@ -1,4 +1,4 @@
-"""translation_source 格式化单元测试。"""
+"""translation_source 枚举与 format_agent_reasoning 单测。"""
 
 import pytest
 
@@ -20,8 +20,9 @@ def test_format_agent_reasoning_llm():
 
 
 @pytest.mark.unit
-def test_format_agent_reasoning_hybrid_reserved():
-    assert SOURCE_LABEL[TranslationSource.HYBRID] == "基于术语+LLM机翻"
+def test_format_agent_reasoning_hybrid():
+    """Phase 3a：HYBRID 标签为「基于混合检索」。"""
+    assert SOURCE_LABEL[TranslationSource.HYBRID] == "基于混合检索"
     assert format_agent_reasoning(TranslationSource.HYBRID, "部分 span") == (
-        "基于术语+LLM机翻：部分 span"
+        "基于混合检索：部分 span"
     )

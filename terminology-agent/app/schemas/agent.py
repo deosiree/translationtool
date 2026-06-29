@@ -35,10 +35,11 @@ class PreTranslateBatchRequest(BaseModel):
 
 
 class SimilarTermData(BaseModel):
-    """RAG 检索命中的参考术语对 — 对应前端 similar_terms Popover。"""
+    """RAG/Grep 检索命中的参考术语对 — 对应前端 similar_terms Popover。"""
     entry: str = Field(..., description="参考词条原文")
     translate: str = Field(..., description="参考词条已有译文")
     score: Optional[float] = Field(None, description="相似度分数 0~1")
+    retrieval_source: Optional[str] = Field(None, description="rag | grep | rag+grep")
 
 
 class AuditRecordData(BaseModel):
@@ -64,7 +65,7 @@ class AuditRecordData(BaseModel):
     department: Optional[str] = None
     confidence: Optional[float] = Field(None, description="预翻译置信度，仅审核页展示")
     similar_terms: Optional[list[SimilarTermData]] = Field(None, description="参考术语列表")
-    retrieval_method: Optional[str] = Field(None, description="exact | fuzzy | hybrid | mock_hybrid")
+    retrieval_method: Optional[str] = Field(None, description="exact | fuzzy | grep | hybrid | none")
     source_type: Optional[str] = Field("workbench_agent", description="记录来源")
 
     created_at: datetime

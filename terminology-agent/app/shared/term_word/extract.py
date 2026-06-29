@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.word.trie import Trie
+from app.shared.term_word.trie import Trie
 
 
 def extract_words(text: str, trie: Trie) -> list[str]:

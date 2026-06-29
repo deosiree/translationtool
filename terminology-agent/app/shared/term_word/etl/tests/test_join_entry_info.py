@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.word.join_entry_info import (
+from app.shared.term_word.etl.join_entry_info import (
     build_term_word_payload,
     normalize_comment,
     word_status_from_translate_state,
