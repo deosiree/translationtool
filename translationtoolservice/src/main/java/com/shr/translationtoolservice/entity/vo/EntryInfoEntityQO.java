@@ -400,6 +400,13 @@ public class EntryInfoEntityQO implements Serializable{
     /*数据库记录ID */
     @TableField(value = "db_record_id")
     private String dbRID;
+
+    /* 查询的语种类型 */
+    private String tranType;
+
+    /* 用户指定的查询的翻译字符长度 */
+    private Integer customCheckTransLength;
+
     public boolean isUpgrade() {
         return upgrade;
     }
@@ -836,5 +843,17 @@ public class EntryInfoEntityQO implements Serializable{
         this.dbRID = dbRID;
     }
   
+    public Integer getCustomCheckTransLength() {
+        return customCheckTransLength;
+    }
+    public void setCustomCheckTransLength(Integer customCheckTransLength) {
+        this.customCheckTransLength = customCheckTransLength;
+    }
 
+    public String getTranType() {
+        return tranType;
+    }
+    public void setTranType(String tranType) {
+        this.tranType = tranType;
+    }
 }

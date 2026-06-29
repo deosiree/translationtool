@@ -228,6 +228,11 @@ public class EntryInfoController extends BaseController {
     
         if(totalMatchSet == null) totalMatchSet = new HashSet<>();
         // entryInfoEntities = entryInfoService.getEntryByClassfy(entryInfoEntity,classfyID, pageIndex, pageSize,translateType);
+
+        if(translateType != null && !translateType.trim().isEmpty()){
+            entryInfoEntityTemplate.setTranType(translateType);
+        }
+
         EntryInfoVO entryInfoVO = entryInfoService.getEntryByClassfy(entryInfoEntityTemplate,totalMatchSet, classfyID,startTime,endTime,pageIndex,pageSize);
         // List<EntryInfoEntity> entryInfoEntities = entryInfoService.filterEntryInfoByTransInfo(originalEntryInfoEntities, entryInfoEntityTemplate, translateType);
         List<EntryInfoEntity> entryInfoEntities = entryInfoVO.getEntryInfoEntities();
