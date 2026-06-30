@@ -65,7 +65,7 @@ class AuditRecordData(BaseModel):
     department: Optional[str] = None
     confidence: Optional[float] = Field(None, description="预翻译置信度，仅审核页展示")
     similar_terms: Optional[list[SimilarTermData]] = Field(None, description="参考术语列表")
-    retrieval_method: Optional[str] = Field(None, description="exact | fuzzy | grep | hybrid | none")
+    retrieval_method: Optional[str] = Field(None, description="exact | fuzzy | grep | hybrid | decomposed | none")
     source_type: Optional[str] = Field("workbench_agent", description="记录来源")
 
     created_at: datetime

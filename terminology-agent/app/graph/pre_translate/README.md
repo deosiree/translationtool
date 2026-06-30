@@ -126,7 +126,7 @@ flowchart LR
 |----------------------|--------|----------|
 | `term` | `term_path` | `assess_route` |
 | `llm` | `llm_path` | `translate_suggest` → `assess_route` |
-| `hybrid` | `hybrid_path` | `assess_route`（P1 stub，Phase 2 改连 decompose） |
+| `hybrid` | `hybrid_path` | `decompose_compose` →（达标）`assess_route` /（未达标）`translate_suggest` |
 
 ---
 
@@ -138,8 +138,9 @@ flowchart LR
 |------|------|------|
 | 输入 | `source_text`, `target_lang`, `department`, `confidence_threshold` | 词条与任务上下文 |
 | 输入 | `entry_info_id`, `task_id`, `task_name`, `product_name` | 工作台 / 任务元数据 |
-| 检索 | `retrieval_method` | `exact` / `fuzzy` / `none` |
-| 检索 | `retrieval_confidence`, `similar_terms`, `exact_hit`, `fuzzy_hit` | 检索结果 |
+| 检索 | `retrieval_method` | `exact` / `fuzzy` / `grep` / `hybrid` / `decomposed` / `none` |
+| 检索 | `retrieval_confidence`, `similar_terms`, `exact_hit`, `fuzzy_hit`, `grep_hit`, `grep_hits` | 检索结果 |
+| 拆解 | `spans`, `coverage`, `decomposed_translation` | Phase 3b 词级拼装 |
 | 意图/译文 | `translation_source` | `term` / `llm` / `hybrid` |
 | 意图/译文 | `suggested_translation`, `llm_detail`, `confidence` | 译文与置信度 |
 | 输出 | `llm_reasoning`, `review_status`, `error`, `trace` | Agent 说明、分流、trace |
@@ -155,6 +156,7 @@ flowchart LR
 | `resolve_translation_source` | 判定 term / llm / hybrid | [`nodes/intentions/resolve_translation_source.py`](nodes/intentions/resolve_translation_source.py) |
 | `translate_suggest` | LLM 整句机翻 | [`nodes/features/llm/translate_suggest.py`](nodes/features/llm/translate_suggest.py) |
 | `assess_route` | 阈值分流 auto_approved / needs_human | [`nodes/features/workflow/assess_route.py`](nodes/features/workflow/assess_route.py) |
+| `decompose_compose` | hybrid 路径词级拆解拼装 | [`nodes/features/workflow/decompose_compose.py`](nodes/features/workflow/decompose_compose.py) |
 | `write_result` | 格式化 reasoning、写 audit | [`nodes/features/io/write_result.py`](nodes/features/io/write_result.py) |
 
 ---
@@ -164,14 +166,15 @@ flowchart LR
 | 函数 | 触发节点 | 文件 |
 |------|----------|------|
 | `route_after_resolve_source` | `resolve_translation_source` 之后 | [`edges/after_resolve_source.py`](edges/after_resolve_source.py) |
+| `route_after_decompose_compose` | `decompose_compose` 之后 | [`edges/after_decompose_compose.py`](edges/after_decompose_compose.py) |
 
 ---
 
 ## 9. Phase 2+ 扩展点
 
-### Phase 3：Grep ∥ RAG 并行检索（设计，P2 未改主图）
+### Phase 3a：Grep ∥ RAG 并行检索（**已实现**）
 
-Phase 2 已建 `term_word` 表与 Grep 线数据层；Phase 3 在 `retrieve_similar` 前/旁路并行：
+Phase 2 已建 `term_word` 表与 Grep 线数据层；3a 在 `retrieve_similar` 内并行：
 
 ```mermaid
 flowchart TB
@@ -207,9 +210,28 @@ Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引
 | 建库 CLI | [`scripts/build_word_index.py`](../../../scripts/build_word_index.py) |
 | 域 SSOT | [`shared/term_word/README.md`](../../shared/term_word/README.md) |
 
-- `TranslationSource.HYBRID` → `nodes/features/llm/decompose_compose.py`（未建）
-- `retrieval_method=decomposed` 子图插入 `exact` 未命中后
-- `analyze_context_node` 已存在于 `nodes/features/rules/`，主图 P1 未接入
+### Phase 3b：拆解拼装（**已实现**）
+
+`translation_source=hybrid` 时走 `decompose_compose`：Trie 拆解 → `lookup_lexemes` → 确定性拼装 → `coverage` 分流。
+
+```mermaid
+flowchart LR
+  HY[hybrid_path] --> DC[decompose_compose]
+  DC --> COV{coverage >= 0.85?}
+  COV -->|是| AR[assess_route]
+  COV -->|否| LLM[translate_suggest]
+  LLM --> AR
+```
+
+| 组件 | 路径 |
+|------|------|
+| 拆解 / 拼装 / coverage 纯函数 | [`utils/decompose.py`](utils/decompose.py)、[`compose.py`](utils/compose.py)、[`coverage.py`](utils/coverage.py) |
+| lexeme lookup | [`nodes/features/io/lookup_lexemes.py`](nodes/features/io/lookup_lexemes.py) |
+| 编排节点 | [`nodes/features/workflow/decompose_compose.py`](nodes/features/workflow/decompose_compose.py) |
+| 条件边 | [`edges/after_decompose_compose.py`](edges/after_decompose_compose.py) |
+| 黄金用例 | [`app/evals/trajectory_cases.json`](../../evals/trajectory_cases.json) |
+
+- `analyze_context_node` 已存在于 `nodes/features/rules/`，主图未接入（Phase 4+）
 
 ---
 

@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from langgraph.graph import END, StateGraph
 
+from app.graph.pre_translate.edges.after_decompose_compose import route_after_decompose_compose
 from app.graph.pre_translate.edges.after_resolve_source import route_after_resolve_source
 from app.graph.pre_translate.nodes.features.io.retrieve_similar import retrieve_similar_node
 from app.graph.pre_translate.nodes.features.io.write_result import write_result_node
 from app.graph.pre_translate.nodes.features.llm.translate_suggest import translate_suggest_node
 from app.graph.pre_translate.nodes.features.rules.rerank_candidates import rerank_candidates_node
 from app.graph.pre_translate.nodes.features.workflow.assess_route import assess_route_node
+from app.graph.pre_translate.nodes.features.workflow.decompose_compose import decompose_compose_node
 from app.graph.pre_translate.nodes.intentions.resolve_translation_source import (
     resolve_translation_source_node,
 )
@@ -19,7 +21,7 @@ from app.graph.pre_translate.state import PreTranslateState
 def build_pre_translate_graph():
     """构建并编译 PreTranslate 预翻译 StateGraph。
 
-    流水线：retrieve → rerank → resolve → (term|llm) → assess → write。
+    流水线：retrieve → rerank → resolve → (term|llm|decompose) → assess → write。
 
     Returns:
         ``builder.compile()`` 返回的已编译 LangGraph 对象。
@@ -30,6 +32,7 @@ def build_pre_translate_graph():
     builder.add_node("rerank_candidates", rerank_candidates_node)
     builder.add_node("resolve_translation_source", resolve_translation_source_node)
     builder.add_node("translate_suggest", translate_suggest_node)
+    builder.add_node("decompose_compose", decompose_compose_node)
     builder.add_node("assess_route", assess_route_node)
     builder.add_node("write_result", write_result_node)
 
@@ -42,8 +45,15 @@ def build_pre_translate_graph():
         {
             "term_path": "assess_route",
             "llm_path": "translate_suggest",
-            # P1 stub：hybrid 未启用，直接 assess（Phase 2 改连 decompose_compose）
-            "hybrid_path": "assess_route",
+            "hybrid_path": "decompose_compose",
+        },
+    )
+    builder.add_conditional_edges(
+        "decompose_compose",
+        route_after_decompose_compose,
+        {
+            "compose_ok": "assess_route",
+            "llm_fallback": "translate_suggest",
         },
     )
     builder.add_edge("translate_suggest", "assess_route")

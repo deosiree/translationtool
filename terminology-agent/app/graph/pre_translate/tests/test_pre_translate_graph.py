@@ -48,6 +48,10 @@ def _patch_repos(mock_graph_repo, mock_word_repo):
             word_factory,
         ),
         patch(
+            "app.graph.pre_translate.nodes.features.workflow.decompose_compose.WordRepository",
+            word_factory,
+        ),
+        patch(
             "app.repository.trie_cache.WordRepository",
             word_factory,
         ),
@@ -65,7 +69,7 @@ async def test_graph_exact_auto_approved(mock_graph_repo, mock_word_repo, mock_t
 
     session = AsyncMock()
     patches = _patch_repos(mock_graph_repo, mock_word_repo)
-    with patches[0], patches[1], patches[2], patches[3]:
+    with patches[0], patches[1], patches[2], patches[3], patches[4]:
         final = await PreTranslateGraph().run(
             source_text="正在查询第 %1/%2 个路径的OID...",
             target_lang="俄文",
@@ -92,7 +96,7 @@ async def test_graph_no_match_llm_path(mock_graph_repo, mock_word_repo):
 
     session = AsyncMock()
     patches = _patch_repos(mock_graph_repo, mock_word_repo)
-    with patches[0], patches[1], patches[2], patches[3], patch(
+    with patches[0], patches[1], patches[2], patches[3], patches[4], patch(
         "app.graph.pre_translate.builder.translate_suggest_node",
         fake_translate,
     ):
@@ -125,7 +129,7 @@ async def test_graph_grep_whole_sentence_auto(mock_graph_repo, mock_word_repo):
 
     session = AsyncMock()
     patches = _patch_repos(mock_graph_repo, mock_word_repo)
-    with patches[0], patches[1], patches[2], patches[3]:
+    with patches[0], patches[1], patches[2], patches[3], patches[4]:
         final = await PreTranslateGraph().run(
             source_text="按钮",
             target_lang="俄文",
@@ -140,3 +144,82 @@ async def test_graph_grep_whole_sentence_auto(mock_graph_repo, mock_word_repo):
     assert final["review_status"] == "auto_approved"
     assert final["suggested_translation"] == "Кнопка"
     assert final["similar_terms"][0]["retrieval_source"] == "grep"
+
+
+@pytest.mark.graph
+@pytest.mark.asyncio
+async def test_graph_decomposed_word_level(mock_graph_repo, mock_word_repo):
+    """Grep 词级命中 + 高 coverage → decomposed 拼装 auto_approved。"""
+    mock_graph_repo.find_exact.return_value = None
+    mock_graph_repo.find_fuzzy.return_value = []
+    mock_word_repo.list_distinct_words.return_value = ["文件", "系统"]
+
+    async def find_by_word(word, **kwargs):
+        if word == "文件":
+            return [SimpleNamespace(word="文件", translate="File", comment="")]
+        if word == "系统":
+            return [SimpleNamespace(word="系统", translate="System", comment="")]
+        return []
+
+    mock_word_repo.find_by_word = AsyncMock(side_effect=find_by_word)
+
+    session = AsyncMock()
+    patches = _patch_repos(mock_graph_repo, mock_word_repo)
+    with patches[0], patches[1], patches[2], patches[3], patches[4]:
+        final = await PreTranslateGraph().run(
+            source_text="文件系统",
+            target_lang="英文",
+            department=None,
+            confidence_threshold=0.8,
+            entry_comment="",
+            session=session,
+        )
+
+    assert final["translation_source"] == "hybrid"
+    assert final["retrieval_method"] == "decomposed"
+    assert final["suggested_translation"] == "FileSystem"
+    assert final["coverage"] >= 0.85
+    assert final["review_status"] == "auto_approved"
+
+
+@pytest.mark.graph
+@pytest.mark.asyncio
+async def test_graph_decomposed_low_coverage_llm_fallback(mock_graph_repo, mock_word_repo):
+    """词级 coverage 不足 → 回退 LLM。"""
+    mock_graph_repo.find_exact.return_value = None
+    mock_graph_repo.find_fuzzy.return_value = []
+    mock_word_repo.list_distinct_words.return_value = ["文件"]
+
+    async def find_by_word(word, **kwargs):
+        if word == "文件":
+            return [SimpleNamespace(word="文件", translate="File", comment="")]
+        return []
+
+    mock_word_repo.find_by_word = AsyncMock(side_effect=find_by_word)
+
+    async def fake_translate(state):
+        state["suggested_translation"] = "File and system resources"
+        state["confidence"] = 0.65
+        state["llm_detail"] = "mock llm after low coverage"
+        state["trace"] = [{"stage": "translate_suggest", "ok": True}]
+        return state
+
+    session = AsyncMock()
+    patches = _patch_repos(mock_graph_repo, mock_word_repo)
+    with patches[0], patches[1], patches[2], patches[3], patches[4], patch(
+        "app.graph.pre_translate.builder.translate_suggest_node",
+        fake_translate,
+    ):
+        final = await PreTranslateGraph().run(
+            source_text="文件与系统资源的定义",
+            target_lang="英文",
+            department=None,
+            confidence_threshold=0.8,
+            entry_comment="",
+            session=session,
+        )
+
+    assert final["translation_source"] == "hybrid"
+    assert final["suggested_translation"] == "File and system resources"
+    assert (final.get("coverage") or 0) < 0.85
+    assert final["review_status"] == "needs_human"

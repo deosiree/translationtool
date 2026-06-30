@@ -1,6 +1,7 @@
 """PreTranslate LangGraph 工作流状态定义。
 
 Phase 3a 扩展：``entry_comment``、Grep 检索字段及 ``retrieval_source`` 候选标记。
+Phase 3b 扩展：``spans``、``coverage``、``decomposed_translation``。
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ class PreTranslateState(TypedDict, total=False):
     product_name: str | None
 
     # ── 检索 ──
-    retrieval_method: Literal["exact", "fuzzy", "grep", "hybrid", "none"]
+    retrieval_method: Literal["exact", "fuzzy", "grep", "hybrid", "decomposed", "none"]
     retrieval_confidence: float
     similar_terms: list  # 每项可含 retrieval_source: rag | grep | rag+grep
     exact_hit: bool
@@ -32,6 +33,11 @@ class PreTranslateState(TypedDict, total=False):
     grep_hit: bool  # Grep 线是否有任意命中
     grep_hits: list  # Grep 候选快照（trace / 调试）
     rag_grep_conflict: bool  # RAG 与 Grep 整句译法不一致
+
+    # ── 拆解拼装（Phase 3b）──
+    spans: list  # [{text, start, end, translate?, ambiguous?}]
+    coverage: float
+    decomposed_translation: str | None
 
     # ── 意图 / 译文 ──
     translation_source: Literal["term", "llm", "hybrid"]

@@ -115,6 +115,10 @@ def pre_translate_service(mock_repo, monkeypatch):
         word_repo_factory,
     )
     monkeypatch.setattr(
+        "app.graph.pre_translate.nodes.features.workflow.decompose_compose.WordRepository",
+        word_repo_factory,
+    )
+    monkeypatch.setattr(
         "app.repository.trie_cache.WordRepository",
         word_repo_factory,
     )

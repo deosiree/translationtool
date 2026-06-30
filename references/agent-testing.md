@@ -2,7 +2,7 @@
 
 ← [[README]] · [项目根 README](../README.md) | [[references/本地开发]] · [本地开发](本地开发.md) | [[terminology-agent/README]] · [Agent README](../terminology-agent/README.md)
 
-本文档是 **terminology-agent** 测试与 Agent 轨迹可视化的单一事实来源（SSOT）。默认 **无需 MySQL、无需 LLM Key** 即可跑完全部 **50** 个用例（LLM 节点用 mock）。
+本文档是 **terminology-agent** 测试与 Agent 轨迹可视化的单一事实来源（SSOT）。默认 **无需 MySQL、无需 LLM Key** 即可跑完全部 **94** 个用例（LLM 节点用 mock）。
 
 ---
 
@@ -52,26 +52,41 @@ pip install -e ".[dev]"
 |------|------|
 | `app/testing/fixtures/entries.json` | 含 OID、parentID、空 entry 边界 |
 | `app/testing/fixtures/translate_rows.json` | 精确匹配术语库行 |
+| `app/evals/trajectory_cases.json` | Phase 3b 拆解拼装黄金用例 |
 
 ---
 
-## 3. 测试用例概览（50）
+## 3. 测试用例概览（94）
 
 主要分组：
 
 | Marker / 目录 | 数量 | 说明 |
 |---------------|------|------|
-| `@pytest.mark.unit` | 10+ | `utils/retrieval`、`domain/translation_source`、`mappers` |
-| `@pytest.mark.graph` | 18+ | edges、意图节点、assess、图集成、translate_suggest |
+| `@pytest.mark.unit` | 20+ | `utils/retrieval`、`decompose/compose/coverage`、`grep`、`merge` |
+| `@pytest.mark.graph` | 22+ | edges、意图节点、assess、图集成、decompose_compose |
 | `@pytest.mark.service` | 11 | `PreTranslateService` + `TermAuditService` 契约 |
 | `@pytest.mark.api` | 8 | FastAPI 路由 |
-| schemas / settings | 6 | Pydantic 与环境变量 |
+| schemas / settings / word | 30+ | Pydantic、term_word ETL、trie_cache |
 
-**PreTranslate 主链路**：`PreTranslateService` → `PreTranslateGraph`（`retrieve_similar` → `rerank` → `resolve_translation_source` → term/llm → `assess_route` → `write_result`）。
+**PreTranslate 主链路**：`retrieve_similar`（RAG ∥ Grep）→ `rerank` → `resolve_translation_source` → term / llm / **decompose_compose** → `assess_route` → `write_result`。
 
-无命中场景：`retrieval_method=none`，走 LLM 机翻，Agent 说明前缀 **基于LLM机翻**（测试中 mock LLM，不调用真实 API）。
+### 3.1 Phase 3a / 3b 专项
 
-### 3.1 历史清单（已迁移）
+```powershell
+# 3a Grep + merge
+pytest -k "grep or merge_candidates or entry_context" -v
+
+# 3b 拆解拼装
+pytest app/graph/pre_translate/tests/test_decompose.py -v
+pytest app/graph/pre_translate/tests/test_compose_coverage.py -v
+pytest app/graph/pre_translate/tests/test_lookup_lexemes.py -v
+pytest app/graph/pre_translate/tests/test_after_decompose_compose.py -v
+pytest app/graph/pre_translate/tests/test_pre_translate_graph.py::test_graph_decomposed_word_level -v
+```
+
+**如何判断 UI 是否在 Mock 路径**：`retrieval_method=mock_hybrid` 或 Agent 说明以 `Mock:` 开头 → 前端 API 失败回退，非真实 Agent。清空 localStorage 键 `agent-pending-audits` 后重试。
+
+### 3.2 历史清单（已迁移）
 
 原 `BatchOrchestrator` / `orchestration/` 测试已并入 `app/services/pre_translate/tests/`；原 `graph/tests/` 已迁入 `app/graph/pre_translate/tests/`。
 
@@ -191,7 +206,30 @@ flowchart LR
 
 ---
 
-## 7. 相关文档
+## 7. Phase 3b 手工联调（decomposed 验收）
+
+前置：`term_word` 已建库、Agent `:18002`、前端 `pnpm dev:ui-agent`。
+
+```powershell
+cd terminology-agent
+python -m scripts.build_word_index --rebuild
+uvicorn app.main:app --host 0.0.0.0 --port 18002 --reload
+```
+
+1. 清空浏览器 localStorage 键 `agent-pending-audits`
+2. 选 **无整句 exact、有词级 term_word** 的长词条（如「文件系统」类复合词）
+3. 工作台 Agent 预翻译 → Network 确认 `POST /agent/pre-translate/batch` 200
+4. 验收 `agent_meta`：
+   - `retrieval_method=decomposed`（高 coverage）或 `hybrid` + LLM fallback（低 coverage）
+   - **无** `mock_hybrid`、**无** `[Agent]` 前缀
+   - `similar_terms[].retrieval_source` 含 `grep`
+5. 术语学习页：检索方式「拆解拼装」或「混合检索」；Mock 行带橙色「本地 Mock」Tag
+
+调试 Grep 词表：`GET /agent/word/{word}?target_lang=英文`
+
+---
+
+## 8. 相关文档
 
 | 文档 | 说明 |
 |------|------|

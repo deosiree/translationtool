@@ -1,0 +1,26 @@
+[
+  {
+    "id": "decompose-file-system-resource",
+    "source_text": "文件与系统资源的定义",
+    "description": "Phase 3b 黄金用例 — 多词 span + 连接词",
+    "lexeme_translations": {
+      "文件": "File",
+      "系统": "System",
+      "资源": "Resource",
+      "定义": "Definition"
+    },
+    "min_coverage": 0.8,
+    "expected_partial_compose_contains": ["File", "System", "Resource", "Definition"]
+  },
+  {
+    "id": "decompose-compound-two-words",
+    "source_text": "文件系统",
+    "description": "两词最长匹配整句覆盖",
+    "lexeme_translations": {
+      "文件": "File",
+      "系统": "System"
+    },
+    "min_coverage": 1.0,
+    "expected_compose": "FileSystem"
+  }
+]

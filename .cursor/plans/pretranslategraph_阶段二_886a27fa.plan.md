@@ -1,15 +1,30 @@
 ---
 name: i18n Agent 分阶段路线图
-overview: 在阶段一（死代码清理）之上，分六期建设：先合并 PreTranslateGraph，再建术语元词词典与拆解复用，矛盾治理前端+人工，最后 Judge/Darwin 与 FAISS。规则能确定性则 rules，歧义则 LLM，仍无解则人工。
+overview: 在阶段一（API 去冗余）之上分六期建设。当前进度：Phase 1–3b MVP 与 Grep 并行检索、手动测试基建已完成；**下一步 Phase 3c（P3b+ LLM 受约束拼装）**；之后 Phase 4 矛盾治理前端。
 todos:
   - id: p1-orchestration-graph
-    content: "Phase 1: orchestration/ + PreTranslateGraph（exact/fuzzy，无占位）+ 删 TermLearningGraph"
-    status: pending
+    content: "Phase 1: PreTranslateGraph + 编排分层 + 删 TermLearningGraph + 无占位译文"
+    status: completed
   - id: p2-lexicon-schema
-    content: "Phase 2: 元词词典 DB 表设计 + 从 t_translate 离线建库 job + LexiconRepository"
+    content: "Phase 2: term_word 表 + build_word_index ETL + WordRepository/Trie"
+    status: completed
+  - id: p3a-grep-rag-parallel
+    content: "Phase 3a: Grep ∥ RAG 并行检索 + merge_candidates + retrieval_source 标记"
+    status: completed
+  - id: p3b-decompose-compose-mvp
+    content: "Phase 3b MVP: decompose + lookup_lexemes + 确定性 compose + coverage 门控接入主图"
+    status: completed
+  - id: p3b-manual-test-infra
+    content: "Phase 3b 手动测试基建: ADM 种子/触发/fix_adm_test_data/verify_adm_data + ETL"
+    status: completed
+  - id: p3b-ux-audit-reasoning
+    content: "Phase 3b UX: auto_approved 时 agent_meta.reasoning 拷贝到 englishAuditSuggest"
+    status: completed
+  - id: p3c-llm-compose-suggest
+    content: "Phase 3c P3b+: compose_suggest LLM 受约束拼装（词片术语约束 + 目标语语法）"
     status: pending
-  - id: p3-decompose-compose
-    content: "Phase 3: rules/decompose + lookup_lexemes + compose 节点接入图（最长匹配拆解复用）"
+  - id: p3c-retest-adm-matrix
+    content: "Phase 3c 验收: admin-proj 全矩阵复测（含 File System / decomposed 路径）"
     status: pending
   - id: p4-lexicon-conflicts-ui
     content: "Phase 4: 矛盾检测 + 治理 API + 前端页 + human intention（待用户 skill）"
@@ -23,10 +38,28 @@ todos:
 isProject: false
 ---
 
-# i18n 术语 Agent — 分阶段路线图（v3）
+# i18n 术语 Agent — 分阶段路线图（v4）
 
 > **前置已完成**：[阶段一](旧版_api_去冗余) 删除 `/run`、收紧 batch body、清理 dead code。  
-> **本文档**：术语拆解复用 + 元词词典 + PreTranslateGraph + 矛盾治理 + Eval，按 **6 个 Phase** 渐进交付。
+> **本文档**：术语拆解复用 + 元词词典 + PreTranslateGraph + 矛盾治理 + Eval，按 **6 个 Phase** 渐进交付（Phase 3 拆为 3a/3b/3c）。
+
+---
+
+## 当前进度快照（2026-06-29）
+
+| 里程碑 | 状态 | 说明 |
+|--------|------|------|
+| Phase 1 图合并 | **已完成** | [`PreTranslateGraph`](terminology-agent/app/graph/pre_translate/builder.py)、exact/fuzzy/none、无 `[Agent]` 占位 |
+| Phase 2 元词库 | **已完成** | 实现为 `term_word` + [`build_word_index`](terminology-agent/scripts/build_word_index.py)（非文档原 `term_lexeme` 命名） |
+| Phase 3a Grep∥RAG | **已完成** | [`retrieve_similar`](terminology-agent/app/graph/pre_translate/nodes/features/io/retrieve_similar.py) 并行 + merge |
+| Phase 3b MVP 拆解拼装 | **已完成** | decompose + lookup + 确定性 `"".join()` + coverage 门控；**英文拼接质量不足** |
+| 3b 手动测试基建 | **已完成** | ADM 种子/触发、ETL、[`fix_adm_test_data`](terminology-agent/devtools/fix_adm_test_data.py)、审核意见拷贝 |
+| **Phase 3c P3b+** | **待做（下一步）** | LLM 受约束拼装 `compose_suggest`，解决空格/介词/语法 |
+| Phase 4–6 | 未开始 | 矛盾治理 UI、Judge、FAISS |
+
+**你现在在这里**：Phase 3b MVP 已跑通，正在进入 **Phase 3c**。
+
+**建议下一步**：执行 **Phase 3c（P3b+ LLM 受约束拼装）**，完成后再做 **admin-proj 全矩阵 UI 复测**。
 
 ---
 
@@ -35,23 +68,27 @@ isProject: false
 ```mermaid
 flowchart LR
   P0["阶段一 已完成<br/>API 去冗余"]
-  P1["Phase 1<br/>图合并"]
-  P2["Phase 2<br/>元词词典库"]
-  P3["Phase 3<br/>拆解+拼装检索"]
+  P1["Phase 1 已完成<br/>PreTranslateGraph"]
+  P2["Phase 2 已完成<br/>term_word+ETL"]
+  P3a["Phase 3a 已完成<br/>Grep并行RAG"]
+  P3b["Phase 3b 已完成<br/>拆解+coverage MVP"]
+  P3c["Phase 3c 进行中<br/>LLM受约束拼装"]
   P4["Phase 4<br/>矛盾治理+前端"]
   P5["Phase 5<br/>Judge+Darwin"]
   P6["Phase 6<br/>FAISS混合"]
-  P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6
+  P0 --> P1 --> P2 --> P3a --> P3b --> P3c --> P4 --> P5 --> P6
 ```
 
-| Phase | 用户可感知价值 | 依赖 |
-|-------|----------------|------|
-| 1 | 单一流水线、无占位译文、编排分层 | 阶段一 |
-| 2 | 术语「词典」索引就绪，检索有原子单位 | 1（图骨架可并行，建议 1 先合） |
-| 3 | 长词条可拆解复用子术语译法 | 2 |
-| 4 | 元词矛盾可视、可人工裁定 | 2 + **用户 skill** |
-| 5 | LLM 评判 + 不满意归因回流 | 1 |
-| 6 | 语义相似检索、简历完整态 | 2、3 |
+| Phase | 用户可感知价值 | 依赖 | 状态 |
+|-------|----------------|------|------|
+| 1 | 单一流水线、无占位译文 | 阶段一 | 已完成 |
+| 2 | 术语元词索引（Grep 语料） | 1 | 已完成 |
+| 3a | RAG + Grep 双路检索、rag+grep 标记 | 2 | 已完成 |
+| 3b | 长词条拆解、coverage 门控、decomposed 路径 | 3a | 已完成（MVP） |
+| **3c** | **英文等语种自然词组（空格/介词）** | 3b | **下一步** |
+| 4 | 元词矛盾可视、可人工裁定 | 2 + skill | 未开始 |
+| 5 | LLM 评判 + 不满意归因回流 | 1 | 未开始 |
+| 6 | 语义相似检索 | 2、3 | 未开始 |
 
 ---
 
@@ -185,7 +222,7 @@ flowchart TD
 | 拆解 Span | 最长匹配 Trie | 未匹配片段建议切分 | 新复合词入库裁定 |
 | 义项选择 | 唯一 approved sense | comment 语境消歧 | conflict 工单 |
 | 全文 exact/fuzzy | 保留 Phase 1 路径 | — | — |
-| 拼装 glue | 连接词映射表 | 俄文形态/语序 | — |
+| 拼装 glue | 连接词映射表 | **Phase 3c：LLM 受约束拼装（词片作术语约束）** | conflict 工单 |
 | 置信路由 | threshold | Judge | 终局 review |
 | 元词矛盾 | 检测规则 | 合并建议（可选） | **Phase 4 前端** |
 
@@ -616,6 +653,45 @@ DevTools Network：确认 batch body 为 `{ entries, task_name, ... }` 对象，
 
 **路由**：`coverage >= COVERAGE_FLOOR`（建议 0.85）且无语义冲突 → 可 auto；否则 fuzzy/LLM/人工。
 
+**Phase 3b MVP 局限（已知）**：[`compose.py`](terminology-agent/app/graph/pre_translate/utils/compose.py) 使用 `"".join()`，英文产出 `FileSystem` 而非 `File System`；业界实践要求 **词片 lookup + LLM 上下文拼装**（Smartling AI GTI / Phrase glossary）。
+
+---
+
+### Phase 3c — P3b+ LLM 受约束拼装（**当前下一步**）
+
+在 3b coverage 达标后，**不再**把确定性拼接当作最终译文；新增 `compose_suggest` 节点。
+
+```mermaid
+flowchart LR
+  dc[decompose_compose]
+  cov{"coverage>=0.85?"}
+  cs[compose_suggest_LLM]
+  ts[translate_suggest_LLM]
+  ar[assess_route]
+  dc --> cov
+  cov -->|是| cs
+  cov -->|否| ts
+  cs --> ar
+  ts --> ar
+```
+
+| 任务 | 文件 | 说明 |
+|------|------|------|
+| 拆分确定性/最终译文 | [`decompose_compose.py`](terminology-agent/app/graph/pre_translate/nodes/features/workflow/decompose_compose.py) | 只写 `decomposed_translation`；达标时不写最终 `suggested_translation` |
+| LLM prompt | `prompts/compose_suggest.py`（新建） | span 术语表 + 目标语语法（空格/介词） |
+| LLM 节点 | `nodes/features/llm/compose_suggest.py`（新建） | 强制使用词片译法，产出自然词组 |
+| 主图连边 | [`builder.py`](terminology-agent/app/graph/pre_translate/builder.py) | `compose_ok` → `compose_suggest` → `assess_route` |
+| 置信度 | [`constants.py`](terminology-agent/app/graph/pre_translate/constants.py) | `LLM_COMPOSE_CAP` 建议 0.88 |
+| 测试 | `test_compose_suggest.py`、`test_pre_translate_graph.py` | mock LLM 返回 `File System` |
+| 注释 | [`after_decompose_compose.py`](terminology-agent/app/graph/pre_translate/edges/after_decompose_compose.py) | 最终译文来自 compose_suggest，非 `FileSystem` |
+
+**验收**：
+- `ADM/3B-文件ADM/3B-系统` → 建议译文 `File System`，检索方式仍为「拆解拼装」
+- coverage 未达标行为不变（整句 LLM）
+- auto_approved 审核意见仍拷贝 reasoning（[`agentPreTranslateBackfill.js`](translation/src/utils/agentPreTranslateBackfill.js)）
+
+**Phase 3c 完成后**：跑 [`verify_adm_data.py`](terminology-agent/devtools/verify_adm_data.py) + admin-proj 工作台 UI 全矩阵复测（todo `p3c-retest-adm-matrix`）。
+
 ---
 
 ### Phase 4 — 矛盾治理 + 前端 + 用户 skill
@@ -789,11 +865,28 @@ DevTools Network：确认 batch body 为 `{ entries, task_name, ... }` 对象，
 
 ---
 
-## 建议执行顺序
+## 建议执行顺序（按依赖重排）
 
-1. **现在可做**：Phase 1（与元词库无硬依赖）
-2. **并行准备**：Phase 2 schema 设计评审；**等你提供 skill** 后启动 Phase 4 细节
-3. **Phase 3** 依赖 Phase 2 建库至少跑通一版
-4. Phase 5 可在 Phase 1 后穿插；Phase 6 最后
+```mermaid
+flowchart TD
+  done1["✓ Phase 1 图合并"]
+  done2["✓ Phase 2 term_word+ETL"]
+  done3a["✓ Phase 3a Grep∥RAG"]
+  done3b["✓ Phase 3b 拆解+coverage MVP"]
+  doneUX["✓ 审核意见拷贝 + ADM 测试基建"]
+  next["→ Phase 3c compose_suggest LLM"]
+  retest["→ Phase 3c admin-proj UI 复测"]
+  p4["Phase 4 矛盾治理 需 skill"]
+  p5["Phase 5 Judge 可与 3c 后并行"]
+  p6["Phase 6 FAISS 最后"]
+  done1 --> done2 --> done3a --> done3b --> doneUX --> next --> retest --> p4
+  done1 --> p5
+  done3b --> p6
+```
 
-确认后可说 **「执行 Phase 1」** 开始编码；或先提供 lexicon skill 以锁定 Phase 4 规则节点。
+1. ~~Phase 1~~ → ~~Phase 2~~ → ~~Phase 3a~~ → ~~Phase 3b MVP~~ → ~~手动测试基建~~（**已完成**）
+2. **现在做**：**Phase 3c P3b+** — 说「执行 Phase 3c」开始编码
+3. **紧接着**：admin-proj 全路径 UI 复测（exact / fuzzy / decomposed / LLM / 审核意见列）
+4. **之后**：等你提供 **lexicon skill** 再启动 Phase 4；Phase 5 可与 3c 后穿插；Phase 6 最后
+
+确认后可说 **「执行 Phase 3c」** 开始 LLM 受约束拼装；或先提供 lexicon skill 以锁定 Phase 4 规则节点。
