@@ -2,3 +2,13 @@ translation-assistant/
 translationtool_ai/
 translation_check/
 
+# 忽略 docker2 特有的demo
+/terminology-agent/
+/translationtoolservice/
+/db/
+/images/
+/ENV_package/
+/node_modules/
+/.codegraph/
+*.png
+review.txt
