@@ -136,6 +136,23 @@
                 placeholder="请输入内容"
               ></a-input>
             </a-form-item>
+            <a-form-item
+              v-if="checkedSearchCondition.includes('customCheckTransLength')"
+              name="customCheckTransLength"
+            >
+              <template #label>
+                <span>长度</span>
+                <a-tooltip title="翻译最大长度过滤：限制最大字节长度小于(不等于)输入的值；注意：中文、俄文等外文1字符=2字节；特殊字符=1字节">
+                  <InfoCircleOutlined style="margin-left: 4px; color: #00000066" />
+                </a-tooltip>
+              </template>
+              <a-input-number
+                v-model:value="search.customCheckTransLength"
+                :min="1"
+                placeholder="请输入最大长度"
+                style="width: 186px"
+              />
+            </a-form-item>
             <!-- <a-form-item v-if="checkedSearchCondition.includes('filter_translate')" label="翻译过滤" name="filter_translate">
               <a-input v-model:value="search.filter_translate" placeholder="请输入内容"></a-input>
             </a-form-item> -->
@@ -1097,6 +1114,7 @@ export default {
         translateState: null,
         translate: "",
         filter_translate: "",
+        customCheckTransLength: null,
         comment: "",
         startTime_: null, // 时间戳格式
         endTime_: null, // 时间戳格式
@@ -1635,7 +1653,9 @@ export default {
         return;
       }
       if (
-        (this.search.translate != "" || this.search.translateState != null) &&
+        (this.search.translate != "" ||
+          this.search.translateState != null ||
+          this.search.customCheckTransLength != null) &&
         !this.search.language
       ) {
         message.info("请选择翻译语种！");
@@ -1658,6 +1678,9 @@ export default {
         update: this.search.update,
         filter_translate: this.search.filter_translate, // 翻译结果过滤
       };
+      if (this.search.customCheckTransLength != null) {
+        data.customCheckTransLength = this.search.customCheckTransLength;
+      }
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:", data);
       if (!this.currentVersion) {
@@ -2200,6 +2223,7 @@ export default {
         translateState: null,
         translate: "",
         filter_translate: "",
+        customCheckTransLength: null,
         comment: "",
         startTime_: null, // 时间戳格式
         endTime_: null, // 时间戳格式
@@ -2362,6 +2386,9 @@ export default {
         update: this.search.update,
         filter_translate: this.search.filter_translate, // 翻译结果过滤
       };
+      if (this.search.customCheckTransLength != null) {
+        data.customCheckTransLength = this.search.customCheckTransLength;
+      }
       if (!this.currentVersion) {
         data.productID =
           this.product.type === "module"
