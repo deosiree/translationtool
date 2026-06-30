@@ -288,6 +288,9 @@ export default {
         };
       } catch (err) {
         console.warn("[PreTranslateModal] Agent API 不可用，回退 Mock", err);
+        message.warning(
+          "Agent 服务不可用，当前结果为本地 Mock 演示数据（非真实 Grep/LLM 结果）"
+        );
         return this.mockAgentPreTranslate();
       }
     },

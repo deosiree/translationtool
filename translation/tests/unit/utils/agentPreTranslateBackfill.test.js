@@ -6,6 +6,7 @@ import { describe, it, expect } from "vitest";
 import {
   applyAgentBackfill,
   resolveAgentSuggestedTranslation,
+  resolveAuditSuggestField,
 } from "@/utils/agentPreTranslateBackfill";
 
 describe("agentPreTranslateBackfill", () => {
@@ -30,6 +31,16 @@ describe("agentPreTranslateBackfill", () => {
     });
   });
 
+  describe("resolveAuditSuggestField", () => {
+    it("english 映射到 englishAuditSuggest", () => {
+      expect(resolveAuditSuggestField("english")).toBe("englishAuditSuggest");
+    });
+
+    it("未知语种返回 undefined", () => {
+      expect(resolveAuditSuggestField("unknown")).toBeUndefined();
+    });
+  });
+
   describe("applyAgentBackfill", () => {
     it("auto_approved 时将 suggested_translation 写入 english 与 translate", () => {
       const item = {
@@ -44,6 +55,36 @@ describe("agentPreTranslateBackfill", () => {
       const result = applyAgentBackfill(item, "english");
       expect(result.english).toBe("Tool name");
       expect(result.translate).toBe("Tool name");
+    });
+
+    it("auto_approved 时将 reasoning 拷贝到 englishAuditSuggest", () => {
+      const item = {
+        id: "e1b",
+        entry: "ADM/R01-RAG精确",
+        agent_meta: {
+          review_status: "auto_approved",
+          suggested_translation: "ADM Exact RAG",
+          reasoning: "基于术语：精确匹配术语库",
+          confidence: 1.0,
+        },
+      };
+      const result = applyAgentBackfill(item, "english");
+      expect(result.englishAuditSuggest).toBe("基于术语：精确匹配术语库");
+    });
+
+    it("needs_human 时不写入审核意见", () => {
+      const item = {
+        id: "e1c",
+        entry: "ADM/T99",
+        agent_meta: {
+          review_status: "needs_human",
+          suggested_translation: "New term",
+          reasoning: "基于LLM机翻：术语库未命中，LLM 机翻生成",
+          confidence: 0.65,
+        },
+      };
+      const result = applyAgentBackfill({ ...item }, "english");
+      expect(result.englishAuditSuggest).toBeUndefined();
     });
 
     it("auto_approved 时将顶层 translate 写入 russian", () => {

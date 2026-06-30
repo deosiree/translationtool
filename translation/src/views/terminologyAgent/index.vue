@@ -66,6 +66,13 @@
           </template>
           <!-- 检索方式 -->
           <template v-if="column.key === 'retrieval_method'">
+            <a-tag
+              v-if="record._mock || record._local"
+              color="orange"
+              style="margin-right: 4px"
+            >
+              本地 Mock
+            </a-tag>
             {{ formatRetrievalMethod(record.retrieval_method) }}
           </template>
           <!-- LLM 解释列 -->
