@@ -1,13 +1,54 @@
 /**
- * 展示列单轨运行时：applyTable / localStorage 偏好 / changeColumn
+ * @module columnTable
+ * @description 展示列单轨运行时：applyTable / localStorage 偏好 / changeColumn
  */
 import { buildCol, buildTable } from "./columnBuilder.js";
 import { defaultSelectionFromCols } from "./colPreset.js";
 
+/** @typedef {Object} ColumnFilterPref applyTable 写入 vm 的列偏好配置 */
+/** @property {string} colPrefName localStorage 键名 */
+/** @property {number} normalWidth 默认列宽 */
+/** @property {boolean} needFilter 是否启用列头筛选行为 */
+
+const TABLE_HOST_MAX_DEPTH = 8;
+
+/**
+ * 从组件实例向上查找含 columnSettingsList 与 columns 的表格 host vm
+ * @param {Object|null|undefined} startVm 起始 Vue 实例（通常为 ColumnFilter.$parent）
+ * @param {number} [maxDepth=8] 最大向上层数
+ * @returns {Object|null} 表格 host vm，未找到则 null
+ */
+export function findTableHost(startVm, maxDepth = TABLE_HOST_MAX_DEPTH) {
+  let current = startVm;
+  let depth = 0;
+  while (current && depth < maxDepth) {
+    if (
+      Array.isArray(current.columnSettingsList) &&
+      Array.isArray(current.columns)
+    ) {
+      return current;
+    }
+    current = current.$parent;
+    depth += 1;
+  }
+  return null;
+}
+
+/**
+ * 返回 columnSettingsList 中 required 列的 value 列表
+ * @param {Array<{ value: string, required?: boolean }>} columnSettingsList
+ * @returns {string[]}
+ */
 export function getRequiredColumnValues(columnSettingsList) {
   return columnSettingsList.filter((c) => c.required).map((c) => c.value);
 }
 
+/**
+ * 合并必选列与用户勾选的可选列，并按 index 排序
+ * @param {string[]} selected 用户勾选的 value 列表（可含可选列）
+ * @param {Array<{ value: string, required?: boolean, index?: number }>} columnSettingsList
+ * @returns {string[]}
+ */
 export function mergeColumnSelection(selected, columnSettingsList) {
   const required = getRequiredColumnValues(columnSettingsList);
   const optionalSelected = (selected || []).filter(
@@ -22,6 +63,12 @@ export function mergeColumnSelection(selected, columnSettingsList) {
   );
 }
 
+/**
+ * 从 merged 勾选列表中剥离必选列，得到仅存 localStorage 的可选部分
+ * @param {string[]} selected
+ * @param {Array<{ value: string, required?: boolean }>} columnSettingsList
+ * @returns {string[]}
+ */
 export function getOptionalColumnSelection(selected, columnSettingsList) {
   const required = new Set(getRequiredColumnValues(columnSettingsList));
   return (selected || []).filter((v) => !required.has(v));
@@ -30,7 +77,10 @@ export function getOptionalColumnSelection(selected, columnSettingsList) {
 export { defaultSelectionFromCols as getDefaultColumnSelection } from "./colPreset.js";
 
 /**
- * 裁剪表格列，确保 columns 与 mergedSelection 一致
+ * 裁剪 vm.columns，保留 mergedSelection 中的列及所有必选列
+ * @param {Object} vm 表格 Vue 实例
+ * @param {string[]} mergedSelection 合并后的勾选 value 列表
+ * @param {Array<{ value: string, required?: boolean }>} columnSettingsList
  */
 export function pruneColumnsToSelection(vm, mergedSelection, columnSettingsList) {
   const requiredValues = new Set(getRequiredColumnValues(columnSettingsList));
@@ -41,7 +91,13 @@ export function pruneColumnsToSelection(vm, mergedSelection, columnSettingsList)
 }
 
 /**
- * 根据用户勾选更新 columns 并保存 localStorage
+ * 根据用户勾选更新 columns、checkedColumn，并写入 localStorage
+ * @param {string} colPrefName localStorage 键名
+ * @param {number} normalWidth 动态增列时的默认宽度
+ * @param {string[]} colPref_strList 用户勾选的 value 列表
+ * @param {Object} vm 表格 Vue 实例（含 columns、checkedColumn、colBuildCtx）
+ * @param {boolean} [needFilter=false] 是否启用列头筛选
+ * @param {Array} [columnSettingsList] 列定义；缺省用 vm.columnSettingsList
  */
 export function changeColumn(
   colPrefName,
@@ -95,7 +151,12 @@ export function changeColumn(
 }
 
 /**
- * 从 localStorage 读取列偏好
+ * 从 localStorage 读取列偏好并应用到 vm
+ * @param {string} colPrefName localStorage 键名
+ * @param {number} normalWidth 列宽
+ * @param {Object} vm 表格 Vue 实例
+ * @param {boolean} [needFilter=false] 是否启用列头筛选
+ * @param {Array} [columnSettingsList] 列定义；缺省用 vm.columnSettingsList
  */
 export function getColPref(
   colPrefName,
@@ -134,16 +195,16 @@ export function getColPref(
 }
 
 /**
- * 表格列单轨初始化
- * @param {Object} vm - Vue 实例
+ * 表格列单轨初始化：buildTable + 读取 localStorage 偏好
+ * @param {Object} vm Vue 实例
  * @param {Object} options
- * @param {import('./colPreset.js').ColDef[]} options.allCols
- * @param {import('./colPreset.js').ColPreset} options.preset
- * @param {Object} options.ctx
- * @param {string} options.colPrefName
- * @param {number} [options.normalWidth]
- * @param {boolean} [options.needFilter]
- * @param {Function} [options.filterCols]
+ * @param {import('./colPreset.js').ColDef[]} options.allCols 列全集
+ * @param {import('./colPreset.js').ColPreset} options.preset 页级 preset
+ * @param {Object} options.ctx buildCol 上下文（pagination、task 等）
+ * @param {string} options.colPrefName localStorage 键名
+ * @param {number} [options.normalWidth=100] 默认列宽
+ * @param {boolean} [options.needFilter=false] 是否启用列头筛选
+ * @param {Function} [options.filterCols] 二次过滤 columnSettingsList 的函数
  */
 export function applyTable(vm, options) {
   const {
@@ -167,5 +228,6 @@ export function applyTable(vm, options) {
   );
   vm.columnSettingsList = columnSettingsList;
   vm.columns = columns;
+  vm.$columnFilterPref = { colPrefName, normalWidth, needFilter };
   getColPref(colPrefName, normalWidth, vm, needFilter, columnSettingsList);
 }

@@ -20,7 +20,9 @@
           :model-value="checkedColumn"
           :columns="columnSettingsList"
           :overlay-style="overlayStyle"
-          @change="changeColumn"
+          col-pref-name="colPref-archiveModal"
+          :normal-width="100"
+          :need-filter="true"
         />
       </div>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
@@ -117,7 +119,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { changeColumn, applyTable } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import {
@@ -375,17 +377,6 @@ export default {
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
       this.clearFilters();
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-archiveModal",
-        100,
-        checkedValue,
-        this,
-        true,
-        this.columnSettingsList
-      );
     },
     // 筛选功能(可封装)
     // 列筛选

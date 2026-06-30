@@ -105,7 +105,9 @@
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             button-size="middle"
-            @change="changeColumn"
+            col-pref-name="colPref-glossary"
+            :normal-width="150"
+            :need-filter="false"
           />
         </div>
       </template>
@@ -236,7 +238,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable, changeColumn } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import {
   onSelectChange,
   onSelect,
@@ -386,17 +388,6 @@ export default {
       this.setTableHeight();
       this.getLanguage();
       this.getSearchClick(); // 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-glossary",
-        150,
-        checkedValue,
-        this,
-        false,
-        this.columnSettingsList
-      );
     },
     // 获取翻译语种
     getLanguage() {

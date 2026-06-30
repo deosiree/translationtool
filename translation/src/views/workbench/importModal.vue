@@ -295,7 +295,9 @@
             :model-value="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
-            @change="changeColumn"
+            col-pref-name="colPref-importModal"
+            :normal-width="100"
+            :need-filter="false"
           />
         </div>
       </div>
@@ -550,7 +552,7 @@ import {
 } from "@/utils/validationUtils";
 import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
-import { changeColumn, applyTable } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
@@ -2122,17 +2124,6 @@ export default {
     },
     createDictClose() {
       this.createDictVisible = false;
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-importModal",
-        100,
-        checkedValue,
-        this,
-        false,
-        this.columnSettingsList
-      );
     },
     // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {

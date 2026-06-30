@@ -45,7 +45,9 @@
                 :model-value="checkedColumn"
                 :columns="columnSettingsList"
                 :overlay-style="overlayStyle"
-                @change="changeColumn"
+                col-pref-name="colPref-redundantEntryCheck"
+                :normal-width="150"
+                :need-filter="true"
               />
         </div>
       </template>
@@ -150,7 +152,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable, changeColumn } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import {
   pageChange,
   onSelectChange,
@@ -421,17 +423,6 @@ export default {
         .finally(() => {
           this.loading = false;
         });
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-redundantEntryCheck",
-        150,
-        checkedValue,
-        this,
-        true,
-        this.columnSettingsList
-      );
     },
     // 全部选择
     selectAllEntry() {

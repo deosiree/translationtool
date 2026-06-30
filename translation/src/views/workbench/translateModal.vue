@@ -79,7 +79,9 @@
                     :model-value="checkedColumn"
                     :columns="columnSettingsList"
                     :overlay-style="overlayStyle"
-                    @change="changeColumn"
+                    col-pref-name="colPref-translateModal"
+                    :normal-width="100"
+                    :need-filter="false"
                   />
                 </a-col>
               </a-row>
@@ -359,7 +361,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { changeColumn, applyTable } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { colsToFieldOptions, resolvePresetCols } from "@/components/ColumnFilter";
@@ -1712,18 +1714,6 @@ export default {
         sourceStr: null,
         replaceStr: null,
       };
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-translateModal",
-        100,
-        checkedValue,
-        this,
-        false,
-        this.columnSettingsList
-      );
-      // console.log("checkedColumn", this.checkedColumn);
     },
   },
   mounted() {

@@ -1,8 +1,14 @@
 /**
- * 列定义 → Ant Design Table columns（单轨 buildCol）
+ * @module columnBuilder
+ * @description 列定义 → Ant Design Table columns（单轨 buildCol）
  */
 import { resolvePresetCols, defaultSelectionFromCols } from "./colPreset.js";
 
+/**
+ * 从 ctx 解析当前语种 transMap（工作台动态列）
+ * @param {Object} [ctx] buildCol 上下文
+ * @returns {Object|null}
+ */
 function getTransMap(ctx) {
   return ctx?.transMap || ctx?.task?.transMap || ctx?.language || null;
 }
@@ -15,12 +21,24 @@ const wbDataIndexResolvers = {
   auditSuggest: (ctx) => getTransMap(ctx)?.auditSuggest || "auditSuggest",
 };
 
+/**
+ * 解析列的 dataIndex（支持工作台语种动态映射）
+ * @param {import('./colPreset.js').ColDef} def 列定义
+ * @param {Object} ctx buildCol 上下文
+ * @returns {string}
+ */
 function resolveDataIndex(def, ctx) {
   if (def.dataIndex) return def.dataIndex;
   const resolver = wbDataIndexResolvers[def.value];
   return resolver ? resolver(ctx) : def.value;
 }
 
+/**
+ * 构建序号列（含分页偏移的 customRender）
+ * @param {import('./colPreset.js').ColDef} def 列定义
+ * @param {Object} ctx 含 pagination 的上下文
+ * @returns {Object} Ant Table 列配置
+ */
 function buildIndexCol(def, ctx) {
   const pagination = ctx?.pagination || { pageSize: 20, current: 1 };
   return {
@@ -36,6 +54,11 @@ function buildIndexCol(def, ctx) {
   };
 }
 
+/**
+ * 为列附加 customFilterDropdown / filters（needFilter 为 true 时）
+ * @param {Object} col Ant Table 列配置
+ * @param {boolean} needFilter 是否启用筛选
+ */
 function applyFilterBehaviors(col, needFilter) {
   if (!needFilter) return;
 
@@ -73,6 +96,12 @@ function applyFilterBehaviors(col, needFilter) {
   }
 }
 
+/**
+ * 按列 value 附加 fixed、sorter、filters 等业务行为
+ * @param {Object} col Ant Table 列配置
+ * @param {import('./colPreset.js').ColDef} def 列定义
+ * @param {boolean} needFilter 是否启用列头筛选
+ */
 function applyValueBehaviors(col, def, needFilter) {
   const v = def.value;
 
@@ -112,11 +141,12 @@ function applyValueBehaviors(col, def, needFilter) {
 }
 
 /**
- * 将列定义转为 Ant Table 列配置
- * @param {import('./colPreset.js').ColDef} def
- * @param {Object} ctx
- * @param {number} [normalWidth]
- * @param {boolean} [needFilter]
+ * 将单列定义转为 Ant Table 列配置
+ * @param {import('./colPreset.js').ColDef} def 列定义
+ * @param {Object} ctx buildCol 上下文
+ * @param {number} [normalWidth=100] 默认列宽
+ * @param {boolean} [needFilter=false] 是否启用列头筛选
+ * @returns {Object} Ant Table 列配置（含 colValue）
  */
 export function buildCol(def, ctx, normalWidth = 100, needFilter = false) {
   if (def.value === "index") {
@@ -140,8 +170,9 @@ export function buildCol(def, ctx, normalWidth = 100, needFilter = false) {
 
 /**
  * 工作台：按当前语种排除与 translate/interpretation 重复的 optional 列
- * @param {import('./colPreset.js').ColDef[]} cols
- * @param {Object} ctx
+ * @param {import('./colPreset.js').ColDef[]} cols 解析后的列定义
+ * @param {Object} ctx 含 task.transMap 的上下文
+ * @returns {import('./colPreset.js').ColDef[]}
  */
 export function filterWbColsForCtx(cols, ctx) {
   const tm = getTransMap(ctx);
@@ -151,12 +182,13 @@ export function filterWbColsForCtx(cols, ctx) {
 
 /**
  * 由 allCols + preset 生成 columnSettingsList 与默认 columns
- * @param {import('./colPreset.js').ColDef[]} allCols
- * @param {import('./colPreset.js').ColPreset} preset
- * @param {Object} ctx
- * @param {number} [normalWidth]
- * @param {boolean} [needFilter]
- * @param {Function} [filterCols]
+ * @param {import('./colPreset.js').ColDef[]} allCols 列全集
+ * @param {import('./colPreset.js').ColPreset} preset 页级 preset
+ * @param {Object} ctx buildCol 上下文
+ * @param {number} [normalWidth=100] 默认列宽
+ * @param {boolean} [needFilter=false] 是否启用列头筛选
+ * @param {Function|null} [filterCols] 二次过滤函数 (resolvedCols, ctx) => cols
+ * @returns {{ columnSettingsList: Array, columns: Array }}
  */
 export function buildTable(
   allCols,
