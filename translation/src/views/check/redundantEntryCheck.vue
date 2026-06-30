@@ -41,22 +41,12 @@
             :selectedRowKeys="selectedRowKeys" @update:selectedRowKeys="selectedRowKeys = $event" :selectedRows="selectedRows"
             @update:selectedRows="selectedRows = $event" :columns="columns" @batchSelectClose="batchSelectClose"
             @batchSelectCancel="batchSelectCancel" @refresh="getCheckNotUseEntry" />
-          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
-            <template #content>
-              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
-                <a-row v-for="item in checkboxList" :key="item.value">
-                  <a-col :span="24">
-                    <a-checkbox :value="item.value">
-                      {{ item.label }}
-                    </a-checkbox>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-button type="primary" size="small"><template #icon>
-                <SettingOutlined />
-              </template>展示列</a-button>
-          </a-popover>
+              <ColumnFilter
+                :model-value="checkedColumn"
+                :columns="columnSettingsList"
+                :overlay-style="overlayStyle"
+                @change="changeColumn"
+              />
         </div>
       </template>
       <!-- 数据展示模板 -->
@@ -145,7 +135,12 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import commonParam, { redundantTableParams } from "@/constants/commonParam.js";
+import commonParam, {
+  redundantTableParams,
+  redundantAllCols,
+  redundantPresets,
+} from "@/constants/commonParam.js";
+import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import {
   clickInput,
   setModalAriaHidden,
@@ -154,9 +149,8 @@ import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  getColPref,
-  changeColumn,
 } from "@/utils/tableUtils";
+import { applyTable, changeColumn } from "@/components/ColumnFilter";
 import {
   pageChange,
   onSelectChange,
@@ -170,7 +164,7 @@ export default {
     SearchBox,
     DataBox,
     BatchSelectModal,
-    SettingOutlined,
+    ColumnFilter,
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
@@ -194,95 +188,7 @@ export default {
         pageIndex: 1,
         pageSize: 20,
       },
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 80,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0.1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 160,
-          resizable: true,
-          index: 1,
-        },
-        {
-          title: "词条来源",
-          dataIndex: "entrySource",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 2,
-        },
-        {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 3,
-        },
-        {
-          title: "导入类型",
-          dataIndex: "importType",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 4,
-        },
-        {
-          title: "tag",
-          dataIndex: "tag",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 5,
-        },
-        {
-          title: "修改人",
-          dataIndex: "update",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 6,
-        },
-        {
-          title: "修改时间",
-          dataIndex: "updateTime",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 7,
-        },
-        // {
-        //   title: "upgrade",
-        //   dataIndex: "upgrade",
-        //   align: "center",
-        //   width: 150,
-        //   resizable: true,
-        //   index: 8,
-        // },
-        {
-          title: "写入类型",
-          dataIndex: "writeType",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 9,
-        },
-      ],
+      columns: [],
       dataSource: [], // 表格数据
       i18nOptions: [], // i18n状态
       classfyIDs: Object.values(commonParam.departmentMap).map((dept) => ({
@@ -315,9 +221,9 @@ export default {
       },
       pageChangeSearch: {},
       hasRedundantRls: false, // 是否有冗余词条的结果
-      overlayStyle: redundantTableParams.overlayStyle, // 展示列样式
-      checkboxList: redundantTableParams.checkboxList, // 展示列可选的值
-      checkedColumn: [], // 展示列已选的值
+      overlayStyle: redundantTableParams.overlayStyle,
+      columnSettingsList: [],
+      checkedColumn: [],
       batchSelectVisible: false,
       translateStateList: [
         ...commonParam.langTranslateStateList,
@@ -330,7 +236,14 @@ export default {
     this.$nextTick(() => {
       this.init();
       // 读取本地存储的用户偏好
-      getColPref("colPref-redundantEntryCheck", 150, this, true);
+      applyTable(this, {
+        allCols: redundantAllCols,
+        preset: redundantPresets.redundantCheck,
+        ctx: { pagination: this.pagination },
+        colPrefName: "colPref-redundantEntryCheck",
+        normalWidth: 150,
+        needFilter: true,
+      });
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -516,7 +429,8 @@ export default {
         150,
         checkedValue,
         this,
-        true
+        true,
+        this.columnSettingsList
       );
     },
     // 全部选择

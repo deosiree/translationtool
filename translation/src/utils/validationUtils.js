@@ -4,19 +4,17 @@
  */
 import { cloneDeep } from 'lodash';
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
-import { entryParams } from "@/constants/commonParam.js";
+import { entryAllCols } from "@/constants/commonParam.js";
 import { mapValueToLabel } from "@/utils/dataStructureUtils";
 
 /**
  * 根据列 value 获取用户友好列名（label）
- * - 数据来源：constants/commonParam.js -> entryParams.checkboxList（即 entry_checkboxList）
- * - 找不到时回退为 value，避免出现空列名
  * @param {string} value
  * @returns {string}
  */
 export function getColumnLabelByValue(value) {
   if (!value) return "";
-  const label = mapValueToLabel([value], entryParams.checkboxList)[0];
+  const label = mapValueToLabel([value], entryAllCols)[0];
   return label || value;
 }
 

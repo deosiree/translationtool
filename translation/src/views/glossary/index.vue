@@ -100,29 +100,13 @@
             v-model:batchSelectVisible="batchSelectVisible"
           />
 
-          <a-popover
-            trigger="click"
-            placement="leftTop"
-            :overlayStyle="overlayStyle"
-          >
-            <template #content>
-              <a-checkbox-group
-                v-model:value="checkedColumn"
-                @change="changeColumn"
-              >
-                <a-row v-for="item in checkboxList" :key="item.value">
-                  <a-col :span="24">
-                    <a-checkbox :value="item.value">
-                      {{ item.label }}
-                    </a-checkbox>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-button type="primary" size="middle"
-              ><template #icon> <SettingOutlined /> </template>展示列</a-button
-            >
-          </a-popover>
+          <ColumnFilter
+            :model-value="checkedColumn"
+            :columns="columnSettingsList"
+            :overlay-style="overlayStyle"
+            button-size="middle"
+            @change="changeColumn"
+          />
         </div>
       </template>
       <template v-slot:data>
@@ -251,9 +235,8 @@ import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  getColPref,
-  changeColumn,
 } from "@/utils/tableUtils";
+import { applyTable, changeColumn } from "@/components/ColumnFilter";
 import {
   onSelectChange,
   onSelect,
@@ -262,7 +245,12 @@ import {
 } from "@/utils/selectionUtils";
 import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
 import { getSearch } from "@/utils/requestUtils";
-import commonParam, { glossaryParams } from "@/constants/commonParam.js";
+import commonParam, {
+  glossaryParams,
+  glossaryAllCols,
+  glossaryPresets,
+} from "@/constants/commonParam.js";
+import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
@@ -274,6 +262,7 @@ export default {
     TransStateBadge,
     RelationModal,
     Input,
+    ColumnFilter,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -312,115 +301,7 @@ export default {
       // tableHeight: { x: "100%", y: 0 },
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 80,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0.1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 150,
-          fixed: "left",
-          resizable: true,
-          index: 1,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
-          title: "翻译类型",
-          dataIndex: "type",
-          align: "center",
-          width: 230,
-          resizable: true,
-          index: 3,
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 4,
-        },
-        // {
-        //   title: "翻译字符数",
-        //   dataIndex: "charLength",
-        //   align: "center",
-        //   width: 150,
-        //   index: 5,
-        // },
-        {
-          title: "可见范围",
-          dataIndex: "visualRange",
-          align: "center",
-          width: 150,
-          index: 6,
-        },
-        {
-          title: "词条审核员",
-          dataIndex: "entryAuditor",
-          align: "center",
-          width: 150,
-          index: 7,
-        },
-        // {
-        //   title: "公开状态",
-        //   dataIndex: "publicState",
-        //   align: "center",
-        //   width: 150,
-        //   index: 8,
-        // },
-        // {
-        //   title: "最大限制长度",
-        //   dataIndex: "maxLength",
-        //   align: "center",
-        //   width: 150,
-        //   index: 9,
-        // },
-        // {
-        //   title: "审核意见",
-        //   dataIndex: "auditSuggest",
-        //   align: "center",
-        //   width: 230,
-        //   ellipsis: true,
-        //   resizable: true,
-        //   index: 10,
-        // },
-        // {
-        //   title: "备注",
-        //   dataIndex: "remark",
-        //   align: "center",
-        //   width: 200,
-        //   index: 11,
-        // },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          align: "center",
-          width: 150,
-          fixed: "right",
-          index: 101,
-        },
-      ],
+      columns: [],
       dataSource: [],
       selectedRowKeys: [],
       selectedRows: [],
@@ -438,9 +319,9 @@ export default {
       },
       relationVisible: false,
       relationData: [],
-      overlayStyle: glossaryParams.overlayStyle, // 展示列样式
-      checkboxList: glossaryParams.checkboxList, // 展示列可选的值
-      checkedColumn: [], // 展示列已选的值
+      overlayStyle: glossaryParams.overlayStyle,
+      columnSettingsList: [],
+      checkedColumn: [],
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
       isCheckSameEntry: false,
@@ -464,7 +345,14 @@ export default {
 
       this.init();
       // 读取本地存储的用户偏好
-      getColPref("colPref-glossary", 150, this);
+      applyTable(this, {
+        allCols: glossaryAllCols,
+        preset: glossaryPresets.glossary,
+        ctx: { pagination: this.pagination },
+        colPrefName: "colPref-glossary",
+        normalWidth: 150,
+        needFilter: false,
+      });
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -507,7 +395,7 @@ export default {
         checkedValue,
         this,
         false,
-        glossaryParams.checkboxList
+        this.columnSettingsList
       );
     },
     // 获取翻译语种

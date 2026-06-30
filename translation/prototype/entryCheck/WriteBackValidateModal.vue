@@ -224,7 +224,7 @@ import { h, resolveComponent } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { SettingOutlined, DeleteOutlined, CaretDownOutlined, CaretRightOutlined } from '@ant-design/icons-vue'
 import CustomModal from '@/components/modal/index.vue'
-import { changeColumn, getColPref } from '@/utils/tableUtils'
+import { changeColumn, getColPref } from '@/components/ColumnFilter'
 
 // ==================== 辅助函数 ====================
 function buildChildSignature(child) {

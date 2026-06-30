@@ -16,22 +16,12 @@
         <span style="margin-left:10px">翻译状态：</span>
         <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-        <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
-          <template #content>
-            <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
-              <a-row v-for="item in checkboxList" :key="item.value">
-                <a-col :span="24">
-                  <a-checkbox :value="item.value">
-                    {{ item.label }}
-                  </a-checkbox>
-                </a-col>
-              </a-row>
-            </a-checkbox-group>
-          </template>
-          <a-button type="primary" size="small" style="margin-left:auto"><template #icon>
-              <SettingOutlined />
-            </template>展示列</a-button>
-        </a-popover>
+        <ColumnFilter
+          :model-value="checkedColumn"
+          :columns="columnSettingsList"
+          :overlay-style="overlayStyle"
+          @change="changeColumn"
+        />
       </div>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
         :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :expandIconColumnIndex="2" :customRow="customRow" :row-selection="{ 
@@ -127,14 +117,16 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
+import { changeColumn, applyTable } from "@/components/ColumnFilter";
+import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
+import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import {
-  getColPref,
-  changeColumn,
   handleSearch,
   handleReset,
   clearFilters,
   handleTableChange,
 } from "@/utils/tableUtils";
+import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { selectAllEntry, clearAllEntry } from "@/utils/selectionUtils";
 import { defineComponent, ref, createVNode } from "vue";
@@ -144,7 +136,6 @@ export default {
     CloseOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
-    SettingOutlined,
     SearchOutlined,
     ExclamationCircleOutlined,
     CustomModal,
@@ -153,6 +144,7 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
+    ColumnFilter,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
@@ -196,6 +188,7 @@ export default {
       translateState: null,
       selectedRowIndex: null,
       overlayStyle: workbenchParams.overlayStyle, // 展示列样式
+      columnSettingsList: [],
       checkboxList: [], // 展示列可选的值
       checkedColumn: [], // 展示列已选的值
       translateStateList: [
@@ -238,138 +231,18 @@ export default {
         if (newVal) {
           this.$nextTick(() => {
             // 1.设置翻译列展示的语种
-            // 移除翻译列和固定列对应的展示项
-            this.checkboxList = commonParam.checkboxList.filter(
-              (item) =>
-                ![
-                  "isExist",
-                  "translateState",
-                  "entryState",
-                  "entry",
-                  "translate",
-                  this.task.transMap.value,
-                  this.task.transMap.interpretation,
-                ].includes(item.value)
-            );
-            // 赋值：当前列的默认值
-            this.columns = [
-              {
-                title: "序号",
-                dataIndex: "index",
-                width: 50,
-                customRender: (text, record, index, column) => {
-                  return (
-                    text.index +
-                    1 +
-                    this.pagination.pageSize * (this.pagination.current - 1)
-                  );
-                },
-                fixed: "left",
-                index: 0,
+            applyTable(this, {
+              allCols: wbAllCols,
+              preset: wbPresets.archiveModal,
+              ctx: {
+                task: this.task,
+                transMap: this.task.transMap,
+                pagination: this.pagination,
               },
-              {
-                title: "词条",
-                dataIndex: "entry",
-                align: "center",
-                width: 200,
-                resizable: true,
-                fixed: "left",
-                index: 1,
-                // 添加 sorter 属性实现排序功能
-                sorter: (a, b) => a.entry.localeCompare(b.entry),
-                sortDirections: ["ascend", "descend"],
-              },
-              {
-                title: "存在状态",
-                dataIndex: "isExist",
-                align: "center",
-                width: 100,
-                resizable: true,
-                // fixed: "left",
-                index: 2,
-                filteredValue: null,
-                filters: [
-                  { text: "已存在", value: 1 },
-                  { text: "新建", value: 0 },
-                ],
-                onFilter: (value, record) => record.isExist === value,
-              },
-              {
-                title: "翻译状态",
-                dataIndex: "translateState",
-                align: "center",
-                width: 100,
-                resizable: true,
-                // fixed: "left",
-                index: 3,
-              },
-              {
-                title: "翻译",
-                dataIndex: "translate",
-                align: "center",
-                width: 200,
-                resizable: true,
-                index: 5,
-                // 添加 sorter 属性实现排序功能
-                sorter: (a, b) => a.entry.localeCompare(b.entry),
-                sortDirections: ["ascend", "descend"],
-              },
-              {
-                title: "tag",
-                dataIndex: "tag",
-                align: "center",
-                width: 100,
-                resizable: true,
-                index: 6,
-              },
-              {
-                title: "comment",
-                dataIndex: "comment",
-                align: "center",
-                width: 100,
-                resizable: true,
-                index: 7,
-              },
-              {
-                title: "abbr",
-                dataIndex: "abbr",
-                align: "center",
-                width: 100,
-                resizable: true,
-                index: 14,
-              },
-              {
-                title: "审核意见",
-                dataIndex: "auditSuggess", // 动态的
-                // dataIndex: "this.languageList.auditSuggest", // 翻译、翻译审核都是动态的
-                align: "center",
-                width: 100,
-                resizable: true,
-                fixed: "right",
-                index: 99,
-              },
-              {
-                title: "词条状态",
-                dataIndex: "entryState",
-                align: "center",
-                width: 100,
-                resizable: true,
-                fixed: "right",
-                index: 100,
-              },
-            ];
-            // 读取本地存储的用户偏好
-            getColPref("colPref-archiveModal", 100, this, true);
-            // 设置翻译列展示的语种
-            this.columns.forEach((item) => {
-              if (item.title === "翻译") {
-                item.dataIndex =
-                  commonParam.languageMap[this.task.translateType].value;
-              }
-              if (item.title === "翻译状态") {
-                item.dataIndex =
-                  commonParam.languageMap[this.task.translateType].state;
-              }
+              colPrefName: "colPref-archiveModal",
+              normalWidth: 100,
+              needFilter: true,
+              filterCols: filterWbColsForCtx,
             });
           });
         }
@@ -505,7 +378,14 @@ export default {
     },
     // 展示列切换并保存用户偏好
     changeColumn(checkedValue) {
-      changeColumn("colPref-archiveModal", 100, checkedValue, this, true);
+      changeColumn(
+        "colPref-archiveModal",
+        100,
+        checkedValue,
+        this,
+        true,
+        this.columnSettingsList
+      );
     },
     // 筛选功能(可封装)
     // 列筛选

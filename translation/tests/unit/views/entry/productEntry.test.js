@@ -6,12 +6,17 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ProductEntry from '@/views/entry/productEntry.vue'
-import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
-import { message } from 'ant-design-vue'
+import { entryAllCols, entryPresets } from '@/constants/commonParam.js'
+import { resolvePresetCols } from '@/components/ColumnFilter/colPreset.js'
 
+const applyTableMock = vi.hoisted(() => vi.fn())
+const changeColumnMock = vi.hoisted(() => vi.fn())
 const getEntryByClassfyMock = vi.hoisted(() =>
   vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } }))
 )
+
+import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
+import { message } from 'ant-design-vue'
 
 vi.mock('@/http/api/entryManage', () => ({
   searchEntryInfo: vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } })),
@@ -58,8 +63,16 @@ vi.mock('@/http/api/check', () => ({
 
 vi.mock('@/utils/tableUtils', () => ({
   setTableHeight: vi.fn(),
-  getColPref: vi.fn(),
-  changeColumn: vi.fn(),
+  handleSearch: vi.fn(),
+  handleReset: vi.fn(),
+  clearFilters: vi.fn(),
+  handleTableChange: vi.fn(),
+}))
+
+vi.mock('@/components/ColumnFilter', () => ({
+  applyTable: applyTableMock,
+  changeColumn: changeColumnMock,
+  mergeColumnSelection: (selected, list) => selected,
 }))
 
 vi.mock('ant-design-vue', () => ({
@@ -154,6 +167,46 @@ describe('ProductEntry - user 属性重构测试', () => {
 
       expect(wrapper.vm.$store.state.user).toBeNull()
     })
+  })
+
+  it('created 与 mounted 时应调用 applyTable 初始化展示列', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    await wrapper.vm.$nextTick()
+    expect(applyTableMock).toHaveBeenCalledTimes(2)
+    expect(applyTableMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        allCols: entryAllCols,
+        preset: entryPresets.productEntry,
+        colPrefName: 'colPref-productEntry',
+      })
+    )
+  })
+
+  it('changeColumn 应传入 columnSettingsList', () => {
+    wrapper = mountProductEntry()
+    applyTableMock.mockClear()
+    wrapper.vm.columnSettingsList = resolvePresetCols(
+      entryPresets.productEntry,
+      entryAllCols
+    )
+    wrapper.vm.changeColumn(['index', 'entry', 'operation'])
+    expect(changeColumnMock).toHaveBeenCalledWith(
+      'colPref-productEntry',
+      200,
+      ['index', 'entry', 'operation'],
+      wrapper.vm,
+      false,
+      wrapper.vm.columnSettingsList
+    )
+  })
+
+  it('applyTable 后 columnSettingsList 应包含必选列定义', () => {
+    const requiredValues = resolvePresetCols(entryPresets.productEntry, entryAllCols)
+      .filter((item) => item.required)
+      .map((item) => item.value)
+    expect(requiredValues).toEqual(['index', 'entry', 'operation'])
   })
 })
 

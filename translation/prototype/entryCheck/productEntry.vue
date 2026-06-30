@@ -484,14 +484,13 @@ import {
   clearAllEntry,
 } from "@/utils/selectionUtils";
 import {
-  getColPref,
-  changeColumn,
   handleSearch,
   handleReset,
   clearFilters,
   handleTableChange,
   setTableHeight,
 } from "@/utils/tableUtils";
+import { getColPref, changeColumn } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import {

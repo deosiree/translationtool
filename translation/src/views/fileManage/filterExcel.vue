@@ -301,38 +301,13 @@
           >
             取消删除
           </a-button>
-          <a-popover
-            trigger="click"
-            placement="leftTop"
-            :overlayStyle="overlayStyle"
-          >
-            <template #content>
-              <a-checkbox-group
-                v-model:value="checkedColumn"
-                @change="changeColumn"
-              >
-                <a-row
-                  v-for="item in checkboxList"
-                  :key="item.value"
-                >
-                  <a-col :span="24">
-                    <a-checkbox :value="item.value">
-                      {{ item.label }}
-                    </a-checkbox>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-button
-              type="primary"
-              size="middle"
-            >
-              <template #icon>
-                <SettingOutlined />
-              </template>
-              展示列
-            </a-button>
-          </a-popover>
+          <ColumnFilter
+            :model-value="checkedColumn"
+            :columns="columnSettingsList"
+            :overlay-style="overlayStyle"
+            button-size="middle"
+            @change="changeColumn"
+          />
         </div>
       </template>
       <template v-slot:data>
@@ -502,7 +477,7 @@ import {
   UploadOutlined,
 } from "@ant-design/icons-vue";
 import { getLanguage } from "@/http/api/translate";
-import commonParam, { entryParams } from "@/constants/commonParam.js";
+import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { entryReadExcel, exportDeduplicatedData } from "@/http/api/entryManage";
 import {
   onSelectChange,
@@ -513,11 +488,11 @@ import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  getColPref,
-  changeColumn,
 } from "@/utils/tableUtils";
+import { applyTable, changeColumn } from "@/components/ColumnFilter";
 import { getSearch } from "@/utils/requestUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
+import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import { defineComponent, ref } from "vue";
 
 export default {
@@ -527,7 +502,6 @@ export default {
     ResetButton,
     ExportOutlined,
     ImportOutlined,
-    SettingOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
     UploadOutlined,
@@ -542,13 +516,12 @@ export default {
     BackFillModal_v2,
     BackFillModal_v1_5,
     ExportButton,
+    ColumnFilter,
   },
   props: {
     boxHeight: 0,
   },
   data() {
-    // 从本地缓存读取展示列偏好
-    const cachedDisplayColumn = localStorage.getItem("colPref-fileManage");
     const cachedSearchCondition = localStorage.getItem(
       "searchCondition-fileManage"
     );
@@ -587,92 +560,10 @@ export default {
       dataHeight: 200,
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 50,
-          customRender: (text, _record, _index, _column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 160,
-          resizable: true,
-          fixed: "left",
-          index: 2,
-          // // 添加筛选功能(但是查询做了分页，只能获得当前页的数据)
-          // customFilterDropdown: true, // 使用自定义筛选下拉框
-          // filteredValue: null, // 初始状态下没有筛选条件
-          // onFilter: (filterValue, record) => {
-          //   // 精确匹配，不忽略大小写
-          //   return record.entry.toString() === filterValue;
-          // },
-        },
-        {
-          title: "comment",
-          dataIndex: "comment",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 4,
-        },
-        {
-          title: "英文翻译",
-          dataIndex: "english",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 12,
-        },
-        {
-          title: "俄文翻译",
-          dataIndex: "russian",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 15,
-        },
-        {
-          title: "西文翻译",
-          dataIndex: "spanish",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 18,
-        },
-        {
-          title: "法文翻译",
-          dataIndex: "french",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 21,
-        },
-        // {
-        //   title: "操作",
-        //   dataIndex: "operation",
-        //   align: "center",
-        //   width: 40,
-        //   fixed: "right",
-        //   index: 100,
-        // },
-      ],
-      overlayStyle: entryParams.overlayStyle, // 展示列样式
-      checkboxList: entryParams.checkboxList, // 展示列可选的值
-      checkedColumn: cachedDisplayColumn
-        ? JSON.parse(cachedDisplayColumn).displayColumn.split(",")
-        : entryParams.defaultCheckedColumn, // 展示列已选的值
+      columns: [],
+      overlayStyle: entryParams.overlayStyle,
+      columnSettingsList: [],
+      checkedColumn: [],
       dataSource: [],
       selectedRowKeys: [],
       selectedRows: [],
@@ -799,7 +690,14 @@ export default {
       this.dataSource = [];
       this.setTableHeight();
       // this.getSearchClick();
-      getColPref("colPref-fileManage", 150, this);
+      applyTable(this, {
+        allCols: entryAllCols,
+        preset: entryPresets.filterExcel,
+        ctx: { pagination: this.pagination },
+        colPrefName: "colPref-fileManage",
+        normalWidth: 150,
+        needFilter: false,
+      });
     },
     // 获取翻译语种
     getLanguage() {
@@ -816,7 +714,7 @@ export default {
         checkedValue,
         this,
         false,
-        this.checkboxList
+        this.columnSettingsList
       );
       // console.log("修改展示列,并保存用户偏好", this.columns, this.checkedColumn, this.checkboxList);
     },
