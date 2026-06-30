@@ -701,7 +701,7 @@ import {
   useRefRules,
 } from "@/utils/validationUtils";
 import { interpretation2value } from "@/utils/translationUtils";
-import { getColPref, changeColumn } from "@/utils/tableUtils";
+import { getColPref, changeColumn } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
 import { handleAsyncRequest } from "@/utils/requestUtils";

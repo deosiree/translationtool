@@ -198,7 +198,7 @@ import {
 } from "@/http/api/userPartiality";
 import commonParam, { entryParams } from "@/constants/commonParam.js";
 import { pageChange } from "@/utils/selectionUtils";
-import { getColPref } from "@/utils/tableUtils";
+import { getColPref } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { cloneDeep } from "lodash-es";
 import { buildMockValidationResult } from "./mockUtils";

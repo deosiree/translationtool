@@ -175,9 +175,9 @@ import {
   queryUserPartiality,
   updateUserPartiality,
 } from "@/http/api/userPartiality";
-import commonParam, { entryParams } from "@/constants/commonParam.js";
+import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { pageChange } from "@/utils/selectionUtils";
-import { getColPref } from "@/utils/tableUtils";
+import { applyTable } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { cloneDeep } from "lodash-es";
 export default {
@@ -388,61 +388,14 @@ export default {
       async handler(newVal) {
         // console.log("visible changed:", newVal);
         if (newVal) {
-          // console.log("columns0:", this.columns);
-          this.columns = [
-            {
-              title: "序号",
-              dataIndex: "index",
-              align: "center",
-              width: 50,
-              customRender: (text, record, index, column) => {
-                return (
-                  text.index +
-                  1 +
-                  this.pagination.pageSize * (this.pagination.current - 1)
-                );
-              },
-              fixed: "left",
-              resizable: true,
-
-              index: 0,
-            },
-            {
-              title: "词条状态",
-              dataIndex: "entryState",
-              align: "center",
-              width: 100,
-              fixed: "left",
-              resizable: true,
-
-              index: 1,
-            },
-            {
-              title: "词条",
-              dataIndex: "entry",
-              align: "center",
-              width: 100,
-              resizable: true,
-              index: 2,
-            },
-            {
-              title: "操作",
-              dataIndex: "operation",
-              align: "center",
-              width: 50,
-              fixed: "right",
-              resizable: true,
-              index: 101,
-            },
-          ];
-          // console.log("columns1:", this.columns);
-          try {
-            // 读取本地存储的用户偏好
-            await getColPref("colPref-productEntry", 100, this); // 等待 getColPref 执行完成
-            // console.log("columns2:", this.columns);
-          } catch (error) {
-            console.error("获取列偏好失败:", error);
-          }
+          applyTable(this, {
+            allCols: entryAllCols,
+            preset: entryPresets.createVersion,
+            ctx: { pagination: this.pagination },
+            colPrefName: "colPref-productEntry",
+            normalWidth: 100,
+            needFilter: false,
+          });
         }
       },
       immediate: false, // 不立即执行

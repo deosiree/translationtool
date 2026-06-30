@@ -41,8 +41,8 @@ import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
 import { pageChange } from "@/utils/selectionUtils";
-import { getColPref } from "@/utils/tableUtils";
-import { glossaryParams } from "@/constants/commonParam.js";
+import { applyTable } from "@/components/ColumnFilter";
+import { glossaryParams, glossaryAllCols, glossaryPresets } from "@/constants/commonParam.js";
 export default {
   components: {
     CustomModal,
@@ -103,57 +103,14 @@ export default {
       async handler(newVal) {
         // console.log("visible changed:", newVal);
         if (newVal) {
-          console.log("columns0:", this.columns);
-          this.columns = [
-            {
-              title: "序号",
-              dataIndex: "index",
-              align: "center",
-              width: 50,
-              customRender: (text, record, index, column) => {
-                return (
-                  text.index +
-                  1 +
-                  this.pagination.pageSize * (this.pagination.current - 1)
-                );
-              },
-              fixed: "left",
-              resizable: true,
-              index: 0,
-            },
-            {
-              title: "词条",
-              dataIndex: "entry",
-              align: "center",
-              width: 100,
-              fixed: "left",
-              resizable: true,
-              index: 1,
-            },
-            {
-              title: "操作",
-              dataIndex: "operation",
-              align: "center",
-              width: 50,
-              fixed: "right",
-              resizable: true,
-              index: 101,
-            },
-          ];
-          // console.log("columns1:", this.columns);
-          try {
-            // 读取本地存储的用户偏好
-            await getColPref(
-              "colPref-glossary",
-              100,
-              this,
-              false,
-              glossaryParams
-            ); // 等待 getColPref 执行完成
-            // console.log("columns2:", this.columns);
-          } catch (error) {
-            console.error("获取列偏好失败:", error);
-          }
+          applyTable(this, {
+            allCols: glossaryAllCols,
+            preset: glossaryPresets.glossary,
+            ctx: { pagination: this.pagination },
+            colPrefName: "colPref-glossary",
+            normalWidth: 100,
+            needFilter: false,
+          });
         }
       },
       immediate: false, // 不立即执行

@@ -338,9 +338,8 @@ import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  getColPref,
-  changeColumn,
 } from "@/utils/tableUtils";
+import { getColPref, changeColumn } from "@/components/ColumnFilter";
 import { pageChange } from "@/utils/selectionUtils";
 import { encodeParams } from "@/utils/requestUtils";
 import {

@@ -443,34 +443,12 @@
             @importSuccess="refreshTable"
           />
 
-          <a-popover
-            trigger="click"
-            placement="leftTop"
-            :overlayStyle="overlayStyle"
-          >
-            <template #content>
-              <a-checkbox-group
-                v-model:value="checkedColumn"
-                @change="changeColumn"
-              >
-                <a-row
-                  v-for="item in checkboxList"
-                  :key="item.value"
-                >
-                  <a-col :span="24">
-                    <a-checkbox :value="item.value">
-                      {{ item.label }}
-                    </a-checkbox>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-button
-              type="primary"
-              size="small"
-              ><template #icon> <SettingOutlined /> </template>展示列</a-button
-            >
-          </a-popover>
+          <ColumnFilter
+            :model-value="checkedColumn"
+            :columns="columnSettingsList"
+            :overlay-style="overlayStyle"
+            @change="changeColumn"
+          />
         </div>
       </template>
       <template v-slot:data>
@@ -1007,8 +985,11 @@ import {
   clearAllEntry,
 } from "@/utils/selectionUtils";
 import {
-  getColPref,
   changeColumn,
+  applyTable,
+  mergeColumnSelection,
+} from "@/components/ColumnFilter";
+import {
   handleSearch,
   handleReset,
   clearFilters,
@@ -1025,8 +1006,9 @@ import {
   useRefRules,
   openSetEdit,
 } from "@/utils/validationUtils";
-import commonParam, { entryParams } from "@/constants/commonParam.js";
+import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
+import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 export default {
   components: {
     CustomModal,
@@ -1049,6 +1031,7 @@ export default {
     CreateVersionModal,
     SecondClassify,
     Dictionary,
+    ColumnFilter,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -1070,8 +1053,6 @@ export default {
     productEdit: false,
   },
   data() {
-    // 从本地缓存读取展示列偏好
-    const cachedDisplayColumn = localStorage.getItem("colPref-productEntry");
     const cachedSearchCondition = localStorage.getItem(
       "searchCondition-productEntry"
     );
@@ -1128,121 +1109,7 @@ export default {
       // tableHeight: { x: "100%", y: 0 },
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 50,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0,
-        },
-        {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 130,
-          resizable: true,
-          fixed: "left",
-          index: 1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 160,
-          resizable: true,
-          fixed: "left",
-          index: 2,
-          // // 添加筛选功能(但是查询做了分页，只能获得当前页的数据)
-          // customFilterDropdown: true, // 使用自定义筛选下拉框
-          // filteredValue: null, // 初始状态下没有筛选条件
-          // onFilter: (filterValue, record) => {
-          //   // 精确匹配，不忽略大小写
-          //   return record.entry.toString() === filterValue;
-          // },
-        },
-        {
-          title: "tag",
-          dataIndex: "tag",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 3,
-        },
-        {
-          title: "comment",
-          dataIndex: "comment",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 4,
-        },
-        {
-          title: "词条版本",
-          dataIndex: "entryVersion",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 5,
-        },
-        {
-          title: "英文翻译",
-          dataIndex: "english",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 12,
-        },
-        {
-          title: "俄文翻译",
-          dataIndex: "russian",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 15,
-        },
-        {
-          title: "西文翻译",
-          dataIndex: "spanish",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 18,
-        },
-        {
-          title: "法文翻译",
-          dataIndex: "french",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 21,
-        },
-        {
-          title: "abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 150,
-          fixed: "right",
-          resizable: true,
-          index: 99,
-        },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          align: "center",
-          width: 150,
-          fixed: "right",
-          index: 100,
-        },
-      ],
+      columns: [],
       dataSource: [],
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
@@ -1253,11 +1120,9 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      overlayStyle: entryParams.overlayStyle, // 展示列样式
-      checkboxList: entryParams.checkboxList, // 展示列可选的值
-      checkedColumn: cachedDisplayColumn
-        ? JSON.parse(cachedDisplayColumn).displayColumn.split(",")
-        : [], // 展示列已选的值
+      overlayStyle: entryParams.overlayStyle,
+      columnSettingsList: [],
+      checkedColumn: [],
       inputColumn: entryParams.inputColumn,
       translateColumn: entryParams.translateColumn,
       commonParam: commonParam,
@@ -1307,9 +1172,12 @@ export default {
       ipOptions: [],
     };
   },
-  created() {},
+  created() {
+    this.applyColumnPreference();
+  },
   mounted() {
     this.$nextTick(() => {
+      this.applyColumnPreference();
       this.user = this.$store.state.user;
       if (this.$currentDepartment) {
         this.search.entryState = this.$currentDepartment.ops.has("entryState3")
@@ -1324,8 +1192,6 @@ export default {
       this.product = this.currentProduct;
 
       this.getLanguage();
-      // 读取本地存储的用户偏好
-      getColPref("colPref-productEntry", 200, this);
     });
   },
   watch: {
@@ -2216,16 +2082,27 @@ export default {
     },
     // 展示条件切换并保存用户偏好
     changeSearchCondition(checkedValue) {
-      changeColumn(
-        "searchCondition-productEntry",
-        200,
+      this.checkedSearchCondition = mergeColumnSelection(
         checkedValue,
-        this,
-        false,
-        entryParams.searchConditionList
+        this.searchConditionList
+      );
+      localStorage.setItem(
+        "searchCondition-productEntry",
+        JSON.stringify({
+          displayColumn: this.checkedSearchCondition.join(","),
+        })
       );
     },
-    // 展示列切换并保存用户偏好
+    applyColumnPreference() {
+      applyTable(this, {
+        allCols: entryAllCols,
+        preset: entryPresets.productEntry,
+        ctx: { pagination: this.pagination },
+        colPrefName: "colPref-productEntry",
+        normalWidth: 200,
+        needFilter: false,
+      });
+    },
     changeColumn(checkedValue) {
       changeColumn(
         "colPref-productEntry",
@@ -2233,7 +2110,7 @@ export default {
         checkedValue,
         this,
         false,
-        commonParam.checkboxList
+        this.columnSettingsList
       );
       // this.checkedColumn = checkedValue;
 

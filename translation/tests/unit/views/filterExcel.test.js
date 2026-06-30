@@ -55,7 +55,21 @@ vi.mock('@/utils/domUtils', () => ({
   createDragModalDirective: vi.fn(() => ({}))
 }))
 
+vi.mock('@/components/ColumnFilter', () => ({
+  applyTable: vi.fn(),
+  changeColumn: vi.fn(),
+}))
+
 vi.mock('@/constants/commonParam.js', () => {
+  const entryAllCols = [
+    { label: '序号', value: 'index', index: 0, required: true },
+    { label: '词条', value: 'entry', index: 2, required: true },
+    { label: 'comment', value: 'comment', index: 4, visible: true },
+    { label: '操作', value: 'operation', index: 100, required: true },
+  ]
+  const entryPresets = {
+    filterExcel: { ovrd: [], defaults: { visible: false } },
+  }
   const entryParams = {
     overlayStyle: {},
     checkboxList: [
@@ -76,7 +90,9 @@ vi.mock('@/constants/commonParam.js', () => {
       languageList: [],
       languageMap: {}
     },
-    entryParams
+    entryParams,
+    entryAllCols,
+    entryPresets,
   }
 })
 
