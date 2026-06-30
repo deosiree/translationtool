@@ -30,7 +30,9 @@
           :model-value="checkedColumn"
           :columns="columnSettingsList"
           :overlay-style="overlayStyle"
-          @change="changeColumn"
+          col-pref-name="colPref-examineModal"
+          :normal-width="100"
+          :need-filter="false"
         />
       </div>
       <div class="select">
@@ -228,7 +230,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { changeColumn, applyTable } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
@@ -973,17 +975,6 @@ export default {
         },
         onCancel: () => {},
       });
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-examineModal",
-        100,
-        checkedValue,
-        this,
-        false,
-        this.columnSettingsList
-      );
     },
     // 列筛选
     handleSearch(selectedKeys, confirm, dataIndex) {

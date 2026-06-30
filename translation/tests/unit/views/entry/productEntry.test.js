@@ -180,22 +180,9 @@ describe('ProductEntry - user 属性重构测试', () => {
     )
   })
 
-  it('changeColumn 应传入 columnSettingsList', () => {
+  it('列偏好持久化由 ColumnFilter 承担，页面无 changeColumn 包装', () => {
     wrapper = mountProductEntry()
-    applyTableMock.mockClear()
-    wrapper.vm.columnSettingsList = resolvePresetCols(
-      entryPresets.productEntry,
-      entryAllCols
-    )
-    wrapper.vm.changeColumn(['index', 'entry', 'operation'])
-    expect(changeColumnMock).toHaveBeenCalledWith(
-      'colPref-productEntry',
-      200,
-      ['index', 'entry', 'operation'],
-      wrapper.vm,
-      false,
-      wrapper.vm.columnSettingsList
-    )
+    expect(typeof wrapper.vm.changeColumn).toBe('undefined')
   })
 
   it('applyTable 后 columnSettingsList 应包含必选列定义', () => {

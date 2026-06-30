@@ -41,7 +41,9 @@
           :model-value="checkedColumn"
           :columns="columnSettingsList"
           :overlay-style="overlayStyle"
-          @change="changeColumn"
+          col-pref-name="colPref-examineTranslateModal"
+          :normal-width="100"
+          :need-filter="false"
         />
       </div>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-selection="{ 
@@ -197,7 +199,7 @@ import {
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { changeColumn, applyTable } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
@@ -991,17 +993,6 @@ export default {
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
       this.selectAllName = "全选";
-    },
-    // 展示列切换并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-examineTranslateModal",
-        100,
-        checkedValue,
-        this,
-        false,
-        this.columnSettingsList
-      );
     },
   },
 };

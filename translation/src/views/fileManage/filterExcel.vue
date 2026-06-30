@@ -306,7 +306,9 @@
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             button-size="middle"
-            @change="changeColumn"
+            col-pref-name="colPref-fileManage"
+            :normal-width="150"
+            :need-filter="false"
           />
         </div>
       </template>
@@ -489,7 +491,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable, changeColumn } from "@/components/ColumnFilter";
+import { applyTable } from "@/components/ColumnFilter";
 import { getSearch } from "@/utils/requestUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
@@ -705,18 +707,6 @@ export default {
       getLanguage(data).then((res) => {
         this.translateTypes = res.data.list;
       });
-    },
-    // 修改展示列并保存用户偏好
-    changeColumn(checkedValue) {
-      changeColumn(
-        "colPref-fileManage",
-        150,
-        checkedValue,
-        this,
-        false,
-        this.columnSettingsList
-      );
-      // console.log("修改展示列,并保存用户偏好", this.columns, this.checkedColumn, this.checkboxList);
     },
     resetSelected() {
       this.clearAllEntry();

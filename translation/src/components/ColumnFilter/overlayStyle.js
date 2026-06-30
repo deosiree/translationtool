@@ -1,4 +1,7 @@
-/** ColumnFilter popover 默认 overlay 样式 */
+/**
+ * ColumnFilter popover 默认 overlay 样式
+ * @type {import('vue').CSSProperties}
+ */
 export const columnFilterOverlayStyle = {
   maxHeight: "300px",
   overflowY: "scroll",

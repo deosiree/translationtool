@@ -1,5 +1,6 @@
 /**
- * 列 preset 合并工具（展示列 SSOT 的运行时解析）
+ * @module colPreset
+ * @description 列 preset 合并工具（展示列 SSOT 的运行时解析）
  */
 
 /**

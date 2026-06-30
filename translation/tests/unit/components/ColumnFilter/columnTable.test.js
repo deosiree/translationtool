@@ -11,6 +11,7 @@ import {
   getRequiredColumnValues,
   getDefaultColumnSelection,
   pruneColumnsToSelection,
+  findTableHost,
 } from '@/components/ColumnFilter/columnTable.js'
 
 const mockColumnSettingsList = [
@@ -73,6 +74,26 @@ describe('columnBuilder', () => {
 })
 
 describe('columnTable', () => {
+  describe('findTableHost', () => {
+    it('应向上查找含 columnSettingsList 与 columns 的 vm', () => {
+      const host = {
+        columnSettingsList: [],
+        columns: [],
+        $parent: { $parent: null },
+      }
+      const child = { $parent: host }
+      expect(findTableHost(child)).toBe(host)
+    })
+
+    it('超过 maxDepth 应返回 null', () => {
+      let current = { $parent: null }
+      for (let i = 0; i < 10; i++) {
+        current = { $parent: current }
+      }
+      expect(findTableHost(current, 3)).toBeNull()
+    })
+  })
+
   describe('mergeColumnSelection', () => {
     it('应合并必选列与用户勾选的可选列', () => {
       const result = mergeColumnSelection(['tag', 'english'], mockColumnSettingsList)

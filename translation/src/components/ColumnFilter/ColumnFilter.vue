@@ -49,7 +49,12 @@
 
 <script>
 import { SettingOutlined } from "@ant-design/icons-vue";
-import { getDefaultColumnSelection, mergeColumnSelection } from "./columnTable.js";
+import {
+  getDefaultColumnSelection,
+  mergeColumnSelection,
+  changeColumn,
+  findTableHost,
+} from "./columnTable.js";
 
 export default {
   name: "ColumnFilter",
@@ -57,7 +62,7 @@ export default {
     SettingOutlined,
   },
   props: {
-    /** 当前勾选的列 value 数组 */
+    /** 当前勾选的列 value 数组（v-model） */
     modelValue: {
       type: Array,
       default: () => [],
@@ -66,6 +71,26 @@ export default {
     columns: {
       type: Array,
       default: () => [],
+    },
+    /** localStorage 键名；有值时组件内持久化列偏好 */
+    colPrefName: {
+      type: String,
+      default: "",
+    },
+    /** 动态增列时的默认宽度 */
+    normalWidth: {
+      type: Number,
+      default: 100,
+    },
+    /** 是否启用列头筛选行为 */
+    needFilter: {
+      type: Boolean,
+      default: false,
+    },
+    /** 表格 host vm；缺省时向上查找含 columnSettingsList 的祖先 */
+    tableHost: {
+      type: Object,
+      default: null,
     },
     /** 透传 a-popover overlayStyle */
     overlayStyle: {
@@ -81,12 +106,53 @@ export default {
       default: "small",
     },
   },
-  emits: ["change"],
+  emits: ["change", "update:modelValue"],
   methods: {
+    /**
+     * 解析持久化配置：props 优先，否则读 tableHost.$columnFilterPref
+     * @returns {{ colPrefName: string, normalWidth: number, needFilter: boolean }}
+     */
+    resolvePersistConfig(host) {
+      const pref = host?.$columnFilterPref;
+      const colPrefName = this.colPrefName || pref?.colPrefName || "";
+      if (this.colPrefName) {
+        return {
+          colPrefName,
+          normalWidth: this.normalWidth,
+          needFilter: this.needFilter,
+        };
+      }
+      return {
+        colPrefName,
+        normalWidth: pref?.normalWidth ?? this.normalWidth,
+        needFilter: pref?.needFilter ?? this.needFilter,
+      };
+    },
+    /**
+     * 勾选变更：合并必选列、持久化并更新表格 host
+     * @param {string[]} checkedValue checkbox-group 返回值
+     */
     onChange(checkedValue) {
       const merged = mergeColumnSelection(checkedValue, this.columns);
+      const host = this.tableHost ?? findTableHost(this.$parent);
+      const { colPrefName, normalWidth, needFilter } =
+        this.resolvePersistConfig(host);
+
+      if (colPrefName && host) {
+        changeColumn(
+          colPrefName,
+          normalWidth,
+          merged,
+          host,
+          needFilter,
+          this.columns
+        );
+      }
+
+      this.$emit("update:modelValue", merged);
       this.$emit("change", merged);
     },
+    /** 重置为 columnSettingsList 默认勾选 */
     handleReset() {
       this.onChange(getDefaultColumnSelection(this.columns));
     },
