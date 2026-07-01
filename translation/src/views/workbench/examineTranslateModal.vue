@@ -3,31 +3,8 @@
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
 
-      <div class="taskInfo">
-        <div class="taskItem">任务名称：{{task.name}}</div>
-        <div class="taskItem">产品名称：{{task.productName}}</div>
-        <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-        <div class="taskItem">翻译语种：{{task.translateType}}</div>
-        <!-- <span style="float:right;font-size:12px">
-                    <a-tooltip placement="left">
-                        <template #title>
-                            <table>
-                                <tr><td style="width:100px">上一个</td><td>Ctrl + ↑</td></tr>
-                                <tr><td style="width:100px">下一个</td><td>Ctrl + ↓</td></tr>
-                                <tr><td style="width:100px">上一个未审核</td><td>Ctrl + Shift + ↑</td></tr>
-                                <tr><td style="width:100px">下一个未审核</td><td>Ctrl + Shift + ↓</td></tr>
-                                <tr><td style="width:100px">编辑 </td><td>Ctrl + e</td></tr>
-                                <tr><td style="width:100px">保存 </td><td>Ctrl + Enter</td></tr>
-                                <tr><td style="width:100px">通过 </td><td>Ctrl + p</td></tr>
-                                <tr><td style="width:100px">驳回 </td><td>Ctrl + r</td></tr>
-                            </table>
-                        </template>
-                        快捷键
-                        <QuestionCircleOutlined />
-                    </a-tooltip>
-                </span> -->
-      </div>
-      <div class="form">
+      <WorkbenchTaskInfo :task="task" />
+      <WorkbenchFormBar>
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">翻译状态：</span>
@@ -37,15 +14,18 @@
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
         <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
-        <ColumnFilter
-          :model-value="checkedColumn"
-          :columns="columnSettingsList"
-          :overlay-style="overlayStyle"
-          col-pref-name="colPref-examineTranslateModal"
-          :normal-width="100"
-          :need-filter="false"
-        />
-      </div>
+        <WorkbenchActionGroup inline-offset>
+          <WorkbenchColumnActions
+            v-model="checkedColumn"
+            :columns="columnSettingsList"
+            :overlay-style="overlayStyle"
+            col-pref-name="colPref-examineTranslateModal"
+            :normal-width="100"
+            :need-filter="false"
+            @change="syncColumnsFromPref"
+          />
+        </WorkbenchActionGroup>
+      </WorkbenchFormBar>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-selection="{ 
                 selectedRowKeys: selectedRowKeys, 
                 onChange: onSelectChange,
@@ -199,10 +179,24 @@ import {
 } from "@/http/api/workbench";
 import { message } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
-import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import {
+  WorkbenchFormBar,
+  WorkbenchActionGroup,
+  WorkbenchTaskInfo,
+  WorkbenchColumnActions,
+} from "@/components/Workbench";
+import {
+  handleResizeColumn,
+  getRowClassName,
+} from "@/utils/tableUtils";
+import {
+  selectAllEntry as selectAllEntryUtil,
+  clearAllEntry as clearAllEntryUtil,
+  onSelectChange as onSelectChangeUtil,
+} from "@/utils/selectionUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { byteLength } from "@/utils/validationUtils";
 import { computed, defineComponent, ref } from "vue";
@@ -232,7 +226,10 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     InputIME,
-    ColumnFilter,
+    WorkbenchFormBar,
+    WorkbenchActionGroup,
+    WorkbenchTaskInfo,
+    WorkbenchColumnActions,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -343,6 +340,9 @@ export default {
     },
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // 获取待审核词条
     getTaskEntry() {
       let params = {
@@ -459,22 +459,9 @@ export default {
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
+    handleResizeColumn,
     // 模糊查询
     select() {
       this.dataSource = this.allData.filter((item) =>
@@ -482,8 +469,7 @@ export default {
       );
     },
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
+      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
     },
     // 通过标签点击事件
     passTagChange(record) {
@@ -932,31 +918,10 @@ export default {
       return Promise.resolve();
     },
     selectAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      let dataToSelect;
-      if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        // 确保 filteredData 是最新的筛选结果
-        dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =
-            !this.filters.isExist ||
-            this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =
-            !this.filters.entrySource ||
-            item.entrySource.includes(this.filters.entrySource);
-          return isExistMatch && entrySourceMatch;
-        });
-      } else {
-        dataToSelect = this.dataSource;
-      }
-      dataToSelect.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-      });
+      selectAllEntryUtil(this);
     },
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      clearAllEntryUtil(this);
     },
     // 切割字符串
     companyCut(message) {
@@ -1012,25 +977,6 @@ export default {
   gap: 16px;
   align-self: stretch;
 
-  .taskInfo {
-    display: flex;
-    padding: 4px 0px;
-    align-items: center;
-    gap: 32px;
-    align-self: stretch;
-
-    .taskItem {
-      display: flex;
-      align-items: center;
-      flex: 1 0 0;
-    }
-  }
-  .form {
-    display: flex;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
-  }
   .rejectBtn {
     background: #fbb31f;
     border-color: #fbb31f;

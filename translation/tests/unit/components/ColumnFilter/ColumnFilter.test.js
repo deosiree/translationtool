@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ColumnFilter from '@/components/ColumnFilter/ColumnFilter.vue'
 
@@ -41,19 +41,7 @@ describe('ColumnFilter 持久化', () => {
     localStorage.removeItem(colPrefName)
   })
 
-  it('colPrefName 有值时应写入 localStorage 并 emit update:modelValue', async () => {
-    const host = {
-      columnSettingsList,
-      columns: [
-        { dataIndex: 'index', colValue: 'index', index: 0 },
-        { dataIndex: 'entry', colValue: 'entry', index: 2 },
-        { dataIndex: 'tag', colValue: 'tag', index: 3 },
-        { dataIndex: 'operation', colValue: 'operation', index: 100 },
-      ],
-      checkedColumn: ['index', 'entry', 'tag', 'operation'],
-      colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
-    }
-
+  it('colPrefName 有值时应写入 localStorage 并 emit update:modelValue（不直接改 host）', async () => {
     const wrapper = mount(ColumnFilter, {
       props: {
         modelValue: ['index', 'entry', 'tag', 'operation'],
@@ -61,23 +49,25 @@ describe('ColumnFilter 持久化', () => {
         colPrefName,
         normalWidth: 120,
         needFilter: false,
-        tableHost: host,
       },
       ...mountStubs,
     })
 
-    await wrapper.vm.onChange(['tag'])
+    await wrapper.vm.onChange(['index', 'entry', 'operation'])
 
     expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual([
       'index',
       'entry',
-      'tag',
       'operation',
     ])
     expect(localStorage.getItem(colPrefName)).toBe(
-      JSON.stringify({ displayColumn: 'tag' })
+      JSON.stringify({ displayColumn: '' })
     )
-    expect(host.checkedColumn).toEqual(['index', 'entry', 'tag', 'operation'])
+    expect(wrapper.emitted('change')?.[0]?.[0]).toEqual([
+      'index',
+      'entry',
+      'operation',
+    ])
   })
 
   it('selectionOnly 模式无 tableHost 时应写入 localStorage 并 emit', async () => {
@@ -130,6 +120,36 @@ describe('ColumnFilter 持久化', () => {
     )
   })
 
+  it('tableColumn 模式 onChange 仅写 localStorage 并 emit，不 console.warn', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const wrapper = mount(ColumnFilter, {
+      props: {
+        modelValue: ['index', 'entry', 'tag', 'operation'],
+        columns: columnSettingsList,
+        colPrefName,
+        normalWidth: 100,
+        needFilter: false,
+      },
+      ...mountStubs,
+    })
+
+    await wrapper.vm.onChange(['index', 'entry', 'tag', 'operation'])
+
+    expect(warnSpy).not.toHaveBeenCalled()
+    expect(localStorage.getItem(colPrefName)).toBe(
+      JSON.stringify({ displayColumn: 'tag' })
+    )
+    expect(wrapper.emitted('change')?.[0]?.[0]).toEqual([
+      'index',
+      'entry',
+      'tag',
+      'operation',
+    ])
+
+    warnSpy.mockRestore()
+  })
+
   it('应支持 title、buttonText、ghost props', () => {
     const wrapper = mount(ColumnFilter, {
       props: {
@@ -161,5 +181,31 @@ describe('ColumnFilter 持久化', () => {
     })
 
     expect(wrapper.vm.visibleColumns.map((c) => c.value)).toEqual(['entry'])
+  })
+
+  it('checkbox 列表应包裹在 column-filter-list 内，header 与列表分离', () => {
+    const wrapper = mount(ColumnFilter, {
+      props: {
+        modelValue: ['index', 'entry', 'tag', 'operation'],
+        columns: columnSettingsList,
+      },
+      global: {
+        stubs: {
+          'a-popover': { template: '<div><slot name="content" /></div>' },
+          'a-checkbox-group': true,
+          'a-row': true,
+          'a-col': true,
+          'a-checkbox': true,
+          'a-button': true,
+          SettingOutlined: true,
+        },
+      },
+    })
+
+    expect(wrapper.find('.column-filter-header').exists()).toBe(true)
+    expect(wrapper.find('.column-filter-list').exists()).toBe(true)
+    expect(wrapper.find('.column-filter-list a-checkbox-group-stub').exists()).toBe(
+      true
+    )
   })
 })

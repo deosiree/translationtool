@@ -3,8 +3,6 @@
  * @type {import('vue').CSSProperties}
  */
 export const columnFilterOverlayStyle = {
-  maxHeight: "300px",
-  overflowY: "scroll",
   backgroundColor: "#fff",
   backgroundClip: "padding-box",
   borderRadius: "2px",

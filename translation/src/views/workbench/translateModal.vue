@@ -3,14 +3,12 @@
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
       <div class="table">
-        <div class="taskInfo">
-          <div class="taskItem">任务名称：{{task.name}}</div>
-          <div class="taskItem">产品名称：{{task.productName}}</div>
-          <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-          <div class="taskItem">翻译语种：{{task.translateType}}</div>
-          <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
-        </div>
-        <div class="form">
+        <WorkbenchTaskInfo :task="task">
+          <template #extra>
+            <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
+          </template>
+        </WorkbenchTaskInfo>
+        <WorkbenchFormBar style="margin-bottom: 6px">
           <a-row :gutter="8" justify="space-between">
             <a-col :span="12">
               <a-row :gutter="8" justify="start" class="search-row">
@@ -75,21 +73,23 @@
                   </a-dropdown>
                 </a-col>
                 <a-col>
-                  <ColumnFilter
-                    :model-value="checkedColumn"
+                  <WorkbenchColumnActions
+                    v-model="checkedColumn"
                     :columns="columnSettingsList"
                     :overlay-style="overlayStyle"
                     col-pref-name="colPref-translateModal"
                     :normal-width="100"
                     :need-filter="false"
+                    @change="syncColumnsFromPref"
                   />
                 </a-col>
               </a-row>
             </a-col>
           </a-row>
-        </div>
+        </WorkbenchFormBar>
         <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-          :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child" ref="tableContainer"
+          :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :childrenColumnName="dataSource.length ? 'child' : undefined"
+          :expandIconColumnIndex="2" ref="tableContainer"
           @resizeColumn="handleResizeColumn" :row-selection="{selectedRowKeys: selectedRowKeys, 
                     onChange: onSelectChange,
                     selections:[
@@ -361,7 +361,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { colsToFieldOptions, resolvePresetCols } from "@/components/ColumnFilter";
@@ -378,7 +378,12 @@ import {
   openSetEdit,
 } from "@/utils/validationUtils"; // 引入工具函数
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import { WorkbenchFormBar, WorkbenchTaskInfo, WorkbenchColumnActions } from "@/components/Workbench";
+import {
+  selectAllEntry as selectAllEntryUtil,
+  clearAllEntry as clearAllEntryUtil,
+  onSelectChange as onSelectChangeUtil,
+} from "@/utils/selectionUtils";
 export default {
   components: {
     Modal,
@@ -392,7 +397,9 @@ export default {
     TransStateSelect,
     TransStateBadge,
     InputIME,
-    ColumnFilter,
+    WorkbenchFormBar,
+    WorkbenchTaskInfo,
+    WorkbenchColumnActions,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -546,6 +553,9 @@ export default {
     },
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // // 设置翻译列展示的语种
     // setTranslateColumn() {
     //   // 设置翻译列可编辑&可校验
@@ -1616,35 +1626,13 @@ export default {
       this.updatePartiality(data);
     },
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
+      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
     },
     selectAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      let dataToSelect;
-      if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        // 确保 filteredData 是最新的筛选结果
-        dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =
-            !this.filters.isExist ||
-            this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =
-            !this.filters.entrySource ||
-            item.entrySource.includes(this.filters.entrySource);
-          return isExistMatch && entrySourceMatch;
-        });
-      } else {
-        dataToSelect = this.dataSource;
-      }
-      dataToSelect.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-      });
+      selectAllEntryUtil(this);
     },
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      clearAllEntryUtil(this);
     },
     // 首字母转换
     capitalizeWordsClick(value) {
@@ -1868,26 +1856,6 @@ export default {
       top: 50%;
       transform: translate(-50%, -50%);
     }
-  }
-  .taskInfo {
-    display: flex;
-    padding: 4px 0px;
-    align-items: center;
-    gap: 32px;
-    align-self: stretch;
-
-    .taskItem {
-      display: flex;
-      align-items: center;
-      flex: 1 0 0;
-    }
-  }
-  .form {
-    display: flex;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
-    margin-bottom: 6px;
   }
 }
 .ant-table-cell .ant-form-item {

@@ -101,13 +101,14 @@
           />
 
           <ColumnFilter
-            :model-value="checkedColumn"
+            v-model="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             button-size="middle"
             col-pref-name="colPref-glossary"
             :normal-width="150"
             :need-filter="false"
+            @change="syncColumnsFromPref"
           />
         </div>
       </template>
@@ -238,7 +239,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import {
   onSelectChange,
   onSelect,
@@ -383,6 +384,9 @@ export default {
     },
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // 初始化
     init() {
       this.setTableHeight();
