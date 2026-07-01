@@ -169,35 +169,17 @@
           @click="getSearchClick"
           >查询</a-button
         >
-        <a-popover
-          trigger="click"
-          placement="leftTop"
-          :overlayStyle="overlayStyle"
-        >
-          <template #content>
-            <a-checkbox-group
-              v-model:value="checkedSearchCondition"
-              @change="changeSearchCondition"
-            >
-              <a-row
-                v-for="item in searchConditionList"
-                :key="item.value"
-              >
-                <a-col :span="24">
-                  <a-checkbox :value="item.value">
-                    {{ item.label }}
-                  </a-checkbox>
-                </a-col>
-              </a-row>
-            </a-checkbox-group>
-          </template>
-          <a-button
-            type="primary"
-            size="middle"
-            ghost
-            ><template #icon> <SettingOutlined /> </template>展示条件</a-button
-          >
-        </a-popover>
+        <ColumnFilter
+          v-model="checkedSearchCondition"
+          :columns="searchConditionList"
+          :overlay-style="overlayStyle"
+          col-pref-name="searchCondition-fileManage"
+          title="展示条件"
+          button-text="展示条件"
+          button-size="middle"
+          :ghost="true"
+          persist-mode="selectionOnly"
+        />
       </template>
     </SearchBox>
     <DataBox
@@ -473,7 +455,6 @@ import ExportButton from "@/components/Button/exportButton.vue";
 import {
   ExportOutlined,
   ImportOutlined,
-  SettingOutlined,
   CaretDownOutlined,
   CaretRightOutlined,
   UploadOutlined,
@@ -491,7 +472,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, mergeColumnSelection } from "@/components/ColumnFilter";
 import { getSearch } from "@/utils/requestUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
@@ -599,7 +580,12 @@ export default {
       expandedRowKeys: [], // 存储当前所有展开行的key值。当某一行展开时，它的key会被添加到这个数组中；折叠时则会被移除。
       searchConditionList: entryParams.searchConditionList, // 展示的查询条件框
       checkedSearchCondition: cachedSearchCondition
-        ? JSON.parse(cachedSearchCondition).displayColumn.split(",")
+        ? mergeColumnSelection(
+            JSON.parse(cachedSearchCondition).displayColumn
+              .split(",")
+              .filter(Boolean),
+            entryParams.searchConditionList,
+          )
         : entryParams.checkedSearchCondition, // (可选)显示的查询条件框
       translateTypes: [], // 获取翻译语种
       // entrySourceOptions: [], // 词条来源下拉框
@@ -1073,17 +1059,6 @@ export default {
     //   };
     //   this.diFileNameOptions = this.diFileNameOptions_copy.concat([option]);
     // },
-    // 展示条件切换并保存用户偏好(查询条件处的，已经封起来了)
-    changeSearchCondition(checkedValue) {
-      // changeColumn(
-      //   "searchCondition-fileManage",
-      //   200,
-      //   checkedValue,
-      //   this,
-      //   false,
-      //   entryParams.searchConditionList
-      // );
-    },
   },
 };
 </script>

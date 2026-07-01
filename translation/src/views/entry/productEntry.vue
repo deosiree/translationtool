@@ -298,36 +298,17 @@
               @click="reGetCheckNotUseEntry"
               >重新查询</a-button
             >
-            <a-popover
-              trigger="click"
-              placement="leftTop"
-              :overlayStyle="overlayStyle"
-            >
-              <template #content>
-                <a-checkbox-group
-                  v-model:value="checkedSearchCondition"
-                  @change="changeSearchCondition"
-                >
-                  <a-row
-                    v-for="item in searchConditionList"
-                    :key="item.value"
-                  >
-                    <a-col :span="24">
-                      <a-checkbox :value="item.value">
-                        {{ item.label }}
-                      </a-checkbox>
-                    </a-col>
-                  </a-row>
-                </a-checkbox-group>
-              </template>
-              <a-button
-                type="primary"
-                size="middle"
-                ghost
-                ><template #icon> <SettingOutlined /> </template
-                >展示条件</a-button
-              >
-            </a-popover>
+            <ColumnFilter
+              v-model="checkedSearchCondition"
+              :columns="searchConditionList"
+              :overlay-style="overlayStyle"
+              col-pref-name="searchCondition-productEntry"
+              title="展示条件"
+              button-text="展示条件"
+              button-size="middle"
+              :ghost="true"
+              persist-mode="selectionOnly"
+            />
           </a-row>
         </a-form>
       </template>
@@ -987,7 +968,6 @@ import {
   SaveOutlined,
   UpSquareOutlined,
   PlusCircleOutlined,
-  SettingOutlined,
   SwapOutlined,
   InfoCircleOutlined,
   ExclamationCircleOutlined,
@@ -1056,7 +1036,6 @@ export default {
     SaveOutlined,
     UpSquareOutlined,
     PlusCircleOutlined,
-    SettingOutlined,
     SwapOutlined,
     InfoCircleOutlined,
     ExclamationCircleOutlined,
@@ -1110,7 +1089,12 @@ export default {
       },
       searchConditionList: entryParams.searchConditionList,
       checkedSearchCondition: cachedSearchCondition
-        ? JSON.parse(cachedSearchCondition).displayColumn.split(",")
+        ? mergeColumnSelection(
+            JSON.parse(cachedSearchCondition).displayColumn
+              .split(",")
+              .filter(Boolean),
+            entryParams.searchConditionList,
+          )
         : entryParams.checkedSearchCondition, // (可选)显示的查询条件框
       exportFields: [
         "词条",
@@ -2105,19 +2089,7 @@ export default {
       // this.getEntryByClassfy();
       this.conditionalQuery();
     },
-    // 展示条件切换并保存用户偏好
-    changeSearchCondition(checkedValue) {
-      this.checkedSearchCondition = mergeColumnSelection(
-        checkedValue,
-        this.searchConditionList
-      );
-      localStorage.setItem(
-        "searchCondition-productEntry",
-        JSON.stringify({
-          displayColumn: this.checkedSearchCondition.join(","),
-        })
-      );
-    },
+    // 展示条件切换并保存用户偏好（由 ColumnFilter selectionOnly 持久化）
     applyColumnPreference() {
       applyTable(this, {
         allCols: entryAllCols,

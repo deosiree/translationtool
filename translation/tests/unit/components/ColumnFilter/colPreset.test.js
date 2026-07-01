@@ -75,4 +75,18 @@ describe('colPreset', () => {
     const productCols = resolvePresetCols(entryPresets.productEntry, entryAllCols)
     expect(productCols.some((c) => c.value === 'creator')).toBe(true)
   })
+
+  it('entry 展示条件默认勾选应仅含词条、翻译语种、翻译结果', async () => {
+    const { entryParams } = await import('@/constants/commonParam.js')
+    expect(defaultSelectionFromCols(entryParams.searchConditionList)).toEqual([
+      'entry',
+      'language',
+      'translate',
+    ])
+    expect(entryParams.checkedSearchCondition).toEqual([
+      'entry',
+      'language',
+      'translate',
+    ])
+  })
 })
