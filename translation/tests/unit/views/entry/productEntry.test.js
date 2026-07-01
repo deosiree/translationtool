@@ -6,8 +6,10 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ProductEntry from '@/views/entry/productEntry.vue'
+import ColumnFilter from '@/components/ColumnFilter/ColumnFilter.vue'
 import { entryAllCols, entryPresets } from '@/constants/commonParam.js'
 import { resolvePresetCols } from '@/components/ColumnFilter/colPreset.js'
+import { setTableHeight as setTableHeightMock } from '@/utils/tableUtils'
 
 const applyTableMock = vi.hoisted(() => vi.fn())
 const changeColumnMock = vi.hoisted(() => vi.fn())
@@ -92,7 +94,7 @@ const testProduct = {
   title: '测试产品',
 }
 
-function mountProductEntry(storeMock = createUserStoreMock()) {
+function mountProductEntry(storeMock = createUserStoreMock(), options = {}) {
   return mount(ProductEntry, {
     props: {
       currentProduct: testProduct,
@@ -102,7 +104,18 @@ function mountProductEntry(storeMock = createUserStoreMock()) {
     global: {
       mocks: storeMock,
       stubs: {
-        SearchBox: true,
+        SearchBox: {
+          template: '<div><slot name="form" /></div>',
+        },
+        'a-form': {
+          template: '<form><slot /></form>',
+        },
+        'a-row': {
+          template: '<div class="a-row"><slot /></div>',
+        },
+        'a-form-item': {
+          template: '<div class="a-form-item"><slot /></div>',
+        },
         DataBox: true,
         OperationArea: true,
         'a-table': true,
@@ -120,6 +133,23 @@ function mountProductEntry(storeMock = createUserStoreMock()) {
         BackFillModal_v2_5: true,
         BackFillModal_v3: true,
         GitCommitButton: true,
+        ColumnFilter: {
+          name: 'ColumnFilter',
+          props: [
+            'title',
+            'modelValue',
+            'columns',
+            'colPrefName',
+            'overlayStyle',
+            'buttonSize',
+            'persistMode',
+            'buttonText',
+            'normalWidth',
+            'needFilter',
+          ],
+          template: '<div class="column-filter-stub" />',
+        },
+        ...options.stubs,
       },
     },
   })
@@ -190,5 +220,57 @@ describe('ProductEntry - user 属性重构测试', () => {
       .filter((item) => item.required)
       .map((item) => item.value)
     expect(requiredValues).toEqual(['index', 'entry', 'operation'])
+  })
+})
+
+describe('ProductEntry - 展示条件变更重算表格高度', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) {
+      wrapper.unmount()
+    }
+    vi.clearAllMocks()
+  })
+
+  it('展示条件 ColumnFilter change 时应调用 setTableHeight', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    await wrapper.vm.$nextTick()
+
+    setTableHeightMock.mockClear()
+
+    const columnFilters = wrapper.findAllComponents(ColumnFilter)
+    expect(columnFilters.length).toBeGreaterThan(0)
+
+    const searchConditionFilter = columnFilters.find(
+      (component) => component.props('title') === '展示条件'
+    )
+
+    expect(searchConditionFilter).toBeTruthy()
+    searchConditionFilter.vm.$emit('change', ['entry', 'language', 'translate'])
+    await nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(setTableHeightMock).toHaveBeenCalled()
+  })
+
+  it('setTableHeight 方法应委托 tableUtils.setTableHeight', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    await wrapper.vm.$nextTick()
+
+    setTableHeightMock.mockClear()
+    wrapper.vm.setTableHeight()
+    await nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(setTableHeightMock).toHaveBeenCalledWith(
+      wrapper.vm,
+      -8,
+      166,
+      84,
+      { ok: true, h: wrapper.vm.box }
+    )
   })
 })

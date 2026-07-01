@@ -290,6 +290,7 @@
               button-text="展示条件"
               button-size="middle"
               persist-mode="selectionOnly"
+              @change="setTableHeight"
             />
           </a-row>
         </a-form>
