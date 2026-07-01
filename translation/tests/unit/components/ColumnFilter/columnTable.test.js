@@ -12,6 +12,7 @@ import {
   getDefaultColumnSelection,
   pruneColumnsToSelection,
   findTableHost,
+  syncColumnsFromPref,
 } from '@/components/ColumnFilter/columnTable.js'
 
 const mockColumnSettingsList = [
@@ -219,6 +220,123 @@ describe('columnTable', () => {
       expect(localStorage.getItem(colPrefName)).toBe(
         JSON.stringify({ displayColumn: 'tag,english' })
       )
+    })
+
+    it('localStorage displayColumn 为空时应只保留必选列，不恢复默认可选列', () => {
+      localStorage.setItem(
+        colPrefName,
+        JSON.stringify({ displayColumn: '' })
+      )
+      const vm = {
+        checkedColumn: [],
+        colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
+        columnSettingsList: mockColumnSettingsList,
+        columns: [
+          { dataIndex: 'index', colValue: 'index', index: 0, label: '序号', required: true },
+          { dataIndex: 'entry', colValue: 'entry', index: 2, label: '词条', required: true },
+          { dataIndex: 'tag', colValue: 'tag', index: 3, label: 'tag' },
+          { dataIndex: 'english', colValue: 'english', index: 12, label: '英文' },
+          { dataIndex: 'operation', colValue: 'operation', index: 100, label: '操作', required: true },
+        ],
+      }
+
+      getColPref(colPrefName, 100, vm, false, mockColumnSettingsList)
+
+      expect(vm.checkedColumn).toEqual(['index', 'entry', 'operation'])
+      expect(vm.columns.map((c) => c.colValue)).toEqual([
+        'index',
+        'entry',
+        'operation',
+      ])
+      expect(localStorage.getItem(colPrefName)).toBe(
+        JSON.stringify({ displayColumn: '' })
+      )
+    })
+  })
+
+  describe('syncColumnsFromPref', () => {
+    const colPrefName = 'test-sync-columns-from-pref'
+
+    beforeEach(() => {
+      localStorage.removeItem(colPrefName)
+    })
+
+    afterEach(() => {
+      localStorage.removeItem(colPrefName)
+    })
+
+    it('应从 localStorage 读偏好并更新 vm.columns', () => {
+      localStorage.setItem(
+        colPrefName,
+        JSON.stringify({ displayColumn: 'tag' })
+      )
+      const vm = {
+        checkedColumn: [],
+        colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
+        columnSettingsList: mockColumnSettingsList,
+        columns: [
+          { dataIndex: 'index', colValue: 'index', index: 0 },
+          { dataIndex: 'entry', colValue: 'entry', index: 2 },
+          { dataIndex: 'operation', colValue: 'operation', index: 100 },
+        ],
+        $columnFilterPref: {
+          colPrefName,
+          normalWidth: 100,
+          needFilter: false,
+        },
+      }
+
+      syncColumnsFromPref(vm)
+
+      expect(vm.columns.map((c) => c.colValue)).toEqual([
+        'index',
+        'entry',
+        'tag',
+        'operation',
+      ])
+      expect(vm.checkedColumn).toEqual(['index', 'entry', 'tag', 'operation'])
+    })
+
+    it('localStorage displayColumn 为空时 sync 应只保留必选列', () => {
+      localStorage.setItem(
+        colPrefName,
+        JSON.stringify({ displayColumn: '' })
+      )
+      const vm = {
+        checkedColumn: [],
+        colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
+        columnSettingsList: mockColumnSettingsList,
+        columns: [
+          { dataIndex: 'index', colValue: 'index', index: 0 },
+          { dataIndex: 'entry', colValue: 'entry', index: 2 },
+          { dataIndex: 'tag', colValue: 'tag', index: 3 },
+          { dataIndex: 'english', colValue: 'english', index: 12 },
+          { dataIndex: 'operation', colValue: 'operation', index: 100 },
+        ],
+        $columnFilterPref: {
+          colPrefName,
+          normalWidth: 100,
+          needFilter: false,
+        },
+      }
+
+      syncColumnsFromPref(vm)
+
+      expect(vm.columns.map((c) => c.colValue)).toEqual([
+        'index',
+        'entry',
+        'operation',
+      ])
+      expect(vm.checkedColumn).toEqual(['index', 'entry', 'operation'])
+    })
+
+    it('无 $columnFilterPref 时应 no-op', () => {
+      const vm = {
+        columnSettingsList: mockColumnSettingsList,
+        columns: [{ colValue: 'index' }],
+      }
+      syncColumnsFromPref(vm)
+      expect(vm.columns).toHaveLength(1)
     })
   })
 })

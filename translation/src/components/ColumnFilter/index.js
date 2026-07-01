@@ -16,6 +16,7 @@ export {
   getColPref,
   findTableHost,
   persistSelectionPref,
+  syncColumnsFromPref,
 } from "./columnTable.js";
 export {
   mergeColPresets,

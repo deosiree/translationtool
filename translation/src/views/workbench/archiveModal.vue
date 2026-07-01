@@ -2,13 +2,8 @@
   <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" :okLoading="saveLoading" :showCancel="false"
     okText="归档并结束任务" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
-      <div class="taskInfo">
-        <div class="taskItem">任务名称：{{task.name}}</div>
-        <div class="taskItem">产品名称：{{task.productName}}</div>
-        <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-        <div class="taskItem">翻译语种：{{task.translateType}}</div>
-      </div>
-      <div class="form">
+      <WorkbenchTaskInfo :task="task" />
+      <WorkbenchFormBar>
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">词条状态：</span>
@@ -16,15 +11,18 @@
         <span style="margin-left:10px">翻译状态：</span>
         <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-        <ColumnFilter
-          :model-value="checkedColumn"
-          :columns="columnSettingsList"
-          :overlay-style="overlayStyle"
-          col-pref-name="colPref-archiveModal"
-          :normal-width="100"
-          :need-filter="true"
-        />
-      </div>
+        <WorkbenchActionGroup inline-offset>
+          <WorkbenchColumnActions
+            v-model="checkedColumn"
+            :columns="columnSettingsList"
+            :overlay-style="overlayStyle"
+            col-pref-name="colPref-archiveModal"
+            :normal-width="100"
+            :need-filter="true"
+            @change="syncColumnsFromPref"
+          />
+        </WorkbenchActionGroup>
+      </WorkbenchFormBar>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
         :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :expandIconColumnIndex="2" :customRow="customRow" :row-selection="{ 
                 selectedRowKeys: selectedRowKeys, 
@@ -119,7 +117,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import {
@@ -127,10 +125,21 @@ import {
   handleReset,
   clearFilters,
   handleTableChange,
+  handleResizeColumn,
+  getRowClassName,
 } from "@/utils/tableUtils";
-import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import {
+  WorkbenchFormBar,
+  WorkbenchActionGroup,
+  WorkbenchTaskInfo,
+  WorkbenchColumnActions,
+} from "@/components/Workbench";
+import {
+  selectAllEntry as selectAllEntryUtil,
+  clearAllEntry as clearAllEntryUtil,
+  onSelectChange as onSelectChangeUtil,
+} from "@/utils/selectionUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
-import { selectAllEntry, clearAllEntry } from "@/utils/selectionUtils";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -146,7 +155,10 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
-    ColumnFilter,
+    WorkbenchFormBar,
+    WorkbenchActionGroup,
+    WorkbenchTaskInfo,
+    WorkbenchColumnActions,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
@@ -252,6 +264,9 @@ export default {
     },
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // 获取词条
     getTaskEntry() {
       let params = {
@@ -348,22 +363,9 @@ export default {
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
+    handleResizeColumn,
     // 添加表格行点击事件
     customRow(record, index) {
       return {
@@ -454,37 +456,13 @@ export default {
       this.pagination.pageSize = pageSize;
     },
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
+      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
     },
     selectAllEntry() {
-      selectAllEntry(this);
-      // this.selectedRowKeys = [];
-      // this.selectedRows = [];
-      // let dataToSelect;
-      // if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-      //   // 确保 filteredData 是最新的筛选结果
-      //   dataToSelect = this.dataSource.filter((item) => {
-      //     const isExistMatch =
-      //       !this.filters.isExist ||
-      //       this.filters.isExist.includes(item.isExist);
-      //     const entrySourceMatch =
-      //       !this.filters.entrySource ||
-      //       item.entrySource.includes(this.filters.entrySource);
-      //     return isExistMatch && entrySourceMatch;
-      //   });
-      // } else {
-      //   dataToSelect = this.dataSource;
-      // }
-      // dataToSelect.forEach((item) => {
-      //   this.selectedRowKeys.push(item.id);
-      //   this.selectedRows.push(item);
-      // });
+      selectAllEntryUtil(this);
     },
     clearAllEntry() {
-      clearAllEntry(this);
-      // this.selectedRowKeys = [];
-      // this.selectedRows = [];
+      clearAllEntryUtil(this);
     },
     // 归档  回写数据
     writeBackFun() {
@@ -625,25 +603,6 @@ export default {
   gap: 16px;
   align-self: stretch;
 
-  .taskInfo {
-    display: flex;
-    padding: 4px 0px;
-    align-items: center;
-    gap: 32px;
-    align-self: stretch;
-
-    .taskItem {
-      display: flex;
-      align-items: center;
-      flex: 1 0 0;
-    }
-  }
-  .form {
-    display: flex;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
-  }
 }
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;

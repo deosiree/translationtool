@@ -193,18 +193,15 @@ export function getColPref(
   const validValues = new Set(defs.map((item) => item.value));
   let colPref_strList;
 
-  if (storedPreferences) {
+  if (storedPreferences === null) {
+    colPref_strList = defaultSelectionFromCols(defs);
+  } else {
     colPref_strList = JSON.parse(storedPreferences).displayColumn
       .split(",")
       .filter(Boolean)
       .filter((val) => validValues.has(val));
   }
 
-  if (!colPref_strList?.length) {
-    colPref_strList = defaultSelectionFromCols(defs);
-  }
-
-  if (colPref_strList.length === 0) return;
   changeColumn(
     colPrefName,
     normalWidth,
@@ -251,4 +248,20 @@ export function applyTable(vm, options) {
   vm.columns = columns;
   vm.$columnFilterPref = { colPrefName, normalWidth, needFilter };
   getColPref(colPrefName, normalWidth, vm, needFilter, columnSettingsList);
+}
+
+/**
+ * 从 localStorage 读展示列偏好并投影到 vm.columns / checkedColumn（页面 @change 时调用）
+ * @param {Object} vm 含 $columnFilterPref、columnSettingsList、columns 的表格页实例
+ */
+export function syncColumnsFromPref(vm) {
+  const pref = vm?.$columnFilterPref;
+  if (!pref?.colPrefName || !vm?.columnSettingsList?.length) return;
+  getColPref(
+    pref.colPrefName,
+    pref.normalWidth,
+    vm,
+    pref.needFilter,
+    vm.columnSettingsList,
+  );
 }

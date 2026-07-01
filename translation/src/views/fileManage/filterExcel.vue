@@ -177,7 +177,6 @@
           title="展示条件"
           button-text="展示条件"
           button-size="middle"
-          :ghost="true"
           persist-mode="selectionOnly"
         />
       </template>
@@ -284,13 +283,14 @@
             取消删除
           </a-button>
           <ColumnFilter
-            :model-value="checkedColumn"
+            v-model="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             button-size="middle"
             col-pref-name="colPref-fileManage"
             :normal-width="150"
             :need-filter="false"
+            @change="syncColumnsFromPref"
           />
         </div>
       </template>
@@ -472,7 +472,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable, mergeColumnSelection } from "@/components/ColumnFilter";
+import { applyTable, mergeColumnSelection, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { getSearch } from "@/utils/requestUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
@@ -665,6 +665,9 @@ export default {
     window.onresize = null;
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     hasFileUpdatePermission() {
       return (
         (this.admin && this.$currentDepartment?.ops?.has("fileUpdate")) || false

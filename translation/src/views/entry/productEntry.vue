@@ -289,7 +289,6 @@
               title="展示条件"
               button-text="展示条件"
               button-size="middle"
-              :ghost="true"
               persist-mode="selectionOnly"
             />
           </a-row>
@@ -425,12 +424,13 @@
           />
 
           <ColumnFilter
-            :model-value="checkedColumn"
+            v-model="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             col-pref-name="colPref-productEntry"
             :normal-width="200"
             :need-filter="false"
+            @change="syncColumnsFromPref"
           />
         </div>
       </template>
@@ -969,6 +969,7 @@ import {
 import {
   applyTable,
   mergeColumnSelection,
+  syncColumnsFromPref as applyTableColumnsFromPref,
 } from "@/components/ColumnFilter";
 import {
   handleSearch,
@@ -2075,6 +2076,9 @@ export default {
         normalWidth: 200,
         needFilter: false,
       });
+    },
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
     },
     clickInput(event) {
       event.stopPropagation();

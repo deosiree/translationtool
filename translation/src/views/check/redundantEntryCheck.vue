@@ -42,12 +42,13 @@
             @update:selectedRows="selectedRows = $event" :columns="columns" @batchSelectClose="batchSelectClose"
             @batchSelectCancel="batchSelectCancel" @refresh="getCheckNotUseEntry" />
               <ColumnFilter
-                :model-value="checkedColumn"
+                v-model="checkedColumn"
                 :columns="columnSettingsList"
                 :overlay-style="overlayStyle"
                 col-pref-name="colPref-redundantEntryCheck"
                 :normal-width="150"
                 :need-filter="true"
+                @change="syncColumnsFromPref"
               />
         </div>
       </template>
@@ -152,7 +153,7 @@ import {
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import {
   pageChange,
   onSelectChange,
@@ -258,6 +259,9 @@ export default {
     window.onresize = null;
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // 初始化
     init() {
       this.setTableHeight();

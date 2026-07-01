@@ -1,60 +1,43 @@
 <template>
-  <a-popover
-    trigger="click"
-    :placement="placement"
-    :overlayStyle="overlayStyle"
-  >
-    <template #content>
-      <div class="column-filter-popover">
-        <div class="column-filter-header">
-          <span>{{ title }}</span>
-          <a-button
-            size="small"
-            @click="handleReset"
-          >
-            重置
-          </a-button>
-        </div>
-        <a-checkbox-group
-          :value="modelValue"
-          @change="onChange"
-        >
-          <a-row
-            v-for="item in visibleColumns"
-            :key="item.value"
-          >
-            <a-col :span="24">
-              <a-checkbox
-                :value="item.value"
-                :disabled="item.required"
-              >
-                {{ item.label }}
-              </a-checkbox>
-            </a-col>
-          </a-row>
-        </a-checkbox-group>
-      </div>
-    </template>
-    <a-button
-      type="primary"
-      :size="buttonSize"
-      :ghost="ghost"
+  <span class="column-filter-trigger">
+    <a-popover
+      trigger="click"
+      :placement="placement"
+      :overlayStyle="overlayStyle"
     >
-      <template #icon>
-        <SettingOutlined />
+      <template #content>
+        <div class="column-filter-popover">
+          <div class="column-filter-header">
+            <span>{{ title }}</span>
+            <a-button size="small" @click="handleReset"> 重置 </a-button>
+          </div>
+          <div class="column-filter-list">
+            <a-checkbox-group :value="modelValue" @change="onChange">
+              <a-row v-for="item in visibleColumns" :key="item.value">
+                <a-col :span="24">
+                  <a-checkbox :value="item.value" :disabled="item.required">
+                    {{ item.label }}
+                  </a-checkbox>
+                </a-col>
+              </a-row>
+            </a-checkbox-group>
+          </div>
+        </div>
       </template>
-      {{ buttonText }}
-    </a-button>
-  </a-popover>
+      <a-button type="primary" :size="buttonSize" :ghost="ghost">
+        <template #icon>
+          <SettingOutlined />
+        </template>
+        {{ buttonText }}
+      </a-button>
+    </a-popover>
+  </span>
 </template>
-
 <script>
 import { SettingOutlined } from "@ant-design/icons-vue";
 import {
   getDefaultColumnSelection,
   mergeColumnSelection,
-  changeColumn,
-  findTableHost,
   persistSelectionPref,
 } from "./columnTable.js";
 
@@ -89,7 +72,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    /** 表格 host vm；缺省时向上查找含 columnSettingsList 的祖先 */
+    /** @deprecated 由页面 @change 调用 syncColumnsFromPref；保留兼容 */
     tableHost: {
       type: Object,
       default: null,
@@ -137,53 +120,15 @@ export default {
   },
   methods: {
     /**
-     * 解析持久化配置：props 优先，否则读 tableHost.$columnFilterPref
-     * @returns {{ colPrefName: string, normalWidth: number, needFilter: boolean }}
-     */
-    resolvePersistConfig(host) {
-      const pref = host?.$columnFilterPref;
-      const colPrefName = this.colPrefName || pref?.colPrefName || "";
-      if (this.colPrefName) {
-        return {
-          colPrefName,
-          normalWidth: this.normalWidth,
-          needFilter: this.needFilter,
-        };
-      }
-      return {
-        colPrefName,
-        normalWidth: pref?.normalWidth ?? this.normalWidth,
-        needFilter: pref?.needFilter ?? this.needFilter,
-      };
-    },
-    /**
-     * 勾选变更：合并必选列、持久化并更新表格 host
+     * 勾选变更：写 localStorage（SSOT）并 emit；表格列由页面 @change → syncColumnsFromPref 投影
      * @param {string[]} checkedValue checkbox-group 返回值
      */
     onChange(checkedValue) {
       const merged = mergeColumnSelection(checkedValue, this.columns);
-      const host = this.tableHost ?? findTableHost(this.$parent);
-      const { colPrefName, normalWidth, needFilter } =
-        this.resolvePersistConfig(host);
+      const colPrefName = this.colPrefName;
 
-      if (this.persistMode === "selectionOnly") {
-        if (colPrefName) {
-          persistSelectionPref(colPrefName, merged, this.columns);
-        }
-        this.$emit("update:modelValue", merged);
-        this.$emit("change", merged);
-        return;
-      }
-
-      if (colPrefName && host) {
-        changeColumn(
-          colPrefName,
-          normalWidth,
-          merged,
-          host,
-          needFilter,
-          this.columns
-        );
+      if (colPrefName) {
+        persistSelectionPref(colPrefName, merged, this.columns);
       }
 
       this.$emit("update:modelValue", merged);
@@ -198,6 +143,10 @@ export default {
 </script>
 
 <style scoped>
+.column-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+}
 .column-filter-header {
   display: flex;
   align-items: center;
@@ -207,5 +156,12 @@ export default {
   border-bottom: 1px solid #f0f0f0;
   font-size: 14px;
   font-weight: 500;
+}
+.column-filter-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.column-filter-list :deep(.ant-row) {
+  padding: 4px 0;
 }
 </style>

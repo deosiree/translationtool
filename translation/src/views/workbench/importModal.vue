@@ -2,13 +2,11 @@
   <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :showCancel="false" :okLoading="saveLoading" :fullFlag="true"
     okText="保存" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
-      <div class="taskInfo">
-        <div class="taskItem">任务名称：{{task.name}}</div>
-        <div class="taskItem">产品名称：{{task.productName}}</div>
-        <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-        <div class="taskItem">翻译语种：{{task.translateType}}</div>
-        <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
-      </div>
+      <WorkbenchTaskInfo :task="task">
+        <template #extra>
+          <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
+        </template>
+      </WorkbenchTaskInfo>
       <div class="platformBox">
         <div style="width:100%;">
           <a-form layout="inline" style="margin-top: 10px;">
@@ -256,7 +254,7 @@
         </div>
       </div>
 
-      <div class="form">
+      <WorkbenchFormBar>
         <div style="width: auto; display: flex; align-items: center;justify-content: center;">
           <a-form layout="inline" autocomplete="off" style="display: flex;gap: 8px;">
             <a-form-item label="词条" name="entry" style="width: auto;height: auto; margin: 0;">
@@ -281,26 +279,30 @@
             <DeleteOutlined />
           </template>删除
         </a-button>
-        <span style="margin-left:10px">过滤语种：</span>
-        <a-radio-group v-model:value="filterLanguage" name="radioGroup" @change="filterLanguageChange">
-          <a-radio value="全部">全部</a-radio>
-          <a-radio value="中文">中文</a-radio>
-          <a-radio value="英文">英文</a-radio>
-        </a-radio-group>
-        <div style="margin-left:auto">
-          <CoverButton :translate="task.translateType" :dataSource="dataSource" :oldEditableData="editableData"
-            @update:oldEditableData="editableData=$event" @showEditOperation="showEditOperation" size="small" buttonTitle="释义覆盖翻译" />
-          <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="interpretation2value">释义覆盖翻译</a-button> -->
-          <ColumnFilter
-            :model-value="checkedColumn"
+        <WorkbenchLanguageFilter
+          v-model="filterLanguage"
+          @change="filterLanguageChange"
+        />
+        <template #trailing>
+          <WorkbenchColumnActions
+            v-model="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             col-pref-name="colPref-importModal"
             :normal-width="100"
             :need-filter="false"
+            show-cover-button
+            :cover-button-props="{
+              translate: task.translateType,
+              dataSource,
+              oldEditableData: editableData,
+            }"
+            @update:old-editable-data="editableData = $event"
+            @show-edit-operation="showEditOperation"
+            @change="syncColumnsFromPref"
           />
-        </div>
-      </div>
+        </template>
+      </WorkbenchFormBar>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
         :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :customRow="customRow" :expandIconColumnIndex="2" :row-selection="{selectedRowKeys: selectedRowKeys, 
                 onChange: onSelectChange,
@@ -528,7 +530,6 @@ import {
   getEntryInfoList,
   updateEntryList,
   deleteEntryInfoByTaskID,
-  filterSourceLanguage,
   getI18nAdress,
 } from "@/http/api/workbench";
 import { templateFileDownload } from "@/http/api/download";
@@ -541,6 +542,8 @@ import {
   onSelect,
   onSelectAll,
   pageChange,
+  selectAllEntry as selectAllEntryUtil,
+  clearAllEntry as clearAllEntryUtil,
 } from "@/utils/selectionUtils";
 import {
   verifyArray_workbench_page,
@@ -552,10 +555,20 @@ import {
 } from "@/utils/validationUtils";
 import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
-import { applyTable } from "@/components/ColumnFilter";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
-import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import {
+  WorkbenchFormBar,
+  WorkbenchTaskInfo,
+  WorkbenchColumnActions,
+  WorkbenchLanguageFilter,
+} from "@/components/Workbench";
+import { filterLanguageChange as applyLanguageFilter } from "@/composables/workbench/useLanguageFilter";
+import {
+  handleResizeColumn,
+  getRowClassName,
+} from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
 import { handleAsyncRequest } from "@/utils/requestUtils";
@@ -582,9 +595,11 @@ export default {
     IsExistBadge,
     EntryStateBadge,
     TransStateBadge,
-    CoverButton,
     InputIME,
-    ColumnFilter,
+    WorkbenchFormBar,
+    WorkbenchTaskInfo,
+    WorkbenchColumnActions,
+    WorkbenchLanguageFilter,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
     },
@@ -792,6 +807,9 @@ export default {
     },
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // 全选导出字段方法
     selectAllFields() {
       this.exportFields = this.exportFieldOptions;
@@ -816,18 +834,7 @@ export default {
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === index) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === index) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
     // 单元格输入更新：集中处理 editableData 写入，防止 IME 组合期间给 undefined 赋值
     handleCellValueChange(value, record, column) {
@@ -835,9 +842,7 @@ export default {
       if (!row) return;
       row[column.dataIndex] = value;
     },
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
+    handleResizeColumn,
     // 保存词条
     async saveEntrys() {
       this.saveLoading = true;
@@ -2198,25 +2203,7 @@ export default {
     },
     // 语种切换
     filterLanguageChange() {
-      if (this.filterLanguage === "全部") {
-        this.dataSource = this.allData;
-        this.filterSource = this.allData;
-      } else {
-        let params = {
-          languageType: this.filterLanguage,
-        };
-        this.loading = true;
-        filterSourceLanguage(params, this.allData)
-          .then((res) => {
-            this.dataSource = res.data.list;
-            this.filterSource = res.data.list;
-            this.loading = false;
-          })
-          .catch((err) => {
-            this.loading = false;
-            message.error("12", err.message);
-          });
-      }
+      applyLanguageFilter(this);
     },
     // 表格change事件
     handleTableChange(pagination, filters) {
@@ -2252,32 +2239,11 @@ export default {
       }
     },
     selectAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      let dataToSelect;
-      if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        // 确保 filteredData 是最新的筛选结果
-        dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =
-            !this.filters.isExist ||
-            this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =
-            !this.filters.entrySource ||
-            item.entrySource.includes(this.filters.entrySource);
-          return isExistMatch && entrySourceMatch;
-        });
-      } else {
-        dataToSelect = this.dataSource;
-      }
-      dataToSelect.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-      });
+      selectAllEntryUtil(this);
     },
 
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      clearAllEntryUtil(this);
     },
     // 切割字符串
     companyCut(message) {
@@ -2443,19 +2409,6 @@ export default {
   gap: 16px;
   align-self: stretch;
 
-  .taskInfo {
-    display: flex;
-    padding: 4px 0px;
-    align-items: center;
-    gap: 32px;
-    align-self: stretch;
-
-    .taskItem {
-      display: flex;
-      align-items: center;
-      flex: 1 0 0;
-    }
-  }
   .platformBox {
     width: 100%;
     background-color: white;
@@ -2486,12 +2439,6 @@ export default {
     :deep(.ant-tabs-nav) {
       margin-bottom: 10px;
     }
-  }
-  .form {
-    display: flex;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
   }
   .ant-row {
     height: 50px;
