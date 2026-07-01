@@ -28,7 +28,9 @@ vi.mock('@/http/api/translate', () => ({
 }))
 
 vi.mock('@/utils/tableUtils', () => ({
-  setTableHeight: vi.fn()
+  setTableHeight: vi.fn(),
+  handleResizeColumn: vi.fn(),
+  handleTableChange: vi.fn(),
 }))
 
 vi.mock('ant-design-vue', () => ({
