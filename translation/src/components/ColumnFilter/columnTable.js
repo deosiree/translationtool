@@ -74,6 +74,27 @@ export function getOptionalColumnSelection(selected, columnSettingsList) {
   return (selected || []).filter((v) => !required.has(v));
 }
 
+/**
+ * 仅持久化勾选偏好（不改表格 columns），用于展示条件等场景
+ * @param {string} colPrefName localStorage 键名
+ * @param {string[]} mergedSelection 合并后的勾选 value 列表
+ * @param {Array<{ value: string, required?: boolean }>} columnSettingsList
+ */
+export function persistSelectionPref(
+  colPrefName,
+  mergedSelection,
+  columnSettingsList
+) {
+  const optional = getOptionalColumnSelection(
+    mergedSelection,
+    columnSettingsList
+  );
+  localStorage.setItem(
+    colPrefName,
+    JSON.stringify({ displayColumn: optional.join(",") })
+  );
+}
+
 export { defaultSelectionFromCols as getDefaultColumnSelection } from "./colPreset.js";
 
 /**

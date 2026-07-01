@@ -17,6 +17,7 @@ import { columnFilterOverlayStyle } from "@/components/ColumnFilter/overlayStyle
 import {
   resolvePresetCols,
   colsToFieldOptions,
+  defaultSelectionFromCols,
 } from "@/components/ColumnFilter/colPreset.js";
 
 // 1.commonParam如下：
@@ -410,24 +411,24 @@ export const entryPresets = {
 const entry_exportFields = colsToFieldOptions(
   resolvePresetCols(entryPresets.export, entryAllCols),
 );
-// 词条管理-查询条件的展示列
+// 词条管理-展示条件（与展示列共用 visible/hidden/required 语义）
 const entry_searchConditionList = [
-  { label: "词条", value: "entry", index: 1 },
-  { label: "词条状态", value: "state", index: 2 },
-  { label: "tag", value: "tag", index: 3 },
-  { label: "一级分类", value: "classfy1", index: 4 },
-  { label: "二级分类", value: "classfy2", index: 5 },
-  { label: "词条来源", value: "entrySource", index: 6 },
-  { label: "翻译语种", value: "language", index: 7 },
-  { label: "翻译状态", value: "translateState", index: 8 },
-  { label: "翻译结果", value: "translate", index: 9 },
-  { label: "翻译过滤", value: "filter_translate", index: 10 },
-  { label: "Comment", value: "comment", index: 11 },
-  { label: "辞典名称", value: "diFileName", index: 12 },
-  { label: "开始时间", value: "startTime", index: 13 },
-  { label: "结束时间", value: "endTime", index: 14 },
-  { label: "修改人", value: "update", index: 15 },
-  { label: "校验类型", value: "searchType", index: 16 },
+  { label: "词条", value: "entry", index: 1, visible: true },
+  { label: "词条状态", value: "state", index: 2, visible: false },
+  { label: "tag", value: "tag", index: 3, visible: false },
+  { label: "一级分类", value: "classfy1", index: 4, visible: false },
+  { label: "二级分类", value: "classfy2", index: 5, visible: false },
+  { label: "词条来源", value: "entrySource", index: 6, visible: false },
+  { label: "翻译语种", value: "language", index: 7, visible: true },
+  { label: "翻译状态", value: "translateState", index: 8, visible: false },
+  { label: "翻译结果", value: "translate", index: 9, visible: true },
+  { label: "翻译过滤", value: "filter_translate", index: 10, visible: false },
+  { label: "Comment", value: "comment", index: 11, visible: false },
+  { label: "辞典名称", value: "diFileName", index: 12, visible: false },
+  { label: "开始时间", value: "startTime", index: 13, visible: false },
+  { label: "结束时间", value: "endTime", index: 14, visible: false },
+  { label: "修改人", value: "update", index: 15, visible: false },
+  { label: "校验类型", value: "searchType", index: 16, visible: false },
 ];
 const entry_readonlyFields = [
   "entry", // 词条
@@ -453,9 +454,9 @@ const entryvalid_readonlyFields = [
   "maxChineseLength", // 中文字符上限
   "foreignMaxLength", // 外文字符上限
 ];
-const entry_checkedSearchCondition = entry_searchConditionList.map(
-  (item) => item.value,
-); // 默认选中所有查询条件
+const entry_checkedSearchCondition = defaultSelectionFromCols(
+  entry_searchConditionList,
+);
 export const entryParams = {
   inputColumn: [
     "abbr",
