@@ -12,6 +12,7 @@ from sqlalchemy import func, select, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.term import TermAgentAudit, TranslateEntry
+from app.schemas.agent import TermAuditListFilters
 
 
 class TermRepository:
@@ -155,27 +156,55 @@ class TermRepository:
         *,
         page: int = 1,
         page_size: int = 20,
+        filters: TermAuditListFilters | None = None,
     ) -> tuple[Sequence[TermAgentAudit], int]:
         """术语学习页数据源 — 分页返回 review_status=pending 记录及总数。"""
-        base_filter = TermAgentAudit.review_status == "pending"
+        conditions = self._build_pending_filter_conditions(filters)
 
         count_stmt = (
             select(func.count())
             .select_from(TermAgentAudit)
-            .where(base_filter)
+            .where(*conditions)
         )
         total = (await self._session.execute(count_stmt)).scalar_one()
 
         offset = (page - 1) * page_size
         stmt = (
             select(TermAgentAudit)
-            .where(base_filter)
+            .where(*conditions)
             .order_by(TermAgentAudit.created_at.desc())
             .offset(offset)
             .limit(page_size)
         )
         result = await self._session.execute(stmt)
         return result.scalars().all(), total
+
+    @staticmethod
+    def _build_pending_filter_conditions(
+        filters: TermAuditListFilters | None,
+    ) -> list:
+        """pending 列表基础条件 + 可选筛选。"""
+        conditions = [TermAgentAudit.review_status == "pending"]
+        if filters is None:
+            return conditions
+
+        if filters.source_text:
+            conditions.append(TermAgentAudit.source_text.like(f"%{filters.source_text}%"))
+        if filters.target_lang:
+            conditions.append(TermAgentAudit.target_lang == filters.target_lang)
+        if filters.task_name:
+            conditions.append(TermAgentAudit.task_name.like(f"%{filters.task_name}%"))
+        if filters.product_name:
+            conditions.append(TermAgentAudit.product_name.like(f"%{filters.product_name}%"))
+        if filters.department:
+            conditions.append(TermAgentAudit.department == filters.department)
+        if filters.confidence_min is not None:
+            conditions.append(TermAgentAudit.confidence >= filters.confidence_min)
+        if filters.confidence_max is not None:
+            conditions.append(TermAgentAudit.confidence <= filters.confidence_max)
+        if filters.retrieval_method:
+            conditions.append(TermAgentAudit.retrieval_method == filters.retrieval_method)
+        return conditions
 
     # ── 术语库写入（MergeToStore）──
 

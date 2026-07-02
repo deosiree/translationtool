@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
 
 # ── 请求体 ──
 
@@ -17,6 +17,26 @@ class TermReviewRequest(BaseModel):
     """POST /agent/term-learning/{id}/review — 术语学习页人工确认/拒绝。"""
     action: str = Field(..., pattern="^(approved|rejected)$", description="approved=确认入库 | rejected=拒绝")
     comment: Optional[str] = Field(None, max_length=512, description="审核备注")
+
+
+class TermBatchReviewRequest(BaseModel):
+    """POST /agent/term-learning/batch/review — 术语学习页批量确认/拒绝。"""
+    ids: list[str] = Field(..., min_length=1, description="待审核记录 id 列表")
+    action: str = Field(..., pattern="^(approved|rejected)$", description="approved=确认入库 | rejected=拒绝")
+    comment: Optional[str] = Field(None, max_length=512, description="审核备注")
+
+
+class TermBatchReviewFailure(BaseModel):
+    """批量审核单条失败明细。"""
+    id: str
+    reason: str
+
+
+class TermBatchReviewResult(BaseModel):
+    """POST /agent/term-learning/batch/review 的 data 字段。"""
+    success_count: int = Field(0, description="成功处理条数")
+    failed_count: int = Field(0, description="失败条数")
+    failures: list[TermBatchReviewFailure] = Field(default_factory=list, description="失败明细")
 
 
 class PreTranslateBatchRequest(BaseModel):
@@ -29,6 +49,48 @@ class PreTranslateBatchRequest(BaseModel):
     product_name: Optional[str] = Field(None, description="产品名称")
     target_lang: Optional[str] = Field(None, description="目标语种，如「俄文」")
     department: Optional[str] = Field(None, description="部门所属，对应术语库 visual_range")
+
+
+class TermAuditListFilters(BaseModel):
+    """GET /agent/term-learning/list 可选筛选条件。"""
+
+    source_text: Optional[str] = Field(None, description="词条模糊匹配")
+    target_lang: Optional[str] = Field(None, description="目标语种精确匹配")
+    task_name: Optional[str] = Field(None, description="任务名称模糊匹配")
+    product_name: Optional[str] = Field(None, description="产品名称模糊匹配")
+    department: Optional[str] = Field(None, description="部门所属精确匹配")
+    confidence_min: Optional[float] = Field(None, ge=0, le=1, description="置信度下限 0~1")
+    confidence_max: Optional[float] = Field(None, ge=0, le=1, description="置信度上限 0~1")
+    retrieval_method: Optional[str] = Field(
+        None,
+        description="检索方式 exact|fuzzy|grep|hybrid|decomposed|none",
+    )
+
+    @field_validator(
+        "source_text",
+        "target_lang",
+        "task_name",
+        "product_name",
+        "department",
+        "retrieval_method",
+        mode="before",
+    )
+    @classmethod
+    def _strip_optional_text(cls, value):
+        if value is None:
+            return None
+        text = str(value).strip()
+        return text or None
+
+    @model_validator(mode="after")
+    def _validate_confidence_range(self):
+        if (
+            self.confidence_min is not None
+            and self.confidence_max is not None
+            and self.confidence_min > self.confidence_max
+        ):
+            raise ValueError("confidence_min 不能大于 confidence_max")
+        return self
 
 
 # ── 响应 data 层 ──

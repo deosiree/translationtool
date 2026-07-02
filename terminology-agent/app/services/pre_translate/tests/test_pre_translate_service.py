@@ -9,7 +9,9 @@ from app.services.pre_translate import PreTranslateService
 
 
 @pytest.mark.service
-async def test_exact_match_auto_approved(pre_translate_service, mock_repo, mock_translate_entry):
+async def test_exact_match_auto_approved(
+    pre_translate_service, mock_repo, mock_translate_entry, mock_workbench_sync
+):
     """精确匹配术语库时应 auto_approved 且不写 audit。"""
     mock_repo.find_exact.return_value = mock_translate_entry
 
@@ -31,6 +33,7 @@ async def test_exact_match_auto_approved(pre_translate_service, mock_repo, mock_
     assert item["translate"] == mock_translate_entry.translate
     assert item["agent_meta"]["reasoning"].startswith("基于术语")
     mock_repo.create_pretranslate_audit.assert_not_called()
+    mock_workbench_sync.sync_translation_to_pending_audit.assert_awaited_once()
 
 
 @pytest.mark.service

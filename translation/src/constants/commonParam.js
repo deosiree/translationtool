@@ -542,6 +542,56 @@ export const glossaryParams = {
   overlayStyle: columnFilterOverlayStyle,
 };
 
+// ==================== 术语学习列设置（termAudit，单轨）====================
+
+/** @type {import('@/components/ColumnFilter/colPreset.js').ColDef[]} 术语学习待审核列全集 */
+export const termAuditAllCols = [
+  { label: "序号", value: "index", index: 0, required: true },
+  { label: "词条", value: "source_text", index: 1, required: true },
+  { label: "建议翻译", value: "suggested_translation", index: 2, visible: true },
+  { label: "目标语种", value: "target_lang", index: 3, visible: false },
+  { label: "任务名称", value: "task_name", index: 4, visible: false },
+  { label: "产品名称", value: "product_name", index: 5, visible: false },
+  { label: "部门所属", value: "department", index: 6, visible: false },
+  { label: "置信度", value: "confidence", index: 7, visible: true },
+  { label: "参考术语", value: "similar_terms", index: 8, visible: true },
+  { label: "检索方式", value: "retrieval_method", index: 9, visible: true },
+  { label: "Agent 说明", value: "llm_reasoning", index: 10, visible: true },
+  { label: "提交时间", value: "created_at", index: 11, visible: true },
+  { label: "工作台词条ID", value: "entry_info_id", index: 12, visible: false },
+  { label: "任务ID", value: "task_id", index: 13, visible: false },
+  { label: "上下文", value: "context", index: 14, visible: false },
+  { label: "是否新术语", value: "is_new_term", index: 15, visible: false },
+  { label: "来源类型", value: "source_type", index: 16, visible: false },
+  { label: "操作", value: "action", index: 100, required: true, fixed: "right" },
+];
+
+/**
+ * 术语学习各页列覆盖
+ * @type {Record<string, import('@/components/ColumnFilter/colPreset.js').ColPreset>}
+ */
+export const termAuditPresets = {
+  /** 术语学习主页 */
+  termAudit: { ovrd: [], defaults: null },
+  /** 已选术语弹窗 */
+  termAuditSelected: {
+    ovrd: [
+      { value: "source_text", required: true },
+      { value: "suggested_translation", visible: true },
+      { value: "target_lang", visible: true },
+      { value: "confidence", visible: true },
+      { value: "operation", required: true, fixed: "right" },
+    ],
+    defaults: { visible: false },
+  },
+};
+
+/** 术语学习非列 UI 参数 */
+export const termAuditParams = {
+  overlayStyle: columnFilterOverlayStyle,
+  labelCol: { style: { width: "84px" } },
+};
+
 // 4.workbenchParams如下：工作台通用 UI 参数（列设置见 wbPresets + applyTable）
 export const workbenchParams = {
   overlayStyle: columnFilterOverlayStyle,

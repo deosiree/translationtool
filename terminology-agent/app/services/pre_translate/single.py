@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ApiError
 from app.graph.pre_translate.runner import PreTranslateGraph
 from app.services.pre_translate.mappers import (
     apply_auto_approved_translation,
     guess_lang_field,
     map_graph_state_to_agent_meta,
 )
+from app.services.workbench_sync import WorkbenchEntrySyncService
+
+logger = logging.getLogger(__name__)
 
 
 async def run_single_pre_translate(
@@ -62,5 +68,47 @@ async def run_single_pre_translate(
             suggested=final.get("suggested_translation"),
             lang_key=guess_lang_field(entry, target_lang),
         )
+        await _sync_auto_approved_to_workbench(
+            session,
+            entry=entry,
+            target_lang=target_lang,
+            department=department,
+            suggested=final.get("suggested_translation"),
+            reasoning=agent_meta.get("reasoning"),
+            result_item=result_item,
+        )
 
     return result_item
+
+
+async def _sync_auto_approved_to_workbench(
+    session: AsyncSession,
+    *,
+    entry: dict,
+    target_lang: str | None,
+    department: str | None,
+    suggested: str | None,
+    reasoning: str | None,
+    result_item: dict,
+) -> None:
+    """高置信度 auto_approved 时落库到工作台 translate_state=1。"""
+    entry_info_id = entry.get("id")
+    if not entry_info_id or not suggested:
+        return
+    sync = WorkbenchEntrySyncService(session)
+    try:
+        await sync.sync_translation_to_pending_audit(
+            entry_info_id=entry_info_id,
+            target_lang=target_lang,
+            translate=suggested,
+            audit_suggest=reasoning,
+            department=department,
+            entry_text=entry.get("entry"),
+        )
+    except ApiError as exc:
+        logger.warning(
+            "workbench sync failed entry=%s: %s",
+            entry_info_id,
+            exc,
+        )
+        result_item.setdefault("agent_meta", {})["workbench_sync_error"] = str(exc)

@@ -1275,8 +1275,11 @@ export default {
           const { autoCount, pendingCount, mock } = result.meta;
           const suffix = mock ? "（Mock）" : "";
           message.success(
-            `Agent 预翻译完成${suffix}：自动回填 ${autoCount} 条，待审核 ${pendingCount} 条`
+            `Agent 预翻译完成${suffix}：${autoCount} 条已保存至待审核，${pendingCount} 条进入术语学习`
           );
+          await this.getTranslateEntry();
+        } else if (result.priority === "agent") {
+          await this.getTranslateEntry();
         } else {
           message.success(`预翻译成功，共翻译 ${translatedData.length} 条词条`);
         }

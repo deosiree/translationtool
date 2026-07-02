@@ -8,6 +8,8 @@ images/
 
 # 全量数据（本地用，不上传）
 db/init/run.sql
+db/backups/*.sql
+db/backups/.latest
 
 # 环境包
 ENV_package/

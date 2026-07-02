@@ -17,7 +17,28 @@ async def test_list_pending_pagination(term_audit_service, mock_repo, sample_aud
 
     assert len(records) == 1
     assert total == 1
-    mock_repo.list_pending_audits.assert_awaited_once_with(page=2, page_size=10)
+    mock_repo.list_pending_audits.assert_awaited_once_with(
+        page=2, page_size=10, filters=None
+    )
+
+
+@pytest.mark.service
+async def test_list_pending_passes_filters(term_audit_service, mock_repo, sample_audit_record):
+    """list_pending 应将 filters 透传 repo。"""
+    from app.schemas.agent import TermAuditListFilters
+
+    filters = TermAuditListFilters(task_name="admin-proj", target_lang="英文")
+    mock_repo.list_pending_audits.return_value = ([sample_audit_record], 1)
+
+    records, total = await term_audit_service.list_pending(
+        page=1, page_size=20, filters=filters
+    )
+
+    assert len(records) == 1
+    assert total == 1
+    mock_repo.list_pending_audits.assert_awaited_once_with(
+        page=1, page_size=20, filters=filters
+    )
 
 
 @pytest.mark.service
@@ -46,6 +67,14 @@ async def test_review_approved_merge_to_store(term_audit_service, mock_repo, sam
         "audit-001",
         review_status="approved",
         review_comment="确认入库",
+    )
+    term_audit_service._workbench_sync.sync_translation_to_pending_audit.assert_awaited_once_with(
+        entry_info_id=pending.entry_info_id,
+        target_lang=pending.target_lang,
+        translate=pending.suggested_translation,
+        audit_suggest=pending.llm_reasoning,
+        department=pending.department,
+        entry_text=pending.source_text,
     )
     mock_repo.insert_translate.assert_awaited_once_with(
         entry=pending.source_text,
@@ -80,3 +109,47 @@ async def test_review_approved_skips_insert_when_exact_exists(
     await term_audit_service.review("audit-001", action="approved", comment=None)
 
     mock_repo.insert_translate.assert_not_called()
+
+
+@pytest.mark.service
+async def test_batch_review_all_success(term_audit_service, mock_repo, sample_audit_record):
+    """batch_review 全部成功应返回 success_count。"""
+    pending = sample_audit_record
+    rejected = SimpleNamespace(**{**vars(pending), "review_status": "rejected"})
+    mock_repo.get_audit = AsyncMock(side_effect=[pending, rejected, pending, rejected])
+
+    result = await term_audit_service.batch_review(
+        ["audit-001", "audit-002"],
+        action="rejected",
+        comment=None,
+    )
+
+    assert result.success_count == 2
+    assert result.failed_count == 0
+    assert result.failures == []
+
+
+@pytest.mark.service
+async def test_batch_review_partial_failure(term_audit_service, mock_repo, sample_audit_record):
+    """batch_review 部分失败应收集 failures 且继续处理其余条目。"""
+    pending = sample_audit_record
+    rejected = SimpleNamespace(**{**vars(pending), "review_status": "rejected"})
+
+    async def get_audit_side_effect(audit_id):
+        if audit_id == "missing-id":
+            return None
+        return pending
+
+    mock_repo.get_audit = AsyncMock(side_effect=get_audit_side_effect)
+    mock_repo.update_audit = AsyncMock(return_value=rejected)
+
+    result = await term_audit_service.batch_review(
+        ["audit-001", "missing-id"],
+        action="rejected",
+        comment=None,
+    )
+
+    assert result.success_count == 1
+    assert result.failed_count == 1
+    assert result.failures[0].id == "missing-id"
+    assert "不存在" in result.failures[0].reason

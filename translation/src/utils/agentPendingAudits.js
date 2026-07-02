@@ -46,6 +46,133 @@ export function formatRetrievalMethod(method) {
   return RETRIEVAL_METHOD_LABELS[method] || method;
 }
 
+/** 术语学习搜索 — 检索方式下拉（不含 mock） */
+const RETRIEVAL_METHOD_FILTER_KEYS = [
+  "exact",
+  "fuzzy",
+  "grep",
+  "hybrid",
+  "decomposed",
+  "none",
+];
+
+/**
+ * 检索方式筛选项（value=代码，label=中文）
+ * @returns {{ label: string, value: string }[]}
+ */
+export function getRetrievalMethodOptions() {
+  return RETRIEVAL_METHOD_FILTER_KEYS.map((value) => ({
+    value,
+    label: RETRIEVAL_METHOD_LABELS[value] || value,
+  }));
+}
+
+/**
+ * 术语学习默认 search 对象
+ * @returns {Object}
+ */
+export function createDefaultAuditSearch() {
+  return {
+    sourceText: null,
+    targetLang: null,
+    taskName: null,
+    productName: null,
+    department: null,
+    confidenceMin: null,
+    confidenceMax: null,
+    retrievalMethod: null,
+  };
+}
+
+/**
+ * 将 search 转为 GET /agent/term-learning/list 的 query params
+ * @param {Object} [search]
+ * @param {{ current?: number, pageSize?: number }} [pagination]
+ * @returns {Object}
+ */
+export function buildAuditListParams(search = {}, pagination = {}) {
+  const params = {};
+  if (pagination.current != null) params.page = pagination.current;
+  if (pagination.pageSize != null) params.pageSize = pagination.pageSize;
+
+  const text = (v) => (v != null && String(v).trim() ? String(v).trim() : null);
+
+  const sourceText = text(search.sourceText);
+  if (sourceText) params.sourceText = sourceText;
+  if (search.targetLang) params.targetLang = search.targetLang;
+  const taskName = text(search.taskName);
+  if (taskName) params.taskName = taskName;
+  const productName = text(search.productName);
+  if (productName) params.productName = productName;
+  if (search.department) params.department = search.department;
+  if (search.retrievalMethod) params.retrievalMethod = search.retrievalMethod;
+
+  let confMin =
+    search.confidenceMin != null && search.confidenceMin !== ""
+      ? Number(search.confidenceMin)
+      : null;
+  let confMax =
+    search.confidenceMax != null && search.confidenceMax !== ""
+      ? Number(search.confidenceMax)
+      : null;
+  if (confMin != null && Number.isNaN(confMin)) confMin = null;
+  if (confMax != null && Number.isNaN(confMax)) confMax = null;
+  if (confMin != null && confMax != null && confMin > confMax) {
+    [confMin, confMax] = [confMax, confMin];
+  }
+  if (confMin != null) params.confidenceMin = confMin / 100;
+  if (confMax != null) params.confidenceMax = confMax / 100;
+  return params;
+}
+
+/**
+ * 提取纯筛选字段（不含分页），供本地项客户端过滤
+ * @param {Object} [search]
+ * @returns {Object|null}
+ */
+export function extractAuditFilters(search = {}) {
+  const params = buildAuditListParams(search);
+  delete params.page;
+  delete params.pageSize;
+  return Object.keys(params).length ? params : null;
+}
+
+/**
+ * 本地/mock 待审核项是否匹配筛选条件
+ * @param {AuditRecord} item
+ * @param {Object|null} filters - buildAuditListParams 产出（confidence 已为 0~1）
+ * @returns {boolean}
+ */
+export function matchesAuditFilters(item, filters) {
+  if (!filters) return true;
+
+  if (filters.sourceText) {
+    const src = String(item.source_text || "");
+    if (!src.includes(filters.sourceText)) return false;
+  }
+  if (filters.targetLang && item.target_lang !== filters.targetLang) return false;
+  if (filters.taskName) {
+    const name = String(item.task_name || "");
+    if (!name.includes(filters.taskName)) return false;
+  }
+  if (filters.productName) {
+    const name = String(item.product_name || "");
+    if (!name.includes(filters.productName)) return false;
+  }
+  if (filters.department && item.department !== filters.department) return false;
+  if (filters.retrievalMethod && item.retrieval_method !== filters.retrievalMethod) {
+    return false;
+  }
+  if (filters.confidenceMin != null || filters.confidenceMax != null) {
+    const conf = item.confidence;
+    if (conf == null || Number.isNaN(Number(conf))) return false;
+    const num = Number(conf);
+    if (filters.confidenceMin != null && num < filters.confidenceMin) return false;
+    if (filters.confidenceMax != null && num > filters.confidenceMax) return false;
+  }
+  return true;
+}
+
 /**
  * 置信度 0~1 → 百分比字符串
  * @param {number|null|undefined} confidence
@@ -217,9 +344,14 @@ export function getMockPendingAudits() {
  * @param {Object} options
  * @param {AuditRecord[]} [options.apiItems=] - 后端返回的待审核条目
  * @param {boolean} [options.useMockFallback=USE_AUDIT_MOCK] - 合并结果为空时是否回退 mock
+ * @param {Object|null} [options.filters=null] - 客户端筛选（仅作用于 local/mock 项）
  * @returns {AuditRecord[]}
  */
-export function mergePendingAudits({ apiItems = [], useMockFallback = USE_AUDIT_MOCK }) {
+export function mergePendingAudits({
+  apiItems = [],
+  useMockFallback = USE_AUDIT_MOCK,
+  filters = null,
+}) {
   const localItems = loadLocalPendingAudits();
   const merged = new Map();
 
@@ -231,12 +363,21 @@ export function mergePendingAudits({ apiItems = [], useMockFallback = USE_AUDIT_
   };
 
   apiItems.forEach(addItem);
-  localItems.forEach(addItem);
+  localItems.forEach((item) => {
+    if (matchesAuditFilters(item, filters)) {
+      addItem(item);
+    }
+  });
 
-  const result = Array.from(merged.values());
+  let result = Array.from(merged.values());
   if (result.length === 0 && useMockFallback) {
-    getMockPendingAudits().forEach(addItem);
-    return Array.from(merged.values());
+    merged.clear();
+    getMockPendingAudits().forEach((item) => {
+      if (matchesAuditFilters(item, filters)) {
+        addItem(item);
+      }
+    });
+    result = Array.from(merged.values());
   }
   return result;
 }

@@ -89,7 +89,23 @@ def mock_repo(mock_translate_entry, mock_fuzzy_entries):
 
 
 @pytest.fixture
-def pre_translate_service(mock_repo, monkeypatch):
+def mock_workbench_sync(monkeypatch):
+    """Mock WorkbenchEntrySyncService，供预翻译与术语审核测试共用。"""
+    mock = AsyncMock()
+    mock.sync_translation_to_pending_audit = AsyncMock()
+    monkeypatch.setattr(
+        "app.services.pre_translate.single.WorkbenchEntrySyncService",
+        lambda _session: mock,
+    )
+    monkeypatch.setattr(
+        "app.services.term_audit.service.WorkbenchEntrySyncService",
+        lambda _session: mock,
+    )
+    return mock
+
+
+@pytest.fixture
+def pre_translate_service(mock_repo, monkeypatch, mock_workbench_sync):
     """注入 mock Term/WordRepository 与空 Trie 的 PreTranslateService（含 Grep 线 stub）。"""
 
     def repo_factory(_session):
@@ -105,6 +121,9 @@ def pre_translate_service(mock_repo, monkeypatch):
         from app.shared.term_word.trie import Trie
 
         return Trie()
+
+    mock_workbench_sync = AsyncMock()
+    mock_workbench_sync.sync_translation_to_pending_audit = AsyncMock()
 
     monkeypatch.setattr(
         "app.graph.pre_translate.nodes.features.io.retrieve_similar.TermRepository",
@@ -138,13 +157,14 @@ def pre_translate_service(mock_repo, monkeypatch):
 
 
 @pytest.fixture
-def term_audit_service(mock_repo):
+def term_audit_service(mock_repo, mock_workbench_sync):
     """注入 mock repo 的 TermAuditService。"""
     from app.services.term_audit import TermAuditService
 
     session = AsyncMock()
     service = TermAuditService(session)
     service._repo = mock_repo
+    service._workbench_sync = mock_workbench_sync
     return service
 
 

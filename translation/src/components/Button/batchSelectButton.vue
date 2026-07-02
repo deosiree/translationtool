@@ -3,9 +3,9 @@
   <a-button type="primary" :size="size" @click="batchSelectAll" v-if="batchSelectFlag" :loading="loading">选择全部</a-button>
   <a-button type="primary" :size="size" @click="batchSelectCancel" class="yellowBtn" v-if="batchSelectFlag">取消选择</a-button>
   <a-badge :count="selectEntry.length" :overflow-count="99" v-if="batchSelectFlag">
-    <a-button type="primary" :size="size" class="resetBtn" @click="viewSelectEntry">已选词条</a-button>
+    <a-button type="primary" :size="size" class="resetBtn" @click="viewSelectEntry">{{ selectedButtonText }}</a-button>
   </a-badge>
-  <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" @update:dataSource="selectEntry = $event"
+  <BatchSelectModal v-if="!hideModal" :visible="batchSelectVisible" :dataSource="selectEntry" @update:dataSource="selectEntry = $event"
     :selectedRowKeys="selectedRowKeys" @update:selectedRowKeys="selectedRowKeys = $event" :selectedRows="selectedRows"
     @update:selectedRows="selectedRows = $event" @batchSelectClose="batchSelectClose" @batchSelectCancel="batchSelectCancel"
     @refresh="getSearch" />
@@ -75,6 +75,20 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** 自定义「选择全部」逻辑；未提供时使用当前页 dataSource */
+    selectAllFn: {
+      type: Function,
+      default: null,
+    },
+    /** 为 true 时不渲染内置 BatchSelectModal，由父组件自行处理已选弹窗 */
+    hideModal: {
+      type: Boolean,
+      default: false,
+    },
+    selectedButtonText: {
+      type: String,
+      default: "已选词条",
+    },
   },
   methods: {
     // 批量选择展开
@@ -92,6 +106,10 @@ export default {
       if (this.batchSelectOnChange(this.getSearch))
         // 判断搜索条件是否变化，如果变化则重新查询
         return;
+      if (typeof this.selectAllFn === "function") {
+        this.selectAllFn();
+        return;
+      }
       if (Object.keys(this.dataSource).length === 0) {
         return;
       }

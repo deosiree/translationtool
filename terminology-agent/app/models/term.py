@@ -88,6 +88,7 @@ class TranslateEntry(Base):
     translate: Mapped[str | None] = mapped_column(String(1024), comment="译文")
     type: Mapped[str | None] = mapped_column(String(255), comment="语种，如「俄文」")
     translate_state: Mapped[str | None] = mapped_column(String(64), comment="3=已审核通过")
+    audit_suggest: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="审核意见")
     remark: Mapped[str | None] = mapped_column(String(255), comment="备注")
     delete_state: Mapped[int | None] = mapped_column(Integer, default=0, comment="0=有效")
     visual_range: Mapped[str | None] = mapped_column(String(255), comment="部门可见范围")

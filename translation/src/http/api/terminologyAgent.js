@@ -76,7 +76,15 @@ export function getAuditRecord(auditId) {
 
 /**
  * 术语学习页 — 待审核列表
- * @param {Object} params - 查询参数，如 { page, pageSize }
+ * @param {Object} params - page, pageSize 及可选筛选字段
+ * @param {string} [params.sourceText]
+ * @param {string} [params.targetLang]
+ * @param {string} [params.taskName]
+ * @param {string} [params.productName]
+ * @param {string} [params.department]
+ * @param {number} [params.confidenceMin] - 0~1
+ * @param {number} [params.confidenceMax] - 0~1
+ * @param {string} [params.retrievalMethod]
  * @returns {Promise<{ data: { list: AuditRecord[], total: number } }>}
  */
 export function listPendingAudits(params) {
@@ -100,6 +108,21 @@ export function reviewTerm(auditId, action, comment) {
     url: `/agent/term-learning/${auditId}/review`,
     method: "POST",
     data: { action, comment: comment || null },
+  });
+}
+
+/**
+ * 术语学习页 — 批量确认或拒绝
+ * @param {string[]} ids - audit id 列表
+ * @param {"approved"|"rejected"} action
+ * @param {string} [comment] - 审核备注
+ * @returns {Promise<{ data: { success_count: number, failed_count: number, failures: Array<{ id: string, reason: string }> } }>}
+ */
+export function batchReviewTerms(ids, action, comment) {
+  return request({
+    url: "/agent/term-learning/batch/review",
+    method: "POST",
+    data: { ids, action, comment: comment || null },
   });
 }
 
