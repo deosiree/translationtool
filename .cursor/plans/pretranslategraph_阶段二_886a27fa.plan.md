@@ -1,6 +1,6 @@
 ---
 name: i18n Agent 分阶段路线图
-overview: 在阶段一（API 去冗余）之上分六期建设。当前进度：Phase 1–3b MVP 与 Grep 并行检索、手动测试基建已完成；**下一步 Phase 3c（P3b+ LLM 受约束拼装）**；之后 Phase 4 矛盾治理前端。
+overview: 在阶段一（API 去冗余）之上分六期建设。当前进度：Phase 1–3c 代码已完成（2026-07-13）；**待做 3c UI 全矩阵验收**；之后 Phase 4 矛盾治理前端。详见 pretranslategraph_进度快照.md。
 todos:
   - id: p1-orchestration-graph
     content: "Phase 1: PreTranslateGraph + 编排分层 + 删 TermLearningGraph + 无占位译文"
@@ -20,8 +20,26 @@ todos:
   - id: p3b-ux-audit-reasoning
     content: "Phase 3b UX: auto_approved 时 agent_meta.reasoning 拷贝到 englishAuditSuggest"
     status: completed
+  - id: p3c-segment-jieba
+    content: "Phase 3c-0: jieba 通用分词切界 + 术语 lookup（Grep/decompose 共用 segment_source_text，弃 Trie 主导切界）"
+    status: completed
   - id: p3c-llm-compose-suggest
     content: "Phase 3c P3b+: compose_suggest LLM 受约束拼装（词片术语约束 + 目标语语法）"
+    status: completed
+  - id: p3c-decompose-split
+    content: "Phase 3c-1: decompose_compose 只产出 spans/coverage/decomposed_translation，不写 suggested_translation"
+    status: completed
+  - id: p3c-prompt-node
+    content: "Phase 3c-2: prompts/compose_suggest.py + compose_suggest 节点 + builder 连边"
+    status: completed
+  - id: p3c-confidence-fallback
+    content: "Phase 3c-3: LLM_COMPOSE_CAP + 术语校验 + LLM 失败 fallback 策略"
+    status: completed
+  - id: p3c-tests-docs
+    content: "Phase 3c-4: 单测/图测/trajectory_cases + README 与边注释更新"
+    status: completed
+  - id: p3d-ngram-term-align
+    content: "Phase 3d（可选）: 分词后相邻 token 合并 lookup（术语对齐，非术语驱动切界）"
     status: pending
   - id: p3c-retest-adm-matrix
     content: "Phase 3c 验收: admin-proj 全矩阵复测（含 File System / decomposed 路径）"
@@ -38,28 +56,29 @@ todos:
 isProject: false
 ---
 
-# i18n 术语 Agent — 分阶段路线图（v4）
+# i18n 术语 Agent — 分阶段路线图（v5）
 
 > **前置已完成**：[阶段一](旧版_api_去冗余) 删除 `/run`、收紧 batch body、清理 dead code。  
 > **本文档**：术语拆解复用 + 元词词典 + PreTranslateGraph + 矛盾治理 + Eval，按 **6 个 Phase** 渐进交付（Phase 3 拆为 3a/3b/3c）。
 
 ---
 
-## 当前进度快照（2026-06-29）
+## 当前进度快照（2026-07-13）
 
 | 里程碑 | 状态 | 说明 |
 |--------|------|------|
 | Phase 1 图合并 | **已完成** | [`PreTranslateGraph`](terminology-agent/app/graph/pre_translate/builder.py)、exact/fuzzy/none、无 `[Agent]` 占位 |
 | Phase 2 元词库 | **已完成** | 实现为 `term_word` + [`build_word_index`](terminology-agent/scripts/build_word_index.py)（非文档原 `term_lexeme` 命名） |
 | Phase 3a Grep∥RAG | **已完成** | [`retrieve_similar`](terminology-agent/app/graph/pre_translate/nodes/features/io/retrieve_similar.py) 并行 + merge |
-| Phase 3b MVP 拆解拼装 | **已完成** | decompose + lookup + 确定性 `"".join()` + coverage 门控；**英文拼接质量不足** |
+| Phase 3b MVP 拆解拼装 | **已完成** | coverage 门控 + hybrid 路径接入主图 |
 | 3b 手动测试基建 | **已完成** | ADM 种子/触发、ETL、[`fix_adm_test_data`](terminology-agent/devtools/fix_adm_test_data.py)、审核意见拷贝 |
-| **Phase 3c P3b+** | **待做（下一步）** | LLM 受约束拼装 `compose_suggest`，解决空格/介词/语法 |
+| **Phase 3c 代码** | **已完成** | jieba 切界 + `compose_suggest` LLM 受约束拼装；142 pytest 全绿 |
+| **Phase 3c UI 验收** | **待做** | admin-proj 全矩阵 UI 复测（后端矩阵 6/6 已通过） |
 | Phase 4–6 | 未开始 | 矛盾治理 UI、Judge、FAISS |
 
-**你现在在这里**：Phase 3b MVP 已跑通，正在进入 **Phase 3c**。
+**你现在在这里**：Phase 3c 代码已合入，**待 UI 全矩阵验收** 后进入 Phase 4。
 
-**建议下一步**：执行 **Phase 3c（P3b+ LLM 受约束拼装）**，完成后再做 **admin-proj 全矩阵 UI 复测**。
+**建议下一步**：跑 migration + `verify_adm_pretranslate --strict` + 工作台/术语学习 UI 手工矩阵；详见 [`pretranslategraph_进度快照.md`](pretranslategraph_进度快照.md)。
 
 ---
 
@@ -100,19 +119,21 @@ flowchart LR
 
 ### 新能力（Phase 3 起）
 
-对新词条 **最长匹配拆解** 为库中已有术语片段，再 **拼装** 目标语译文。
+对新词条 **通用分词切界**（保留语义词界）→ **按 span 查术语库** → **拼装** 目标语译文。
+
+> **架构修正（2026-06-29）**：切界 **不由术语库 Trie 最长匹配主导**。术语库只负责 lookup 译法，不负责猜词界。反例：源文「计算机器」若库中有「计算机」，Trie 切界会得到「计算机+器」，语义错误；应用 jieba 通用词频切为「计算|机器」。
 
 **示例**：`文件与系统资源的定义`
 
 ```mermaid
 flowchart TD
   IN["源词条: 文件与系统资源的定义"]
-  DEC["rules/decompose_entry<br/>最长匹配拆 Span"]
-  SP["Spans: 文件 | 与 | 系统 | 资源 | 的 | 定义<br/>+ 库中复合词 实时库定义→可拆出 定义"]
-  LOOKUP["io/lookup_lexemes<br/>按 department+lang+comment 取译法"]
-  COMP["rules/compose_candidate<br/>或 llm/glue_morphology"]
+  SEG["segment_source_text<br/>jieba 通用分词切界"]
+  SP["Spans: 文件 | 与 | 系统 | 资源 | 的 | 定义<br/>（词界由 jieba 决定，非 term_word 驱动）"]
+  LOOKUP["io/lookup_lexemes<br/>每 span 查 term_word（department+lang+comment）"]
+  COMP["compose_suggest LLM<br/>或 rules trace compose"]
   OUT["候选译文 + coverage + 未覆盖 Span"]
-  IN --> DEC --> SP --> LOOKUP --> COMP --> OUT
+  IN --> SEG --> SP --> LOOKUP --> COMP --> OUT
 ```
 
 | Span | 库中命中 | 俄文示例（示意） |
@@ -194,11 +215,13 @@ flowchart TB
 ### 离线建库 Job（Phase 2）
 
 1. 扫描 `t_translate`（`delete_state=0`, `translate_state=3`）
-2. **最长短语优先** 从每条 `entry` 抽取候选元词（与拆解算法共用 Trie）
+2. **通用分词切界** 从每条 `entry` 抽取候选元词（与运行时 **同一 jieba segment** 函数，见 3c-0）
 3. 写入 `term_lexeme` + `term_lexeme_sense`（带 `source_translate_id`、`comment`←`remark`）
 4. 同 scope 下 `translate` 不一致 → 写 `term_lexeme_conflict`
 
-Java 侧已有 HanLP 分词工具类 [`TermProcessUtils.java`](translationtoolservice/src/main/java/com/shr/translationtoolservice/util/TermProcessUtils.java)，Phase 2 可 **Python 侧自研 Trie 最长匹配**（与库内短语对齐），HanLP 仅作未匹配 Span 的辅助建议。
+**P2 现网** [`build_word_index`](terminology-agent/scripts/build_word_index.py) 当前 `word == entry` 整句入库；jieba 切界后 lookup 单字/词片，依赖 `term_word` 中 **存在对应独立条目**（如 t_translate 里已有「文件」「系统」行）。未来元词 ETL 可批量补原子词行，但 **不改变 jieba 切界原则**。
+
+Java 侧 HanLP（[`TermProcessUtils.java`](translationtoolservice/src/main/java/com/shr/translationtoolservice/util/TermProcessUtils.java)）用于 **相似度**；Agent Python 侧 **3c-0 起** 用 **jieba 默认词典** 切界（不 `load_userdict`）。
 
 ---
 
@@ -212,14 +235,14 @@ flowchart TD
   R["rules: 可枚举、可重复"]
   L["llm: 语义歧义"]
   H["human: 矛盾工单 / 低 coverage"]
-  Q -->|"最长匹配/精确/阈值"| R
+  Q -->|"jieba 切界/coverage/阈值"| R
   Q -->|"义项消歧/形态 glue"| L
   Q -->|"多译法冲突/库乱"| H
 ```
 
 | 决策点 | rules | LLM | human |
 |--------|-------|-----|-------|
-| 拆解 Span | 最长匹配 Trie | 未匹配片段建议切分 | 新复合词入库裁定 |
+| 拆解 Span | **jieba 通用分词**（`segment_source_text`） | 未命中 span 整句 LLM | 新复合词入库裁定 |
 | 义项选择 | 唯一 approved sense | comment 语境消歧 | conflict 工单 |
 | 全文 exact/fuzzy | 保留 Phase 1 路径 | — | — |
 | 拼装 glue | 连接词映射表 | **Phase 3c：LLM 受约束拼装（词片作术语约束）** | conflict 工单 |
@@ -644,12 +667,14 @@ DevTools Network：确认 batch body 为 `{ entries, task_name, ... }` 对象，
 
 ### Phase 3 — 拆解 + 拼装接入图（核心算法）
 
-1. `rules/decompose_entry.py`：Trie 最长匹配；输出 `spans[]`（text, start, end, lexeme_id?）
-2. `io/lookup_lexemes.py`：批量查 approved senses；多义项 → 标 `ambiguous`
+1. `segment_source_text`（**jieba.tokenize**，默认词典）→ `spans[]`（text, start, end）
+2. `io/lookup_lexemes.py`：每 span 批量查 approved senses；多义项 → 标 `ambiguous`
 3. `rules/compose_candidate.py`：按 Span 顺序拼接；连接词用 glue 表
 4. `llm/disambiguate_sense.py`（可选）：comment/上下文消歧；失败 → `needs_human`
 5. 接入 `PreTranslateGraph`；state 增加 `spans`, `coverage`, `decomposed_translation`
 6. 用例：`文件与系统资源的定义` 进 `trajectory_cases.json`
+
+**Phase 3b MVP 现状（待 3c-0 替换）**：[`decompose.py`](terminology-agent/app/graph/pre_translate/utils/decompose.py) 与 Grep [`grep_retrieve.py`](terminology-agent/app/graph/pre_translate/utils/grep_retrieve.py) 仍用 **Trie 最长匹配切界** — 与用户确认的架构不符，**3c-0 首要任务**。
 
 **路由**：`coverage >= COVERAGE_FLOOR`（建议 0.85）且无语义冲突 → 可 auto；否则 fuzzy/LLM/人工。
 
@@ -657,40 +682,304 @@ DevTools Network：确认 batch body 为 `{ entries, task_name, ... }` 对象，
 
 ---
 
-### Phase 3c — P3b+ LLM 受约束拼装（**当前下一步**）
+### Phase 3c — 拆解切界改版 + LLM 受约束拼装（**设计详案**）
 
-在 3b coverage 达标后，**不再**把确定性拼接当作最终译文；新增 `compose_suggest` 节点。
+#### 3c.0 拆解切界改版（jieba 通用分词 — **用户确认，先于 compose_suggest**）
+
+**问题**：3b MVP 用 `term_word` Trie **最长匹配主导切界**（[`decompose.py`](terminology-agent/app/graph/pre_translate/utils/decompose.py)、Grep [`extract.py`](terminology-agent/app/shared/term_word/extract.py)）。术语库子串会 **抢切界**，损失语义：
+
+| 源文 | Trie 切界（错误） | jieba 切界（正确） |
+|------|-------------------|-------------------|
+| 计算机器 | 计算机 + 器（库有「计算机」） | 计算 + 机器 |
+| 文件系统资源 | 可能被库内短词带偏 | 文件 + 系统 + 资源（或 jieba 合词变体） |
+
+**原则（两阶段，职责分离）**：
 
 ```mermaid
 flowchart LR
-  dc[decompose_compose]
-  cov{"coverage>=0.85?"}
-  cs[compose_suggest_LLM]
-  ts[translate_suggest_LLM]
-  ar[assess_route]
-  dc --> cov
-  cov -->|是| cs
-  cov -->|否| ts
-  cs --> ar
-  ts --> ar
+  SRC[source_text]
+  SEG["segment_source_text<br/>jieba 默认词典"]
+  SPAN[Span 带 offset]
+  LOOKUP["find_by_word 每 span"]
+  COV[coverage]
+  SRC --> SEG --> SPAN --> LOOKUP --> COV
 ```
 
-| 任务 | 文件 | 说明 |
+| 阶段 | 职责 | 实现 |
 |------|------|------|
-| 拆分确定性/最终译文 | [`decompose_compose.py`](terminology-agent/app/graph/pre_translate/nodes/features/workflow/decompose_compose.py) | 只写 `decomposed_translation`；达标时不写最终 `suggested_translation` |
-| LLM prompt | `prompts/compose_suggest.py`（新建） | span 术语表 + 目标语语法（空格/介词） |
-| LLM 节点 | `nodes/features/llm/compose_suggest.py`（新建） | 强制使用词片译法，产出自然词组 |
-| 主图连边 | [`builder.py`](terminology-agent/app/graph/pre_translate/builder.py) | `compose_ok` → `compose_suggest` → `assess_route` |
-| 置信度 | [`constants.py`](terminology-agent/app/graph/pre_translate/constants.py) | `LLM_COMPOSE_CAP` 建议 0.88 |
-| 测试 | `test_compose_suggest.py`、`test_pre_translate_graph.py` | mock LLM 返回 `File System` |
-| 注释 | [`after_decompose_compose.py`](terminology-agent/app/graph/pre_translate/edges/after_decompose_compose.py) | 最终译文来自 compose_suggest，非 `FileSystem` |
+| **切界** | 猜语义词界 | **jieba** `tokenize`（**不** `load_userdict`） |
+| **术语对齐** | 查 approved 译法 | `WordRepository.find_by_word(word=span.text)` |
+| **拼装** | 目标语自然短语 | 3c-1~4 `compose_suggest` LLM |
 
-**验收**：
-- `ADM/3B-文件ADM/3B-系统` → 建议译文 `File System`，检索方式仍为「拆解拼装」
+**共用函数**（Grep + decompose **同一 SSOT**）：
+
+- 新建 [`shared/term_word/segment.py`](terminology-agent/app/shared/term_word/segment.py)（或 `graph/pre_translate/utils/segment.py`）
+- `segment_source_text(text) -> list[tuple[str, int, int]]` — 基于 `jieba.tokenize`
+- [`decompose_to_spans`](terminology-agent/app/graph/pre_translate/utils/decompose.py) 改为：segment → Span 列表（**不再接收 Trie**）
+- [`grep_retrieve`](terminology-agent/app/graph/pre_translate/utils/grep_retrieve.py) / [`retrieve_similar._grep_retrieve`](terminology-agent/app/graph/pre_translate/nodes/features/io/retrieve_similar.py) 改为 segment + lookup；**整句 exact** 仍 `lookup(source_text)` 优先
+- [`trie_cache`](terminology-agent/app/repository/trie_cache.py)：**运行时切界路径不再依赖**；可保留供调试/子串 LIKE 或 Phase 3d
+
+**依赖**：`requirements.txt` / `pyproject.toml` 增加 `jieba`。
+
+**测试**：
+
+| 用例 | 断言 |
+|------|------|
+| `计算机器` | spans 含「计算」「机器」，**不含**「计算机+器」 |
+| `文件与系统资源的定义` | jieba 切界 + lookup 命中「文件」「系统」「资源」「定义」（库有对应行时） |
+| Grep 与 decompose | 同一 source 产出相同 token 集合 |
+
+**ADM 测试数据影响**：[`fix_adm_test_data.py`](terminology-agent/devtools/fix_adm_test_data.py) 中为规避 Trie 抢词的 **直接拼接触发串**（如 `ADM/3B-文件ADM/3B-系统`）在 jieba 下 **可能失效**；3c-0 后改用 **自然中文复合句** + 独立 seed 词条（「文件」「系统」等）验证 hybrid 路径。
+
+**明确不做（3c-0）**：
+
+- `load_userdict(term_word)` 主导切界（与用户「纯通用词频」冲突）
+- Trie / pyahocorasick **最长匹配** 作为切界主路径
+
+**可选 Phase 3d（术语对齐增强，非切界）**：jieba 切界后，对相邻 span 尝试 **合并** 再 lookup（如「文件」+「系统」→ 查「文件系统」）；仅当合并串在 term_word 存在时才合并，**不改变 jieba 原始切界 trace**。
+
+#### 3c.1 设计动机（LLM 拼装层）
+
+| 层级 | 职责 | 产出示例（英译） |
+|------|------|------------------|
+| **Rules**（3b 保留 + 3c-0 改切界） | jieba 切界 + 词片 lookup + coverage + trace compose | `decomposed_translation` = `FileSystem`（仅 trace） |
+| **LLM**（3c-2 新增） | 在 mandatory 词片约束下按目标语语法成句 | `suggested_translation` = `File System` / `Definition of file system resources` |
+
+业界对齐：术语库给**词典原形**，语法/空格/介词由 **AI-Enhanced Glossary Insertion** 在整句上下文完成（Smartling / Phrase），不做 post-hoc 字符串 join。
+
+#### 3c.2 主图变更（相对 3b MVP）
+
+```mermaid
+flowchart TB
+  RS[retrieve_similar]
+  RR[rerank_candidates]
+  RES[resolve_translation_source]
+  DC[decompose_compose]
+  EDGE{after_decompose_compose}
+  CS[compose_suggest]
+  TS[translate_suggest]
+  AR[assess_route]
+  WR[write_result]
+  RS --> RR --> RES
+  RES -->|term| AR
+  RES -->|llm| TS
+  RES -->|hybrid| DC --> EDGE
+  EDGE -->|compose_ok| CS
+  EDGE -->|llm_fallback| TS
+  CS --> AR
+  TS --> AR
+  AR --> WR
+```
+
+**唯一连边改动**：[`builder.py`](terminology-agent/app/graph/pre_translate/builder.py) L55 `compose_ok` 从 `assess_route` 改为 `compose_suggest`；新增 `compose_suggest → assess_route`。
+
+[`after_decompose_compose`](terminology-agent/app/graph/pre_translate/edges/after_decompose_compose.py) 路由条件**不变**（仍看 coverage + decomposed 非空）；变的是 compose_ok 的下一跳。
+
+#### 3c.3 节点职责拆分
+
+**`decompose_compose`（改）** — 纯 rules，不调 LLM
+
+| 写入 state | 说明 |
+|------------|------|
+| `spans` | 词片 + offset + translate + ambiguous |
+| `coverage` | 已译字符 / 原文长度 |
+| `decomposed_translation` | [`compose_translation`](terminology-agent/app/graph/pre_translate/utils/compose.py) 确定性结果，**仅供 trace/LLM 参考** |
+| `retrieval_method` | coverage 达标 → `decomposed` |
+| `llm_detail` | `词片覆盖 coverage=XX%，待 LLM 受约束拼装` |
+| ~~`suggested_translation`~~ | **删除**（达标时不再写入） |
+| ~~`confidence`~~ | **删除**（改由 compose_suggest 写入） |
+
+**`compose_suggest`（新建）** — LLM 受约束拼装
+
+| 读 | 写 |
+|----|-----|
+| `source_text`, `target_lang`, `spans`, `decomposed_translation`, `coverage` | `suggested_translation`, `confidence`, `llm_detail`, `trace` |
+
+#### 3c.4 Prompt 设计
+
+新建 [`prompts/compose_suggest.py`](terminology-agent/app/graph/pre_translate/prompts/compose_suggest.py)：
+
+**System（按 target_lang 注入）**
+
+```
+您是工业软件 i18n 专家。任务：将中文词条译为{target_lang}，
+在「强制术语表」约束下输出自然、符合目标语习惯的短语/短句。
+
+规则：
+1. 强制术语表中每个译法必须出现（允许合理屈折/大小写，不可替换同义词）。
+2. 目标语为空格分写语言（英文/俄文/法文/西文）：词与词之间加空格；按需补介词（of/for/in 等）。
+3. 禁止简单拼接 mandatory 译法（如 File+System→FileSystem），除非术语表明确为品牌/ProductName。
+4. 保留 %1、%2 等占位符位置与数量。
+5. 未在术语表中的连接字（与/的/…）由你按语法翻译，勿保留中文。
+6. 只输出 JSON，无 markdown。
+
+输出：{"translation":"...","reasoning":"...","terms_used":["File","System"]}
+```
+
+**User message 结构**
+
+```
+Chinese term: {source_text}
+Target language: {target_lang}
+Coverage: {coverage:.0%}（词片命中比例，供你判断可信度）
+
+Mandatory terminology（必须全部使用）:
+| source_span | required_translation | status |
+| 文件 | File | hit |
+| 系统 | System | hit |
+| 与 | (no glossary — translate as connector) | glue |
+
+Naive draft（仅供参考，禁止照搬）: FileSystem
+
+Produce the best natural translation.
+```
+
+**Span 分类写入 prompt**
+
+| span 类型 | 条件 | prompt 行 |
+|-----------|------|-----------|
+| mandatory | `translate` 且非 ambiguous | required_translation 列 |
+| ambiguous | `ambiguous=True` | 标注「多译法冲突，勿选用」 |
+| glue | 无 translate、单字符连接词 | 「translate as connector」 |
+| oov | 无 translate、非标点 | 「translate if possible, else transliterate」 |
+
+#### 3c.5 置信度与 fallback
+
+新增常量（[`constants.py`](terminology-agent/app/graph/pre_translate/constants.py)）：
+
+```python
+LLM_COMPOSE_CAP: float = 0.88          # 低于 exact(1.0)，高于纯 LLM(0.65)
+LLM_COMPOSE_FALLBACK_CONF: float = 0.72  # LLM 失败但用 decomposed 兜底时的置信度
+```
+
+| 场景 | suggested_translation | confidence | review 倾向 |
+|------|----------------------|------------|-------------|
+| LLM 成功 + 术语校验通过 | LLM translation | `min(coverage_to_confidence(cov), LLM_COMPOSE_CAP)` | ≥0.8 可 auto |
+| LLM 成功 + 术语缺失 | fallback `decomposed_translation` | `LLM_COMPOSE_FALLBACK_CONF` | 通常 needs_human |
+| LLM 失败 / 无 API Key | fallback `decomposed_translation` | `LLM_COMPOSE_FALLBACK_CONF` | needs_human + error 说明 |
+| coverage 未达标 | 不走 compose_suggest，整句 `translate_suggest` | 0.65 | 不变 |
+
+**术语校验（rules，轻量）**：LLM 返回后检查每个 mandatory `translate` 是否出现在结果中（case-insensitive）；失败则 fallback + 降置信，不二次 LLM（控制成本）。
+
+#### 3c.6 State / API / UI 映射
+
+| state 字段 | 页面表现 |
+|------------|----------|
+| `retrieval_method=decomposed` | 术语学习「检索方式」→ **拆解拼装** |
+| `suggested_translation` | 工作台翻译列 / 术语学习建议翻译 |
+| `decomposed_translation` | 仅 trace / 调试 API（前端暂不展示） |
+| `coverage` | Agent 说明中的 `coverage=85%` |
+| `llm_detail` | compose 理由；经 write_result → `llm_reasoning` → 审核意见或 Agent 说明 |
+| `translation_source=hybrid` | 「基于混合检索：…」 |
+
+**不改** `agent_meta` 六字段契约；不新增 `retrieval_method` 枚举值。
+
+#### 3c.7 代码结构（新建/修改清单）
+
+| 序号 | 文件 | 动作 |
+|------|------|------|
+| 0 | `shared/term_word/segment.py` | 新建 `segment_source_text`（jieba）；改 [`decompose.py`](terminology-agent/app/graph/pre_translate/utils/decompose.py)、[`grep_retrieve.py`](terminology-agent/app/graph/pre_translate/utils/grep_retrieve.py)、[`extract.py`](terminology-agent/app/shared/term_word/extract.py) |
+| 1 | [`decompose_compose.py`](terminology-agent/app/graph/pre_translate/nodes/features/workflow/decompose_compose.py) | 达标时不写 suggested/confidence |
+| 2 | `prompts/compose_suggest.py` | 新建 prompt 构建 |
+| 3 | `nodes/features/llm/compose_suggest.py` | 新建节点；复用 translate_suggest 的 ChatOpenAI 调用模式 |
+| 4 | `utils/compose_validate.py`（可选） | `validate_mandatory_terms(output, spans)` |
+| 5 | [`builder.py`](terminology-agent/app/graph/pre_translate/builder.py) | 注册节点 + 连边 |
+| 6 | [`constants.py`](terminology-agent/app/graph/pre_translate/constants.py) | LLM_COMPOSE_* |
+| 7 | [`after_decompose_compose.py`](terminology-agent/app/graph/pre_translate/edges/after_decompose_compose.py) | 注释：compose_ok → compose_suggest |
+| 8 | [`compose.py`](terminology-agent/app/graph/pre_translate/utils/compose.py) | 保留；docstring 标明「内部 trace，非最终译文」 |
+
+**可选重构（非阻塞）**：从 `translate_suggest` 抽出 `invoke_llm_json(system, user) -> (translation, reasoning)` 供两节点共用。
+
+#### 3c.8 测试策略（TDD 顺序）
+
+0. **`test_segment_source_text.py`** — `计算机器`→「计算|机器」；Grep/decompose 共用同一函数
+1. **`test_compose_suggest_prompt.py`** — span 表渲染、英文/俄文 system 差异、占位符保留说明
+2. **`test_compose_validate.py`** — mandatory 术语校验通过/失败
+3. **`test_compose_suggest_node.py`** — mock LLM 返回 `File System`；无 Key → fallback decomposed
+4. **改 [`test_pre_translate_graph.py`](terminology-agent/app/graph/pre_translate/tests/test_pre_translate_graph.py)** — patch `compose_suggest_node`；断言 `suggested_translation != decomposed_translation` 且含空格
+5. **改 [`trajectory_cases.json`](terminology-agent/app/evals/trajectory_cases.json)**：
+
+```json
+{
+  "id": "decompose-compound-two-words",
+  "expected_decomposed": "FileSystem",
+  "expected_llm_contains": ["File", "System"],
+  "expected_llm_not_equals": "FileSystem"
+}
+```
+
+6. **保留 [`test_compose_coverage.py`](terminology-agent/app/graph/pre_translate/tests/test_compose_coverage.py)** 对 `compose_translation` 的确定性单测不变。
+
+#### 3c.9 黄金用例预期（实施后）
+
+| 源词条 | decomposed（trace） | LLM 最终（英文） | retrieval | auto? |
+|--------|---------------------|------------------|-----------|-------|
+| `ADM/3B-文件ADM/3B-系统` | `FileSystem` | `File System` | decomposed | 是（conf≈0.88） |
+| `文件与系统资源的定义` | 含中文连接词 | `Definition of file system resources` 类 | decomposed | 视 threshold |
+| `文件与系统资源的定义`（仅命中「文件」） | coverage<0.85 | 整句 LLM | hybrid→none | needs_human |
+
+#### 3c.10 明确不做（3c 范围外）
+
+- 完整形态学引擎 / 介词规则表（交给 LLM）
+- 改 Grep/RAG **merge 与 RAG 向量逻辑**（3c-0 仅改 Grep **切界函数**，与 decompose 共用 jieba）
+- Phase 5 Judge（3c 后可对 compose 结果加 judge，但不阻塞 3c）
+- 前端新列展示 `decomposed_translation`（后续可选）
+
+#### 3c.11 分词/拼装：依赖包策略（修订版）
+
+**结论**：
+
+| 问题 | 方案 | 说明 |
+|------|------|------|
+| **切界（词界）** | **jieba 默认词典** | 通用词频猜词界；**术语库不参与切界** |
+| **术语 lookup** | `term_word` + `find_by_word` | 每 jieba span 查库；消歧键 comment/lang/department 不变 |
+| **拼装（英文语法）** | **3c LLM `compose_suggest`** | 无成熟 pip 包；术语约束 + 上下文语法 |
+
+**与旧 §3c.10 的差异**：此前写「应用 Trie 最长匹配、jieba 仅 OOV 辅助」——**已废弃**。用户确认：术语库驱动切界会损失语义（计算机/计算机器），应 **通用分词切界 + 术语 lookup 解耦**。
+
+**Trie / pyahocorasick 定位变更**：
+
+| 组件 | 旧角色 | 新角色 |
+|------|--------|--------|
+| 自研 [`Trie`](terminology-agent/app/shared/term_word/trie.py) | 运行时切界 + Grep 拆词 | **非切界主路径**；可选保留子串检索/调试 |
+| pyahocorasick | 替换 Trie 切界 | **不优先**；3d 若做 n-gram 合并 lookup 可考虑 |
+| jieba | OOV 辅助 | **切界 SSOT**（默认词典，不 userdict） |
+
+```mermaid
+flowchart TB
+  subgraph seg [切界 jieba]
+    J[jieba.tokenize]
+  end
+  subgraph term [术语 lookup]
+    LOOKUP[WordRepository.find_by_word]
+  end
+  subgraph compose [拼装 LLM]
+    LLM[compose_suggest]
+  end
+  subgraph optional [可选 3d]
+    MERGE[相邻 span 合并 lookup]
+  end
+  J --> LOOKUP --> LLM
+  LOOKUP -.-> MERGE
+```
+
+#### 3c.12 实施 commit 粒度建议
+
+```
+C0  segment_source_text(jieba) + decompose/grep 改切界 + 单测（计算机器/文件与系统…）
+C1  decompose_compose 拆分 + 图测红（期望 FileSystem 失败）
+C2  compose_suggest prompt + 节点 + builder 连边 → 图测绿
+C3  术语校验 + fallback + constants
+C4  trajectory_cases + README + 边注释
+C5  ADM 种子/触发更新 + admin-proj UI 复测（todo p3c-retest-adm-matrix）
+```
+
+**验收**（与 3b 对比）：
+- `ADM/3B-文件ADM/3B-系统` → 建议译文 **`File System`**，检索方式仍为「拆解拼装」
 - coverage 未达标行为不变（整句 LLM）
-- auto_approved 审核意见仍拷贝 reasoning（[`agentPreTranslateBackfill.js`](translation/src/utils/agentPreTranslateBackfill.js)）
+- auto_approved 审核意见仍拷贝 reasoning
 
-**Phase 3c 完成后**：跑 [`verify_adm_data.py`](terminology-agent/devtools/verify_adm_data.py) + admin-proj 工作台 UI 全矩阵复测（todo `p3c-retest-adm-matrix`）。
+**Phase 3c 完成后**：跑 [`verify_adm_data.py`](terminology-agent/devtools/verify_adm_data.py) + admin-proj 工作台 UI 全矩阵复测。
 
 ---
 
@@ -749,7 +1038,7 @@ flowchart LR
 |------|------|
 | 元词库与短语库不一致 | sense 必须 `source_translate_id` 溯源 |
 | 库乱导致海量矛盾 | Phase 2 先 `pending`；Phase 4 分批治理；Agent 只用 `approved` |
-| 拆解过度 | **最长匹配 + 不再细分** 原则；复合词整词入库 |
+| 切界语义错误 | **jieba 通用切界**；术语库仅 lookup，不主导切界 |
 | Phase 范围失控 | 严格按 Phase 交付，不跨期做 FAISS/前端 |
 | skill 未就绪 | Phase 4 启动前阻塞；Phase 1–3 不依赖 |
 
@@ -822,14 +1111,14 @@ flowchart LR
 
 | Idea | 来源/实践 | 借鉴 |
 |------|-----------|------|
-| **最长匹配分词（MMSEG 思想）** | 中文词典分词经典 | 用 `t_translate.entry` 建 Trie，对的新词条做 **逆向/正向最长匹配** |
-| **Double-Array Trie** | 工业词典 | 50k 短语索引内存查；Python `marisa-trie` 或自研 |
-| **短语优先于字** | 用户示例「实时库定义」 | 建库时枚举子短语长度≥2，避免「定义」与「实时库定义」冲突时短词抢匹配 |
-| **未登录词 OOV** | 分词常规问题 | 未匹配 Span 列表进 LLM 或人工；不瞎拼 |
+| **通用分词切界** | jieba / HanLP 工业实践 | **切界 SSOT**：`jieba.tokenize` 默认词典；**术语库不参与猜词界** |
+| **术语 lookup 解耦** | 用户反馈 2026-06-29 | 切界后每 span `find_by_word`；反例：计算机器 ≠ 计算机+器 |
+| **Double-Array Trie / pyahocorasick** | 工业词典 | **非切界主路径**；可选 n-gram 合并 lookup（3d） |
+| **未登录词 OOV** | 分词常规问题 | jieba 切出的无库 span → coverage 降 / LLM 整句 |
 | **义项用 comment 消歧** | 用户：同词不同 comment 多行 | sense 表设计已覆盖；LLM 读 entry comment + task context |
 | **覆盖度阈值** | IR 置信 | `coverage` < floor 不 auto |
-| **拼装非生成** | 降低幻觉 | 已覆盖 Span 只拼接已有译法；缺口才 LLM |
-| **Java HanLP** | 现有 `TermProcessUtils` | 仅辅助 OOV 建议，**不以通用分词替代术语 Trie** |
+| **拼装非生成** | 降低幻觉 | 已覆盖 Span 术语约束 + LLM 语法；缺口才整句 LLM |
+| **Java HanLP** | 现有 `TermProcessUtils` | Java 相似度；Python Agent 切界用 jieba |
 | **子图隔离** | LangChain Map-Reduce | DecomposeCompose 独立子图，单测不跑全图 |
 | **并行查义项** | LangChain Blog | 多 Span `asyncio.gather` 查 sense |
 | **矛盾即数据** | 用户：库乱 | conflict 表 + 治理 UI，Agent 读 snapshot（仅 approved） |

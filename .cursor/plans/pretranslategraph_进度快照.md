@@ -1,0 +1,196 @@
+# PreTranslateGraph 实现进度快照
+
+> 更新日期：**2026-07-13**  
+> 关联路线图：[pretranslategraph_阶段二_886a27fa.plan.md](./pretranslategraph_阶段二_886a27fa.plan.md)  
+> 分支：`docker2`（提交批次见文末）
+
+---
+
+## 总览进度条
+
+```
+阶段一 API 去冗余     ████████████ 100%  已完成
+Phase 1  图合并       ████████████ 100%  已完成
+Phase 2  term_word    ████████████ 100%  已完成
+Phase 3a Grep∥RAG     ████████████ 100%  已完成
+Phase 3b 拆解 MVP     ████████████ 100%  已完成
+Phase 3c 代码实现     ████████████ 100%  已完成 ← 本次推送
+Phase 3c UI 验收      ██████░░░░░░  50%  后端矩阵 OK，UI 待手工
+Phase 3d n-gram 对齐  ░░░░░░░░░░░░   0%  可选
+Phase 4  矛盾治理     ░░░░░░░░░░░░   0%  需 lexicon skill
+Phase 5  Judge/Darwin ░░░░░░░░░░░░   0%  可与 4 后并行
+Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
+```
+
+**当前位置**：Phase 3c 代码已全部落地，下一步是 **3c UI 全矩阵验收**，通过后进入 Phase 4。
+
+---
+
+## 已实现能力（按 Phase）
+
+### Phase 1 — PreTranslateGraph 单一流水线 ✅
+
+| 能力 | 关键文件 |
+|------|----------|
+| StateGraph 编排 | `terminology-agent/app/graph/pre_translate/builder.py` |
+| exact / fuzzy / none 检索路由 | `edges/after_resolve_source.py` |
+| 无 `[Agent]` 占位译文 | `nodes/features/llm/translate_suggest.py` |
+| BatchOrchestrator 编排层 | `app/orchestration/` |
+
+### Phase 2 — term_word 元词索引 ✅
+
+| 能力 | 关键文件 |
+|------|----------|
+| term_word 表 + WordRepository | `app/repository/word_repo.py` |
+| 离线 ETL | `scripts/build_word_index.py` |
+| Trie（非切界主路径，保留调试） | `app/shared/term_word/trie.py` |
+
+### Phase 3a — Grep ∥ RAG 并行检索 ✅
+
+| 能力 | 关键文件 |
+|------|----------|
+| 双路并行 + merge | `nodes/features/io/retrieve_similar.py` |
+| retrieval_source 标记 | `domain/translation_source.py` |
+
+### Phase 3b — 拆解 + coverage 门控 ✅
+
+| 能力 | 关键文件 |
+|------|----------|
+| decompose_compose 子图 | `nodes/features/workflow/decompose_compose.py` |
+| lookup_lexemes | `nodes/features/io/lookup_lexemes.py` |
+| coverage 阈值 0.85 | `constants.py` → `COVERAGE_FLOOR` |
+| hybrid 条件边 | `edges/after_decompose_compose.py` |
+| ADM 测试基建 | `devtools/fix_adm_test_data.py` |
+
+### Phase 3b UX — 审核意见拷贝 ✅
+
+| 能力 | 关键文件 |
+|------|----------|
+| auto_approved → englishAuditSuggest | `translation/src/utils/agentPreTranslateBackfill.js` |
+| 术语学习 Agent 说明列 | `translation/src/views/terminologyAgent/index.vue` |
+
+### Phase 3c — jieba 切界 + LLM 受约束拼装 ✅（本次主交付）
+
+| 子项 | 状态 | 关键文件 / 说明 |
+|------|------|-----------------|
+| 3c-0 jieba 通用分词 | ✅ | `app/shared/term_word/segment.py` |
+| Grep/decompose 共用切界 | ✅ | `utils/decompose.py`、`utils/grep_retrieve.py` |
+| 3c-1 decompose 不写 suggested | ✅ | `decompose_compose.py` 只写 spans/coverage/decomposed |
+| 3c-2 compose_suggest 节点 | ✅ | `nodes/features/llm/compose_suggest.py`、`prompts/compose_suggest.py` |
+| 3c-3 术语校验 + fallback | ✅ | `utils/compose_validate.py`、`LLM_COMPOSE_*` 常量 |
+| 3c-4 单测 + 文档 | ✅ | 72 项 pre_translate 测试；`trajectory_cases.json` |
+
+**黄金用例实测**（2026-07-13，本地 MySQL + LLM）：
+
+| 源词条 | decomposed (trace) | suggested (LLM) | retrieval | review |
+|--------|-------------------|-----------------|-----------|--------|
+| 文件与系统 | File+System 拼接 | **File and System** | decomposed | auto_approved (0.88) |
+| 文件、系统、资源 | 词片 trace | LLM 自然短语 | decomposed | auto_approved (0.88) |
+
+### 伴随交付（非路线图主 Phase，但已合入）
+
+| 能力 | 关键文件 |
+|------|----------|
+| audit 写入去重指纹 | `app/shared/audit_fingerprint.py` |
+| entry_comment 消歧键 | `scripts/migrations/001_add_entry_comment_to_term_agent_audit.sql` |
+| 审核意见列统一识别 | `translation/src/utils/auditSuggestColumn.js` |
+| SpanByTips 审核意见填充 | `translation/src/components/SpanByTips/` |
+
+---
+
+## 待实现 / 待验收
+
+### P0 — Phase 3c UI 全矩阵验收 ⏳
+
+后端脚本已通过，**UI 手工矩阵尚未完整跑通**。
+
+| # | 场景 | 预期 | 后端 | UI |
+|---|------|------|------|-----|
+| 1 | exact 命中 | auto 回填翻译列 | ✅ | 待验 |
+| 2 | fuzzy 低置信 | pending + audit | ✅ | 待验 |
+| 3 | decomposed（文件与系统） | `File and System`，检索方式「拆解拼装」 | ✅ | 待验 |
+| 4 | none + LLM | needs_human，无占位 | ✅ | 待验 |
+| 5 | auto_approved | 审核意见列有 reasoning | 逻辑已有 | 待验 |
+| 6 | 术语学习 review | 确认/拒绝正常 | — | 待验 |
+
+**回家操作清单**：
+
+```powershell
+# 1. 跑 DB migration（若未执行）
+mysql -u root -p translationtool < terminology-agent/scripts/migrations/001_add_entry_comment_to_term_agent_audit.sql
+
+# 2. 后端矩阵（strict）
+cd terminology-agent
+python -m devtools.verify_adm_pretranslate --strict
+
+# 3. 全量单测
+pytest -q
+
+# 4. UI：http://localhost:18000  admin/admin123
+#    工作台 → Agent 预翻译 → 术语学习页核对
+pnpm dev:ui-agent   # 或已有 dev 环境
+```
+
+### P1 — Phase 3d（可选）❌
+
+- jieba 切界后相邻 span 合并 lookup（如「文件」+「系统」→ 查「文件系统」）
+- 不改变 jieba 原始切界 trace
+
+### P2 — Phase 4 矛盾治理 ❌（阻塞：需 lexicon skill）
+
+- `LexiconCurationIntent` + 矛盾列表/裁定 API
+- 前端 `lexiconGovernance` 模块
+- 用户 skill → `references/lexicon-curation-rules.md`
+
+### P3 — Phase 5 Judge + Darwin ❌
+
+- `judge_translation` 节点
+- `unsatisfied_reason` 回流 + eval 轨迹
+
+### P4 — Phase 6 FAISS 混合检索 ❌（可选）
+
+- 向量 + keyword 并行 merge
+
+---
+
+## 验证记录（2026-07-13）
+
+| 检查项 | 结果 |
+|--------|------|
+| `pytest -q`（terminology-agent） | **142 passed** |
+| pre_translate 专项测试 | **72 passed** |
+| translation 前端单测（audit/SpanByTips） | **22 passed** |
+| `verify_adm_pretranslate` | **6/6 OK** |
+| API 冒烟 `文件与系统` → 英文 | decomposed + auto_approved + File and System |
+| openCLI UI 登录 | 页面可开，自动登录未完全跳转（建议手工） |
+
+---
+
+## Git 提交批次（2026-07-13）
+
+| # | Commit | 说明 |
+|---|--------|------|
+| 1 | `feat(agent): Phase 3c jieba 切界与 LLM 受约束拼装` | 核心算法 + 图编排 |
+| 2 | `feat(agent): audit 去重指纹与 entry_comment 消歧键` | 数据层 + 去重 |
+| 3 | `feat(ui): 审核意见列识别与 Agent 说明展示增强` | 前端 UX |
+| 4 | `chore(devtools): ADM 测试矩阵适配 jieba 与自然中文复合句` | 测试脚本 |
+| 5 | `docs(plan): 更新路线图 todo 并新增进度快照文档` | 本文档 + plan.md |
+
+---
+
+## 架构速览（Phase 3c 主路径）
+
+```mermaid
+flowchart LR
+  RS[retrieve_similar] --> RR[rerank]
+  RR --> RES[resolve_source]
+  RES -->|hybrid| DC[decompose_compose]
+  DC -->|coverage≥0.85| CS[compose_suggest]
+  DC -->|未达标| TS[translate_suggest]
+  CS --> AR[assess_route]
+  TS --> AR
+  AR --> WR[write_result]
+```
+
+切界 SSOT：`segment_source_text()`（jieba 默认词典，不 load_userdict）。  
+术语库职责：**lookup 译法**，不主导猜词界。
