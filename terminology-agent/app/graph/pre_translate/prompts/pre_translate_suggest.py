@@ -1,6 +1,7 @@
 """PreTranslate — LLM 机翻 prompt 模板。"""
 
 from app.graph.pre_translate.state import PreTranslateState
+from app.shared.field_limits import LLM_REASONING_DETAIL_MAX, TRANSLATE_MAX
 
 
 def build_pre_translate_system_prompt(target_lang: str | None) -> str:
@@ -24,6 +25,10 @@ Guidelines:
 
 Output format (JSON):
 {{"translation": "...", "reasoning": "..."}}
+
+字段约束（必须遵守）：
+- translation：≤{TRANSLATE_MAX} 字符，目标语译文
+- reasoning：≤{LLM_REASONING_DETAIL_MAX} 字符，简体中文一句话，说明检索/译法依据；禁止英文长段解释
 """
 
 

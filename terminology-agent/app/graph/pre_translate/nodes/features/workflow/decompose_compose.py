@@ -1,20 +1,15 @@
-"""功能节点：decompose_compose — Trie 拆解 + lexeme lookup + 拼装 + coverage。"""
+"""功能节点：decompose_compose — jieba 切界 + lexeme lookup + trace compose + coverage。"""
 
 from __future__ import annotations
 
 from langgraph.types import RunnableConfig
 
-from app.graph.pre_translate.constants import COVERAGE_FLOOR, TRIE_CACHE_TTL_SEC
+from app.graph.pre_translate.constants import COVERAGE_FLOOR
 from app.graph.pre_translate.nodes.features.io.lookup_lexemes import lookup_lexeme_spans
 from app.graph.pre_translate.state import PreTranslateState
 from app.graph.pre_translate.utils.compose import compose_translation
-from app.graph.pre_translate.utils.coverage import (
-    compute_coverage,
-    coverage_to_confidence,
-    meets_coverage_floor,
-)
+from app.graph.pre_translate.utils.coverage import compute_coverage, meets_coverage_floor
 from app.graph.pre_translate.utils.decompose import decompose_to_spans
-from app.repository.trie_cache import load_trie_for_lang
 from app.repository.word_repo import WordRepository
 
 
@@ -22,7 +17,7 @@ async def decompose_compose_node(
     state: PreTranslateState,
     config: RunnableConfig,
 ) -> PreTranslateState:
-    """hybrid 路径：词级拆解拼装；coverage 达标则写入 decomposed 译文。
+    """hybrid 路径：jieba 切界 + 词片 lookup + trace 拼装；coverage 达标则待 LLM 拼装。
 
     Args:
         state: 须含 ``source_text`` / ``target_lang`` / ``entry_comment``。
@@ -30,7 +25,7 @@ async def decompose_compose_node(
 
     Returns:
         写入 ``spans``、``coverage``、``decomposed_translation``；
-        达标时更新 ``suggested_translation``、``retrieval_method``、``confidence``。
+        达标时更新 ``retrieval_method``，最终译文由 ``compose_suggest`` 写入。
     """
     session = config["configurable"]["session"]
     source_text = state["source_text"]
@@ -45,8 +40,7 @@ async def decompose_compose_node(
         state["trace"] = [{"stage": "decompose_compose", "skipped": "no_target_lang"}]
         return state
 
-    trie = await load_trie_for_lang(session, target_lang, ttl_sec=TRIE_CACHE_TTL_SEC)
-    spans = decompose_to_spans(source_text, trie)
+    spans = decompose_to_spans(source_text)
     word_repo = WordRepository(session)
     enriched = await lookup_lexeme_spans(
         word_repo,
@@ -58,18 +52,14 @@ async def decompose_compose_node(
 
     decomposed = compose_translation(enriched)
     coverage = compute_coverage(enriched, source_text)
-    confidence = coverage_to_confidence(coverage)
 
     state["spans"] = [s.to_dict() for s in enriched]
     state["coverage"] = coverage
     state["decomposed_translation"] = decomposed
 
     if meets_coverage_floor(coverage) and decomposed.strip():
-        state["suggested_translation"] = decomposed
         state["retrieval_method"] = "decomposed"
-        state["confidence"] = confidence
-        state["retrieval_confidence"] = confidence
-        state["llm_detail"] = f"词级拼装 coverage={coverage:.0%}"
+        state["llm_detail"] = f"词片覆盖 coverage={coverage:.0%}，待 LLM 受约束拼装"
     else:
         state["llm_detail"] = (
             f"词级拼装 coverage={coverage:.0%} 未达 {COVERAGE_FLOOR:.0%}，回退 LLM"

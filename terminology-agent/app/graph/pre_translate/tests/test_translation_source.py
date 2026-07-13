@@ -6,6 +6,7 @@ from app.graph.pre_translate.domain.translation_source import (
     SOURCE_LABEL,
     TranslationSource,
     format_agent_reasoning,
+    format_agent_reasoning_with_meta,
 )
 
 
@@ -26,3 +27,14 @@ def test_format_agent_reasoning_hybrid():
     assert format_agent_reasoning(TranslationSource.HYBRID, "部分 span") == (
         "基于混合检索：部分 span"
     )
+
+
+@pytest.mark.unit
+def test_format_agent_reasoning_fallback_when_too_long():
+    long_detail = "The Chinese term connects two nouns " * 10
+    result, fallback = format_agent_reasoning_with_meta(
+        TranslationSource.HYBRID, long_detail
+    )
+    assert fallback is True
+    assert result == "基于混合检索：词片拼装自动批准"
+    assert len(result) <= 255

@@ -18,3 +18,7 @@ ENABLE_GREP_RETRIEVE: bool = True  # False 时退化为纯 RAG 检索
 
 # ── 拆解拼装（Phase 3b）──
 COVERAGE_FLOOR: float = 0.85  # span 覆盖率 ≥ 此值 → decomposed 自动回填
+
+# ── LLM 受约束拼装（Phase 3c）──
+LLM_COMPOSE_CAP: float = 0.88
+LLM_COMPOSE_FALLBACK_CONF: float = 0.72

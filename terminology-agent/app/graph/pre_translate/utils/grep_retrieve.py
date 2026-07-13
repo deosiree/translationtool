@@ -1,4 +1,4 @@
-"""Grep 线检索纯函数 — Trie 拆词 + term_word lookup。
+"""Grep 线检索纯函数 — jieba 切词 + term_word lookup。
 
 不含 IO；``lookup`` 由调用方注入（单测 mock / 节点内 WordRepository）。
 """
@@ -10,7 +10,6 @@ from typing import Any, Callable
 
 from app.graph.pre_translate.constants import GREP_WORD_SCORE
 from app.shared.term_word.extract import unique_words
-from app.shared.term_word.trie import Trie
 
 
 @dataclass
@@ -53,14 +52,12 @@ def _pick_translate(rows: list[Any]) -> tuple[str | None, bool]:
 def grep_retrieve_candidates(
     *,
     source_text: str,
-    trie: Trie,
     lookup: Callable[[str], list[Any]],
 ) -> GrepRetrieveResult:
-    """对 source_text 做整句 + Trie 词级 Grep lookup。
+    """对 source_text 做整句 + jieba 词级 Grep lookup。
 
     Args:
         source_text: 待译词条原文。
-        trie: 由 ``term_word`` approved 词表构建的 Trie。
         lookup: ``word -> rows`` 同步查表函数（已含 comment/department 过滤）。
 
     Returns:
@@ -84,7 +81,7 @@ def grep_retrieve_candidates(
             GrepHit(word=text, translate=whole_translate, score=1.0, ambiguous=False)
         )
 
-    for word in unique_words(text, trie):
+    for word in unique_words(text):
         if word == text:
             continue
         rows = lookup(word)

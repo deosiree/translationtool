@@ -12,7 +12,7 @@ def test_route_compose_ok():
         route_after_decompose_compose(
             {
                 "coverage": COVERAGE_FLOOR,
-                "suggested_translation": "FileSystem",
+                "decomposed_translation": "FileSystem",
             }
         )
         == "compose_ok"
@@ -25,7 +25,7 @@ def test_route_llm_fallback_low_coverage():
         route_after_decompose_compose(
             {
                 "coverage": 0.5,
-                "suggested_translation": None,
+                "decomposed_translation": "FileSystem",
             }
         )
         == "llm_fallback"

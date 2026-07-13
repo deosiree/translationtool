@@ -73,7 +73,11 @@ flowchart TB
   rerank_candidates --> resolve_translation_source
   resolve_translation_source -->|"term_path"| assess_route
   resolve_translation_source -->|"llm_path"| translate_suggest
-  resolve_translation_source -->|"hybrid_path"| assess_route
+  resolve_translation_source -->|"hybrid_path"| decompose_compose
+  decompose_compose --> route_after_decompose_compose
+  route_after_decompose_compose -->|"compose_ok"| compose_suggest
+  route_after_decompose_compose -->|"llm_fallback"| translate_suggest
+  compose_suggest --> assess_route
   translate_suggest --> assess_route
   assess_route --> write_result
   write_result --> endNode([END])
@@ -126,7 +130,7 @@ flowchart LR
 |----------------------|--------|----------|
 | `term` | `term_path` | `assess_route` |
 | `llm` | `llm_path` | `translate_suggest` → `assess_route` |
-| `hybrid` | `hybrid_path` | `decompose_compose` →（达标）`assess_route` /（未达标）`translate_suggest` |
+| `hybrid` | `hybrid_path` | `decompose_compose` →（达标）`compose_suggest` → `assess_route` /（未达标）`translate_suggest` |
 
 ---
 
@@ -156,7 +160,8 @@ flowchart LR
 | `resolve_translation_source` | 判定 term / llm / hybrid | [`nodes/intentions/resolve_translation_source.py`](nodes/intentions/resolve_translation_source.py) |
 | `translate_suggest` | LLM 整句机翻 | [`nodes/features/llm/translate_suggest.py`](nodes/features/llm/translate_suggest.py) |
 | `assess_route` | 阈值分流 auto_approved / needs_human | [`nodes/features/workflow/assess_route.py`](nodes/features/workflow/assess_route.py) |
-| `decompose_compose` | hybrid 路径词级拆解拼装 | [`nodes/features/workflow/decompose_compose.py`](nodes/features/workflow/decompose_compose.py) |
+| `decompose_compose` | hybrid 路径 jieba 切界 + lookup + trace compose | [`nodes/features/workflow/decompose_compose.py`](nodes/features/workflow/decompose_compose.py) |
+| `compose_suggest` | LLM 受约束拼装（词片术语表） | [`nodes/features/llm/compose_suggest.py`](nodes/features/llm/compose_suggest.py) |
 | `write_result` | 格式化 reasoning、写 audit | [`nodes/features/io/write_result.py`](nodes/features/io/write_result.py) |
 
 ---
@@ -193,7 +198,7 @@ flowchart TB
 
 | 线 | 语料 | 匹配方式 | 标记 |
 |----|------|----------|------|
-| **Grep** | `term_word` | Trie 拆词 + `WordRepository.find_by_word`；可选子串 LIKE | `retrieval_source: grep` |
+| **Grep** | `term_word` | jieba 切界 + `WordRepository.find_by_word`；整句 exact 优先 | `retrieval_source: grep` |
 | **RAG** | `t_translate` | exact / fuzzy（现有） | `retrieval_source: rag` |
 
 Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引。消歧键 `(word, comment, target_lang)`；`department` 仅运行时过滤。
@@ -202,7 +207,8 @@ Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引
 
 | 组件 | 路径 |
 |------|------|
-| Trie 拆词 / extract | [`shared/term_word/`](../../shared/term_word/) |
+| 切界 SSOT | [`shared/term_word/segment.py`](../../shared/term_word/segment.py) |
+| 词提取 / extract | [`shared/term_word/extract.py`](../../shared/term_word/extract.py) |
 | Grep 检索编排 | [`utils/grep_retrieve.py`](utils/grep_retrieve.py) |
 | Trie 进程缓存 | [`repository/trie_cache.py`](../../repository/trie_cache.py) |
 | DB lookup | [`repository/word_repo.py`](../../repository/word_repo.py) |
@@ -210,16 +216,21 @@ Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引
 | 建库 CLI | [`scripts/build_word_index.py`](../../../scripts/build_word_index.py) |
 | 域 SSOT | [`shared/term_word/README.md`](../../shared/term_word/README.md) |
 
-### Phase 3b：拆解拼装（**已实现**）
+### Phase 3b：拆解 trace（**已实现**）
 
-`translation_source=hybrid` 时走 `decompose_compose`：Trie 拆解 → `lookup_lexemes` → 确定性拼装 → `coverage` 分流。
+`translation_source=hybrid` 时走 `decompose_compose`：jieba 切界 → `lookup_lexemes` → trace 拼装 → `coverage` 分流。
+
+### Phase 3c：LLM 受约束拼装（**已实现**）
+
+coverage 达标时 `compose_suggest` 在词片术语约束下产出自然目标语短语（如 `File System`）。
 
 ```mermaid
 flowchart LR
   HY[hybrid_path] --> DC[decompose_compose]
   DC --> COV{coverage >= 0.85?}
-  COV -->|是| AR[assess_route]
+  COV -->|是| CS[compose_suggest]
   COV -->|否| LLM[translate_suggest]
+  CS --> AR[assess_route]
   LLM --> AR
 ```
 
@@ -241,5 +252,5 @@ flowchart LR
 
 1. 同步更新本节 **双轨 Mermaid**（源码 + 业务）
 2. 更新 [`nodes/README.md`](nodes/README.md) 分类表（若新增节点类型）
-3. 在 [`tests/`](tests/) 补单测；mock LLM 时 patch `builder.translate_suggest_node`
+3. 在 [`tests/`](tests/) 补单测；mock LLM 时 patch `builder.translate_suggest_node` 或 `builder.compose_suggest_node`
 4. 更新 [`../../../references/agent-testing.md`](../../../references/agent-testing.md)（若影响测试路径）

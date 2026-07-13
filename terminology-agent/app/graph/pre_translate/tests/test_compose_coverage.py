@@ -12,7 +12,6 @@ from app.graph.pre_translate.utils.coverage import (
     meets_coverage_floor,
 )
 from app.graph.pre_translate.utils.decompose import Span, decompose_to_spans
-from app.shared.term_word.trie import Trie
 
 _CASES_PATH = Path(__file__).resolve().parents[3] / "evals" / "trajectory_cases.json"
 
@@ -60,9 +59,7 @@ def test_coverage_ambiguous_span_not_counted():
 def test_trajectory_cases_file_system_resource():
     cases = json.loads(_CASES_PATH.read_text(encoding="utf-8"))
     case = next(c for c in cases if c["id"] == "decompose-file-system-resource")
-    trie = Trie()
-    trie.build_from_entries(list(case["lexeme_translations"].keys()))
-    spans = decompose_to_spans(case["source_text"], trie)
+    spans = decompose_to_spans(case["source_text"])
     for span in spans:
         trans = case["lexeme_translations"].get(span.text)
         if trans:

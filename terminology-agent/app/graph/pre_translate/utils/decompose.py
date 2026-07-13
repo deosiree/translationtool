@@ -1,11 +1,11 @@
-"""词条最长匹配拆解 — Trie segment 输出带 offset 的 spans。"""
+"""词条拆解 — jieba 切界输出带 offset 的 spans。"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
 
-from app.shared.term_word.trie import Trie
+from app.shared.term_word.segment import segment_source_text
 
 
 @dataclass
@@ -28,29 +28,20 @@ class Span:
         }
 
 
-def decompose_to_spans(source_text: str, trie: Trie) -> list[Span]:
-    """对 source_text 做 Trie 最长匹配拆解，返回带 start/end 的 spans。
+def decompose_to_spans(source_text: str) -> list[Span]:
+    """对 source_text 做 jieba 通用分词，返回带 start/end 的 spans。
 
     Args:
         source_text: 待译词条原文。
-        trie: approved word 构建的 Trie。
 
     Returns:
-        按顺序排列的 Span 列表；未命中字符逐字成 span。
+        按顺序排列的 Span 列表。
     """
     text = (source_text or "").strip()
     if not text:
         return []
 
-    spans: list[Span] = []
-    i = 0
-    while i < len(text):
-        matched = trie.longest_match_at(text, i)
-        if matched:
-            phrase, end = matched
-            spans.append(Span(text=phrase, start=i, end=end))
-            i = end
-        else:
-            spans.append(Span(text=text[i], start=i, end=i + 1))
-            i += 1
-    return spans
+    return [
+        Span(text=token, start=start, end=end)
+        for token, start, end in segment_source_text(text)
+    ]

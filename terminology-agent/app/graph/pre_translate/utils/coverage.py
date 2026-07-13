@@ -2,12 +2,30 @@
 
 from __future__ import annotations
 
+import re
+
 from app.graph.pre_translate.constants import COVERAGE_FLOOR
 from app.graph.pre_translate.utils.decompose import Span
 
+_PUNCT_ONLY = re.compile(r"^[\W_]+$", re.UNICODE)
+
+
+def _is_coverage_eligible(span: Span) -> bool:
+    """参与覆盖率分母的 span：中文词片等可 lookup 片段，排除标点与 ASCII 前缀。"""
+    token = (span.text or "").strip()
+    if not token:
+        return False
+    if _PUNCT_ONLY.match(token):
+        return False
+    if token.isascii():
+        return False
+    if len(token) == 1:
+        return False
+    return True
+
 
 def compute_coverage(spans: list[Span], source_text: str) -> float:
-    """已译 span 字符数 / 原文长度。
+    """已译 eligible span 字符数 / eligible span 总字符数。
 
     Args:
         spans: 拆解并 lookup 后的 spans。
@@ -16,15 +34,17 @@ def compute_coverage(spans: list[Span], source_text: str) -> float:
     Returns:
         0~1 覆盖率，保留三位小数。
     """
-    text = (source_text or "").strip()
-    if not text:
+    if not (source_text or "").strip():
+        return 0.0
+    eligible_len = sum(len(span.text) for span in spans if _is_coverage_eligible(span))
+    if eligible_len == 0:
         return 0.0
     covered = sum(
         len(span.text)
         for span in spans
-        if span.translate and not span.ambiguous
+        if span.translate and not span.ambiguous and _is_coverage_eligible(span)
     )
-    return round(covered / len(text), 3)
+    return round(covered / eligible_len, 3)
 
 
 def coverage_to_confidence(coverage: float) -> float:

@@ -3,22 +3,20 @@
 import pytest
 
 from app.graph.pre_translate.utils.decompose import decompose_to_spans
-from app.shared.term_word.trie import Trie
 
 
 @pytest.mark.unit
-def test_decompose_longest_match_spans():
-    trie = Trie()
-    trie.build_from_entries(["文件", "系统", "资源"])
-    spans = decompose_to_spans("文件系统", trie)
+def test_decompose_jieba_file_and_system():
+    spans = decompose_to_spans("文件和系统")
     texts = [s.text for s in spans]
-    assert texts == ["文件", "系统"]
-    assert spans[0].start == 0 and spans[0].end == 2
-    assert spans[1].start == 2 and spans[1].end == 4
+    assert "文件" in texts
+    assert "系统" in texts
+    assert spans[0].start == 0
+    assert all(s.end > s.start for s in spans)
 
 
 @pytest.mark.unit
-def test_decompose_single_char_fallback():
-    trie = Trie()
-    spans = decompose_to_spans("ab", trie)
-    assert [s.text for s in spans] == ["a", "b"]
+def test_decompose_punctuation_tokens():
+    spans = decompose_to_spans("文件与系统")
+    texts = [s.text for s in spans]
+    assert texts == ["文件", "与", "系统"]

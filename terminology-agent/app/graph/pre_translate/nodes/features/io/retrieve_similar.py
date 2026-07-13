@@ -2,6 +2,9 @@
 
 Phase 3a：在单节点内 ``asyncio.gather`` 并行执行 RAG（t_translate）与 Grep（term_word），
 再经 ``merge_candidates`` 合并候选并写入 ``PreTranslateState``。
+
+并发注意：SQLAlchemy ``AsyncSession`` 不可跨协程共享；RAG/Grep 各分支使用独立
+``AsyncSessionLocal()``，请求级 session 仅用于 ``_resolve_comment`` 与后续写节点。
 """
 
 from __future__ import annotations
@@ -10,16 +13,17 @@ import asyncio
 
 from langgraph.types import RunnableConfig
 
-from app.graph.pre_translate.constants import ENABLE_GREP_RETRIEVE, TRIE_CACHE_TTL_SEC
+from app.graph.pre_translate.constants import ENABLE_GREP_RETRIEVE
 from app.graph.pre_translate.state import PreTranslateState
 from app.graph.pre_translate.utils.entry_context import resolve_entry_comment
 from app.graph.pre_translate.utils.grep_retrieve import GrepRetrieveResult, grep_retrieve_candidates
-from app.graph.pre_translate.utils.merge_candidates import merge_candidates
+from app.graph.pre_translate.utils.merge_candidates import merge_candidates, RagRetrieveResult
 from app.graph.pre_translate.utils.rag_retrieve import rag_retrieve
+from app.models.database import AsyncSessionLocal
 from app.models.term import EntryInfo
 from app.repository.term_repo import TermRepository
 from app.repository.word_repo import WordRepository
-from app.repository.trie_cache import load_trie_for_lang
+from app.shared.term_word.extract import unique_words
 
 
 async def _resolve_comment(state: PreTranslateState, session) -> str:
@@ -54,7 +58,7 @@ async def _grep_retrieve(
     department: str | None,
     entry_comment: str,
 ) -> GrepRetrieveResult:
-    """Grep 线检索：Trie 拆词 + 批量 ``WordRepository.find_by_word``。
+    """Grep 线检索：jieba 切词 + 批量 ``WordRepository.find_by_word``。
 
     Args:
         session: 异步 DB 会话。
@@ -69,9 +73,6 @@ async def _grep_retrieve(
     if not ENABLE_GREP_RETRIEVE or not target_lang:
         return GrepRetrieveResult([], False, None, [])
 
-    trie = await load_trie_for_lang(
-        session, target_lang, ttl_sec=TRIE_CACHE_TTL_SEC
-    )
     word_repo = WordRepository(session)
 
     async def lookup(word: str):
@@ -82,10 +83,9 @@ async def _grep_retrieve(
             department=department,
         )
 
-    words_to_check: set[str] = set()
-    await lookup(source_text.strip())
-    words_to_check.add(source_text.strip())
-    for w in trie.segment(source_text.strip()):
+    stripped = source_text.strip()
+    words_to_check: set[str] = {stripped}
+    for w in unique_words(stripped):
         words_to_check.add(w)
 
     lookup_cache: dict[str, list] = {}
@@ -97,9 +97,42 @@ async def _grep_retrieve(
 
     return grep_retrieve_candidates(
         source_text=source_text,
-        trie=trie,
         lookup=sync_lookup,
     )
+
+
+async def _rag_branch(
+    *,
+    source_text: str,
+    target_lang: str | None,
+    department: str | None,
+) -> RagRetrieveResult:
+    """RAG 分支：独立 AsyncSession，供 gather 并行调用。"""
+    async with AsyncSessionLocal() as session:
+        return await rag_retrieve(
+            TermRepository(session),
+            source_text=source_text,
+            target_lang=target_lang,
+            department=department,
+        )
+
+
+async def _grep_branch(
+    *,
+    source_text: str,
+    target_lang: str | None,
+    department: str | None,
+    entry_comment: str,
+) -> GrepRetrieveResult:
+    """Grep 分支：独立 AsyncSession，供 gather 并行调用。"""
+    async with AsyncSessionLocal() as session:
+        return await _grep_retrieve(
+            session,
+            source_text=source_text,
+            target_lang=target_lang,
+            department=department,
+            entry_comment=entry_comment,
+        )
 
 
 async def retrieve_similar_node(
@@ -117,7 +150,6 @@ async def retrieve_similar_node(
         ``grep_hits``、``rag_grep_conflict`` 等检索字段的 state。
     """
     session = config["configurable"]["session"]
-    term_repo = TermRepository(session)
     source_entry = state["source_text"]
     target_lang = state.get("target_lang")
     department = state.get("department")
@@ -125,14 +157,12 @@ async def retrieve_similar_node(
     state["entry_comment"] = entry_comment
 
     rag_result, grep_result = await asyncio.gather(
-        rag_retrieve(
-            term_repo,
+        _rag_branch(
             source_text=source_entry,
             target_lang=target_lang,
             department=department,
         ),
-        _grep_retrieve(
-            session,
+        _grep_branch(
             source_text=source_entry,
             target_lang=target_lang,
             department=department,
