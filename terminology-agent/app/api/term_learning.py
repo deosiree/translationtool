@@ -31,6 +31,7 @@ def _build_list_filters(
     confidence_min: Optional[float] = None,
     confidence_max: Optional[float] = None,
     retrieval_method: Optional[str] = None,
+    entry_comment: Optional[str] = None,
 ) -> TermAuditListFilters | None:
     """组装筛选 DTO；全空时返回 None。"""
     try:
@@ -43,6 +44,7 @@ def _build_list_filters(
             confidence_min=confidence_min,
             confidence_max=confidence_max,
             retrieval_method=retrieval_method,
+            entry_comment=entry_comment,
         )
     except ValidationError as exc:
         first = exc.errors()[0] if exc.errors() else {}
@@ -65,6 +67,7 @@ async def list_pending(
     confidenceMin: Optional[float] = Query(None, alias="confidenceMin"),
     confidenceMax: Optional[float] = Query(None, alias="confidenceMax"),
     retrievalMethod: Optional[str] = Query(None, alias="retrievalMethod"),
+    entryComment: Optional[str] = Query(None, alias="entryComment"),
     session: AsyncSession = Depends(get_session),
 ):
     """术语学习页 — 待人工确认列表（分页 + 可选筛选）。"""
@@ -77,6 +80,7 @@ async def list_pending(
         confidence_min=confidenceMin,
         confidence_max=confidenceMax,
         retrieval_method=retrievalMethod,
+        entry_comment=entryComment,
     )
     records, total = await TermAuditService(session).list_pending(
         page=page,

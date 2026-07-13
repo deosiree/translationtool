@@ -65,6 +65,7 @@ class TermAuditListFilters(BaseModel):
         None,
         description="检索方式 exact|fuzzy|grep|hybrid|decomposed|none",
     )
+    entry_comment: Optional[str] = Field(None, description="工作台词条 comment 模糊匹配")
 
     @field_validator(
         "source_text",
@@ -73,6 +74,7 @@ class TermAuditListFilters(BaseModel):
         "product_name",
         "department",
         "retrieval_method",
+        "entry_comment",
         mode="before",
     )
     @classmethod
@@ -108,6 +110,7 @@ class AuditRecordData(BaseModel):
     """术语学习待审核列表单行 — 字段与前端 terminologyAgent/index.vue 列一一对应。"""
     id: str
     source_text: str = Field(..., description="词条")
+    entry_comment: Optional[str] = Field(None, description="工作台词条 comment / Grep 消歧")
     context: Optional[str] = None
     matched_term: Optional[str] = None
     match_confidence: Optional[float] = None

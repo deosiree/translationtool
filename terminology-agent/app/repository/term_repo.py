@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.term import TermAgentAudit, TranslateEntry
 from app.schemas.agent import TermAuditListFilters
+from app.shared.audit_fingerprint import audit_write_fingerprint, fingerprint_from_audit_record
 
 
 class TermRepository:
@@ -93,6 +94,37 @@ class TermRepository:
 
     # ── term_agent_audit 审核记录 ──
 
+    async def find_pending_by_fingerprint(
+        self,
+        *,
+        source_text: str,
+        entry_comment: str | None,
+        suggested_translation: str | None,
+        target_lang: str | None,
+        department: str | None,
+        retrieval_method: str | None,
+        confidence: float | None,
+    ) -> TermAgentAudit | None:
+        """pending 队列中是否已有相同写入指纹的记录。"""
+        fp = audit_write_fingerprint(
+            source_text=source_text,
+            entry_comment=entry_comment,
+            suggested_translation=suggested_translation,
+            target_lang=target_lang,
+            department=department,
+            retrieval_method=retrieval_method,
+            confidence=confidence,
+        )
+        stmt = select(TermAgentAudit).where(
+            TermAgentAudit.review_status == "pending",
+            TermAgentAudit.source_text == source_text,
+        )
+        result = await self._session.execute(stmt)
+        for record in result.scalars().all():
+            if fingerprint_from_audit_record(record) == fp:
+                return record
+        return None
+
     async def create_pretranslate_audit(
         self,
         *,
@@ -103,6 +135,7 @@ class TermRepository:
         target_lang: str | None,
         department: str | None,
         source_text: str,
+        entry_comment: str | None = None,
         suggested_translation: str | None,
         confidence: float | None,
         similar_terms: list | None,
@@ -111,10 +144,23 @@ class TermRepository:
     ) -> TermAgentAudit:
         """工作台 Agent 预翻译 needs_human 时写入待审核队列。
 
-        字段与前端 terminologyAgent 列表列、AuditRecordData schema 对齐。
+        全字段指纹与已有 pending 完全一致时跳过 INSERT，返回已有记录。
         """
+        existing = await self.find_pending_by_fingerprint(
+            source_text=source_text,
+            entry_comment=entry_comment,
+            suggested_translation=suggested_translation,
+            target_lang=target_lang,
+            department=department,
+            retrieval_method=retrieval_method,
+            confidence=confidence,
+        )
+        if existing is not None:
+            return existing
+
         record = TermAgentAudit(
             source_text=source_text,
+            entry_comment=entry_comment,
             suggested_translation=suggested_translation,
             llm_reasoning=llm_reasoning,
             review_status="pending",
@@ -204,6 +250,8 @@ class TermRepository:
             conditions.append(TermAgentAudit.confidence <= filters.confidence_max)
         if filters.retrieval_method:
             conditions.append(TermAgentAudit.retrieval_method == filters.retrieval_method)
+        if filters.entry_comment:
+            conditions.append(TermAgentAudit.entry_comment.like(f"%{filters.entry_comment}%"))
         return conditions
 
     # ── 术语库写入（MergeToStore）──

@@ -117,11 +117,6 @@ def pre_translate_service(mock_repo, monkeypatch, mock_workbench_sync):
         repo.find_by_word = AsyncMock(return_value=[])
         return repo
 
-    async def empty_trie(*_args, **_kwargs):
-        from app.shared.term_word.trie import Trie
-
-        return Trie()
-
     mock_workbench_sync = AsyncMock()
     mock_workbench_sync.sync_translation_to_pending_audit = AsyncMock()
 
@@ -136,14 +131,6 @@ def pre_translate_service(mock_repo, monkeypatch, mock_workbench_sync):
     monkeypatch.setattr(
         "app.graph.pre_translate.nodes.features.workflow.decompose_compose.WordRepository",
         word_repo_factory,
-    )
-    monkeypatch.setattr(
-        "app.repository.trie_cache.WordRepository",
-        word_repo_factory,
-    )
-    monkeypatch.setattr(
-        "app.graph.pre_translate.nodes.features.io.retrieve_similar.load_trie_for_lang",
-        empty_trie,
     )
     monkeypatch.setattr(
         "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",
@@ -206,6 +193,7 @@ def sample_audit_record():
     return SimpleNamespace(
         id="audit-001",
         source_text="admin",
+        entry_comment=None,
         context=None,
         matched_term=None,
         match_confidence=None,

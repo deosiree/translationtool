@@ -14,6 +14,7 @@ from app.services.pre_translate.mappers import (
     map_graph_state_to_agent_meta,
 )
 from app.services.workbench_sync import WorkbenchEntrySyncService
+from app.shared.field_limits import assert_fits_audit_suggest
 
 logger = logging.getLogger(__name__)
 
@@ -97,11 +98,12 @@ async def _sync_auto_approved_to_workbench(
         return
     sync = WorkbenchEntrySyncService(session)
     try:
+        audit_text = assert_fits_audit_suggest(reasoning or "")
         await sync.sync_translation_to_pending_audit(
             entry_info_id=entry_info_id,
             target_lang=target_lang,
             translate=suggested,
-            audit_suggest=reasoning,
+            audit_suggest=audit_text,
             department=department,
             entry_text=entry.get("entry"),
         )

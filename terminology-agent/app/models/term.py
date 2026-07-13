@@ -35,6 +35,9 @@ class TermAgentAudit(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_new_id)
     source_text: Mapped[str] = mapped_column(String(1024), nullable=False, comment="词条原文")
+    entry_comment: Mapped[str | None] = mapped_column(
+        String(512), nullable=True, comment="工作台词条 comment，Grep 消歧键"
+    )
     context: Mapped[str | None] = mapped_column(Text, nullable=True, comment="可选上下文")
 
     # ── LangGraph 术语发现字段（阶段二合并前保留列）──
@@ -88,7 +91,7 @@ class TranslateEntry(Base):
     translate: Mapped[str | None] = mapped_column(String(1024), comment="译文")
     type: Mapped[str | None] = mapped_column(String(255), comment="语种，如「俄文」")
     translate_state: Mapped[str | None] = mapped_column(String(64), comment="3=已审核通过")
-    audit_suggest: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="审核意见")
+    audit_suggest: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="审核意见")
     remark: Mapped[str | None] = mapped_column(String(255), comment="备注")
     delete_state: Mapped[int | None] = mapped_column(Integer, default=0, comment="0=有效")
     visual_range: Mapped[str | None] = mapped_column(String(255), comment="部门可见范围")

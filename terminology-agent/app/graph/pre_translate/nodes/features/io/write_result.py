@@ -5,7 +5,10 @@ from __future__ import annotations
 from langgraph.types import RunnableConfig
 
 from app.graph.pre_translate.state import PreTranslateState
-from app.graph.pre_translate.domain.translation_source import TranslationSource, format_agent_reasoning
+from app.graph.pre_translate.domain.translation_source import (
+    TranslationSource,
+    format_agent_reasoning_with_meta,
+)
 from app.repository.term_repo import TermRepository
 
 
@@ -21,7 +24,7 @@ async def write_result_node(
         source = TranslationSource.TERM
 
     detail = state.get("llm_detail")
-    reasoning = format_agent_reasoning(source, detail)
+    reasoning, audit_fallback = format_agent_reasoning_with_meta(source, detail)
     state["llm_reasoning"] = reasoning
 
     if state.get("review_status") == "needs_human":
@@ -35,6 +38,7 @@ async def write_result_node(
             target_lang=state.get("target_lang"),
             department=state.get("department"),
             source_text=state["source_text"],
+            entry_comment=state.get("entry_comment"),
             suggested_translation=state.get("suggested_translation"),
             confidence=state.get("confidence"),
             similar_terms=state.get("similar_terms") or [],
@@ -47,6 +51,7 @@ async def write_result_node(
             "stage": "write_result",
             "review_status": state.get("review_status"),
             "translation_source": source_value,
+            "audit_suggest_fallback": audit_fallback,
         }
     ]
     return state

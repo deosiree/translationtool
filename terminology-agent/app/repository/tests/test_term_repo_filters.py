@@ -25,6 +25,13 @@ def test_build_pending_filter_conditions_with_task_and_confidence():
 
 
 @pytest.mark.unit
+def test_build_pending_filter_conditions_with_entry_comment():
+    filters = TermAuditListFilters(entry_comment="消歧")
+    conditions = TermRepository._build_pending_filter_conditions(filters)
+    assert len(conditions) == 2
+
+
+@pytest.mark.unit
 def test_term_audit_list_filters_rejects_invalid_confidence_range():
     with pytest.raises(ValueError, match="confidence_min"):
         TermAuditListFilters(confidence_min=0.9, confidence_max=0.5)
