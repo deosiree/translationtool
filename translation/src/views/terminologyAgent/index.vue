@@ -17,6 +17,14 @@
               style="width: 186px"
             />
           </a-form-item>
+          <a-form-item label="Comment" name="entryComment">
+            <a-input
+              v-model:value="search.entryComment"
+              placeholder="请输入 comment"
+              allow-clear
+              style="width: 186px"
+            />
+          </a-form-item>
           <a-form-item label="目标语种" name="targetLang">
             <a-select
               v-model:value="search.targetLang"
@@ -81,6 +89,9 @@
         </a-button>
         <a-button size="middle" @click="fetchPendingAudits">
           刷新
+        </a-button>
+        <a-button size="middle" @click="handleClearLocalMock">
+          清除本地 Mock
         </a-button>
       </template>
     </SearchBox>
@@ -149,6 +160,13 @@
                 <span v-text="formatEntryText(record.source_text)"></span>
               </template>
 
+              <template v-if="column.dataIndex === 'entry_comment'">
+                <SpanByTipsFill
+                  :content="record.entry_comment"
+                  :max-width="column.width"
+                />
+              </template>
+
               <template v-if="column.dataIndex === 'suggested_translation'">
                 <a-tag color="blue">{{
                   record.suggested_translation || "未生成"
@@ -201,12 +219,16 @@
                 {{ formatRetrievalMethod(record.retrieval_method) }}
               </template>
 
+              <template v-if="column.dataIndex === 'translation_source'">
+                {{ formatTranslationSource(record) }}
+              </template>
+
               <template v-if="column.dataIndex === 'llm_reasoning'">
-                <a-tooltip :title="record.llm_reasoning">
-                  <span class="reasoning-text">
-                    {{ truncateText(record.llm_reasoning, 40) }}
-                  </span>
-                </a-tooltip>
+                <SpanByTipsFill
+                  class="reasoning-text"
+                  :content="record.llm_reasoning"
+                  :max-width="column.width"
+                />
               </template>
 
               <template v-if="column.dataIndex === 'created_at'">
@@ -286,8 +308,11 @@ import {
 import {
   mergePendingAudits,
   removeLocalPendingAudit,
+  clearLocalMockPendingAudits,
+  listLocalPendingAudits,
   formatRetrievalMethod,
   formatRetrievalSource,
+  formatTranslationSource,
   formatConfidence,
   formatEntryText,
   buildAuditListParams,
@@ -306,6 +331,7 @@ import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import TermAuditSelectedModal from "@/components/terminologyAgent/TermAuditSelectedModal.vue";
 import PercentRangeInput from "@/components/terminologyAgent/PercentRangeInput.vue";
+import SpanByTipsFill from "@/components/SpanByTips/SpanByTipsFill/index.vue";
 import {
   applyTable,
   syncColumnsFromPref as applyTableColumnsFromPref,
@@ -337,6 +363,7 @@ export default {
     TermAuditSelectedModal,
     PercentRangeInput,
     ResetButton,
+    SpanByTipsFill,
   },
   data() {
     return {
@@ -417,15 +444,12 @@ export default {
     },
     formatRetrievalMethod,
     formatRetrievalSource,
+    formatTranslationSource,
     formatConfidence,
     formatEntryText,
     confidenceColor(confidence) {
       if (confidence == null) return "default";
       return Number(confidence) >= 0.8 ? "green" : "orange";
-    },
-    truncateText(text, maxLen) {
-      if (!text) return "-";
-      return text.length > maxLen ? `${text.substring(0, maxLen)}...` : text;
     },
     formatDateTime(value) {
       if (!value) return "-";
@@ -478,6 +502,15 @@ export default {
       this.pagination.current = 1;
       if (this.$refs.pagination) {
         this.$refs.pagination.current = 1;
+      }
+      this.fetchPendingAudits();
+    },
+    handleClearLocalMock() {
+      const removed = clearLocalMockPendingAudits();
+      if (removed > 0) {
+        message.success(`已清除 ${removed} 条本地 Mock 待审核记录`);
+      } else {
+        message.info("没有可清除的本地 Mock 记录");
       }
       this.fetchPendingAudits();
     },
@@ -538,13 +571,11 @@ export default {
           }
         }
 
-        const localOnlyCount = mergePendingAudits({
-          apiItems: [],
-          filters,
-        }).length;
+        const localItems = listLocalPendingAudits(filters);
+        const localOnlyCount = localItems.length;
         const displayItems =
           this.pagination.current === 1
-            ? mergePendingAudits({ apiItems, filters })
+            ? [...localItems, ...apiItems]
             : apiItems;
 
         this.pagination.total = serverTotal + localOnlyCount;
@@ -641,6 +672,5 @@ export default {
 
 .reasoning-text {
   color: #888;
-  cursor: help;
 }
 </style>

@@ -37,6 +37,9 @@
           <template v-if="column.dataIndex === 'entry'">
             <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
           </template>
+          <template v-if="isAuditSuggestColumn(column)">
+            <SpanByTipsFill :content="text" :max-width="column.width" />
+          </template>
           <template v-if="column.dataIndex === 'isExist'">
             <IsExistBadge :isExist="text" />
           </template>
@@ -102,6 +105,8 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import SpanByTipsFill from "@/components/SpanByTips/SpanByTipsFill/index.vue";
+import { isAuditSuggestColumn } from "@/utils/auditSuggestColumn.js";
 import { cloneDeep, iteratee } from "lodash-es";
 import { getEntryInfoList, getI18nAdress } from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
@@ -155,6 +160,7 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
+    SpanByTipsFill,
     WorkbenchFormBar,
     WorkbenchActionGroup,
     WorkbenchTaskInfo,
@@ -264,6 +270,7 @@ export default {
     },
   },
   methods: {
+    isAuditSuggestColumn,
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
     },

@@ -59,7 +59,11 @@
             </div>
           </template>
           <template v-if="editList.includes(column.dataIndex)">
-            <div>
+            <div
+              :class="
+                isAuditSuggestColumn(column) ? 'ellipsis-text-cell-wrap' : null
+              "
+            >
               <template v-if="editableData[record.id]">
                 <InputIME
                   :value="editableData[record.id][column.dataIndex]"
@@ -68,7 +72,12 @@
                 />
               </template>
               <template v-else>
-                {{ text }}
+                <SpanByTipsFill
+                  v-if="isAuditSuggestColumn(column)"
+                  :content="text"
+                  :max-width="column.width"
+                />
+                <template v-else>{{ text }}</template>
               </template>
             </div>
           </template>
@@ -170,6 +179,8 @@ import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
+import SpanByTipsFill from "@/components/SpanByTips/SpanByTipsFill/index.vue";
+import { isAuditSuggestColumn } from "@/utils/auditSuggestColumn.js";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -226,6 +237,7 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     InputIME,
+    SpanByTipsFill,
     WorkbenchFormBar,
     WorkbenchActionGroup,
     WorkbenchTaskInfo,
@@ -340,6 +352,7 @@ export default {
     },
   },
   methods: {
+    isAuditSuggestColumn,
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
     },
@@ -366,7 +379,11 @@ export default {
 
           this.dataSource.forEach((item) => {
             item.auditState = -1;
-            item[this.task.transMap.auditSuggest] = ""; // 对应语种的审核意见清空
+            const auditField = this.task.transMap.auditSuggest;
+            // 保留 API / Agent 预填的审核意见；仅无值时初始化为空
+            if (item[auditField] == null || item[auditField] === undefined) {
+              item[auditField] = "";
+            }
           });
           // console.log("所有审核状态的状态都变成了-1，即审核不通过", this.dataSource);
           // this.allData = this.dataSource
@@ -1008,6 +1025,13 @@ export default {
 }
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;
+}
+:deep(.ellipsis-text-cell) {
+  overflow: hidden;
+}
+.ellipsis-text-cell-wrap {
+  min-width: 0;
+  overflow: hidden;
 }
 :deep(.ant-pagination) {
   margin: 8px 0;

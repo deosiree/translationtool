@@ -46,6 +46,30 @@ export function formatRetrievalMethod(method) {
   return RETRIEVAL_METHOD_LABELS[method] || method;
 }
 
+/** translation_source / llm_reasoning 前缀 → 中文展示 */
+const TRANSLATION_SOURCE_LABELS = {
+  term: "术语库",
+  llm: "LLM 机翻",
+  hybrid: "混合检索",
+};
+
+/**
+ * 翻译来源 → 中文展示（优先 record.translation_source，否则从 llm_reasoning 推断）
+ * @param {Partial<AuditRecord>} record
+ * @returns {string}
+ */
+export function formatTranslationSource(record) {
+  const direct = record?.translation_source;
+  if (direct && TRANSLATION_SOURCE_LABELS[direct]) {
+    return TRANSLATION_SOURCE_LABELS[direct];
+  }
+  const reasoning = record?.llm_reasoning || "";
+  if (reasoning.startsWith("基于术语")) return TRANSLATION_SOURCE_LABELS.term;
+  if (reasoning.startsWith("基于LLM")) return TRANSLATION_SOURCE_LABELS.llm;
+  if (reasoning.startsWith("基于混合")) return TRANSLATION_SOURCE_LABELS.hybrid;
+  return "-";
+}
+
 /** 术语学习搜索 — 检索方式下拉（不含 mock） */
 const RETRIEVAL_METHOD_FILTER_KEYS = [
   "exact",
@@ -68,12 +92,36 @@ export function getRetrievalMethodOptions() {
 }
 
 /**
+ * 写入去重指纹 — 与后端 audit_write_fingerprint 规则一致
+ * @param {Partial<AuditRecord>} record
+ * @returns {string}
+ */
+export function auditWriteFingerprint(record) {
+  const norm = (v) => (v != null ? String(v).trim() : "");
+  const conf = record.confidence;
+  const confNorm =
+    conf == null || Number.isNaN(Number(conf))
+      ? null
+      : Math.round(Number(conf) * 1000) / 1000;
+  return JSON.stringify([
+    norm(record.source_text),
+    norm(record.entry_comment),
+    norm(record.suggested_translation),
+    norm(record.target_lang),
+    norm(record.department),
+    norm(record.retrieval_method),
+    confNorm,
+  ]);
+}
+
+/**
  * 术语学习默认 search 对象
  * @returns {Object}
  */
 export function createDefaultAuditSearch() {
   return {
     sourceText: null,
+    entryComment: null,
     targetLang: null,
     taskName: null,
     productName: null,
@@ -99,6 +147,8 @@ export function buildAuditListParams(search = {}, pagination = {}) {
 
   const sourceText = text(search.sourceText);
   if (sourceText) params.sourceText = sourceText;
+  const entryComment = text(search.entryComment);
+  if (entryComment) params.entryComment = entryComment;
   if (search.targetLang) params.targetLang = search.targetLang;
   const taskName = text(search.taskName);
   if (taskName) params.taskName = taskName;
@@ -149,6 +199,10 @@ export function matchesAuditFilters(item, filters) {
   if (filters.sourceText) {
     const src = String(item.source_text || "");
     if (!src.includes(filters.sourceText)) return false;
+  }
+  if (filters.entryComment) {
+    const comment = String(item.entry_comment || "");
+    if (!comment.includes(filters.entryComment)) return false;
   }
   if (filters.targetLang && item.target_lang !== filters.targetLang) return false;
   if (filters.taskName) {
@@ -232,6 +286,29 @@ export function removeLocalPendingAudit(auditId) {
 }
 
 /**
+ * 清除 localStorage 中 _local / _mock 条目，保留其他本地项
+ * @returns {number} 清除条数
+ */
+export function clearLocalMockPendingAudits() {
+  const existing = loadLocalPendingAudits();
+  const next = existing.filter((item) => !item._local && !item._mock);
+  const removed = existing.length - next.length;
+  saveLocalPendingAudits(next);
+  return removed;
+}
+
+/**
+ * 筛选后的 localStorage 待审核项（不去重）
+ * @param {Object|null} [filters]
+ * @returns {AuditRecord[]}
+ */
+export function listLocalPendingAudits(filters = null) {
+  const items = loadLocalPendingAudits();
+  if (!filters) return items;
+  return items.filter((item) => matchesAuditFilters(item, filters));
+}
+
+/**
  * 从 Agent 预翻译结果中提取 needs_human 条目，追加到本地待审核队列
  * @param {Object} options
  * @param {Array<Object & { agent_meta?: AgentMeta }>} options.entries - 预翻译结果列表
@@ -247,7 +324,7 @@ export function appendPendingFromPreTranslate({
   department,
 }) {
   const existing = loadLocalPendingAudits();
-  const existingIds = new Set(existing.map((item) => item.id));
+  const existingFingerprints = new Set(existing.map(auditWriteFingerprint));
   const now = new Date().toISOString().replace("T", " ").slice(0, 19);
   const pendingItems = [];
 
@@ -255,16 +332,13 @@ export function appendPendingFromPreTranslate({
     const meta = item.agent_meta;
     if (!meta || meta.review_status !== "needs_human") return;
 
-    const auditId = `local-${item.id}-${Date.now()}`;
-    if (existingIds.has(auditId)) return;
-
     const mockTranslation =
       meta.suggested_translation ||
       item.agent_meta?.similar_terms?.[0]?.translate ||
       "";
 
-    pendingItems.push({
-      id: auditId,
+    const candidate = {
+      id: `local-${item.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       entry_info_id: item.id,
       task_id: task?.id || "",
       task_name: task?.name || "",
@@ -272,6 +346,7 @@ export function appendPendingFromPreTranslate({
       target_lang: targetLang || "",
       department: department || task?.department || "",
       source_text: item.entry || "",
+      entry_comment: item.comment || "",
       suggested_translation: mockTranslation,
       confidence: meta.confidence,
       similar_terms: meta.similar_terms || [],
@@ -281,7 +356,12 @@ export function appendPendingFromPreTranslate({
       source_type: "workbench_agent",
       created_at: now,
       _local: true,
-    });
+    };
+
+    const fp = auditWriteFingerprint(candidate);
+    if (existingFingerprints.has(fp)) return;
+    existingFingerprints.add(fp);
+    pendingItems.push(candidate);
   });
 
   if (pendingItems.length === 0) return 0;
@@ -300,6 +380,7 @@ export function getMockPendingAudits() {
       entry_info_id: "mock-entry-001",
       task_id: "mock-task-001",
       source_text: "正在查询第 %1/%2 个路径的OID...",
+      entry_comment: "",
       suggested_translation: "Запрос OID пути %1/%2...",
       target_lang: "俄文",
       task_name: "【Mock】俄文翻译任务",
@@ -322,6 +403,7 @@ export function getMockPendingAudits() {
       entry_info_id: "mock-entry-002",
       task_id: "mock-task-001",
       source_text: "admin",
+      entry_comment: "",
       suggested_translation: "[Agent Mock] admin",
       target_lang: "俄文",
       task_name: "【Mock】俄文翻译任务",
@@ -340,7 +422,7 @@ export function getMockPendingAudits() {
 }
 
 /**
- * 合并 API、localStorage 与可选 mock 待审核列表；按 entry_info_id + source_text 去重，API 优先
+ * 合并 API、localStorage 与可选 mock 待审核列表；展示不去重，全量拼接
  * @param {Object} options
  * @param {AuditRecord[]} [options.apiItems=] - 后端返回的待审核条目
  * @param {boolean} [options.useMockFallback=USE_AUDIT_MOCK] - 合并结果为空时是否回退 mock
@@ -352,32 +434,12 @@ export function mergePendingAudits({
   useMockFallback = USE_AUDIT_MOCK,
   filters = null,
 }) {
-  const localItems = loadLocalPendingAudits();
-  const merged = new Map();
-
-  const addItem = (item) => {
-    const key = `${item.entry_info_id || ""}::${item.source_text || ""}`;
-    if (!merged.has(key)) {
-      merged.set(key, item);
-    }
-  };
-
-  apiItems.forEach(addItem);
-  localItems.forEach((item) => {
-    if (matchesAuditFilters(item, filters)) {
-      addItem(item);
-    }
-  });
-
-  let result = Array.from(merged.values());
+  const localItems = listLocalPendingAudits(filters);
+  let result = [...localItems, ...apiItems];
   if (result.length === 0 && useMockFallback) {
-    merged.clear();
-    getMockPendingAudits().forEach((item) => {
-      if (matchesAuditFilters(item, filters)) {
-        addItem(item);
-      }
-    });
-    result = Array.from(merged.values());
+    result = getMockPendingAudits().filter((item) =>
+      matchesAuditFilters(item, filters),
+    );
   }
   return result;
 }

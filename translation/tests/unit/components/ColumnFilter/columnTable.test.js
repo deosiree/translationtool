@@ -3,6 +3,7 @@ import {
   buildCol,
   buildTable,
   filterWbColsForCtx,
+  ellipsisCustomCell,
 } from '@/components/ColumnFilter/columnBuilder.js'
 import {
   changeColumn,
@@ -49,6 +50,48 @@ describe('columnBuilder', () => {
     )
     expect(col.customFilterDropdown).toBe(true)
     expect(col.onFilter('test', { entrySource: 'test source' })).toBe(true)
+  })
+
+  it('buildCol 为 SpanByTips 列设置 customCell 与 AllCols 宽度', () => {
+    const auditCol = buildCol(
+      { label: '审核意见', value: 'auditSuggest', index: 99, width: 160 },
+      {},
+      100
+    )
+    expect(auditCol.width).toBe(160)
+    expect(auditCol.customCell).toBeTypeOf('function')
+    expect(auditCol.customCell()).toEqual({
+      class: 'ellipsis-text-cell',
+      style: { overflow: 'hidden', maxWidth: '160px' },
+    })
+
+    const commentCol = buildCol(
+      { label: 'Comment', value: 'entry_comment', index: 2 },
+      {},
+      100
+    )
+    expect(commentCol.width).toBe(100)
+    expect(commentCol.customCell()).toMatchObject({
+      class: 'ellipsis-text-cell',
+      style: { overflow: 'hidden', maxWidth: '100px' },
+    })
+
+    const reasoningCol = buildCol(
+      { label: 'Agent 说明', value: 'llm_reasoning', index: 12, width: 160 },
+      {},
+      100
+    )
+    expect(reasoningCol.width).toBe(160)
+    expect(reasoningCol.customCell()).toMatchObject({
+      style: { maxWidth: '160px' },
+    })
+  })
+
+  it('ellipsisCustomCell 返回 td 样式配置', () => {
+    expect(ellipsisCustomCell(120)()).toEqual({
+      class: 'ellipsis-text-cell',
+      style: { overflow: 'hidden', maxWidth: '120px' },
+    })
   })
 
   it('buildTable 应解析动态 dataIndex 并排除当前语种列', () => {

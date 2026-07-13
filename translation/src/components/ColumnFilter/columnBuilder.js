@@ -4,6 +4,24 @@
  */
 import { resolvePresetCols, defaultSelectionFromCols } from "./colPreset.js";
 
+/** 使用 SpanByTipsFill 省略 + tooltip 的列 value */
+const SPAN_BY_TIPS_COLS = new Set([
+  "auditSuggest",
+  "entry_comment",
+  "llm_reasoning",
+]);
+
+/**
+ * td 级 overflow 兜底（配合 SpanByTipsFill host max-width）
+ * @param {number} widthPx
+ */
+export function ellipsisCustomCell(widthPx) {
+  return () => ({
+    class: "ellipsis-text-cell",
+    style: { overflow: "hidden", maxWidth: `${widthPx}px` },
+  });
+}
+
 /**
  * 从 ctx 解析当前语种 transMap（工作台动态列）
  * @param {Object} [ctx] buildCol 上下文
@@ -136,6 +154,10 @@ function applyValueBehaviors(col, def, needFilter) {
     col.width = def.width ?? col.width ?? 130;
   }
   if (def.fixed) col.fixed = def.fixed;
+
+  if (SPAN_BY_TIPS_COLS.has(v)) {
+    col.customCell = ellipsisCustomCell(col.width);
+  }
 
   applyFilterBehaviors(col, needFilter);
 }

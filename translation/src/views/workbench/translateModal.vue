@@ -101,6 +101,9 @@
             <template v-if="column.dataIndex === 'entry'">
               <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
             </template>
+            <template v-if="isAuditSuggestColumn(column)">
+              <SpanByTipsFill :content="text" :max-width="column.width" />
+            </template>
             <template v-if="editList_needValidate.includes(column.dataIndex)">
               <div>
                 <template v-if="editableData[record.id]">
@@ -308,6 +311,8 @@ import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
+import SpanByTipsFill from "@/components/SpanByTips/SpanByTipsFill/index.vue";
+import { isAuditSuggestColumn } from "@/utils/auditSuggestColumn.js";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -381,6 +386,7 @@ export default {
     TransStateSelect,
     TransStateBadge,
     InputIME,
+    SpanByTipsFill,
     WorkbenchFormBar,
     WorkbenchTaskInfo,
     WorkbenchColumnActions,
@@ -533,6 +539,7 @@ export default {
     },
   },
   methods: {
+    isAuditSuggestColumn,
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
     },

@@ -38,6 +38,7 @@ import request from "../request";
  * @typedef {Object} AuditRecord
  * @property {string} id - audit 主键
  * @property {string} source_text - 词条原文
+ * @property {string} [entry_comment] - 工作台词条 comment / Grep 消歧
  * @property {string} [suggested_translation] - 建议译文（低于阈值时也展示）
  * @property {string} [target_lang] - 目标语种
  * @property {string} [task_id] - 翻译任务 id

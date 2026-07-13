@@ -27,6 +27,12 @@
             <template v-if="column.dataIndex === 'source_text'">
               <span v-text="formatEntryText(record.source_text)"></span>
             </template>
+            <template v-if="column.dataIndex === 'entry_comment'">
+              <SpanByTipsFill
+                :content="record.entry_comment"
+                :max-width="column.width"
+              />
+            </template>
             <template v-if="column.dataIndex === 'suggested_translation'">
               <a-tag color="blue">{{
                 record.suggested_translation || "未生成"
@@ -87,11 +93,14 @@ import {
   removeLocalPendingAudit,
 } from "@/utils/agentPendingAudits";
 import { pageChange } from "@/utils/selectionUtils";
+import SpanByTipsFill from "@/components/SpanByTips/SpanByTipsFill/index.vue";
+import { ellipsisCustomCell } from "@/components/ColumnFilter/columnBuilder.js";
 
 export default {
   components: {
     CustomModal,
     DeleteOutlined,
+    SpanByTipsFill,
   },
   emits: [
     "close",
@@ -129,6 +138,13 @@ export default {
           dataIndex: "source_text",
           ellipsis: true,
           width: 180,
+        },
+        {
+          title: "Comment",
+          dataIndex: "entry_comment",
+          ellipsis: true,
+          width: 100,
+          customCell: ellipsisCustomCell(100),
         },
         {
           title: "建议翻译",
