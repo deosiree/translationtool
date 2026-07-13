@@ -134,12 +134,6 @@ def _pretranslate_io_patches():
         "app.graph.pre_translate.nodes.features.io.retrieve_similar.WordRepository",
         _word_repo_factory,
     ), patch(
-        "app.repository.trie_cache.WordRepository",
-        _word_repo_factory,
-    ), patch(
-        "app.graph.pre_translate.nodes.features.io.retrieve_similar.load_trie_for_lang",
-        _empty_trie,
-    ), patch(
         "app.graph.pre_translate.nodes.features.io.write_result.TermRepository",
         _repo_factory,
     ):

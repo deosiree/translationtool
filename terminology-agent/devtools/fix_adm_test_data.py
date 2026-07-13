@@ -1,4 +1,4 @@
-"""ADM 手动测试数据修复 — visual_range、触发词条对齐、3B 种子校验。
+"""ADM 手动测试数据修复 — visual_range、触发词条对齐、词片种子、comment 隔离。
 
 用法（terminology-agent 根目录）：
   python -m devtools.fix_adm_test_data --dry-run
@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import sys
+import uuid
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
@@ -26,24 +27,133 @@ ENTRY_RENAMES: dict[str, str] = {
     "ADM/S04-RAGGREP—一致": "ADM/R04-RAGGREP一致",
     "ADM/S02-RAG模糊-用户管理系统": "ADM/S02-RAG模糊-用户管理系统",
     "ADM/S02-RAG模糊 用户管理系统": "ADM/S02-RAG模糊-用户管理系统",
-    "ADM/S03-文件系统资源": "ADM/S03-文件系统资源",
-    "ADM/S03 文件系统资源": "ADM/S03-文件系统资源",
-    # S03 词级：去掉「词-」使 Trie 能从复合句切分
-    "ADM/S03-词-文件": "ADM/S03-文件",
-    "ADM/S03-词-系统": "ADM/S03-系统",
-    "ADM/S03-词-资源": "ADM/S03-资源",
-    # 复合触发：种子 token 直接拼接，避免全局词「系统/资源」抢匹配
-    "ADM/S03-文件系统资源": "ADM/S03-文件ADM/S03-系统ADM/S03-资源",
-    "ADM/3B-文件系统": "ADM/3B-文件ADM/3B-系统",
+    "ADM/S03 文件系统资源": "文件、系统、资源",
+    "ADM/S03-文件系统资源": "文件、系统、资源",
+    "ADM/S03-文件与系统资源": "文件、系统、资源",
+    "ADM/S03-文件、系统、资源": "文件、系统、资源",
+    "ADM/S03-文件ADM/S03-系统ADM/S03-资源": "文件、系统、资源",
+    "ADM/3B-文件系统": "文件与系统",
+    "ADM/3B-文件ADM/3B-系统": "文件与系统",
+    "ADM/3B-文件与系统": "文件与系统",
+    "ADM/T99-全新未收录": "T99-全新未收录",
 }
 
-# 3B 专测：种子 + 触发（仅校验是否存在，不自动插入 entry_info）
 REQUIRED_3B_SEEDS = ("ADM/3B-文件", "ADM/3B-系统")
-REQUIRED_3B_TRIGGER = "ADM/3B-文件ADM/3B-系统"
+REQUIRED_3B_TRIGGER = "文件与系统"
+REQUIRED_S03_TRIGGER = "文件、系统、资源"
+REQUIRED_T99_TRIGGER = "T99-全新未收录"
+
+# comment="" 词片种子 — decomposed / 3B 路径（department 过滤后唯一 approved）
+ADM_LEXEME_SEEDS: tuple[tuple[str, str, str], ...] = (
+    ("文件", "File", "adm-lexeme-file-en"),
+    ("系统", "System", "adm-lexeme-system-en"),
+    ("资源", "Resource", "adm-lexeme-resource-en"),
+)
+
+# 整句 Grep 种子（R04 RAG+Grep 一致场景，comment=""）
+ADM_WHOLE_GREP_SEEDS: tuple[tuple[str, str, str], ...] = (
+    ("ADM/R04-RAGGREP一致", "ADM RAG Grep Same", "adm-grep-r04-en"),
+)
+
+
+def _new_translate_id() -> str:
+    return uuid.uuid4().hex[:32]
+
+
+async def _seed_lexeme(
+    session,
+    *,
+    word: str,
+    translate: str,
+    seed_id: str,
+    apply: bool,
+) -> None:
+    from sqlalchemy import select
+
+    from app.models.word import TermWord
+    from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_DEPRECATED
+
+    wq = select(TermWord).where(
+        TermWord.word == word,
+        TermWord.target_lang == TARGET_LANG,
+        TermWord.comment == "",
+        TermWord.department == DEPARTMENT,
+        TermWord.status == WORD_STATUS_APPROVED,
+        TermWord.id != seed_id,
+    )
+    dupes = (await session.execute(wq)).scalars().all()
+    for row in dupes:
+        print(f"  deprecate duplicate lexeme: {word!r} id={row.id}")
+        if apply:
+            row.status = WORD_STATUS_DEPRECATED
+
+    existing = await session.get(TermWord, seed_id)
+    if existing is None:
+        print(f"  insert lexeme: {word!r} -> {translate!r}")
+        if apply:
+            session.add(
+                TermWord(
+                    id=seed_id,
+                    word=word,
+                    comment="",
+                    translate=translate,
+                    target_lang=TARGET_LANG,
+                    department=DEPARTMENT,
+                    source_translate_id=_new_translate_id(),
+                    status=WORD_STATUS_APPROVED,
+                )
+            )
+    else:
+        print(f"  update lexeme: {word!r} -> {translate!r}")
+        if apply:
+            existing.word = word
+            existing.translate = translate
+            existing.comment = ""
+            existing.target_lang = TARGET_LANG
+            existing.department = DEPARTMENT
+            existing.status = WORD_STATUS_APPROVED
+
+
+async def _seed_whole_grep(
+    session,
+    *,
+    word: str,
+    translate: str,
+    seed_id: str,
+    apply: bool,
+) -> None:
+    await _seed_lexeme(session, word=word, translate=translate, seed_id=seed_id, apply=apply)
+
+
+async def _set_entry_comment_for_triggers(session, *, apply: bool) -> None:
+    """S02/T99 用专用 comment 隔离 Grep，避免命中全局 term_word。"""
+    from sqlalchemy import select
+
+    from app.models.term import EntryInfo
+
+    comment_map = {
+        "ADM/S02-RAG模糊-用户管理系统": "ADM-S02",
+        REQUIRED_T99_TRIGGER: "ADM-T99",
+    }
+    for entry, comment in comment_map.items():
+        rows = (
+            await session.execute(
+                select(EntryInfo).where(
+                    EntryInfo.entry == entry,
+                    EntryInfo.is_delete == 0,
+                )
+            )
+        ).scalars().all()
+        for ei in rows:
+            if (ei.comment or "") != comment:
+                print(f"  set entry_info comment: {entry!r} -> {comment!r}")
+                if apply:
+                    ei.comment = comment
 
 
 async def main(*, apply: bool, dry_run: bool) -> None:
-    from sqlalchemy import select, update, text
+    from sqlalchemy import select
+
     from app.models.database import AsyncSessionLocal
     from app.models.term import EntryInfo, TranslateEntry
 
@@ -103,7 +213,7 @@ async def main(*, apply: bool, dry_run: bool) -> None:
                 tr_rename += 1
         print(f"  t_translate 待重命名: {tr_rename}")
 
-        print("\n=== 2c. term_word word 同步（Grep Trie）===")
+        print("\n=== 2c. term_word word 同步（Grep 整句）===")
         from app.models.word import TermWord
 
         tw_rename = 0
@@ -122,7 +232,18 @@ async def main(*, apply: bool, dry_run: bool) -> None:
                 tw_rename += 1
         print(f"  term_word 待重命名: {tw_rename}")
 
-        print("\n=== 3. 3B 种子/触发校验 ===")
+        print("\n=== 3. ADM 词片 term_word 种子（comment='' + department 唯一）===")
+        for word, translate, seed_id in ADM_LEXEME_SEEDS:
+            await _seed_lexeme(session, word=word, translate=translate, seed_id=seed_id, apply=apply)
+
+        print("\n=== 4. ADM 整句 Grep 种子 ===")
+        for word, translate, seed_id in ADM_WHOLE_GREP_SEEDS:
+            await _seed_whole_grep(session, word=word, translate=translate, seed_id=seed_id, apply=apply)
+
+        print("\n=== 5. S02/T99 entry comment 隔离 Grep ===")
+        await _set_entry_comment_for_triggers(session, apply=apply)
+
+        print("\n=== 6. 触发/种子校验 ===")
         for seed in REQUIRED_3B_SEEDS:
             tq = select(TranslateEntry).where(
                 TranslateEntry.entry == seed,
@@ -134,15 +255,13 @@ async def main(*, apply: bool, dry_run: bool) -> None:
             status = "OK" if hit else "MISSING — 请在前端 admin/dev 创建并审定"
             print(f"  seed {seed}: {status}")
 
-        tq = select(EntryInfo).where(
-            EntryInfo.entry == REQUIRED_3B_TRIGGER,
-            EntryInfo.is_delete == 0,
-        )
-        trigger = (await session.execute(tq)).scalars().first()
-        print(
-            f"  trigger {REQUIRED_3B_TRIGGER}: "
-            f"{'OK' if trigger else 'MISSING — 请在 admin-proj 创建触发词条（译文留空）'}"
-        )
+        for trigger in (REQUIRED_3B_TRIGGER, REQUIRED_S03_TRIGGER, REQUIRED_T99_TRIGGER):
+            tq = select(EntryInfo).where(
+                EntryInfo.entry == trigger,
+                EntryInfo.is_delete == 0,
+            )
+            hit = (await session.execute(tq)).scalars().first()
+            print(f"  trigger {trigger}: {'OK' if hit else 'MISSING'}")
 
         if apply and not dry_run:
             await session.commit()
