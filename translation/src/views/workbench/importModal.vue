@@ -25,49 +25,66 @@
             </a-form-item>
           </a-form>
         </div>
-        <div class="dataTypeBox" v-if="dataType === 'file'" ref="fileRef">
-          <a-row :gutter="24">
-            <a-col :span="16">
-              <a-form-item label="词条文件" name="filefilename">
-                <a-input v-model:value="filePath" style="width:40%" size="small" placeholder="请选择词条文件" />
-                <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
-                  <a-button type="primary" size="small" style="margin-left:8px">选择文件</a-button>
-                </a-upload>
-                <a style="font-size:12px;margin-left:10px" @click="templateFileDownload">下载模板</a>
-                <span style="margin-left:16px">文件编码：</span>
+        <div class="dataTypeBox file-import-row" v-if="dataType === 'file'" ref="fileRef">
+          <a-row :gutter="12" type="flex" align="middle">
+            <a-col :flex="'auto'" style="min-width: 0">
+              <a-form-item label="词条文件" name="filefilename" class="file-import-item">
+                <div class="file-import-controls">
+                  <FileSelectWithEncoding
+                    v-model:encoding="fileEncoding"
+                    v-model:filePath="filePath"
+                    :accept="accept"
+                    showPathInput
+                    path-placeholder="请选择词条文件"
+                    :path-input-style="{ width: '140px', maxWidth: '140px', flexShrink: 0 }"
+                    button-text="选择文件"
+                    size="small"
+                    :before-upload="beforeUpload"
+                    @change="handleChange"
+                  />
+                  <a class="template-download-link" @click="templateFileDownload">下载模板</a>
+                </div>
+              </a-form-item>
+            </a-col>
+            <a-col flex="none">
+              <a-form-item
+                v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
+                label="回写辞典"
+                name="diFileName"
+                class="file-import-item"
+              >
                 <a-select
-                  v-model:value="fileEncoding"
-                  :options="fileEncodingOptions"
+                  v-model:value="filediFileName"
+                  allowClear
+                  placeholder="请选择回写辞典目录"
+                  style="width: 160px"
+                  :options="dictionaryOptions"
                   size="small"
-                  style="width:100px"
+                  show-search
+                  :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+                />
+                <a-tooltip placement="top">
+                  <template #title>
+                    <span>添加辞典</span>
+                  </template>
+                  <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:6px" />
+                </a-tooltip>
+              </a-form-item>
+              <a-form-item v-else-if="templateTypes" label="选择模板" name="templateType" class="file-import-item">
+                <a-select
+                  v-model:value="templateType"
+                  allowClear
+                  placeholder="请选择模板类型"
+                  style="width: 160px"
+                  size="small"
+                  :options="templateTypes"
                 />
               </a-form-item>
             </a-col>
-            <a-col :span="8">
-              <a-row type="flex" align="middle" justify="space-between">
-                <a-col :flex="1">
-                  <a-form-item v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" label="回写辞典" name="diFileName">
-                    <a-select v-model:value="filediFileName" allowClear placeholder="请选择回写辞典目录" style="width:70%" :options="dictionaryOptions"
-                      size="small" show-search :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())">
-                    </a-select>
-                    <a-tooltip placement="top">
-                      <template #title>
-                        <span>添加辞典</span>
-                      </template>
-                      <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:8px" />
-                    </a-tooltip>
-                  </a-form-item>
-                  <a-form-item v-if="templateTypes" label="选择模板" name="templateType">
-                    <a-select v-model:value="templateType" allowClear placeholder="请选择模板类型" style="width:70%" size="small" :options="templateTypes">
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :span="2">
-                  <a-form-item>
-                    <a-button type="primary" ghost size="small" :loading="importBtnLoading" style="float:right" @click="importEntryData">导入</a-button>
-                  </a-form-item>
-                </a-col>
-              </a-row>
+            <a-col flex="none">
+              <a-form-item class="file-import-item">
+                <a-button type="primary" ghost size="small" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
+              </a-form-item>
             </a-col>
           </a-row>
         </div>
@@ -572,6 +589,12 @@ import {
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
 import { handleAsyncRequest } from "@/utils/requestUtils";
+import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vue";
+import {
+  DEFAULT_ENCODING,
+  shouldShowEncoding,
+} from "@/components/FileSelectWithEncoding/constants";
+import { assertCsvEncodingMatch } from "@/utils/encodingDetectUtils";
 const filteredInfo = {};
 const ALL_ISEXIST = "-1";
 
@@ -600,6 +623,7 @@ export default {
     WorkbenchTaskInfo,
     WorkbenchColumnActions,
     WorkbenchLanguageFilter,
+    FileSelectWithEncoding,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
     },
@@ -628,11 +652,7 @@ export default {
       user: null,
       task: {},
       filePath: "",
-      fileEncoding: "GBK",
-      fileEncodingOptions: [
-        { label: "UTF-8", value: "UTF-8" },
-        { label: "GBK", value: "GBK" },
-      ],
+      fileEncoding: DEFAULT_ENCODING,
       filediFileName: null,
       keyWords: "",
       isExist: ALL_ISEXIST,
@@ -1520,8 +1540,11 @@ export default {
     clearAllTs() {
       this.tsFile.tsFileValue = [];
     },
-    // 导入词条数据
-    importEntryData() {
+    /**
+     * 导入词条数据（文件类型为 CSV 时先做编码一致性校验）
+     * @returns {Promise<void>}
+     */
+    async importEntryData() {
       this.loading = true;
       this.importBtnLoading = true;
 
@@ -1610,10 +1633,31 @@ export default {
           message.info("请选择模板类型！");
           return;
         }
+        if (
+          shouldShowEncoding({
+            fileName: this.file?.name || this.filePath,
+          })
+        ) {
+          const encodingCheck = await assertCsvEncodingMatch(
+            this.file,
+            this.fileEncoding
+          );
+          if (!encodingCheck.ok) {
+            this.loading = false;
+            this.importBtnLoading = false;
+            return;
+          }
+        }
         let formData = new FormData();
         formData.append("file", this.file);
         formData.append("taskID", this.task.id);
-        formData.append("encoding", this.fileEncoding);
+        if (
+          shouldShowEncoding({
+            fileName: this.file?.name || this.filePath,
+          })
+        ) {
+          formData.append("encoding", this.fileEncoding);
+        }
         const params = {
           diFileName: this.filediFileName,
           // 兼容 user 还未初始化的情况，避免读取 undefined.department 报错
@@ -2105,7 +2149,7 @@ export default {
       this.tsFile.tsFileValue = [];
       this.file = {};
       this.filePath = "";
-      this.fileEncoding = "GBK";
+      this.fileEncoding = DEFAULT_ENCODING;
       this.dataLibrary = {
         node: null,
         server: null,
@@ -2427,6 +2471,22 @@ export default {
     // border: 1px solid #f0f0f0;
     :deep(.ant-tabs-nav) {
       margin-bottom: 10px;
+    }
+  }
+  .file-import-row {
+    .file-import-item {
+      margin-bottom: 0;
+    }
+    .file-import-controls {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .template-download-link {
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
   }
   .dataTypeBox2 {

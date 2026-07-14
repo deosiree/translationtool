@@ -18,21 +18,35 @@
   >
     <div class="content">
       <a-form ref="backFillForm" :model="formModel">
-        <!-- 共同部分：文件类型 -->
-        <a-form-item
-          v-if="showFileTypeSelect"
-          label="文件类型"
-          name="importType"
-          :rules="[{ required: true, message: '请选择!' }]"
-        >
-          <a-select
-            v-model:value="formModel.importType"
-            placeholder="请选择文件类型"
-            :options="importTypes"
-            allowClear
-          >
-          </a-select>
-        </a-form-item>
+        <!-- 文件类型 + 文件编码：同一行，提高信息密度 -->
+        <a-row v-if="showFileTypeSelect || showEncodingUI" :gutter="16">
+          <a-col v-if="showFileTypeSelect" :span="showEncodingUI ? 12 : 24">
+            <a-form-item
+              label="文件类型"
+              name="importType"
+              :rules="[{ required: true, message: '请选择!' }]"
+            >
+              <a-select
+                v-model:value="formModel.importType"
+                placeholder="请选择文件类型"
+                :options="importTypes"
+                allowClear
+                style="width: 160px"
+              />
+            </a-form-item>
+          </a-col>
+          <a-col v-if="showEncodingUI" :span="showFileTypeSelect ? 12 : 24">
+            <a-form-item label="文件编码" name="encoding">
+              <FileSelectWithEncoding
+                v-model:encoding="formModel.encoding"
+                :file-type="'csv'"
+                :show-file-select="false"
+                :show-encoding-label="false"
+                size="middle"
+              />
+            </a-form-item>
+          </a-col>
+        </a-row>
 
         <!-- 共同部分：回填字段（回填字段） -->
         <a-form-item
@@ -596,6 +610,12 @@ import commonParam from "@/constants/commonParam.js";
 import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
 import { handleErrorNotification } from "@/utils/notificationUtils";
+import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vue";
+import {
+  DEFAULT_ENCODING,
+  shouldShowEncoding,
+} from "@/components/FileSelectWithEncoding/constants";
+import { assertCsvEncodingMatchAll } from "@/utils/encodingDetectUtils";
 export default {
   name: "BackFillModal_v3",
   components: {
@@ -605,6 +625,7 @@ export default {
     FileExcelOutlined,
     WarningOutlined,
     DownloadOutlined,
+    FileSelectWithEncoding,
   },
   emits: ["handleClose", "handleOK", "importSuccess"],
   props: {
@@ -620,6 +641,11 @@ export default {
     showFileTypeSelect: {
       type: Boolean,
       default: false,
+    },
+    /** 是否展示编码选择（文件管理页可关闭，强制 UTF-8） */
+    showEncodingSelect: {
+      type: Boolean,
+      default: true,
     },
     needRelationFile: {
       type: Boolean,
@@ -647,6 +673,7 @@ export default {
       internalVisible: false, // 内部控制的 visible（按钮模式使用）
       formModel: {
         importType: null, // 文件类型（csv/excel）
+        encoding: DEFAULT_ENCODING,
         relationFile: null,
         relationFileList: [], // id映射文件
         backFillFile: null,
@@ -719,6 +746,32 @@ export default {
         return selectedType ? selectedType.accept : null;
       }
       return this.defaultAccept;
+    },
+    /**
+     * 当前导入是否按 CSV 处理（据此决定是否展示/传递 encoding）
+     * @returns {boolean}
+     */
+    isCsvImport() {
+      return shouldShowEncoding({
+        accept: this.backFillAccept || this.defaultAccept,
+        fileType: this.formModel.importType,
+        fileName: this.formModel.backFillFile?.name,
+      });
+    },
+    /**
+     * 是否展示编码选择 UI（需开启 showEncodingSelect 且为 CSV）
+     * @returns {boolean}
+     */
+    showEncodingUI() {
+      return this.showEncodingSelect && this.isCsvImport;
+    },
+    /**
+     * 提交用编码：CSV 时返回编码；隐藏选择时强制 UTF-8；非 CSV 返回 undefined
+     * @returns {string|undefined}
+     */
+    submitEncoding() {
+      if (!this.isCsvImport) return undefined;
+      return this.showEncodingSelect ? this.formModel.encoding : DEFAULT_ENCODING;
     },
     // 判断校验是否完全成功（无任何问题）
     isValidationSuccess() {
@@ -847,6 +900,7 @@ export default {
         relationFileList: [],
         backFillFileList: [],
         importType: importType,
+        encoding: DEFAULT_ENCODING,
         dedupOriginExcel: null,
         dedupOriginExcelList: [],
         emptyStringAsValue: true,
@@ -1008,6 +1062,28 @@ export default {
       return Promise.resolve();
     },
 
+    /**
+     * CSV 编码前置校验：实际编码与设置不一致时弹通知并拦截请求
+     * @returns {Promise<boolean>} true 表示通过（可继续请求）
+     */
+    async ensureCsvEncodingOk() {
+      if (!this.isCsvImport || !this.submitEncoding) return true;
+      const items = [
+        {
+          file: this.formModel.backFillFile,
+          label: this.needRelationFile ? "回填文件" : "更新文件",
+        },
+      ];
+      if (this.formModel.enableValidate && this.formModel.dedupOriginExcel) {
+        items.unshift({
+          file: this.formModel.dedupOriginExcel,
+          label: this.needRelationFile ? "去重文件" : "原始文件",
+        });
+      }
+      const { ok } = await assertCsvEncodingMatchAll(items, this.submitEncoding);
+      return ok;
+    },
+
     // ==================== 表单提交和业务逻辑 ====================
     async handleOK() {
       if (!this.$refs.backFillForm) return;
@@ -1031,6 +1107,11 @@ export default {
           this.loading = true;
           // console.log("保存用户偏好", data);
           try {
+            const encodingOk = await this.ensureCsvEncodingOk();
+            if (!encodingOk) {
+              this.loading = false;
+              return;
+            }
             if (this.formModel.enableValidate) {
               // 勾选校验时：校验是否通过；若fatal则不可回填，若warn则可回填（显示"继续回填"按钮：不再自动执行更新，改为通过"继续回填"按钮人为控制）
               await this.handleValidation(); //
@@ -1064,6 +1145,13 @@ export default {
           checkSpecialChar: this.formModel.checkSpecialChar,
           checkMaxLength: this.formModel.checkMaxLength,
           translateAttributes: this.formModel.translateAttrs,
+          // checkBeforeUpdateTranslationByFile：双编码参数
+          ...(this.submitEncoding
+            ? {
+                encodingForUnTrans: this.submitEncoding,
+                encodingForTrans: this.submitEncoding,
+              }
+            : {}),
         };
 
         const result = await entryValidate_v2(
@@ -1100,6 +1188,11 @@ export default {
     async handleContinueBackFill() {
       this.loading = true;
       try {
+        const encodingOk = await this.ensureCsvEncodingOk();
+        if (!encodingOk) {
+          this.loading = false;
+          return;
+        }
         await this.handleBatchUpdate();
         // 等待新模态框渲染完成后再关闭loading
         this.$nextTick(() => {
@@ -1111,7 +1204,10 @@ export default {
         throw error; // 重新抛出错误，让调用方知道更新失败
       }
     },
-    // 处理导入-请求（v3：仅翻译字段，走异步更新方案）
+    /**
+     * 处理导入/更新请求（v3：仅翻译字段，走异步 asyncEntryImportExcle）
+     * @returns {Promise<void>}
+     */
     async handleBatchUpdate() {
       try {
         // 构建 FormData
@@ -1119,6 +1215,9 @@ export default {
         formData.append("file", this.formModel.backFillFile);
         if (this.needRelationFile && this.formModel.relationFile) {
           formData.append("relationFile", this.formModel.relationFile);
+        }
+        if (this.submitEncoding) {
+          formData.append("encoding", this.submitEncoding);
         }
 
         // 根据选中的回填字段，映射出需要更新的语种列表（name/value 均来自 commonParam.languageList）

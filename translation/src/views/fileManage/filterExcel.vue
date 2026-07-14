@@ -190,25 +190,24 @@
       <template v-slot:operate>
         <div
           ref="button"
-          style="margin-bottom: 8px; display: flex; gap: 10px"
+          class="file-manage-toolbar"
         >
-          <a-upload
-            name="file"
+          <a-tooltip placement="top" :overlayStyle="{ maxWidth: '420px' }">
+            <template #title>
+              <span class="file-manage-csv-tip-text">{{ fileManageCsvTip }}</span>
+            </template>
+            <InfoCircleOutlined class="file-manage-csv-tip-icon" />
+          </a-tooltip>
+          <FileSelectWithEncoding
+            v-model:encoding="csvEncoding"
             accept=".csv"
-            :beforeUpload="beforeUpload"
-            :show-upload-list="false"
-          >
-            <a-button
-              type="primary"
-              size="middle"
-              :loading="importLoading"
-            >
-              <template #icon>
-                <UploadOutlined />
-              </template>
-              导入csv
-            </a-button>
-          </a-upload>
+            button-text="导入csv"
+            :button-icon="UploadOutlined"
+            size="middle"
+            :loading="importLoading"
+            :show-encoding-select="false"
+            :before-upload="beforeUpload"
+          />
           <a-button
             type="primary"
             size="middle"
@@ -403,6 +402,7 @@
       :visible="importBackfillVisible_v3"
       :needRelationFile="true"
       :defaultAccept="'.csv'"
+      :show-encoding-select="false"
       @handleClose="handleImportBackfillClose_v3"
       @handleOK="handleImportBackfillOK_v3"
     />
@@ -411,6 +411,7 @@
       :visible="importBackfillVisible_v2_5"
       :needRelationFile="true"
       :defaultAccept="'.csv'"
+      :show-encoding-select="false"
       @handleClose="handleImportBackfillClose_v2_5"
       @handleOK="handleImportBackfillOK_v2_5"
     />
@@ -459,6 +460,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
   UploadOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons-vue";
 import { getLanguage } from "@/http/api/translate";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
@@ -477,6 +479,12 @@ import { applyTable, mergeColumnSelection, syncColumnsFromPref as applyTableColu
 import { getSearch } from "@/utils/requestUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vue";
+import {
+  DEFAULT_ENCODING,
+  FILE_MANAGE_CSV_TIP,
+} from "@/components/FileSelectWithEncoding/constants";
+import { assertCsvEncodingMatch } from "@/utils/encodingDetectUtils";
 import { defineComponent, ref } from "vue";
 
 export default {
@@ -489,6 +497,7 @@ export default {
     CaretDownOutlined,
     CaretRightOutlined,
     UploadOutlined,
+    InfoCircleOutlined,
     EntryStateSelect,
     TransStateSelect,
     EntryStateBadge,
@@ -501,6 +510,7 @@ export default {
     BackFillModal_v1_5,
     ExportButton,
     ColumnFilter,
+    FileSelectWithEncoding,
   },
   props: {
     boxHeight: 0,
@@ -566,6 +576,9 @@ export default {
       deleteButtonsVisible: false,
       deleteLoading: false,
       importLoading: false,
+      csvEncoding: DEFAULT_ENCODING,
+      fileManageCsvTip: FILE_MANAGE_CSV_TIP,
+      UploadOutlined,
       importBackfillVisible: false,
       importBackfillVisible_v2_5: false,
       importBackfillVisible_v2: false,
@@ -770,41 +783,42 @@ export default {
       this.init();
       this.handleImportBackfillClose_v1_5();
     },
-    // ===================导入csv文件================================
-    // 上传前校验文件格式
-    beforeUpload(file) {
+    /**
+     * 导入 CSV：强制 UTF-8，先做编码前置校验再请求 parseFileToEntryInfos
+     * @param {File} file - 待上传文件
+     * @returns {Promise<false>} 始终返回 false 以阻止 a-upload 默认上传
+     */
+    async beforeUpload(file) {
       const isCsv = file.name.endsWith(".csv");
       if (!isCsv) {
         message.error("只能上传 CSV 文件!");
         return false;
       }
+      // 文件管理页强制 csv UTF-8：先做前端编码探测，避免打到后端报晦涩错
+      const encoding = DEFAULT_ENCODING;
+      this.csvEncoding = encoding;
+      const encodingCheck = await assertCsvEncodingMatch(file, encoding);
+      if (!encodingCheck.ok) {
+        return false;
+      }
       this.importLoading = true;
       this.loading = true;
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const content = e.target.result;
-        try {
-          const formData = new FormData();
-          formData.append("file", file);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("encoding", encoding);
 
-          const res = await entryReadExcel(formData);
-          this.dataSource = res.data;
-          this.pagination.total = this.dataSource.length;
-          message.success("文件读取成功");
-        } catch (error) {
-          console.error("文件解析失败", error);
-          message.error("文件解析失败");
-        } finally {
-          this.importLoading = false;
-          this.loading = false;
-        }
-      };
-      reader.onerror = () => {
-        message.error("文件读取失败");
+        const res = await entryReadExcel(formData);
+        this.dataSource = res.data;
+        this.pagination.total = this.dataSource.length;
+        message.success("文件读取成功");
+      } catch (error) {
+        console.error("文件解析失败", error);
+        message.error("文件解析失败");
+      } finally {
         this.importLoading = false;
         this.loading = false;
-      };
-      reader.readAsText(file);
+      }
       return false; // 在文件开始上传之前阻止文件上传操作
     },
     // ==============去重按钮点击事件======================
@@ -1070,5 +1084,24 @@ export default {
 .container {
   width: 100%;
   height: 100%;
+}
+.file-manage-toolbar {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.file-manage-csv-tip-icon {
+  color: #369fff;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+</style>
+
+<style>
+.file-manage-csv-tip-text {
+  white-space: pre-line;
 }
 </style>

@@ -564,17 +564,20 @@ export async function entryBatchImportExcel_v2(dedupExcel, mappingJson, backfill
 
 /**
  * 校验词条 (v2版本 - 新API)
- * @param {File} dedupOriginExcel - 去重后送翻前Excel文件
- * @param {File} dedupExcel - 去重后Excel文件
+ * 对应接口：/entryInfo/checkBeforeUpdateTranslationByFile
+ * @param {File} dedupOriginExcel - 去重后送翻前Excel文件（未翻译源文件）
+ * @param {File} dedupUpdateExcel - 去重后送翻后Excel文件（已翻译文件）
  * @param {File|null} mappingJson - 映射JSON文件（可选）
  * @param {Array<string>} checkFields - 校验字段列表（如["entry", "comment", "tag"]）
  * @param {Array<string>} backfillFields - 回填字段列表（字段label数组）
  * @param {Object} options - 全局配置和可选校验任务
  *   - emptyStringAsValue: boolean - 是否将空字符串视为有效值
  *   - failFast: boolean - 是否在首次FATAL错误时立即终止
- * 
  *   - checkSpecialChar: boolean - 是否启用特殊字符校验（可选）
  *   - checkMaxLength: boolean - 是否启用长度校验（可选）
+ *   - encodingForUnTrans: string - 未翻译文件编码（UTF-8/GBK，可选）
+ *   - encodingForTrans: string - 已翻译文件编码（UTF-8/GBK，可选）
+ *   - encoding: string - 兼容写法：同时作为上述两个编码的默认值（可选）
  * @returns {Promise<Object>} 返回校验结果对象，包含 {success, canBackfill, summary, issues, preview, attachments}
  */
 export async function entryValidate_v2(dedupOriginExcel, dedupUpdateExcel, mappingJson, checkFields, backfillFields, options = {}) {
@@ -587,6 +590,15 @@ export async function entryValidate_v2(dedupOriginExcel, dedupUpdateExcel, mappi
     formData.append("dedupUpdateExcel", dedupUpdateExcel);
     if (mappingJson) {
       formData.append("mappingJson", mappingJson);
+    }
+    // 本接口使用双编码参数（非统一 encoding）
+    const encodingForUnTrans = options.encodingForUnTrans || options.encoding;
+    const encodingForTrans = options.encodingForTrans || options.encoding;
+    if (encodingForUnTrans) {
+      formData.append("encodingForUnTrans", encodingForUnTrans);
+    }
+    if (encodingForTrans) {
+      formData.append("encodingForTrans", encodingForTrans);
     }
 
     // 构建options数组（全局配置）
@@ -680,6 +692,7 @@ export function resolveImportTypeFromAccept(accept, types) {
  * @param {FormData|null} formData - 可选的FormData（如果已构建好），否则函数内部会构建
  * @param {Object} options - 可选配置
  *   - mappingJson: File|null - 映射JSON文件（可选）
+ *   - encoding: string - CSV 文件编码（可选，如 'UTF-8' | 'GBK'）
  * @returns {Promise<Object>} 返回API响应结果
  * @example
  * // 只选择翻译字段，会调用翻译更新接口
@@ -714,6 +727,17 @@ export async function updateEntryInfosUnified(file, selectedFields, formData = n
     // 判断是否全是翻译字段
     const isAllTranslations = isAllTranslationFields(selectedFields, commonParam);
 
+    /**
+     * 向 FormData 追加 CSV encoding（已存在则不重复写入）
+     * @param {FormData} fd - 目标表单数据
+     * @returns {void}
+     */
+    const appendEncodingIfNeeded = (fd) => {
+      if (!options.encoding || !(fd instanceof FormData)) return;
+      if (typeof fd.has === "function" && fd.has("encoding")) return;
+      fd.append("encoding", options.encoding);
+    };
+
     if (isAllTranslations) {
       // 使用翻译更新接口（entryImportExcle）
       // 需要将selectedFields转换为语种object列表（可能是name或value，需要统一处理）
@@ -727,6 +751,7 @@ export async function updateEntryInfosUnified(file, selectedFields, formData = n
           finalFormData.append("relationFile", options.mappingJson);
         }
       }
+      appendEncodingIfNeeded(finalFormData);
 
       // 调用翻译更新接口（按语种循环调用）
       return await entryBatchImportExcel_v2_5(translateTypeObj, finalFormData);
@@ -740,6 +765,7 @@ export async function updateEntryInfosUnified(file, selectedFields, formData = n
           finalFormData.append("relationFile", options.mappingJson);
         }
       }
+      appendEncodingIfNeeded(finalFormData);
 
       // 构建params，columnName[]需要作为数组传递
       // axios会自动将数组参数转换为columnName[]=value1&columnName[]=value2格式
