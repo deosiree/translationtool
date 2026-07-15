@@ -5,7 +5,8 @@ import {
   getPathByKey,
   filter_arr_keys,
   mapLabelToValue,
-  mapValueToLabel
+  mapValueToLabel,
+  transMapWire2Stable
 } from '@/utils/dataStructureUtils'
 
 describe('dataStructureUtils - 数据结构处理工具函数', () => {
@@ -294,6 +295,36 @@ describe('dataStructureUtils - 数据结构处理工具函数', () => {
       const result = mapValueToLabel(valueList, allList)
       
       expect(result).toEqual(['标签1'])
+    })
+  })
+
+  describe('transMapWire2Stable', () => {
+    const languageList = [
+      { name: '英文', value: 'english' },
+      { name: '俄文', value: 'russian' },
+    ]
+
+    it('应将单个 wire 值映射为中文名', () => {
+      expect(transMapWire2Stable('russian', languageList)).toBe('俄文')
+    })
+
+    it('应将 wire 数组映射为中文名数组', () => {
+      expect(transMapWire2Stable(['english', 'russian'], languageList)).toEqual([
+        '英文',
+        '俄文',
+      ])
+    })
+
+    it('已是中文名时应原样返回', () => {
+      expect(transMapWire2Stable('俄文', languageList)).toBe('俄文')
+    })
+
+    it('无法识别时应回退原值', () => {
+      expect(transMapWire2Stable('unknown', languageList)).toBe('unknown')
+    })
+
+    it('未传 languageList 时应回退 commonParam 映射', () => {
+      expect(transMapWire2Stable('russian')).toBe('俄文')
     })
   })
 })

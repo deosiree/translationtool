@@ -236,7 +236,7 @@ import { downloadFileFromUrl } from "@/http/api/download";
 import commonParam from "@/constants/commonParam.js";
 import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
-import { mapValueToName } from "@/utils/dataStructureUtils";
+import { mapValueToName, transMapWire2Stable } from "@/utils/dataStructureUtils";
 import { handleErrorNotification } from "@/utils/notificationUtils";
 export default {
   name: "BackFillModal_v1_5",
@@ -700,7 +700,10 @@ export default {
 
         if (result.code === 200) {
           // 完全成功：仅展示成功通知
-          const successLangs = result.success || [];
+          const successLangs = transMapWire2Stable(
+            result.success || [],
+            this.languageOptions
+          );
           const desc =
             successLangs.length > 0
               ? `${successLangs.join(", ")} 导入成功！`

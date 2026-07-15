@@ -381,7 +381,8 @@ export async function entryBatchImportExcel_v3(
         const langName = item.name;
         const langValue = item.value;
         if (!err) {
-          successLangs.push(langValue);
+          // 与 v2.5 保持一致：success 存展示用中文名（如「俄文」），而非 wire 值（russian）
+          successLangs.push(langName);
         } else {
           console.log(`${langName}导入响应：`, res);
           const error = res?.data || res;
