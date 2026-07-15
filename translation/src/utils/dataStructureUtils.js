@@ -2,6 +2,7 @@
  * 数据结构处理工具函数
  * 包含数组过滤、树形数据处理等函数
  */
+import commonParam from "@/constants/commonParam.js";
 
 /**
  * 将标签列表转换为值列表
@@ -34,6 +35,43 @@ export function mapValueToLabel(valueList, allList) {
 export function mapValueToName(valueList, allList) {
   const nameList = allList.filter(item => valueList.includes(item.value)).map(item => item.name);
   return nameList;
+}
+
+/**
+ * 将语种 wire 值映射为展示用稳定中文名（如 russian → 俄文）
+ * @description 用于通知、日志等展示场景；若已是中文名则原样返回；无法识别时回退原值。
+ * languageList 为空时回退到 commonParam.languageList。
+ * @param {string|string[]} wire - 语种 wire 值（如 english）或中文名，或它们的数组
+ * @param {Array<{name:string,value:string}>} [languageList] - 语种列表（含 name/value）
+ * @returns {string|string[]} 对应的稳定中文名（输入为数组时返回同长度数组）
+ * @example
+ * transMapWire2Stable('russian', languageList) // '俄文'
+ * transMapWire2Stable(['english', 'russian'], languageList) // ['英文', '俄文']
+ * transMapWire2Stable('俄文', languageList) // '俄文'
+ */
+export function transMapWire2Stable(wire, languageList) {
+  const list =
+    Array.isArray(languageList) && languageList.length > 0
+      ? languageList
+      : commonParam?.languageList || [];
+  const resolveOne = (item) => {
+    if (item == null || item === "") return item;
+    const key = String(item);
+    const keyLower = key.toLowerCase();
+    const hit = list.find((lang) => {
+      if (!lang) return false;
+      if (lang.value === item || lang.name === item) return true;
+      return (
+        String(lang.value).toLowerCase() === keyLower ||
+        String(lang.name).toLowerCase() === keyLower
+      );
+    });
+    return hit ? hit.name : item;
+  };
+  if (Array.isArray(wire)) {
+    return wire.map(resolveOne);
+  }
+  return resolveOne(wire);
 }
 
 /**

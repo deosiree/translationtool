@@ -321,6 +321,7 @@ import {
   shouldShowEncoding,
 } from "@/components/FileSelectWithEncoding/constants";
 import { assertCsvEncodingMatchAll } from "@/utils/encodingDetectUtils";
+import { transMapWire2Stable } from "@/utils/dataStructureUtils";
 export default {
   name: "BackFillModal_v2_5",
   components: {
@@ -899,8 +900,11 @@ export default {
       if (hasSuccessField && hasFailedField) {
         // 翻译更新接口的返回结构（entryBatchImportExcel）
         if (result.code === 200) {
-          // 完全成功：显示成功通知：成功的语种有哪些
-          const successLangs = result.success || [];
+          // 完全成功：显示成功通知：成功的语种有哪些（wire→中文名）
+          const successLangs = transMapWire2Stable(
+            result.success || [],
+            this.languageOptions
+          );
           this.hasUpdateResult = false;
           this.showUpdateTabs = false; // 多个语种，显示tab页
           this.activeFailedLangTab = '';// 失败语种
@@ -912,7 +916,10 @@ export default {
           notifyTask = () => {
             notification.success({
               message: "导入成功！",
-              description: successLangs + " 导入成功！",
+              description:
+                successLangs.length > 0
+                  ? `${successLangs.join(", ")} 导入成功！`
+                  : "导入成功！",
               duration: 0,
             });
           };
@@ -928,8 +935,7 @@ export default {
 
           // 处理成功语种
           successLangs.forEach(langValue => {
-            const lang = this.languageOptions.find(l => l.value === langValue);
-            const langName = lang ? lang.name : langValue;
+            const langName = transMapWire2Stable(langValue, this.languageOptions);
             detailsByLang[langName] = {
               code: 200,
               globalMessage: `${langName} 更新成功！`,
@@ -940,8 +946,7 @@ export default {
 
           // 处理失败语种：直接从 failed 对象中获取每个语种的错误信息
           Object.keys(failed).forEach(langValue => {
-            const lang = this.languageOptions.find(l => l.value === langValue);
-            const langName = lang ? lang.name : langValue;
+            const langName = transMapWire2Stable(langValue, this.languageOptions);
             const failedInfo = failed[langValue];
 
             // 如果该语种还没有在 detailsByLang 中，则添加

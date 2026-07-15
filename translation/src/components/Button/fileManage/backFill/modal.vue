@@ -71,6 +71,7 @@ import { entryBatchImportExcel } from "@/utils/excelUtils";
 import { downloadJsonFile } from "@/utils/fileUtils";
 import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
+import { transMapWire2Stable } from "@/utils/dataStructureUtils";
 export default {
   components: {
     CustomModal,
@@ -319,8 +320,11 @@ export default {
             let notifyTask = null;
 
             if (result.code === 200) {
-              // 完全成功：仅展示成功通知
-              const successLangs = result.success || [];
+              // 完全成功：仅展示成功通知（wire→中文名）
+              const successLangs = transMapWire2Stable(
+                result.success || [],
+                this.translateTypes
+              );
               const desc =
                 successLangs.length > 0
                   ? `${successLangs.join(", ")} 导入成功！`
