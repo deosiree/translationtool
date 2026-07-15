@@ -4,6 +4,30 @@
  */
 
 /**
+ * 按 id 合并已选词条，后者覆盖同 id 前者
+ * @description 用于「选择全部」等场景：保留跨产品已选，并对当前查询全量按 id 去重合并
+ * @param {Array<{id: string|number}>} existingRows - 已有已选行
+ * @param {Array<{id: string|number}>} incomingRows - 新并入的行（如同一次「选择全部」接口结果）
+ * @returns {Array<{id: string|number}>} 按 id 唯一合并后的行数组
+ * @example
+ * mergeSelectedEntriesById(
+ *   [{ id: 1 }, { id: 2 }],
+ *   [{ id: 1, name: '更新' }, { id: 3 }]
+ * )
+ * // => [{ id: 1, name: '更新' }, { id: 2 }, { id: 3 }]
+ */
+export function mergeSelectedEntriesById(existingRows, incomingRows) {
+  const map = new Map();
+  (existingRows || []).forEach((row) => {
+    if (row && row.id != null) map.set(row.id, row);
+  });
+  (incomingRows || []).forEach((row) => {
+    if (row && row.id != null) map.set(row.id, row);
+  });
+  return Array.from(map.values());
+}
+
+/**
  * 分页切换函数
  * @param {VueInstance} vm - Vue 实例
  * @param {number} page - 当前页码

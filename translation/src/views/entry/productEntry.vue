@@ -983,6 +983,7 @@ import {
   pageChange,
   selectAllEntry,
   clearAllEntry,
+  mergeSelectedEntriesById,
 } from "@/utils/selectionUtils";
 import {
   applyTable,
@@ -2203,13 +2204,10 @@ export default {
       this.loading = true;
       getEntryByClassfy(params, data)
         .then((res) => {
-          this.selectedRowKeys = [];
-          this.selectedRows = [...this.selectedRows, ...res.data.list];
+          const list = res.data?.list || [];
+          this.selectedRows = mergeSelectedEntriesById(this.selectedRows, list);
           this.selectEntry = this.selectedRows;
-          // console.log("全选词条dataSource", res);
-          res.data.list.forEach((item) => {
-            this.selectedRowKeys.push(item.id);
-          });
+          this.selectedRowKeys = this.selectedRows.map((item) => item.id);
         })
         .catch((err) => {
           message.error(err.message);
