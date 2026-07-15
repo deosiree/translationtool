@@ -5,7 +5,8 @@ import {
   onSelect,
   onSelectAll,
   selectAllEntry,
-  clearAllEntry
+  clearAllEntry,
+  mergeSelectedEntriesById
 } from '@/utils/selectionUtils'
 
 describe('selectionUtils - 表格选择/分页工具函数', () => {
@@ -268,6 +269,62 @@ describe('selectionUtils - 表格选择/分页工具函数', () => {
 
       expect(mockVm.selectedRowKeys).toEqual([])
       expect(mockVm.selectedRows).toEqual([])
+    })
+  })
+
+  describe('mergeSelectedEntriesById', () => {
+    it('当前页子集 + 全量应去重且长度等于全量', () => {
+      const pageRows = [
+        { id: 1, entry: 'a' },
+        { id: 2, entry: 'b' },
+      ]
+      const allRows = [
+        { id: 1, entry: 'a' },
+        { id: 2, entry: 'b' },
+        { id: 3, entry: 'c' },
+      ]
+
+      const merged = mergeSelectedEntriesById(pageRows, allRows)
+
+      expect(merged).toHaveLength(3)
+      expect(merged.map((r) => r.id).sort()).toEqual([1, 2, 3])
+    })
+
+    it('含其它产品 id 时合并后其它产品条目仍在', () => {
+      const existing = [
+        { id: 'a1', productID: 'productA' },
+        { id: 'b1', productID: 'productB' },
+      ]
+      const incoming = [
+        { id: 'b1', productID: 'productB', entry: 'updated' },
+        { id: 'b2', productID: 'productB' },
+      ]
+
+      const merged = mergeSelectedEntriesById(existing, incoming)
+
+      expect(merged.find((r) => r.id === 'a1')).toEqual({
+        id: 'a1',
+        productID: 'productA',
+      })
+      expect(merged.find((r) => r.id === 'b2')).toBeTruthy()
+      expect(merged).toHaveLength(3)
+    })
+
+    it('同 id 时应以 incoming 覆盖', () => {
+      const existing = [{ id: 1, name: 'old' }]
+      const incoming = [{ id: 1, name: 'new' }]
+
+      const merged = mergeSelectedEntriesById(existing, incoming)
+
+      expect(merged).toEqual([{ id: 1, name: 'new' }])
+    })
+
+    it('应忽略空数组与无 id 的项', () => {
+      expect(mergeSelectedEntriesById(null, [{ id: 1 }])).toEqual([{ id: 1 }])
+      expect(mergeSelectedEntriesById([{ id: 1 }, null, {}], [{ id: 2 }])).toEqual([
+        { id: 1 },
+        { id: 2 },
+      ])
     })
   })
 })
