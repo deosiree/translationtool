@@ -61,15 +61,15 @@ const hashScript = path.join(EVALS_ROOT, "scripts", "workflow-hash.mjs");
 const h = spawnSync(process.execPath, [hashScript], { encoding: "utf8" });
 if (h.status !== 0) {
   failures += 1;
-  console.error("workflow-hash 失败", h.stderr);
+  console.error("工作流指纹计算失败", h.stderr);
 } else {
   const j = JSON.parse(h.stdout);
   if (!j.workflow_rev || !j.workflow_tree_hash) {
     failures += 1;
-    console.error("workflow-hash 缺少字段", j);
+    console.error("工作流指纹缺少字段", j);
   } else {
     console.log(
-      `通过 workflow-hash rev=${j.workflow_rev.slice(0, 8)} tree=${j.workflow_tree_hash}`,
+      `通过 工作流指纹 rev=${j.workflow_rev.slice(0, 8)} tree=${j.workflow_tree_hash}`,
     );
   }
 }

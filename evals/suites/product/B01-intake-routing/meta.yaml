@@ -3,5 +3,5 @@ version: 1
 suite: product
 wave: 1
 difficulty: medium
-component: product:intake-routing
+component: 产品:分拣路由
 purpose: 混合需求须拆分前端与 Python 落点，禁止新业务默认进 Java

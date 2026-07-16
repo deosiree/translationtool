@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const EVALS_ROOT = path.resolve(__dirname, "..");
 export const REPO_ROOT = path.resolve(EVALS_ROOT, "..");
 
-/** Harness-relevant paths for workflow_tree_hash (design §7). */
+/** 参与 workflow_tree_hash 的 Harness 相关路径（设计 §7）。 */
 export const WORKFLOW_PATHS = [
   "AGENTS.md",
   "docs/HARNESS.md",
@@ -37,7 +37,7 @@ export function runGit(args, cwd = REPO_ROOT) {
   if (r.error) throw r.error;
   if (r.status !== 0) {
     const err = (r.stderr || r.stdout || "").trim();
-    throw new Error(`git ${args.join(" ")} failed: ${err}`);
+    throw new Error(`git ${args.join(" ")} 失败：${err}`);
   }
   return (r.stdout || "").trim();
 }
@@ -47,8 +47,7 @@ export function workflowRev() {
 }
 
 /**
- * Stable hash over existing workflow paths at HEAD.
- * Missing paths are skipped.
+ * 对 HEAD 上已存在的工作流路径做稳定哈希；缺失路径跳过。
  */
 export function workflowTreeHash() {
   const parts = [];
@@ -119,7 +118,7 @@ function nextMeaningful(lines, fromIdx) {
   return null;
 }
 
-/** Minimal YAML: maps, nested maps, list of scalars or list of maps. */
+/** 简易 YAML：映射、嵌套映射、标量列表或映射列表。 */
 export function parseSimpleYaml(text) {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   const root = {};
@@ -262,7 +261,7 @@ export function questionDir(questionId) {
   if (fs.existsSync(protocol)) return protocol;
   const product = path.join(EVALS_ROOT, "suites", "product", questionId);
   if (fs.existsSync(product)) return product;
-  throw new Error(`Question not found: ${questionId}`);
+  throw new Error(`未找到题目：${questionId}`);
 }
 
 export function ensureDir(p) {

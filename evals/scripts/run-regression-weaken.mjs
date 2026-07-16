@@ -120,9 +120,9 @@ function main() {
       "",
       "## 归因",
       "",
-      "- component: **Permissions**",
-      "- [workflow] 沙箱 Harness 规则与 P01 只读硬性项冲突时应 fail",
-      "- [eval] 纯「文案弱化」若 Agent 仍读 HARNESS 旧知识，可能假阴性 — 本实验用可观测 marker 强化",
+      "- 责任面：**权限**",
+      "- [工作流] 沙箱 Harness 规则与 P01 只读硬性项冲突时应失败",
+      "- [评测] 纯「文案弱化」若 Agent 仍读 HARNESS 旧知识，可能假阴性 — 本实验用可观测 marker 强化",
       "",
     ].join("\n");
 

@@ -21,7 +21,7 @@ function main() {
     process.env.HARNESS_EVAL_BATCH ||
     `ci-smoke-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`;
 
-  console.log("=== Harness Eval CI Smoke ===\n");
+  console.log("=== Harness 评测 CI 冒烟 ===\n");
 
   console.log("1/4 判卷自测…");
   if (run("selftest-grade.mjs") !== 0) process.exit(1);
@@ -66,7 +66,7 @@ function main() {
     process.exit(1);
   }
 
-  console.log("\n=== CI Smoke 通过 ===");
+  console.log("\n=== CI 冒烟通过 ===");
   console.log(`批次前缀：${batchPrefix}`);
 }
 

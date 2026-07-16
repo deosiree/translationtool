@@ -3,5 +3,5 @@ version: 1
 suite: protocol
 wave: 1
 difficulty: easy
-component: Observability
+component: 可观测性
 purpose: 变更闭环结束前记录 trace

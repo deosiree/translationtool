@@ -142,16 +142,16 @@ function main() {
   };
 
   if (!baseline) {
-    report.messages.push("[workflow] 尚无 workflow-baseline.yaml，首次请 --update-baseline");
+    report.messages.push("[工作流] 尚无 workflow-baseline.yaml，首次请 --update-baseline");
   } else if (report.hash_changed) {
     report.messages.push(
-      `[workflow] 指纹变更：${baseline.workflow_tree_hash} → ${current.workflow_tree_hash}`,
+      `[工作流] 指纹变更：${baseline.workflow_tree_hash} → ${current.workflow_tree_hash}`,
     );
     report.messages.push(
-      "[workflow] 合并前请本地 live 回归，再 compare-baseline --update-baseline",
+      "[工作流] 合并前请本地 live 回归，再 compare-baseline --update-baseline",
     );
   } else {
-    report.messages.push("[workflow] 工作流指纹与基线一致");
+    report.messages.push("[工作流] 工作流指纹与基线一致");
   }
 
   if ((args.gate || args.updateBaseline) && !Object.keys(report.suites).length) {
@@ -165,7 +165,7 @@ function main() {
       if (!actual) {
         if (args.gate) {
           report.gate_passed = false;
-          report.messages.push(`[eval] 缺少套件 ${suite} 的批次结果`);
+          report.messages.push(`[评测] 缺少套件 ${suite} 的批次结果`);
         }
         continue;
       }
@@ -173,11 +173,11 @@ function main() {
       if (actual.pass < minPass) {
         report.gate_passed = false;
         report.messages.push(
-          `[eval] 套件 ${suite} 未达基线：${actual.pass}/${actual.total}，要求 ≥ ${minPass}`,
+          `[评测] 套件 ${suite} 未达基线：${actual.pass}/${actual.total}，要求 ≥ ${minPass}`,
         );
       } else {
         report.messages.push(
-          `[eval] 套件 ${suite} 达基线：${actual.pass}/${actual.total}`,
+          `[评测] 套件 ${suite} 达基线：${actual.pass}/${actual.total}`,
         );
       }
     }
@@ -185,7 +185,7 @@ function main() {
 
   if (args.gate && report.hash_changed && !args.allowHashChange) {
     report.messages.push(
-      "[workflow] CI：指纹变更仅告警；dry 未达标才阻断",
+      "[工作流] CI：指纹变更仅告警；dry 未达标才阻断",
     );
   }
 

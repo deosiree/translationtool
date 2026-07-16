@@ -1,9 +1,7 @@
 <!-- HARNESS:BEGIN -->
 ## Harness
 
-Claude Code does not auto-load `AGENTS.md`. Import that single canonical
-project instruction source. Keep this bare `@` line outside backticks so the
-import remains active.
+Claude Code 不会自动加载 `AGENTS.md`。请导入该唯一权威的项目指令源。保持下面这行裸 `@` 不在反引号内，以便导入持续生效。
 
 @AGENTS.md
 <!-- HARNESS:END -->

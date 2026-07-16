@@ -1,18 +1,8 @@
 <!-- HARNESS:BEGIN -->
 ## Harness
 
-Choose the request class before any Harness operation.
+操作前先判断请求类别。
 
-- When the requested outcome is only an answer, explanation, review, diagnosis,
-  plan, or status report: inspect only the material needed to respond. Keep the
-  task read-only. Do not bootstrap, initialize or migrate a database, record
-  intake, or record a trace.
-- When the user explicitly asks to change, build, fix, or write repository
-  artifacts: first run `scripts/bootstrap-harness.sh`
-  on macOS/Linux or `.\scripts\bootstrap-harness.ps1` on Windows. Then use
-  `docs/FEATURE_INTAKE.md` to classify and record the request, query
-  `scripts/bin/harness-cli query matrix --active --summary` on macOS/Linux or
-  `.\scripts\bin\harness-cli.exe query matrix --active --summary` on Windows,
-  and retrieve only the lane- and task-specific context described in
-  `docs/CONTEXT_RULES.md`.
+- 若结果只需回答、解释、评审、诊断、计划或状态报告：只读所需材料，保持只读。不要 bootstrap、初始化或迁移数据库、录入 intake，也不要记录 trace。
+- 若用户明确要求修改、构建、修复或写入仓库产物：先在 macOS/Linux 运行 `scripts/bootstrap-harness.sh`，或在 Windows 运行 `.\scripts\bootstrap-harness.ps1`。然后按 `docs/FEATURE_INTAKE.md` 分类并录入请求；在 macOS/Linux 查询 `scripts/bin/harness-cli query matrix --active --summary`，或在 Windows 查询 `.\scripts\bin\harness-cli.exe query matrix --active --summary`；并只拉取 `docs/CONTEXT_RULES.md` 中与车道和任务相关的上下文。
 <!-- HARNESS:END -->

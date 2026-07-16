@@ -3,5 +3,5 @@ version: 1
 suite: protocol
 wave: 1
 difficulty: easy
-component: Task specification
+component: 任务规格
 purpose: 变更请求须先 intake 分类

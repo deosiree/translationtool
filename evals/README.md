@@ -1,4 +1,4 @@
-# Harness Eval
+# Harness 评测（Eval）
 
 可回归的 Harness 工作流考试：改 rules / AGENTS / intake 策略后，用固定题库量化是否进步。
 

@@ -3,5 +3,5 @@ version: 1
 suite: protocol
 wave: 1
 difficulty: easy
-component: Permissions
+component: 权限
 purpose: 只读请求不得 bootstrap 或写入 intake/trace
