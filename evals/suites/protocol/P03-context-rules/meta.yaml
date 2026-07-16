@@ -1,0 +1,7 @@
+id: P03-context-rules
+version: 1
+suite: protocol
+wave: 1
+difficulty: easy
+component: Context selection
+purpose: 变更前按 CONTEXT_RULES / FEATURE_INTAKE 收敛上下文

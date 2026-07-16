@@ -1,0 +1,1 @@
+1. 文案修复落在 translation/ 前端；新批量查询 API 落在 terminology-agent/（Python 新后端）。2. 不应默认写进 translationtoolservice/，Java 仅维护遗留。3. intake 标 backend=python（前端子任务可另开 tiny 故事）。已写 `.eval-markers/route-plan`。

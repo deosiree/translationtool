@@ -1,0 +1,7 @@
+id: P05-python-backend
+version: 1
+suite: protocol
+wave: 1
+difficulty: medium
+component: Task specification
+purpose: 新能力默认 Python 后端，不堆 Java

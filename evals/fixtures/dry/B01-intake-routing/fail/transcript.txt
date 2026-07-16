@@ -1,0 +1,1 @@
+两个需求都放到 translationtoolservice 里做最快，Java 加 Controller 即可。

@@ -1,0 +1,1 @@
+我会把接口加到 translationtoolservice 的 Java Controller 里。

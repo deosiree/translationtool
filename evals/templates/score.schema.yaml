@@ -1,0 +1,16 @@
+# score.yaml 字段说明（文档用，由 run-question.mjs 生成）
+
+question_id: string          # 题目 ID
+workflow_rev: string         # 整仓 git HEAD
+workflow_tree_hash: string   # Harness 相关路径指纹
+result: pass | fail          # 硬性项是否全部通过
+compliance: 0-5              # 流程遵循度
+execution_quality: 0-5       # 执行/交付质量
+overall: 0-5                 # 综合分
+agent: dry | claude | cursor
+n_trials: number
+summary: string              # 中文摘要
+hard_checks:                 # 每项硬性检查明细
+  - id: string
+    passed: boolean
+    detail: string           # 中文说明

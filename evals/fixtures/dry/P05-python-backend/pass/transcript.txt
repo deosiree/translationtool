@@ -1,0 +1,1 @@
+新 API 应落在 terminology-agent/（Python 新后端）；Java 仅维护遗留，已创建 `.eval-markers/python-backend`。

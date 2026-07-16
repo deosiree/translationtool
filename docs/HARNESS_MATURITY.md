@@ -7,6 +7,18 @@ The levels are intentionally verifiable. A level is achieved only when its
 criteria can be inspected in repository files, durable Harness records, or
 benchmark output.
 
+## Benchmark (Harness Eval)
+
+Protocol exams live under `evals/`. Design:
+`docs/superpowers/specs/2026-07-16-harness-eval-design.md`. Run dry suite:
+
+```powershell
+node evals/scripts/selftest-grade.mjs
+node evals/scripts/run-suite.mjs --suite protocol --mode dry
+```
+
+See `evals/README.md`.
+
 ## Levels
 
 ### H0 - Bare Environment
@@ -163,9 +175,10 @@ Current status:
 - Partially achieved by Phase 3. `scripts/bin/harness-cli score-trace` scores trace
   quality against tier rules, `query friction` includes linked intake context,
   the `trace` command now prints that score at write time, and the backlog
-  outcome loop documents predicted impact versus actual outcome. Full H3 still
-  requires benchmark comparison output that attributes moved or regressed
-  responsibilities.
+  outcome loop documents predicted impact versus actual outcome. Harness Eval
+  dry suite under `evals/` provides a protocol exam pipeline and score history;
+  full H3 still requires live/agent benchmark comparison that attributes moved
+  or regressed responsibilities (see `evals/docs/regression-experiment.md`).
 
 Activated responsibilities:
 
@@ -270,7 +283,7 @@ Activated responsibilities:
 | H0 | Passed | Harness docs, templates, and durable records exist. |
 | H1 | Achieved | `AGENTS.md`, `docs/HARNESS.md`, `docs/FEATURE_INTAKE.md`, `docs/ARCHITECTURE.md`, `docs/templates/*`, and `docs/TEST_MATRIX.md` exist. |
 | H2 | Achieved | `scripts/bin/harness-cli`, `scripts/schema/001-init.sql`, durable story records, `docs/HARNESS_COMPONENTS.md`, `docs/HARNESS_MATURITY.md`, `docs/TRACE_SPEC.md`, and `docs/CONTEXT_RULES.md` define the Phase 2 surface. |
-| H3 | Partial | Phase 3 adds `scripts/bin/harness-cli score-trace`, enriched friction context, and the backlog outcome loop; Phase 4 auto-scores traces on write. Component-level benchmark attribution remains open. |
+| H3 | Partial | Phase 3 adds `scripts/bin/harness-cli score-trace`, enriched friction context, and the backlog outcome loop; Phase 4 auto-scores traces on write. `evals/` adds protocol Wave 1 dry exams + score history; live component-level benchmark attribution remains open. |
 | H4 | Achieved | Phase 4 adds story-level `verify_command`, `story verify`, and trace-time verification warnings. Phase 5 adds `story verify-all` for batch story proof. |
 | H5 | Partial | Phase 5 adds `audit`, `score-context`, `intervention add/query`, `propose`, `docs/HARNESS_AUDIT.md`, and `docs/IMPROVEMENT_PROTOCOL.md`; repeated benchmark outcome proof remains open. |
 

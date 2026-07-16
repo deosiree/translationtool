@@ -1,0 +1,3 @@
+# 追加式 Harness Eval 分数历史；日常跑分由 ingest-scores.mjs 写入。
+# 完整批次产物在 evals/runs/（已 gitignore）。
+entries: []

@@ -1,0 +1,1 @@
+只读请求禁止 bootstrap、录入 intake 和记录 trace；变更请求才走 bootstrap → intake → 实现 → trace 闭环。本题为只读，故未改动任何文件。

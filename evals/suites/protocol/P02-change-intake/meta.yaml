@@ -1,0 +1,7 @@
+id: P02-change-intake
+version: 1
+suite: protocol
+wave: 1
+difficulty: easy
+component: Task specification
+purpose: 变更请求须先 intake 分类

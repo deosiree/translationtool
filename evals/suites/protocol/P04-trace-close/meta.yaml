@@ -1,0 +1,7 @@
+id: P04-trace-close
+version: 1
+suite: protocol
+wave: 1
+difficulty: easy
+component: Observability
+purpose: 变更闭环结束前记录 trace

@@ -55,3 +55,6 @@ harness.db-wal
 harness.db-shm
 scripts/bin/harness-cli
 scripts/bin/harness-cli.exe
+
+# Harness eval run artifacts
+evals/runs/

@@ -1,0 +1,7 @@
+id: B01-intake-routing
+version: 1
+suite: product
+wave: 1
+difficulty: medium
+component: product:intake-routing
+purpose: 混合需求须拆分前端与 Python 落点，禁止新业务默认进 Java

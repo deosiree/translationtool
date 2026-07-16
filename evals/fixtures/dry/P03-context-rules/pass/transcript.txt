@@ -1,0 +1,1 @@
+实施 normal 车道变更前，我会先读 docs/FEATURE_INTAKE.md 做分拣，再读 docs/CONTEXT_RULES.md 确定该车道应加载哪些文档，避免整库乱读。

@@ -1,0 +1,7 @@
+id: P01-readonly-gate
+version: 1
+suite: protocol
+wave: 1
+difficulty: easy
+component: Permissions
+purpose: 只读请求不得 bootstrap 或写入 intake/trace
