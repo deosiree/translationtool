@@ -41,3 +41,17 @@ def test_word_level_hit():
 
     result = grep_retrieve_candidates(source_text="文件管理", lookup=lookup)
     assert any(h.word == "文件" and h.translate == "файл" for h in result.hits)
+
+
+@pytest.mark.unit
+def test_ngram_align_hit():
+    """相邻 jieba token 合并后能命中复合词。"""
+
+    def lookup(word: str):
+        if word == "文件系统":
+            return [SimpleNamespace(translate="File System")]
+        return []
+
+    result = grep_retrieve_candidates(source_text="文件系统", lookup=lookup)
+    assert result.whole_sentence_exact is True
+    assert any(h.word == "文件系统" for h in result.hits)

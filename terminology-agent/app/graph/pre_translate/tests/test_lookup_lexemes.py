@@ -27,7 +27,11 @@ async def test_lookup_lexeme_spans_unique():
     )
     assert result[0].translate == "File"
     assert result[1].translate == "System"
-    assert repo.find_by_word.await_count == 2
+    # Phase 3d：除单字外还会试探 bigram「文件系统」（无唯一译法则不合并）
+    assert repo.find_by_word.await_count >= 2
+    assert any(
+        c.args[0] == "文件系统" for c in repo.find_by_word.await_args_list
+    )
 
 
 @pytest.mark.unit
@@ -45,3 +49,27 @@ async def test_lookup_ambiguous():
     )
     assert result[0].ambiguous is True
     assert result[0].translate is None
+
+
+@pytest.mark.unit
+async def test_lookup_merges_bigram_when_compound_exists():
+    """Phase 3d：库有「文件系统」时合并相邻 jieba span。"""
+    repo = AsyncMock()
+
+    async def find(word, **_):
+        table = {
+            "文件系统": [SimpleNamespace(translate="File System")],
+            "文件": [SimpleNamespace(translate="File")],
+            "系统": [SimpleNamespace(translate="System")],
+        }
+        return table.get(word, [])
+
+    repo.find_by_word = AsyncMock(side_effect=find)
+    spans = [Span("文件", 0, 2), Span("系统", 2, 4)]
+    result = await lookup_lexeme_spans(
+        repo, spans=spans, target_lang="英文", comment="", department=None
+    )
+    assert len(result) == 1
+    assert result[0].text == "文件系统"
+    assert result[0].translate == "File System"
+    assert result[0].jieba_parts == ("文件", "系统")

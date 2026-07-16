@@ -2,7 +2,7 @@
 
 > 更新日期：**2026-07-16**  
 > 关联路线图：[pretranslategraph_阶段二_886a27fa.plan.md](./pretranslategraph_阶段二_886a27fa.plan.md)  
-> Story：`US-3C-01`（Harness **implemented**）
+> Story：`US-3D-01`（Harness **implemented**）；3c 线 `US-3C-01` / `US-3C-02` 已关闭
 
 ---
 
@@ -16,13 +16,13 @@ Phase 3a Grep∥RAG     ████████████ 100%  已完成
 Phase 3b 拆解 MVP     ████████████ 100%  已完成
 Phase 3c 代码实现     ████████████ 100%  已完成
 Phase 3c UI 验收      ████████████ 100%  已完成（US-3C-01）
-Phase 3d n-gram 对齐  ░░░░░░░░░░░░   0%  可选（US-3D-01，未启动）
+Phase 3d n-gram 对齐  ████████████ 100%  已完成（US-3D-01）
 Phase 4  矛盾治理     ░░░░░░░░░░░░   0%  需 lexicon skill
 Phase 5  Judge/Darwin ░░░░░░░░░░░░   0%  可与 4 后并行
 Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
 ```
 
-**当前位置**：Phase 3c（含 UI 验收 + P0/P1 卫生 US-3C-02）已关闭。可选下一步：Phase 3d，或等 lexicon skill 后 Phase 4。
+**当前位置**：Phase 3d 已关闭。默认下一步：等 lexicon skill 后 Phase 4；或可选 Phase 5/6。
 
 ---
 
@@ -110,10 +110,13 @@ Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
 
 复验命令：`pytest -q` · `verify_adm_pretranslate --strict` · `verify_us3c01_api_matrix`
 
-### P1 — Phase 3d（可选）❌
+### P1 — Phase 3d（可选）✅（2026-07-16）
 
-- jieba 切界后相邻 span 合并 lookup（如「文件」+「系统」→ 查「文件系统」）
-- 不改变 jieba 原始切界 trace
+| 能力 | 关键文件 |
+|------|----------|
+| `align_spans_with_lexicon` 贪心 n-gram | `utils/align_spans.py`（`ALIGN_MAX_NGRAM=3`） |
+| lookup / Grep 共用 | `lookup_lexemes.py`、`grep_retrieve.py` |
+| jieba_parts + trace | `Span.jieba_parts`；`ngram_aligned` |
 
 ### P2 — Phase 4 矛盾治理 ❌（阻塞：需 lexicon skill）
 
@@ -132,7 +135,15 @@ Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
 
 ---
 
-## 验证记录（2026-07-13）
+## 验证记录（2026-07-16 · Phase 3d）
+
+| 检查项 | 结果 |
+|--------|------|
+| `pytest -q`（terminology-agent） | **151 passed** |
+| `verify_adm_pretranslate --strict` | **6/6 OK** |
+| Story | `US-3D-01` → implemented |
+
+## 验证记录（2026-07-13 · Phase 3c）
 
 | 检查项 | 结果 |
 |--------|------|

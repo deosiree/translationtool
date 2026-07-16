@@ -40,10 +40,10 @@ todos:
     status: completed
   - id: p3d-ngram-term-align
     content: "Phase 3d（可选）: 分词后相邻 token 合并 lookup（术语对齐，非术语驱动切界）"
-    status: pending
+    status: completed
   - id: p3c-retest-adm-matrix
     content: "Phase 3c 验收: admin-proj 全矩阵复测（含 File System / decomposed 路径）"
-    status: pending
+    status: completed
   - id: p4-lexicon-conflicts-ui
     content: "Phase 4: 矛盾检测 + 治理 API + 前端页 + human intention（待用户 skill）"
     status: pending

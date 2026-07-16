@@ -65,11 +65,15 @@ async def decompose_compose_node(
             f"词级拼装 coverage={coverage:.0%} 未达 {COVERAGE_FLOOR:.0%}，回退 LLM"
         )
 
+    jieba_n = len(spans)
+    aligned_n = len(enriched)
     state["trace"] = [
         {
             "stage": "decompose_compose",
             "coverage": coverage,
-            "span_count": len(enriched),
+            "jieba_span_count": jieba_n,
+            "span_count": aligned_n,
+            "ngram_aligned": aligned_n < jieba_n,
             "decomposed_ok": meets_coverage_floor(coverage),
         }
     ]

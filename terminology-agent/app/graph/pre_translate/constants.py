@@ -22,3 +22,7 @@ COVERAGE_FLOOR: float = 0.85  # span 覆盖率 ≥ 此值 → decomposed 自动�
 # ── LLM 受约束拼装（Phase 3c）──
 LLM_COMPOSE_CAP: float = 0.88
 LLM_COMPOSE_FALLBACK_CONF: float = 0.72
+
+# ── 术语对齐（Phase 3d）──
+# jieba 切界后相邻 token 合并 lookup 的最大窗口；不改变切界 SSOT
+ALIGN_MAX_NGRAM: int = 3

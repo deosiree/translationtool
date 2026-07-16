@@ -220,6 +220,10 @@ Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引
 
 `translation_source=hybrid` 时走 `decompose_compose`：jieba 切界 → `lookup_lexemes` → trace 拼装 → `coverage` 分流。
 
+### Phase 3d：相邻 span n-gram 术语对齐（**已实现**）
+
+jieba 切界不变；`align_spans_with_lexicon` 对相邻 token 贪心合并 lookup（仅唯一译法）。Grep 与 decompose 共用。见 [`utils/align_spans.py`](utils/align_spans.py)。
+
 ### Phase 3c：LLM 受约束拼装（**已实现**）
 
 coverage 达标时 `compose_suggest` 在词片术语约束下产出自然目标语短语（如 `File System`）。

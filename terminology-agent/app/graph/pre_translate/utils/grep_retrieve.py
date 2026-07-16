@@ -1,4 +1,4 @@
-"""Grep 线检索纯函数 — jieba 切词 + term_word lookup。
+"""Grep 线检索纯函数 — jieba 切词 + term_word lookup（含 Phase 3d n-gram 对齐）。
 
 不含 IO；``lookup`` 由调用方注入（单测 mock / 节点内 WordRepository）。
 """
@@ -9,7 +9,9 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from app.graph.pre_translate.constants import GREP_WORD_SCORE
-from app.shared.term_word.extract import unique_words
+from app.graph.pre_translate.utils.align_spans import align_spans_with_lexicon
+from app.graph.pre_translate.utils.decompose import Span
+from app.shared.term_word.segment import segment_source_text
 
 
 @dataclass
@@ -33,14 +35,7 @@ class GrepRetrieveResult:
 
 
 def _pick_translate(rows: list[Any]) -> tuple[str | None, bool]:
-    """从 lookup 结果选取唯一译法；多行则视为 ambiguous。
-
-    Args:
-        rows: ``find_by_word`` 返回的行或 dict 列表。
-
-    Returns:
-        ``(translate, ambiguous)``；无命中时 ``(None, False)``。
-    """
+    """从 lookup 结果选取唯一译法；多行则视为 ambiguous。"""
     if not rows:
         return None, False
     if len(rows) > 1:
@@ -54,15 +49,7 @@ def grep_retrieve_candidates(
     source_text: str,
     lookup: Callable[[str], list[Any]],
 ) -> GrepRetrieveResult:
-    """对 source_text 做整句 + jieba 词级 Grep lookup。
-
-    Args:
-        source_text: 待译词条原文。
-        lookup: ``word -> rows`` 同步查表函数（已含 comment/department 过滤）。
-
-    Returns:
-        命中列表、是否整句 exact、整句译文及 ambiguous 词列表。
-    """
+    """对 source_text 做整句 + jieba/n-gram 对齐后的词级 Grep lookup。"""
     text = (source_text or "").strip()
     if not text:
         return GrepRetrieveResult([], False, None, [])
@@ -81,19 +68,35 @@ def grep_retrieve_candidates(
             GrepHit(word=text, translate=whole_translate, score=1.0, ambiguous=False)
         )
 
-    for word in unique_words(text):
-        if word == text:
+    spans = [
+        Span(text=token, start=start, end=end)
+        for token, start, end in segment_source_text(text)
+    ]
+    cache: dict[str, tuple[str | None, bool]] = {}
+
+    def cached_lookup(word: str) -> tuple[str | None, bool]:
+        if word not in cache:
+            cache[word] = _pick_translate(lookup(word))
+        return cache[word]
+
+    aligned = align_spans_with_lexicon(spans, cached_lookup)
+    seen: set[str] = set()
+    if whole_exact:
+        seen.add(text)
+
+    for span in aligned:
+        word = span.text
+        if word in seen:
             continue
-        rows = lookup(word)
-        translate, ambiguous = _pick_translate(rows)
-        if ambiguous:
+        seen.add(word)
+        if span.ambiguous:
             ambiguous_words.append(word)
             hits.append(GrepHit(word=word, translate="", score=0.0, ambiguous=True))
-        elif translate:
+        elif span.translate:
             hits.append(
                 GrepHit(
                     word=word,
-                    translate=translate,
+                    translate=span.translate,
                     score=GREP_WORD_SCORE,
                     ambiguous=False,
                 )

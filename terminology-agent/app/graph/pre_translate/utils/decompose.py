@@ -17,15 +17,20 @@ class Span:
     end: int
     translate: str | None = None
     ambiguous: bool = False
+    # Phase 3d：合并 lookup 时保留原始 jieba token（未合并则为单元素）
+    jieba_parts: tuple[str, ...] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "text": self.text,
             "start": self.start,
             "end": self.end,
             "translate": self.translate,
             "ambiguous": self.ambiguous,
         }
+        if self.jieba_parts is not None:
+            data["jieba_parts"] = list(self.jieba_parts)
+        return data
 
 
 def decompose_to_spans(source_text: str) -> list[Span]:
