@@ -18,6 +18,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 # (source_text, entry_comment, expected_retrieval_regex, expected_source_regex, expected_review)
+# S02：现网常走 none+LLM；亦可能 fuzzy — 二者均需 needs_human（非产品缺陷）
 CASES = [
     ("ADM/R01-RAG精确", "", r"^exact$", r"^term$", r"^auto_approved$"),
     ("ADM/R04-RAGGREP一致", "", r"^exact$", r"^term$", r"^auto_approved$"),
@@ -38,7 +39,7 @@ def _matches(value: str | None, pattern: str) -> bool:
 
 async def main(*, strict: bool) -> int:
     from app.graph.pre_translate.runner import PreTranslateGraph
-    from app.models.database import AsyncSessionLocal
+    from app.models.database import AsyncSessionLocal, engine
 
     graph = PreTranslateGraph()
     print(f"{'词条':<36} {'comment':<10} {'retrieval':<12} {'source':<8} {'review':<14} {'conf':<6} OK")
@@ -46,35 +47,38 @@ async def main(*, strict: bool) -> int:
 
     failures: list[str] = []
 
-    for entry, comment, exp_ret, exp_src, exp_review in CASES:
-        async with AsyncSessionLocal() as session:
-            final = await graph.run(
-                source_text=entry,
-                target_lang=TARGET_LANG,
-                department=DEPARTMENT,
-                confidence_threshold=THRESHOLD,
-                entry_comment=comment,
-                session=session,
+    try:
+        for entry, comment, exp_ret, exp_src, exp_review in CASES:
+            async with AsyncSessionLocal() as session:
+                final = await graph.run(
+                    source_text=entry,
+                    target_lang=TARGET_LANG,
+                    department=DEPARTMENT,
+                    confidence_threshold=THRESHOLD,
+                    entry_comment=comment,
+                    session=session,
+                )
+            retrieval = final.get("retrieval_method", "-")
+            source = final.get("translation_source", "-")
+            review = final.get("review_status", "-")
+            conf = final.get("confidence", 0)
+            ok = (
+                _matches(retrieval, exp_ret)
+                and _matches(source, exp_src)
+                and _matches(review, exp_review)
             )
-        retrieval = final.get("retrieval_method", "-")
-        source = final.get("translation_source", "-")
-        review = final.get("review_status", "-")
-        conf = final.get("confidence", 0)
-        ok = (
-            _matches(retrieval, exp_ret)
-            and _matches(source, exp_src)
-            and _matches(review, exp_review)
-        )
-        if not ok:
-            failures.append(
-                f"{entry}: retrieval={retrieval} source={source} review={review} "
-                f"(expected ret={exp_ret} src={exp_src} review={exp_review})"
+            if not ok:
+                failures.append(
+                    f"{entry}: retrieval={retrieval} source={source} review={review} "
+                    f"(expected ret={exp_ret} src={exp_src} review={exp_review})"
+                )
+            mark = "OK" if ok else "FAIL"
+            print(
+                f"{entry:<36} {comment or '-':<10} {retrieval:<12} {source:<8} {review:<14} "
+                f"{conf:<6.2f} {mark}"
             )
-        mark = "OK" if ok else "FAIL"
-        print(
-            f"{entry:<36} {comment or '-':<10} {retrieval:<12} {source:<8} {review:<14} "
-            f"{conf:<6.2f} {mark}"
-        )
+    finally:
+        await engine.dispose()
 
     if failures:
         print("\n=== FAILURES ===")

@@ -23,6 +23,30 @@ async def test_list_pending_pagination(term_audit_service, mock_repo, sample_aud
 
 
 @pytest.mark.service
+async def test_list_pending_soft_dedupes_same_entry_key(
+    term_audit_service, mock_repo, sample_audit_record
+):
+    """同页同词条键仅保留最新一条。"""
+    older = SimpleNamespace(
+        **{
+            **vars(sample_audit_record),
+            "id": "audit-002",
+            "suggested_translation": "旧译文",
+        }
+    )
+    mock_repo.list_pending_audits.return_value = (
+        [sample_audit_record, older],
+        2,
+    )
+
+    records, total = await term_audit_service.list_pending(page=1, page_size=20)
+
+    assert total == 2
+    assert len(records) == 1
+    assert records[0].id == sample_audit_record.id
+
+
+@pytest.mark.service
 async def test_list_pending_passes_filters(term_audit_service, mock_repo, sample_audit_record):
     """list_pending 应将 filters 透传 repo。"""
     from app.schemas.agent import TermAuditListFilters

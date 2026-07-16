@@ -40,8 +40,14 @@ router.beforeEach((to, from,next) => {
         }
       }
     } catch (error) {
-      // console.log('出错了:',error)
-      // next(`/?redirect=${to.path}`)
+      console.error('[router/permission] dynamic route failed:', error)
+      // 必须调用 next，否则导航挂死（空白登录壳）
+      next({
+        path: '/',
+        query: { redirect: to.fullPath },
+        replace: true,
+      })
+      message.error('路由加载失败，请重新登录！')
     }
 
   }

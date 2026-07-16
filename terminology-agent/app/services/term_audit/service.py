@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ApiError
 from app.repository.term_repo import TermRepository
 from app.schemas.agent import TermBatchReviewResult, TermBatchReviewFailure, TermAuditListFilters
+from app.services.term_audit.pending_dedupe import dedupe_pending_by_entry_key
 from app.services.workbench_sync import WorkbenchEntrySyncService
 
 
@@ -31,6 +32,9 @@ class TermAuditService:
     ) -> tuple[list, int]:
         """分页查询 review_status=pending 的 audit 记录。
 
+        同页内按「源词条+comment+语种+部门」软去重（保留最新），减轻 LLM 多次跑出的重复行。
+        ``total`` 仍为库内 pending 总数；彻底清理请用 ``devtools.cleanup_adm_test_data``。
+
         Args:
             page: 页码，从 1 开始。
             page_size: 每页条数。
@@ -39,11 +43,12 @@ class TermAuditService:
         Returns:
             (records, total) — ORM 列表与总数。
         """
-        return await self._repo.list_pending_audits(
+        records, total = await self._repo.list_pending_audits(
             page=page,
             page_size=page_size,
             filters=filters,
         )
+        return dedupe_pending_by_entry_key(records), total
 
     async def get_audit_or_raise(self, audit_id: str):
         """按 id 查询 audit，不存在时抛 ApiError。

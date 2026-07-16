@@ -22,7 +22,7 @@ Phase 5  Judge/Darwin ░░░░░░░░░░░░   0%  可与 4 后并
 Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
 ```
 
-**当前位置**：Phase 3c（含 UI 验收）已关闭。可选下一步：Phase 3d，或等 lexicon skill 后 Phase 4。
+**当前位置**：Phase 3c（含 UI 验收 + P0/P1 卫生 US-3C-02）已关闭。可选下一步：Phase 3d，或等 lexicon skill 后 Phase 4。
 
 ---
 
