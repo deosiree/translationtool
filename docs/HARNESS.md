@@ -405,6 +405,26 @@ Agents should ask for human confirmation before:
 - Changing risk classification rules.
 - Replacing the feature workflow.
 
+## Git 提交说明（团队约定）
+
+创建 git commit 时，**冒号后的摘要说明与正文一律使用简体中文**，便于人类审查与追溯。
+
+推荐格式：
+
+```text
+<type>(<scope>): 中文摘要（一句话）
+
+- 改动原因与影响（中文）
+- 未纳入本次提交的范围（如有）
+```
+
+约定：
+
+- **type / scope** 可保留英文短标签（如 `feat(harness)`），与常见工具链兼容。
+- **冒号 `:` 之后的内容**（含摘要、正文、列表）默认写中文，不要写英文长段落。
+- Agent 代用户提交且未指定语言时，按本约定写中文说明。
+- 仅当用户明确要求英文提交说明时，才可使用英文正文。
+
 ## Done Definition
 
 A read-only request is done when the response is supported by repository

@@ -31,6 +31,7 @@
 - **本地全栈**：优先根目录 `pnpm dev`（需 Windows Terminal）。端口契约：UI `18000` → Java `18001` → Python `18002`。
 - **密钥与环境**：`terminology-agent/.env`、DB 口令等不得提交；参考各模块 `.env.example`。
 - **旁路目录**：`translation-assistant/`、`translationtool_ai/`、`translation_check/`、`knowledge/`、`references/` 多为辅助/文档/实验，非默认改动面；除非需求点名，否则不要改。
+- **Git 提交说明**：创建 commit 时冒号后的摘要与正文默认用**简体中文**，详见 `docs/HARNESS.md`「Git 提交说明」。
 
 <!-- HARNESS:BEGIN -->
 ## Harness
