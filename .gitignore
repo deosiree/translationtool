@@ -48,3 +48,10 @@ dist/
 
 # Reasonix 本地元数据（勿提交）
 .reasonix/
+
+# Harness durable layer
+harness.db
+harness.db-wal
+harness.db-shm
+scripts/bin/harness-cli
+scripts/bin/harness-cli.exe
