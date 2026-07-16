@@ -40,3 +40,4 @@ Tradeoffs:
 - 新功能优先在 `terminology-agent/` 增加路由/用例与 pytest。
 - 前端接新能力时优先打到 `:18002`（或对应 proxy），避免无必要改 Java。
 - 若出现「必须改 Java」的硬依赖，单独开 decision 记录原因与范围。
+- **工作台新 API 仍走 Python；仅扩展旧 API 才 Java**——见 `0010-dual-backend-read-vs-write-persistence.md`。

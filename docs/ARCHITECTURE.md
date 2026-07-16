@@ -71,11 +71,14 @@ translationtool/
 
 **默认决策顺序**：能否只改 Python？→ 能否 UI + Python？→ 是否必须动 Java（需人类确认）？
 
+**工作台 ≠ Java**：工作台**新需求 / 新 API** 仍走 Python（`:18002`）；**仅**给旧 Java API 加参/出参等维护才动 `translationtoolservice/`。持久可见可分 A（Agent 表）/ B（`agent_meta` 会话）/ C（工作台持久，**优先新 Python 读接口**）——详见 `docs/decisions/0010-dual-backend-read-vs-write-persistence.md`。
+
 ## Discovery Before Shape（仍适用）
 
 实现前确认：
 
 - 触及哪些表面（UI / API / Agent / infra）
+- **新字段要持久出现在哪张 UI**（Agent 页 / 预翻译会话 / 工作台主表）
 - 是否跨模块契约变更
 - 最小验证路径（见 `docs/TEST_MATRIX.md`）
 - 是否已有决策可继承（`docs/decisions/`）

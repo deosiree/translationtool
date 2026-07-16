@@ -29,7 +29,7 @@ node evals/scripts/ci-smoke.mjs
 
 ### 你 push 后
 
-1. 打开 GitHub → Actions → **Harness Eval Smoke**
+1. 打开 GitHub → Actions → **Harness Eval 冒烟测试**
 2. 绿 = dry 门禁 OK；红 = 点开日志，看是判卷自测、某题 dry 还是基线未达标
 
 ### 我需要你提供（若 CI 红了）
@@ -115,7 +115,7 @@ node evals/scripts/compare-baseline.mjs --update-baseline --batch <batchId>__pro
 git push -u origin docker2
 ```
 
-push 后你在 Actions 里应看到 **Harness Eval Smoke** 跑绿。
+push 后你在 Actions 里应看到 **Harness Eval 冒烟测试** 跑绿。
 
 ---
 

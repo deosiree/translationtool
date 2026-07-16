@@ -1,4 +1,5 @@
-name: Harness Eval Smoke
+# 人类可见的显示名用中文；job id / 路径 / action 引用保持英文（机器标识）
+name: Harness Eval 冒烟测试
 
 on:
   pull_request:
@@ -32,19 +33,22 @@ on:
 
 jobs:
   harness-eval-smoke:
+    name: Dry 套件冒烟
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - name: 检出代码
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Harness Eval dry smoke
+      - name: 运行 Harness Eval dry 冒烟
         run: node evals/scripts/ci-smoke.mjs
 
-      - name: Upload baseline compare report
+      - name: 上传基线对比报告
         if: always()
         uses: actions/upload-artifact@v4
         with:

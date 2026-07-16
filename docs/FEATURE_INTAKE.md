@@ -162,14 +162,34 @@ Validation: unit, integration, E2E.
 
 | 后端面 | 含义 | 目录 | 默认 |
 | --- | --- | --- | --- |
-| `backend=python` | 新需求、新 API、Agent/编排能力 | `terminology-agent/` | **是（默认）** |
-| `backend=java-maintain` | 遗留 Java 维护：修 bug、安全、不得不兼容 | `translationtoolservice/` | 否；需人类确认或需求点名 |
+| `backend=python` | **新需求、新 API**（含工作台新能力）、Agent/编排 | `terminology-agent/` | **是（默认）** |
+| `backend=java-maintain` | **扩展旧 Java API**（加参/出参）、修 bug、安全、不得不兼容 | `translationtoolservice/` | 否；需人类确认或需求点名 |
 
 规则：
 
+- **工作台新需求 / 新 API → 仍是 Python**；「页面在工作台」不等于「后端用 Java」。
 - 新功能**禁止**默认落到 Java；先论证「为何不能做在 Python」。
+- **只有**要给**已有旧 API**增加入参/出参（或等价遗留修补）时，才标 `java-maintain`。
 - Java 他人主责：**能不动就不动**；主动扩大 Java 改动面视为流程违规，intake 须写明原因。
 - 若方案被迫改 Java，lane 至少 **normal**，并建议请人类确认后再实现。
+
+### 持久化可见面（强制追问，继承 ADR 0010）
+
+在标 `backend=*` 之后，若需求含「展示 / 落库 / 给人工查」，先定可见面，再定接口形态：
+
+| 层级 | 含义 | 默认做法 |
+| --- | --- | --- |
+| **A. Agent 真源** | 新语义落 Agent 表 | Python 自有表 + Agent UI |
+| **B. 会话可见** | 预翻译当次 / `agent_meta` | Python API + 前端 |
+| **C. 工作台持久可见** | 重进任务后工作台仍要看到 | **优先 Python 新 API** 供工作台消费；**不要**默认去改旧 Java 列表 |
+
+检查口令（intake 输出里写一句即可）：
+
+1. 新能力/新 API，还是**必须改某个已有 Java 接口的入参/出参**？→ 后者才 `java-maintain`。
+2. 关弹窗后还要在工作台看到吗？→ 否：A（+B）；是：C，仍优先 Python 新读接口。
+3. 是否误把「工作台页」当成「必须改 Java」？
+
+权威决策：`docs/decisions/0010-dual-backend-read-vs-write-persistence.md`。
 
 ### 模块面
 
