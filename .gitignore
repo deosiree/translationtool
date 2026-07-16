@@ -58,3 +58,7 @@ scripts/bin/harness-cli.exe
 
 # Harness eval run artifacts
 evals/runs/
+
+# 个人多根工作区（含本机旁路路径，勿提交）
+translationtool-lotof.code-workspace
+*.code-workspace
