@@ -45,3 +45,6 @@ dist/
 
 # 日志
 *.log
+
+# Reasonix 本地元数据（勿提交）
+.reasonix/
