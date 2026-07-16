@@ -9,6 +9,10 @@
 | 判卷能抓违规 | `node evals/scripts/run-question.mjs --question P01-readonly-gate --mode dry --fixture fail` | 退出码 1 |
 | 判卷能放合规 | `... --fixture pass` | 退出码 0 |
 | workflow 指纹 | `node evals/scripts/workflow-hash.mjs` | 输出 `workflow_rev` + `workflow_tree_hash` |
+| CI smoke | `node evals/scripts/ci-smoke.mjs` | 自测 + protocol/product dry + 基线门禁 |
+| 基线对比 | `node evals/scripts/compare-baseline.mjs --print` | 指纹与基线一致/变更告警 |
+
+操作分工见 **`operator-playbook.md`**。
 
 ## Live 行为回归（限制说明）
 
@@ -26,6 +30,7 @@ node evals/scripts/run-regression-weaken.mjs
 
 ## 记录表
 
-| 日期 | 改动 | dry fail | live 弱化 | live 恢复 | 备注 |
-| --- | --- | --- | --- | --- | --- |
-| 2026-07-16 | 沙箱强制 intake | 未通过 ✓ | 仍通过（假阴性） | 通过 ✓ | 见 regression-results.md |
+| 日期 | 改动 | dry fail | CI smoke | live 弱化 | live 恢复 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-16 | 沙箱强制 intake | 未通过 ✓ | 本地通过 ✓ | 仍通过（假阴性） | 通过 ✓ | 见 regression-results.md |
+| 2026-07-16 | Darwin Phase 2 基线+GHA | — | `ci-smoke.mjs` 6/6 ✓ | — | 待 push 后远端验证 | 见 operator-playbook.md |

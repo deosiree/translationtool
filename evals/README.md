@@ -55,6 +55,8 @@ node evals/scripts/compare-baseline.mjs --update-baseline --batch-prefix <批次
 
 **约定：** `workflow_tree_hash` 变更时 CI **仅告警不阻断**；合并前须本地 `live --trials 3` 回归，再 `--update-baseline`。dry 未达基线则 CI 失败。
 
+**你与 AI 如何配合：** `evals/docs/operator-playbook.md`
+
 ## Live 实跑（Claude Code）
 
 ```powershell
