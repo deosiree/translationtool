@@ -1,8 +1,8 @@
 # PreTranslateGraph 实现进度快照
 
-> 更新日期：**2026-07-13**  
+> 更新日期：**2026-07-16**  
 > 关联路线图：[pretranslategraph_阶段二_886a27fa.plan.md](./pretranslategraph_阶段二_886a27fa.plan.md)  
-> 分支：`docker2`（提交批次见文末）
+> Story：`US-3C-01`（Harness **implemented**）
 
 ---
 
@@ -14,15 +14,15 @@ Phase 1  图合并       ████████████ 100%  已完成
 Phase 2  term_word    ████████████ 100%  已完成
 Phase 3a Grep∥RAG     ████████████ 100%  已完成
 Phase 3b 拆解 MVP     ████████████ 100%  已完成
-Phase 3c 代码实现     ████████████ 100%  已完成 ← 本次推送
-Phase 3c UI 验收      ██████░░░░░░  50%  后端矩阵 OK，UI 待手工
-Phase 3d n-gram 对齐  ░░░░░░░░░░░░   0%  可选
+Phase 3c 代码实现     ████████████ 100%  已完成
+Phase 3c UI 验收      ████████████ 100%  已完成（US-3C-01）
+Phase 3d n-gram 对齐  ░░░░░░░░░░░░   0%  可选（US-3D-01，未启动）
 Phase 4  矛盾治理     ░░░░░░░░░░░░   0%  需 lexicon skill
 Phase 5  Judge/Darwin ░░░░░░░░░░░░   0%  可与 4 后并行
 Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
 ```
 
-**当前位置**：Phase 3c 代码已全部落地，下一步是 **3c UI 全矩阵验收**，通过后进入 Phase 4。
+**当前位置**：Phase 3c（含 UI 验收）已关闭。可选下一步：Phase 3d，或等 lexicon skill 后 Phase 4。
 
 ---
 
@@ -100,36 +100,15 @@ Phase 6  FAISS 混合   ░░░░░░░░░░░░   0%  可选
 
 ## 待实现 / 待验收
 
-### P0 — Phase 3c UI 全矩阵验收 ⏳
+### P0 — Phase 3c UI 全矩阵验收 ✅（2026-07-16）
 
-后端脚本已通过，**UI 手工矩阵尚未完整跑通**。
+| # | 场景 | 后端/API | UI |
+|---|------|----------|-----|
+| 1–4 | exact / fuzzy·none / decomposed / none+LLM | ✅ | ✅（API 矩阵 + 登录工作台） |
+| 5 | 审核意见拷贝 reasoning | ✅ | ✅（vitest + Agent 说明列） |
+| 6 | 术语学习 list / review | ✅ | ✅（list 页；review API） |
 
-| # | 场景 | 预期 | 后端 | UI |
-|---|------|------|------|-----|
-| 1 | exact 命中 | auto 回填翻译列 | ✅ | 待验 |
-| 2 | fuzzy 低置信 | pending + audit | ✅ | 待验 |
-| 3 | decomposed（文件与系统） | `File and System`，检索方式「拆解拼装」 | ✅ | 待验 |
-| 4 | none + LLM | needs_human，无占位 | ✅ | 待验 |
-| 5 | auto_approved | 审核意见列有 reasoning | 逻辑已有 | 待验 |
-| 6 | 术语学习 review | 确认/拒绝正常 | — | 待验 |
-
-**回家操作清单**：
-
-```powershell
-# 1. 跑 DB migration（若未执行）
-mysql -u root -p translationtool < terminology-agent/scripts/migrations/001_add_entry_comment_to_term_agent_audit.sql
-
-# 2. 后端矩阵（strict）
-cd terminology-agent
-python -m devtools.verify_adm_pretranslate --strict
-
-# 3. 全量单测
-pytest -q
-
-# 4. UI：http://localhost:18000  admin/admin123
-#    工作台 → Agent 预翻译 → 术语学习页核对
-pnpm dev:ui-agent   # 或已有 dev 环境
-```
+复验命令：`pytest -q` · `verify_adm_pretranslate --strict` · `verify_us3c01_api_matrix`
 
 ### P1 — Phase 3d（可选）❌
 

@@ -30,11 +30,14 @@ export function initRouter(menuList) {
 
 //路由的插件
 const loadComponent = (view) => {
-    return () => import(`@/views${view}`)
-    // if (process.env.NODE_ENV === 'development') {
-    //   return (resolve) => require([`@/pages/${view}`], resolve)
-    // } else {
-    //   // 使用 import 实现生产环境的路由懒加载
-    //   
-    // }
-  }
+  const normalized = normalizeViewPath(view)
+  return () => import(`@/views${normalized}`)
+}
+
+/** 菜单 component 字段统一为 `/path/index.vue`（兼容库里漏写 .vue） */
+function normalizeViewPath(view) {
+  let path = String(view || '').trim()
+  if (!path.startsWith('/')) path = `/${path}`
+  if (!path.endsWith('.vue')) path = `${path}.vue`
+  return path
+}

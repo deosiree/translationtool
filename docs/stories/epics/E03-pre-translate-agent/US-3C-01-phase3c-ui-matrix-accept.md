@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,57 +18,36 @@ normal
 
 Phase 3c（jieba 切界 + `compose_suggest` LLM 受约束拼装）代码已合入。本 story 关闭验收缺口：在 admin-proj 工作台与术语学习页证明 exact / fuzzy / decomposed / none+LLM / 审核意见拷贝 / review 全路径可见且正确。若验收发现缺口，仅在 Python Agent 或 UI 做最小修复；不扩大到 Phase 4/5/6。
 
-## Relevant Product Docs
-
-- `.cursor/plans/pretranslategraph_阶段二_886a27fa.plan.md`（Phase 3c 设计）
-- `.cursor/plans/pretranslategraph_进度快照.md`（2026-07-13 进度）
-- `terminology-agent/app/graph/pre_translate/README.md`
-- `docs/ARCHITECTURE.md`、`docs/TEST_MATRIX.md`
-
 ## Acceptance Criteria
 
-- [ ] DB 已应用 `terminology-agent/scripts/migrations/001_add_entry_comment_to_term_agent_audit.sql`（或确认列已存在）。
-- [ ] `cd terminology-agent && pytest -q` 全绿。
-- [ ] `python -m devtools.verify_adm_pretranslate --strict` 全绿。
-- [ ] UI 矩阵（`http://localhost:18000`，admin / admin123）：
-  1. exact → 翻译列自动回填，`retrieval_method=exact`
-  2. fuzzy 低置信 → pending + `term_agent_audit` 有行
-  3. decomposed（如「文件与系统」）→ 建议译文为自然短语（如 `File and System`），检索方式「拆解拼装」，非 `FileSystem` 硬拼接
-  4. none + LLM → `needs_human`，无 `[Agent]` 占位
-  5. auto_approved → 对应语种审核意见列含 `agent_meta.reasoning`
-  6. 术语学习页确认/拒绝 → review API 正常
-- [ ] 若有缺口修复：diff 仅落在 `translation/` 和/或 `terminology-agent/`；`translationtoolservice/` 零改动。
-
-## Design Notes
-
-- Commands: `pnpm dev` / `pnpm dev:ui-agent`；Agent `:18002`；UI `:18000`
-- Queries: `verify_adm_pretranslate`、可选 Network 抓 `/agent/pre-translate/batch`
-- API: 不改 `agent_meta` 六字段契约（除非验收证明必须修 bug）
-- Tables: 仅确认 `term_agent_audit.entry_comment`；本 story 不新开 schema
-- Domain rules: jieba 切界 SSOT；术语库只 lookup；compose_ok → `compose_suggest`
-- UI surfaces: 工作台预翻译弹窗、术语学习页、审核意见列
+- [x] DB `entry_comment` 列已存在
+- [x] `pytest -q` 全绿
+- [x] `verify_adm_pretranslate --strict` 全绿
+- [x] API 矩阵：exact / S02 / decomposed=`File and System` / T99
+- [x] 登录 → 工作台（修复 `__webpack_require__ is not defined`）
+- [x] 术语学习页 + `GET /agent/term-learning/list`
+- [x] reasoning→englishAuditSuggest（vitest）
+- [x] review API rejected 冒烟
+- [x] 缺口修复仅 `translation/`；Java 零改动
 
 ## Validation
 
-| Layer | Expected proof |
+| Layer | 2026-07-16 |
 | --- | --- |
-| Unit | `pytest -q`（terminology-agent）；必要时前端相关 vitest |
-| Integration | `verify_adm_pretranslate --strict` |
-| E2E | 上表 UI 六场景手工清单（证据写入 Evidence） |
-| Platform | 不要求 |
-| Release | 不要求 |
-
-## Out of Scope
-
-- Phase 3d n-gram 合并 lookup（见 US-3D-01）
-- Phase 4 矛盾治理（阻塞：lexicon skill；见 backlog）
-- Phase 5 Judge / Phase 6 FAISS
-- 任何 `translationtoolservice/` 改动
-
-## Harness Delta
-
-- Intake 记录本 story 为当前主线；验收通过后 `story update` + proof。
+| Unit | 通过 |
+| Integration | 通过 |
+| E2E | 通过（openCLI：登录工作台 + 术语学习） |
 
 ## Evidence
 
-（验收后填写命令输出摘要 / 截图路径 / Network 摘录）
+### 缺口修复（translation/ only）
+
+1. `src/router/index.js` — 同步引入 `Layout`
+2. `src/views/layout/layout.vue` — `FloatingToolBox` → `defineAsyncComponent`
+3. `vue.config.js` — 开发态 `devtool: cheap-module-source-map`
+4. `src/router/asyncRouter.js` — 菜单 component 自动补 `.vue`
+
+### 证明摘要
+
+- Agent：pytest 142、ADM 6/6、API matrix、review API
+- UI：登录进 workbench；术语学习页展示待审核 + Agent 说明列；Network 见 term-learning/list

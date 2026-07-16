@@ -34,6 +34,7 @@
     </div>
 </template>
 <script>
+import { defineAsyncComponent } from 'vue'
 import Work from '../../assets/title/work.png'
 import WorkActive from '../../assets/title/work_active.png'
 import Entry from '../../assets/title/entry.png'
@@ -46,7 +47,10 @@ import {
     LeftOutlined,
     RightOutlined
 } from '@ant-design/icons-vue';
-import FloatingToolBox from '@/components/FloatingToolBox/index.vue';
+// 异步加载工具箱，避免与 layout 主路径打进同一巨型 lazy chunk（含 workbench API / 回填弹窗）
+const FloatingToolBox = defineAsyncComponent(() =>
+    import('@/components/FloatingToolBox/index.vue')
+)
 export default {
     name: 'layout',
     components: {

@@ -1,6 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import Login from '@/views/login/index.vue'
+// 同步引入 layout：避免开发态 eval-source-map 懒加载 chunk 内
+// `ReferenceError: __webpack_require__ is not defined`（登录后 push /translate）
+import Layout from '@/views/layout/layout.vue'
 
 // import LoadingService from '@/http/loading';
 // import request, { cancelAllRequests, handleHideLoading } from '../http/request';
@@ -31,7 +34,7 @@ const routes = [
   {
     path: '/translate',
     name: 'translate',
-    component: () => import('@/views/layout/layout.vue'),
+    component: Layout,
     children: [...prototypeRoutes],
   },
   {
