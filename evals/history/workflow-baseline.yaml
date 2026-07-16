@@ -1,0 +1,14 @@
+# 工作流指纹基线 — workflow_tree_hash 变更后须本地 live 回归，再 --update-baseline
+updated_at: "2026-07-16"
+workflow_tree_hash: "024f35c525515a7d"
+workflow_rev: "e394d673e4073c78aecbfae2160d9eb56484e21d"
+note: "Darwin Phase 2 基线：protocol + product dry 套件全通过"
+suites:
+  protocol:
+    mode: dry
+    total: 5
+    min_pass: 5
+  product:
+    mode: dry
+    total: 1
+    min_pass: 1

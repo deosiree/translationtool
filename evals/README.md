@@ -31,9 +31,29 @@ node evals/scripts/selftest-grade.mjs
 
 # 工作流指纹
 node evals/scripts/workflow-hash.mjs
+
+# CI smoke（自测 + dry 套件 + 基线门禁）
+node evals/scripts/ci-smoke.mjs
+
+# 基线对比（Darwin Phase 2）
+node evals/scripts/compare-baseline.mjs --print
+node evals/scripts/compare-baseline.mjs --gate --batch-prefix <批次前缀>
+# live 回归通过后更新基线
+node evals/scripts/compare-baseline.mjs --update-baseline --batch-prefix <批次前缀>
 ```
 
 产物在 `evals/runs/<batchId>/`（已 gitignore）。每题含 `transcript.txt`（答卷）、`review.md`（中文阅卷）、`score.yaml`。
+
+## Darwin Phase 2 — 基线与 CI
+
+| 文件 | 作用 |
+| --- | --- |
+| `evals/history/workflow-baseline.yaml` | 记录 `workflow_tree_hash` 与各 dry 套件最低通过数 |
+| `evals/scripts/compare-baseline.mjs` | 对比指纹 + dry 门禁；`--update-baseline` 在 live 回归后人工更新 |
+| `evals/scripts/ci-smoke.mjs` | 本地/CI 一键 smoke |
+| `.github/workflows/harness-eval-smoke.yml` | PR/push 触发 dry smoke（无需 Agent API） |
+
+**约定：** `workflow_tree_hash` 变更时 CI **仅告警不阻断**；合并前须本地 `live --trials 3` 回归，再 `--update-baseline`。dry 未达基线则 CI 失败。
 
 ## Live 实跑（Claude Code）
 

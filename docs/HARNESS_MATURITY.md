@@ -176,9 +176,12 @@ Current status:
   quality against tier rules, `query friction` includes linked intake context,
   the `trace` command now prints that score at write time, and the backlog
   outcome loop documents predicted impact versus actual outcome. Harness Eval
-  dry suite under `evals/` provides a protocol exam pipeline and score history;
-  full H3 still requires live/agent benchmark comparison that attributes moved
-  or regressed responsibilities (see `evals/docs/regression-experiment.md`).
+  under `evals/` provides protocol + product dry exams, `workflow_tree_hash`
+  baseline (`evals/history/workflow-baseline.yaml`), `compare-baseline.mjs` gate,
+  and GitHub Actions smoke (`.github/workflows/harness-eval-smoke.yml`).
+  Live/agent benchmark attribution for regressions is documented in
+  `evals/docs/regression-experiment.md` and `evals/docs/regression-results.md`;
+  full H3 closure still needs periodic live regression before baseline updates.
 
 Activated responsibilities:
 

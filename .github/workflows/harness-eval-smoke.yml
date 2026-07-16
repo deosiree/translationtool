@@ -1,0 +1,53 @@
+name: Harness Eval Smoke
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "docs/HARNESS*.md"
+      - "docs/FEATURE_INTAKE.md"
+      - "docs/CONTEXT_RULES.md"
+      - "docs/TRACE_SPEC.md"
+      - "docs/IMPROVEMENT_PROTOCOL.md"
+      - "scripts/agent-harness-block.md"
+      - "scripts/claude-harness-block.md"
+      - "evals/**"
+      - ".github/workflows/harness-eval-smoke.yml"
+  push:
+    branches:
+      - main
+      - master
+      - docker2
+    paths:
+      - "AGENTS.md"
+      - "docs/HARNESS*.md"
+      - "docs/FEATURE_INTAKE.md"
+      - "docs/CONTEXT_RULES.md"
+      - "docs/TRACE_SPEC.md"
+      - "docs/IMPROVEMENT_PROTOCOL.md"
+      - "scripts/agent-harness-block.md"
+      - "scripts/claude-harness-block.md"
+      - "evals/**"
+      - ".github/workflows/harness-eval-smoke.yml"
+
+jobs:
+  harness-eval-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Harness Eval dry smoke
+        run: node evals/scripts/ci-smoke.mjs
+
+      - name: Upload baseline compare report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-eval-baseline-compare
+          path: evals/runs/**/baseline-compare.*
+          if-no-files-found: ignore
