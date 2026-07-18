@@ -224,6 +224,10 @@ Grep 线对标 Claude Code Grep：**确定性关键字查表**，无向量索引
 
 jieba 切界不变；`align_spans_with_lexicon` 对相邻 token 贪心合并 lookup（仅唯一译法）。Grep 与 decompose 共用。见 [`utils/align_spans.py`](utils/align_spans.py)。
 
+### 切分轨迹落盘（US-3E-01）
+
+走过切分时 `write_result` 组装 `segment_trace`（`jieba` / `aligned` / `display`），写入 `term_agent_audit`（含 `auto_approved`），并同步 `t_entry_info.segment_trace` 供工作台旧列表出参。见 [`utils/segment_trace.py`](utils/segment_trace.py)。
+
 ### Phase 3c：LLM 受约束拼装（**已实现**）
 
 coverage 达标时 `compose_suggest` 在词片术语约束下产出自然目标语短语（如 `File System`）。

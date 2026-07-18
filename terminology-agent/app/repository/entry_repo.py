@@ -84,6 +84,19 @@ class EntryRepository:
         setattr(entry_info, trans_id_attr, trans_id)
         await self._session.flush()
 
+    async def update_entry_segment_trace(
+        self,
+        entry_info_id: str,
+        segment_trace: dict | None,
+    ) -> EntryInfo | None:
+        """将切分轨迹同步到工作台 t_entry_info（列表出参透传用）。"""
+        entry_info = await self.get_entry_info(entry_info_id)
+        if entry_info is None:
+            return None
+        entry_info.segment_trace = segment_trace
+        await self._session.flush()
+        return entry_info
+
     async def commit(self) -> None:
         """提交当前事务。"""
         await self._session.commit()

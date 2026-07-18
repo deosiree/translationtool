@@ -322,6 +322,7 @@ export const entryAllCols = [
   { label: "词条", value: "entry", index: 2, required: true },
   { label: "tag", value: "tag", index: 3, visible: true },
   { label: "comment", value: "comment", index: 4, visible: true },
+  { label: "切分", value: "segmentTrace", index: 45, visible: false, width: 160 },
   {
     label: "词条版本",
     value: "entryVersion",
@@ -747,6 +748,7 @@ export const termAuditAllCols = [
   { label: "检索方式", value: "retrieval_method", index: 10, visible: true },
   { label: "翻译来源", value: "translation_source", index: 11, visible: true },
   { label: "Agent 说明", value: "llm_reasoning", index: 12, visible: true, width: 160 },
+  { label: "切分", value: "segment_trace", index: 19, visible: false, width: 160 },
   { label: "提交时间", value: "created_at", index: 13, visible: true },
   { label: "工作台词条ID", value: "entry_info_id", index: 14, visible: false },
   { label: "任务ID", value: "task_id", index: 15, visible: false },
@@ -838,6 +840,7 @@ export const wbAllCols = [
   { label: "释义", value: "interpretation", index: 6, visible: false },
   { label: "tag", value: "tag", index: 7, visible: false },
   { label: "comment", value: "comment", index: 8, visible: true },
+  { label: "切分", value: "segmentTrace", index: 27, visible: false, width: 160 },
   {
     label: "中文释义",
     value: "chineseInterpretation",

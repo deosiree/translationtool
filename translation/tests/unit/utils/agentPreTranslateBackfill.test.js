@@ -136,5 +136,17 @@ describe("agentPreTranslateBackfill", () => {
       expect(result.english).toBeUndefined();
       expect(result.translate).toBeUndefined();
     });
+
+    it("将 agent_meta.segment_trace 挂到 segmentTrace（含 needs_human）", () => {
+      const trace = { jieba: ["文件"], aligned: [], display: "文件" };
+      const item = {
+        agent_meta: {
+          review_status: "needs_human",
+          segment_trace: trace,
+        },
+      };
+      const result = applyAgentBackfill(item, "english");
+      expect(result.segmentTrace).toEqual(trace);
+    });
   });
 });

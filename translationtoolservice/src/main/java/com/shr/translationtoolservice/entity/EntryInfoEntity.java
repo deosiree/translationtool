@@ -392,6 +392,12 @@ public class EntryInfoEntity implements Serializable {
     private String auditSuggess;
 
     /**
+     * jieba/对齐切分轨迹（Agent 写入 JSON；列表出参透传）
+     */
+    @TableField(value = "segment_trace")
+    private String segmentTrace;
+
+    /**
      * 词条版本类型区分
      */
     @TableField(value = "entry_version_type")

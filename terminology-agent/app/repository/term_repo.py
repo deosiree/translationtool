@@ -141,29 +141,61 @@ class TermRepository:
         similar_terms: list | None,
         retrieval_method: str | None,
         llm_reasoning: str | None,
+        segment_trace: dict | None = None,
+        review_status: str = "pending",
     ) -> TermAgentAudit:
-        """工作台 Agent 预翻译 needs_human 时写入待审核队列。
+        """写入预翻译 audit（pending 待审或 auto_approved 切分落盘）。
 
-        全字段指纹与已有 pending 完全一致时跳过 INSERT，返回已有记录。
+        pending：全字段指纹一致则复用；若新带 segment_trace 则更新该列。
+        auto_approved：按 entry_info_id + target_lang + source_text upsert，勿误伤 pending。
         """
-        existing = await self.find_pending_by_fingerprint(
-            source_text=source_text,
-            entry_comment=entry_comment,
-            suggested_translation=suggested_translation,
-            target_lang=target_lang,
-            department=department,
-            retrieval_method=retrieval_method,
-            confidence=confidence,
-        )
-        if existing is not None:
-            return existing
+        status = (review_status or "pending").strip() or "pending"
+
+        if status == "pending":
+            existing = await self.find_pending_by_fingerprint(
+                source_text=source_text,
+                entry_comment=entry_comment,
+                suggested_translation=suggested_translation,
+                target_lang=target_lang,
+                department=department,
+                retrieval_method=retrieval_method,
+                confidence=confidence,
+            )
+            if existing is not None:
+                if segment_trace is not None:
+                    existing.segment_trace = segment_trace
+                    await self._session.commit()
+                    await self._session.refresh(existing)
+                return existing
+        else:
+            existing = await self.find_auto_approved_for_upsert(
+                entry_info_id=entry_info_id,
+                target_lang=target_lang,
+                source_text=source_text,
+            )
+            if existing is not None:
+                existing.entry_comment = entry_comment
+                existing.suggested_translation = suggested_translation
+                existing.llm_reasoning = llm_reasoning
+                existing.segment_trace = segment_trace
+                existing.confidence = confidence
+                existing.similar_terms = similar_terms or []
+                existing.retrieval_method = retrieval_method
+                existing.task_id = task_id
+                existing.task_name = task_name
+                existing.product_name = product_name
+                existing.department = department
+                await self._session.commit()
+                await self._session.refresh(existing)
+                return existing
 
         record = TermAgentAudit(
             source_text=source_text,
             entry_comment=entry_comment,
             suggested_translation=suggested_translation,
             llm_reasoning=llm_reasoning,
-            review_status="pending",
+            segment_trace=segment_trace,
+            review_status=status,
             is_new_term=True,
             entry_info_id=entry_info_id,
             task_id=task_id,
@@ -180,6 +212,32 @@ class TermRepository:
         await self._session.commit()
         await self._session.refresh(record)
         return record
+
+    async def find_auto_approved_for_upsert(
+        self,
+        *,
+        entry_info_id: str | None,
+        target_lang: str | None,
+        source_text: str,
+    ) -> TermAgentAudit | None:
+        """查找可更新的 auto_approved 切分落盘记录。"""
+        if not entry_info_id:
+            return None
+        stmt = (
+            select(TermAgentAudit)
+            .where(
+                TermAgentAudit.review_status == "auto_approved",
+                TermAgentAudit.entry_info_id == entry_info_id,
+                TermAgentAudit.source_text == source_text,
+            )
+            .order_by(TermAgentAudit.updated_at.desc())
+            .limit(20)
+        )
+        result = await self._session.execute(stmt)
+        for record in result.scalars().all():
+            if (record.target_lang or None) == (target_lang or None):
+                return record
+        return None
 
     async def update_audit(self, audit_id: str, **fields) -> TermAgentAudit | None:
         """按 id 更新 audit 字段（审核状态、备注等）。"""

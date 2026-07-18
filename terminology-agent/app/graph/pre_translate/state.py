@@ -47,6 +47,7 @@ class PreTranslateState(TypedDict, total=False):
 
     # ── 输出 ──
     llm_reasoning: str | None
+    segment_trace: dict | None  # {jieba, aligned, display}
     review_status: Literal["auto_approved", "needs_human"]
     error: str | None
     trace: Annotated[list, operator.add]

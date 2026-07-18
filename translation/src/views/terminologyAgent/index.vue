@@ -231,6 +231,14 @@
                 />
               </template>
 
+              <template v-if="column.dataIndex === 'segment_trace'">
+                <SpanByTipsFill
+                  class="reasoning-text"
+                  :content="formatSegmentTraceDisplay(record.segment_trace)"
+                  :max-width="column.width"
+                />
+              </template>
+
               <template v-if="column.dataIndex === 'created_at'">
                 {{ formatDateTime(record.created_at) }}
               </template>
@@ -351,6 +359,7 @@ import {
   termAuditPresets,
   termAuditParams,
 } from "@/constants/commonParam.js";
+import { formatSegmentTraceDisplay } from "@/utils/formatSegmentTrace.js";
 
 export default {
   name: "TerminologyAudit",
@@ -447,6 +456,7 @@ export default {
     formatTranslationSource,
     formatConfidence,
     formatEntryText,
+    formatSegmentTraceDisplay,
     confidenceColor(confidence) {
       if (confidence == null) return "default";
       return Number(confidence) >= 0.8 ? "green" : "orange";

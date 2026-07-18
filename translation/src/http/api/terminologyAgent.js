@@ -31,6 +31,7 @@ import request from "../request";
  * @property {SimilarTerm[]} similar_terms - 参考术语
  * @property {string} retrieval_method - exact | fuzzy | grep | hybrid | decomposed | none | mock_hybrid
  * @property {string} reasoning - Agent 说明
+ * @property {Object} [segment_trace] - jieba/对齐切分轨迹 {jieba,aligned,display}
  */
 
 /**
@@ -50,7 +51,8 @@ import request from "../request";
  * @property {SimilarTerm[]} [similar_terms] - 参考术语
  * @property {string} [retrieval_method] - 检索方式
  * @property {string} [llm_reasoning] - Agent 说明
- * @property {"pending"|"approved"|"rejected"} review_status
+ * @property {Object} [segment_trace] - jieba/对齐切分轨迹
+ * @property {"pending"|"approved"|"rejected"|"auto_approved"} review_status
  * @property {string} created_at
  * @property {string} updated_at
  */

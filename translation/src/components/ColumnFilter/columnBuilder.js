@@ -3,12 +3,15 @@
  * @description 列定义 → Ant Design Table columns（单轨 buildCol）
  */
 import { resolvePresetCols, defaultSelectionFromCols } from "./colPreset.js";
+import { formatSegmentTraceDisplay } from "@/utils/formatSegmentTrace.js";
 
 /** 使用 SpanByTipsFill 省略 + tooltip 的列 value */
 const SPAN_BY_TIPS_COLS = new Set([
   "auditSuggest",
   "entry_comment",
   "llm_reasoning",
+  "segment_trace",
+  "segmentTrace",
 ]);
 
 /**
@@ -140,6 +143,10 @@ function applyValueBehaviors(col, def, needFilter) {
   if (v === "translate") {
     col.sorter = (a, b) => a.entry.localeCompare(b.entry);
     col.sortDirections = ["ascend", "descend"];
+  }
+  if (v === "segmentTrace" || v === "segment_trace") {
+    col.ellipsis = true;
+    col.customRender = ({ text }) => formatSegmentTraceDisplay(text);
   }
   if (v === "isExist" && !needFilter) {
     col.filteredValue = null;

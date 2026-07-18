@@ -30,16 +30,17 @@ def test_parse_target_lang_splits_on_dash():
 
 
 @pytest.mark.unit
-def test_map_graph_state_to_agent_meta_six_fields():
-    """map_graph_state_to_agent_meta 应输出六字段 agent_meta。"""
+def test_map_graph_state_to_agent_meta_includes_segment_trace():
+    """map_graph_state_to_agent_meta 应输出含 segment_trace 的 agent_meta。"""
     meta = map_graph_state_to_agent_meta(
         {
             "confidence": 1.0,
             "review_status": "auto_approved",
             "suggested_translation": "t",
             "similar_terms": [],
-            "retrieval_method": "exact",
+            "retrieval_method": "decomposed",
             "llm_reasoning": "基于术语：精确匹配",
+            "segment_trace": {"jieba": ["文件"], "aligned": [], "display": "文件"},
         }
     )
     assert set(meta.keys()) == {
@@ -49,5 +50,7 @@ def test_map_graph_state_to_agent_meta_six_fields():
         "similar_terms",
         "retrieval_method",
         "reasoning",
+        "segment_trace",
     }
     assert meta["reasoning"] == "基于术语：精确匹配"
+    assert meta["segment_trace"]["display"] == "文件"

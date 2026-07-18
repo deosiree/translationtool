@@ -7,6 +7,8 @@
 | [US-3C-01](./US-3C-01-phase3c-ui-matrix-accept.md) | Phase 3c UI 全矩阵验收 | normal | implemented | 已关闭 |
 | [US-3C-02](./US-3C-02-phase3c-post-accept-hygiene.md) | Phase 3c 验收后 P0/P1 卫生 | normal | implemented | 已关闭 |
 | [US-3D-01](./US-3D-01-ngram-term-align.md) | Phase 3d n-gram 术语对齐 | normal | implemented | 已关闭（可选增强） |
+| [US-3E-01](./US-3E-01-segment-trace-persist.md) | 切分轨迹落库与双端展示 | normal | implemented | audit + entry；Java Entity 透传 |
+| [US-3E-02](./US-3E-02-segment-trace-ux.md) | 切分轨迹对象/Tag/占位符合并 | normal | planned | API 对象、Tag UI、`%N` 合并 |
 
 Phase 4（矛盾治理）待用户提供 lexicon skill，暂挂 Harness backlog，不在本 epic 开 high-risk 包。
 

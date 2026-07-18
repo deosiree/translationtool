@@ -130,7 +130,7 @@ async def test_skips_child_entries(pre_translate_service, mock_repo):
 
 @pytest.mark.service
 async def test_agent_meta_shape(pre_translate_service, mock_repo, mock_translate_entry):
-    """agent_meta 应包含 API 契约要求的六字段。"""
+    """agent_meta 应包含 API 契约要求的字段（含 segment_trace）。"""
     mock_repo.find_exact.return_value = mock_translate_entry
 
     result = await pre_translate_service.run_batch(
@@ -151,6 +151,7 @@ async def test_agent_meta_shape(pre_translate_service, mock_repo, mock_translate
         "similar_terms",
         "retrieval_method",
         "reasoning",
+        "segment_trace",
     }
 
 

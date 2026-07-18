@@ -48,9 +48,14 @@ class TermAgentAudit(Base):
     # ── Agent 预翻译产出 ──
     suggested_translation: Mapped[str | None] = mapped_column(String(1024), nullable=True, comment="建议译文")
     llm_reasoning: Mapped[str | None] = mapped_column(Text, nullable=True, comment="Agent 推理说明")
+    segment_trace: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True, comment="jieba/对齐切分轨迹 {jieba,aligned,display}"
+    )
 
     # ── 人工审核 ──
-    review_status: Mapped[str] = mapped_column(String(16), default="pending", comment="pending | approved | rejected")
+    review_status: Mapped[str] = mapped_column(
+        String(16), default="pending", comment="pending | approved | rejected | auto_approved"
+    )
     review_comment: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="审核人备注")
 
     # ── 工作台上下文（与 translateModal / PreTranslateModal 对齐）──
@@ -111,6 +116,9 @@ class EntryInfo(Base):
     task_id: Mapped[str | None] = mapped_column(String(255), comment="任务 id")
     product_id: Mapped[str | None] = mapped_column(String(255), comment="产品 id")
     comment: Mapped[str | None] = mapped_column(String(255), comment="消歧 comment")
+    segment_trace: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True, comment="jieba/对齐切分轨迹，供工作台列表出参"
+    )
     zh_trans_id: Mapped[str | None] = mapped_column(String(64), comment="中文翻译 id")
     en_trans_id: Mapped[str | None] = mapped_column(String(64), comment="英文翻译 id")
     ru_trans_id: Mapped[str | None] = mapped_column(String(255), comment="俄文翻译 id")

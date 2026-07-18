@@ -6,14 +6,14 @@ from typing import Any
 
 
 def map_graph_state_to_agent_meta(final: dict[str, Any]) -> dict[str, Any]:
-    """将 PreTranslateGraph 终态映射为 API 契约的 agent_meta 六字段。
+    """将 PreTranslateGraph 终态映射为 API 契约的 agent_meta。
 
     Args:
         final: ``PreTranslateGraph.run()`` 返回的 state dict。
 
     Returns:
         含 confidence / review_status / suggested_translation / similar_terms /
-        retrieval_method / reasoning 的 dict。
+        retrieval_method / reasoning / segment_trace 的 dict。
     """
     reasoning = final.get("llm_reasoning") or ""
     return {
@@ -23,6 +23,7 @@ def map_graph_state_to_agent_meta(final: dict[str, Any]) -> dict[str, Any]:
         "similar_terms": final.get("similar_terms") or [],
         "retrieval_method": final.get("retrieval_method"),
         "reasoning": reasoning,
+        "segment_trace": final.get("segment_trace"),
     }
 
 

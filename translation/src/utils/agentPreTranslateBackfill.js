@@ -47,6 +47,12 @@ export function resolveAgentSuggestedTranslation(item, langField) {
  */
 export function applyAgentBackfill(item, langField) {
   const meta = item.agent_meta;
+
+  // 切分轨迹：不论是否 auto_approved，只要 meta 有则挂到行上（与列表出参字段名一致）
+  if (meta?.segment_trace != null) {
+    item.segmentTrace = meta.segment_trace;
+  }
+
   const autoApproved =
     !meta || meta.review_status === "auto_approved";
   if (!autoApproved || !langField) {

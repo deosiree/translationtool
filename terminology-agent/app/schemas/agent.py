@@ -117,6 +117,9 @@ class AuditRecordData(BaseModel):
     is_new_term: bool = False
     suggested_translation: Optional[str] = Field(None, description="Agent 建议译文（低于阈值时也需展示）")
     llm_reasoning: Optional[str] = Field(None, description="Agent 说明")
+    segment_trace: Optional[dict] = Field(
+        None, description="jieba/对齐切分轨迹 {jieba,aligned,display}"
+    )
     review_status: str
     review_comment: Optional[str] = None
     error: Optional[str] = None
@@ -160,6 +163,22 @@ class AuditRecordData(BaseModel):
             return value
         return None
 
+    @field_validator("segment_trace", mode="before")
+    @classmethod
+    def _coerce_segment_trace(cls, value):
+        """兼容 JSON 列被读成 str 的情况。"""
+        if value is None:
+            return None
+        if isinstance(value, str):
+            import json
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                return None
+        if isinstance(value, dict):
+            return value
+        return None
+
 
 class AuditListData(BaseModel):
     """GET /agent/term-learning/list 的 data 字段。"""
@@ -177,6 +196,9 @@ class AgentMetaData(BaseModel):
     similar_terms: list[SimilarTermData] = Field(default_factory=list)
     retrieval_method: str = ""
     reasoning: str = ""
+    segment_trace: Optional[dict] = Field(
+        None, description="jieba/对齐切分轨迹；未走过切分时为 null"
+    )
 
 
 class PreTranslateBatchData(BaseModel):
