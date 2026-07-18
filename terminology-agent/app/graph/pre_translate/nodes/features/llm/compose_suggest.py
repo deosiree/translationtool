@@ -15,14 +15,35 @@ from app.graph.pre_translate.state import PreTranslateState
 from app.graph.pre_translate.utils.compose_validate import validate_mandatory_terms
 from app.graph.pre_translate.utils.coverage import coverage_to_confidence
 from app.graph.pre_translate.utils.llm_json import parse_llm_output
+from app.models.database import AsyncSessionLocal
+from app.repository.comment_rule_repo import CommentRuleRepository
+from app.shared.comment_rule.format import (
+    any_prefer_abbr,
+    apply_prefer_abbr_to_spans,
+    parse_comment_keys,
+    rule_row_to_dict,
+)
 from config.settings import settings
+
+
+async def _load_comment_rules(entry_comment: str | None) -> tuple[list[dict], bool, list[str]]:
+    """按 entry_comment keys 查 comment_rule；返回 (rules, prefer_abbr, unmatched)。"""
+    keys = parse_comment_keys(entry_comment)
+    if not keys:
+        return [], False, []
+    async with AsyncSessionLocal() as session:
+        rows = await CommentRuleRepository(session).find_by_comment_keys(keys)
+    rules = [rule_row_to_dict(r) for r in rows]
+    hit_keys = {r["comment_key"] for r in rules}
+    unmatched = [k for k in keys if k not in hit_keys]
+    return rules, any_prefer_abbr(rules), unmatched
 
 
 async def compose_suggest_node(state: PreTranslateState) -> PreTranslateState:
     """在词片术语约束下 LLM 拼装自然目标语短语。"""
     decomposed = (state.get("decomposed_translation") or "").strip()
     coverage = state.get("coverage") or 0.0
-    spans = spans_from_state(state.get("spans"))
+    raw_spans = state.get("spans") or []
 
     def apply_fallback(reason: str) -> PreTranslateState:
         state["suggested_translation"] = decomposed or None
@@ -39,13 +60,24 @@ async def compose_suggest_node(state: PreTranslateState) -> PreTranslateState:
     if not api_key:
         return apply_fallback("LLM 未配置，使用 trace 拼装结果")
 
+    comment_rules, prefer_abbr, unmatched = await _load_comment_rules(
+        state.get("entry_comment")
+    )
+    effective_span_dicts = apply_prefer_abbr_to_spans(
+        raw_spans, prefer_abbr=prefer_abbr
+    )
+    spans = spans_from_state(effective_span_dicts)
+
     system_prompt = build_compose_suggest_system_prompt(state.get("target_lang"))
     user_text = build_compose_suggest_user_message(
         source_text=state["source_text"],
         target_lang=state.get("target_lang"),
         coverage=coverage,
-        spans=state.get("spans") or [],
+        spans=raw_spans,
         decomposed_translation=decomposed,
+        comment_rules=comment_rules,
+        prefer_abbr=prefer_abbr,
+        unmatched_comment_keys=unmatched,
     )
 
     try:
@@ -81,7 +113,14 @@ async def compose_suggest_node(state: PreTranslateState) -> PreTranslateState:
         state["confidence"] = conf
         state["retrieval_confidence"] = conf
         state["llm_detail"] = reasoning or f"LLM 受约束拼装 coverage={coverage:.0%}"
-        state["trace"] = [{"stage": "compose_suggest", "ok": True}]
+        state["trace"] = [
+            {
+                "stage": "compose_suggest",
+                "ok": True,
+                "prefer_abbr": prefer_abbr,
+                "comment_rule_count": len(comment_rules),
+            }
+        ]
     except Exception as exc:
         return apply_fallback(f"LLM 调用失败: {exc}")
 

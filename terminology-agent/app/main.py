@@ -8,6 +8,7 @@ from app.api.router import router
 from app.core.exceptions import register_exception_handlers
 from app.models.database import engine, Base
 import app.models.word  # noqa: F401 — register term_word ORM for create_all
+import app.models.comment_rule  # noqa: F401 — register comment_rule ORM for create_all
 
 
 @asynccontextmanager

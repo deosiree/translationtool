@@ -1,0 +1,138 @@
+[
+  {
+    "comment": "tabBarTitle",
+    "source": "",
+    "scene": "1.侧边栏标题\n2.tab标题",
+    "tips": "- 英文翻译必须使用 Title Case（每个单词首字母都要大写）：\n  - 正确示例： \"Tab Bar Title Settings\"\n  - 错误示例1： \"Tab bar title settings\"（只第一个单词大写，错误）\n  - 错误示例2： \"tab bar title settings\"（全部小写，错误）\n- 精简翻译",
+    "prefer_abbr": 1,
+    "case_type": "TitleCase"
+  },
+  {
+    "comment": "toolName",
+    "source": "",
+    "scene": "1.⼯具名称标题\n2.dialog的标题",
+    "tips": "- 英文翻译必须使用 Title Case（每个单词首字母都要大写）：\n  - 正确示例： \"Tab Bar Title Settings\"\n  - 错误示例1： \"Tab bar title settings\"（只第一个单词大写，错误）\n  - 错误示例2： \"tab bar title settings\"（全部小写，错误）\n- 精简翻译",
+    "prefer_abbr": 1,
+    "case_type": "TitleCase"
+  },
+  {
+    "comment": "menuName",
+    "source": "",
+    "scene": "1.⼯具菜单栏菜单按钮",
+    "tips": "- 英文翻译必须使用 Sentence case（只有第一个单词首字母大写，其他单词全部小写）：\n  - 正确示例： \"Tab bar title settings\"\n  - 错误示例1： \"Tab Bar Title Settings\"（每个单词都大写，错误）\n  - 错误示例2： \"tab bar title settings\"（全部小写，错误）\n- 字符数不要超过“词条”对应的值的字符数的2倍\n  - 可以使用通用的缩写，或者电力行业内的缩写，减少字符数\n  - 字符数最多不要超过12个",
+    "prefer_abbr": 1,
+    "case_type": "SentenceCase"
+  },
+  {
+    "comment": "buttonName",
+    "source": "",
+    "scene": "1.button 按钮\n2.词条中包含“是”/“否”",
+    "tips": "- 英文翻译必须使用 Sentence case（只有第一个单词首字母大写，其他单词全部小写）：\n  - 正确示例： \"Tab bar title settings\"\n  - 错误示例1： \"Tab Bar Title Settings\"（每个单词都大写，错误）\n  - 错误示例2： \"tab bar title settings\"（全部小写，错误）\n- 若词条为“是”/“否”，应翻译为Yes/No\n- 字符数不要超过“词条”对应的值的字符数的2倍\n  - 可以使用通用的缩写，或者电力行业内的缩写，减少字符数",
+    "prefer_abbr": 1,
+    "case_type": "SentenceCase"
+  },
+  {
+    "comment": "subTitle",
+    "source": "",
+    "scene": "1.界⾯功能分区的⼩标题\n2.table表头\n3.中⽂词条最后带上冒号的，也按 subTitle 的要求翻译",
+    "tips": "- 英文翻译必须使用 Sentence case（只有第一个单词首字母大写，其他单词全部小写）：\n  - 正确示例： \"Tab bar title settings\"\n  - 错误示例1： \"Tab Bar Title Settings\"（每个单词都大写，错误）\n  - 错误示例2： \"tab bar title settings\"（全部小写，错误）\n- 【“是否” → Yes/No（界面文案）】\n  - 适用场景：对话框按钮、开关选项、用户可见的界面文本。\n  - 英文翻译要求：\n    - 使用 Yes / No（首字母大写）。\n    - 禁止使用 True / False 作为界面按钮文案。\n  - 示例：\n\n    - 正确： 提示框按钮 \"是/否\" → \"Yes\" / \"No\"\n    - 错误： 提示框按钮 \"是/否\" → \"True\" / \"False\"（布尔值风格，不适合界面）\n- 字符数不要超过“词条”对应的值的字符数的2倍\n  - 可以使用通用的缩写，或者电力行业内的缩写，减少字符数",
+    "prefer_abbr": 1,
+    "case_type": "SentenceCase"
+  },
+  {
+    "comment": "Time",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：“分”",
+    "tips": "【分钟的“分”】\n含义：中文“分”表示时间单位“分钟”（minute）。\n\n英文翻译要求：\n- 单位一律翻译为 minute 或缩写 min，如：\"5 分\" → \"5 min\"。\n- 禁止误译为开关“分合”的 open/close 或“除法”的 divide 等含义。\n\n示例：\n- 正确： \"采样间隔（分）\" → \"Sampling interval (min)\"\n- 错误： \"采样间隔（分）\" → \"Sampling interval (open)\"（把“分”理解成分合，错误）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "Abbr",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：“分”",
+    "tips": "【开关分合的“分”】\n含义：中文“分”表示断开开关（open），与“合”(close) 相对。\n\n英文翻译要求：\n- 与“合”成对使用 open / close。\n- 禁止翻译为时间单位 minute/min，也禁止翻成 divide 等其他含义。\n\n示例：\n- 正确： \"开关分合\" → \"Breaker open/close\"\n- 错误： \"开关分合\" → \"Breaker minute/close\"（把“分”当分钟，错误）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "Date",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：“⽇”",
+    "tips": "【时间天数的“日”】\n含义：这里的“日”表示持续时间的天数（days）。\n\n英文翻译要求：\n- 单位统一翻译为 day / days，如：\"7 日\" → \"7 days\"。\n- 禁止误解为星期中的“星期日/Sunday”。\n\n示例：\n- 正确： \"保存时间（日）\" → \"Retention time (days)\"\n- 错误： \"保存时间（日）\" → \"Retention time (Sunday)\"（把“日”当星期日，错误）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "DayOfWeek",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：“⽇”",
+    "tips": "【星期几的“日”】\n含义：这里的“日”表示星期中的“星期日”（Sunday）。\n\n英文翻译要求：\n- 与星期场景一起使用时，“日”对应 Sunday 或缩写 Sun。\n- 禁止翻译成时间单位 day/days。\n\n示例：\n- 正确： \"周日\" → \"Sunday\"\n- 错误： \"周日\" → \"7 days\"（把“日”当持续天数，错误）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "Number",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：⼀/⼆/三/四/五/六",
+    "tips": "【数值的“一二三四五六”】\n含义：这里的“一二三四五六”是纯数字 1–6，不表示星期几。\n\n英文翻译要求：\n- 翻译为阿拉伯数字 1/2/3/4/5/6。\n- 禁止翻译为 Monday–Saturday 或 Mon–Sat。\n\n示例：\n- 正确： \"档位一/二/三\" → \"Level 1/2/3\"\n- 错误： \"档位一/二/三\" → \"Level Mon/Tue/Wed\"（按星期翻译，错误）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "DayOfWeek",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：⼀/⼆/三/四/五/六",
+    "tips": "【星期几的“一二三四五六”】\n含义：这里的“一二三四五六”表示星期一到星期六。\n\n英文翻译要求：\n- 按星期翻译为 Monday–Saturday（或 Mon–Sat），不要用数字 1–6。\n- 一致使用同一种风格（全英文或缩写）。\n\n示例：\n- 正确： \"星期一/二/三\" → \"Monday/Tuesday/Wednesday\"\n- 错误： \"星期一/二/三\" → \"Day 1/2/3\"（按数字翻译，错误）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "Boolean",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：“是”/“否”",
+    "tips": "【“是否” → True/False】\n适用场景：程序字段、接口参数、配置项等“逻辑型/布尔型”含义。\n\n英文翻译要求：\n- 仅使用 True / False（首字母大写，其余小写）。\n- 禁止使用 Yes/No 或 0/1 表示。\n\n示例：\n- 正确： \"是否启用\" 字段值 → true/false → \"Enable: True / False\"\n- 错误： \"是否启用\" → \"Enable: Yes / No\"（界面用法才用 Yes/No）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "UI",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：“是”/“否”",
+    "tips": "【“是否” → Yes/No（界面文案）】\n适用场景：对话框按钮、开关选项、用户可见的界面文本。\n\n英文翻译要求：\n- 使用 Yes / No（首字母大写）。\n- 禁止使用 True / False 作为界面按钮文案。\n\n示例：\n- 正确： 提示框按钮 \"是/否\" → \"Yes\" / \"No\"\n- 错误： 提示框按钮 \"是/否\" → \"True\" / \"False\"（布尔值风格，不适合界面）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "internal",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：\"状态\"",
+    "tips": "【“状态” → state（内部描述）】\n适用场景：内部变量名、内部状态枚举，描述系统内部的状态，例如图元状态、状态前景。\n\n英文翻译要求：\n- 优先使用单词 state，如：\"设备状态\" → \"deviceState\" 或 \"device state\"。\n- 禁止在此类内部字段中使用 status 代替 state。\n\n示例：\n- 正确： \"图元状态\" → \"element state\"\n- 错误： \"图元状态\" → \"element status\"（外部观察才用 status）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "external",
+    "source": "",
+    "scene": "词条中包含了会产生歧义的词条：\"状态\"",
+    "tips": "【“状态” → status（外部观察）】\n适用场景：从外部看到的状态/结果，如告警状态、运行状态量。\n\n英文翻译要求：\n- 使用单词 status，如：\"告警状态\" → \"alarm status\"。\n- 禁止在此类对外结果中使用 state 代替 status。\n\n示例：\n- 正确： \"遥信状态量\" → \"status signal\"\n- 错误： \"遥信状态量\" → \"state signal\"（不符合外部结果的常用表达）",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "Upper",
+    "source": "",
+    "scene": "",
+    "tips": "【全词大写】\n含义：单元格中的英文翻译必须全部使用大写字母（ALL CAPS）。\n\n英文翻译要求：\n- 所有字母均为大写，如：\"ALARM\"，\"DC VOLTAGE\"。\n- 禁止出现任何小写字母。\n\n示例：\n- 正确： \"告警\" → \"ALARM\"\n- 错误： \"告警\" → \"Alarm\" / \"alarm\"",
+    "prefer_abbr": 0,
+    "case_type": null
+  },
+  {
+    "comment": "Lower",
+    "source": "",
+    "scene": "",
+    "tips": "【全词小写】\n含义：单元格中的英文翻译必须全部为小写字母。\n\n英文翻译要求：\n- 所有字母均为小写，如：\"offline\"，\"internal error\"。\n- 禁止任何大写字母（包括单词首字母）。\n\n示例：\n- 正确： \"离线\" → \"offline\"\n- 错误： \"离线\" → \"Offline\" / \"OFFLINE\"",
+    "prefer_abbr": 0,
+    "case_type": null
+  }
+]

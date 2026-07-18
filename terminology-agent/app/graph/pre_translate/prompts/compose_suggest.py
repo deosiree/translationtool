@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Sequence
+
 from app.graph.pre_translate.utils.decompose import Span
+from app.shared.comment_rule.format import (
+    apply_prefer_abbr_to_spans,
+    build_comment_rules_section_markdown,
+)
 from app.shared.field_limits import LLM_REASONING_DETAIL_MAX, TRANSLATE_MAX
 
 
@@ -18,7 +24,8 @@ def build_compose_suggest_system_prompt(target_lang: str | None) -> str:
 3. 禁止简单拼接词片术语译法（如 File+System→FileSystem），除非术语表明确为品牌/ProductName。
 4. 保留 %1、%2 等占位符位置与数量。
 5. 未在术语表中的连接字（与/的/…）由你按语法翻译，勿保留中文。
-6. 只输出 JSON，无 markdown。
+6. 若存在 comment 场景规则且要求优先缩写：词片术语表中的译法已是缩写，必须使用，禁止换成完整译法。
+7. 只输出 JSON，无 markdown。
 
 输出：{{"translation":"...","reasoning":"...","terms_used":["..."]}}
 
@@ -36,11 +43,15 @@ def build_compose_suggest_user_message(
     coverage: float,
     spans: list[dict],
     decomposed_translation: str | None,
+    comment_rules: Sequence[dict] | None = None,
+    prefer_abbr: bool = False,
+    unmatched_comment_keys: Sequence[str] | None = None,
 ) -> str:
     """构造 compose_suggest 用户消息。"""
+    effective_spans = apply_prefer_abbr_to_spans(spans, prefer_abbr=prefer_abbr)
     table_lines = ["| source_span | required_translation | status | use_llm |", "|---|---|---|---|"]
     notes_blocks: list[str] = []
-    for raw in spans:
+    for raw in effective_spans:
         text = str(raw.get("text") or "")
         translate = raw.get("translate")
         ambiguous = bool(raw.get("ambiguous"))
@@ -59,14 +70,17 @@ def build_compose_suggest_user_message(
             req = "(translate if possible)"
         table_lines.append(f"| {text} | {req} | {status} | {str(use_llm).lower()} |")
         desc = (raw.get("usage_notes") or "").strip()
-        if translate and (desc or use_llm):
+        forced = bool(raw.get("_forced_abbr"))
+        if translate and (desc or use_llm or forced):
             domain = (raw.get("category") or "").strip()
             abbr = (raw.get("abbr") or "").strip()
             parts = [f"- 词片「{text}」→ {translate}"]
             if domain:
                 parts.append(f"  领域: {domain}")
-            if abbr:
+            if abbr and not forced:
                 parts.append(f"  缩写: {abbr}")
+            if forced:
+                parts.append("  优先缩写：required_translation 已强制为缩写，禁止用完整译法")
             if use_llm:
                 parts.append(
                     "  走LLM=true：不可纯直译替换，须结合指代/词性/分场景判断"
@@ -82,12 +96,27 @@ def build_compose_suggest_user_message(
         if notes_blocks
         else ""
     )
+    comment_section = ""
+    rules_md = build_comment_rules_section_markdown(
+        comment_rules or [],
+        unmatched_keys=unmatched_comment_keys,
+    )
+    if rules_md:
+        comment_section = "\n\n" + rules_md
+    prefer_line = ""
+    if prefer_abbr:
+        prefer_line = (
+            "\n\n硬约束：当前 comment 要求优先缩写；"
+            "词片术语表中 required_translation 若已是缩写，必须原样使用，禁止替换为完整译法。"
+        )
     return (
         f"Chinese term: {source_text}\n"
         f"Target language: {target_lang or 'unknown'}\n"
         f"Coverage: {coverage:.0%}（词片命中比例，供你判断可信度）\n\n"
         f"词片术语表（必须全部使用）:\n{span_term_table}"
-        f"{notes_section}\n\n"
+        f"{notes_section}"
+        f"{comment_section}"
+        f"{prefer_line}\n\n"
         f"Naive draft（仅供参考，禁止照搬）: {draft}\n\n"
         f"Produce the best natural translation."
     )

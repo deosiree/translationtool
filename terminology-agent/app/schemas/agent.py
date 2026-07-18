@@ -324,3 +324,34 @@ class TermWordImportRowsRequest(BaseModel):
         True,
         description="True 时有翻译一律写待审核",
     )
+
+
+# ── comment_rule CRUD ──
+
+
+class CommentRuleCreateRequest(BaseModel):
+    """POST /agent/comment-rule — 新建规则。"""
+
+    comment_key: str = Field(..., min_length=1, max_length=128, alias="commentKey")
+    entry_source: Optional[str] = Field(None, max_length=255, alias="entrySource")
+    scene: Optional[str] = None
+    rule_text: Optional[str] = Field(None, alias="ruleText")
+    prefer_abbr: bool = Field(False, alias="preferAbbr")
+    case_type: Optional[str] = Field(None, max_length=32, alias="caseType")
+    related_id: Optional[str] = Field(None, max_length=64, alias="relatedId")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class CommentRuleUpdateRequest(BaseModel):
+    """PUT /agent/comment-rule/{id}。"""
+
+    comment_key: Optional[str] = Field(None, min_length=1, max_length=128, alias="commentKey")
+    entry_source: Optional[str] = Field(None, max_length=255, alias="entrySource")
+    scene: Optional[str] = None
+    rule_text: Optional[str] = Field(None, alias="ruleText")
+    prefer_abbr: Optional[bool] = Field(None, alias="preferAbbr")
+    case_type: Optional[str] = Field(None, max_length=32, alias="caseType")
+    related_id: Optional[str] = Field(None, max_length=64, alias="relatedId")
+
+    model_config = ConfigDict(populate_by_name=True)

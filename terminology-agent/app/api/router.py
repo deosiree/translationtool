@@ -14,10 +14,11 @@
 
 from fastapi import APIRouter
 
-from app.api import health, pre_translate, term_learning, word
+from app.api import comment_rule, health, pre_translate, term_learning, word
 
 router = APIRouter()
 router.include_router(health.router, tags=["健康检查"])
 router.include_router(pre_translate.router, prefix="/pre-translate", tags=["预翻译"])
 router.include_router(term_learning.router, prefix="/term-learning", tags=["术语审核"])
 router.include_router(word.router, prefix="/word", tags=["术语词片"])
+router.include_router(comment_rule.router, prefix="/comment-rule", tags=["Comment规则"])

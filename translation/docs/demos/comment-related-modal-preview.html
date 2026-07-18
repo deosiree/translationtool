@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>对应 Comment — 模态框 UI 原型</title>
+  <style>
+    :root {
+      --bg-mask: rgba(0, 0, 0, 0.45);
+      --modal: #fff;
+      --border: #e5e7eb;
+      --muted: rgba(0, 0, 0, 0.45);
+      --title: rgba(0, 0, 0, 0.88);
+      --key: #1677ff;
+      --panel: #f8f9fb;
+      --self-bar: #1677ff;
+      --peer-bar: #13c2c2;
+      --font: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: #1a1d24;
+      color: #e8eaed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 16px;
+    }
+    .hint {
+      color: #9aa0a6;
+      font-size: 13px;
+      max-width: 880px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .hint code { color: #8ab4f8; }
+
+    /* —— 遮罩 + 模态 —— */
+    .mask {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-mask);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal {
+      width: min(920px, 100%);
+      max-height: min(86vh, 720px);
+      background: var(--modal);
+      border-radius: 8px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.28);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      color: var(--title);
+    }
+    .modal__head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal__title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .modal__close {
+      border: 0;
+      background: transparent;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .modal__close:hover { background: #f5f5f5; color: #000; }
+    .modal__body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 16px 20px 20px;
+    }
+
+    /* —— 对照网格 —— */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+    @media (max-width: 720px) {
+      .compare { grid-template-columns: 1fr; }
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .card__head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+    .card--self .card__head { border-top: 3px solid var(--self-bar); }
+    .card--peer .card__head { border-top: 3px solid var(--peer-bar); }
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      line-height: 20px;
+    }
+    .card--self .badge {
+      background: #e6f4ff;
+      color: var(--self-bar);
+    }
+    .card--peer .badge {
+      background: #e6fffb;
+      color: #08979c;
+    }
+    .card__key {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--key);
+    }
+    .card__body {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+    .field__label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .field__meta {
+      font-size: 13px;
+      color: var(--title);
+      line-height: 1.5;
+    }
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* —— SpanByTipsFill 风格（暗色悬浮 + 复制） —— */
+    .sbt-host {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      position: relative;
+    }
+    .sbt-text {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 4;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--title);
+      cursor: default;
+      border-radius: 4px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      min-height: 72px;
+    }
+    .sbt-text--rule {
+      -webkit-line-clamp: 8;
+      min-height: 120px;
+    }
+    .sbt-pop {
+      display: none;
+      position: absolute;
+      z-index: 20;
+      left: 0;
+      right: 0;
+      bottom: calc(100% + 8px);
+      background: #1f1f1f;
+      color: #f5f5f5;
+      border-radius: 6px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      max-height: 280px;
+      overflow: auto;
+    }
+    .sbt-host:hover .sbt-pop,
+    .sbt-host:focus-within .sbt-pop {
+      display: block;
+    }
+    .sbt-pop pre {
+      margin: 0 0 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--font);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .sbt-copy {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: transparent;
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .sbt-copy:hover { background: rgba(255, 255, 255, 0.1); }
+    .sbt-copy.is-ok { border-color: #52c41a; color: #b7eb8f; }
+  </style>
+</head>
+<body>
+  <p class="hint">
+    原型：左右对照完整展示两条 comment；场景/规则使用 SpanByTips 风格（悬浮看全文 + 复制）。
+    落地 Vue 时替换为 <code>SpanByTipsFill</code>（theme=dark, copyable, always-tip）。
+  </p>
+
+  <div class="mask" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal__head">
+        <h2 id="modal-title" class="modal__title">对应 Comment</h2>
+        <button type="button" class="modal__close" aria-label="关闭">×</button>
+      </div>
+      <div class="modal__body">
+        <div class="compare">
+          <!-- 本条 Abbr -->
+          <article class="card card--self">
+            <header class="card__head">
+              <span class="badge">本条</span>
+              <span class="card__key">Abbr</span>
+            </header>
+            <div class="card__body">
+              <div class="meta-row">
+                <div>
+                  <span class="field__label">词条来源</span>
+                  <div class="field__meta">—</div>
+                </div>
+                <div>
+                  <span class="field__label">优先缩写</span>
+                  <div class="field__meta">否</div>
+                </div>
+              </div>
+              <div>
+                <span class="field__label">场景</span>
+                <div class="sbt-host" tabindex="0">
+                  <div class="sbt-text" data-full="词条中包含了会产生歧义的词条：「分」">词条中包含了会产生歧义的词条：「分」</div>
+                  <div class="sbt-pop">
+                    <pre>词条中包含了会产生歧义的词条：「分」</pre>
+                    <button type="button" class="sbt-copy">复制</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="field__label">规则</span>
+                <div class="sbt-host" tabindex="0">
+                  <div class="sbt-text sbt-text--rule" data-full="【开关分合的「分」】
+含义：中文「分」表示断开开关（open），与「合」(close) 相对。
+
+英文翻译要求：
+- 与「合」成对使用 open / close。
+- 禁止翻译为时间单位 minute/min，也禁止翻成 divide 等其他含义。
+
+示例：
+- 正确： 「开关分合」 → 「Breaker open/close」
+- 错误： 「开关分合」 → 「Breaker minute/close」（把「分」当分钟，错误）">【开关分合的「分」】
+含义：中文「分」表示断开开关（open），与「合」(close) 相对。
+
+英文翻译要求：
+- 与「合」成对使用 open / close。
+- 禁止翻译为时间单位 minute/min，也禁止翻成 divide 等其他含义。
+
+示例：
+- 正确： 「开关分合」 → 「Breaker open/close」
+- 错误： 「开关分合」 → 「Breaker minute/close」（把「分」当分钟，错误）</div>
+                  <div class="sbt-pop">
+                    <pre>【开关分合的「分」】
+含义：中文「分」表示断开开关（open），与「合」(close) 相对。
+
+英文翻译要求：
+- 与「合」成对使用 open / close。
+- 禁止翻译为时间单位 minute/min，也禁止翻成 divide 等其他含义。
+
+示例：
+- 正确： 「开关分合」 → 「Breaker open/close」
+- 错误： 「开关分合」 → 「Breaker minute/close」（把「分」当分钟，错误）</pre>
+                    <button type="button" class="sbt-copy">复制</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- 对应条 Time -->
+          <article class="card card--peer">
+            <header class="card__head">
+              <span class="badge">对应条</span>
+              <span class="card__key">Time</span>
+            </header>
+            <div class="card__body">
+              <div class="meta-row">
+                <div>
+                  <span class="field__label">词条来源</span>
+                  <div class="field__meta">—</div>
+                </div>
+                <div>
+                  <span class="field__label">优先缩写</span>
+                  <div class="field__meta">否</div>
+                </div>
+              </div>
+              <div>
+                <span class="field__label">场景</span>
+                <div class="sbt-host" tabindex="0">
+                  <div class="sbt-text" data-full="词条中包含了会产生歧义的词条：「分」">词条中包含了会产生歧义的词条：「分」</div>
+                  <div class="sbt-pop">
+                    <pre>词条中包含了会产生歧义的词条：「分」</pre>
+                    <button type="button" class="sbt-copy">复制</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="field__label">规则</span>
+                <div class="sbt-host" tabindex="0">
+                  <div class="sbt-text sbt-text--rule" data-full="【分钟的「分」】
+含义：中文「分」表示时间单位「分钟」（minute）。
+
+英文翻译要求：
+- 单位一律翻译为 minute 或缩写 min，如：「5 分」 → 「5 min」。
+- 禁止误译为开关「分合」的 open/close 或「除法」的 divide 等含义。
+
+示例：
+- 正确： 「采样间隔（分）」 → 「Sampling interval (min)」
+- 错误： 「采样间隔（分）」 → 「Sampling interval (open)」（把「分」理解成分合，错误）">【分钟的「分」】
+含义：中文「分」表示时间单位「分钟」（minute）。
+
+英文翻译要求：
+- 单位一律翻译为 minute 或缩写 min，如：「5 分」 → 「5 min」。
+- 禁止误译为开关「分合」的 open/close 或「除法」的 divide 等含义。
+
+示例：
+- 正确： 「采样间隔（分）」 → 「Sampling interval (min)」
+- 错误： 「采样间隔（分）」 → 「Sampling interval (open)」（把「分」理解成分合，错误）</div>
+                  <div class="sbt-pop">
+                    <pre>【分钟的「分」】
+含义：中文「分」表示时间单位「分钟」（minute）。
+
+英文翻译要求：
+- 单位一律翻译为 minute 或缩写 min，如：「5 分」 → 「5 min」。
+- 禁止误译为开关「分合」的 open/close 或「除法」的 divide 等含义。
+
+示例：
+- 正确： 「采样间隔（分）」 → 「Sampling interval (min)」
+- 错误： 「采样间隔（分）」 → 「Sampling interval (open)」（把「分」理解成分合，错误）</pre>
+                    <button type="button" class="sbt-copy">复制</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll(".sbt-copy").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const host = btn.closest(".sbt-host");
+        const text =
+          host?.querySelector(".sbt-text")?.dataset.full ||
+          host?.querySelector("pre")?.textContent ||
+          "";
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = "已复制";
+          btn.classList.add("is-ok");
+          setTimeout(() => {
+            btn.textContent = "复制";
+            btn.classList.remove("is-ok");
+          }, 1200);
+        } catch {
+          btn.textContent = "复制失败";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
