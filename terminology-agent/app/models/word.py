@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, Text, JSON
+from sqlalchemy import Boolean, String, DateTime, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.database import Base
@@ -31,11 +31,20 @@ class TermWord(Base):
     source_entry_info_id: Mapped[str | None] = mapped_column(String(64), nullable=True, comment="溯源 entry_info")
     task_id: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="溯源任务")
     product_id: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="溯源产品")
-    description: Mapped[str | None] = mapped_column(Text, nullable=True, comment="描述")
-    remark1: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="备注1")
-    remark2: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="备注2")
-    remark3: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="备注3")
-    status: Mapped[str] = mapped_column(String(16), default="pending", comment="approved|pending|deprecated")
+    use_llm: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, comment="走LLM：需LLM判断，非直译"
+    )
+    category: Mapped[str | None] = mapped_column(String(128), nullable=True, comment="领域")
+    abbr: Mapped[str | None] = mapped_column(String(128), nullable=True, comment="缩写")
+    usage_notes: Mapped[str | None] = mapped_column(Text, nullable=True, comment="使用场景与注意事项")
+    # 遗留列：不再写入；保留以免旧库/ETL 硬依赖瞬时断裂
+    description: Mapped[str | None] = mapped_column(Text, nullable=True, comment="描述(遗留)")
+    remark1: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="备注1(遗留)")
+    remark2: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="备注2(遗留)")
+    remark3: Mapped[str | None] = mapped_column(String(512), nullable=True, comment="备注3(遗留)")
+    status: Mapped[str] = mapped_column(
+        String(16), default="1", comment="0未翻译|1待审核|2审核不通过|3已审核（与 translate_state 对齐）"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now, onupdate=datetime.now

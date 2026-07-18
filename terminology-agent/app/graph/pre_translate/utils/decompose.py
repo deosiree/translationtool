@@ -19,6 +19,10 @@ class Span:
     ambiguous: bool = False
     # Phase 3d：合并 lookup 时保留原始 jieba token（未合并则为单元素）
     jieba_parts: tuple[str, ...] | None = None
+    use_llm: bool = False
+    usage_notes: str | None = None
+    category: str | None = None
+    abbr: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {
@@ -27,6 +31,10 @@ class Span:
             "end": self.end,
             "translate": self.translate,
             "ambiguous": self.ambiguous,
+            "use_llm": bool(self.use_llm),
+            "usage_notes": self.usage_notes,
+            "category": self.category,
+            "abbr": self.abbr,
         }
         if self.jieba_parts is not None:
             data["jieba_parts"] = list(self.jieba_parts)

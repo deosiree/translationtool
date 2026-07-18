@@ -1,6 +1,6 @@
-"""term_word approved 词表 Trie 进程内缓存。
+"""term_word 已审核词表 Trie 进程内缓存。
 
-Grep 线 retrieve 按 ``target_lang`` 加载 DISTINCT ``word`` 建 Trie，避免每条请求全表扫描。
+Grep 线 retrieve 按 ``target_lang`` 加载 DISTINCT ``word``（status=3）建 Trie，避免每条请求全表扫描。
 """
 
 from __future__ import annotations

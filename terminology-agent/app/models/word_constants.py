@@ -16,10 +16,10 @@
   t_translate + t_entry_info
         │  scripts/build_word_index（ETL）
         ▼
-  term_word.status = approved | pending | deprecated
-        │  仅 approved 进入运行时
-        ├─► WordRepository.find_by_word / list_distinct_words（默认过滤 approved）
-        ├─► trie_cache.load_trie_for_lang（Trie 只含 approved 词）
+  term_word.status = "0"|"1"|"2"|"3"（与 t_translate.translate_state 对齐）
+        │  仅 "3"（已审核）进入运行时
+        ├─► WordRepository.find_by_word / list_distinct_words（默认过滤 "3"）
+        ├─► trie_cache.load_trie_for_lang（Trie 只含已审核词）
         └─► grep_retrieve（在线 Grep 检索）
 
   同 (word, comment, target_lang) 多译法
@@ -33,9 +33,10 @@
 +-------------------------------+----------------------------------+------------------------------------------+
 | 常量                          | 写入方                           | 读取方 / 场景                            |
 +===============================+==================================+==========================================+
-| ``WORD_STATUS_APPROVED``      | ETL（translate_state='3'）       | Grep 检索、Trie 建库、调试 lookup API    |
-| ``WORD_STATUS_PENDING``       | ETL（未审定译文）                | 暂不参与 Grep；治理后可升为 approved     |
-| ``WORD_STATUS_DEPRECATED``    | （预留）人工下线 / 数据治理      | 历史留档，检索与 Trie 均排除             |
+| ``WORD_STATUS_UNTRANSLATED``  | ETL / 人工 CRUD                  | 列表筛选；不参与 Grep                    |
+| ``WORD_STATUS_PENDING``       | ETL / 人工 CRUD（默认新建）      | 列表筛选；不参与 Grep                    |
+| ``WORD_STATUS_REJECTED``      | ETL / 人工 CRUD                  | 列表筛选；不参与 Grep                    |
+| ``WORD_STATUS_APPROVED``      | ETL（translate_state='3'）/ CRUD | Grep 检索、Trie 建库、调试 lookup API    |
 | ``CONFLICT_TYPE_TRANSLATE_MISMATCH`` | ETL 矛盾检测              | 矛盾工单列表展示、将来按类型分流         |
 | ``CONFLICT_RESOLUTION_OPEN``  | ETL 新建矛盾工单                 | ``list_open_conflicts`` 待处理队列       |
 +-------------------------------+----------------------------------+------------------------------------------+
@@ -50,37 +51,37 @@
 
 from typing import Final
 
-# ── TermWord.status ──────────────────────────────────────────────────────────
-# 消歧键 (word, comment, target_lang) 下每一行元词的「是否可检索」状态。
-# 运行时 Grep 默认只认 approved；改 status 后需重建 Trie 或等 trie_cache TTL 过期。
+# ── TermWord.status（与 translate_state / 前端 TransStateSelect 对齐）────────
+# 运行时 Grep 默认只认 "3"；改 status 后需 clear_trie_cache() 或等 TTL。
 
-WORD_STATUS_APPROVED: Final[str] = "approved"
-"""已审定、可参与 Grep 检索。
+WORD_STATUS_UNTRANSLATED: Final[str] = "0"
+"""未翻译 — 不参与 Grep / Trie。"""
 
-- **何时写入**：``build_word_index`` ETL 扫描 ``t_translate`` 时，
-  ``translate_state == '3'``（业务上「已审定」）→ ``word_status_from_translate_state`` 映射为此值。
+WORD_STATUS_PENDING: Final[str] = "1"
+"""待审核 — 不参与 Grep / Trie；新建词片默认值。"""
+
+WORD_STATUS_REJECTED: Final[str] = "2"
+"""审核不通过 — 不参与 Grep / Trie。"""
+
+WORD_STATUS_APPROVED: Final[str] = "3"
+"""已审核、可参与 Grep 检索。
+
+- **何时写入**：ETL 透传 ``translate_state``；或术语字典人工审定。
 - **谁在读**：
-  - ``WordRepository.find_by_word`` / ``list_distinct_words`` 默认 ``status=approved``
-  - ``load_trie_for_lang`` 只为 approved 词建 Trie
-  - ``POST /agent/debug/word-lookup`` 调试端点
+  - ``WordRepository.find_by_word`` / ``list_distinct_words`` 默认 ``status="3"``
+  - ``load_trie_for_lang`` 只为已审核词建 Trie
+  - ``GET /agent/word/{word}`` 调试端点
 - **业务含义**：Agent 可以把该行的 ``translate`` 当作 Grep 线的确定性候选。
 """
 
-WORD_STATUS_PENDING: Final[str] = "pending"
-"""未审定，建库时写入但**不参与**在线 Grep。
-
-- **何时写入**：ETL 时 ``translate_state`` 不是 ``'3'`` 的译文行；也是 ``TermWord`` ORM 列默认值。
-- **谁在读**：当前运行时路径**不查** pending；仅供数据治理、将来「审定后升 approved」流程。
-- **与 audit 的区别**：这是词表行状态，不是 ``term_agent_audit.review_status='pending'``。
-"""
-
-WORD_STATUS_DEPRECATED: Final[str] = "deprecated"
-"""已下线，保留行供溯源，**永不**进入 Grep / Trie。
-
-- **何时写入**：尚未有自动 ETL 路径；预留给人工治理、批量下线错误词表行。
-- **谁在读**：暂无；仓储与 Trie 与 pending 一样默认排除。
-- **使用建议**：下线时不要 ``DELETE``，改 status 并 ``clear_trie_cache()`` 或等待 TTL。
-"""
+WORD_STATUS_VALUES: Final[frozenset[str]] = frozenset(
+    {
+        WORD_STATUS_UNTRANSLATED,
+        WORD_STATUS_PENDING,
+        WORD_STATUS_REJECTED,
+        WORD_STATUS_APPROVED,
+    }
+)
 
 # ── TermWordConflict 工单字段 ────────────────────────────────────────────────
 # 当同一消歧键下存在多种 ``translate`` 时，ETL 写入矛盾工单，供治理页处理。

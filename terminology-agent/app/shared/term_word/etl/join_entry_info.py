@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_PENDING
+from app.models.word_constants import (
+    WORD_STATUS_PENDING,
+    WORD_STATUS_UNTRANSLATED,
+    WORD_STATUS_VALUES,
+)
 from app.shared.term_word.etl.constants import LANG_TRANS_ID_ATTR
 
 
@@ -34,9 +38,12 @@ def entry_info_links_translate(
 
 
 def word_status_from_translate_state(translate_state: str | None) -> str:
-    """translate_state='3' → approved，否则 pending。"""
-    if str(translate_state or "").strip() == "3":
-        return WORD_STATUS_APPROVED
+    """透传 translate_state（0/1/2/3）；非法或空 → 待审核。"""
+    raw = str(translate_state or "").strip()
+    if raw in WORD_STATUS_VALUES:
+        return raw
+    if raw == "":
+        return WORD_STATUS_UNTRANSLATED
     return WORD_STATUS_PENDING
 
 
@@ -67,9 +74,9 @@ def build_term_word_payload(
         "source_entry_info_id": str(getattr(entry_info, "id", "")),
         "task_id": getattr(entry_info, "task_id", None),
         "product_id": getattr(entry_info, "product_id", None),
-        "description": None,
-        "remark1": None,
-        "remark2": None,
+        "category": None,
+        "abbr": None,
+        "usage_notes": None,
         "remark3": None,
         "status": word_status_from_translate_state(getattr(translate, "translate_state", None)),
     }

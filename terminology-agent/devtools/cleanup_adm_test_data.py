@@ -72,7 +72,7 @@ async def main(*, apply: bool) -> None:
     from app.models.database import AsyncSessionLocal
     from app.models.term import TermAgentAudit, TranslateEntry
     from app.models.word import TermWord
-    from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_DEPRECATED
+    from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_REJECTED
     from app.repository.trie_cache import clear_trie_cache
 
     async with AsyncSessionLocal() as session:
@@ -156,9 +156,9 @@ async def main(*, apply: bool) -> None:
             if word in KEEP_APPROVED_ENTRIES:
                 kept_whole += 1
                 continue
-            print(f"  deprecate term_word: {word!r} id={row.id} comment={row.comment!r}")
+            print(f"  reject term_word: {word!r} id={row.id} comment={row.comment!r}")
             if apply:
-                row.status = WORD_STATUS_DEPRECATED
+                row.status = WORD_STATUS_REJECTED
         print(f"  跳过保留种子 term_word: {kept_whole}")
 
         if apply:

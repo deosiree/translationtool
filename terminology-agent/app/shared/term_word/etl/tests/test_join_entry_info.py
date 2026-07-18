@@ -45,8 +45,12 @@ def test_empty_comment_becomes_empty_string():
 
 @pytest.mark.unit
 def test_status_mapping():
-    assert word_status_from_translate_state("3") == "approved"
-    assert word_status_from_translate_state("1") == "pending"
+    assert word_status_from_translate_state("3") == "3"
+    assert word_status_from_translate_state("1") == "1"
+    assert word_status_from_translate_state("0") == "0"
+    assert word_status_from_translate_state("2") == "2"
+    assert word_status_from_translate_state(None) == "0"
+    assert word_status_from_translate_state("x") == "1"
 
 
 @pytest.mark.unit

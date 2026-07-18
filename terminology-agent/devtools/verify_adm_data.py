@@ -59,7 +59,7 @@ def main(*, strict: bool) -> int:
         )
         tr = cur.fetchone()[0]
         cur.execute(
-            "SELECT COUNT(*) FROM term_word WHERE status='approved' "
+            "SELECT COUNT(*) FROM term_word WHERE status='3' "
             "AND target_lang=%s AND word=%s",
             (TARGET_LANG, entry),
         )
@@ -72,7 +72,7 @@ def main(*, strict: bool) -> int:
     print("\n=== ADM 词片 comment='' department 唯一性 ===")
     for word in LEXEME_UNIQUENESS:
         cur.execute(
-            "SELECT COUNT(*) FROM term_word WHERE status='approved' "
+            "SELECT COUNT(*) FROM term_word WHERE status='3' "
             "AND target_lang=%s AND word=%s AND comment='' AND department=%s",
             (TARGET_LANG, word, DEPARTMENT),
         )
@@ -80,7 +80,7 @@ def main(*, strict: bool) -> int:
         ok = cnt == 1
         if not ok:
             failures += 1
-        print(f"  {'OK' if ok else 'FAIL'} {word}: approved rows with dept={DEPARTMENT!r}: {cnt} (expect 1)")
+        print(f"  {'OK' if ok else 'FAIL'} {word}: approved(status=3) rows with dept={DEPARTMENT!r}: {cnt} (expect 1)")
 
     print("\n=== jieba 切分（segment_source_text）===")
     for text, expected_parts in SEGMENT_CASES:

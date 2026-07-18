@@ -29,24 +29,6 @@ def build_compose_suggest_system_prompt(target_lang: str | None) -> str:
 """
 
 
-def _span_rows(spans: list[dict]) -> list[tuple[str, str, str]]:
-    """(source_span, required_translation, status) 供 prompt 表格。"""
-    rows: list[tuple[str, str, str]] = []
-    for raw in spans:
-        text = str(raw.get("text") or "")
-        translate = raw.get("translate")
-        ambiguous = bool(raw.get("ambiguous"))
-        if ambiguous:
-            rows.append((text, "(ambiguous — do not pick)", "ambiguous"))
-        elif translate:
-            rows.append((text, str(translate), "hit"))
-        elif len(text) == 1 and text in "与的地和及":
-            rows.append((text, "(no glossary — translate as connector)", "glue"))
-        else:
-            rows.append((text, "(translate if possible)", "oov"))
-    return rows
-
-
 def build_compose_suggest_user_message(
     *,
     source_text: str,
@@ -56,16 +38,56 @@ def build_compose_suggest_user_message(
     decomposed_translation: str | None,
 ) -> str:
     """构造 compose_suggest 用户消息。"""
-    table_lines = ["| source_span | required_translation | status |", "|---|---|---|"]
-    for src, req, status in _span_rows(spans):
-        table_lines.append(f"| {src} | {req} | {status} |")
+    table_lines = ["| source_span | required_translation | status | use_llm |", "|---|---|---|---|"]
+    notes_blocks: list[str] = []
+    for raw in spans:
+        text = str(raw.get("text") or "")
+        translate = raw.get("translate")
+        ambiguous = bool(raw.get("ambiguous"))
+        use_llm = bool(raw.get("use_llm"))
+        if ambiguous:
+            status = "ambiguous"
+            req = "(ambiguous — do not pick)"
+        elif translate:
+            status = "hit"
+            req = str(translate)
+        elif len(text) == 1 and text in "与的地和及":
+            status = "glue"
+            req = "(no glossary — translate as connector)"
+        else:
+            status = "oov"
+            req = "(translate if possible)"
+        table_lines.append(f"| {text} | {req} | {status} | {str(use_llm).lower()} |")
+        desc = (raw.get("usage_notes") or "").strip()
+        if translate and (desc or use_llm):
+            domain = (raw.get("category") or "").strip()
+            abbr = (raw.get("abbr") or "").strip()
+            parts = [f"- 词片「{text}」→ {translate}"]
+            if domain:
+                parts.append(f"  领域: {domain}")
+            if abbr:
+                parts.append(f"  缩写: {abbr}")
+            if use_llm:
+                parts.append(
+                    "  走LLM=true：不可纯直译替换，须结合指代/词性/分场景判断"
+                )
+            if desc:
+                parts.append(f"  注意事项: {desc}")
+            notes_blocks.append("\n".join(parts))
+
     span_term_table = "\n".join(table_lines)
     draft = decomposed_translation or ""
+    notes_section = (
+        "\n\n词片注意事项（必须遵守禁用译法与示例）:\n" + "\n".join(notes_blocks)
+        if notes_blocks
+        else ""
+    )
     return (
         f"Chinese term: {source_text}\n"
         f"Target language: {target_lang or 'unknown'}\n"
         f"Coverage: {coverage:.0%}（词片命中比例，供你判断可信度）\n\n"
-        f"词片术语表（必须全部使用）:\n{span_term_table}\n\n"
+        f"词片术语表（必须全部使用）:\n{span_term_table}"
+        f"{notes_section}\n\n"
         f"Naive draft（仅供参考，禁止照搬）: {draft}\n\n"
         f"Produce the best natural translation."
     )

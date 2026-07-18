@@ -6,13 +6,13 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Any, Callable
 
 from app.graph.pre_translate.constants import ALIGN_MAX_NGRAM
 from app.graph.pre_translate.utils.decompose import Span
 
-# word -> (translate, ambiguous)
-LookupFn = Callable[[str], tuple[str | None, bool]]
+# word -> (translate, ambiguous, meta)
+LookupFn = Callable[[str], tuple[str | None, bool, dict[str, Any]]]
 
 
 def _contiguous(spans: list[Span], start: int, n: int) -> bool:
@@ -21,6 +21,15 @@ def _contiguous(spans: list[Span], start: int, n: int) -> bool:
         if spans[j].start != spans[j - 1].end:
             return False
     return True
+
+
+def _meta_fields(meta: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "use_llm": bool(meta.get("use_llm")),
+        "usage_notes": meta.get("usage_notes"),
+        "category": meta.get("category"),
+        "abbr": meta.get("abbr"),
+    }
 
 
 def align_spans_with_lexicon(
@@ -33,7 +42,7 @@ def align_spans_with_lexicon(
 
     Args:
         spans: jieba 切界后的 Span（尚未或已可忽略 translate）。
-        lookup: 同步查表 ``word -> (translate, ambiguous)``。
+        lookup: 同步查表 ``word -> (translate, ambiguous, meta)``。
         max_ngram: 最大合并窗口（默认 3）。
 
     Returns:
@@ -54,7 +63,7 @@ def align_spans_with_lexicon(
                 continue
             parts = spans[i : i + n]
             compound = "".join(p.text for p in parts)
-            translate, ambiguous = lookup(compound)
+            translate, ambiguous, meta = lookup(compound)
             if translate and not ambiguous:
                 out.append(
                     Span(
@@ -64,6 +73,7 @@ def align_spans_with_lexicon(
                         translate=translate,
                         ambiguous=False,
                         jieba_parts=tuple(p.text for p in parts),
+                        **_meta_fields(meta),
                     )
                 )
                 i += n
@@ -73,7 +83,7 @@ def align_spans_with_lexicon(
             continue
 
         one = spans[i]
-        translate, ambiguous = lookup(one.text)
+        translate, ambiguous, meta = lookup(one.text)
         out.append(
             Span(
                 text=one.text,
@@ -82,6 +92,7 @@ def align_spans_with_lexicon(
                 translate=translate,
                 ambiguous=ambiguous,
                 jieba_parts=(one.text,),
+                **_meta_fields(meta),
             )
         )
         i += 1

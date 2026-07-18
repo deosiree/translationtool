@@ -71,7 +71,7 @@ async def _seed_lexeme(
     from sqlalchemy import select
 
     from app.models.word import TermWord
-    from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_DEPRECATED
+    from app.models.word_constants import WORD_STATUS_APPROVED, WORD_STATUS_REJECTED
 
     wq = select(TermWord).where(
         TermWord.word == word,
@@ -85,7 +85,7 @@ async def _seed_lexeme(
     for row in dupes:
         print(f"  deprecate duplicate lexeme: {word!r} id={row.id}")
         if apply:
-            row.status = WORD_STATUS_DEPRECATED
+            row.status = WORD_STATUS_REJECTED
 
     existing = await session.get(TermWord, seed_id)
     if existing is None:
