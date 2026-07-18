@@ -69,12 +69,16 @@ public class UserController extends BaseController {
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel<UserDetailsVo> > getUserPermission(String name) {
-        ResponseListModel<UserDetailsVo> result = new ResponseListModel<>();
-        List<UserDetailsVo>  userDetailsVo = userManageService.getUserPermission(name);
-        result.setList(userDetailsVo);
-        result.setTotalNum(userDetailsVo.size());
-        return checkResult(result);
-
+        try {
+            ResponseListModel<UserDetailsVo> result = new ResponseListModel<>();
+            List<UserDetailsVo>  userDetailsVo = userManageService.getUserPermission(name);
+            result.setList(userDetailsVo);
+            result.setTotalNum(userDetailsVo.size());
+            return checkResult(result);
+        } catch (Exception e) {
+            log.error("getUserPermission 异常", e);
+            return error(null, e.getMessage());
+        }
     }
 
 

@@ -67,11 +67,16 @@ public class SykController extends BaseController{
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel> getSykEntryRelation(@RequestBody List<TranslateEntity> translates) {
-        ResponseListModel<SykEntryVO> responseListModel = new ResponseListModel();
-        List<SykEntryVO> translateEntityList = sykService.getSykEntryRelation(translates);
-        responseListModel.setList(translateEntityList);
-        responseListModel.setTotalNum(translateEntityList.size());
-        return checkResult(responseListModel);
+        try {
+            ResponseListModel<SykEntryVO> responseListModel = new ResponseListModel();
+            List<SykEntryVO> translateEntityList = sykService.getSykEntryRelation(translates);
+            responseListModel.setList(translateEntityList);
+            responseListModel.setTotalNum(translateEntityList.size());
+            return checkResult(responseListModel);
+        } catch (Exception e) {
+            log.error("getSykEntryRelation 异常", e);
+            return error(null, e.getMessage());
+        }
     }
 
     @PostMapping("/getSykNotUsed")

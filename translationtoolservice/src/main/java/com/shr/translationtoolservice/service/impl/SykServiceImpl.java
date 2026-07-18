@@ -181,9 +181,16 @@ public class SykServiceImpl implements SykService {
 
                     SykEntryVO sykEntryVO = new SykEntryVO();
                     ProductEntity productEntity = productMapper.selectById(productRelationEntity.getProductId());
+                    if (productEntity == null) {
+                        log.warn("词条关联的产品不存在 productId:{}, entryId:{}", productRelationEntity.getProductId(), entity.getId());
+                        continue;
+                    }
                     sykEntryVO.setProductName(productEntity.getName());
                     if (StringUtils.isNotBlank(productRelationEntity.getVersionId())) {
-                        sykEntryVO.setVersionName(versionMapper.selectById(productRelationEntity.getVersionId()).getName());
+                        VersionEntity versionEntity = versionMapper.selectById(productRelationEntity.getVersionId());
+                        if (versionEntity != null) {
+                            sykEntryVO.setVersionName(versionEntity.getName());
+                        }
                     }
                     TaskInfoEntity taskInfo = taskInfoMapper.selectById(productRelationEntity.getTaskId());
                     if(taskInfo != null)
