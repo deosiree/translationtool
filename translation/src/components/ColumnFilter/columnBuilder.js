@@ -12,6 +12,7 @@ const SPAN_BY_TIPS_COLS = new Set([
   "llm_reasoning",
   "segment_trace",
   "segmentTrace",
+  "usage_notes",
 ]);
 
 /**

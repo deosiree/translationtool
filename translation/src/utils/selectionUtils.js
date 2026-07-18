@@ -28,6 +28,24 @@ export function mergeSelectedEntriesById(existingRows, incomingRows) {
 }
 
 /**
+ * 将「选择全部」结果写回批量选择约定字段。
+ *
+ * @description 只赋值 `selectEntry` / `selectedRows` / `selectedRowKeys`，不发请求、不改 loading。
+ * @param {{ selectEntry?: Array, selectedRows?: Array, selectedRowKeys?: Array }} target - 通常为页面 Vue 实例
+ * @param {Array<{ id?: string|number }>} rows - 已按 id 去重的全量行
+ * @returns {void}
+ */
+export function applyBatchSelectAll(target, rows) {
+  if (!target || typeof target !== "object") return;
+  const list = Array.isArray(rows) ? rows : [];
+  target.selectEntry = list;
+  target.selectedRows = [...list];
+  target.selectedRowKeys = list
+    .map((item) => item?.id)
+    .filter((id) => id != null);
+}
+
+/**
  * 分页切换函数
  * @param {VueInstance} vm - Vue 实例
  * @param {number} page - 当前页码
