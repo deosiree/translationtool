@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Sequence
 
-from sqlalchemy import delete, func, select, String
+from sqlalchemy import and_, delete, func, or_, select, String
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import OperationalError
 
 from app.models.word import TermWord, TermWordConflict
 from app.models.term import TaskInfo, Product
@@ -104,6 +105,10 @@ class WordRepository:
         target_lang: str | None = None,
         department: str | None = None,
         status: str | None = None,
+        has_abbr: bool | None = None,
+        use_llm: bool | None = None,
+        word_regex: str | None = None,
+        translate_regex: str | None = None,
     ) -> tuple[list[TermWord], int]:
         """分页列出 term_word（术语库「术语字典」Tab）。"""
         conditions = []
@@ -117,11 +122,28 @@ class WordRepository:
             conditions.append(TermWord.department == department)
         if status:
             conditions.append(TermWord.status == status)
+        if has_abbr is True:
+            conditions.append(
+                and_(TermWord.abbr.isnot(None), TermWord.abbr != "")
+            )
+        elif has_abbr is False:
+            conditions.append(
+                or_(TermWord.abbr.is_(None), TermWord.abbr == "")
+            )
+        if use_llm is not None:
+            conditions.append(TermWord.use_llm.is_(use_llm))
+        if word_regex:
+            conditions.append(TermWord.word.op("REGEXP")(word_regex))
+        if translate_regex:
+            conditions.append(TermWord.translate.op("REGEXP")(translate_regex))
 
         count_stmt = select(func.count()).select_from(TermWord)
         if conditions:
             count_stmt = count_stmt.where(*conditions)
-        total = (await self._session.execute(count_stmt)).scalar_one()
+        try:
+            total = (await self._session.execute(count_stmt)).scalar_one()
+        except OperationalError as exc:
+            raise ValueError(f"正则无效或 SQL 错误: {exc}") from exc
 
         offset = max(page - 1, 0) * page_size
         stmt = select(TermWord)
@@ -132,7 +154,10 @@ class WordRepository:
             .offset(offset)
             .limit(page_size)
         )
-        result = await self._session.execute(stmt)
+        try:
+            result = await self._session.execute(stmt)
+        except OperationalError as exc:
+            raise ValueError(f"正则无效或 SQL 错误: {exc}") from exc
         return list(result.scalars().all()), int(total)
 
     async def get_by_id(self, word_id: str) -> TermWord | None:

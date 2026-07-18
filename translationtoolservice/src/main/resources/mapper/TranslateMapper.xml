@@ -92,6 +92,12 @@
         <if test="translateEntity.type != null  and translateEntity.type != ''">
             and type = #{translateEntity.type,jdbcType=VARCHAR}
         </if>
+        <if test="translateEntity.entryRegex != null and translateEntity.entryRegex != ''">
+            and entry REGEXP #{translateEntity.entryRegex,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateRegex != null and translateEntity.translateRegex != ''">
+            and `translate` REGEXP #{translateEntity.translateRegex,jdbcType=VARCHAR}
+        </if>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -118,6 +124,12 @@
         </if>
         <if test="translateEntity.type != null  and translateEntity.type != ''">
             and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entryRegex != null and translateEntity.entryRegex != ''">
+            and entry REGEXP #{translateEntity.entryRegex,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateRegex != null and translateEntity.translateRegex != ''">
+            and `translate` REGEXP #{translateEntity.translateRegex,jdbcType=VARCHAR}
         </if>
         GROUP BY entry,translate,type,visual_range  ORDER BY entry,type) as tbl 
         GROUP BY tbl.entry,tbl.type,tbl.visual_range HAVING COUNT(*) > 1 
@@ -372,6 +384,12 @@
         </if>
         <if test="translateEntity.type != null  and translateEntity.type != ''">
             and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entryRegex != null and translateEntity.entryRegex != ''">
+            and entry REGEXP #{translateEntity.entryRegex,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateRegex != null and translateEntity.translateRegex != ''">
+            and `translate` REGEXP #{translateEntity.translateRegex,jdbcType=VARCHAR}
         </if>
         <if test="limit >= 0 and offset >= 0">
             LIMIT #{limit} OFFSET #{offset}

@@ -13,7 +13,6 @@
               v-model:value="search.word"
               :placeholder="GLOSSARY_PLACEHOLDER.word"
               allow-clear
-              style="width: 186px"
               @pressEnter="onSearch"
             />
           </a-form-item>
@@ -22,14 +21,12 @@
               v-model:value="search.translate"
               :placeholder="GLOSSARY_PLACEHOLDER.translate"
               allow-clear
-              style="width: 186px"
               @pressEnter="onSearch"
             />
           </a-form-item>
           <a-form-item :label="GLOSSARY_LABEL.translateType">
             <a-select
               v-model:value="search.targetLang"
-              style="width: 186px"
               :placeholder="GLOSSARY_PLACEHOLDER.translateType"
               :options="translateTypes"
               :fieldNames="{ label: 'name', value: 'name' }"
@@ -40,17 +37,51 @@
             <TransStateSelect
               :translateState="search.status"
               @update:translateState="search.status = $event"
-              :style="'width: 186px'"
               :placeholder="GLOSSARY_PLACEHOLDER.translateState"
             />
           </a-form-item>
           <a-form-item :label="GLOSSARY_LABEL.visualRange">
             <a-select
               v-model:value="search.department"
-              style="width: 186px"
               :placeholder="GLOSSARY_PLACEHOLDER.visualRange"
               :options="departmentOptions"
               allow-clear
+            />
+          </a-form-item>
+          <a-form-item :label="GLOSSARY_LABEL.hasAbbr">
+            <a-select
+              v-model:value="search.hasAbbr"
+              :placeholder="GLOSSARY_PLACEHOLDER.yesNo"
+              :options="yesNoOptions"
+              allow-clear
+            />
+          </a-form-item>
+          <a-form-item :label="GLOSSARY_LABEL.useLlm">
+            <a-select
+              v-model:value="search.useLlm"
+              :placeholder="GLOSSARY_PLACEHOLDER.yesNo"
+              :options="yesNoOptions"
+              allow-clear
+            />
+          </a-form-item>
+          <a-form-item :label="GLOSSARY_LABEL.wordRegex">
+            <a-select
+              v-model:value="search.wordRegex"
+              :placeholder="GLOSSARY_PLACEHOLDER.wordRegex"
+              :options="wordRegexOptions"
+              show-search
+              allow-clear
+              @search="onWordRegexSearch"
+            />
+          </a-form-item>
+          <a-form-item :label="GLOSSARY_LABEL.translateRegex">
+            <a-select
+              v-model:value="search.translateRegex"
+              :placeholder="GLOSSARY_PLACEHOLDER.translateRegex"
+              :options="translateRegexOptions"
+              show-search
+              allow-clear
+              @search="onTranslateRegexSearch"
             />
           </a-form-item>
         </a-form>
@@ -464,6 +495,7 @@ import {
   onSelect,
   onSelectAll,
   applyBatchSelectAll,
+  pageChange,
 } from "@/utils/selectionUtils";
 import { fetchAllByPaging } from "@/utils/fetchAllByPaging";
 import { downloadBlobResponse } from "@/utils/fileUtils";
@@ -471,9 +503,24 @@ import commonParam, {
   termWordAllCols,
   termWordPresets,
 } from "@/constants/commonParam.js";
+import { TERM_WORD_REGEX_PRESETS } from "@/constants/termWordRegexPresets.js";
+import {
+  appendTypedOption,
+  clonePresetOptions,
+} from "@/utils/searchableSelectOptions";
 
 /**
- * @returns {{ word: string, translate: string, targetLang: undefined, department: undefined, status: undefined }}
+ * @returns {{
+ *   word: string,
+ *   translate: string,
+ *   targetLang: undefined,
+ *   department: undefined,
+ *   status: undefined,
+ *   hasAbbr: undefined,
+ *   useLlm: undefined,
+ *   wordRegex: undefined,
+ *   translateRegex: undefined,
+ * }}
  */
 function emptySearch() {
   return {
@@ -482,6 +529,10 @@ function emptySearch() {
     targetLang: undefined,
     department: undefined,
     status: undefined,
+    hasAbbr: undefined,
+    useLlm: undefined,
+    wordRegex: undefined,
+    translateRegex: undefined,
   };
 }
 
@@ -555,6 +606,14 @@ export default {
       USE_LLM_TIP,
       labelCol: { style: { width: "84px" } },
       overlayStyle: columnFilterOverlayStyle,
+      yesNoOptions: [
+        { label: "是", value: true },
+        { label: "否", value: false },
+      ],
+      wordRegexOptions: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
+      wordRegexOptionsBase: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
+      translateRegexOptions: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
+      translateRegexOptionsBase: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
       search,
       lastSearch: {},
       /** 忽略过期 list 响应，避免与 bootstrap 切筛竞态 */
@@ -611,6 +670,41 @@ export default {
      */
     isField(column, name) {
       return column.dataIndex === name || column.colValue === name;
+    },
+    /**
+     * 当前筛选 → list API params
+     * @returns {Object}
+     */
+    buildListParams() {
+      return {
+        word: this.search.word || undefined,
+        translate: this.search.translate || undefined,
+        targetLang: this.search.targetLang || undefined,
+        department: this.search.department || undefined,
+        status: this.search.status || undefined,
+        hasAbbr:
+          this.search.hasAbbr === true || this.search.hasAbbr === false
+            ? this.search.hasAbbr
+            : undefined,
+        useLlm:
+          this.search.useLlm === true || this.search.useLlm === false
+            ? this.search.useLlm
+            : undefined,
+        wordRegex: this.search.wordRegex || undefined,
+        translateRegex: this.search.translateRegex || undefined,
+      };
+    },
+    onWordRegexSearch(value) {
+      this.wordRegexOptions = appendTypedOption(
+        this.wordRegexOptionsBase,
+        value
+      );
+    },
+    onTranslateRegexSearch(value) {
+      this.translateRegexOptions = appendTypedOption(
+        this.translateRegexOptionsBase,
+        value
+      );
     },
     /**
      * @param {{ id?: string }} record
@@ -721,18 +815,22 @@ export default {
      * @param {number} pageSize
      */
     onPageChange(page, pageSize) {
-      this.pagination.current = page;
-      if (pageSize) this.pagination.pageSize = pageSize;
-      this.fetchList();
+      pageChange(this, page, pageSize, this.fetchList);
     },
     handleSelectChange(selectedRowKeys, selectedRows) {
       onSelectChange(this, selectedRowKeys, selectedRows);
     },
-    handleSelect(record, selected, selectedRows, nativeEvent) {
-      onSelect(this, record, selected, selectedRows, nativeEvent);
+    handleSelect(record, selected) {
+      onSelect(this, record, selected, this.batchSelectFlag);
     },
     handleSelectAll(selected, selectedRows, changeRows) {
-      onSelectAll(this, selected, selectedRows, changeRows);
+      onSelectAll(
+        this,
+        selected,
+        selectedRows,
+        changeRows,
+        this.batchSelectFlag
+      );
     },
     clearSelection() {
       this.selectedRowKeys = [];
@@ -755,11 +853,7 @@ export default {
           listTermWords({
             page,
             pageSize,
-            word: this.search.word || undefined,
-            translate: this.search.translate || undefined,
-            targetLang: this.search.targetLang || undefined,
-            department: this.search.department || undefined,
-            status: this.search.status || undefined,
+            ...this.buildListParams(),
           }).then((res) => {
             const data = res?.data ?? res;
             return {
@@ -782,11 +876,7 @@ export default {
         const res = await listTermWords({
           page: this.pagination.current,
           pageSize: this.pagination.pageSize,
-          word: this.search.word || undefined,
-          translate: this.search.translate || undefined,
-          targetLang: this.search.targetLang || undefined,
-          department: this.search.department || undefined,
-          status: this.search.status || undefined,
+          ...this.buildListParams(),
         });
         if (seq !== this._fetchSeq) return;
         const data = res?.data ?? res;

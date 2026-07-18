@@ -24,13 +24,32 @@
               :placeholder="GLOSSARY_PLACEHOLDER.translate"
             ></a-input>
           </a-form-item>
+          <a-form-item :label="GLOSSARY_LABEL.entryRegex" name="entryRegex">
+            <a-select
+              v-model:value="search.entryRegex"
+              :placeholder="GLOSSARY_PLACEHOLDER.entryRegex"
+              :options="entryRegexOptions"
+              show-search
+              allow-clear
+              @search="onEntryRegexSearch"
+            />
+          </a-form-item>
+          <a-form-item :label="GLOSSARY_LABEL.translateRegex" name="translateRegex">
+            <a-select
+              v-model:value="search.translateRegex"
+              :placeholder="GLOSSARY_PLACEHOLDER.translateRegex"
+              :options="translateRegexOptions"
+              show-search
+              allow-clear
+              @search="onTranslateRegexSearch"
+            />
+          </a-form-item>
           <!-- <a-form-item label="翻译过滤" name="filter_translate">
             <a-input v-model:value="search.filter_translate" placeholder="请输入翻译"></a-input>
           </a-form-item> -->
           <a-form-item :label="GLOSSARY_LABEL.translateType" name="type">
             <a-select
               v-model:value="search.type"
-              style="width: 186px"
               :placeholder="GLOSSARY_PLACEHOLDER.translateType"
               :options="translateTypes"
               :fieldNames="{ label: 'name', value: 'name' }"
@@ -42,14 +61,12 @@
             <TransStateSelect
               :translateState="search.translateState"
               @update:translateState="search.translateState = $event"
-              :style="'width: 186px'"
               :placeholder="GLOSSARY_PLACEHOLDER.translateState"
             />
           </a-form-item>
           <a-form-item :label="GLOSSARY_LABEL.visualRange" name="visualRange">
             <a-select
               v-model:value="search.visualRange"
-              style="width: 186px"
               :placeholder="GLOSSARY_PLACEHOLDER.visualRange"
               :options="visualRanges"
               allowClear
@@ -59,7 +76,6 @@
           <a-form-item label="校验类型" name="searchType">
             <a-select
               v-model:value="search.searchType"
-              style="width: 186px"
               placeholder="请选择校验类型"
               :options="searchTypes"
               allowClear
@@ -195,6 +211,11 @@
           />
         </div>
       </a-tab-pane>
+      <a-tab-pane key="commentRule" tab="Comment规则">
+        <div class="box term-word-box">
+          <CommentRules v-if="mainTab === 'commentRule'" />
+        </div>
+      </a-tab-pane>
     </a-tabs>
   <RelationModal
     :visible="relationVisible"
@@ -221,16 +242,22 @@ import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import TermWordDictionary from "@/views/glossary/TermWordDictionary.vue";
+import CommentRules from "@/views/glossary/CommentRules.vue";
 import GlossarySearchOperate from "@/views/glossary/shared/GlossarySearchOperate.vue";
 import SplitExportModal from "@/views/glossary/shared/SplitExportModal.vue";
 import {
   GLOSSARY_LABEL,
   GLOSSARY_PLACEHOLDER,
 } from "@/views/glossary/shared/glossaryQueryLabels.js";
+import { TERM_WORD_REGEX_PRESETS } from "@/constants/termWordRegexPresets.js";
+import {
+  appendTypedOption,
+  clonePresetOptions,
+} from "@/utils/searchableSelectOptions.js";
 import Input from "@/components/cellEditor/input_IME.vue";
 
 const GLOSSARY_MAIN_TAB_KEY = "glossaryMainTab";
-const GLOSSARY_MAIN_TABS = new Set(["syk", "termWord"]);
+const GLOSSARY_MAIN_TABS = new Set(["syk", "termWord", "commentRule"]);
 
 function readStoredMainTab() {
   try {
@@ -299,6 +326,7 @@ export default {
     TransStateBadge,
     RelationModal,
     TermWordDictionary,
+    CommentRules,
     GlossarySearchOperate,
     SplitExportModal,
     Input,
@@ -331,7 +359,13 @@ export default {
         visualRange: null,
         searchType: null,
         filter_translate: null, // 翻译过滤字段
+        entryRegex: null,
+        translateRegex: null,
       },
+      entryRegexOptions: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
+      entryRegexOptionsBase: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
+      translateRegexOptions: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
+      translateRegexOptionsBase: clonePresetOptions(TERM_WORD_REGEX_PRESETS),
       lastSearch: {}, // 存储上一次的查询条件
       visualRanges: Object.values(commonParam.departmentMap).map((dept) => ({
         label: dept.label,
@@ -811,6 +845,18 @@ export default {
       this.search = newSearch;
       this.pagination.current = newPage;
       this.getSearch();
+    },
+    onEntryRegexSearch(value) {
+      this.entryRegexOptions = appendTypedOption(
+        this.entryRegexOptionsBase,
+        value
+      );
+    },
+    onTranslateRegexSearch(value) {
+      this.translateRegexOptions = appendTypedOption(
+        this.translateRegexOptionsBase,
+        value
+      );
     },
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {

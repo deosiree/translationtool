@@ -140,18 +140,31 @@ async def list_words(
     targetLang: Optional[str] = Query(None, alias="targetLang"),
     department: Optional[str] = Query(None),
     status: Optional[str] = Query(None, description="0|1|2|3；空=全部"),
+    hasAbbr: Optional[bool] = Query(None, alias="hasAbbr", description="带缩写：是/否/空"),
+    useLlm: Optional[bool] = Query(None, alias="useLlm", description="走LLM：是/否/空"),
+    wordRegex: Optional[str] = Query(None, alias="wordRegex", description="词片 REGEXP"),
+    translateRegex: Optional[str] = Query(
+        None, alias="translateRegex", description="翻译 REGEXP"
+    ),
     session: AsyncSession = Depends(get_session),
 ):
     """供前端「术语库 → 术语字典」浏览切分命中依据。"""
-    rows, total = await WordRepository(session).list_words(
-        page=page,
-        page_size=pageSize,
-        word=word,
-        translate=translate,
-        target_lang=targetLang,
-        department=department,
-        status=status,
-    )
+    try:
+        rows, total = await WordRepository(session).list_words(
+            page=page,
+            page_size=pageSize,
+            word=word,
+            translate=translate,
+            target_lang=targetLang,
+            department=department,
+            status=status,
+            has_abbr=hasAbbr,
+            use_llm=useLlm,
+            word_regex=wordRegex,
+            translate_regex=translateRegex,
+        )
+    except ValueError as exc:
+        raise ApiError(str(exc), code=ResponseCode.PARAM_ERROR) from exc
     return ok(
         {
             "list": [_row_to_dict(r) for r in rows],

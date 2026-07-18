@@ -722,7 +722,7 @@ export const termWordAllCols = [
   { label: "可见范围", value: "department", index: 4, visible: false },
   { label: "comment", value: "comment", index: 5, visible: false },
   { label: "领域", value: "category", index: 6, visible: false },
-  { label: "缩写", value: "abbr", index: 7, visible: false },
+  { label: "缩写", value: "abbr", index: 7, visible: true },
   {
     label: "走LLM",
     value: "use_llm",
@@ -755,16 +755,16 @@ export const glossaryPresets = {
  * @type {Record<string, import('@/components/ColumnFilter/colPreset.js').ColPreset>}
  */
 export const termWordPresets = {
-  /** 钉死默认可见：词片 / 翻译 / 走LLM（+序号/操作）；其余列设置可开 */
+  /** 钉死默认可见：词片 / 翻译 / 缩写 / 走LLM（+序号/操作）；其余列设置可开 */
   termWord: {
     ovrd: [
       { value: "translate", visible: true },
+      { value: "abbr", visible: true },
       { value: "use_llm", visible: true },
       { value: "target_lang", visible: false },
       { value: "department", visible: false },
       { value: "comment", visible: false },
       { value: "category", visible: false },
-      { value: "abbr", visible: false },
       { value: "usage_notes", visible: false },
       { value: "status", visible: false },
     ],

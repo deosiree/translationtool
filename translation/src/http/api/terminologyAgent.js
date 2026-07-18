@@ -108,6 +108,10 @@ export function listPendingAudits(params) {
  * @param {string} [params.targetLang]
  * @param {string} [params.department]
  * @param {string} [params.status] - 0|1|2|3；空=全部
+ * @param {boolean} [params.hasAbbr] - 带缩写
+ * @param {boolean} [params.useLlm] - 走LLM
+ * @param {string} [params.wordRegex] - 词片 REGEXP
+ * @param {string} [params.translateRegex] - 翻译 REGEXP
  * @returns {Promise<{ data: { list: Array, total: number } }>}
  */
 export function listTermWords(params) {
@@ -356,5 +360,64 @@ export function agentPreTranslate(params, entries) {
       target_lang: params.targetLang || null,
       department: params.department || null,
     },
+  });
+}
+
+/** Comment 规则分页列表 */
+export function listCommentRules(params) {
+  return request({
+    url: "/agent/comment-rule/list",
+    method: "GET",
+    params,
+  });
+}
+
+/** Comment 规则单条详情 */
+export function getCommentRule(id) {
+  return request({
+    url: `/agent/comment-rule/${id}`,
+    method: "GET",
+  });
+}
+
+/** 新建 Comment 规则 */
+export function createCommentRule(data) {
+  return request({
+    url: "/agent/comment-rule",
+    method: "POST",
+    data,
+  });
+}
+
+/** 更新 Comment 规则 */
+export function updateCommentRule(id, data) {
+  return request({
+    url: `/agent/comment-rule/${id}`,
+    method: "PUT",
+    data,
+  });
+}
+
+/** 删除 Comment 规则 */
+export function deleteCommentRule(id) {
+  return request({
+    url: `/agent/comment-rule/${id}`,
+    method: "DELETE",
+  });
+}
+
+/**
+ * 导入 Comment 规则 Excel
+ * @param {File} file
+ * @param {boolean} [overwritePreferAbbr=false]
+ */
+export function importCommentRules(file, overwritePreferAbbr = false) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("overwritePreferAbbr", overwritePreferAbbr ? "true" : "false");
+  return requestMultipart({
+    url: "/agent/comment-rule/import",
+    method: "POST",
+    data: formData,
   });
 }

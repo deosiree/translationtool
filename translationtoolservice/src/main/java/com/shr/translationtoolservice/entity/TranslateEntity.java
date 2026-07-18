@@ -122,4 +122,12 @@ public class TranslateEntity implements Serializable {
 
     @TableField(exist = false)
     private boolean isNotUsedByEntryInfo;
+
+    /** 词条 REGEXP（列表筛选，非表字段） */
+    @TableField(exist = false)
+    private String entryRegex;
+
+    /** 翻译 REGEXP（列表筛选，非表字段） */
+    @TableField(exist = false)
+    private String translateRegex;
 }

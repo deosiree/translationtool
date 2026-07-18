@@ -49,12 +49,17 @@ public class SykController extends BaseController{
     @Transactional
     public HttpResponse<ResponseListModel> getSykEntry(@RequestBody TranslateEntity translate , @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        ResponseListModel responseListModel = new ResponseListModel();
-        translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
-        translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
-        responseListModel.setList(sykService.getSykEntry(translate,null,pageIndex,pageSize));
-        responseListModel.setTotalNum(sykService.getSykEntry(translate,null,-1,-1).size());
-        return checkResult(responseListModel);
+        try {
+            ResponseListModel responseListModel = new ResponseListModel();
+            // entry/translate 仅做 LIKE 转义；entryRegex/translateRegex 禁止转义
+            translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
+            translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
+            responseListModel.setList(sykService.getSykEntry(translate,null,pageIndex,pageSize));
+            responseListModel.setTotalNum(sykService.getSykEntry(translate,null,-1,-1).size());
+            return checkResult(responseListModel);
+        } catch (Exception e) {
+            return handleRegexpOrRethrow(e);
+        }
     }
 
     @PostMapping("/getSykEntryRelation")
@@ -74,13 +79,17 @@ public class SykController extends BaseController{
     @CrossOrigin
     @Transactional
     public HttpResponse<ResponseListModel<TranslateEntity>> getSykNotUsed(@RequestBody TranslateEntity translateTemplate,HttpServletRequest request) {
-        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
-        translateTemplate.setEntry(StringUtil.addEscapeCharacter(translateTemplate.getEntry()));
-        translateTemplate.setTranslate(StringUtil.addEscapeCharacter(translateTemplate.getTranslate()));
-        List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,request.getHeader("token"));
-        responseListModel.setList(translateEntityList);
-        responseListModel.setTotalNum(translateEntityList.size());
-        return checkResult(responseListModel);
+        try {
+            ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
+            translateTemplate.setEntry(StringUtil.addEscapeCharacter(translateTemplate.getEntry()));
+            translateTemplate.setTranslate(StringUtil.addEscapeCharacter(translateTemplate.getTranslate()));
+            List<TranslateEntity> translateEntityList = sykService.getSykNotUsed(translateTemplate,request.getHeader("token"));
+            responseListModel.setList(translateEntityList);
+            responseListModel.setTotalNum(translateEntityList.size());
+            return checkResult(responseListModel);
+        } catch (Exception e) {
+            return handleRegexpOrRethrow(e);
+        }
     }
 
     @PostMapping("/updateSykEntry")
@@ -151,14 +160,18 @@ public class SykController extends BaseController{
     @Transactional
     public HttpResponse<ResponseListModel> checkSykSameEntry(@RequestBody TranslateEntity translate , @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                       @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
-        translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
-        translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
-        /* 获取术语库中entry,type,department相同,但翻译不同的术语(translate为null，entry,type,department不为null) */
-        List<TranslateEntity> acquireSykSameEntry = sykService.acquireSykSameEntry(translate,pageIndex,pageSize);
-        responseListModel.setList(acquireSykSameEntry); 
-        responseListModel.setTotalNum(sykService.acquireSykSameEntry(translate,-1,-1).size());
-        return checkResult(responseListModel);
+        try {
+            ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
+            translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
+            translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
+            /* 获取术语库中entry,type,department相同,但翻译不同的术语(translate为null，entry,type,department不为null) */
+            List<TranslateEntity> acquireSykSameEntry = sykService.acquireSykSameEntry(translate,pageIndex,pageSize);
+            responseListModel.setList(acquireSykSameEntry); 
+            responseListModel.setTotalNum(sykService.acquireSykSameEntry(translate,-1,-1).size());
+            return checkResult(responseListModel);
+        } catch (Exception e) {
+            return handleRegexpOrRethrow(e);
+        }
     }
 
     @PostMapping("/getSameEntryRelation")
@@ -176,5 +189,44 @@ public class SykController extends BaseController{
         responseListModel.setList(translateEntityList);
         responseListModel.setTotalNum(translateEntityList.size());
         return checkResult(responseListModel);
+    }
+
+    /**
+     * 非法 REGEXP 返回可读错误；其它异常原样抛出。
+     */
+    @SuppressWarnings("rawtypes")
+    private HttpResponse handleRegexpOrRethrow(Exception e) {
+        if (isRegexpRelated(e)) {
+            String detail = rootMessage(e);
+            log.warn("Syk list REGEXP failed: {}", detail);
+            return error(null, "正则无效或 SQL 错误: " + detail);
+        }
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        }
+        throw new RuntimeException(e);
+    }
+
+    private static boolean isRegexpRelated(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            String msg = t.getMessage();
+            if (msg == null) {
+                continue;
+            }
+            String lower = msg.toLowerCase();
+            if (lower.contains("regexp")
+                    || (lower.contains("got error") && lower.contains("from regexp"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String rootMessage(Throwable e) {
+        Throwable cur = e;
+        while (cur.getCause() != null) {
+            cur = cur.getCause();
+        }
+        return cur.getMessage() != null ? cur.getMessage() : e.getClass().getSimpleName();
     }
 }
