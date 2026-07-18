@@ -8,7 +8,7 @@
   <BatchSelectModal v-if="!hideModal" :visible="batchSelectVisible" :dataSource="selectEntry" @update:dataSource="selectEntry = $event"
     :selectedRowKeys="selectedRowKeys" @update:selectedRowKeys="selectedRowKeys = $event" :selectedRows="selectedRows"
     @update:selectedRows="selectedRows = $event" @batchSelectClose="batchSelectClose" @batchSelectCancel="batchSelectCancel"
-    @refresh="getSearch" />
+    @refresh="getSearch" @split="$emit('split')" />
 </template>
 
 <script>
@@ -27,6 +27,7 @@ export default {
     "update:selectedRowKeys",
     "update:batchSelectFlag",
     "update:batchSelectVisible",
+    "split",
   ],
   props: {
     size: {
@@ -93,9 +94,8 @@ export default {
   methods: {
     // 批量选择展开
     batchSelectOpen() {
-      if (this.batchSelectOnChange(this.getSearch))
-        // 判断搜索条件是否变化，如果变化则重新查询
-        return;
+      // 条件变化时先刷新列表，但无论是否变化都必须展开批量 UI
+      this.batchSelectOnChange(this.getSearch);
       this.$emit("update:batchSelectFlag", true);
       this.$emit("update:selectEntry", []);
       this.$emit("update:selectedRows", []);

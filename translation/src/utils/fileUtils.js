@@ -115,50 +115,202 @@ export function removeFile(formModel, fileKey, fileListKey) {
 }
 
 /**
- * 处理blob响应并触发下载（通用下载处理函数）
- * @param {Object} response - axios响应对象（responseType: 'blob'）
- * @param {string} fileName - 文件名（可选，从响应头提取）
+ * 按扩展名推断 showSaveFilePicker 的 accept types
+ * @param {string} fileName
+ * @param {string} contentType
+ * @returns {{ description: string, accept: Record<string, string[]> }[]}
+ */
+function savePickerTypesForFile(fileName, contentType) {
+  const lower = String(fileName || "").toLowerCase();
+  if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
+    return [
+      {
+        description: "Excel 文件",
+        accept: {
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+            ".xlsx",
+          ],
+          "application/vnd.ms-excel": [".xls"],
+        },
+      },
+    ];
+  }
+  if (lower.endsWith(".json") || String(contentType).includes("json")) {
+    return [
+      {
+        description: "JSON 文件",
+        accept: { "application/json": [".json"] },
+      },
+    ];
+  }
+  return [
+    {
+      description: "文件",
+      accept: { [contentType || "application/octet-stream"]: [".*"] },
+    },
+  ];
+}
+
+/**
+ * 传统 a[download] 落盘（工作台模板下载 / 回填异常 JSON 等同款）。
+ * 异步请求后仍可用；不依赖用户手势令牌。
+ * @param {Blob} blob
+ * @param {string} finalFileName
  * @returns {void}
  */
-export function downloadBlobResponse(response, fileName = null) {
+function triggerAnchorDownload(blob, finalFileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = finalFileName;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  // 延迟 revoke，避免 Electron/Chromium 尚未开始读流就失效
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * 是否为「非用户手势」导致的 File Picker 拒绝（应回退 a[download]）
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isSavePickerGestureError(error) {
+  const name = error?.name || "";
+  const msg = String(error?.message || "");
+  return (
+    name === "SecurityError" ||
+    name === "NotAllowedError" ||
+    /user gesture/i.test(msg) ||
+    /showSaveFilePicker/i.test(msg)
+  );
+}
+
+/**
+ * 处理 blob 响应并触发下载；若服务端实际返回 JSON 错误体（如 code=203），提示并不落盘。
+ * 默认与 downloadJsonFile / 工作台模板下载一致：走 a[download]。
+ * choosePath=true 时尝试另存为；用户取消返回 false；手势失效则回退默认下载。
+ * @param {Object} response - axios 响应对象（responseType: 'blob'）
+ * @param {string|null} [fileName=null] - 文件名（可选，从响应头提取）
+ * @param {boolean} [choosePath=false] - 是否尝试弹出另存为（须仍在用户手势链内）
+ * @returns {Promise<boolean>} true=已保存/已触发下载；false=用户取消
+ */
+export async function downloadBlobResponse(
+  response,
+  fileName = null,
+  choosePath = false,
+) {
   try {
-    // 从响应头提取文件名
-    let finalFileName = fileName;
-    if (!finalFileName) {
-      const contentDisposition = response.headers['content-disposition'];
-      if (contentDisposition) {
-        // 支持两种格式：filename="xxx" 或 filename=xxx
-        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (fileNameMatch && fileNameMatch[1]) {
-          finalFileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+    const headerCt = String(
+      response?.headers?.["content-type"] ||
+        response?.headers?.["Content-Type"] ||
+        "",
+    ).toLowerCase();
+    let payload = response?.data;
+
+    // 仅在 content-type 含 json，或小体积且以 { 开头时探测错误体（避免误伤 xlsx）
+    if (typeof Blob !== "undefined" && payload instanceof Blob) {
+      const blobCt = String(payload.type || headerCt).toLowerCase();
+      const maybeJson =
+        blobCt.includes("json") ||
+        (payload.size <= 8192 && blobCt.includes("octet-stream"));
+      if (maybeJson || blobCt.includes("json")) {
+        const head = await payload.slice(0, 96).text();
+        if (head.trim().startsWith("{") || blobCt.includes("json")) {
+          const text = payload.size <= 8192 ? await payload.text() : head;
+          try {
+            const errBody = JSON.parse(text);
+            if (errBody && (errBody.code != null || errBody.message)) {
+              const msg =
+                errBody.message || `下载失败（code=${errBody.code}）`;
+              message.error(msg);
+              throw new Error(msg);
+            }
+          } catch (parseErr) {
+            if (
+              parseErr?.message &&
+              !String(parseErr.message).includes("JSON")
+            ) {
+              throw parseErr;
+            }
+          }
+        }
+      }
+    } else if (typeof payload === "string" && payload.trim().startsWith("{")) {
+      try {
+        const errBody = JSON.parse(payload);
+        if (errBody && (errBody.code != null || errBody.message)) {
+          const msg = errBody.message || `下载失败（code=${errBody.code}）`;
+          message.error(msg);
+          throw new Error(msg);
+        }
+      } catch (parseErr) {
+        if (parseErr?.message && !String(parseErr.message).includes("JSON")) {
+          throw parseErr;
         }
       }
     }
 
-    // 如果没有提取到文件名，使用默认名称
+    let finalFileName = fileName;
+    if (!finalFileName) {
+      const contentDisposition = response.headers["content-disposition"];
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
+        );
+        if (fileNameMatch && fileNameMatch[1]) {
+          finalFileName = decodeURIComponent(
+            fileNameMatch[1].replace(/['"]/g, ""),
+          );
+        }
+      }
+    }
+
     if (!finalFileName) {
       const time = getCurrentStringTime();
       finalFileName = `download_${time}`;
     }
 
-    // 获取contentType
-    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    const contentType =
+      response.headers["content-type"] || "application/octet-stream";
+    const blob =
+      typeof Blob !== "undefined" && payload instanceof Blob
+        ? payload
+        : new Blob([payload], { type: contentType });
 
-    // 创建Blob并触发下载
-    const blob = new Blob([response.data], { type: contentType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = finalFileName;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    // 清理
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    if (
+      choosePath &&
+      typeof window !== "undefined" &&
+      "showSaveFilePicker" in window
+    ) {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: finalFileName,
+          types: savePickerTypesForFile(finalFileName, contentType),
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          return false;
+        }
+        // 异步请求后手势失效：回退默认下载，不把「注意事项生成模板」等链路打挂
+        if (!isSavePickerGestureError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    triggerAnchorDownload(blob, finalFileName);
+    return true;
   } catch (error) {
     console.error("处理下载响应失败：", error);
-    message.error(`下载文件失败: ${error.message || error}`);
+    if (!error?.message || !String(error.message).includes("下载")) {
+      message.error(`下载文件失败: ${error.message || error}`);
+    }
     throw error;
   }
 }

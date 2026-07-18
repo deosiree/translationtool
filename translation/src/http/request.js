@@ -45,13 +45,14 @@
  *   ```
  * 
  * ### 4. Binary - requestBinary
- * - Content-Type: application/octet-stream
- * - 用途：大文件直传、二进制流传输
- * - 使用场景：传输原始二进制数据
+ * - Content-Type：按 body 自动选择
+ *   - 普通对象 → application/json（JSON POST 触发文件下载，如导出）
+ *   - Blob/ArrayBuffer/FormData → application/octet-stream（或交浏览器处理 FormData）
+ * - 用途：下载二进制响应；也可 POST JSON 换取文件流
  * - 示例：
  *   ```javascript
  *   import { requestBinary } from '@/http/request';
- *   requestBinary({ url: '/api/download', method: 'POST', data: binaryData, responseType: 'blob' });
+ *   requestBinary({ url: '/api/download', method: 'POST', data: { ids: [] }, responseType: 'blob' });
  *   ```
  */
 
@@ -77,35 +78,55 @@ const baseConfig = {
   timeout: 7200000, // 超时时间（注意：原代码写的是 settimeout，应该是 timeout）
 };
 
+/**
+ * 是否为浏览器二进制请求体
+ * @param {unknown} data
+ * @returns {boolean}
+ */
+function isBinaryBody(data) {
+  if (data == null) return false;
+  if (typeof FormData !== "undefined" && data instanceof FormData) return true;
+  if (typeof Blob !== "undefined" && data instanceof Blob) return true;
+  if (typeof ArrayBuffer !== "undefined" && data instanceof ArrayBuffer) return true;
+  if (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView?.(data)) return true;
+  return false;
+}
+
 // ==================== 请求拦截器（所有实例共享） ====================
 const requestInterceptor = (config) => {
-  // // 请求开始，计数器加 1
-  // requestCount++;
-  // // 清除延迟隐藏 loading 的定时器
-  // if (hideLoadingTimer) {
-  //   clearTimeout(hideLoadingTimer);
-  //   hideLoadingTimer = null;
-  // }
-  // if (requestCount === 1) {
-  //   // 只有在第一个请求开始时显示 loading
-  //   LoadingService.show();
-  // }
-
   // 取消上次请求
   if (Object(config.params)['requestId']) {// 只有提供了requestId的请求才可以取消
     const controller = new AbortController();
     controllers[config.params.requestId] = controller;
     config.signal = controller.signal;
-    // requestCount--;
-    // handleHideLoading();
   }
 
   // 在发送请求之前做些什么 验证token之类的
-  // 从vuex中获取token
-  // config.headers.token = sessionStorage.getItem('token')
   config.headers.token = store.state.token
-  // console.log("请求的数据:", config);
   return config; //记得一定要 返回config
+};
+
+/**
+ * Binary 实例专用：按 body 类型设置 Content-Type，避免 JSON 导出被当成 octet-stream 导致 203
+ * @param {import('axios').InternalAxiosRequestConfig} config
+ * @returns {import('axios').InternalAxiosRequestConfig}
+ */
+const binaryRequestInterceptor = (config) => {
+  const next = requestInterceptor(config);
+  const headers = next.headers || {};
+  const data = next.data;
+  const explicit = headers["Content-Type"] || headers["content-type"];
+  if (!explicit) {
+    if (isBinaryBody(data)) {
+      if (!(typeof FormData !== "undefined" && data instanceof FormData)) {
+        headers["Content-Type"] = "application/octet-stream";
+      }
+    } else if (data != null && typeof data === "object") {
+      headers["Content-Type"] = "application/json;charset=UTF-8";
+    }
+  }
+  next.headers = headers;
+  return next;
 };
 
 const requestInterceptorError = (error) => {
@@ -247,18 +268,15 @@ multipartInstance.interceptors.response.use(jsonResponseInterceptor, responseInt
 
 /**
  * Binary 实例
- * Content-Type: application/octet-stream
- * 用于大文件直传、二进制流传输
+ * 不默认强制 octet-stream；由 binaryRequestInterceptor 按 body 选择 Content-Type
+ * 用于：JSON POST 触发文件下载、二进制流传输
  */
 const binaryInstance = axios.create({
   ...baseConfig,
-  headers: {
-    'Content-Type': 'application/octet-stream',
-  },
 });
 
 // 添加拦截器
-binaryInstance.interceptors.request.use(requestInterceptor, requestInterceptorError);
+binaryInstance.interceptors.request.use(binaryRequestInterceptor, requestInterceptorError);
 binaryInstance.interceptors.response.use(binaryResponseInterceptor, responseInterceptorError);
 
 // // 处理隐藏 loading 的逻辑

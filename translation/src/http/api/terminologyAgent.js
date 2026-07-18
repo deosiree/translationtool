@@ -11,7 +11,7 @@
  * @module terminologyAgent
  */
 
-import request from "../request";
+import request, { requestBinary, requestMultipart } from "../request";
 
 /**
  * RAG 检索命中的参考术语
@@ -95,6 +95,205 @@ export function listPendingAudits(params) {
     url: "/agent/term-learning/list",
     method: "GET",
     params,
+  });
+}
+
+/**
+ * 术语库「术语字典」Tab — term_word 分页列表（切分命中依据）
+ * @param {Object} params
+ * @param {number} [params.page]
+ * @param {number} [params.pageSize]
+ * @param {string} [params.word]
+ * @param {string} [params.translate]
+ * @param {string} [params.targetLang]
+ * @param {string} [params.department]
+ * @param {string} [params.status] - 0|1|2|3；空=全部
+ * @returns {Promise<{ data: { list: Array, total: number } }>}
+ */
+export function listTermWords(params) {
+  return request({
+    url: "/agent/word/list",
+    method: "GET",
+    params,
+  });
+}
+
+/**
+ * 新建 term_word
+ * @param {Object} data
+ * @param {string} data.word
+ * @param {string} data.translate
+ * @param {string} data.target_lang
+ * @param {string} [data.department]
+ * @param {string} [data.comment]
+ * @param {string} [data.status] - 0|1|2|3，默认 1
+ */
+export function createTermWord(data) {
+  return request({
+    url: "/agent/word",
+    method: "POST",
+    data,
+  });
+}
+
+/**
+ * 更新 term_word
+ * @param {string} id
+ * @param {Object} data
+ */
+export function updateTermWord(id, data) {
+  return request({
+    url: `/agent/word/${id}`,
+    method: "PUT",
+    data,
+  });
+}
+
+/**
+ * 删除单条 term_word
+ * @param {string} id
+ */
+export function deleteTermWord(id) {
+  return request({
+    url: `/agent/word/${id}`,
+    method: "DELETE",
+  });
+}
+
+/**
+ * 批量删除 term_word
+ * @param {string[]} ids
+ */
+export function batchDeleteTermWords(ids) {
+  return request({
+    url: "/agent/word/batch-delete",
+    method: "POST",
+    data: { ids },
+  });
+}
+
+/**
+ * 批量审阅 term_word（通过→已审核 / 驳回→审核不通过）
+ * 仅处理当前为待审核(1)的行
+ * @param {string[]} ids
+ * @param {"approved"|"rejected"} action
+ * @returns {Promise<{ data: { updated: number, skipped: number, missing: number, status: string } }>}
+ */
+export function batchReviewTermWords(ids, action) {
+  return request({
+    url: "/agent/word/batch-review",
+    method: "POST",
+    data: { ids, action },
+  });
+}
+
+/**
+ * 下载术语字典导入模板
+ * @param {boolean} [withSample=true] - 是否带样例行
+ * @returns {Promise<import('axios').AxiosResponse>}
+ */
+export function downloadTermWordTemplate(withSample = true) {
+  return requestBinary({
+    url: "/agent/word/import-template",
+    method: "GET",
+    params: { withSample: withSample ? 1 : 0 },
+    responseType: "blob",
+  });
+}
+
+/**
+ * 导入术语字典 Excel
+ * @param {File} file
+ * @param {{ forcePendingWhenTranslated?: boolean }} [options]
+ * @returns {Promise<{ data: { created: number, skipped: number, parseErrors: string[], skipDetails: string[] } }>}
+ */
+export function importTermWords(file, options = {}) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return requestMultipart({
+    url: "/agent/word/import",
+    method: "POST",
+    params: {
+      forcePendingWhenTranslated: options.forcePendingWhenTranslated ? true : false,
+    },
+    data: formData,
+  });
+}
+
+/**
+ * 导出术语字典 Excel（已选 ids 或筛选条件）
+ * @param {{ ids?: string[], word?: string, translate?: string, targetLang?: string, department?: string, status?: string }} body
+ * @returns {Promise<import('axios').AxiosResponse>}
+ */
+export function exportTermWords(body) {
+  return requestBinary({
+    url: "/agent/word/export",
+    method: "POST",
+    data: body || {},
+    responseType: "blob",
+    headers: { "Content-Type": "application/json;charset=UTF-8" },
+  });
+}
+
+/**
+ * 注意事项清单适配为标准行
+ * @param {File} file
+ * @param {string} [targetLang='英文']
+ * @returns {Promise<{ data: { list: Object[], total: number } }>}
+ */
+export function adaptNotesToTermWordRows(file, targetLang = "英文") {
+  const formData = new FormData();
+  formData.append("file", file);
+  return requestMultipart({
+    url: "/agent/word/notes-adapt",
+    method: "POST",
+    params: { targetLang },
+    data: formData,
+  });
+}
+
+/**
+ * 导出任意标准行（拆分结果等）为 Excel
+ * @param {Object[]} rows
+ * @param {boolean} [forcePending=true]
+ * @returns {Promise<import('axios').AxiosResponse>}
+ */
+export function exportTermWordRows(rows, forcePending = true) {
+  return requestBinary({
+    url: "/agent/word/export-rows",
+    method: "POST",
+    data: { rows, forcePending },
+    responseType: "blob",
+    headers: { "Content-Type": "application/json;charset=UTF-8" },
+  });
+}
+
+/**
+ * 按标准行直接导入术语字典（拆分一键入库）
+ * @param {Object[]} rows
+ * @param {boolean} [forcePending=true]
+ * @returns {Promise<{ data: { created: number, skipped: number, skipDetails?: string[] } }>}
+ */
+export function importTermWordRows(rows, forcePending = true) {
+  return request({
+    url: "/agent/word/import-rows",
+    method: "POST",
+    data: { rows, forcePending },
+  });
+}
+
+/**
+ * 术语词典拆分预览
+ * @param {{ entry: string, translate?: string, targetLang: string, department?: string, comment?: string }[]} items
+ * @param {{ fillWithLlm?: boolean }} [options]
+ * @returns {Promise<{ data: { list: Array, total: number } }>}
+ */
+export function splitTermWordPreview(items, options = {}) {
+  const fillWithLlm = options.fillWithLlm !== false;
+  return request({
+    url: "/agent/word/split-preview",
+    method: "POST",
+    data: { items, fillWithLlm },
   });
 }
 

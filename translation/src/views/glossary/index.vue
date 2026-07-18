@@ -1,4 +1,7 @@
 <template>
+  <div class="glossary-page">
+    <a-tabs v-model:activeKey="mainTab" class="glossary-tabs" @change="onMainTabChange">
+      <a-tab-pane key="syk" tab="术语词典">
   <div class="box" ref="box">
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
@@ -15,39 +18,39 @@
               placeholder="请输入词条"
             ></a-input>
           </a-form-item>
-          <a-form-item label="翻译" name="translate">
+          <a-form-item :label="GLOSSARY_LABEL.translate" name="translate">
             <a-input
               v-model:value="search.translate"
-              placeholder="请输入翻译"
+              :placeholder="GLOSSARY_PLACEHOLDER.translate"
             ></a-input>
           </a-form-item>
           <!-- <a-form-item label="翻译过滤" name="filter_translate">
             <a-input v-model:value="search.filter_translate" placeholder="请输入翻译"></a-input>
           </a-form-item> -->
-          <a-form-item label="翻译类型" name="type">
+          <a-form-item :label="GLOSSARY_LABEL.translateType" name="type">
             <a-select
               v-model:value="search.type"
               style="width: 186px"
-              placeholder="请选择翻译类型"
+              :placeholder="GLOSSARY_PLACEHOLDER.translateType"
               :options="translateTypes"
               :fieldNames="{ label: 'name', value: 'name' }"
               allowClear
             >
             </a-select>
           </a-form-item>
-          <a-form-item label="翻译状态" name="translateState">
+          <a-form-item :label="GLOSSARY_LABEL.translateState" name="translateState">
             <TransStateSelect
               :translateState="search.translateState"
               @update:translateState="search.translateState = $event"
               :style="'width: 186px'"
-              :placeholder="'请选择翻译状态'"
+              :placeholder="GLOSSARY_PLACEHOLDER.translateState"
             />
           </a-form-item>
-          <a-form-item label="可见范围" name="visualRange">
+          <a-form-item :label="GLOSSARY_LABEL.visualRange" name="visualRange">
             <a-select
               v-model:value="search.visualRange"
               style="width: 186px"
-              placeholder="请选择可见范围"
+              :placeholder="GLOSSARY_PLACEHOLDER.visualRange"
               :options="visualRanges"
               allowClear
             >
@@ -66,15 +69,12 @@
         </a-form>
       </template>
       <template v-slot:operate>
-        <ResetButton
-          :size="'middle'"
+        <GlossarySearchOperate
           :search="search"
           :currentPage="pagination.current"
-          @resetData="onResetData"
+          @reset="onResetData"
+          @search="getSearchClick"
         />
-        <a-button type="primary" size="middle" @click="getSearchClick"
-          >查询</a-button
-        >
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
@@ -85,11 +85,12 @@
           style="margin-bottom: 8px; display: flex; gap: 10px"
         >
           <BatchSelectButton
-            v-if="!isGetSykEntry && !isCheckSameEntry"
             :size="'middle'"
             :columns="columns"
             :dataSource="dataSource"
             :getSearch="getSearch"
+            selected-button-text="已选术语"
+            :selectAllFn="selectAllGlossaryEntries"
             v-model:search="search"
             v-model:lastSearch="lastSearch"
             v-model:loading="loading"
@@ -98,8 +99,8 @@
             v-model:selectedRowKeys="selectedRowKeys"
             v-model:batchSelectFlag="batchSelectFlag"
             v-model:batchSelectVisible="batchSelectVisible"
+            @split="onSelectedSplit"
           />
-
           <ColumnFilter
             v-model="checkedColumn"
             :columns="columnSettingsList"
@@ -160,34 +161,23 @@
                 <TransStateBadge :translateState="text" />
               </template>
               <template v-if="column.dataIndex === 'operation'">
-                <div class="editable-row-operations">
-                  <span v-if="editableData[record.id]">
-                    <a-button
-                      type="primary"
-                      ghost
-                      size="small"
-                      @click.stop="save(record.id)"
-                      >保存</a-button
-                    >
-                    <a-button
-                      type="primary"
-                      ghost
-                      size="small"
-                      danger
-                      @click.stop="cancel(record.id)"
-                      >取消</a-button
-                    >
-                  </span>
-                  <span v-else>
-                    <a-button
-                      type="primary"
-                      ghost
-                      size="small"
-                      @click.stop="viewRelation(record)"
-                      >详情({{ record.relationCount }})</a-button
-                    >
-                  </span>
-                </div>
+                <OperationCellOverflow
+                  v-if="editableData[record.id]"
+                  :inline-visible-count="2"
+                >
+                  <OpItem label="保存" @click.stop="save(record.id)" />
+                  <OpItem
+                    label="取消"
+                    type="danger"
+                    @click.stop="cancel(record.id)"
+                  />
+                </OperationCellOverflow>
+                <OperationCellOverflow v-else :inline-visible-count="2">
+                  <OpItem
+                    :label="`详情(${record.relationCount})`"
+                    @click.stop="viewRelation(record)"
+                  />
+                </OperationCellOverflow>
               </template>
             </template>
           </a-table>
@@ -195,11 +185,30 @@
       </template>
     </DataBox>
   </div>
+      </a-tab-pane>
+      <a-tab-pane key="termWord" tab="术语字典">
+        <div class="box term-word-box">
+          <TermWordDictionary
+            v-if="mainTab === 'termWord'"
+            ref="termWordDict"
+            :bootstrap-status="termWordBootstrapStatus"
+          />
+        </div>
+      </a-tab-pane>
+    </a-tabs>
   <RelationModal
     :visible="relationVisible"
     :currentData="relationData"
     @relationClose="relationClose"
   ></RelationModal>
+  <SplitExportModal
+    :visible="splitExportVisible"
+    :sourceItems="selectEntry"
+    @close="splitExportVisible = false"
+    @exported="onSplitExported"
+    @imported="onSplitImported"
+  />
+  </div>
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -211,7 +220,26 @@ import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
+import TermWordDictionary from "@/views/glossary/TermWordDictionary.vue";
+import GlossarySearchOperate from "@/views/glossary/shared/GlossarySearchOperate.vue";
+import SplitExportModal from "@/views/glossary/shared/SplitExportModal.vue";
+import {
+  GLOSSARY_LABEL,
+  GLOSSARY_PLACEHOLDER,
+} from "@/views/glossary/shared/glossaryQueryLabels.js";
 import Input from "@/components/cellEditor/input_IME.vue";
+
+const GLOSSARY_MAIN_TAB_KEY = "glossaryMainTab";
+const GLOSSARY_MAIN_TABS = new Set(["syk", "termWord"]);
+
+function readStoredMainTab() {
+  try {
+    const v = localStorage.getItem(GLOSSARY_MAIN_TAB_KEY);
+    return GLOSSARY_MAIN_TABS.has(v) ? v : "syk";
+  } catch {
+    return "syk";
+  }
+}
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
@@ -245,7 +273,9 @@ import {
   onSelect,
   onSelectAll,
   pageChange,
+  applyBatchSelectAll,
 } from "@/utils/selectionUtils";
+import { fetchAllByPaging } from "@/utils/fetchAllByPaging";
 import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
 import { getSearch } from "@/utils/requestUtils";
 import commonParam, {
@@ -254,6 +284,10 @@ import commonParam, {
   glossaryPresets,
 } from "@/constants/commonParam.js";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import {
+  OpItem,
+  OperationCellOverflow,
+} from "@/components/OperationColumn";
 import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
@@ -264,8 +298,13 @@ export default {
     TransStateSelect,
     TransStateBadge,
     RelationModal,
+    TermWordDictionary,
+    GlossarySearchOperate,
+    SplitExportModal,
     Input,
     ColumnFilter,
+    OpItem,
+    OperationCellOverflow,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -276,6 +315,11 @@ export default {
   },
   data() {
     return {
+      GLOSSARY_LABEL,
+      GLOSSARY_PLACEHOLDER,
+      mainTab: readStoredMainTab(),
+      /** 拆分导入后挂载术语字典时的初始翻译状态（如 '1' 待审核） */
+      termWordBootstrapStatus: null,
       locale: locale,
       labelCol: { style: { width: "84px" } },
       search: {
@@ -329,6 +373,7 @@ export default {
       isGetSykEntry: true,
       isCheckSameEntry: false,
       batchSelectVisible: false,
+      splitExportVisible: false,
       apiFunctions: {
         getSykEntry: this.getSykEntry,
         getSykNotUsed: this.getSykNotUsed,
@@ -384,6 +429,75 @@ export default {
     },
   },
   methods: {
+    onMainTabChange(key) {
+      const next = GLOSSARY_MAIN_TABS.has(key) ? key : "syk";
+      this.mainTab = next;
+      try {
+        localStorage.setItem(GLOSSARY_MAIN_TAB_KEY, next);
+      } catch {
+        /* ignore quota / private mode */
+      }
+      if (next !== "termWord") {
+        this.termWordBootstrapStatus = null;
+      }
+      if (next === "syk") {
+        this.$nextTick(() => {
+          if (typeof this.setTableHeight === "function") this.setTableHeight();
+        });
+      }
+    },
+    /**
+     * 打开拆分导出弹窗（需已选术语）
+     * @returns {void}
+     */
+    openSplitExport() {
+      if (!this.selectEntry?.length) {
+        message.warning("请先批量选择术语");
+        return;
+      }
+      this.splitExportVisible = true;
+    },
+    /**
+     * 已选术语弹窗内点「拆分」
+     * @returns {void}
+     */
+    onSelectedSplit() {
+      this.batchSelectVisible = false;
+      this.openSplitExport();
+    },
+    /**
+     * 拆分导出完成：提示切到术语字典导入
+     * @returns {void}
+     */
+    onSplitExported() {
+      message.info("也可切换到「术语字典」Tab 使用「更多操作 → 导入」入库");
+    },
+    /**
+     * 拆分一键导入完成：切到术语字典、以待审核挂载并刷新（数据已落库 status=1）
+     * @param {{ created?: number, skipped?: number }} [data]
+     * @returns {void}
+     */
+    onSplitImported(data) {
+      // 先设 bootstrap，再切 Tab，避免 mounted 先按默认「已审核」拉取再被覆盖
+      this.termWordBootstrapStatus = "1";
+      const alreadyOnDict = this.mainTab === "termWord";
+      this.mainTab = "termWord";
+      try {
+        localStorage.setItem(GLOSSARY_MAIN_TAB_KEY, "termWord");
+      } catch {
+        /* ignore */
+      }
+      this.$nextTick(() => {
+        const dict = this.$refs.termWordDict;
+        if (alreadyOnDict && dict?.search) {
+          dict.search.status = "1";
+          dict.fetchList?.();
+        }
+      });
+      message.success(
+        `导入完成：新增 ${data?.created ?? 0}，跳过 ${data?.skipped ?? 0}（已写入库，筛「待审核」可见）`,
+      );
+    },
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
     },
@@ -410,6 +524,57 @@ export default {
       this.pagination.current = 1;
       this.getSearch();
     },
+    /**
+     * 当前查询类型对应的列表 HTTP 函数（不经过会清空已选的 getSearch）。
+     * @returns {(params: object, data: object) => Promise} 
+     */
+    resolveGlossaryListApi() {
+      const option = this.search.searchType || "getSykEntry";
+      const map = {
+        getSykEntry,
+        getSykNotUsed,
+        checkSameEntry,
+        checkSykEntry,
+      };
+      return map[option] || getSykEntry;
+    },
+    /**
+     * 「选择全部」：按当前筛选跨页拉全量术语并写入已选（不改 UI pagination）。
+     * @returns {Promise<void>}
+     */
+    async selectAllGlossaryEntries() {
+      this.loading = true;
+      try {
+        const api = this.resolveGlossaryListApi();
+        const searchBody = { ...this.search };
+        const rows = await fetchAllByPaging(async (page, pageSize) => {
+          const res = await api(
+            {
+              pageIndex: page,
+              pageSize,
+              requestId: `selectAll-${Date.now().toString(16)}`,
+            },
+            searchBody
+          );
+          if (!res?.data) {
+            return { list: [], total: 0 };
+          }
+          // checkSykEntry 返回整表数组；其它接口为 { list, totalNum }
+          if (Array.isArray(res.data)) {
+            return { list: res.data, total: res.data.length };
+          }
+          return {
+            list: Array.isArray(res.data.list) ? res.data.list : [],
+            total: res.data.totalNum ?? res.data.total ?? 0,
+          };
+        });
+        applyBatchSelectAll(this, rows);
+      } catch (e) {
+        message.error(e?.message || "选择全部失败");
+      } finally {
+        this.loading = false;
+      }
+    },
     // 查询事件
     getSearch() {
       this.dataSource = [];
@@ -430,11 +595,9 @@ export default {
       } else {
         option = this.search.searchType;
       }
-      // 记录上次查询条件
-      const currentSearch = { ...this.search };
-      currentSearch.searchType = option;
-      // console.log("当前查询条件：", currentSearch);
-      this.lastSearch = currentSearch;
+      // 对齐 search / lastSearch（含 searchType），避免批量选择误判条件变化
+      this.search.searchType = option;
+      this.lastSearch = { ...this.search };
 
       // 入参+请求体
       // this.search.type = this.search.translateType;
@@ -700,6 +863,45 @@ export default {
 @import url("@/assets/style/common.less");
 </style>
 <style scoped lang="less">
+.glossary-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.glossary-tabs {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  :deep(.ant-tabs-nav) {
+    padding: 8px 16px 0;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  :deep(.ant-tabs-content-holder) {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  :deep(.ant-tabs-content),
+  :deep(.ant-tabs-tabpane) {
+    height: 100%;
+    min-height: 0;
+  }
+  :deep(.ant-tabs-content) {
+    display: flex;
+    flex-direction: column;
+  }
+  :deep(.ant-tabs-tabpane-active) {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
 .box {
   width: 100%;
   height: 100%;
@@ -709,6 +911,14 @@ export default {
   & :deep(.search .form .ant-row) {
     margin-bottom: 8px !important;
   }
+}
+.term-word-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 </style>
 <style lang="less">

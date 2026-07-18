@@ -1,7 +1,7 @@
 <template>
-  <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" @handleClose="handleClose" @handleOK="handleOK">
+  <CustomModal :modalWidth="modalWidth" modalTitle="已选术语" :visible="visible" @handleClose="handleClose" @handleOK="handleOK">
     <div class="table">
-      <div>已选词条：</div>
+      <div>已选术语：{{ dataSource.length }} 条</div>
       <a-config-provider :locale="locale">
         <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'max-content' , y: '60vh'}"
           :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
@@ -24,6 +24,13 @@
     <template v-slot:leftBottomBtn>
       <a-button @click="batchSelectCancel">关闭</a-button>
       <DeleteButton :dataSource="dataSource" :deleteApi="deleteSykEntry"></DeleteButton>
+      <a-button
+        type="primary"
+        :disabled="!dataSource.length"
+        @click="onSplit"
+      >
+        拆分
+      </a-button>
     </template>
   </CustomModal>
 </template>
@@ -56,6 +63,7 @@ export default {
     "batchSelectClose",
     "batchSelectCancel",
     "refresh",
+    "split",
     "update:dataSource", // 添加 update:dataSource 事件
     "update:selectedRowKeys", // 添加 update:selectedRowKeys 事件
     "update:selectedRows", // 添加 update:selectedRows 事件
@@ -156,6 +164,17 @@ export default {
           this.$emit("batchSelectCancel");
         },
       });
+    },
+    /**
+     * 拆分已选术语 → 打开拆分预览弹窗
+     * @returns {void}
+     */
+    onSplit() {
+      if (!this.dataSource?.length) {
+        message.warning("请先选择术语");
+        return;
+      }
+      this.$emit("split");
     },
     // 删除按钮（删除所有所选术语）
     deleteSykEntry() {

@@ -707,7 +707,38 @@ export const glossaryAllCols = [
   { label: "翻译类型", value: "type", index: 4, visible: true },
   { label: "可见范围", value: "visualRange", index: 5, visible: true },
   { label: "词条审核员", value: "entryAuditor", index: 6, visible: true },
-  { label: "操作", value: "operation", index: 100, required: true },
+  { label: "操作", value: "operation", index: 100, required: true, width: 100 },
+];
+
+/**
+ * 术语字典（term_word）列全集
+ * @type {import('@/components/ColumnFilter/colPreset.js').ColDef[]}
+ */
+export const termWordAllCols = [
+  { label: "序号", value: "index", index: 0, required: true },
+  { label: "词片", value: "word", index: 1, required: true },
+  { label: "翻译", value: "translate", index: 2, visible: true },
+  { label: "翻译类型", value: "target_lang", index: 3, visible: false },
+  { label: "可见范围", value: "department", index: 4, visible: false },
+  { label: "comment", value: "comment", index: 5, visible: false },
+  { label: "领域", value: "category", index: 6, visible: false },
+  { label: "缩写", value: "abbr", index: 7, visible: false },
+  {
+    label: "走LLM",
+    value: "use_llm",
+    index: 8,
+    visible: true,
+    tip: "是否需要走LLM判断，非直译，而是含有指代、有词性、需分场景判断等",
+  },
+  {
+    label: "使用场景与注意事项",
+    value: "usage_notes",
+    index: 9,
+    visible: false,
+    width: 200,
+  },
+  { label: "翻译状态", value: "status", index: 10, visible: false },
+  { label: "操作", value: "operation", index: 100, required: true, width: 100 },
 ];
 
 /**
@@ -717,6 +748,28 @@ export const glossaryAllCols = [
 export const glossaryPresets = {
   /** 术语库主页 */
   glossary: { ovrd: [], defaults: null },
+};
+
+/**
+ * 术语字典各页列覆盖
+ * @type {Record<string, import('@/components/ColumnFilter/colPreset.js').ColPreset>}
+ */
+export const termWordPresets = {
+  /** 钉死默认可见：词片 / 翻译 / 走LLM（+序号/操作）；其余列设置可开 */
+  termWord: {
+    ovrd: [
+      { value: "translate", visible: true },
+      { value: "use_llm", visible: true },
+      { value: "target_lang", visible: false },
+      { value: "department", visible: false },
+      { value: "comment", visible: false },
+      { value: "category", visible: false },
+      { value: "abbr", visible: false },
+      { value: "usage_notes", visible: false },
+      { value: "status", visible: false },
+    ],
+    defaults: null,
+  },
 };
 
 /** 术语库非列 UI 参数 */

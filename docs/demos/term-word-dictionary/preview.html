@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>术语字典 · 方案预览（含词典拆分流水线）</title>
+  <style>
+    :root {
+      --ink: #15202b;
+      --muted: #5b6b7c;
+      --line: #d9e2ec;
+      --paper: #f4f7fa;
+      --card: #ffffff;
+      --brand: #1f4e79;
+      --brand-2: #2f6fae;
+      --accent: #0f8a6a;
+      --warn: #c47b16;
+      --chip: #e8f1fa;
+      --shadow: 0 10px 30px rgba(21, 32, 43, 0.08);
+      --radius: 14px;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1100px 480px at 8% -8%, #dceaf7 0%, transparent 55%),
+        radial-gradient(800px 380px at 92% 0%, #d9f3ea 0%, transparent 50%),
+        var(--paper);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 18px 72px; }
+    .hero-card, .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-card { padding: 22px 24px; margin-bottom: 16px; }
+    .eyebrow {
+      font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--brand); font-weight: 700;
+    }
+    h1 { margin: 8px 0 6px; font-size: 26px; letter-spacing: -.02em; }
+    .lead { color: var(--muted); margin: 0 0 14px; max-width: 70ch; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    button, .btn {
+      border: 0; border-radius: 10px; padding: 10px 14px;
+      font: inherit; font-weight: 600; cursor: pointer;
+      transition: transform .15s ease;
+    }
+    button:hover, .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-ghost { background: var(--chip); color: var(--brand); }
+    .btn-accent { background: var(--accent); color: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+    .meta { margin-top: 12px; font-size: 13px; color: var(--muted); }
+    .meta code { background: #eef3f8; padding: 2px 6px; border-radius: 6px; color: var(--ink); }
+
+    .path-switch {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .path-switch button[aria-pressed="true"] {
+      background: var(--brand); color: #fff;
+    }
+
+    /* horizontal pipeline */
+    .pipe {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin: 12px 0 16px;
+    }
+    @media (max-width: 960px) {
+      .pipe { grid-template-columns: repeat(4, 1fr); }
+    }
+    .pipe-step {
+      position: relative;
+      background: #f5f8fb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      opacity: .4;
+      transform: translateY(4px);
+      transition: all .35s ease;
+      min-height: 72px;
+    }
+    .pipe-step .n {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: inline-grid; place-items: center;
+      background: #d9e6f2; color: var(--brand);
+      font-size: 11px; font-weight: 700; margin-bottom: 4px;
+    }
+    .pipe-step .t { display: block; font-size: 12px; font-weight: 700; }
+    .pipe-step .d { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .pipe-step.on {
+      opacity: 1; transform: none;
+      background: #eef6ff; border-color: #b7cfe6;
+      box-shadow: 0 0 0 3px rgba(31,78,121,.12);
+    }
+    .pipe-step.done { opacity: .85; background: #eefaf4; border-color: #b9e6d6; }
+    .pipe-step.done .n { background: var(--accent); color: #fff; }
+    .pipe-step.on .n { background: var(--brand); color: #fff; }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 14px;
+    }
+    @media (max-width: 960px) { .stage { grid-template-columns: 1fr; } }
+    .panel { padding: 14px; position: relative; }
+    .scene-label {
+      font-size: 12px; font-weight: 700; color: var(--brand); margin-bottom: 8px;
+    }
+    .caption {
+      font-size: 13px; color: var(--muted); margin: 0 0 10px; min-height: 40px;
+    }
+
+    .app {
+      border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff;
+      min-height: 420px; position: relative;
+    }
+    .app-bar {
+      background: linear-gradient(90deg, #1f4e79, #2a6496);
+      color: #fff; padding: 10px 14px; font-size: 13px; font-weight: 600;
+      display: flex; justify-content: space-between;
+    }
+    .app-body { display: grid; grid-template-columns: 52px 1fr; min-height: 380px; }
+    .side {
+      background: #f7fafc; border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 10px; align-items: center; padding-top: 12px;
+    }
+    .side span { width: 26px; height: 26px; border-radius: 8px; background: #e4edf6; }
+    .side .on { background: var(--brand); }
+    .main { padding: 12px; background: #fafbfc; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+    .tab {
+      padding: 8px 14px; border-radius: 8px 8px 0 0; font-size: 13px;
+      color: var(--muted); border: 1px solid transparent;
+    }
+    .tab.active {
+      background: #fff; color: var(--brand); border-color: var(--line);
+      border-bottom-color: #fff; font-weight: 700;
+    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .chip-btn {
+      font-size: 12px; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 600;
+    }
+    .chip-btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .chip-btn.accent { background: #e9f8f3; color: var(--accent); border-color: #b9e6d6; }
+    .chip-btn.pulse { animation: pulse 1.1s ease infinite; }
+    .chip-btn.hidden { display: none !important; }
+    .badge-count {
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .badge-count i {
+      background: #e85d4c; color: #fff; border-radius: 999px;
+      font-style: normal; font-size: 11px; min-width: 18px; height: 18px;
+      display: inline-grid; place-items: center; padding: 0 5px;
+      opacity: 0; transform: scale(.6); transition: all .25s ease;
+    }
+    .badge-count i.show { opacity: 1; transform: scale(1); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(31,78,121,.35); }
+      50% { box-shadow: 0 0 0 6px rgba(31,78,121,0); }
+    }
+
+    table.data {
+      width: 100%; border-collapse: collapse; font-size: 12px; background: #fff;
+      border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+    }
+    table.data th, table.data td {
+      border-bottom: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top;
+    }
+    table.data th { background: #eef3f8; color: #334e68; font-weight: 700; white-space: nowrap; }
+    table.data tr { opacity: .35; transition: all .3s ease; }
+    table.data tr.show { opacity: 1; }
+    table.data tr.picked {
+      opacity: 1; background: #eef6ff; outline: 2px solid #2f6fae; outline-offset: -2px;
+    }
+    .status { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #e7f8ef; color: var(--accent); }
+
+    /* modal */
+    .modal-mask {
+      position: absolute; inset: 0; background: rgba(21,32,43,.45);
+      display: none; align-items: center; justify-content: center; padding: 16px; z-index: 5;
+    }
+    .modal-mask.show { display: flex; animation: fadeIn .25s ease; }
+    .modal {
+      width: min(560px, 100%); background: #fff; border-radius: 12px;
+      border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0,0,0,.2);
+      transform: translateY(10px); opacity: 0; transition: all .3s ease;
+    }
+    .modal-mask.show .modal { transform: none; opacity: 1; }
+    .modal-hd {
+      padding: 12px 14px; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center; font-weight: 700;
+    }
+    .modal-bd { padding: 12px 14px; max-height: 260px; overflow: auto; }
+    .modal-ft {
+      padding: 10px 14px; border-top: 1px solid var(--line);
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+    .hint {
+      font-size: 12px; color: var(--muted); margin: 0 0 8px;
+      padding: 8px 10px; background: #f5f8fb; border-radius: 8px;
+    }
+
+    .file-chip {
+      display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+      border: 1px dashed #b7cfe6; background: #f5faff; font-size: 13px; font-weight: 600;
+    }
+    .file-chip.show { display: block; animation: fadeIn .3s ease; }
+    .file-chip span { color: var(--accent); }
+
+    .side-card h3 { margin: 0 0 8px; font-size: 15px; }
+    .side-card .sub { margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+    .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .checklist li {
+      display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start;
+      padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line);
+      background: #fcfdff; opacity: .45; transition: all .3s ease; font-size: 12px;
+    }
+    .checklist li.on { opacity: 1; border-color: #b7cfe6; background: #f3f8fd; }
+    .checklist li.done { opacity: .9; border-color: #b9e6d6; background: #eefaf4; }
+    .checklist .mark {
+      width: 22px; height: 22px; border-radius: 50%; background: #e7eef6;
+      display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--brand);
+    }
+    .checklist li.on .mark { background: var(--brand); color: #fff; }
+    .checklist li.done .mark { background: var(--accent); color: #fff; }
+
+    .progress { height: 4px; background: #e5eef7; border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .progress > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+      transition: width .35s ease;
+    }
+
+    .section-title {
+      margin: 22px 0 10px; font-size: 16px; font-weight: 800;
+    }
+    .legend {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;
+    }
+    @media (max-width: 900px) { .legend { grid-template-columns: 1fr; } }
+    .legend .panel p { margin: 0; font-size: 13px; color: var(--muted); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* path A compact */
+    .path-a { display: none; }
+    .path-a.show { display: block; }
+    .path-b { display: none; }
+    .path-b.show { display: block; }
+
+    .toast {
+      position: absolute; right: 16px; bottom: 16px; z-index: 8;
+      background: #15202b; color: #fff; padding: 10px 14px; border-radius: 10px;
+      font-size: 12px; font-weight: 600; display: none; max-width: 280px;
+    }
+    .toast.show { display: block; animation: fadeIn .25s ease; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero-card">
+      <div class="eyebrow">Preview · 请重点看「支线 B」</div>
+      <h1>词典拆分 → 导出字典文件 → 导入术语字典</h1>
+      <p class="lead">
+        上一条预览里「拆分」只闪了一下按钮。本页单独把
+        <strong>术语词典勾选 → 已选术语 → 拆分 → 拆分模态框 → 导出为字典 Excel → 切到术语字典 → 导入</strong>
+        做成可播放分镜。注意事项导入仍可在「支线 A」查看。
+      </p>
+      <div class="path-switch">
+        <button type="button" class="btn-ghost" id="tabPathB" aria-pressed="true">支线 B：词典拆分导入</button>
+        <button type="button" class="btn-ghost" id="tabPathA" aria-pressed="false">支线 A：注意事项模板导入</button>
+        <a class="btn btn-accent" href="./term_word_import_sample.xlsx">下载样板 Excel</a>
+      </div>
+      <p class="meta">
+        文件：<code>docs/demos/term-word-dictionary/preview.html</code> ·
+        样板含列「走LLM」(boolean) + tip
+      </p>
+    </section>
+
+    <!-- PATH B -->
+    <div class="path-b show" id="pathB">
+      <div class="hero-card">
+        <div class="actions">
+          <button class="btn-primary" id="btnPlayB" type="button">播放：词典拆分流水线</button>
+          <button class="btn-ghost" id="btnPauseB" type="button">暂停 / 重播</button>
+        </div>
+        <div class="progress"><i id="barB"></i></div>
+        <div class="pipe" id="pipeB">
+          <div class="pipe-step" data-s="0"><span class="n">1</span><span class="t">术语词典</span><span class="d">勾选词条</span></div>
+          <div class="pipe-step" data-s="1"><span class="n">2</span><span class="t">已选术语</span><span class="d">看已选列表</span></div>
+          <div class="pipe-step" data-s="2"><span class="n">3</span><span class="t">点「拆分」</span><span class="d">对已选做切分</span></div>
+          <div class="pipe-step" data-s="3"><span class="n">4</span><span class="t">拆分模态框</span><span class="d">勾选词片</span></div>
+          <div class="pipe-step" data-s="4"><span class="n">5</span><span class="t">导出字典文件</span><span class="d">标准 xlsx</span></div>
+          <div class="pipe-step" data-s="5"><span class="n">6</span><span class="t">切到术语字典</span><span class="d">准备导入</span></div>
+          <div class="pipe-step" data-s="6"><span class="n">7</span><span class="t">导入字典</span><span class="d">写入 term_word</span></div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <section class="panel">
+          <div class="scene-label" id="sceneB">场景待命</div>
+          <p class="caption" id="capB">点击「播放：词典拆分流水线」开始。</p>
+          <div class="app" id="appB">
+            <div class="app-bar">
+              <span>词条翻译工具 · 术语库</span>
+              <span style="opacity:.85">mock · 支线 B</span>
+            </div>
+            <div class="app-body">
+              <aside class="side"><span></span><span></span><span class="on"></span><span></span></aside>
+              <div class="main">
+                <div class="tabs">
+                  <div class="tab active" id="tabSyk">术语词典</div>
+                  <div class="tab" id="tabWord">术语字典</div>
+                </div>
+                <div class="toolbar" id="toolbarB">
+                  <button class="chip-btn" id="btnBatch" type="button">批量选择</button>
+                  <span class="badge-count">
+                    <button class="chip-btn" id="btnSelected" type="button">已选术语</button>
+                    <i id="selCount">0</i>
+                  </span>
+                  <button class="chip-btn accent hidden" id="btnSplit" type="button">拆分</button>
+                  <button class="chip-btn primary hidden" id="btnImport" type="button">导入</button>
+                  <button class="chip-btn hidden" id="btnTpl" type="button">下载模板</button>
+                </div>
+
+                <!-- glossary table -->
+                <table class="data" id="sykTable">
+                  <thead>
+                    <tr class="show">
+                      <th></th><th>词条</th><th>翻译</th><th>翻译类型</th><th>翻译状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sykBody"></tbody>
+                </table>
+
+                <!-- dictionary table (hidden initially) -->
+                <table class="data hidden" id="dictTable" style="display:none">
+                  <thead>
+                    <tr class="show">
+                      <th></th><th>词片</th><th>翻译</th><th>走LLM</th><th>来源词条</th><th>翻译状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dictBody"></tbody>
+                </table>
+
+                <div class="file-chip" id="fileChip">已导出字典文件：<span>split_export_词典切分.xlsx</span>（标准模板列）</div>
+              </div>
+            </div>
+
+            <!-- selected modal -->
+            <div class="modal-mask" id="modalSelected">
+              <div class="modal">
+                <div class="modal-hd"><span>已选术语（2）</span><span style="color:#5b6b7c;font-weight:500;font-size:12px">来自术语词典</span></div>
+                <div class="modal-bd">
+                  <p class="hint">确认要拆分的术语后，点「拆分」生成词片候选。</p>
+                  <table class="data">
+                    <thead><tr class="show"><th>词条</th><th>翻译</th><th>翻译类型</th></tr></thead>
+                    <tbody>
+                      <tr class="show"><td>文件与系统</td><td>File and System</td><td>英文</td></tr>
+                      <tr class="show"><td>数据库运行库</td><td>Run-time Databases</td><td>英文</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="modal-ft">
+                  <button class="chip-btn" type="button">关闭</button>
+                  <button class="chip-btn accent pulse" id="btnSplitInModal" type="button">拆分</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- split modal -->
+            <div class="modal-mask" id="modalSplit">
+              <div class="modal">
+                <div class="modal-hd"><span>拆分结果 · 勾选后导出</span><span style="color:#5b6b7c;font-weight:500;font-size:12px">jieba 切分预览</span></div>
+                <div class="modal-bd">
+                  <p class="hint">
+                    词片由已选「词条」切分得到；<strong>过滤「与」等无意义词</strong>；
+                    译法按英文侧去掉 and 后 zip 对齐（或查已有字典）。导出带翻译，导入为<strong>待审核</strong>。
+                  </p>
+                  <table class="data">
+                    <thead>
+                      <tr class="show"><th></th><th>词片</th><th>翻译</th><th>翻译类型</th><th>走LLM</th><th>翻译状态</th><th>来源词条</th></tr>
+                    </thead>
+                    <tbody id="splitBody"></tbody>
+                  </table>
+                </div>
+                <div class="modal-ft">
+                  <button class="chip-btn" type="button">全选</button>
+                  <button class="chip-btn primary pulse" id="btnExportDict" type="button">导出为字典文件</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toast" id="toastB"></div>
+          </div>
+        </section>
+
+        <section class="panel side-card">
+          <h3>本流水线在做什么</h3>
+          <p class="sub">右边清单会跟动画同步点亮，对应左侧 mock 操作。</p>
+          <ol class="checklist" id="checkB">
+            <li data-c="0"><div class="mark">1</div><div><strong>术语词典</strong>：批量选择，勾选「文件与系统」「数据库运行库」</div></li>
+            <li data-c="1"><div class="mark">2</div><div><strong>已选术语</strong>：打开已选列表，确认范围</div></li>
+            <li data-c="2"><div class="mark">3</div><div><strong>拆分</strong>：对已选词条做切分（不写库）</div></li>
+            <li data-c="3"><div class="mark">4</div><div><strong>拆分模态框</strong>：过滤「与」；词片带译法（File/System…）；状态待审核</div></li>
+            <li data-c="4"><div class="mark">5</div><div><strong>导出字典文件</strong>：标准模板列 xlsx（含翻译，状态=待审核）</div></li>
+            <li data-c="5"><div class="mark">6</div><div><strong>切换「术语字典」Tab</strong>：去导入落点</div></li>
+            <li data-c="6"><div class="mark">7</div><div><strong>导入</strong>：写入 term_word，翻译状态=待审核</div></li>
+          </ol>
+          <p class="sub" style="margin-top:14px">
+            设计取舍：拆分<strong>不直写库</strong>；无译法/无意义词片不导出；有译法导入为待审核后再人工审定。
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <!-- PATH A (compact) -->
+    <div class="path-a" id="pathA">
+      <div class="hero-card">
+        <div class="actions">
+          <button class="btn-primary" id="btnPlayA" type="button">播放：注意事项 → 模板导入</button>
+          <button class="btn-ghost" id="btnPauseA" type="button">暂停 / 重播</button>
+        </div>
+        <div class="progress"><i id="barA"></i></div>
+        <div class="pipe" id="pipeA" style="grid-template-columns: repeat(5, 1fr)">
+          <div class="pipe-step" data-s="0"><span class="n">1</span><span class="t">注意事项清单</span><span class="d">通用术语</span></div>
+          <div class="pipe-step" data-s="1"><span class="n">2</span><span class="t">标准模板</span><span class="d">含走LLM</span></div>
+          <div class="pipe-step" data-s="2"><span class="n">3</span><span class="t">导入字典</span><span class="d">term_word</span></div>
+          <div class="pipe-step" data-s="3"><span class="n">4</span><span class="t">列表 CRUD</span><span class="d">编辑状态</span></div>
+          <div class="pipe-step" data-s="4"><span class="n">5</span><span class="t">Agent 消费</span><span class="d">use_llm + 注意事项</span></div>
+        </div>
+        <p class="caption" id="capA">支线 A：人工注意事项 / 样板 Excel 直接导入术语字典（与拆分流水线并列）。</p>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="panel">
+        <h3 style="margin:0 0 8px;font-size:15px">请你重点确认（支线 B）</h3>
+        <p>1）「已选术语」是否先弹列表再拆分？本预览是<strong>已选弹窗内再点拆分</strong>。<br/>
+           2）拆分后<strong>必须带翻译</strong>（zip 对齐 / 查字典）；无意义词如「与」直接过滤；导入状态=<strong>待审核</strong>。<br/>
+           3）导出后是否必须手动切 Tab 再导入（本预览如此），还是导出成功后引导「去导入」？</p>
+      </div>
+      <div class="panel">
+        <h3 style="margin:0 0 8px;font-size:15px">与样板字段</h3>
+        <p>导出列与样板一致。词典拆分导出时翻译状态列写<strong>待审核</strong>；走LLM 默认 FALSE（连接词已过滤，不再导出「与」）。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SYK = [
+      { entry: "文件与系统", translate: "File and System", lang: "英文", status: "已审核", pick: true },
+      { entry: "数据库运行库", translate: "Run-time Databases", lang: "英文", status: "已审核", pick: true },
+      { entry: "画面图元", translate: "icon", lang: "英文", status: "已审核", pick: false },
+      { entry: "责任区", translate: "Area of Responsibility", lang: "英文", status: "已审核", pick: false },
+    ];
+    const SPLIT = [
+      { word: "文件", translate: "File", useLlm: false, src: "文件与系统", pick: true },
+      { word: "系统", translate: "System", useLlm: false, src: "文件与系统", pick: true },
+      { word: "数据库", translate: "Database", useLlm: false, src: "数据库运行库", pick: true },
+      { word: "运行库", translate: "Run-time Databases", useLlm: false, src: "数据库运行库", pick: true },
+    ];
+    // 注：源切分「文件|与|系统」中「与」已过滤；英文 and 同步丢弃后 zip → File / System
+    // 「数据库运行库」演示：有对齐则带译；导入状态一律待审核
+
+    const sykBody = document.getElementById("sykBody");
+    SYK.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      tr.dataset.i = i;
+      tr.innerHTML = `
+        <td><input type="checkbox" ${r.pick ? "checked" : ""} disabled /></td>
+        <td><strong>${r.entry}</strong></td>
+        <td>${r.translate}</td>
+        <td>${r.lang}</td>
+        <td><span class="status">${r.status}</span></td>`;
+      sykBody.appendChild(tr);
+    });
+
+    const splitBody = document.getElementById("splitBody");
+    SPLIT.forEach((r) => {
+      const tr = document.createElement("tr");
+      tr.className = "show";
+      tr.innerHTML = `
+        <td><input type="checkbox" ${r.pick ? "checked" : ""} disabled /></td>
+        <td><strong>${r.word}</strong></td>
+        <td><strong>${r.translate}</strong></td>
+        <td>英文</td>
+        <td>${r.useLlm ? "TRUE" : "FALSE"}</td>
+        <td><span class="status">待审核</span></td>
+        <td>${r.src}</td>`;
+      splitBody.appendChild(tr);
+    });
+
+    const dictBody = document.getElementById("dictBody");
+    function fillDictFromSplit() {
+      dictBody.innerHTML = "";
+      SPLIT.filter((r) => r.pick).forEach((r) => {
+        const tr = document.createElement("tr");
+        tr.className = "show";
+        tr.innerHTML = `
+          <td><input type="checkbox" disabled /></td>
+          <td><strong>${r.word}</strong></td>
+          <td><strong>${r.translate}</strong></td>
+          <td>${r.useLlm ? "TRUE" : "FALSE"}</td>
+          <td>${r.src}</td>
+          <td><span class="status">待审核</span></td>`;
+        dictBody.appendChild(tr);
+      });
+    }
+
+    // path switch
+    const pathA = document.getElementById("pathA");
+    const pathB = document.getElementById("pathB");
+    const tabPathA = document.getElementById("tabPathA");
+    const tabPathB = document.getElementById("tabPathB");
+    function showPath(which) {
+      const b = which === "B";
+      pathB.classList.toggle("show", b);
+      pathA.classList.toggle("show", !b);
+      tabPathB.setAttribute("aria-pressed", b ? "true" : "false");
+      tabPathA.setAttribute("aria-pressed", b ? "false" : "true");
+      if (b) playB();
+      else playA();
+    }
+    tabPathB.addEventListener("click", () => showPath("B"));
+    tabPathA.addEventListener("click", () => showPath("A"));
+
+    // ---- Path B animation ----
+    const pipeB = [...document.querySelectorAll("#pipeB .pipe-step")];
+    const checkB = [...document.querySelectorAll("#checkB li")];
+    const barB = document.getElementById("barB");
+    const sceneB = document.getElementById("sceneB");
+    const capB = document.getElementById("capB");
+    const toastB = document.getElementById("toastB");
+    const modalSelected = document.getElementById("modalSelected");
+    const modalSplit = document.getElementById("modalSplit");
+    const fileChip = document.getElementById("fileChip");
+    const tabSyk = document.getElementById("tabSyk");
+    const tabWord = document.getElementById("tabWord");
+    const sykTable = document.getElementById("sykTable");
+    const dictTable = document.getElementById("dictTable");
+    const btnBatch = document.getElementById("btnBatch");
+    const btnSelected = document.getElementById("btnSelected");
+    const btnSplit = document.getElementById("btnSplit");
+    const btnImport = document.getElementById("btnImport");
+    const selCount = document.getElementById("selCount");
+    const TOTAL_B = 7;
+    let timerB = null;
+    let idxB = -1;
+
+    function resetB() {
+      pipeB.forEach((el) => el.classList.remove("on", "done"));
+      checkB.forEach((el) => el.classList.remove("on", "done"));
+      [...sykBody.querySelectorAll("tr")].forEach((tr) => {
+        tr.classList.remove("picked", "show");
+        tr.querySelector("input").checked = false;
+      });
+      modalSelected.classList.remove("show");
+      modalSplit.classList.remove("show");
+      fileChip.classList.remove("show");
+      toastB.classList.remove("show");
+      tabSyk.classList.add("active");
+      tabWord.classList.remove("active");
+      sykTable.style.display = "table";
+      dictTable.style.display = "none";
+      btnSplit.classList.add("hidden");
+      btnImport.classList.add("hidden");
+      btnBatch.classList.remove("pulse", "hidden");
+      btnSelected.classList.remove("pulse");
+      btnSplit.classList.remove("pulse");
+      btnImport.classList.remove("pulse");
+      selCount.classList.remove("show");
+      selCount.textContent = "0";
+      sceneB.textContent = "场景待命";
+      capB.textContent = "点击播放开始。";
+      barB.style.width = "0%";
+      dictBody.innerHTML = "";
+    }
+
+    function toast(msg) {
+      toastB.textContent = msg;
+      toastB.classList.add("show");
+    }
+
+    function applyB(n) {
+      pipeB.forEach((el, i) => {
+        el.classList.toggle("on", i === n);
+        el.classList.toggle("done", i < n);
+      });
+      checkB.forEach((el, i) => {
+        el.classList.toggle("on", i === n);
+        el.classList.toggle("done", i < n);
+      });
+      barB.style.width = ((n + 1) / TOTAL_B * 100) + "%";
+
+      // defaults each frame
+      modalSelected.classList.remove("show");
+      modalSplit.classList.remove("show");
+      btnBatch.classList.remove("pulse");
+      btnSelected.classList.remove("pulse");
+      btnSplit.classList.remove("pulse");
+      btnImport.classList.remove("pulse");
+      document.getElementById("btnSplitInModal").classList.remove("pulse");
+      document.getElementById("btnExportDict").classList.remove("pulse");
+
+      const rows = [...sykBody.querySelectorAll("tr")];
+
+      if (n === 0) {
+        sceneB.textContent = "① 术语词典 · 勾选词条";
+        capB.textContent = "进入「术语词典」Tab，打开批量选择，勾选要拆分的术语（示例勾 2 条）。";
+        tabSyk.classList.add("active");
+        tabWord.classList.remove("active");
+        sykTable.style.display = "table";
+        dictTable.style.display = "none";
+        btnBatch.classList.add("pulse");
+        btnSplit.classList.add("hidden");
+        btnImport.classList.add("hidden");
+        fileChip.classList.remove("show");
+        rows.forEach((tr, i) => {
+          tr.classList.add("show");
+          if (SYK[i].pick) {
+            setTimeout(() => {
+              tr.classList.add("picked");
+              tr.querySelector("input").checked = true;
+              selCount.textContent = "2";
+              selCount.classList.add("show");
+            }, 200 + i * 180);
+          }
+        });
+        toast("已勾选 2 条术语");
+      } else if (n === 1) {
+        sceneB.textContent = "② 打开「已选术语」";
+        capB.textContent = "点工具栏「已选术语」查看已选列表，确认后再拆分。";
+        rows.forEach((tr, i) => {
+          tr.classList.add("show");
+          if (SYK[i].pick) tr.classList.add("picked");
+          tr.querySelector("input").checked = SYK[i].pick;
+        });
+        selCount.textContent = "2";
+        selCount.classList.add("show");
+        btnSelected.classList.add("pulse");
+        btnSplit.classList.remove("hidden");
+        modalSelected.classList.add("show");
+        document.getElementById("btnSplitInModal").classList.add("pulse");
+        toast("已选术语弹窗");
+      } else if (n === 2) {
+        sceneB.textContent = "③ 点击「拆分」";
+        capB.textContent = "在已选弹窗（或工具栏）点「拆分」：对已选词条原文做 jieba 切分，不写库。";
+        rows.forEach((tr, i) => {
+          tr.classList.add("show");
+          if (SYK[i].pick) tr.classList.add("picked");
+        });
+        selCount.classList.add("show");
+        btnSplit.classList.remove("hidden");
+        btnSplit.classList.add("pulse");
+        modalSelected.classList.add("show");
+        document.getElementById("btnSplitInModal").classList.add("pulse");
+        toast("请求 split-preview…");
+      } else if (n === 3) {
+        sceneB.textContent = "④ 拆分模态框 · 勾选词片";
+        capB.textContent = "弹窗展示切分词片：「与」已过滤；译法 zip 对齐（文件→File，系统→System）。导出带翻译，状态=待审核。";
+        modalSplit.classList.add("show");
+        document.getElementById("btnExportDict").classList.add("pulse");
+        toast("拆分结果：4 词片（已过滤「与」）");
+      } else if (n === 4) {
+        sceneB.textContent = "⑤ 导出为字典文件";
+        capB.textContent = "导出标准列 xlsx（含翻译；翻译状态=待审核）。可再改走LLM 后导入。";
+        modalSplit.classList.add("show");
+        fileChip.classList.add("show");
+        document.getElementById("btnExportDict").classList.add("pulse");
+        toast("已下载 split_export_词典切分.xlsx");
+      } else if (n === 5) {
+        sceneB.textContent = "⑥ 切换到「术语字典」Tab";
+        capB.textContent = "带着带翻译的字典文件，切到术语字典准备导入。";
+        tabSyk.classList.remove("active");
+        tabWord.classList.add("active");
+        sykTable.style.display = "none";
+        dictTable.style.display = "table";
+        fillDictFromSplit();
+        [...dictBody.querySelectorAll("tr")].forEach((tr) => { tr.style.opacity = ".35"; });
+        btnSplit.classList.add("hidden");
+        btnImport.classList.remove("hidden");
+        btnImport.classList.add("pulse");
+        fileChip.classList.add("show");
+        toast("已切换到术语字典");
+      } else if (n === 6) {
+        sceneB.textContent = "⑦ 导入字典文件 → term_word（待审核）";
+        capB.textContent = "导入后带翻译的词片状态=待审核；人工审定为「已审核」后 Agent 才使用。";
+        tabWord.classList.add("active");
+        tabSyk.classList.remove("active");
+        sykTable.style.display = "none";
+        dictTable.style.display = "table";
+        fillDictFromSplit();
+        [...dictBody.querySelectorAll("tr")].forEach((tr, i) => {
+          tr.style.opacity = "0";
+          setTimeout(() => { tr.style.opacity = "1"; }, 120 * i);
+        });
+        btnImport.classList.remove("hidden");
+        btnImport.classList.add("pulse");
+        fileChip.classList.add("show");
+        toast("导入成功 · 4 条词片 · 待审核");
+      }
+    }
+
+    function playB() {
+      clearInterval(timerB);
+      resetB();
+      idxB = -1;
+      timerB = setInterval(() => {
+        idxB += 1;
+        if (idxB >= TOTAL_B) {
+          clearInterval(timerB);
+          timerB = null;
+          return;
+        }
+        applyB(idxB);
+      }, 2000);
+      setTimeout(() => {
+        if (idxB < 0) { idxB = 0; applyB(0); }
+      }, 250);
+    }
+
+    document.getElementById("btnPlayB").addEventListener("click", playB);
+    document.getElementById("btnPauseB").addEventListener("click", () => {
+      if (timerB) { clearInterval(timerB); timerB = null; }
+      else playB();
+    });
+
+    // ---- Path A (light) ----
+    const pipeA = [...document.querySelectorAll("#pipeA .pipe-step")];
+    const barA = document.getElementById("barA");
+    const capA = document.getElementById("capA");
+    let timerA = null;
+    let idxA = -1;
+    const capsA = [
+      "从《常用注意要点清单》只读「通用术语」。",
+      "转为标准模板（含走LLM boolean + tip）。",
+      "导入术语字典 term_word。",
+      "列表展示 / CRUD / 编辑翻译状态。",
+      "Agent：use_llm=true 强制 LLM；usage_notes 注入注意事项。",
+    ];
+    function playA() {
+      clearInterval(timerA);
+      pipeA.forEach((el) => el.classList.remove("on", "done"));
+      idxA = -1;
+      barA.style.width = "0%";
+      timerA = setInterval(() => {
+        idxA += 1;
+        if (idxA >= capsA.length) { clearInterval(timerA); timerA = null; return; }
+        pipeA.forEach((el, i) => {
+          el.classList.toggle("on", i === idxA);
+          el.classList.toggle("done", i < idxA);
+        });
+        capA.textContent = capsA[idxA];
+        barA.style.width = ((idxA + 1) / capsA.length * 100) + "%";
+      }, 1400);
+    }
+    document.getElementById("btnPlayA").addEventListener("click", playA);
+    document.getElementById("btnPauseA").addEventListener("click", () => {
+      if (timerA) { clearInterval(timerA); timerA = null; }
+      else playA();
+    });
+
+    // autoplay path B
+    playB();
+  </script>
+</body>
+</html>
