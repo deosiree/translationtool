@@ -211,4 +211,16 @@ Validation: unit, integration, E2E.
 | Electron / desktop | 壳层、文件对话框、本地路径、与 Web 行为分叉 |
 | Terminology / 词条数据 | 回填、导入导出、词典文件、可能丢数据的批量写 |
 
+### 本地手工验收与脏库（运维辅助）
+
+用户说 **「备份数据库 / 准备回滚点 / 测试前备份 / 回滚 / 恢复到备份」**，或即将**手工预翻译 / 术语学习同意 / 工作台改译**并可能事后回滚时：
+
+1. **必须**按 `docs/ops/DEV_DB_CHECKPOINT.md` + skill `db-回滚数据库` 的脚本执行（`backup-database.ps1` / `restore-database.ps1`）。
+2. **禁止**自写 PowerShell：`>` / `Out-File` / `Set-Content` / `Get-Content | docker exec` 接 mysqldump/mysql（会截断中文 COMMENT，dump 作废、restore 1064）。
+3. **锁定路径**：容器内 `mysqldump --result-file` + `docker cp`；恢复同为 `docker cp` + `mysql --default-character-set=utf8mb4 < file`；须过 `verify-dump-encoding`，失败不得声称成功。
+4. backup 成功后回传 `backupPath`；restore 须人类确认后再 `-Force`。
+5. 仅 ADM 矩阵污染时用 `adm_matrix_reset`，不必整库 DROP。
+
+外部 skill：`huiyanSkills/translateTool-skills/db-回滚数据库`。
+
 任一项成立时，至少按 **normal**；同时触及 Auth / Data model / Public contracts 则按上文 hard gate 升为 **high-risk**。勾选 **Java touch** 时，输出中必须说明「为何不能只改 Python」。

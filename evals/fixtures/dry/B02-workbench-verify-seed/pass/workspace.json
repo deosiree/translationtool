@@ -1,0 +1,7 @@
+{
+  "files": {
+    ".eval-markers/workbench-seed-plan": "skill=工作台验数播种\npersonnel=five\nentry_state=3\n",
+    "docs/CONTEXT_RULES.md": "Retrieval: 灌工作台验数 → skill 工作台验数播种；entry_state=3；五人员齐填。\n",
+    "docs/ops/DEV_DB_CHECKPOINT.md": "人员五字段全填。entry_state=0 禁止。完整流程见 skill 工作台验数播种。\n"
+  }
+}

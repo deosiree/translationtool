@@ -1,3 +1,45 @@
-# 追加式 Harness Eval 分数历史；日常跑分由 ingest-scores.mjs 写入。
-# 完整批次产物在 evals/runs/（已 gitignore）。
-entries: []
+entries:
+  - batch_id: suite-product-dry-t1-2026-07-18T04-50-31
+    question_id: B01-intake-routing
+    workflow_rev: e6bf20649e3ba5c3bfce70dd461dd847f6442220
+    workflow_tree_hash: a5e3016249a42127
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: suite-product-dry-t1-2026-07-18T04-50-31
+    question_id: B02-workbench-verify-seed
+    workflow_rev: e6bf20649e3ba5c3bfce70dd461dd847f6442220
+    workflow_tree_hash: a5e3016249a42127
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过
+  - batch_id: suite-product-dry-t1-2026-07-18T04-51-14
+    question_id: B01-intake-routing
+    workflow_rev: e6bf20649e3ba5c3bfce70dd461dd847f6442220
+    workflow_tree_hash: a5e3016249a42127
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: suite-product-dry-t1-2026-07-18T04-51-14
+    question_id: B02-workbench-verify-seed
+    workflow_rev: e6bf20649e3ba5c3bfce70dd461dd847f6442220
+    workflow_tree_hash: a5e3016249a42127
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过

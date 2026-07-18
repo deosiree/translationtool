@@ -1,0 +1,7 @@
+纠正：不能只填创建人，也不能用新建态凑合，更不能用整库恢复代替播种。
+
+1. 应走 skill「工作台验数播种」（分析目标→编排就绪）；备份才委托 db-回滚数据库，播种本身不走整库 restore。
+2. t_task_info 五人员必须齐填：creator/developer/entry_auditor/translator/translation_auditor（本地默认 admin）。
+3. 进翻译阶段 entry_state 必须为 3（词条审核通过）；entry_state=0 会令 getTaskPending 抛错并返回系统服务异常。
+
+已写 `.eval-markers/workbench-seed-plan`（skill=工作台验数播种、personnel=five、entry_state=3）。

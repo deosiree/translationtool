@@ -107,6 +107,12 @@ Read to leave useful evidence for the next agent and for benchmark scoring.
 | Trigger Condition | Action |
 | --- | --- |
 | Task touches database schema, durable records, or migrations | Read `docs/decisions/0004-sqlite-durable-layer.md`, `scripts/schema/`, and relevant CLI code before planning. |
+| User asks to **备份数据库 / 准备回滚点 / 回滚 / 恢复备份**（或本地脏库检查点） | Read `docs/ops/DEV_DB_CHECKPOINT.md` and run skill `db-回滚数据库` scripts only. **禁止** PowerShell 管道/`Set-Content` 写 mysqldump；锁定 `--result-file` + `docker cp` + `verify-dump-encoding`。 |
+| Agent **INSERT/种子创建 `t_task_info` 验数任务**（或用户要求补任务人员） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地验数任务：人员字段」：`creator`/`developer`/`entry_auditor`/`translator`/`translation_auditor` **全部填写**（本地默认 `admin`），禁止只写 creator。 |
+| Agent **INSERT/种子创建 `t_entry_info` 验数词条**（或 `/taskManage/getTaskPending` 报系统服务异常） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地验数词条：entry_state」：进翻译阶段必须 `entry_state=3`；禁止 `0`（新建会触发 `TaskStateEntity` 抛错 → 前端 201）。完整四步流程读 skill `工作台验数播种`（huiyanSkills/translateTool-skills）。 |
+| Agent **灌工作台验数**（建任务、挂产品词条、下发进翻译阶段、产品 admin 术语库验数） | 走 skill `工作台验数播种`：分析目标 → 编排就绪；硬约束仍以 `docs/ops/DEV_DB_CHECKPOINT.md` 为准；备份委托 `db-回滚数据库`。 |
+| Agent **多检索/多索引验数词条**（exact / fuzzy / decomposed / none，或产品 admin 挂 ADM 矩阵） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「多检索验数矩阵」；用 skill `工作台验数播种` 应用 `db/opt/seed-verify-admin-retrieval.sql`（或 custom）；写完后 `verify_adm_pretranslate --strict` + `verify-workbench-translate-ready.ps1`。禁止只用整库 restore 凑数。 |
+| Harness Eval 业务题 **B02** / 工作台播种路由考试 | Read `evals/suites/product/B02-workbench-verify-seed/`；dry：`node evals/scripts/run-question.mjs --question B02-workbench-verify-seed --mode dry --fixture pass`。 |
 | Task touches CLI command behavior or installer distribution | Read `docs/decisions/0005-prebuilt-rust-harness-cli.md`, `scripts/README.md`, relevant `crates/harness-cli/*` code, CLI help output, and installer docs. |
 | Task touches auth, authorization, audit/security, data loss, or external providers | Treat as high-risk, read `docs/templates/high-risk-story/*`, and check prior decisions before implementation. |
 | Task changes public API shape, product behavior, or user-visible workflow | Read relevant `docs/product/*`, story packets, and validation expectations before editing. |

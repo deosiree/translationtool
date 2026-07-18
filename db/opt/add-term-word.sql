@@ -26,8 +26,9 @@ CREATE TABLE IF NOT EXISTS term_word (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    -- utf8mb4 下整列 UNIQUE 易超 3072 字节上限，用前缀索引
     UNIQUE KEY uk_term_word_source (
-        word, comment, target_lang, source_translate_id, source_entry_info_id
+        word(128), comment(128), target_lang(32), source_translate_id, source_entry_info_id
     ),
     INDEX idx_term_word_lookup (word, target_lang, status),
     INDEX idx_term_word_task (task_id),

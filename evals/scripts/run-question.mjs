@@ -48,6 +48,11 @@ const IMPROVEMENT_HINTS = {
     eval: "题面是否清楚「只规划不写代码」",
     capability: "默认把所有后端改动堆进 Java",
   },
+  "B02-workbench-verify-seed": {
+    workflow: "播种走整库 restore / 漏人员 / entry_state=0 → 强化 CONTEXT_RULES 与 DEV_DB_CHECKPOINT 触发",
+    eval: "题面是否清楚「纠正错误假设」与 marker 字段",
+    capability: "把验数准备误当成备份恢复问题",
+  },
 };
 
 function parseArgs(argv) {

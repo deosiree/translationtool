@@ -32,6 +32,7 @@
 - **密钥与环境**：`terminology-agent/.env`、DB 口令等不得提交；参考各模块 `.env.example`。
 - **旁路目录**：`translation-assistant/`、`translationtool_ai/`、`translation_check/`、`knowledge/`、`references/` 多为辅助/文档/实验，非默认改动面；除非需求点名，否则不要改。
 - **Git 提交说明**：创建 commit 时冒号后的摘要与正文默认用**简体中文**，详见 `docs/HARNESS.md`「Git 提交说明」。
+- **本地库检查点**：手工预翻译/术语同意等会脏数据时，先整库备份再操作；测后按备份恢复。见 `docs/ops/DEV_DB_CHECKPOINT.md`（skill：`db-回滚数据库`）。**红灯**：禁止 PowerShell 管道/`Set-Content` 写 mysqldump；**绿灯**：`--result-file` + `docker cp`。backup/restore 须过 `verify-dump-encoding`；失败不得声称成功。坏 COMMENT 乱码 dump 作废。月清理只提醒、禁静默删。
 
 <!-- HARNESS:BEGIN -->
 ## Harness
