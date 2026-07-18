@@ -106,8 +106,10 @@ Read to leave useful evidence for the next agent and for benchmark scoring.
 
 | Trigger Condition | Action |
 | --- | --- |
+| Task adds/edits **SearchBox 查询条件**字段或按钮（术语库/词条管理等） | 宽度只改 `translation/src/components/search/searchBox.vue` 的 `--search-control-width`（或 `searchControlWidth.js`）；**禁止**在 `SearchBox` 的 `form` 插槽内写零散 `style="width: …"`。按钮放 `operate` 插槽（或独立操作行），勿为加按钮改字段宽。见 `docs/superpowers/specs/2026-07-18-searchbox-control-width-design.md`。 |
 | Task touches database schema, durable records, or migrations | Read `docs/decisions/0004-sqlite-durable-layer.md`, `scripts/schema/`, and relevant CLI code before planning. |
 | User asks to **备份数据库 / 准备回滚点 / 回滚 / 恢复备份**（或本地脏库检查点） | Read `docs/ops/DEV_DB_CHECKPOINT.md` and run skill `db-回滚数据库` scripts only. **禁止** PowerShell 管道/`Set-Content` 写 mysqldump；锁定 `--result-file` + `docker cp` + `verify-dump-encoding`。 |
+| User asks to **精简术语库 / 删空挂 / 去重 / 中文占比不足删词条 / 后台改数再实跑**（本地非上线） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地直改数据 / 术语库精简」：先 `backup`，再跑 `db/opt/cleanup-syk-*.sql`；只软删；中文占比阈值默认 **80%**；禁止主观乱删与生产库操作。 |
 | Agent **INSERT/种子创建 `t_task_info` 验数任务**（或用户要求补任务人员） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地验数任务：人员字段」：`creator`/`developer`/`entry_auditor`/`translator`/`translation_auditor` **全部填写**（本地默认 `admin`），禁止只写 creator。 |
 | Agent **INSERT/种子创建 `t_entry_info` 验数词条**（或 `/taskManage/getTaskPending` 报系统服务异常） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地验数词条：entry_state」：进翻译阶段必须 `entry_state=3`；禁止 `0`（新建会触发 `TaskStateEntity` 抛错 → 前端 201）。完整四步流程读 skill `工作台验数播种`（huiyanSkills/translateTool-skills）。 |
 | Agent **灌工作台验数**（建任务、挂产品词条、下发进翻译阶段、产品 admin 术语库验数） | 走 skill `工作台验数播种`：分析目标 → 编排就绪；硬约束仍以 `docs/ops/DEV_DB_CHECKPOINT.md` 为准；备份委托 `db-回滚数据库`。 |

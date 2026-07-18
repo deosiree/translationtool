@@ -25,12 +25,13 @@
 | 场景 | 动作 |
 | --- | --- |
 | 即将手工预翻译 / 术语学习同意 / 改工作台译文 | **先 backup** |
+| 即将后台 SQL 精简术语库 / 删空挂去重 / 按中文占比删词条 | **先 backup**，再按下文「本地直改数据 / 术语库精简」执行 |
 | Agent 说「备份数据库 / 准备回滚点 / 测试前备份」 | 执行 `backup-database.ps1`，把 `backupPath` 回给用户；若 retention 到期先问清理 |
 | 用户说「操作完了，回滚」 | 展示 `.latest`（或指定文件）→ **人类确认** → restore `-Force`（先 verify） |
 | 用服务器备份还原通用平台部 mon-cn-1.9.0 / develop | `keep_classify_restore`：`restore-keep-classifies.ps1`（先 extract，禁 all-DB 直灌） |
 | 仅 ADM 矩阵污染（retrieval 全变 exact） | 优先 `adm_matrix_reset`，不必整库 DROP |
 | 按时间窗清术语学习（非整库） | `term_day_cleanup` dry-run → 确认 |
-| 生产 / 远程库 | **禁止**自动 restore；只输出命令 |
+| 生产 / 远程库 | **禁止**自动 restore / 自动精简；只输出命令 |
 
 ## 标准口令（对话）
 
@@ -160,6 +161,60 @@ $root  = "F:\Documents\Repertory\Sieyuan\translationtool"
 - 用户确认 → `prune-backups.ps1 -ConfirmDelete`；拒绝 → snooze 30 天
 - **禁止静默删除**
 
+## 本地直改数据 / 术语库精简（非上线）
+
+本仓本地 MySQL **不是上线产品**：开发中经常「后台直接改数 → 再实跑 UI/Agent」。允许 Agent 在用户明确要求时执行 SQL 精简，但必须遵守下列 SOP。
+
+### 标准口令
+
+```text
+精简术语库 / 删空挂 / 去重术语 / 删中文占比不足的词条 / 后台改数再实跑
+```
+
+### SOP（强制顺序）
+
+1. **先 backup**（`db-回滚数据库` → `backup-database.ps1`，Label 如 `before_syk_cleanup`）
+2. **先 dry-run 统计**（条数、样例），再执行软删；禁止未报数就盲删
+3. **只软删**：`t_translate.delete_state=1`；术语库条件 `public_state=0`
+4. **实跑**：刷新「术语库」列表 / 相关 Agent 路径，确认变快或行为符合预期
+5. 不满意 → `restore` 回刚才备份
+
+### 已沉淀规则（2026-07-18）
+
+| 规则 | 判定 | 脚本 |
+| --- | --- | --- |
+| 空挂 | 活跃术语库行未被任何 `t_entry_info.*_trans_id` 引用 | [`db/opt/cleanup-syk-unused-and-dup.sql`](../../db/opt/cleanup-syk-unused-and-dup.sql) |
+| 完全重复 | 同 `entry+type+visual_range+translate`；保留 `MIN(id)`，其余软删；引用改挂 keep | 同上 |
+| 中文占比 &lt; 80% | `汉字(一-龥)字数 / entry 字数 < 0.8`（空 entry 一并删） | [`db/opt/cleanup-syk-low-han-ratio.sql`](../../db/opt/cleanup-syk-low-han-ratio.sql) |
+
+**中文占比清理副作用（本地可接受）**：软删后把仍指向这些 id 的 `zh/en/fra/spa/ru_trans_id` **置 NULL**。空挂清完后，剩余术语几乎都被词条引用，不做清空会导致悬空引用。
+
+**明确不做**
+
+- 主观「没意义」乱删（易误伤）
+- 未 backup 就改库
+- 生产 / 远程共享库自动精简
+- 硬 `DELETE FROM t_translate`（应用按 `delete_state` 过滤）
+
+### 实跑记录（摘要）
+
+| 日期 | 动作 | 结果 |
+| --- | --- | --- |
+| 2026-07-18 | 空挂 + 完全重复 | 活跃约 77772 → 42412；备份 `before_syk_cleanup` |
+| 2026-07-18 | 中文占比 &lt; 80% | 活跃 42412 → **29597**（软删约 12815，并清空对应 `*_trans_id`）；备份 `translationtool_20260718_174442_before_syk_low_han.sql` |
+
+### 执行示例（Windows / docker MySQL）
+
+```powershell
+$skill = "F:\Documents\Default-Obsidian\huiyanSkills\translateTool-skills\db-回滚数据库"
+$root  = "F:\Documents\Repertory\Sieyuan\translationtool"
+& "$skill\scripts\backup-database.ps1" -ProjectRoot $root -Label "before_syk_low_han"
+Get-Content "$root\db\opt\cleanup-syk-low-han-ratio.sql" -Raw -Encoding UTF8 |
+  docker exec -i translation-mysql mysql -uroot -p123456 --default-character-set=utf8mb4 translationtool
+```
+
+> 喂 SQL 可用 `docker exec -i ... mysql < file`；**备份 dump 仍禁止** PowerShell 管道/`Set-Content` 写 mysqldump（见文首红灯）。
+
 ## 预翻译手工验收会碰到的表（供理解，回滚仍推荐整库）
 
 US-3E-01 之后，走过切分的预翻译可能写入：
@@ -172,6 +227,6 @@ US-3E-01 之后，走过切分的预翻译可能写入：
 
 ## Harness 关系
 
-- 只读问答：不要擅自 backup/restore。
-- 用户明确要求建检查点或恢复：可写 `db/backups/`（已 gitignore `*.sql`），并在回复中给出路径与大小。
+- 只读问答：不要擅自 backup/restore，也不要擅自精简术语库。
+- 用户明确要求建检查点、恢复、或本地精简术语库：可写 `db/backups/`（已 gitignore `*.sql`）并执行 `db/opt/cleanup-*.sql`，回复中给出备份路径与前后计数。
 - Intake 不因此升 lane；属运维辅助，不是业务 story。若反复需要，保持本文件为 SSOT，勿在多处复制长脚本。
