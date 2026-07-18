@@ -41,6 +41,7 @@ translationtoolservice/.env.serve.local
 
 # 依赖包
 node_modules/
+package-lock.json
 vendor/
 dist/
 
