@@ -1,5 +1,5 @@
 <template>
-    <div class="search">
+    <div class="search" :style="controlWidthStyle">
         <div class="title">
             <span>{{titleName}}：</span>
             <up-outlined class="icon" v-if="showContent" title="收起" @click="trigger"/>
@@ -20,6 +20,7 @@ import {
     UpOutlined,
     DownOutlined
 } from '@ant-design/icons-vue';
+import { SEARCH_CONTROL_WIDTH_CSS } from './searchControlWidth';
 export default {
     components:{
         UpOutlined,
@@ -39,7 +40,10 @@ export default {
         return{
             collapsed: true,
             showContent: true,
-            titleName:this.defaultTitleName
+            titleName:this.defaultTitleName,
+            controlWidthStyle: {
+                '--search-control-width': SEARCH_CONTROL_WIDTH_CSS,
+            },
         }
     },
     methods:{
@@ -94,8 +98,12 @@ export default {
             width: 100%;
             height: 100%;
 
+            /* 查询控件宽度唯一源：页面勿再写 style="width: …" */
             :deep(.ant-form-item-control){
-                width: 186px;
+                width: var(--search-control-width);
+            }
+            :deep(.ant-form-item-control-input-content > *){
+                width: 100%;
             }
         }
 

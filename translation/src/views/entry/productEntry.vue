@@ -983,6 +983,7 @@ import {
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { normalizeEditableRow } from "@/utils/dataUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
+import { appendTypedOption } from "@/utils/searchableSelectOptions";
 import {
   byteLength,
   getMaxLength,
@@ -1380,19 +1381,17 @@ export default {
     },
     // 处理词条来源的搜索输入
     handleEntrySourceSearch(value) {
-      const option = {
-        label: value,
-        value: value,
-      };
-      this.entrySourceOptions = this.entrySourceOptions_copy.concat([option]);
+      this.entrySourceOptions = appendTypedOption(
+        this.entrySourceOptions_copy,
+        value
+      );
     },
     // 处理辞典名称的搜索输入
     handleDiFileNameSearch(value) {
-      const option = {
-        label: value,
-        value: value,
-      };
-      this.diFileNameOptions = this.diFileNameOptions_copy.concat([option]);
+      this.diFileNameOptions = appendTypedOption(
+        this.diFileNameOptions_copy,
+        value
+      );
     },
     // 动态设置表格高度
     setTableHeight() {
