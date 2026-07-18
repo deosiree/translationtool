@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Sequence
 
 from sqlalchemy import delete, func, select, String
@@ -10,7 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.word import TermWord, TermWordConflict
 from app.models.term import TaskInfo, Product
-from app.models.word_constants import CONFLICT_RESOLUTION_OPEN, WORD_STATUS_APPROVED
+from app.models.word_constants import (
+    CONFLICT_RESOLUTION_OPEN,
+    WORD_STATUS_APPROVED,
+    WORD_STATUS_PENDING,
+)
 
 
 @dataclass
@@ -44,7 +49,7 @@ class WordRepository:
             target_lang: 目标语种。
             comment: 消歧 comment；``None`` 时不按 comment 过滤。
             department: 部门可见范围；空则不过滤。
-            status: 行状态，默认 ``approved``。
+            status: 行状态，默认 ``"3"``（已审核）。
 
         Returns:
             匹配的 ``TermWord`` 行列表；多行表示 ambiguous。
@@ -69,11 +74,11 @@ class WordRepository:
         *,
         status: str = WORD_STATUS_APPROVED,
     ) -> list[str]:
-        """按语种列出 DISTINCT ``word``（approved），供 Grep Trie 构建。
+        """按语种列出 DISTINCT ``word``（已审核），供 Grep Trie 构建。
 
         Args:
             target_lang: 目标语种。
-            status: 行状态，Agent Grep 默认 ``approved``。
+            status: 行状态，Agent Grep 默认 ``"3"``。
 
         Returns:
             去重后的 word 文本列表。
@@ -88,6 +93,130 @@ class WordRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def list_words(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+        word: str | None = None,
+        translate: str | None = None,
+        target_lang: str | None = None,
+        department: str | None = None,
+        status: str | None = None,
+    ) -> tuple[list[TermWord], int]:
+        """分页列出 term_word（术语库「术语字典」Tab）。"""
+        conditions = []
+        if word:
+            conditions.append(TermWord.word.like(f"%{word}%"))
+        if translate:
+            conditions.append(TermWord.translate.like(f"%{translate}%"))
+        if target_lang:
+            conditions.append(TermWord.target_lang == target_lang)
+        if department:
+            conditions.append(TermWord.department == department)
+        if status:
+            conditions.append(TermWord.status == status)
+
+        count_stmt = select(func.count()).select_from(TermWord)
+        if conditions:
+            count_stmt = count_stmt.where(*conditions)
+        total = (await self._session.execute(count_stmt)).scalar_one()
+
+        offset = max(page - 1, 0) * page_size
+        stmt = select(TermWord)
+        if conditions:
+            stmt = stmt.where(*conditions)
+        stmt = (
+            stmt.order_by(TermWord.updated_at.desc(), TermWord.word.asc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all()), int(total)
+
+    async def get_by_id(self, word_id: str) -> TermWord | None:
+        return await self._session.get(TermWord, word_id)
+
+    async def list_by_ids(self, ids: Sequence[str]) -> list[TermWord]:
+        """按 id 列表取行（导出已选）。"""
+        if not ids:
+            return []
+        stmt = select(TermWord).where(TermWord.id.in_(list(ids)))
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def find_by_key(
+        self,
+        word: str,
+        *,
+        comment: str,
+        target_lang: str,
+    ) -> TermWord | None:
+        """按消歧键 (word, comment, target_lang) 查唯一行。"""
+        stmt = select(TermWord).where(
+            TermWord.word == word,
+            TermWord.comment == (comment or ""),
+            TermWord.target_lang == target_lang,
+        ).limit(1)
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def build_lexicon(
+        self,
+        *,
+        target_lang: str,
+        words: Sequence[str],
+    ) -> dict[str, str]:
+        """为拆分对齐构建 word→translate 词典（任意状态，优先已审核）。"""
+        uniq = [w for w in dict.fromkeys(words) if w]
+        if not uniq:
+            return {}
+        stmt = select(TermWord).where(
+            TermWord.target_lang == target_lang,
+            TermWord.word.in_(uniq),
+        )
+        result = await self._session.execute(stmt)
+        rows = list(result.scalars().all())
+        # 优先 status=3
+        rows.sort(key=lambda r: 0 if r.status == WORD_STATUS_APPROVED else 1)
+        out: dict[str, str] = {}
+        for r in rows:
+            tr = (r.translate or "").strip()
+            if tr and r.word not in out:
+                out[r.word] = tr
+        return out
+
+    async def create_word(self, payload: dict[str, Any]) -> TermWord:
+        """新建 term_word 行（术语字典 CRUD）。"""
+        data = {
+            "comment": "",
+            "source_translate_id": "",
+            "status": WORD_STATUS_PENDING,
+            **payload,
+        }
+        row = TermWord(**data)
+        self._session.add(row)
+        await self._session.flush()
+        return row
+
+    async def update_word(self, row: TermWord, payload: dict[str, Any]) -> TermWord:
+        """更新已有 term_word 行。"""
+        for key, value in payload.items():
+            if value is not None and hasattr(row, key):
+                setattr(row, key, value)
+        row.updated_at = datetime.now()
+        await self._session.flush()
+        return row
+
+    async def delete_by_ids(self, ids: Sequence[str]) -> int:
+        """按 id 物理删除；返回删除行数。"""
+        if not ids:
+            return 0
+        stmt = delete(TermWord).where(TermWord.id.in_(list(ids)))
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return int(result.rowcount or 0)
 
     async def insert_words(self, payloads: list[dict[str, Any]]) -> list[TermWord]:
         """批量插入 term_word 行。"""

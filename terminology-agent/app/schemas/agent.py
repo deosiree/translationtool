@@ -217,3 +217,110 @@ class HealthData(BaseModel):
     """GET /agent/health 的 data 字段。"""
     status: str = "ok"
     service: str = "术语学习 Agent"
+
+
+# ── term_word CRUD（术语字典）──
+
+
+class TermWordCreateRequest(BaseModel):
+    """POST /agent/word — 新建词片。"""
+
+    word: str = Field(..., min_length=1, max_length=255, description="词片原文")
+    translate: str = Field(..., min_length=1, max_length=1024, description="翻译")
+    target_lang: str = Field(..., min_length=1, max_length=64, description="翻译类型/语种")
+    department: Optional[str] = Field(None, max_length=128, description="可见范围")
+    comment: str = Field("", max_length=512, description="消歧 comment")
+    category: Optional[str] = Field(None, max_length=128, description="领域")
+    abbr: Optional[str] = Field(None, max_length=128, description="缩写")
+    usage_notes: Optional[str] = Field(None, description="使用场景与注意事项")
+    use_llm: bool = Field(False, description="走LLM")
+    status: str = Field("1", pattern="^[0123]$", description="0未翻译|1待审核|2审核不通过|3已审核")
+
+
+class TermWordUpdateRequest(BaseModel):
+    """PUT /agent/word/{id} — 更新词片。"""
+
+    word: Optional[str] = Field(None, min_length=1, max_length=255)
+    translate: Optional[str] = Field(None, min_length=1, max_length=1024)
+    target_lang: Optional[str] = Field(None, min_length=1, max_length=64)
+    department: Optional[str] = Field(None, max_length=128)
+    comment: Optional[str] = Field(None, max_length=512)
+    category: Optional[str] = Field(None, max_length=128)
+    abbr: Optional[str] = Field(None, max_length=128)
+    usage_notes: Optional[str] = Field(None)
+    use_llm: Optional[bool] = None
+    status: Optional[str] = Field(None, pattern="^[0123]$")
+
+
+class TermWordBatchDeleteRequest(BaseModel):
+    """POST /agent/word/batch-delete。"""
+
+    ids: list[str] = Field(..., min_length=1, description="待删除 term_word.id 列表")
+
+
+class TermWordBatchReviewRequest(BaseModel):
+    """POST /agent/word/batch-review — 批量通过/驳回。"""
+
+    ids: list[str] = Field(..., min_length=1, description="待审阅 term_word.id 列表")
+    action: str = Field(
+        ...,
+        pattern="^(approved|rejected)$",
+        description="approved→已审核(3)；rejected→审核不通过(2)",
+    )
+
+class TermWordExportRequest(BaseModel):
+    """POST /agent/word/export — 按 ids 或筛选导出。"""
+
+    ids: Optional[list[str]] = Field(None, description="已选 id；优先于筛选")
+    word: Optional[str] = None
+    translate: Optional[str] = None
+    targetLang: Optional[str] = Field(None, alias="targetLang")
+    department: Optional[str] = None
+    status: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TermWordSplitItem(BaseModel):
+    """拆分预览单条源术语。"""
+
+    entry: str = Field(..., min_length=1, description="词条原文")
+    translate: str = Field("", description="词条译文")
+    target_lang: str = Field(..., min_length=1, alias="targetLang")
+    department: Optional[str] = None
+    comment: str = ""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TermWordSplitPreviewRequest(BaseModel):
+    """POST /agent/word/split-preview。"""
+
+    items: list[TermWordSplitItem] = Field(..., min_length=1)
+    fill_with_llm: bool = Field(
+        False,
+        alias="fillWithLlm",
+        description="True 时对无可靠本地译法的词片批量 LLM 补译（一次/分批调用）",
+    )
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TermWordExportRowsRequest(BaseModel):
+    """POST /agent/word/export-rows — 导出任意标准行（拆分结果等）。"""
+
+    rows: list[dict] = Field(..., min_length=1, description="标准字段行")
+    forcePending: bool = Field(
+        True,
+        description="True 时翻译状态一律写待审核（词典拆分导出）",
+    )
+
+
+class TermWordImportRowsRequest(BaseModel):
+    """POST /agent/word/import-rows — 按标准行直接入库（拆分一键导入）。"""
+
+    rows: list[dict] = Field(..., min_length=1, description="标准字段行")
+    forcePending: bool = Field(
+        True,
+        description="True 时有翻译一律写待审核",
+    )
