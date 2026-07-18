@@ -138,7 +138,7 @@ export function onSelect(vm, record, selected, condition = true, selectEntry = "
       return item.id !== record.id;
     });// 取消选择
     vm.selectedRowKeys = vm.selectedRowKeys.filter((item) => {
-      return item.id !== record.id;
+      return item !== record.id;
     });
     if (selectEntry in vm) {
       vm[selectEntry] = vm[selectEntry].filter((item) => {

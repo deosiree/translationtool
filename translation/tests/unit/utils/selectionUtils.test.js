@@ -112,19 +112,13 @@ describe('selectionUtils - 表格选择/分页工具函数', () => {
 
     it('应该在取消选中时移除记录', () => {
       mockVm.selectedRows = [{ id: 1, name: 'Item 1' }]
-      // 注意：根据代码，selectedRowKeys 可能是对象数组（有 id 属性）
-      // 第98-100行的代码：vm.selectedRowKeys.filter((item) => { return item.id !== record.id; })
-      mockVm.selectedRowKeys = [{ id: 1 }] // selectedRowKeys 可能是对象数组
+      mockVm.selectedRowKeys = [1]
       const record = { id: 1, name: 'Item 1' }
 
       onSelect(mockVm, record, false)
 
       expect(mockVm.selectedRows).not.toContainEqual(record)
-      // selectedRowKeys 会被过滤掉 id === record.id 的项
-      const hasId1 = mockVm.selectedRowKeys.some(key => 
-        (typeof key === 'object' ? key.id : key) === 1
-      )
-      expect(hasId1).toBe(false)
+      expect(mockVm.selectedRowKeys).not.toContain(1)
     })
 
     it('应该在 condition 为 false 时不执行操作', () => {
