@@ -11,7 +11,7 @@
     <div class="split-export">
       <p class="hint">
         已过滤无意义词片（如「与」）；默认批量 LLM 按整句语境补词片译法（走 LLM
-        列仍为否，表示日后不必读注意事项）。导入后翻译状态为「待审核」。
+        列仍为否，表示日后不必读注意事项）。导入后翻译状态为「待审核」。可双击行编辑词片/翻译，保存后再导入。
       </p>
       <div class="toolbar">
         <a-button size="small" @click="selectAll">全选</a-button>
@@ -25,19 +25,56 @@
         :columns="columns"
         :data-source="dataSource"
         :pagination="false"
-        :scroll="{ y: '50vh' }"
+        :scroll="{ y: '50vh', x: 900 }"
+        :customRow="customRow"
         :row-selection="{
           selectedRowKeys,
           onChange: onSelectChange,
         }"
         :loading="loading"
       >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'use_llm'">
-            {{ record.use_llm ? "是" : "否" }}
+        <template #bodyCell="{ column, record, text }">
+          <template v-if="isEditing(record)">
+            <template v-if="column.dataIndex === 'word'">
+              <a-input
+                v-model:value="editableData[record.rowKey].word"
+                @click.stop
+                @pressEnter="saveRow(record)"
+              />
+            </template>
+            <template v-else-if="column.dataIndex === 'translate'">
+              <a-input
+                v-model:value="editableData[record.rowKey].translate"
+                @click.stop
+                @pressEnter="saveRow(record)"
+              />
+            </template>
+            <template v-else-if="column.dataIndex === 'operation'">
+              <OperationCellOverflow :inline-visible-count="2">
+                <OpItem label="保存" @click.stop="saveRow(record)" />
+                <OpItem label="取消" @click.stop="cancelEdit(record)" />
+              </OperationCellOverflow>
+            </template>
+            <template v-else-if="column.dataIndex === 'use_llm'">
+              {{ record.use_llm ? "是" : "否" }}
+            </template>
+            <template v-else-if="column.dataIndex === 'status'">
+              <TransStateBadge translateState="1" />
+            </template>
+            <template v-else>{{ text }}</template>
           </template>
-          <template v-else-if="column.dataIndex === 'status'">
-            <TransStateBadge translateState="1" />
+          <template v-else>
+            <template v-if="column.dataIndex === 'use_llm'">
+              {{ record.use_llm ? "是" : "否" }}
+            </template>
+            <template v-else-if="column.dataIndex === 'status'">
+              <TransStateBadge translateState="1" />
+            </template>
+            <template v-else-if="column.dataIndex === 'operation'">
+              <OperationCellOverflow :inline-visible-count="1">
+                <OpItem label="编辑" @click.stop="startEdit(record)" />
+              </OperationCellOverflow>
+            </template>
           </template>
         </template>
       </a-table>
@@ -68,6 +105,10 @@
 <script>
 import CustomModal from "@/components/modal/index.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import {
+  OpItem,
+  OperationCellOverflow,
+} from "@/components/OperationColumn";
 import { message } from "ant-design-vue";
 import {
   splitTermWordPreview,
@@ -77,11 +118,11 @@ import {
 import { downloadBlobResponse } from "@/utils/fileUtils";
 
 /**
- * 术语词典拆分结果弹窗：预览词片，可一键导入字典或导出 Excel。
+ * 术语词典拆分结果弹窗：预览词片，可本地编辑后一键导入字典或导出 Excel。
  */
 export default {
   name: "SplitExportModal",
-  components: { CustomModal, TransStateBadge },
+  components: { CustomModal, TransStateBadge, OpItem, OperationCellOverflow },
   emits: ["close", "exported", "imported"],
   props: {
     visible: { type: Boolean, default: false },
@@ -95,6 +136,8 @@ export default {
       importing: false,
       dataSource: [],
       selectedRowKeys: [],
+      /** @type {Record<string, { word: string, translate: string }>} */
+      editableData: {},
       columns: [
         { title: "词片", dataIndex: "word", width: 140, ellipsis: true },
         { title: "翻译", dataIndex: "translate", width: 160, ellipsis: true },
@@ -102,6 +145,12 @@ export default {
         { title: "走LLM", dataIndex: "use_llm", width: 80 },
         { title: "翻译状态", dataIndex: "status", width: 100 },
         { title: "来源词条", dataIndex: "source_entry", width: 160, ellipsis: true },
+        {
+          title: "操作",
+          dataIndex: "operation",
+          width: 120,
+          fixed: "right",
+        },
       ],
     };
   },
@@ -112,6 +161,7 @@ export default {
       } else {
         this.dataSource = [];
         this.selectedRowKeys = [];
+        this.editableData = {};
       }
     },
   },
@@ -121,6 +171,7 @@ export default {
      * @returns {void}
      */
     handleClose() {
+      this.editableData = {};
       this.$emit("close");
     },
     /**
@@ -146,10 +197,93 @@ export default {
       this.selectedRowKeys = [];
     },
     /**
+     * @param {{ rowKey?: string }} record
+     * @returns {boolean}
+     */
+    isEditing(record) {
+      return !!this.editableData[record?.rowKey];
+    },
+    /**
+     * 是否存在未保存的行内编辑
+     * @returns {boolean}
+     */
+    hasUnsavedEdit() {
+      return Object.keys(this.editableData).length > 0;
+    },
+    /**
+     * 双击行进入编辑（忽略按钮/输入控件）
+     * @param {{ rowKey?: string }} record
+     * @returns {{ onDblclick: (e: MouseEvent) => void }}
+     */
+    customRow(record) {
+      return {
+        onDblclick: (e) => {
+          if (
+            e?.target?.closest?.(
+              ".ant-btn, .ant-select, input, textarea, .operation-column-op-item, .operation-buttons",
+            )
+          ) {
+            return;
+          }
+          this.startEdit(record);
+        },
+      };
+    },
+    /**
+     * 进入行编辑（同时只编辑一行）
+     * @param {{ rowKey?: string, word?: string, translate?: string }} record
+     * @returns {void}
+     */
+    startEdit(record) {
+      if (!record?.rowKey) return;
+      this.editableData = {
+        [record.rowKey]: {
+          word: record.word || "",
+          translate: record.translate || "",
+        },
+      };
+    },
+    /**
+     * 取消行编辑
+     * @param {{ rowKey?: string }} record
+     * @returns {void}
+     */
+    cancelEdit(record) {
+      if (!record?.rowKey) return;
+      const next = { ...this.editableData };
+      delete next[record.rowKey];
+      this.editableData = next;
+    },
+    /**
+     * 将草稿写回本地 dataSource（不调后端）
+     * @param {{ rowKey?: string }} record
+     * @returns {void}
+     */
+    saveRow(record) {
+      const draft = this.editableData[record?.rowKey];
+      if (!draft) return;
+      const word = (draft.word || "").trim();
+      const translate = (draft.translate || "").trim();
+      if (!word || !translate) {
+        message.warning("请填写词片和翻译");
+        return;
+      }
+      const row = this.dataSource.find((r) => r.rowKey === record.rowKey);
+      if (!row) {
+        this.cancelEdit(record);
+        return;
+      }
+      row.word = word;
+      row.translate = translate;
+      this.cancelEdit(record);
+      message.success("已保存");
+    },
+    /**
      * 调用 split-preview 加载候选词片
      * @returns {Promise<void>}
      */
     async loadPreview() {
+      this.editableData = {};
       const items = (this.sourceItems || [])
         .map((row) => ({
           entry: row.entry || row.word || "",
@@ -220,6 +354,10 @@ export default {
      * @returns {Promise<void>}
      */
     async onExport() {
+      if (this.hasUnsavedEdit()) {
+        message.warning("请先保存或取消当前编辑");
+        return;
+      }
       const payload = this.selectedPayload();
       if (!payload.length) {
         message.warning("请勾选要导出的词片");
@@ -247,6 +385,10 @@ export default {
      * @returns {Promise<void>}
      */
     async onImport() {
+      if (this.hasUnsavedEdit()) {
+        message.warning("请先保存或取消当前编辑");
+        return;
+      }
       const payload = this.selectedPayload();
       if (!payload.length) {
         message.warning("请勾选要导入的词片");
