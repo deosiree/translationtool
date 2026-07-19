@@ -2,9 +2,9 @@
  * @module columnBuilder
  * @description 列定义 → Ant Design Table columns（单轨 buildCol）
  */
+import { h } from "vue";
 import { resolvePresetCols, defaultSelectionFromCols } from "./colPreset.js";
-import { formatSegmentTraceDisplay } from "@/utils/formatSegmentTrace.js";
-
+import SegmentTraceTags from "@/components/SegmentTraceTags.vue";
 /** 使用 SpanByTipsFill 省略 + tooltip 的列 value */
 const SPAN_BY_TIPS_COLS = new Set([
   "auditSuggest",
@@ -146,8 +146,11 @@ function applyValueBehaviors(col, def, needFilter) {
     col.sortDirections = ["ascend", "descend"];
   }
   if (v === "segmentTrace" || v === "segment_trace") {
-    col.ellipsis = true;
-    col.customRender = ({ text }) => formatSegmentTraceDisplay(text);
+    col.ellipsis = false;
+    col.customRender = ({ text, record }) => {
+      const value = text ?? record?.segment_trace ?? record?.segmentTrace;
+      return h(SegmentTraceTags, { value });
+    };
   }
   if (v === "isExist" && !needFilter) {
     col.filteredValue = null;

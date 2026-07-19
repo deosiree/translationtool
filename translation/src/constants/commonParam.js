@@ -787,7 +787,7 @@ export const termAuditAllCols = [
   { label: "词条", value: "source_text", index: 1, required: true },
   { label: "Comment", value: "entry_comment", index: 2, visible: true },
   {
-    label: "建议翻译",
+    label: "翻译",
     value: "suggested_translation",
     index: 3,
     visible: true,

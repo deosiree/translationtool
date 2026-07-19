@@ -55,6 +55,8 @@ export default createStore({
       state.admin = false
       // 清空全局属性中的部门信息
       setCurrentDepartment(null);
+      // 清除 sessionStorage 持久化缓存，确保下次登录重新初始化动态路由
+      window.sessionStorage.clear();
     },
     setTabActive(state, value){
       state.tabActive = value

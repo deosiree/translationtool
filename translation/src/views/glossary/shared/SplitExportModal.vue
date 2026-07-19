@@ -128,6 +128,11 @@ export default {
     visible: { type: Boolean, default: false },
     /** @type {{ entry: string, translate?: string, type?: string, target_lang?: string, visualRange?: string, department?: string, comment?: string }[]} */
     sourceItems: { type: Array, default: () => [] },
+    /**
+     * 预加载的拆分结果行（跳过 API 调用直接使用）
+     * 格式：[{ word, translate?, target_lang, department? }]
+     */
+    preloadedRows: { type: Array, default: () => [] },
   },
   data() {
     return {
@@ -157,7 +162,11 @@ export default {
   watch: {
     visible(val) {
       if (val) {
-        this.loadPreview();
+        if (this.preloadedRows && this.preloadedRows.length) {
+          this.usePreloadedRows();
+        } else {
+          this.loadPreview();
+        }
       } else {
         this.dataSource = [];
         this.selectedRowKeys = [];
@@ -315,6 +324,25 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    /**
+     * 使用预加载的拆分结果行（跳过 API 调用）
+     */
+    usePreloadedRows() {
+      this.editableData = {};
+      const rows = this.preloadedRows || [];
+      this.dataSource = rows.map((r, i) => ({
+        word: r.word || "",
+        translate: r.translate || "",
+        target_lang: r.target_lang || "",
+        department: r.department || null,
+        comment: r.comment || "",
+        use_llm: false,
+        status: "1",
+        rowKey: `${r.word || ""}_${r.target_lang || ""}_${i}`,
+      }));
+      this.selectedRowKeys = this.dataSource.map((r) => r.rowKey);
+      this.loading = false;
     },
     /**
      * 勾选行 → 标准字典字段 payload
