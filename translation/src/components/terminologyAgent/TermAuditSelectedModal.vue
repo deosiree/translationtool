@@ -73,6 +73,14 @@
       >
         批量同意
       </a-button>
+      <a-button
+        style="margin-left: 8px"
+        :loading="splitLoading"
+        :disabled="!dataSource.length"
+        @click="handleSplitImport"
+      >
+        切分
+      </a-button>
     </template>
   </CustomModal>
 </template>
@@ -86,7 +94,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import { createVNode } from "vue";
-import { batchReviewTerms } from "@/http/api/terminologyAgent";
+import { batchReviewTerms, splitTermAuditItemsByIds } from "@/http/api/terminologyAgent";
 import {
   formatConfidence,
   formatEntryText,
@@ -169,6 +177,7 @@ export default {
         },
       ],
       batchLoading: false,
+      splitLoading: false,
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -286,6 +295,26 @@ export default {
     },
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);
+    },
+    async handleSplitImport() {
+      if (!this.dataSource.length) return;
+      this.splitLoading = true;
+      try {
+        const ids = this.dataSource.map((item) => item.id).filter(Boolean);
+        if (!ids.length) {
+          message.warning("已选术语缺少 ID，无法切分");
+          return;
+        }
+        const res = await splitTermAuditItemsByIds(ids);
+        const count = res?.data?.success_count ?? 0;
+        message.success(`切分完成，共处理 ${count} 条术语`);
+        this.handleClose();
+        this.$emit("refresh");
+      } catch (err) {
+        message.error(err?.message || "切分失败");
+      } finally {
+        this.splitLoading = false;
+      }
     },
   },
 };

@@ -363,6 +363,46 @@ export function agentPreTranslate(params, entries) {
   });
 }
 
+/**
+ * 术语学习已选术语切分预览 — 对已选术语执行 jieba 切分，返回候选词片
+ * @param {Array<{entry:string, translate?:string, targetLang:string, department?:string}>} items
+ * @returns {Promise<{ data: { list: Array, total: number } }>}
+ */
+export function splitTermAuditItems(items) {
+  return request({
+    url: "/agent/term-learning/split",
+    method: "POST",
+    data: { items },
+  });
+}
+
+/**
+ * 按 audit_ids 切分并回填 segment_trace
+ * @param {string[]} auditIds
+ * @returns {Promise<{ data: { success_count: number } }>}
+ */
+export function splitTermAuditItemsByIds(auditIds) {
+  return request({
+    url: "/agent/term-learning/split-by-ids",
+    method: "POST",
+    data: { audit_ids: auditIds },
+  });
+}
+
+/**
+ * 编辑保存审核记录
+ * @param {string} id - audit id
+ * @param {Object} data - 要更新的字段（仅传需要修改的字段）
+ * @returns {Promise}
+ */
+export function updateTermAudit(id, data) {
+  return request({
+    url: `/agent/term-learning/${id}/edit`,
+    method: "POST",
+    data,
+  });
+}
+
 /** Comment 规则分页列表 */
 export function listCommentRules(params) {
   return request({

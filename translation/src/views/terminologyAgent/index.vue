@@ -144,6 +144,7 @@
             rowKey="id"
             ref="auditTable"
             @resizeColumn="handleResizeColumn"
+            :customRow="customRow"
             :row-selection="
               batchSelectFlag
                 ? {
@@ -168,9 +169,19 @@
               </template>
 
               <template v-if="column.dataIndex === 'suggested_translation'">
-                <a-tag color="blue">{{
-                  record.suggested_translation || "未生成"
-                }}</a-tag>
+                <template v-if="isEditing(record)">
+                  <a-input
+                    v-model:value="editableData[record.id].suggested_translation"
+                    size="small"
+                    style="width: 100%"
+                    @click.stop
+                  />
+                </template>
+                <template v-else>
+                  <a-tag color="blue">{{
+                    record.suggested_translation || "未生成"
+                  }}</a-tag>
+                </template>
               </template>
 
               <template v-if="column.dataIndex === 'confidence'">
@@ -183,27 +194,9 @@
                 <template
                   v-if="record.similar_terms && record.similar_terms.length"
                 >
-                  <a-popover trigger="click" placement="left">
-                    <template #content>
-                      <a-table
-                        :columns="similarTermColumns"
-                        :data-source="record.similar_terms"
-                        :pagination="false"
-                        size="small"
-                        row-key="entry"
-                        style="min-width: 380px"
-                      >
-                        <template #bodyCell="{ column: col, record: term }">
-                          <template v-if="col.key === 'retrieval_source'">
-                            {{ formatRetrievalSource(term.retrieval_source) }}
-                          </template>
-                        </template>
-                      </a-table>
-                    </template>
-                    <a-button type="link" size="small">
-                      {{ record.similar_terms.length }} 条
-                    </a-button>
-                  </a-popover>
+                  <a-button type="link" size="small" @click="openSimilarModal(record)">
+                    {{ record.similar_terms.length }} 条
+                  </a-button>
                 </template>
                 <span v-else>-</span>
               </template>
@@ -232,11 +225,34 @@
               </template>
 
               <template v-if="column.dataIndex === 'segment_trace'">
-                <SpanByTipsFill
-                  class="reasoning-text"
-                  :content="formatSegmentTraceDisplay(record.segment_trace)"
-                  :max-width="column.width"
-                />
+                <template v-if="isEditing(record)">
+                  <div
+                    class="chip-input"
+                    style="border:1px solid #d9d9d9;border-radius:4px;padding:4px 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:30px;background:#fff;"
+                    @click.stop
+                  >
+                    <template v-for="(word, idx) in editableData[record.id].words" :key="idx">
+                      <a-tag
+                        :closable="true"
+                        @close="removeWord(record, idx)"
+                        style="margin:0;"
+                      >
+                        {{ word }}
+                      </a-tag>
+                    </template>
+                    <a-input
+                      v-model:value="editableData[record.id].inputValue"
+                      size="small"
+                      style="width:80px;border:none;box-shadow:none;padding:0 4px;height:24px;"
+                      placeholder="输入"
+                      @pressEnter="addWord(record)"
+                      @blur="addWord(record)"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <SegmentTraceTags :value="record.segment_trace" />
+                </template>
               </template>
 
               <template v-if="column.dataIndex === 'created_at'">
@@ -250,23 +266,31 @@
               </template>
 
               <template v-if="column.dataIndex === 'action'">
-                <a-button
-                  type="primary"
-                  size="small"
-                  style="margin-right: 8px"
-                  :disabled="record.processing"
-                  @click="handleReview(record, 'approved')"
-                >
-                  确认
-                </a-button>
-                <a-button
-                  danger
-                  size="small"
-                  :disabled="record.processing"
-                  @click="handleReview(record, 'rejected')"
-                >
-                  拒绝
-                </a-button>
+                <template v-if="isEditing(record)">
+                  <OpItem label="保存" @click.stop="saveRow(record)" />
+                  <OpItem label="取消" style="margin-left: 8px" @click.stop="cancelEdit(record)" />
+                </template>
+                <template v-else>
+                  <OperationCellOverflow :inline-visible-count="2">
+                    <OpItem
+                      label="编辑"
+                      :disabled="record.processing"
+                      @click.stop="startEdit(record)"
+                    />
+                    <OpItem
+                      label="确认"
+                      type="success"
+                      :disabled="record.processing"
+                      @click.stop="handleReview(record, 'approved')"
+                    />
+                    <OpItem
+                      label="拒绝"
+                      type="danger"
+                      :disabled="record.processing"
+                      @click.stop="handleReview(record, 'rejected')"
+                    />
+                  </OperationCellOverflow>
+                </template>
               </template>
             </template>
 
@@ -300,6 +324,30 @@
       @cancelSelect="cancelBatchSelect"
       @refresh="fetchPendingAudits"
     />
+    <CustomModal
+      :modalWidth="'55%'"
+      modalTitle="参考术语"
+      :visible="similarModalVisible"
+      :showOk="false"
+      cancelText="关闭"
+      @handleClose="similarModalVisible = false"
+      @handleOK="similarModalVisible = false"
+    >
+      <a-table
+        :columns="similarTermColumns"
+        :data-source="similarModalData"
+        :pagination="false"
+        size="small"
+        row-key="entry"
+        :scroll="{ y: 350 }"
+      >
+        <template #bodyCell="{ column: col, record: term }">
+          <template v-if="col.key === 'retrieval_source'">
+            {{ formatRetrievalSource(term.retrieval_source) }}
+          </template>
+        </template>
+      </a-table>
+    </CustomModal>
   </div>
 </template>
 
@@ -312,6 +360,7 @@
 import {
   listPendingAudits,
   reviewTerm,
+  updateTermAudit,
 } from "@/http/api/terminologyAgent";
 import {
   mergePendingAudits,
@@ -331,7 +380,8 @@ import {
 import { getLanguage } from "@/http/api/translate";
 import ResetButton from "@/components/Button/resetButton.vue";
 import commonParam from "@/constants/commonParam.js";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
+import { createVNode } from "vue";
 import Pagination from "@/components/page/pagination.vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
@@ -359,7 +409,12 @@ import {
   termAuditPresets,
   termAuditParams,
 } from "@/constants/commonParam.js";
-import { formatSegmentTraceDisplay } from "@/utils/formatSegmentTrace.js";
+import SegmentTraceTags from "@/components/SegmentTraceTags.vue";
+import CustomModal from "@/components/modal/index.vue";
+import {
+  OpItem,
+  OperationCellOverflow,
+} from "@/components/OperationColumn";
 
 export default {
   name: "TerminologyAudit",
@@ -372,7 +427,11 @@ export default {
     TermAuditSelectedModal,
     PercentRangeInput,
     ResetButton,
+    SegmentTraceTags,
+    CustomModal,
     SpanByTipsFill,
+    OpItem,
+    OperationCellOverflow,
   },
   data() {
     return {
@@ -401,9 +460,12 @@ export default {
       overlayStyle: termAuditParams.overlayStyle,
       batchSelectFlag: false,
       batchSelectVisible: false,
+      editableData: {},
       selectedRowKeys: [],
       selectedRows: [],
       selectEntry: [],
+      similarModalVisible: false,
+      similarModalData: [],
       similarTermColumns: [
         { title: "词条", dataIndex: "entry", key: "entry", ellipsis: true },
         {
@@ -456,7 +518,6 @@ export default {
     formatTranslationSource,
     formatConfidence,
     formatEntryText,
-    formatSegmentTraceDisplay,
     confidenceColor(confidence) {
       if (confidence == null) return "default";
       return Number(confidence) >= 0.8 ? "green" : "orange";
@@ -466,6 +527,10 @@ export default {
       if (typeof value === "string")
         return value.replace("T", " ").slice(0, 19);
       return String(value);
+    },
+    openSimilarModal(record) {
+      this.similarModalData = record.similar_terms || [];
+      this.similarModalVisible = true;
     },
     onSelectChange(selectedRowKeys, selectedRows) {
       onSelectChange(this, selectedRowKeys, selectedRows);
@@ -488,6 +553,118 @@ export default {
       this.selectedRowKeys = [];
       this.batchSelectFlag = false;
       this.batchSelectVisible = false;
+    },
+    // ---- 行内编辑 ----
+    customRow(record) {
+      return {
+        onDblclick: () => {
+          this.startEdit(record);
+        },
+      };
+    },
+    isEditing(record) {
+      return !!this.editableData[record.id];
+    },
+    startEdit(record) {
+      const display = record.segment_trace?.display || "";
+      this.editableData[record.id] = {
+        suggested_translation: record.suggested_translation || "",
+        words: display ? display.split(" | ").filter(Boolean) : [],
+        inputValue: "",
+      };
+    },
+    cancelEdit(record) {
+      delete this.editableData[record.id];
+    },
+    async saveRow(record) {
+      const edit = this.editableData[record.id];
+      if (!edit) return;
+
+      const payload = {};
+      let changedTranslation = false;
+      let changedSegmentTrace = false;
+
+      // 检测翻译是否修改
+      if (edit.suggested_translation !== (record.suggested_translation || "")) {
+        payload.suggested_translation = edit.suggested_translation || null;
+        changedTranslation = true;
+      }
+
+      // 检测切分是否修改
+      const newWords = edit.words || [];
+      const newDisplay = newWords.join(" | ");
+      const origDisplay = record.segment_trace?.display || "";
+      if (newDisplay !== origDisplay) {
+        payload.segment_trace = newWords.length
+          ? { jieba: newWords, display: newDisplay }
+          : null;
+        changedSegmentTrace = true;
+      }
+
+      if (!changedTranslation && !changedSegmentTrace) {
+        this.cancelEdit(record);
+        return;
+      }
+
+      // 修改翻译 → 弹窗提示联动清空
+      if (changedTranslation) {
+        try {
+          await new Promise((resolve, reject) => {
+            Modal.confirm({
+              title: "确认修改翻译",
+              content:
+                "修改翻译后将清空置信度、检索方式、Agent 说明，是否继续？",
+              icon: createVNode("span"),
+              okText: "确认",
+              cancelText: "取消",
+              style: { top: "30%" },
+              onOk: resolve,
+              onCancel: reject,
+            });
+          });
+        } catch {
+          return; // 取消弹窗
+        }
+        // 联动清空
+        payload.confidence = null;
+        payload.retrieval_method = "manual";
+        payload.llm_reasoning = null;
+      }
+
+      record.processing = true;
+      try {
+        await updateTermAudit(record.id, payload);
+        message.success("保存成功");
+        this.cancelEdit(record);
+        // 更新本地记录
+        if (changedTranslation) {
+          record.suggested_translation = edit.suggested_translation;
+          record.confidence = null;
+          record.retrieval_method = "manual";
+          record.llm_reasoning = null;
+        }
+        if (changedSegmentTrace) {
+          record.segment_trace = payload.segment_trace;
+        }
+      } catch (err) {
+        message.error(err?.message || "保存失败");
+      } finally {
+        record.processing = false;
+      }
+    },
+    addWord(record) {
+      const edit = this.editableData[record.id];
+      if (!edit) return;
+      const word = (edit.inputValue || "").trim();
+      if (word && !edit.words.includes(word)) {
+        edit.words.push(word);
+      }
+      edit.inputValue = "";
+    },
+    removeWord(record, idx) {
+      const edit = this.editableData[record.id];
+      if (!edit) return;
+      edit.words.splice(idx, 1);
     },
     loadTranslateTypes() {
       getLanguage({})
