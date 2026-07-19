@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.shr.translationtoolservice.util.DefaultValue;
@@ -16,8 +19,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 /**
  * 
  * @TableName t_entry_info
- */
-@TableName(value ="t_entry_info")
+ * @note autoResultMap=true 为 segment_trace 的 JacksonTypeHandler 所需；
+ *       新增其他 typeHandler 字段时注意 ResultMap 全局生效。 */
+@TableName(value ="t_entry_info", autoResultMap = true)
 @Data
 public class EntryInfoEntity implements Serializable {
 
@@ -394,8 +398,8 @@ public class EntryInfoEntity implements Serializable {
     /**
      * jieba/对齐切分轨迹（Agent 写入 JSON；列表出参透传）
      */
-    @TableField(value = "segment_trace")
-    private String segmentTrace;
+    @TableField(value = "segment_trace", typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> segmentTrace;
 
     /**
      * 词条版本类型区分
