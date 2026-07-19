@@ -72,11 +72,12 @@ def grep_retrieve_candidates(
         Span(text=token, start=start, end=end)
         for token, start, end in segment_source_text(text)
     ]
-    cache: dict[str, tuple[str | None, bool]] = {}
+    cache: dict[str, tuple[str | None, bool, dict]] = {}
 
-    def cached_lookup(word: str) -> tuple[str | None, bool]:
+    def cached_lookup(word: str) -> tuple[str | None, bool, dict]:
         if word not in cache:
-            cache[word] = _pick_translate(lookup(word))
+            t, a = _pick_translate(lookup(word))
+            cache[word] = (t, a, {})
         return cache[word]
 
     aligned = align_spans_with_lexicon(spans, cached_lookup)

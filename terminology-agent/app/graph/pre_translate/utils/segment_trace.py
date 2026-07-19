@@ -25,7 +25,7 @@ def build_segment_trace(state: dict[str, Any]) -> dict[str, Any] | None:
         {
           "jieba": [...],
           "aligned": [{text, translate, ambiguous, jieba_parts?}, ...],
-          "display": "文件 | 与 | 系统"
+          "display": "文件 | 系统"
         }
     """
     if not used_segmentation(state):

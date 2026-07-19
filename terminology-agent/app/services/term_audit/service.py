@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ApiError
 from app.repository.term_repo import TermRepository
+from app.repository.word_repo import WordRepository
 from app.schemas.agent import TermBatchReviewResult, TermBatchReviewFailure, TermAuditListFilters
 from app.services.term_audit.pending_dedupe import dedupe_pending_by_entry_key
 from app.services.workbench_sync import WorkbenchEntrySyncService
@@ -15,12 +16,13 @@ class TermAuditService:
     """审核列表/详情/确认 — 与 PreTranslateService 同构的领域服务。"""
 
     def __init__(self, session: AsyncSession) -> None:
-        """注入异步数据库会话，内部创建 TermRepository。
+        """注入异步数据库会话，内部创建 Repository。
 
         Args:
             session: FastAPI Depends(get_session) 提供的 AsyncSession。
         """
         self._repo = TermRepository(session)
+        self._word_repo = WordRepository(session)
         self._workbench_sync = WorkbenchEntrySyncService(session)
 
     async def list_pending(
@@ -101,6 +103,10 @@ class TermAuditService:
         if action == "approved" and record.suggested_translation:
             await self._merge_to_store(record)
 
+        # 审核通过且存在 segment_trace 时，自动将词片导入 term_word
+        if action == "approved" and record.segment_trace:
+            await self._import_segment_trace_to_term_word(record)
+
         return await self._repo.get_audit(audit_id)
 
     async def _sync_workbench_entry(self, record) -> None:
@@ -167,3 +173,37 @@ class TermAuditService:
                 target_lang=record.target_lang,
                 department=record.department,
             )
+
+    async def _import_segment_trace_to_term_word(self, record) -> None:
+        """审核通过后，从 segment_trace.jieba 提取词片导入 term_word。
+
+        已存在的词片跳过，不重复写入。
+        """
+        trace = record.segment_trace
+        if not isinstance(trace, dict):
+            return
+        jieba_tokens: list[str] = trace.get("jieba") or []
+        if not jieba_tokens:
+            return
+
+        created = 0
+        for token in jieba_tokens:
+            existing = await self._word_repo.find_by_key(
+                word=token,
+                comment="",
+                target_lang=record.target_lang or "",
+            )
+            if existing:
+                continue
+            await self._word_repo.create_word({
+                "word": token,
+                "target_lang": record.target_lang or "",
+                "department": record.department,
+                "status": "1",
+                "comment": "",
+            })
+            created += 1
+
+        if created:
+            from app.repository.trie_cache import clear_trie_cache
+            clear_trie_cache()

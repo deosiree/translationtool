@@ -9,13 +9,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.response import ok, ResponseCode
 from app.core.exceptions import ApiError
 from app.models.database import get_session
+from app.repository.term_repo import TermRepository
+from app.repository.word_repo import WordRepository
 from app.services.term_audit import TermAuditService
 from app.schemas.agent import (
     TermReviewRequest,
     TermBatchReviewRequest,
     AuditListData,
     TermAuditListFilters,
+    TermAuditSplitRequest,
+    TermAuditSplitByIdsRequest,
+    TermAuditUpdateRequest,
 )
+from app.shared.term_word.segment import segment_source_text
 from app.schemas.converters import audit_to_data
 
 router = APIRouter()
@@ -127,3 +133,105 @@ async def review_term(
         audit_id, action=body.action, comment=body.comment
     )
     return ok(audit_to_data(record))
+
+
+@router.post("/split", summary="已选术语切分预览")
+async def split_selected_terms(
+    body: TermAuditSplitRequest,
+):
+    """术语学习页 — 对已选术语执行 jieba 切分，返回候选词片列表供导入术语字典。
+
+    每条的 ``entry`` 为词条原文、``translate`` 为建议译文（可选）。
+    返回去重后的 ``[{word, translate?, target_lang, department}]``。
+    """
+    seen: set[str] = set()
+    rows: list[dict] = []
+
+    for item in body.items:
+        tokens = [t for t, _s, _e in segment_source_text(item.entry)]
+        # 去重
+        for token in tokens:
+            if token in seen:
+                continue
+            seen.add(token)
+            row: dict = {
+                "word": token,
+                "target_lang": item.target_lang,
+            }
+            if item.department:
+                row["department"] = item.department
+            rows.append(row)
+
+    return ok({"list": rows, "total": len(rows)})
+
+
+@router.post("/split-by-ids", summary="按 audit_ids 切分并回填 segment_trace")
+async def split_selected_terms_by_ids(
+    body: TermAuditSplitByIdsRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    """术语学习页 — 对已选 audit 执行 jieba 切分，回填 segment_trace 字段。
+
+    对每个 audit 的 ``source_text`` 做 jieba 分词，组装 ``{jieba, display}`` 结构，
+    写入 ``term_agent_audit.segment_trace``。返回成功数。
+    """
+    repo = TermRepository(session)
+    success = 0
+    for audit_id in body.audit_ids:
+        record = await repo.get_audit(audit_id)
+        if not record or not record.source_text:
+            continue
+        jieba_tokens = [t for t, _s, _e in segment_source_text(record.source_text)]
+        if not jieba_tokens:
+            continue
+        trace = {
+            "jieba": jieba_tokens,
+            "display": " | ".join(jieba_tokens),
+        }
+        await repo.create_pretranslate_audit(
+            entry_info_id=record.entry_info_id,
+            task_id=record.task_id,
+            task_name=record.task_name,
+            product_name=record.product_name,
+            target_lang=record.target_lang or "",
+            department=record.department,
+            entry_comment=record.entry_comment,
+            source_text=record.source_text,
+            suggested_translation=record.suggested_translation,
+            confidence=record.confidence,
+            similar_terms=record.similar_terms,
+            retrieval_method=record.retrieval_method,
+            llm_reasoning=record.llm_reasoning,
+            segment_trace=trace,
+        )
+        success += 1
+
+    return ok({"success_count": success})
+
+
+@router.post("/{audit_id}/edit", summary="编辑保存审核记录")
+async def update_audit_fields(
+    audit_id: str,
+    body: TermAuditUpdateRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    """编辑保存——所有字段透传更新。
+
+    前端控制编辑权限（仅开放 翻译 和 切分）及字段联动清空逻辑。
+    """
+    repo = TermRepository(session)
+    record = await repo.get_audit(audit_id)
+    if record is None:
+        raise ApiError(f"审核记录 {audit_id} 不存在")
+
+    # 只取前端显式传入的字段（含 null 清空），未传的字段保持原值
+    update_fields = body.model_dump(exclude_unset=True)
+    if not update_fields:
+        raise ApiError("没有需要更新的字段", code=ResponseCode.PARAM_ERROR)
+
+    updated = await repo.update_audit(audit_id, **update_fields)
+    if updated is None:
+        raise ApiError(f"更新审核记录 {audit_id} 失败")
+
+    from app.schemas.converters import audit_to_data
+    return ok(audit_to_data(updated))

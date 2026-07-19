@@ -306,6 +306,31 @@ class TermWordSplitPreviewRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class TermAuditSplitRequest(BaseModel):
+    """POST /agent/term-learning/split — 术语学习已选术语切分预览。"""
+
+    items: list[TermWordSplitItem] = Field(..., min_length=1)
+
+
+class TermAuditSplitByIdsRequest(BaseModel):
+    """POST /agent/term-learning/split-by-ids — 按 audit_ids 切分并回填 segment_trace。"""
+
+    audit_ids: list[str] = Field(..., min_length=1, description="term_agent_audit 主键列表")
+
+
+class TermAuditUpdateRequest(BaseModel):
+    """POST /agent/term-learning/{id}/edit — 编辑保存。
+
+    所有字段均透传更新，前端控制哪些字段可编辑以及字段联动清空逻辑。
+    """
+
+    suggested_translation: Optional[str] = Field(None, description="建议译文")
+    segment_trace: Optional[dict] = Field(None, description="切分轨迹 {jieba,display}")
+    confidence: Optional[float] = Field(None, description="置信度")
+    retrieval_method: Optional[str] = Field(None, description="检索方式")
+    llm_reasoning: Optional[str] = Field(None, description="LLM 推理说明")
+
+
 class TermWordExportRowsRequest(BaseModel):
     """POST /agent/word/export-rows — 导出任意标准行（拆分结果等）。"""
 
