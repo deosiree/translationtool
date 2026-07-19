@@ -108,6 +108,7 @@ Read to leave useful evidence for the next agent and for benchmark scoring.
 | --- | --- |
 | Task adds/edits **SearchBox 查询条件**字段或按钮（术语库/词条管理等） | 宽度只改 `translation/src/components/search/searchBox.vue` 的 `--search-control-width`（或 `searchControlWidth.js`）；**禁止**在 `SearchBox` 的 `form` 插槽内写零散 `style="width: …"`。按钮放 `operate` 插槽（或独立操作行），勿为加按钮改字段宽。见 `docs/superpowers/specs/2026-07-18-searchbox-control-width-design.md`。 |
 | Task touches database schema, durable records, or migrations | Read `docs/decisions/0004-sqlite-durable-layer.md`, `scripts/schema/`, and relevant CLI code before planning. |
+| Task **执行 MySQL DDL/DML/种子**（含 `docker exec … mysql` 写入中文） | **必须**加 `--default-character-set=utf8mb4`：`docker exec -i translation-mysql mysql --default-character-set=utf8mb4 …`。禁止不带字符集参数的 `docker exec … mysql` 写入含中文的 SQL（Windows 主机默认 GBK 会乱码）。|
 | User asks to **备份数据库 / 准备回滚点 / 回滚 / 恢复备份**（或本地脏库检查点） | Read `docs/ops/DEV_DB_CHECKPOINT.md` and run skill `db-回滚数据库` scripts only. **禁止** PowerShell 管道/`Set-Content` 写 mysqldump；锁定 `--result-file` + `docker cp` + `verify-dump-encoding`。 |
 | User asks to **精简术语库 / 删空挂 / 去重 / 中文占比不足删词条 / 后台改数再实跑**（本地非上线） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地直改数据 / 术语库精简」：先 `backup`，再跑 `db/opt/cleanup-syk-*.sql`；只软删；中文占比阈值默认 **80%**；禁止主观乱删与生产库操作。 |
 | Agent **INSERT/种子创建 `t_task_info` 验数任务**（或用户要求补任务人员） | Read `docs/ops/DEV_DB_CHECKPOINT.md`「本地验数任务：人员字段」：`creator`/`developer`/`entry_auditor`/`translator`/`translation_auditor` **全部填写**（本地默认 `admin`），禁止只写 creator。 |
