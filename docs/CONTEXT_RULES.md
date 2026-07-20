@@ -105,7 +105,7 @@
 | --- | --- |
 | 任务触及 **切分词片 / segment_trace.jieba / 回写 term_word** | 规范化只走 `normalize_cn_lexemes`（先保序去重、再滤停用词）；写入 `segment_trace` 必须经此门禁；前端不维护停用词表。 |
 | 任务增加/编辑 **SearchBox 查询条件**字段或按钮（术语库/词条管理等） | 宽度只改 `translation/src/components/search/searchBox.vue` 的 `--search-control-width`（或 `searchControlWidth.js`）；**禁止**在 `SearchBox` 的 `form` 插槽内写零散 `style="width: …"`。按钮放 `operate` 插槽（或独立操作行），勿为加按钮改字段宽。见 `docs/superpowers/specs/2026-07-18-searchbox-control-width-design.md`。 |
-| 任务做 **术语学习页 / 切分 Tag 编辑** 等 UI 验收 | 环境可用时用 opencli 做页面集成测（删 chip、保存后无顿号/无重复），见原则「页面验收优先 opencli」。 |
+| 任务做 **术语学习页 / 切分 Tag 编辑** 等 UI 验收 | 环境可用时用 opencli 做页面集成测（删 chip、保存后无顿号/无重复），见原则「页面验收优先 opencli」。本地登录默认 `admin` / `admin123`（见 `README.md` / `references/本地开发.md`）；若用户已登录，优先 `opencli browser <session> bind` 接管当前标签，勿反复撞登录页。 |
 | 任务触及数据库 schema、持久记录或迁移 | 计划前阅读 `docs/decisions/0004-sqlite-durable-layer.md`、`scripts/schema/` 与相关 CLI 代码。 |
 | 任务 **执行 MySQL DDL/DML/种子**（含 `docker exec … mysql` 写入中文） | **必须**加 `--default-character-set=utf8mb4`：`docker exec -i translation-mysql mysql --default-character-set=utf8mb4 …`。禁止不带字符集参数的 `docker exec … mysql` 写入含中文的 SQL（Windows 主机默认 GBK 会乱码）。 |
 | 用户要求 **备份数据库 / 准备回滚点 / 回滚 / 恢复备份**（或本地脏库检查点） | 阅读 `docs/ops/DEV_DB_CHECKPOINT.md`，只跑 skill `db-回滚数据库` 脚本。**禁止** PowerShell 管道/`Set-Content` 写 mysqldump；锁定 `--result-file` + `docker cp` + `verify-dump-encoding`。 |
