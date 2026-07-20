@@ -10,6 +10,7 @@ from app.repository.word_repo import WordRepository
 from app.schemas.agent import TermBatchReviewResult, TermBatchReviewFailure, TermAuditListFilters
 from app.services.term_audit.pending_dedupe import dedupe_pending_by_entry_key
 from app.services.workbench_sync import WorkbenchEntrySyncService
+from app.shared.term_word.stopwords import normalize_cn_lexemes
 
 
 class TermAuditService:
@@ -182,7 +183,7 @@ class TermAuditService:
         trace = record.segment_trace
         if not isinstance(trace, dict):
             return
-        jieba_tokens: list[str] = trace.get("jieba") or []
+        jieba_tokens: list[str] = normalize_cn_lexemes(trace.get("jieba") or [])
         if not jieba_tokens:
             return
 

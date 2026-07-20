@@ -95,8 +95,27 @@ def is_en_stopword(token: str) -> bool:
 
 
 def filter_cn_tokens(tokens: list[str]) -> list[str]:
-    """过滤中文无意义词片，保持顺序。"""
+    """过滤中文无意义词片，保持顺序（不去重；对齐场景用）。"""
     return [t for t in tokens if not is_cn_stopword(t)]
+
+
+def normalize_cn_lexemes(tokens: list[str] | None) -> list[str]:
+    """词片规范化 SSOT：去空白 → 保序去重 → 滤停用词。
+
+    写入 ``segment_trace.jieba`` / 回写术语字典前只经此函数。
+    顺序锁定为先去重再过滤，避免同一词片重复做停用词判定。
+    """
+    if not tokens:
+        return []
+    seen: set[str] = set()
+    unique: list[str] = []
+    for raw in tokens:
+        t = (raw or "").strip()
+        if not t or t in seen:
+            continue
+        seen.add(t)
+        unique.append(t)
+    return [t for t in unique if not is_cn_stopword(t)]
 
 
 def split_en_raw_tokens(text: str) -> list[str]:

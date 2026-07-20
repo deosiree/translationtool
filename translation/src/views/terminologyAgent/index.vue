@@ -228,25 +228,30 @@
                 <template v-if="isEditing(record)">
                   <div
                     class="chip-input"
-                    style="border:1px solid #d9d9d9;border-radius:4px;padding:4px 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:30px;background:#fff;"
                     @click.stop
                   >
-                    <template v-for="(word, idx) in editableData[record.id].words" :key="idx">
-                      <a-tag
-                        :closable="true"
-                        @close="removeWord(record, idx)"
-                        style="margin:0;"
+                    <span
+                      v-for="chip in editableData[record.id].chips"
+                      :key="chip.id"
+                      class="segment-chip"
+                    >
+                      <span class="segment-chip__text">{{ chip.text }}</span>
+                      <button
+                        type="button"
+                        class="segment-chip__remove"
+                        aria-label="删除词片"
+                        @click.stop="removeChip(record, chip.id)"
                       >
-                        {{ word }}
-                      </a-tag>
-                    </template>
+                        ×
+                      </button>
+                    </span>
                     <a-input
                       v-model:value="editableData[record.id].inputValue"
                       size="small"
-                      style="width:80px;border:none;box-shadow:none;padding:0 4px;height:24px;"
+                      class="chip-input__field"
                       placeholder="输入"
-                      @pressEnter="addWord(record)"
-                      @blur="addWord(record)"
+                      @pressEnter="addChip(record)"
+                      @blur="addChip(record)"
                     />
                   </div>
                 </template>
@@ -566,10 +571,19 @@ export default {
       return !!this.editableData[record.id];
     },
     startEdit(record) {
-      const display = record.segment_trace?.display || "";
+      const trace = record.segment_trace || {};
+      let texts = [];
+      if (Array.isArray(trace.jieba) && trace.jieba.length > 0) {
+        texts = trace.jieba.map((t) => String(t)).filter(Boolean);
+      } else if (typeof trace.display === "string" && trace.display.trim()) {
+        texts = trace.display.split(" | ").filter(Boolean);
+      }
       this.editableData[record.id] = {
         suggested_translation: record.suggested_translation || "",
-        words: display ? display.split(" | ").filter(Boolean) : [],
+        chips: texts.map((text) => ({
+          id: `${record.id}-${text}-${Math.random().toString(36).slice(2, 9)}`,
+          text,
+        })),
         inputValue: "",
       };
     },
@@ -590,13 +604,16 @@ export default {
         changedTranslation = true;
       }
 
-      // 检测切分是否修改
-      const newWords = edit.words || [];
-      const newDisplay = newWords.join(" | ");
-      const origDisplay = record.segment_trace?.display || "";
-      if (newDisplay !== origDisplay) {
+      // 检测切分是否修改（chip 列表为唯一真相；后端 normalize 洗净）
+      const newWords = (edit.chips || []).map((c) => c.text);
+      const origWords =
+        Array.isArray(record.segment_trace?.jieba) &&
+        record.segment_trace.jieba.length > 0
+          ? record.segment_trace.jieba.map(String)
+          : (record.segment_trace?.display || "").split(" | ").filter(Boolean);
+      if (newWords.join("\0") !== origWords.join("\0")) {
         payload.segment_trace = newWords.length
-          ? { jieba: newWords, display: newDisplay }
+          ? { jieba: newWords, display: newWords.join(" | ") }
           : null;
         changedSegmentTrace = true;
       }
@@ -633,7 +650,7 @@ export default {
 
       record.processing = true;
       try {
-        await updateTermAudit(record.id, payload);
+        const res = await updateTermAudit(record.id, payload);
         message.success("保存成功");
         this.cancelEdit(record);
         // 更新本地记录
@@ -644,7 +661,8 @@ export default {
           record.llm_reasoning = null;
         }
         if (changedSegmentTrace) {
-          record.segment_trace = payload.segment_trace;
+          record.segment_trace =
+            res?.data?.segment_trace ?? payload.segment_trace;
         }
       } catch (err) {
         message.error(err?.message || "保存失败");
@@ -652,19 +670,22 @@ export default {
         record.processing = false;
       }
     },
-    addWord(record) {
+    addChip(record) {
       const edit = this.editableData[record.id];
       if (!edit) return;
-      const word = (edit.inputValue || "").trim();
-      if (word && !edit.words.includes(word)) {
-        edit.words.push(word);
+      const text = (edit.inputValue || "").trim();
+      if (text && !edit.chips.some((c) => c.text === text)) {
+        edit.chips.push({
+          id: `${record.id}-${text}-${Math.random().toString(36).slice(2, 9)}`,
+          text,
+        });
       }
       edit.inputValue = "";
     },
-    removeWord(record, idx) {
+    removeChip(record, chipId) {
       const edit = this.editableData[record.id];
       if (!edit) return;
-      edit.words.splice(idx, 1);
+      edit.chips = edit.chips.filter((c) => c.id !== chipId);
     },
     loadTranslateTypes() {
       getLanguage({})
@@ -859,5 +880,57 @@ export default {
 
 .reasoning-text {
   color: #888;
+}
+
+.chip-input {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-height: 30px;
+  background: #fff;
+}
+
+.chip-input__field {
+  width: 80px;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 4px;
+  height: 24px;
+}
+
+.segment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 4px 0 7px;
+  height: 22px;
+  font-size: 12px;
+  line-height: 20px;
+  background: #fafafa;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+}
+
+.segment-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.segment-chip__remove:hover {
+  color: rgba(0, 0, 0, 0.85);
 }
 </style>

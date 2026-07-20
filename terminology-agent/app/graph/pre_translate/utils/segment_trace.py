@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.shared.term_word.segment import segment_source_text
+from app.shared.term_word.stopwords import normalize_cn_lexemes
 
 _SEGMENT_METHODS = frozenset({"grep", "hybrid", "decomposed"})
 
@@ -16,6 +17,28 @@ def used_segmentation(state: dict[str, Any]) -> bool:
         return True
     method = (state.get("retrieval_method") or "").strip()
     return method in _SEGMENT_METHODS
+
+
+def finalize_jieba_tokens(tokens: list[str]) -> tuple[list[str], str]:
+    """写入 segment_trace 前的词片门禁：normalize → (jieba, display)。"""
+    jieba = normalize_cn_lexemes(tokens)
+    display = " | ".join(jieba) if jieba else ""
+    return jieba, display
+
+
+def normalize_segment_trace_dict(trace: dict[str, Any] | None) -> dict[str, Any] | None:
+    """对已有 segment_trace 的 jieba/display 走同一门禁；其它键原样保留。"""
+    if trace is None:
+        return None
+    if not isinstance(trace, dict):
+        return trace
+    jieba, display = finalize_jieba_tokens(
+        [str(t) for t in (trace.get("jieba") or [])]
+    )
+    out = dict(trace)
+    out["jieba"] = jieba
+    out["display"] = display
+    return out
 
 
 def build_segment_trace(state: dict[str, Any]) -> dict[str, Any] | None:
@@ -59,10 +82,11 @@ def build_segment_trace(state: dict[str, Any]) -> dict[str, Any] | None:
         if source:
             jieba_tokens = [tok for tok, _s, _e in segment_source_text(source)]
 
+    jieba_tokens, display = finalize_jieba_tokens(jieba_tokens)
+
     if not jieba_tokens and not aligned:
         return None
 
-    display = " | ".join(jieba_tokens) if jieba_tokens else ""
     return {
         "jieba": jieba_tokens,
         "aligned": aligned,

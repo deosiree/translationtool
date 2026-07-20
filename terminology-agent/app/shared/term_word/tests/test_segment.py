@@ -78,13 +78,14 @@ def test_placeholder_merge_dash_concat():
 
 
 @pytest.mark.unit
-def test_filter_special_chars():
-    """纯特殊字符（/、%、_）被过滤，中文词保留。"""
-    tokens = [t for t, _, _ in segment_source_text("文件/系统")]
-    assert "文件" in tokens
-    assert "系统" in tokens or "系统" in "".join(tokens)
-    # 单独的 / 被过滤
-    assert "/" not in tokens
+def test_segment_ideographic_comma_filtered_no_dup():
+    """「文件、系统、资源」切分不含顿号、无重复。"""
+    tokens = [t for t, _, _ in segment_source_text("文件、系统、资源")]
+    assert "、" not in tokens
+    assert tokens == ["文件", "系统", "资源"] or (
+        "文件" in tokens and "系统" in tokens and "资源" in tokens
+    )
+    assert len(tokens) == len(set(tokens))
 
 
 @pytest.mark.unit

@@ -22,6 +22,10 @@ from app.schemas.agent import (
     TermAuditUpdateRequest,
 )
 from app.shared.term_word.segment import segment_source_text
+from app.graph.pre_translate.utils.segment_trace import (
+    finalize_jieba_tokens,
+    normalize_segment_trace_dict,
+)
 from app.schemas.converters import audit_to_data
 
 router = APIRouter()
@@ -181,12 +185,13 @@ async def split_selected_terms_by_ids(
         record = await repo.get_audit(audit_id)
         if not record or not record.source_text:
             continue
-        jieba_tokens = [t for t, _s, _e in segment_source_text(record.source_text)]
+        raw_tokens = [t for t, _s, _e in segment_source_text(record.source_text)]
+        jieba_tokens, display = finalize_jieba_tokens(raw_tokens)
         if not jieba_tokens:
             continue
         trace = {
             "jieba": jieba_tokens,
-            "display": " | ".join(jieba_tokens),
+            "display": display,
         }
         await repo.create_pretranslate_audit(
             entry_info_id=record.entry_info_id,
@@ -228,6 +233,11 @@ async def update_audit_fields(
     update_fields = body.model_dump(exclude_unset=True)
     if not update_fields:
         raise ApiError("没有需要更新的字段", code=ResponseCode.PARAM_ERROR)
+
+    if "segment_trace" in update_fields and update_fields["segment_trace"] is not None:
+        update_fields["segment_trace"] = normalize_segment_trace_dict(
+            update_fields["segment_trace"]
+        )
 
     updated = await repo.update_audit(audit_id, **update_fields)
     if updated is None:

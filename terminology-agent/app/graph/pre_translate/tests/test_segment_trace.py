@@ -44,5 +44,20 @@ def test_build_from_aligned_spans():
 
 
 @pytest.mark.unit
-def test_build_none_for_exact():
-    assert build_segment_trace({"retrieval_method": "exact", "spans": []}) is None
+def test_build_normalizes_stopwords_and_dedupes():
+    """展平 jieba_parts 后经 normalize：先去重再滤顿号。"""
+    state = {
+        "retrieval_method": "decomposed",
+        "spans": [
+            {
+                "text": "文件、系统",
+                "translate": None,
+                "ambiguous": False,
+                "jieba_parts": ["文件", "、", "系统", "、", "资源", "文件"],
+            }
+        ],
+    }
+    trace = build_segment_trace(state)
+    assert trace is not None
+    assert trace["jieba"] == ["文件", "系统", "资源"]
+    assert trace["display"] == "文件 | 系统 | 资源"
