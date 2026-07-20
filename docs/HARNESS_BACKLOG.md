@@ -1,40 +1,39 @@
-# Harness Backlog
+# Harness 待办
 
-Use this file when an agent discovers a missing harness capability but should
-not change the operating model immediately.
+当 Agent 发现缺失的 Harness 能力但不应立即改变操作模型时，使用本文件。
 
-## Template
+## 模板
 
 ```md
-## Missing Harness Capability
+## 缺失的 Harness 能力
 
-### Title
+### 标题
 
-Short name.
+简短名称。
 
-### Discovered While
+### 发现于
 
-Task or story that exposed the gap.
+暴露缺口的任务或 story。
 
-### Current Pain
+### 当前痛点
 
-What was hard, repeated, ambiguous, or unsafe?
+何处困难、重复、模糊或不安全？
 
-### Suggested Improvement
+### 建议改进
 
-What should be added or changed?
+应添加或改变什么？
 
-### Risk
+### 风险
 
-Tiny, normal, or high-risk.
+Tiny、normal 或 high-risk。
 
-CLI value: `--risk tiny`, `--risk normal`, or `--risk high-risk`.
+CLI 取值：`--risk tiny`、`--risk normal` 或 `--risk high-risk`。
 
 ### Status
 
 proposed | accepted | implemented | rejected
 ```
 
-## Items
+## 条目
 
-No backlog items yet.
+尚无 backlog 条目。

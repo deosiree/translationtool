@@ -1,50 +1,49 @@
-# Spec Intake
+# 规格分拣（Spec Intake）
 
 Date: YYYY-MM-DD
 
-## Source
+## Source（来源）
 
-Where did the spec come from?
+规格从哪里来？
 
-- User prompt:
-- Attached file:
-- External reference:
+- 用户提示：
+- 附件：
+- 外部引用：
 
-## Project Summary
+## Project Summary（项目摘要）
 
-What product are we building, for whom, and why?
+我们在为谁、为什么、构建什么产品？
 
-## Candidate Product Docs
+## Candidate Product Docs（候选产品文档）
 
-List the product contract files that should be created under `docs/product/`.
+列出应在 `docs/product/` 下创建的产品契约文件。
 
-| File | Purpose | Source sections |
+| 文件 | 用途 | 来源章节 |
 | --- | --- | --- |
 | `docs/product/overview.md` | | |
 
-## Candidate Epics
+## Candidate Epics（候选史诗）
 
-List only the epics that are clear enough to name. Do not create every story
-packet yet.
+只列已能命名的史诗。此刻不要创建每一条故事包。
 
-| Epic | Description | Status |
+| Epic | 描述 | Status |
 | --- | --- | --- |
 | E01 | | unsliced |
 
-## Architecture Questions
+## Architecture Questions（架构问题）
 
-- Runtime stack:
-- Product surfaces:
-- Storage:
-- External providers:
-- Deployment target:
-- Security model:
+- Runtime stack（运行时栈）：
+- Product surfaces（产品面）：
+- Storage（存储）：
+- External providers（外部提供方）：
+- Deployment target（部署目标）：
+- Security model（安全模型）：
 
-## Validation Shape
+## Validation Shape（验证形态）
 
-What proof will this project eventually need?
+本项目最终需要哪些证明？
 
-| Layer | Expected proof |
+| 层 | 期望证明 |
 | --- | --- |
 | Unit | |
 | Integration | |
@@ -52,14 +51,14 @@ What proof will this project eventually need?
 | Platform | |
 | Release | |
 
-## Open Decisions
+## Open Decisions（未决决策）
 
-- Item.
+- 条目。
 
-## First Story Candidates
+## First Story Candidates（首批故事候选）
 
-- Item.
+- 条目。
 
-## Harness Delta
+## Harness Delta（Harness 增量）
 
-What harness changes were made or should be proposed because of this spec?
+因本规格已做或应提议哪些 Harness 变更？

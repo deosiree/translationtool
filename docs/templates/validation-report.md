@@ -1,32 +1,32 @@
-# Validation Report
+# 验证报告（Validation Report）
 
 Date: YYYY-MM-DD
 
-## Scope
+## Scope（范围）
 
-What story or change was validated?
+验证了哪条故事或哪次变更？
 
-## Commands Run
+## Commands Run（已运行命令）
 
 ```text
 command
 ```
 
-## Results
+## Results（结果）
 
-| Check | Result | Notes |
+| 检查 | 结果 | 备注 |
 | --- | --- | --- |
-| Typecheck | not run | Command does not exist yet |
-| Unit | not run | Command does not exist yet |
-| Integration | not run | Command does not exist yet |
-| E2E | not run | Command does not exist yet |
-| Platform | not run | Command does not exist yet |
-| Release | not run | Command does not exist yet |
+| Typecheck | not run | 命令尚不存在 |
+| Unit | not run | 命令尚不存在 |
+| Integration | not run | 命令尚不存在 |
+| E2E | not run | 命令尚不存在 |
+| Platform | not run | 命令尚不存在 |
+| Release | not run | 命令尚不存在 |
 
-## Evidence
+## Evidence（证据）
 
-Add report paths, screenshots, logs, or other artifacts.
+补充报告路径、截图、日志或其他产物。
 
-## Gaps
+## Gaps（缺口）
 
-List remaining risk or missing harness capability.
+列出剩余风险或缺失的 Harness 能力。

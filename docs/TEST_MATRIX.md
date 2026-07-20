@@ -1,44 +1,34 @@
-# Test Matrix
+# 测试矩阵（Test Matrix）
 
-This file preserves the proof vocabulary and brownfield import shape used by
-Harness consumers. The authoritative operational matrix is stored in SQLite
-and queried with:
+本文件保留 Harness 消费者使用的证明词汇与棕地导入形态。权威运营矩阵存放在 SQLite，查询方式：
 
 ```bash
 scripts/bin/harness-cli query matrix --active --summary
 ```
 
-The upstream Harness repository has implemented behavior and executable proof.
-An installed consumer starts without consumer-product rows and adds them only
-when real work is accepted. Do not mark a row implemented until tests or other
-validation evidence exist.
+上游 Harness 仓库已有已实现行为与可执行证明。已安装的消费者起始时没有消费者产品行，仅在真实工作被接受后添加。在测试或其他验证证据存在之前，不要把行标为已实现。
 
-## Status Values
+## 状态值
 
-| Status | Meaning |
+| 状态 | 含义 |
 | --- | --- |
-| planned | Accepted as intended behavior, not implemented |
-| in_progress | Actively being built |
-| implemented | Implemented and proof exists |
-| changed | Contract changed after earlier implementation |
-| retired | No longer part of the product contract |
+| planned | 已接受为意图行为，尚未实现 |
+| in_progress | 正在建设 |
+| implemented | 已实现且存在证明 |
+| changed | 先前实现之后契约又变更 |
+| retired | 不再属于产品契约 |
 
-## Matrix
+## 矩阵
 
-No static product rows are shipped in this legacy view. Use `story add` and
-`story update` for operational records. Brownfield repositories may add rows
-here before importing their existing state.
+本遗留视图不附带静态产品行。运营记录用 `story add` 与 `story update`。棕地仓库可在导入既有状态前在此添加行。
 
-## Evidence Rules
+## 证据规则
 
-- Unit proof covers pure domain and application rules.
-- Integration proof covers backend enforcement, data integrity, provider
-  behavior, jobs, or service contracts.
-- E2E proof covers user-visible browser flows.
-- Platform proof covers only shell, deployment, mobile, desktop, or runtime
-  behavior that cannot be proven in lower layers.
-- A story can be implemented without every proof column if the story packet
-  explains why.
+- **单元证明**：覆盖纯领域与应用规则。
+- **集成证明**：覆盖后端强制、数据完整性、提供方行为、任务或服务契约。
+- **E2E 证明**：覆盖用户可见的浏览器流程。
+- **平台证明**：仅覆盖无法在更低层证明的壳层、部署、移动、桌面或运行时行为。
+- 若故事包说明了原因，故事可以在并非每列证明齐全时标为已实现。
 
 ## Translation Tool — 模块证明约定
 

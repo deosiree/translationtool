@@ -1,44 +1,43 @@
-# Exec Plan
+# 执行计划（Exec Plan）
 
-## Goal
+## Goal（目标）
 
-What outcome are we trying to produce?
+我们试图产出什么结果？
 
-## Scope
+## Scope（范围）
 
-In scope:
+范围内：
 
-- Item.
+- 条目。
 
-Out of scope:
+范围外：
 
-- Item.
+- 条目。
 
-## Risk Classification
+## Risk Classification（风险分类）
 
-Risk flags:
+风险旗标：
 
-- Flag.
+- 旗标。
 
-Hard gates:
+硬门禁：
 
-- Gate.
+- 门禁。
 
-## Work Phases
+## Work Phases（工作阶段）
 
-1. Discovery.
-2. Design.
-3. Validation planning.
-4. Implementation.
-5. Verification.
-6. Harness update.
+1. Discovery（发现）。
+2. Design（设计）。
+3. Validation planning（验证规划）。
+4. Implementation（实现）。
+5. Verification（核验）。
+6. Harness update（Harness 更新）。
 
-## Stop Conditions
+## Stop Conditions（停止条件）
 
-Pause for human confirmation if:
+出现以下情况时暂停并请人类确认：
 
-- Product behavior is ambiguous.
-- Data migration or deletion risk appears.
-- Validation requirements need to be weakened.
-- Architecture direction changes.
-
+- 产品行为模糊。
+- 出现数据迁移或删除风险。
+- 需要削弱验证要求。
+- 架构方向变更。

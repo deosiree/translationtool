@@ -1,13 +1,11 @@
-# Story Backlog
+# 故事 Backlog
 
-This backlog will be populated after a user provides a project spec or selects a
-specific initiative.
+本 backlog 将在用户提供项目规格或选定具体举措后填充。
 
-Do not create every possible story packet up front. Create story packets when
-the work is selected or when a product decision needs a durable place to land.
+不要预先创建所有可能的故事包。当工作被选中，或产品决策需要持久落点时，再创建故事包。
 
-## Candidate Epics
+## 候选史诗
 
-| Epic | Description | Status |
+| Epic | 描述 | Status |
 | --- | --- | --- |
-| TBD | Add candidate epics after spec intake | unsliced |
+| TBD | 规格分拣后补充候选史诗 | unsliced |

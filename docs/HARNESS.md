@@ -1,111 +1,110 @@
-# Harness
+# Harness（协作运行时）
 
-The project goal is to provide a reusable operating harness that lets humans and
-agents turn a future product spec into safe, validated work.
+本项目目标：提供可复用的协作运行时（Harness），让人类与 Agent 能把产品规格安全、可验证地落地。
 
-The app is what users touch. The harness is what agents touch.
+应用是用户接触的面；Harness 是 Agent 接触的面。
 
-## Mental Model
+## 心智模型
 
 ```text
 ------------------+
-| Human intent    |
+| 人类意图         |
 +------------------+
          |
          v
 +------------------+
-| Feature intake   |
+| 功能分拣 Intake  |
 +------------------+
          |
          v
 +------------------+
-| Story packet     |
+| 故事包 Story     |
 +------------------+
          |
          v
 +------------------+
-| Agent work loop  |
+| Agent 工作循环   |
 +------------------+
          |
          v
 +------------------+
-| Product delta    |
+| 产品增量         |
 +------------------+
          |
          v
 +------------------+
-| Validation proof |
+| 验证证明         |
 +------------------+
          |
          v
 +------------------+
-| Harness delta    |
+| Harness 增量     |
 +------------------+
          |
          v
 +------------------+
-| Next intent      |
+| 下一意图         |
 +------------------+
 ```
 
-A change request can have two outputs:
+一次变更请求可以有两类产出：
 
-1. Product delta: app code, tests, API shape, data model, or product docs.
-2. Harness delta, when warranted: docs, templates, validation expectations,
-   backlog items, or decision records that make the next change easier.
+1. **产品增量**：应用代码、测试、API 形态、数据模型或产品文档。
+2. **Harness 增量**（必要时）：文档、模板、验证期望、backlog 项或决策记录，让下一次变更更容易。
 
-## Harness v0 Scope
+## 语言约定
 
-Harness v0 includes:
+给人看的文案与机器标识分开处理。完整决策见 `docs/decisions/0011-harness-human-docs-zh.md`。
 
-- Agent entrypoint.
-- Empty product documentation structure.
-- Feature intake and risk lanes.
-- Story templates.
-- Decision log template.
-- Validation report template.
-- SQLite-backed proof matrix and a legacy import template.
-- Harness growth backlog.
-- Durable layer: SQLite database and CLI for operational records.
-- Upstream contract tests and pull-request/release validation.
+| 用简体中文 | 保留英文 |
+| --- | --- |
+| 文档正文、标题、表格说明、模板占位提示 | `harness-cli` 子命令与 flag（如 `query matrix --active`） |
+| Agent 块、Eval `task.md` / `rubric.md` / review、脚本里给人看的日志/注释 | 题 ID、`env.yaml` 的 `type`、路径、JSON/SQLite 字段名、契约 schema key |
+| Decision / Glossary / Maturity 等叙述 | 专有名词首次可「中文（English）」并存 |
 
-Harness v0 deliberately excludes:
+合入上游 `repository-harness` 文档时，**不得**用英文原文整文件覆盖本仓库中文版；只移植语义变更后再译。
 
-- A consumer-project-specific `SPEC.md`.
-- Pre-sliced consumer product domains.
-- A locked consumer application stack.
-- Consumer app source scaffolding.
-- Consumer package scripts and test-runner configuration.
-- Consumer CI workflows.
+## Harness v0 范围
 
-Those belong to the installed project and should arrive only when one of its
-selected stories needs them. The upstream Harness repository has its own Rust
-workspace, tests, and CI because the Harness CLI and templates are products
-that require executable proof.
+Harness v0 包含：
 
-## Durable Layer
+- Agent 入口。
+- 空的产品文档结构。
+- 功能分拣与风险车道。
+- 故事模板。
+- 决策日志模板。
+- 验证报告模板。
+- 基于 SQLite 的证明矩阵，以及遗留导入模板。
+- Harness 成长 backlog。
+- 持久层：SQLite 数据库与 CLI，用于运营记录。
+- 上游契约测试与 PR/发布校验。
 
-Policy documents describe how to work. The durable layer stores what happened.
+Harness v0 **刻意不包含**：
 
-Operational data — intake classifications, story status, decision outcomes,
-backlog items, and execution traces — lives in a SQLite database (`harness.db`)
-managed by the Rust Harness CLI at `scripts/bin/harness-cli`. Agents and humans
-should use that binary for Harness work. The database is local to each project
-instance and `.gitignore`d. The schema is version-controlled under
-`scripts/schema/`.
+- 消费者项目专用的 `SPEC.md`。
+- 预先切好的消费者产品域。
+- 锁定的消费者应用技术栈。
+- 消费者应用源码脚手架。
+- 消费者包脚本与测试运行配置。
+- 消费者 CI 工作流。
 
-This separation keeps policy docs stable and human-readable while giving agents
-a structured, queryable record of operational state. It also prepares the
-harness for future observability and automated evolution without adding more
-markdown files.
+这些属于已安装项目，只应在某条选定故事需要时引入。上游 Harness 仓库自有 Rust 工作区、测试与 CI，因为 Harness CLI 与模板本身是需要可执行证明的产品。
 
-Initialize the database if it does not exist:
+## 持久层
+
+策略文档描述「怎么做」；持久层记录「发生了什么」。
+
+运营数据——intake 分类、故事状态、决策结果、backlog 项、执行 trace——存放在 SQLite 数据库（`harness.db`）中，由 `scripts/bin/harness-cli` 的 Rust Harness CLI 管理。Agent 与人类应使用该二进制做 Harness 工作。数据库对每个项目实例本地化，并已 `.gitignore`。schema 版本化存放在 `scripts/schema/`。
+
+这种分离让策略文档保持稳定、可读，同时给 Agent 结构化、可查询的运营状态；也为未来的可观测与自动演进做准备，而不必再堆更多 markdown。
+
+若数据库不存在，先初始化：
 
 ```bash
 scripts/bin/harness-cli init
 ```
 
-Common commands:
+常用命令：
 
 ```bash
 scripts/bin/harness-cli intake  --type <type> --summary <text> --lane <lane>
@@ -130,148 +129,112 @@ scripts/bin/harness-cli query   stats
 scripts/bin/harness-cli --version
 ```
 
-## Source Hierarchy
+## 信源层级
 
 ```text
-User-provided spec or prompt
-  input material for first buildout or future changes
+用户提供的规格或提示
+  首次建设或后续变更的输入材料
 
 docs/product/*
-  current product contract derived from accepted input
+  由已接受输入推导出的当前产品契约
 
 docs/stories/*
-  story-sized work packets and historical evidence
+  故事级工作包与历史证据
 
 scripts/bin/harness-cli query matrix
-  behavior-to-proof control panel backed by the durable layer
+  行为→证明控制面板，由持久层支撑
 
 docs/decisions/*
-  why the contract changed
+  契约为何变更
 ```
 
-Before implementation, product docs describe intent. After implementation,
-product docs plus executable tests become the living contract.
+实现前，产品文档描述意图；实现后，产品文档加上可执行测试成为活契约。
 
-## Spec Lifecycle
+## 规格生命周期
 
-Harness v0 starts without a tracked project spec. When the human provides a
-specification, treat it as input material, not as a permanent operating manual.
-Use it to populate product docs, story packets, architecture decisions, and
-validation expectations during the first buildout.
+Harness v0 起始时不跟踪项目规格。当人类提供规格时，将其视为**输入材料**，而不是永久操作手册。在首次建设中用它填充产品文档、故事包、架构决策与验证期望。
 
-After the specification has been decomposed, do not keep extending it as the
-living product plan. Ongoing work should update the smaller product docs,
-stories, durable proof records, and decision records.
+规格分解完成后，不要继续把它当作活的产品计划来扩展。持续工作应更新更小的产品文档、故事、持久证明记录与决策记录。
 
-Ongoing work should enter the harness as one of these input types:
+持续工作应以如下输入类型之一进入 Harness：
 
-- New spec: a project specification that needs to become product docs and
-  initial story candidates.
-- Spec slice: a selected behavior from the provided spec.
-- Change request: a bounded behavior change, bug fix, or product refinement.
-- New initiative: a larger product area that needs multiple stories.
-- Maintenance request: dependency, architecture, performance, security, or
-  operational work.
-- Harness improvement: a process, template, proof, or agent-instruction change.
+- **新规格**：需要变成产品文档与初始故事候选的项目规格。
+- **规格切片**：已提供规格中的选定行为。
+- **变更请求**：有界的行为变更、缺陷修复或产品细化。
+- **新举措**：需要多条故事的更大产品域。
+- **维护请求**：依赖、架构、性能、安全或运维工作。
+- **Harness 改进**：流程、模板、证明或 Agent 指令变更。
 
-The spec-to-work loop is:
+规格到工作的循环：
 
 ```text
-human intent or supplied spec
-  -> classify input type
-  -> update or create product contract
-  -> create story packet or initiative notes when needed
-  -> define validation proof
-  -> implement or document the blocker
-  -> update product docs, stories, durable proof records, and decisions
-  -> capture harness friction
+人类意图或提供的规格
+  -> 分类输入类型
+  -> 更新或创建产品契约
+  -> 需要时创建故事包或举措说明
+  -> 定义验证证明
+  -> 实现或记录阻塞
+  -> 更新产品文档、故事、持久证明与决策
+  -> 捕获 Harness 摩擦
 ```
 
-Large product areas should use scoped initiative notes instead of a second
-monolithic specification. An initiative should explain the goal, affected
-product docs, candidate stories, validation shape, open decisions, and exit
-criteria. If initiative work becomes a repeated pattern, add a template or
-record the proposal with `scripts/bin/harness-cli backlog add`.
+大产品域应使用有范围的举措说明，而不是第二份巨型规格。举措应说明目标、受影响产品文档、候选故事、验证形态、未决决策与退出标准。若举措工作成为重复模式，增加模板或用 `scripts/bin/harness-cli backlog add` 记录提案。
 
-## Growth Rule
+## 成长规则
 
-The harness grows from friction.
+Harness 因摩擦而成长。
 
-When an agent is confused, repeats manual reasoning, needs a new validation
-command, discovers a missing rule, or sees a recurring failure pattern, it must
-either improve the harness directly or record the friction:
+当 Agent 困惑、重复手工推理、需要新验证命令、发现缺失规则，或看到重复失败模式时，必须直接改进 Harness，或记录摩擦：
 
 ```bash
-scripts/bin/harness-cli backlog add --title "<short name>" --pain "<what was hard>"
+scripts/bin/harness-cli backlog add --title "<短名称>" --pain "<难点>"
 ```
 
-Use the backlog outcome loop for improvements that are expected to change agent
-behavior or validation results:
+对预期会改变 Agent 行为或验证结果的改进，使用 backlog 结果闭环：
 
-1. When creating the backlog item, fill `--predicted` with the measurable
-   impact expected from the improvement.
-2. When closing the item, fill `--outcome` with the actual measured result or
-   review evidence.
-3. Use `scripts/bin/harness-cli query backlog --open` to review proposed and accepted
-   items, and `scripts/bin/harness-cli query backlog --closed` to compare predictions
-   with outcomes after implementation.
+1. 创建 backlog 项时，用 `--predicted` 填写改进的可度量预期影响。
+2. 关闭项时，用 `--outcome` 填写实际度量结果或评审证据。
+3. 用 `scripts/bin/harness-cli query backlog --open` 查看提案与已接受项，用 `scripts/bin/harness-cli query backlog --closed` 在实现后对比预测与结果。
 
-The `harness_friction` field on traces also captures per-task friction so
-patterns can be queried later:
+trace 上的 `harness_friction` 字段也会按任务捕获摩擦，便于后续查询：
 
 ```bash
 scripts/bin/harness-cli query friction
 ```
 
-Backlog risk uses the same lane vocabulary as intake and stories:
-`tiny`, `normal`, or `high-risk`. Use `--risk tiny` for low-risk follow-up
-items; `low` is not a valid lane.
+backlog 风险使用与 intake、故事相同的车道词汇：`tiny`、`normal` 或 `high-risk`。低风险跟进用 `--risk tiny`；`low` 不是合法车道。
 
-## Request-Class Loops
+## 请求类别循环
 
-Classify authority before running Harness commands. The request class decides
-whether repository state may change.
+在运行 Harness 命令前先判定权限。请求类别决定是否可变更仓库状态。
 
-### Read-Only Requests
+### 只读请求
 
-Answer, explain, review, diagnose, plan, and status requests are read-only.
+回答、解释、评审、诊断、计划与状态类请求为只读。
 
-1. Read `AGENTS.md` and only the files or evidence needed for the response.
-2. Use read-only inspection commands when useful.
-3. Do not run bootstrap, initialize or migrate a database, record intake,
-   update stories or backlog, or record a trace.
-4. Stop when the answer is supported by concrete repository evidence.
+1. 阅读 `AGENTS.md` 以及回答所需的文件或证据。
+2. 需要时使用只读检查命令。
+3. 不要 bootstrap、初始化或迁移数据库、录入 intake、更新故事或 backlog，也不要记录 trace。
+4. 有具体仓库证据支撑答案后即可停止。
 
-For example, a request to diagnose why an installer test fails may inspect the
-test, installer, and captured output. It must not bootstrap a missing database
-or create an intake row merely to explain the failure.
+例如：诊断安装器测试失败时，可以检查测试、安装器与捕获输出；不得仅为了解释失败而去 bootstrap 缺失数据库或创建 intake 行。
 
-### Change Requests
+### 变更请求
 
-Change, build, and fix requests authorize the normal Harness mutation loop:
+修改、构建、修复类请求授权正常的 Harness 变更闭环：
 
-1. Bootstrap the local ignored runtime with `scripts/bootstrap-harness.sh` on
-   macOS/Linux or `.\scripts\bootstrap-harness.ps1` on Windows.
-2. Classify the request with `docs/FEATURE_INTAKE.md` and record the
-   classification with `scripts/bin/harness-cli intake`.
-3. Check focused proof status with
-   `scripts/bin/harness-cli query matrix --active --summary`, then use
-   `scripts/bin/harness-cli query matrix --story <id>` if a story is selected.
-4. Retrieve only the affected product, story, decision, and implementation
-   files required by the selected lane in `docs/CONTEXT_RULES.md`.
-5. Implement and validate inside that lane: tiny, normal, or high-risk.
-6. Before finishing, ask whether product truth, validation expectations,
-   architecture rules, repeated failure patterns, or next-agent instructions
-   changed.
-7. Record a trace with `scripts/bin/harness-cli trace`, using
-   `docs/TRACE_SPEC.md` for the expected trace tier and field depth, and review
-   the printed score.
-8. If Harness friction was found, fix it in scope or record it with
-   `scripts/bin/harness-cli backlog add`.
+1. 用 `scripts/bootstrap-harness.sh`（macOS/Linux）或 `.\scripts\bootstrap-harness.ps1`（Windows）bootstrap 本地忽略的运行时。
+2. 按 `docs/FEATURE_INTAKE.md` 分类请求，并用 `scripts/bin/harness-cli intake` 记录分类。
+3. 用 `scripts/bin/harness-cli query matrix --active --summary` 查看聚焦证明状态；若选定故事，再用 `scripts/bin/harness-cli query matrix --story <id>`。
+4. 仅按 `docs/CONTEXT_RULES.md` 中所选车道要求，拉取受影响的产品、故事、决策与实现文件。
+5. 在该车道内实现并验证：`tiny`、`normal` 或 `high-risk`。
+6. 结束前自问：产品真相、验证期望、架构规则、重复失败模式或下一 Agent 指令是否已变。
+7. 用 `scripts/bin/harness-cli trace` 记录 trace，字段深度遵循 `docs/TRACE_SPEC.md` 的 trace 层级，并审阅打印的分数。
+8. 若发现 Harness 摩擦，就地修复或用 `scripts/bin/harness-cli backlog add` 记录。
 
-## Story Verification
+## 故事验证
 
-Stories may carry a mechanical proof command:
+故事可携带机械证明命令：
 
 ```bash
 scripts/bin/harness-cli story add --id US-012 --title "Story verification" --lane normal --verify "cargo test --workspace"
@@ -279,46 +242,21 @@ scripts/bin/harness-cli story update --id US-012 --verify "cargo test --workspac
 scripts/bin/harness-cli story verify US-012
 ```
 
-`story verify` runs the command from the repository root, records
-`last_verified_at` and `last_verified_result`, and exits 0 on pass or 1 on fail.
-When `trace --story <id>` links to a story whose verification command has never
-passed, the trace still records but prints an advisory warning before close.
+`story verify` 从仓库根运行命令，记录 `last_verified_at` 与 `last_verified_result`，通过退出 0、失败退出 1。当 `trace --story <id>` 关联到从未通过验证命令的故事时，trace 仍会记录，但关闭前打印建议性警告。
 
-Use `story verify-all` before merges, maturity claims, and benchmark runs. It
-runs every configured story verification command, prints one result per story,
-skips stories without `verify_command`, and exits 1 if any configured story
-fails.
+合并、成熟度声明与 benchmark 跑前使用 `story verify-all`。它对每个已配置验证命令的故事各跑一次，逐故事打印结果，跳过无 `verify_command` 的故事，任一失败则退出 1。
 
-`story verify` accepts only the story id. Configure the command with
-`story add --verify` or `story update --verify`. Record proof booleans with
-`story update`, using numeric values: `1` means yes and `0` means no. The Rust
-CLI rejects text values such as `yes` and `no`.
+`story verify` 只接受故事 id。用 `story add --verify` 或 `story update --verify` 配置命令。用 `story update` 记录证明布尔值：`1` 表示是，`0` 表示否。Rust CLI 拒绝 `yes`/`no` 等文本值。
 
-Use `scripts/bin/harness-cli query matrix --numeric` when copying proof values
-back into `story update`. The default matrix output is human-readable
-`yes`/`no`; the numeric output mirrors CLI input.
+用 `scripts/bin/harness-cli query matrix --numeric` 把证明值抄回 `story update`。默认矩阵输出为人可读的 `yes`/`no`；数值输出与 CLI 输入一致。
 
-Use `query matrix --active --summary` to omit completed history and long
-evidence text while retaining lane, runnable state, and proof columns.
-`--runnable` uses the same planned/nonblank-verification/unblocked rule as
-protocol story discovery, and `--story <id>` selects one exact story. Filters
-combine with AND semantics. The unfiltered matrix remains the full durable
-proof view.
+用 `query matrix --active --summary` 省略已完成历史与长证据文本，仍保留车道、可运行状态与证明列。`--runnable` 使用与协议故事发现相同的「已计划 / 非空验证 / 未阻塞」规则；`--story <id>` 精确选一条故事。过滤器为 AND 语义。无过滤的矩阵仍是完整持久证明视图。
 
-`story complete <id>` is the explicit lifecycle transition for completed work.
-It requires an `in_progress` or `changed` story, runs fresh proof, and marks the
-story implemented only when that proof passes. Resolver stories additionally
-require a stable linked Harness-improvement intake and a completed matching
-implementation trace recorded after the newest resolver link. On pass, story
-proof and eligible accepted backlog closures are committed atomically and
-replayably. Ordinary text updates and JSON compare-and-set updates reject an
-`implemented` target and direct the caller to `story complete`; other lifecycle,
-proof, evidence, and verification-command updates remain available. Ordinary
-`story verify` and `story verify-all` remain proof-only.
+`story complete <id>` 是已完成工作的显式生命周期转换。它要求故事为 `in_progress` 或 `changed`，跑新鲜证明，仅当证明通过时标为已实现。解析器（resolver）类故事额外要求：稳定关联的 Harness 改进 intake，以及在最新 resolver 链接之后记录的、已完成的匹配实现 trace。通过时，故事证明与符合条件的已接受 backlog 关闭会原子、可回放地提交。普通文本更新与 JSON compare-and-set 更新会拒绝以 `implemented` 为目标，并引导使用 `story complete`；其他生命周期、证明、证据与验证命令更新仍可用。普通 `story verify` 与 `story verify-all` 仍仅为证明。
 
-## Phase 5 Evolution Commands
+## Phase 5 演进命令
 
-Tool discovery:
+工具发现：
 
 ```bash
 scripts/bin/harness-cli query tools --summary
@@ -326,28 +264,25 @@ scripts/bin/harness-cli query tools --json
 scripts/bin/harness-cli tool register --name <name> --command <cmd> --description <text> --responsibility Verification
 ```
 
-Context and drift checks:
+上下文与漂移检查：
 
 ```bash
 scripts/bin/harness-cli score-context <trace-id>
 scripts/bin/harness-cli audit
 ```
 
-`score-context` is advisory; it reports context-rule coverage without changing
-the trace. `audit` reports drift categories and an entropy score documented in
-`docs/HARNESS_AUDIT.md`.
+`score-context` 为建议性：报告上下文规则覆盖，不改动 trace。`audit` 报告漂移类别与熵分，见 `docs/HARNESS_AUDIT.md`。
 
-Interventions are separate from traces:
+干预（intervention）与 trace 分离：
 
 ```bash
 scripts/bin/harness-cli intervention add --trace <id> --type correction --description <text> --source human
 scripts/bin/harness-cli query interventions --story US-024
 ```
 
-Record an intervention when a human, reviewer, CI system, or another agent
-corrects, overrides, escalates, or approves work.
+当人类、评审者、CI 或其他 Agent 纠正、覆盖、升级或批准工作时，记录干预。
 
-Improvement proposals:
+改进提案：
 
 ```bash
 scripts/bin/harness-cli propose
@@ -355,21 +290,14 @@ scripts/bin/harness-cli propose --accept <proposal-key> --outcome-after-traces 2
 scripts/bin/harness-cli propose --reject <proposal-key> --reason "Not worth the added complexity"
 ```
 
-`propose` prints deterministic, read-only proposals from repeated friction,
-interventions, and audit drift. A human explicitly accepts one key with exactly
-one outcome schedule or rejects one key with a reason. The old bulk
-`--commit` path is rejected so displayed proposals cannot become accidental
-work items.
+`propose` 根据重复摩擦、干预与审计漂移打印确定性、只读的提案。人类用恰好一个结果日程显式接受一个 key，或带原因拒绝一个 key。旧的批量 `--commit` 路径被拒绝，以免展示中的提案意外变成工作项。
 
-## Decision Records
+## 决策记录
 
-High-risk work needs durable decisions when it changes behavior or architecture.
-For auth, authorization, data ownership, API shape, audit/security, or
-validation changes, record the decision in both places:
+高风险工作在改变行为或架构时需要持久决策。对鉴权、授权、数据所有权、API 形态、审计/安全或验证变更，两边都要记录：
 
-1. Add a markdown file under `docs/decisions/` from
-   `docs/templates/decision.md`.
-2. Add or refresh the durable record:
+1. 按 `docs/templates/decision.md` 在 `docs/decisions/` 增加 markdown 文件。
+2. 增加或刷新持久记录：
 
 ```bash
 scripts/bin/harness-cli decision add \
@@ -379,31 +307,26 @@ scripts/bin/harness-cli decision add \
   --notes "Accepted during T4 authentication work."
 ```
 
-The trace `--decisions` field is useful evidence, but it is not the decision
-log. Do not treat decision text in a trace as satisfying the durable decision
-record requirement.
+trace 的 `--decisions` 字段是有用证据，但不是决策日志。不要把 trace 里的决策文字当作满足持久决策记录要求。
 
-## Harness Change Policy
+## Harness 变更策略
 
-Agents may update directly:
+Agent 可直接更新：
 
-- Non-completion story status and evidence via
-  `scripts/bin/harness-cli story update`; use `story complete` to reach
-  `implemented`.
-- Test matrix rows via `scripts/bin/harness-cli story add` and
-  `scripts/bin/harness-cli story update`.
-- Links from story packets to product docs.
-- Validation notes and reports.
-- Small clarifications tied to the current task.
-- Intake records, traces, and backlog items via `scripts/bin/harness-cli`.
+- 非完成态故事状态与证据（`scripts/bin/harness-cli story update`）；到达 `implemented` 用 `story complete`。
+- 测试矩阵行（`story add` / `story update`）。
+- 故事包到产品文档的链接。
+- 验证说明与报告。
+- 与当前任务绑定的小澄清。
+- intake、trace、backlog（经 `harness-cli`）。
 
-Agents should ask for human confirmation before:
+以下变更应先请人类确认：
 
-- Changing architecture direction.
-- Removing validation requirements.
-- Changing the source-of-truth hierarchy.
-- Changing risk classification rules.
-- Replacing the feature workflow.
+- 改变架构方向。
+- 移除验证要求。
+- 改变信源层级。
+- 改变风险分类规则。
+- 替换功能工作流。
 
 ## Git 提交说明（团队约定）
 
@@ -425,42 +348,38 @@ Agents should ask for human confirmation before:
 - Agent 代用户提交且未指定语言时，按本约定写中文说明。
 - 仅当用户明确要求英文提交说明时，才可使用英文正文。
 
-## Done Definition
+## 完成定义
 
-A read-only request is done when the response is supported by repository
-evidence, clearly separates facts from inference, and leaves repository and
-Harness state unchanged.
+只读请求完成条件：回答有仓库证据支撑，清楚区分事实与推断，且未改动仓库与 Harness 状态。
 
-A change request is done only when:
+变更请求完成条件：
 
-- The requested change is completed or the blocker is documented.
-- Relevant docs, stories, and test matrix entries remain current.
-- Validation commands were run when they exist.
-- A trace has been recorded with `scripts/bin/harness-cli trace`.
-- Missing Harness capabilities were recorded with
-  `scripts/bin/harness-cli backlog add` when relevant.
-- The final response says what changed and what was not attempted.
+- 请求的变更已完成，或阻塞已文档化。
+- 相关文档、故事与测试矩阵条目保持最新。
+- 存在的验证命令已运行。
+- 已用 `scripts/bin/harness-cli trace` 记录 trace。
+- 相关时，缺失的 Harness 能力已用 `scripts/bin/harness-cli backlog add` 记录。
+- 最终回复说明改了什么、以及未尝试什么。
 
-## Future Validation Ladder
+## 未来验证阶梯
 
-No validation scripts exist yet. When implementation begins, the expected ladder
-is:
+目前尚无验证脚本。实现开始后，期望的阶梯为：
 
 ```text
 validate:quick
-  format, lint, typecheck, unit tests, architecture check
+  格式、lint、类型检查、单元测试、架构检查
 
 test:integration
-  backend, database, provider, or service checks as the stack requires
+  按栈需要的后端、数据库、提供方或服务检查
 
 test:e2e
-  user-visible end-to-end flows
+  用户可见的端到端流程
 
 test:platform
-  shell, mobile, desktop, or deployment smoke checks as the stack requires
+  按栈需要的 shell、移动、桌面或部署冒烟
 
 test:release
-  full suite, log checks, and performance smoke
+  全量套件、日志检查与性能冒烟
 ```
 
-Agents must not claim these commands pass until they exist and have been run.
+在这些命令存在且已实际运行之前，Agent 不得声称它们已通过。

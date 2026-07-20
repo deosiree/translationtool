@@ -1,4 +1,4 @@
-# NNNN Decision Title
+# NNNN 决策标题
 
 Date: YYYY-MM-DD
 
@@ -8,27 +8,26 @@ Proposed | Accepted | Superseded | Rejected
 
 ## Context
 
-What problem, constraint, or ambiguity forced this decision?
+什么问题、约束或模糊性迫使做出本决策？
 
 ## Decision
 
-What did we decide?
+我们决定了什么？
 
 ## Alternatives Considered
 
-1. Alternative.
+1. 备选方案。
 
 ## Consequences
 
 Positive:
 
-- Item.
+- 条目。
 
 Tradeoffs:
 
-- Item.
+- 条目。
 
 ## Follow-Up
 
-- Item.
-
+- 条目。

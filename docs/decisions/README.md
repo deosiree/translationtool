@@ -1,12 +1,10 @@
-# Decisions
+# 决策记录（Decisions）
 
-Decision records explain why important product, architecture, or harness choices
-were made.
+决策记录说明重要产品、架构或 Harness 选择为何做出。
 
-Use `docs/templates/decision.md` when adding a new decision.
+新增决策时使用 `docs/templates/decision.md`。
 
-After adding or updating a markdown decision file, also add or refresh the
-durable decision row:
+添加或更新 markdown 决策文件后，同时增加或刷新持久决策行：
 
 ```bash
 scripts/bin/harness-cli decision add \
@@ -15,14 +13,13 @@ scripts/bin/harness-cli decision add \
   --doc docs/decisions/0008-auth-boundary.md
 ```
 
-Trace fields such as `--decisions` summarize task-level choices. They do not
-count as the Harness decision log.
+trace 字段如 `--decisions` 概括任务级选择，不计入 Harness 决策日志。
 
-Add a decision when:
+在以下情况添加决策：
 
-- A locked technical choice changes.
-- A product rule changes meaningfully.
-- A validation requirement is added, removed, or weakened.
-- A high-risk feature chooses one design over another.
-- Auth, authorization, data ownership, audit/security, or API behavior changes.
-- The source-of-truth hierarchy changes.
+- 锁定的技术选择变更。
+- 产品规则有意义地变更。
+- 验证要求被增加、移除或削弱。
+- 高风险功能在多种设计中择一。
+- 鉴权、授权、数据所有权、审计/安全或 API 行为变更。
+- 信源层级变更。

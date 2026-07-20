@@ -1,12 +1,12 @@
-# Validation
+# 验证（Validation）
 
-## Proof Strategy
+## Proof Strategy（证明策略）
 
-Explain what must pass before the story is done.
+说明故事完成前必须通过什么。
 
-## Test Plan
+## Test Plan（测试计划）
 
-| Layer | Cases |
+| 层 | 用例 |
 | --- | --- |
 | Unit | |
 | Integration | |
@@ -15,19 +15,18 @@ Explain what must pass before the story is done.
 | Performance | |
 | Logs/Audit | |
 
-## Fixtures
+## Fixtures（夹具）
 
-List deterministic users, accounts, records, provider responses, or other
-fixtures needed for repeatable proof.
+列出可重复证明所需的确定性用户、账户、记录、提供方响应或其他夹具。
 
-## Commands
+## Commands（命令）
 
-Add commands after scripts exist.
+脚本存在后补充命令。
 
 ```text
 TBD
 ```
 
-## Acceptance Evidence
+## Acceptance Evidence（验收证据）
 
-Add results after verification.
+核验后补充结果。

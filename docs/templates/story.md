@@ -1,4 +1,4 @@
-# US-XXX Story Title
+# US-XXX 故事标题
 
 ## Status
 
@@ -8,35 +8,35 @@ planned
 
 tiny | normal | high-risk
 
-## Product Contract
+## Product Contract（产品契约）
 
-Describe the behavior this story must make true.
+描述本故事必须使其成立的行为。
 
-## Relevant Product Docs
+## Relevant Product Docs（相关产品文档）
 
 - `docs/product/...`
 
-## Acceptance Criteria
+## Acceptance Criteria（验收标准）
 
-- Criterion 1.
-- Criterion 2.
-- Criterion 3.
+- 标准 1。
+- 标准 2。
+- 标准 3。
 
-## Design Notes
+## Design Notes（设计说明）
 
-- Commands:
-- Queries:
-- API:
-- Tables:
-- Domain rules:
-- UI surfaces:
+- Commands（命令）：
+- Queries（查询）：
+- API：
+- Tables（表）：
+- Domain rules（领域规则）：
+- UI surfaces（界面）：
 
-## Validation
+## Validation（验证）
 
-When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id <id> --unit 1 --integration 1 --e2e 0 --platform 0`.
+更新持久证明状态时使用数值布尔：
+`scripts/bin/harness-cli story update --id <id> --unit 1 --integration 1 --e2e 0 --platform 0`。
 
-| Layer | Expected proof |
+| 层 | 期望证明 |
 | --- | --- |
 | Unit | |
 | Integration | |
@@ -44,10 +44,10 @@ When updating durable proof status, use numeric booleans:
 | Platform | |
 | Release | |
 
-## Harness Delta
+## Harness Delta（Harness 增量）
 
-Document any harness updates made or proposed because of this story.
+记录因本故事而做出或提议的 Harness 更新。
 
-## Evidence
+## Evidence（证据）
 
-Add commands, reports, screenshots, or links after validation exists.
+验证存在后补充命令、报告、截图或链接。

@@ -1,54 +1,47 @@
-# Harness Components
+# Harness 组件
 
-This taxonomy maps the current `repository-harness` repository to two
-component frameworks used by Phase 2 and updated by Phase 3 active
-observability work:
+本分类将当前 `repository-harness` 仓库映射到 Phase 2 使用、Phase 3 主动可观测性工作更新的两套组件框架：
 
-- Runtime Substrate responsibilities: the 11 responsibility areas the harness
-  should cover.
-- NexAU decomposition: the seven implementation surfaces that influence agent
-  behavior.
+- Runtime Substrate responsibilities：Harness 应覆盖的 11 项 responsibility 领域。
+- NexAU 分解：影响 Agent 行为的七个实现面。
 
-Status values:
+Status 取值：
 
-- **Covered**: the repository has an explicit file, command, or record for this
-  responsibility.
-- **Partial**: the repository has some support, but the support is incomplete,
-  manual, or not yet measured.
-- **Missing**: no meaningful support exists yet.
+- **Covered**：仓库对该 responsibility 有显式文件、命令或记录。
+- **Partial**：有部分支持，但不完整、仍依赖手工或未度量。
+- **Missing**：尚无有意义支持。
 
-## Responsibility Map
+## Responsibility 映射
 
 | # | Responsibility | Status | Harness Files | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Task specification | Covered | `AGENTS.md`, `docs/FEATURE_INTAKE.md`, `docs/templates/story.md`, `docs/templates/spec-intake.md`, `docs/templates/high-risk-story/*`, `docs/stories/*`, `intake` table, `story` table | Requests are classified by type and lane before implementation; normal and high-risk work have templates and durable story rows. | Keep story packets synchronized with future product docs. |
-| 2 | Context selection | Covered | `AGENTS.md`, `docs/CONTEXT_RULES.md`, `docs/ARCHITECTURE.md`, `docs/decisions/*`, `docs/product/README.md`, `scripts/bin/harness-cli score-context` | Phase 2 adds phase-by-lane context rules and retrieval triggers; Phase 5 adds context scoring against recorded trace reads. | Future automation could enforce context selection instead of only measuring it. |
-| 3 | Tool access | Covered | `scripts/bin/harness-cli`, `docs/TOOL_REGISTRY.md`, `tool` table, `crates/harness-cli/*`, `scripts/install-harness.sh`, `scripts/build-harness-cli-release.sh` | The Harness CLI exposes operational commands and a machine-readable tool manifest through `query tools`; external tools can be registered and removed. | Permission profiles and usage analytics remain future work. |
-| 4 | Project memory | Covered | `docs/HARNESS.md`, `docs/decisions/*`, `docs/GLOSSARY.md`, `docs/HARNESS_BACKLOG.md`, `docs/stories/*`, `harness.db`, `decision`, `backlog`, and `trace` tables | Decisions, backlog, stories, and traces preserve durable knowledge across tasks. | Future work should add staleness checks and summarize old traces. |
-| 5 | Task state | Covered | `scripts/bin/harness-cli query matrix`, `docs/TEST_MATRIX.md`, `intake` table, `story` table, `trace` table | Durable records track intake, story status, proof columns, and task traces. | Add lifecycle checks so in-progress stories cannot be forgotten. |
-| 6 | Observability | Partial | `docs/TRACE_SPEC.md`, `trace` table, `scripts/bin/harness-cli trace`, `scripts/bin/harness-cli score-trace`, `scripts/bin/harness-cli query traces`, `scripts/bin/harness-cli query friction`, `docs/HARNESS_MATURITY.md`, `evals/` (Harness Eval dry suite) | Traces are auto-scored when recorded, can be rescored by command, and can be reviewed with friction context. Protocol exam dry-run pipeline exists under `evals/`. | Live agent exam batches and dashboard ingestion remain open. |
-| 7 | Failure attribution | Partial | `docs/HARNESS_COMPONENTS.md`, `docs/TRACE_SPEC.md`, `trace.errors`, `trace.harness_friction`, `docs/HARNESS_BACKLOG.md`, `backlog` table, `scripts/bin/harness-cli query friction` | Failures can be tied to files, components, friction, backlog proposals, and linked intake lane/type context. | No automated attribution from benchmark failures to harness components exists yet. |
-| 8 | Verification | Covered | `docs/TEST_MATRIX.md`, `scripts/bin/harness-cli query matrix`, `scripts/bin/harness-cli story verify`, `scripts/bin/harness-cli story verify-all`, `scripts/bin/harness-cli trace`, `scripts/bin/harness-cli score-trace`, `story.verify_command`, `story.last_verified_result`, `.github/workflows/harness-cli-release.yml`, `docs/templates/validation-report.md` | Stories can store and run mechanical proof commands individually or in batch, traces warn when linked story verification has not passed, trace quality can be checked mechanically, and release workflow verifies Rust CLI releases. | Benchmark ingestion remains future work. |
-| 9 | Permissions | Partial | `AGENTS.md`, `docs/HARNESS.md`, `docs/FEATURE_INTAKE.md`, `docs/ARCHITECTURE.md`, installer conflict handling in `scripts/install-harness.sh` | Policy describes when agents may update docs and when to ask before architecture or workflow changes. | Permissions are instruction-level only; no enforced policy layer or command allowlist exists. |
-| 10 | Entropy auditing | Covered | `docs/HARNESS_BACKLOG.md`, `docs/HARNESS_AUDIT.md`, `docs/IMPROVEMENT_PROTOCOL.md`, `backlog` table, `trace.harness_friction`, `scripts/bin/harness-cli audit`, `scripts/bin/harness-cli propose`, `docs/HARNESS_MATURITY.md` | Growth rule captures friction, audit detects drift and entropy score, backlog items compare predicted impact to actual outcome, and proposal generation can create reviewable backlog items. | Automated repair remains future work. |
-| 11 | Intervention recording | Covered | `intervention` table, `scripts/bin/harness-cli intervention add`, `scripts/bin/harness-cli query interventions`, `trace` table, `docs/decisions/*`, `docs/stories/*`, `docs/HARNESS.md` | Human, reviewer, CI, and agent interventions are separate durable records and can be filtered by trace, story, or type. | Capture is still manual and advisory. |
+| 1 | Task specification | Covered | `AGENTS.md`, `docs/FEATURE_INTAKE.md`, `docs/templates/story.md`, `docs/templates/spec-intake.md`, `docs/templates/high-risk-story/*`, `docs/stories/*`, `intake` table, `story` table | 请求在实现前按 type 与 lane 分类；normal 与 high-risk 工作有 template 与持久 story 行。 | 保持 story packet 与未来产品文档同步。 |
+| 2 | Context selection | Covered | `AGENTS.md`, `docs/CONTEXT_RULES.md`, `docs/ARCHITECTURE.md`, `docs/decisions/*`, `docs/product/README.md`, `scripts/bin/harness-cli score-context` | Phase 2 增加按 phase-by-lane context rule 与 retrieval trigger；Phase 5 增加对已记录 trace read 的 context scoring。 | 未来自动化可 enforcement context selection，而非仅度量。 |
+| 3 | Tool access | Covered | `scripts/bin/harness-cli`, `docs/TOOL_REGISTRY.md`, `tool` table, `crates/harness-cli/*`, `scripts/install-harness.sh`, `scripts/build-harness-cli-release.sh` | Harness CLI 暴露操作命令，经 `query tools` 提供机器可读 tool manifest；外部工具可注册与移除。 | Permission profile 与 usage analytics 仍为未来工作。 |
+| 4 | Project memory | Covered | `docs/HARNESS.md`, `docs/decisions/*`, `docs/GLOSSARY.md`, `docs/HARNESS_BACKLOG.md`, `docs/stories/*`, `harness.db`, `decision`, `backlog`, and `trace` tables | Decision、backlog、story 与 trace 跨任务保留持久知识。 | 未来应增加 staleness check 并摘要旧 trace。 |
+| 5 | Task state | Covered | `scripts/bin/harness-cli query matrix`, `docs/TEST_MATRIX.md`, `intake` table, `story` table, `trace` table | 持久记录跟踪 intake、story status、proof column 与 task trace。 | 增加 lifecycle check，避免 in-progress story 被遗忘。 |
+| 6 | Observability | Partial | `docs/TRACE_SPEC.md`, `trace` table, `scripts/bin/harness-cli trace`, `scripts/bin/harness-cli score-trace`, `scripts/bin/harness-cli query traces`, `scripts/bin/harness-cli query friction`, `docs/HARNESS_MATURITY.md`, `evals/` (Harness Eval dry suite) | Trace 写入时自动评分，可命令重评，可结合 friction 上下文审查。Protocol exam dry-run pipeline 在 `evals/` 下。 | Live agent exam batch 与 dashboard ingestion 仍开放。 |
+| 7 | Failure attribution | Partial | `docs/HARNESS_COMPONENTS.md`, `docs/TRACE_SPEC.md`, `trace.errors`, `trace.harness_friction`, `docs/HARNESS_BACKLOG.md`, `backlog` table, `scripts/bin/harness-cli query friction` | 失败可关联文件、component、friction、backlog 提案与 linked intake lane/type 上下文。 | 尚无从 benchmark failure 到 harness component 的自动 attribution。 |
+| 8 | Verification | Covered | `docs/TEST_MATRIX.md`, `scripts/bin/harness-cli query matrix`, `scripts/bin/harness-cli story verify`, `scripts/bin/harness-cli story verify-all`, `scripts/bin/harness-cli trace`, `scripts/bin/harness-cli score-trace`, `story.verify_command`, `story.last_verified_result`, `.github/workflows/harness-cli-release.yml`, `docs/templates/validation-report.md` | Story 可存储并单独或批量运行 mechanical proof command；trace 在 linked story verification 未 pass 时警告；trace quality 可机械检查；release workflow 验证 Rust CLI release。 | Benchmark ingestion 仍为未来工作。 |
+| 9 | Permissions | Partial | `AGENTS.md`, `docs/HARNESS.md`, `docs/FEATURE_INTAKE.md`, `docs/ARCHITECTURE.md`, installer conflict handling in `scripts/install-harness.sh` | 策略描述 Agent 何时可更新文档、何时在 architecture 或 workflow 变更前询问。 | Permission 仅 instruction 级；无 enforced policy layer 或 command allowlist。 |
+| 10 | Entropy auditing | Covered | `docs/HARNESS_BACKLOG.md`, `docs/HARNESS_AUDIT.md`, `docs/IMPROVEMENT_PROTOCOL.md`, `backlog` table, `trace.harness_friction`, `scripts/bin/harness-cli audit`, `scripts/bin/harness-cli propose`, `docs/HARNESS_MATURITY.md` | Growth rule 捕获 friction；audit 检测 drift 与 entropy score；backlog 项比较 predicted impact 与 actual outcome；proposal generation 可创建可审查 backlog 项。 | 自动 repair 仍为未来工作。 |
+| 11 | Intervention recording | Covered | `intervention` table, `scripts/bin/harness-cli intervention add`, `scripts/bin/harness-cli query interventions`, `trace` table, `docs/decisions/*`, `docs/stories/*`, `docs/HARNESS.md` | Human、reviewer、CI 与 agent intervention 为独立持久记录，可按 trace、story 或 type 过滤。 | 捕获仍为手工且 advisory。 |
 
-## NexAU Cross-Reference
+## NexAU 交叉引用
 
 | Component | Harness Equivalent | Status | Notes |
 | --- | --- | --- | --- |
-| System prompts | `AGENTS.md` plus Harness policy docs | Covered | `AGENTS.md` is the stable shim; `docs/HARNESS.md`, `docs/FEATURE_INTAKE.md`, and `docs/CONTEXT_RULES.md` carry evolving operating instructions. |
-| Tool descriptions | `docs/TOOL_REGISTRY.md`, `scripts/README.md`, `docs/HARNESS.md`, `docs/TRACE_SPEC.md`, CLI help from `crates/harness-cli/src/interface.rs`, `scripts/bin/harness-cli query tools` | Covered | Commands are documented in a standalone registry and exposed as compiled plus registered tool manifest entries. |
-| Tool implementations | `scripts/bin/harness-cli`, `crates/harness-cli/*`, `scripts/schema/001-init.sql`, `scripts/schema/002-story-verify.sql` | Covered | The Rust CLI is the primary durable-layer implementation and stable repo-local entrypoint. |
-| Middleware | installer safety logic, feature intake workflow | Partial | The installer and intake process mediate work, but there is no runtime middleware enforcing policies. |
-| Skills | `docs/templates/*`, `docs/FEATURE_INTAKE.md`, `docs/CONTEXT_RULES.md`, `docs/TRACE_SPEC.md` | Partial | Reusable procedures exist as markdown, not executable or installable agent skills. |
-| Sub-agents | None in this repository | Missing | No delegated specialist agents or sub-agent protocols exist. |
-| Long-term memory | `harness.db`, `docs/decisions/*`, `docs/stories/*`, `docs/HARNESS_BACKLOG.md`, `docs/GLOSSARY.md` | Covered | Durable records and markdown decisions preserve task history and project vocabulary. |
+| System prompts | `AGENTS.md` plus Harness policy docs | Covered | `AGENTS.md` 为稳定 shim；`docs/HARNESS.md`、`docs/FEATURE_INTAKE.md`、`docs/CONTEXT_RULES.md` 承载演进中的操作指令。 |
+| Tool descriptions | `docs/TOOL_REGISTRY.md`, `scripts/README.md`, `docs/HARNESS.md`, `docs/TRACE_SPEC.md`, CLI help from `crates/harness-cli/src/interface.rs`, `scripts/bin/harness-cli query tools` | Covered | 命令在独立 registry 中文档化，并作为 compiled 与 registered tool manifest 条目暴露。 |
+| Tool implementations | `scripts/bin/harness-cli`, `crates/harness-cli/*`, `scripts/schema/001-init.sql`, `scripts/schema/002-story-verify.sql` | Covered | Rust CLI 为 primary durable-layer 实现与稳定 repo-local 入口。 |
+| Middleware | installer safety logic, feature intake workflow | Partial | Installer 与 intake 流程 mediate 工作，但无 runtime middleware enforcement policy。 |
+| Skills | `docs/templates/*`, `docs/FEATURE_INTAKE.md`, `docs/CONTEXT_RULES.md`, `docs/TRACE_SPEC.md` | Partial | 可复用 procedure 以 markdown 存在，非可执行或可安装 agent skill。 |
+| Sub-agents | None in this repository | Missing | 无 delegated specialist agent 或 sub-agent protocol。 |
+| Long-term memory | `harness.db`, `docs/decisions/*`, `docs/stories/*`, `docs/HARNESS_BACKLOG.md`, `docs/GLOSSARY.md` | Covered | 持久记录与 markdown decision 保留 task history 与项目词汇。 |
 
-## File Inventory
+## 文件清单
 
-Every tracked project file plus the Phase 2 input file is mapped to at least
-one Runtime Substrate responsibility.
+每个已跟踪项目文件及 Phase 2 输入文件至少映射到一个 Runtime Substrate responsibility。
 
 | File | Primary Responsibility | Secondary Responsibilities |
 | --- | --- | --- |
@@ -139,29 +132,27 @@ one Runtime Substrate responsibility.
 | `.github/ISSUE_TEMPLATE/real-world-example.md` | Project memory | Intervention recording |
 | `.github/workflows/harness-cli-release.yml` | Verification | Tool access |
 
-## Coverage Summary
+## 覆盖摘要
 
-- Covered: 8/11 responsibilities.
-- Partial: 3/11 responsibilities.
-- Missing: 0/11 responsibilities.
+- Covered：11 项 responsibility 中 8 项。
+- Partial：3 项。
+- Missing：0 项。
 
-Covered responsibilities:
+Covered responsibilities：
 
-- Task specification.
-- Context selection.
-- Tool access.
-- Project memory.
-- Task state.
-- Verification.
-- Entropy auditing.
-- Intervention recording.
-Partial responsibilities:
+- Task specification。
+- Context selection。
+- Tool access。
+- Project memory。
+- Task state。
+- Verification。
+- Entropy auditing。
+- Intervention recording。
 
-- Observability.
-- Failure attribution.
-- Permissions.
+Partial responsibilities：
 
-Phase 5 converts tool access, entropy auditing, and intervention recording into
-covered responsibilities with a registry, drift audit, proposal loop, and
-intervention schema. Later phases should focus on benchmark ingestion,
-component-level attribution, permission enforcement, and tool usage analytics.
+- Observability。
+- Failure attribution。
+- Permissions。
+
+Phase 5 以 registry、drift audit、proposal loop 与 intervention schema 将 tool access、entropy auditing 与 intervention recording 转为 Covered。后续 phase 应聚焦 benchmark ingestion、component-level attribution、permission enforcement 与 tool usage analytics。

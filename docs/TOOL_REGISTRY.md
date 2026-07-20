@@ -1,20 +1,17 @@
-# Tool Registry
+# 工具注册表
 
-The harness deals with two distinct kinds of "tool". Keep them separate.
+Harness 涉及两类不同的「工具」，请严格区分。
 
-| | Capability manifest (outbound) | Inbound tool registry |
+| | 能力清单（出站） | 入站工具注册表 |
 | --- | --- | --- |
-| Direction | harness offers it to the agent | a project equips it for the harness to use |
-| Examples | the `harness-cli` subcommands below | gitnexus, c3, a linter, a deploy check |
-| Presence | always compiled in | optional; may be absent on any machine |
-| If missing | n/a (it is the harness) | clean skip; never blocks the main process |
+| 方向 | Harness 提供给 Agent 使用 | 项目为 Harness 配备 |
+| 示例 | 下文 `harness-cli` 子命令 | gitnexus、c3、linter、deploy check |
+| 存在性 | 始终编译内置 | 可选；任意机器上可能缺失 |
+| 若缺失 | 不适用（即 Harness 本身） | 干净跳过；绝不阻塞主流程 |
 
-This document describes both. The **inbound registry** is the extension base:
-it is where the harness learns what extra capability is equipped, what purpose
-it serves, and whether it is actually present right now, so a workflow step can
-adapt to what is installed without the core ever depending on it.
+本文档描述二者。**入站注册表**是扩展基础：Harness 在此了解额外配备了哪些能力、用途为何、以及当前是否实际存在，使工作流步骤能根据已安装内容自适应，而核心从不依赖它。
 
-## Inbound Registry: Register A Tool
+## 入站注册表：注册工具
 
 ```bash
 scripts/bin/harness-cli tool register \
@@ -27,26 +24,15 @@ scripts/bin/harness-cli tool register \
   --args "env:enum:required:staging,production"
 ```
 
-Fields specific to inbound tools:
+入站工具专有字段：
 
-- `--kind` — how the tool is reached and probed. One of `cli`, `binary`, `mcp`,
-  `skill`, `http`. Defaults to `cli`. The kind tells each agent runtime what it
-  can orchestrate (a non-Claude agent simply treats a `skill` it cannot run as
-  absent) and tells `tool check` which probe to use.
-- `--capability` — the workflow purpose a step looks the tool up by. Free-text
-  but normalized to kebab-case, so `Impact Analysis`, `impact_analysis`, and
-  `impact-analysis` all register as `impact-analysis`. This is the only coupling
-  between a step and a tool; steps reference the capability, never the tool name.
-- `--scan` — for `mcp`/`skill`/`http`, a declarative path or URL that
-  `tool check` resolves to decide presence (e.g. `.c3`, `~/.claude/skills/c3`,
-  `https://localhost:8080/health`). `cli`/`binary` are probed via their command.
+- `--kind` — 如何访问与探测工具。取值为 `cli`、`binary`、`mcp`、`skill`、`http` 之一。默认 `cli`。kind 告知各 Agent 运行时能编排什么（无法运行 `skill` 的非 Claude Agent 将其视为 absent），并告知 `tool check` 使用何种探测。
+- `--capability` — 步骤按工作流用途查找工具时使用的标识。自由文本但规范化为 kebab-case，故 `Impact Analysis`、`impact_analysis`、`impact-analysis` 均注册为 `impact-analysis`。这是步骤与工具之间唯一的耦合；步骤引用 capability，从不引用工具名。
+- `--scan` — 对 `mcp`/`skill`/`http`，声明式路径或 URL，供 `tool check` 解析以判断存在性（如 `.c3`、`~/.claude/skills/c3`、`https://localhost:8080/health）。`cli`/`binary` 通过其 command 探测。
 
-`--force` is only needed for `cli`/`binary` whose command is intentionally
-absent on the current machine. `mcp`/`skill`/`http` are not on `PATH` by nature,
-so they register without `--force`; their presence is resolved later by
-`tool check`.
+`--force` 仅当 `cli`/`binary` 的 command 在当前机器上故意缺失时需要。`mcp`/`skill`/`http` 本质上不在 `PATH` 上，故注册时无需 `--force`；存在性稍后由 `tool check` 解析。
 
-Registering an MCP server or a Claude skill (examples):
+注册 MCP 服务器或 Claude skill（示例）：
 
 ```bash
 scripts/bin/harness-cli tool register --name gitnexus --kind mcp \
@@ -58,17 +44,15 @@ scripts/bin/harness-cli tool register --name c3 --kind skill \
   --responsibility Verification
 ```
 
-Remove a tool with:
+移除工具：
 
 ```bash
 scripts/bin/harness-cli tool remove --name deploy-check
 ```
 
-## Inbound Registry: Check Presence
+## 入站注册表：检查存在性
 
-Registration records intent. `tool check` reconciles intent with reality by
-scanning each registered tool and persisting the verdict (`status` and
-`checked_at`). Run it at intake start so status reflects current reality.
+注册记录意图。`tool check` 扫描各已注册工具并将裁决（`status` 与 `checked_at`）持久化，使意图与现实对齐。在 intake 开始时运行，使 status 反映当前现实。
 
 ```bash
 scripts/bin/harness-cli tool check            # scan all registered tools
@@ -76,62 +60,49 @@ scripts/bin/harness-cli tool check --name c3  # scan one
 scripts/bin/harness-cli tool check --json     # machine-readable for agents
 ```
 
-Probe per kind:
+按 kind 探测：
 
-| Kind | Probe | `present` means |
+| Kind | 探测 | `present` 含义 |
 | --- | --- | --- |
-| `cli`, `binary` | command resolves on `PATH` or as a path | installed and runnable |
-| `mcp`, `skill` | `scan_target` path resolves (`~` expands) | equipped/configured on disk |
-| `http` | `scan_target` reachable over TCP (2s), else path | endpoint answers |
+| `cli`, `binary` | command 在 `PATH` 上或作为路径可解析 | 已安装且可运行 |
+| `mcp`, `skill` | `scan_target` 路径可解析（`~` 展开） | 磁盘上已配备/已配置 |
+| `http` | `scan_target` 经 TCP 可达（2s），否则为路径 | 端点有响应 |
 
-`tool check` always exits `0`: a missing extension is a fact to report, not a
-CLI failure. A `cli`/`binary` is `present` when runnable. An `mcp`/`skill`/`http`
-`present` means **equipped** (config/file resolves), not **live this session** —
-the agent still confirms live usability at call time, since only the agent
-runtime can see whether its MCP server is actually connected. With no
-`scan_target`, the status is `unknown` and the agent must confirm.
+`tool check` 始终以 `0` 退出：缺失的扩展是待报告的事实，而非 CLI 失败。`cli`/`binary` 在可运行时即为 `present`。`mcp`/`skill`/`http` 的 `present` 表示**已配备**（配置/文件可解析），而非**本会话存活** — Agent 仍须在调用时确认实际可用，因为只有 Agent 运行时能判断其 MCP 服务器是否真正连接。无 `scan_target` 时 status 为 `unknown`，须由 Agent 确认。
 
-## Inbound Registry: Look Up By Capability
+## 入站注册表：按 Capability 查找
 
-A workflow step asks "what is present for this purpose?" rather than naming a
-tool:
+工作流步骤问「此用途下有什么可用？」而非点名工具：
 
 ```bash
 scripts/bin/harness-cli query tools --capability impact-analysis
 scripts/bin/harness-cli query tools --capability impact-analysis --status present
 ```
 
-The result is the set of providers. Multiple tools may provide one capability
-(gitnexus and c3 both serve `impact-analysis` and are complementary), so a step
-reads the set and degrades on how much of it is present.
+结果为 provider 集合。多个工具可提供同一 capability（gitnexus 与 c3 均服务 `impact-analysis` 且互补），故步骤读取集合并按 present 比例降级。
 
-### Degrade Ladder
+### 降级阶梯
 
-The CLI reports facts (`status`); the agent applies policy. The generic rule,
-keyed on the present-provider count for a capability:
+CLI 报告事实（`status`）；Agent 应用策略。通用规则，按某 capability 的 present provider 数量：
 
-| Providers present | Posture | Agent behavior |
+| Present provider 数 | 姿态 | Agent 行为 |
 | --- | --- | --- |
-| none registered | Inactive | clean skip; note `capability X: inactive` in the trace. Not drift. |
-| registered but none/some present | Degraded | run with what resolves; set the `Weak proof` flag; note the gap. |
-| all present | Full | normal operation. |
+| 无注册 | Inactive | 干净跳过；在 trace 中注明 `capability X: inactive`。非 drift。 |
+| 已注册但 none/some present | Degraded | 用已解析者运行；设置 `Weak proof` 标志；注明缺口。 |
+| 全部 present | Full | 正常操作。 |
 
-A registered tool that scans as `missing` is a failed validity gate, not a skip.
-A capability with no registered providers is simply inactive and is skipped
-without penalty — this is what keeps the core seamless on a fresh install.
+已注册但扫描为 `missing` 的工具是有效性门失败，非跳过。无注册 provider 的 capability 仅为 inactive，无惩罚跳过 — 这使核心在全新安装上无缝运行。
 
-### Recommended Capability Vocabulary
+### 推荐 Capability 词汇
 
-Capability is open (no code change to add one), but a step and its providers
-must agree on the exact string. Reuse these where they fit before coining a new
-one; coin new ones in kebab-case:
+Capability 开放（新增无需改代码），但步骤与其 provider 须约定精确字符串。适用时优先复用下列项，再 coin 新的 kebab-case 项：
 
 ```
 impact-analysis · deploy-verification · coverage · security-scan
 performance-benchmark · documentation-lookup
 ```
 
-## Inspecting The Registry
+## 检查注册表
 
 ```bash
 scripts/bin/harness-cli query tools --summary
@@ -139,80 +110,72 @@ scripts/bin/harness-cli query tools --json
 scripts/bin/harness-cli query tools --responsibility Verification
 ```
 
-JSON records carry `kind`, `capability`, `scan_target`, `status`, and
-`checked_at` alongside the existing fields, so any agent can read the registry
-without parsing the human table.
+JSON 记录携带 `kind`、`capability`、`scan_target`、`status`、`checked_at` 及既有字段，任意 Agent 可读注册表而无需解析人类表格。
 
-## Compiled Harness Commands (Outbound Manifest)
+## 编译 Harness 命令（出站清单）
 
 | Command | Responsibility | Purpose | Arguments |
 | --- | --- | --- | --- |
-| `init` | Task state | Create the harness database. | none |
-| `migrate` | Task state | Apply pending schema migrations. | none |
-| `import brownfield` | Project memory | Seed durable records from markdown state. | none |
-| `intake` | Task specification | Record a feature intake classification. | `--type`, `--summary`, `--lane` |
-| `story add` | Task state | Create a durable story record. | `--id`, `--title`, `--lane`, optional `--verify` |
-| `story update` | Task state | Update non-completion story status, proof flags, evidence, or verification command; `implemented` requires `story complete`. | `--id`, optional proof/status fields |
-| `story update --json` | Task state | Perform a machine-readable non-completion status update with transactional compare-and-set/runnable preconditions. | `--id`, `--status`, `--expected-status`, optional `--require-runnable` |
-| `story dependency add` | Task state | Add a cycle-safe durable dependency edge. | `--blocker`, `--blocked` |
-| `story dependency remove` | Task state | Remove a durable dependency edge; missing edges are unchanged. | `--blocker`, `--blocked` |
-| `story hierarchy add` | Task state | Add an idempotent, cycle-safe parent/child edge. | `--parent`, `--child`, optional `--json` |
-| `story hierarchy remove` | Task state | Remove an idempotent parent/child edge. | `--parent`, `--child`, optional `--json` |
-| `story backlog link` | Task state | Add a replayable `resolves` or `references` link to a stable backlog occurrence. | `--story`, `--backlog`, `--relationship` |
-| `story backlog unlink` | Task state | Remove a relationship; closed resolver provenance remains immutable. | `--story`, `--backlog` |
-| `story backlog list` | Task state | Show story-to-backlog relationships. | optional `--story`, `--backlog` |
-| `story verify` | Verification | Run one story `verify_command` and record pass/fail. | story id |
-| `story complete` | Task state | Run fresh proof and atomically implement an eligible story plus accepted resolver backlog work. | story id |
-| `story verify-all` | Verification | Run all configured story verification commands and skip stories without one. | none |
-| `decision add` | Project memory | Create a durable decision record. | `--id`, `--title`, optional `--doc`, `--verify` |
-| `decision verify` | Verification | Run one decision verification command. | decision id |
-| `backlog add` | Entropy auditing | Record a harness improvement proposal. | `--title`, optional pain/suggestion/risk/predicted fields |
-| `backlog close` | Entropy auditing | Close a backlog item with outcome evidence. | `--id`, optional `--status`, `--outcome` |
-| `backlog reconcile` | Entropy auditing | Preview or apply conservative legacy lifecycle identity backfill. | `--action backfill-lifecycle-identity`, exactly one of `--dry-run` or `--apply` |
-| `backlog outcome record` | Entropy auditing | Append a measured outcome to an implemented keyed occurrence. | `--id`, `--status`, `--outcome`, optional `--evidence` |
-| `tool register` | Tool access | Register an external project tool. | `--name`, `--command`, `--description`, `--responsibility`, optional `--kind`, `--capability`, `--scan`, `--args`, `--force` |
-| `tool check` | Tool access | Scan registered tools and persist present/missing/unknown status. | optional `--name`, `--json` |
-| `tool remove` | Tool access | Remove a registered external tool. | `--name` |
-| `intervention add` | Intervention recording | Record a human, reviewer, CI, or agent intervention. | `--type`, `--description`, `--source`, optional `--trace`, `--story`, `--impact` |
-| `trace` | Observability | Record an agent execution trace and print trace quality. | `--summary`, optional trace fields |
-| `score-trace` | Observability | Score trace detail against lane requirements. | optional `--id` |
-| `score-context` | Context selection | Score trace reads against compiled context rules. | trace id |
-| `audit` | Entropy auditing | Run drift checks and compute entropy score. | none |
-| `propose` | Entropy auditing | Read deterministic improvement proposals, or explicitly accept/reject one stable key. | `--accept <key>` plus one outcome schedule, or `--reject <key> --reason <text>` |
-| `query matrix` | Task state | Show the durable story proof matrix, optionally focused to active, runnable, or one exact story and without long evidence text. | optional `--numeric`, `--active`, `--runnable`, `--story <id>`, `--summary` |
-| `query contract` | Tool access | Discover protocol, capabilities, supported schema range, and DB state without writes. | required `--json` |
-| `query stories` | Task state | Return stable orchestration story records. | required `--json` |
-| `query work-graph` | Task state | Return one transactionally consistent story/dependency/hierarchy graph and revision. | required `--json` |
-| `query dependencies` | Task state | Show story dependency edges. | optional `--story` |
-| `query hierarchy` | Task state | Show deterministic parent/child edges. | optional `--story`, optional `--json` |
-| `query backlog` | Entropy auditing | Show Harness improvement backlog and, with `--id`, its relationships. | optional `--open`, `--closed`, `--id` |
-| `query decisions` | Project memory | Show durable decision records. | none |
-| `query intakes` | Task specification | Show recent intake records. | none |
-| `query traces` | Observability | Show recent trace records. | none |
-| `query friction` | Failure attribution | Show traces with harness friction. | none |
-| `query tools` | Tool access | Show compiled and registered tool entries. | optional `--json`, `--summary`, `--responsibility`, `--capability`, `--status` |
-| `query interventions` | Intervention recording | Show intervention records. | optional `--trace`, `--story`, `--type` |
-| `query stats` | Task state | Show durable record counts. | none |
-| `query sql` | Tool access | Run one read-only SQL statement against `harness.db`. | SQL text |
-| `db changeset apply` | Task state | Apply one semantic changeset idempotently. | changeset path |
-| `db changeset status` | Task state | Parse and inspect one changeset ID/content SHA/applied state without writing. | changeset path, required `--json` |
-| `db snapshot` | Task state | Create an integrity-checked atomic SQLite online-backup snapshot. | `--output`, required `--json` |
-| `db rebuild` | Task state | Rebuild a fresh `harness.db` from semantic changesets. | `--from` changeset directory |
+| `init` | Task state | 创建 Harness 数据库。 | none |
+| `migrate` | Task state | 应用待处理 schema 迁移。 | none |
+| `import brownfield` | Project memory | 从 markdown 状态播种持久记录。 | none |
+| `intake` | Task specification | 记录功能 intake 分类。 | `--type`, `--summary`, `--lane` |
+| `story add` | Task state | 创建持久 story 记录。 | `--id`, `--title`, `--lane`, optional `--verify` |
+| `story update` | Task state | 更新非完成 story 的 status、proof 标志、evidence 或 verification command；`implemented` 须用 `story complete`。 | `--id`, optional proof/status fields |
+| `story update --json` | Task state | 以机器可读方式执行非完成 status 更新，含事务 compare-and-set/runnable 前置条件。 | `--id`, `--status`, `--expected-status`, optional `--require-runnable` |
+| `story dependency add` | Task state | 添加无环持久依赖边。 | `--blocker`, `--blocked` |
+| `story dependency remove` | Task state | 移除持久依赖边；缺失边不变。 | `--blocker`, `--blocked` |
+| `story hierarchy add` | Task state | 添加幂等、无环 parent/child 边。 | `--parent`, `--child`, optional `--json` |
+| `story hierarchy remove` | Task state | 移除幂等 parent/child 边。 | `--parent`, `--child`, optional `--json` |
+| `story backlog link` | Task state | 添加可重放的 `resolves` 或 `references` 链接至稳定 backlog occurrence。 | `--story`, `--backlog`, `--relationship` |
+| `story backlog unlink` | Task state | 移除关系；已关闭 resolver 溯源不可变。 | `--story`, `--backlog` |
+| `story backlog list` | Task state | 显示 story 与 backlog 关系。 | optional `--story`, `--backlog` |
+| `story verify` | Verification | 运行一条 story `verify_command` 并记录 pass/fail。 | story id |
+| `story complete` | Task state | 运行 fresh proof 并原子实现 eligible story 及已接受 resolver backlog 工作。 | story id |
+| `story verify-all` | Verification | 运行所有已配置 story verification command，跳过无 command 的 story。 | none |
+| `decision add` | Project memory | 创建持久 decision 记录。 | `--id`, `--title`, optional `--doc`, `--verify` |
+| `decision verify` | Verification | 运行一条 decision verification command。 | decision id |
+| `backlog add` | Entropy auditing | 记录 Harness 改进提案。 | `--title`, optional pain/suggestion/risk/predicted fields |
+| `backlog close` | Entropy auditing | 以 outcome evidence 关闭 backlog 项。 | `--id`, optional `--status`, `--outcome` |
+| `backlog reconcile` | Entropy auditing | 预览或应用保守 legacy lifecycle identity 回填。 | `--action backfill-lifecycle-identity`, exactly one of `--dry-run` or `--apply` |
+| `backlog outcome record` | Entropy auditing | 向已实现的 keyed occurrence 追加 measured outcome。 | `--id`, `--status`, `--outcome`, optional `--evidence` |
+| `tool register` | Tool access | 注册外部项目工具。 | `--name`, `--command`, `--description`, `--responsibility`, optional `--kind`, `--capability`, `--scan`, `--args`, `--force` |
+| `tool check` | Tool access | 扫描已注册工具并持久化 present/missing/unknown status。 | optional `--name`, `--json` |
+| `tool remove` | Tool access | 移除已注册外部工具。 | `--name` |
+| `intervention add` | Intervention recording | 记录 human、reviewer、CI 或 agent intervention。 | `--type`, `--description`, `--source`, optional `--trace`, `--story`, `--impact` |
+| `trace` | Observability | 记录 Agent 执行 trace 并打印 trace quality。 | `--summary`, optional trace fields |
+| `score-trace` | Observability | 按 lane 要求对 trace detail 评分。 | optional `--id` |
+| `score-context` | Context selection | 按编译 context rules 对 trace reads 评分。 | trace id |
+| `audit` | Entropy auditing | 运行 drift 检查并计算 entropy score。 | none |
+| `propose` | Entropy auditing | 读取确定性改进提案，或显式 accept/reject 一个 stable key。 | `--accept <key>` plus one outcome schedule, or `--reject <key> --reason <text>` |
+| `query matrix` | Task state | 显示持久 story proof matrix，可选聚焦 active、runnable 或单一 story，不含长 evidence 文本。 | optional `--numeric`, `--active`, `--runnable`, `--story <id>`, `--summary` |
+| `query contract` | Tool access | 发现 protocol、capabilities、supported schema range 与 DB state，无写入。 | required `--json` |
+| `query stories` | Task state | 返回稳定 orchestration story 记录。 | required `--json` |
+| `query work-graph` | Task state | 返回一条事务一致 story/dependency/hierarchy 图及 revision。 | required `--json` |
+| `query dependencies` | Task state | 显示 story dependency 边。 | optional `--story` |
+| `query hierarchy` | Task state | 显示确定性 parent/child 边。 | optional `--story`, optional `--json` |
+| `query backlog` | Entropy auditing | 显示 Harness 改进 backlog；带 `--id` 时含其关系。 | optional `--open`, `--closed`, `--id` |
+| `query decisions` | Project memory | 显示持久 decision 记录。 | none |
+| `query intakes` | Task specification | 显示最近 intake 记录。 | none |
+| `query traces` | Observability | 显示最近 trace 记录。 | none |
+| `query friction` | Failure attribution | 显示含 Harness friction 的 trace。 | none |
+| `query tools` | Tool access | 显示编译与已注册 tool 条目。 | optional `--json`, `--summary`, `--responsibility`, `--capability`, `--status` |
+| `query interventions` | Intervention recording | 显示 intervention 记录。 | optional `--trace`, `--story`, `--type` |
+| `query stats` | Task state | 显示持久记录计数。 | none |
+| `query sql` | Tool access | 对 `harness.db` 运行一条只读 SQL。 | SQL text |
+| `db changeset apply` | Task state | 幂等应用一条 semantic changeset。 | changeset path |
+| `db changeset status` | Task state | 解析并检查 changeset ID/content SHA/applied state，无写入。 | changeset path, required `--json` |
+| `db snapshot` | Task state | 创建 integrity-checked 原子 SQLite online-backup snapshot。 | `--output`, required `--json` |
+| `db rebuild` | Task state | 从 semantic changesets 重建全新 `harness.db`。 | `--from` changeset directory |
 
-The exact protocol-v1 envelopes, exit codes, runnable definition, timeout and
-cancellation rules, and JSON schemas are normative in
-`docs/contracts/harness-orchestration-v1.md`. The registry table is only a
-human command index.
+精确的 protocol-v1 envelope、exit code、runnable 定义、timeout 与 cancellation 规则及 JSON schema 以 `docs/contracts/harness-orchestration-v1.md` 为规范。注册表仅为人类命令索引。
 
-## Validation Rules
+## 校验规则
 
-- Tool names must be unique among registered tools.
-- Descriptions must be 10-200 characters.
-- Responsibilities must match the Runtime Substrate responsibility list.
-- `--kind` must be one of `cli`, `binary`, `mcp`, `skill`, `http`.
-- `--capability` must be kebab-case (lowercase letters, digits, single hyphens);
-  spaces and underscores are normalized to hyphens.
-- `--args` entries must use `name:type:required` or
-  `name:type:required:help`, with `required` or `optional` as the third field.
-- For `cli`/`binary`, the command must exist as a path or on `PATH`, unless
-  `--force` is supplied. `mcp`/`skill`/`http` skip this check.
+- 工具名在已注册工具中须唯一。
+- Description 须 10–200 字符。
+- Responsibility 须匹配 Runtime Substrate responsibility 列表。
+- `--kind` 须为 `cli`、`binary`、`mcp`、`skill`、`http` 之一。
+- `--capability` 须为 kebab-case（小写字母、数字、单连字符）；空格与下划线规范化为连字符。
+- `--args` 条目须用 `name:type:required` 或 `name:type:required:help`，第三字段为 `required` 或 `optional`。
+- 对 `cli`/`binary`，command 须作为路径存在或在 `PATH` 上，除非提供 `--force`。`mcp`/`skill`/`http` 跳过此检查。

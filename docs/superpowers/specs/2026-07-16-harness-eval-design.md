@@ -59,8 +59,10 @@ harness.db                  # 可选：eval_run / eval_score 表或先写 YAML �
 
 ### 语言约定（人工审查）
 
-- **中文**：`task.md`、`rubric.md`、live prompt、脚本行注释、`review.md` / 批次汇总、改进建议。
-- **英文保留**：脚本标识符、`env.yaml` 的 `type` 字段、题目 ID、git 路径——便于解析与 CI。
+与 `docs/decisions/0011-harness-human-docs-zh.md`、`docs/HARNESS.md`「语言约定」一致：
+
+- **中文**：`task.md`、`rubric.md`、live prompt、脚本行注释、`review.md` / 批次汇总、改进建议；以及 Harness 运维文档与模板给人看的正文。
+- **英文保留**：脚本标识符、`env.yaml` 的 `type` 字段、题目 ID、git 路径、`harness-cli` 参数——便于解析与 CI。
 
 ## 3. 题库格式
 

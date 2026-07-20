@@ -1,29 +1,29 @@
-# Design
+# 设计（Design）
 
-## Domain Model
+## Domain Model（领域模型）
 
-Describe entities, value objects, and business rules.
+描述实体、值对象与业务规则。
 
-## Application Flow
+## Application Flow（应用流）
 
-Describe commands, queries, and handlers.
+描述命令、查询与处理器。
 
-## Interface Contract
+## Interface Contract（接口契约）
 
-Describe routes, messages, commands, request DTOs, response DTOs, and errors.
+描述路由、消息、命令、请求 DTO、响应 DTO 与错误。
 
-## Data Model
+## Data Model（数据模型）
 
-Describe tables, indexes, migrations, and retention concerns.
+描述表、索引、迁移与留存关注点。
 
-## UI / Platform Impact
+## UI / Platform Impact（界面 / 平台影响）
 
-Describe browser, mobile, desktop, CLI, deployment, or platform-shell impact.
+描述浏览器、移动、桌面、CLI、部署或平台壳层影响。
 
-## Observability
+## Observability（可观测性）
 
-Describe logs, audit records, metrics, or traces.
+描述日志、审计记录、指标或 trace。
 
-## Alternatives Considered
+## Alternatives Considered（备选方案）
 
-1. Option.
+1. 选项。

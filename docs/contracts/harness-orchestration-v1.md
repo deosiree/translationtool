@@ -1,5 +1,7 @@
 # Harness Orchestration Protocol v1
 
+> **读者说明**：本文档为 **机器契约（machine contract）**，供 orchestrator 与 `harness-cli` 以 `--json` 互操作。命令名、JSON 字段、enum 值、exit code 与 schema 结构保持英文，勿按人类文档翻译；语义以正文英文为准。
+
 ## Status And Compatibility Floor
 
 This is the public, consumer-neutral process contract for Harness CLI protocol

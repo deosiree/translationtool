@@ -1,150 +1,131 @@
-# Feature Intake
+# 功能分拣（Feature Intake）
 
-This intake gate applies to change, build, and fix requests before code or
-durable Harness state changes. A new project spec also enters through this gate
-before it becomes product docs, stories, or implementation work.
+本分拣门禁适用于在改代码或持久 Harness 状态之前的修改、构建、修复类请求。新的项目规格也经此门禁，再变成产品文档、故事或实现工作。
 
-Answer, explain, review, diagnose, plan, and status requests stay read-only.
-They do not bootstrap or initialize Harness, record intake, update a story or
-backlog item, or record a trace. If the user later asks to implement a proposed
-change, that new change request enters this gate.
+回答、解释、评审、诊断、计划与状态类请求保持只读。它们不 bootstrap 或初始化 Harness、不录入 intake、不更新故事或 backlog、不记录 trace。若用户随后要求实现某项提案，该新变更请求再进入本门禁。
 
-The human does not need to classify risk. The harness does.
+人类不必自行分类风险；由 Harness 分类。
 
-## Intake Flow
+## 分拣流程
 
 ```text
-User prompt
+用户提示
     |
     v
-Classify input type
+分类输入类型
     |
     v
-Restate as work item
+重述为工作项
     |
     v
-Find affected product docs and stories
+定位受影响的产品文档与故事
     |
     v
-Run risk checklist
+跑风险检查清单
     |
     v
-Choose lane: tiny, normal, or high-risk
+选择车道：tiny、normal 或 high-risk
 ```
 
-## Input Types
+## 输入类型
 
-Use the input type to decide where the work should land before choosing the risk
-lane.
+先用输入类型决定工作落点，再选风险车道。
 
-| Type | Use when | Typical artifact |
+| 类型 | 何时使用 | 典型产物 |
 | --- | --- | --- |
-| New spec | Turning a user-provided project spec into harness-ready docs | Product docs, candidate epics, decisions |
-| Spec slice | Implementing selected behavior from an accepted spec | Story packet |
-| Change request | Changing, fixing, or refining accepted behavior | Story packet or direct patch |
-| New initiative | Adding a larger product area that needs multiple stories | Initiative notes plus story packets |
-| Maintenance request | Changing technical, operational, or dependency behavior | Story packet, validation report, or decision |
-| Harness improvement | Improving how humans and agents collaborate | Direct docs update or `scripts/bin/harness-cli backlog add` |
+| 新规格（New spec） | 把用户提供的项目规格变成 Harness 可用文档 | 产品文档、候选史诗、决策 |
+| 规格切片（Spec slice） | 实现已接受规格中的选定行为 | 故事包 |
+| 变更请求（Change request） | 变更、修复或细化已接受行为 | 故事包或直接补丁 |
+| 新举措（New initiative） | 增加需要多条故事的更大产品域 | 举措说明 + 故事包 |
+| 维护请求（Maintenance request） | 变更技术、运维或依赖行为 | 故事包、验证报告或决策 |
+| Harness 改进（Harness improvement） | 改进人与 Agent 的协作方式 | 直接改文档，或 `scripts/bin/harness-cli backlog add` |
 
-Do not create or extend a monolithic spec by default after intake. Use product
-docs, stories, decisions, and initiative notes as the living surface.
+分拣后默认不要创建或扩展巨型规格。以产品文档、故事、决策与举措说明作为活表面。
 
-## Lanes
+## 车道
 
 ### Tiny
 
-Use for low-risk docs, copy, names, or narrow edits.
+用于低风险文档、文案、命名或窄范围编辑。
 
-Also use for initial project setup when the work is limited to installing
-declared dependencies, wiring a server entrypoint, adding a health/smoke
-endpoint, or opening a local development database connection without creating
-domain schema, CRUD behavior, auth, authorization, provider integration, or
-data migration. A health endpoint in a new benchmark or scaffolded project is
-smoke proof, not a public contract escalation by itself.
+也用于初始项目搭建：仅限于安装已声明依赖、接线服务入口、增加健康/冒烟端点，或打开本地开发库连接，且不创建领域 schema、CRUD、鉴权、授权、提供方集成或数据迁移。新 benchmark 或脚手架项目中的健康端点是冒烟证明，本身不构成公开契约升级。
 
-Requirements:
+要求：
 
-- Record the intake row before implementation; tiny work skips story packet
-  overhead, not durable task classification.
-- Patch directly.
-- Keep affected docs current.
-- Run available quick checks.
-- Update the harness only if friction was found.
+- 实现前录入 intake 行；tiny 工作跳过故事包开销，但不跳过持久任务分类。
+- 直接打补丁。
+- 保持受影响文档最新。
+- 运行可用的快速检查。
+- 仅在发现摩擦时更新 Harness。
 
 ### Normal
 
-Use for story-sized behavior with bounded blast radius.
+用于爆炸半径有界的故事级行为。
 
-Requirements:
+要求：
 
-- Create or update one story file from `docs/templates/story.md`.
-- Link relevant product docs.
-- Add or update validation expectations.
-- Implement the smallest vertical slice when implementation exists.
-- Record or update proof status with `scripts/bin/harness-cli story add` and
-  `scripts/bin/harness-cli story update`.
+- 按 `docs/templates/story.md` 创建或更新一份故事文件。
+- 链接相关产品文档。
+- 增加或更新验证期望。
+- 在已有实现时做最小垂直切片。
+- 用 `scripts/bin/harness-cli story add` 与 `scripts/bin/harness-cli story update` 记录或更新证明状态。
 
 ### High-Risk
 
-Use when the work can affect security, data, scope, contracts, or multiple
-roles/platforms.
+当工作可能影响安全、数据、范围、契约或多角色/多平台时使用。
 
-Requirements:
+要求：
 
-- Create a story folder using `docs/templates/high-risk-story/`.
-- Fill in `execplan.md`, `overview.md`, `design.md`, and `validation.md`.
-- Ask for human confirmation before implementation if direction is ambiguous.
-- Record a durable decision when behavior, architecture, authorization, data
-  ownership, API shape, or validation requirements change meaningfully. Use a
-  `docs/decisions/NNNN-*.md` file from `docs/templates/decision.md`, then add
-  or refresh the durable row with `scripts/bin/harness-cli decision add`.
-  Decision text in a trace is not a durable decision record.
+- 用 `docs/templates/high-risk-story/` 创建故事文件夹。
+- 填写 `execplan.md`、`overview.md`、`design.md`、`validation.md`。
+- 方向模糊时，实现前请人类确认。
+- 当行为、架构、授权、数据所有权、API 形态或验证要求有意义地变更时，记录持久决策：按 `docs/templates/decision.md` 写 `docs/decisions/NNNN-*.md`，再用 `scripts/bin/harness-cli decision add` 增加或刷新持久行。trace 中的决策文字不算持久决策记录。
 
-## Risk Checklist
+## 风险检查清单
 
-Mark one flag for each item that applies:
+对适用项各标一个旗标：
 
-| Risk flag | Applies when the work touches |
+| 风险旗标 | 触及以下内容时勾选 |
 | --- | --- |
-| Auth | login, logout, sessions, JWT, password, refresh token |
-| Authorization | roles, permissions, tenant or company scope |
-| Data model | schema, migrations, uniqueness, deletion, retention |
-| Audit/security | audit logs, privacy, sensitive data, access logs |
-| External systems | email, payments, cloud services, provider SDKs, queues, webhooks |
-| Public contracts | API shape, response envelope, client-visible behavior |
-| Cross-platform | desktop/mobile/browser split, native shell behavior, deep links |
-| Existing behavior | already implemented or test-covered behavior changes |
-| Weak proof | unclear or missing tests around the affected area |
-| Multi-domain | more than one product domain changes at once |
+| Auth | 登录、登出、会话、JWT、密码、刷新令牌 |
+| Authorization | 角色、权限、租户或公司范围 |
+| Data model | schema、迁移、唯一性、删除、留存 |
+| Audit/security | 审计日志、隐私、敏感数据、访问日志 |
+| External systems | 邮件、支付、云服务、提供方 SDK、队列、webhook |
+| Public contracts | API 形态、响应信封、客户端可见行为 |
+| Cross-platform | 桌面/移动/浏览器分叉、原生壳行为、深链 |
+| Existing behavior | 已实现或已被测试覆盖的行为变更 |
+| Weak proof | 受影响区域测试不清或缺失 |
+| Multi-domain | 同时变更多个产品域 |
 
-## Classification
+## 分类
 
 ```text
-0-1 flags:
-  tiny or normal, based on code impact
+0-1 个旗标：
+  tiny 或 normal，按代码影响决定
 
-2-3 flags:
-  normal with stronger validation
+2-3 个旗标：
+  normal，并加强验证
 
-4+ flags:
+4+ 个旗标：
   high-risk
 
-Any hard gate:
-  high-risk unless the human explicitly narrows scope
+任一硬门禁：
+  high-risk，除非人类显式收窄范围
 ```
 
-Hard gates:
+硬门禁：
 
-- Auth.
-- Authorization.
-- Data loss or migration.
-- Audit/security.
-- External provider behavior.
-- Removing or weakening validation requirements.
+- Auth。
+- Authorization。
+- 数据丢失或迁移。
+- Audit/security。
+- 外部提供方行为。
+- 移除或削弱验证要求。
 
-## Output
+## 输出
 
-At the end of intake, the agent should be able to say:
+分拣结束时，Agent 应能说出：
 
 ```text
 Lane: normal
@@ -156,7 +137,7 @@ Validation: unit, integration, E2E.
 
 ## Translation Tool — 模块分拣（本仓库）
 
-在通用 lane（tiny / normal / high-risk）之外，**必须先标模块面与后端面**：
+在通用车道（tiny / normal / high-risk）之外，**必须先标模块面与后端面**：
 
 ### 后端面（强制）
 
@@ -223,4 +204,4 @@ Validation: unit, integration, E2E.
 
 外部 skill：`huiyanSkills/translateTool-skills/db-回滚数据库`。
 
-任一项成立时，至少按 **normal**；同时触及 Auth / Data model / Public contracts 则按上文 hard gate 升为 **high-risk**。勾选 **Java touch** 时，输出中必须说明「为何不能只改 Python」。
+任一项成立时，至少按 **normal**；同时触及 Auth / Data model / Public contracts 则按上文硬门禁升为 **high-risk**。勾选 **Java touch** 时，输出中必须说明「为何不能只改 Python」。

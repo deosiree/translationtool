@@ -1,145 +1,130 @@
-# Trace Specification
+# Trace 规范
 
-The `trace` table records what happened during a Harness task. This document
-defines the expected depth and format for each field so traces are useful for
-review, benchmark scoring, failure attribution, and future harness evolution.
+`trace` 表记录 Harness 任务期间发生的内容。本文档定义各字段的预期深度与格式，使 trace 可用于审查、benchmark 评分、failure attribution 与未来 Harness 演进。
 
-The current schema lives in `scripts/schema/001-init.sql` under the `trace`
-table. The schema is not changed by Phase 2.
+当前 schema 位于 `scripts/schema/001-init.sql` 的 `trace` 表。Phase 2 不修改 schema。
 
-## Field Reference
+## 字段参考
 
 | Field | Type | Required | Format | Example |
 | --- | --- | --- | --- | --- |
-| `id` | INTEGER | Automatic | SQLite autoincrement primary key. Do not set manually. | `42` |
-| `created_at` | TEXT | Automatic | SQLite `datetime('now')`. Do not set manually. | `2026-05-27 09:24:37` |
-| `task_summary` | TEXT | Yes | One sentence, at least 10 characters, naming the outcome or attempted outcome. | `Completed Phase 2 docs-only observability and taxonomy specification` |
-| `intake_id` | INTEGER | Standard+ when an intake was recorded | Integer id from the related `intake` row. | `36` |
-| `story_id` | TEXT | Standard+ when work maps to one story | Story id from the `story` table. Use the main story when one trace covers several; list the rest in `notes`. | `US-004` |
-| `agent` | TEXT | Optional for minimal; Standard+ expected | Short agent/tool name. | `codex` |
-| `actions_taken` | TEXT | Standard+ | JSON array text. With the current CLI, pass a comma-separated list and the CLI stores JSON text. | `["read PHASE2.md","drafted TRACE_SPEC.md","updated HARNESS.md"]` |
-| `files_read` | TEXT | Standard+ | JSON array text of paths or command names. With the current CLI, pass a comma-separated list. | `["PHASE2.md","docs/HARNESS.md","scripts/bin/harness-cli query matrix"]` |
-| `files_changed` | TEXT | Standard+ | JSON array text of changed file paths. With the current CLI, pass a comma-separated list; omit only when no files changed. | `["docs/TRACE_SPEC.md","docs/HARNESS.md"]` |
-| `decisions_made` | TEXT | Detailed | JSON array text of decision strings. Include scope decisions, validation choices, and explicit non-goals. | `["Kept Phase 2 docs-only; installer propagation remains out of scope"]` |
-| `errors` | TEXT | Standard+ if errors occurred; Detailed always | JSON array text of error or blocker strings. Until the CLI supports empty arrays directly, use `none` when a detailed trace needs explicit no-error evidence. | `["git diff --check failed before whitespace fix"]` |
-| `outcome` | TEXT | Yes before final response | One of `completed`, `blocked`, `partial`, or `failed`. | `completed` |
-| `duration_seconds` | INTEGER | Detailed when available | Positive integer estimate or measured duration. Leave null if unknown. | `1800` |
-| `token_estimate` | INTEGER | Detailed when available | Positive integer estimate. Leave null if unknown. | `24000` |
-| `harness_friction` | TEXT | Standard+ when friction exists; Detailed always | Free text naming what was hard, missing, ambiguous, or repeated. Use `none` only when the agent actively checked and found no friction. | `New Phase 2 docs are not in installer copy list; recorded as out-of-scope follow-up.` |
-| `notes` | TEXT | Optional | Free text for review context that does not fit other fields. | `Trace covers US-003, US-004, US-005, and US-006.` |
+| `id` | INTEGER | Automatic | SQLite autoincrement primary key。勿手动设置。 | `42` |
+| `created_at` | TEXT | Automatic | SQLite `datetime('now')`。勿手动设置。 | `2026-05-27 09:24:37` |
+| `task_summary` | TEXT | Yes | 一句，至少 10 字符，说明 outcome 或 attempted outcome。 | `Completed Phase 2 docs-only observability and taxonomy specification` |
+| `intake_id` | INTEGER | Standard+（已记录 intake 时） | 相关 `intake` 行的整数 id。 | `36` |
+| `story_id` | TEXT | Standard+（工作映射到一条 story 时） | `story` 表的 story id。一条 trace 覆盖多条时用主 story；其余列于 `notes`。 | `US-004` |
+| `agent` | TEXT | Minimal 可选；Standard+ 预期 | 简短 agent/tool 名。 | `codex` |
+| `actions_taken` | TEXT | Standard+ | JSON array 文本。当前 CLI 下传逗号分隔列表，CLI 存 JSON 文本。 | `["read PHASE2.md","drafted TRACE_SPEC.md","updated HARNESS.md"]` |
+| `files_read` | TEXT | Standard+ | 路径或命令名的 JSON array 文本。当前 CLI 下传逗号分隔列表。 | `["PHASE2.md","docs/HARNESS.md","scripts/bin/harness-cli query matrix"]` |
+| `files_changed` | TEXT | Standard+ | 已改文件路径的 JSON array 文本。当前 CLI 下传逗号分隔列表；无文件变更时省略。 | `["docs/TRACE_SPEC.md","docs/HARNESS.md"]` |
+| `decisions_made` | TEXT | Detailed | decision 字符串的 JSON array 文本。含 scope decision、validation choice、显式 non-goal。 | `["Kept Phase 2 docs-only; installer propagation remains out of scope"]` |
+| `errors` | TEXT | 有错误时 Standard+；Detailed 始终 | 错误或 blocker 字符串的 JSON array 文本。CLI 暂不支持空 array 时，Detailed trace 需显式无错误证据用 `none`。 | `["git diff --check failed before whitespace fix"]` |
+| `outcome` | TEXT | final response 前必填 | 取 `completed`、`blocked`、`partial`、`failed` 之一。 | `completed` |
+| `duration_seconds` | INTEGER | Detailed（可用时） | 正整数估计或实测 duration。未知则留 null。 | `1800` |
+| `token_estimate` | INTEGER | Detailed（可用时） | 正整数估计。未知则留 null。 | `24000` |
+| `harness_friction` | TEXT | 有 friction 时 Standard+；Detailed 始终 | 自由文本，说明困难、缺失、模糊或重复之处。仅当 Agent 主动检查且无 friction 时用 `none`。 | `New Phase 2 docs are not in installer copy list; recorded as out-of-scope follow-up.` |
+| `notes` | TEXT | Optional | 不适配其他字段的审查上下文自由文本。 | `Trace covers US-003, US-004, US-005, and US-006.` |
 
-## Quality Tiers
+## 质量层级
 
-### Minimal (score: 1)
+### Minimal（score: 1）
 
-Minimum fields:
+最低字段：
 
-- `task_summary` is filled and at least 10 characters.
-- `outcome` is filled before the final response.
+- `task_summary` 已填且至少 10 字符。
+- final response 前 `outcome` 已填。
 
-Acceptable for:
+适用于：
 
-- Tiny-lane tasks with no file changes or only low-risk copy/doc edits.
+- 无文件变更或仅 low-risk 文案/文档编辑的 Tiny-lane 任务。
 
-Not acceptable for:
+不适用于：
 
-- Normal or high-risk work.
-- Any work that discovered friction, errors, or a missing validation path.
+- Normal 或 high-risk 工作。
+- 发现 friction、error 或缺失 validation path 的任何工作。
 
-### Standard (score: 2)
+### Standard（score: 2）
 
-Minimum fields:
+最低字段：
 
-- All Minimal fields.
-- `intake_id` when an intake was recorded.
-- `story_id` when the work maps cleanly to one story.
-- `agent`.
-- `actions_taken` as JSON array text.
-- `files_read` as JSON array text.
-- `files_changed` as JSON array text.
-- At least one of `errors` or `harness_friction`.
+- 全部 Minimal 字段。
+- 已记录 intake 时填 `intake_id`。
+- 工作清晰映射一条 story 时填 `story_id`。
+- `agent`。
+- `actions_taken` 为 JSON array 文本。
+- `files_read` 为 JSON array 文本。
+- `files_changed` 为 JSON array 文本。
+- `errors` 或 `harness_friction` 至少其一。
 
-Required for:
+必需于：
 
-- Normal-lane tasks.
-- Tiny tasks that changed Harness instructions, validation expectations, or
-  durable records.
+- Normal-lane 任务。
+- 变更 Harness 指令、validation expectation 或 durable record 的 Tiny 任务。
 
-Standard traces may leave `duration_seconds`, `token_estimate`, and
-`decisions_made` empty when those details are not useful.
+Standard trace 在 `duration_seconds`、`token_estimate`、`decisions_made` 无用时可为空。
 
-### Detailed (score: 3)
+### Detailed（score: 3）
 
-Minimum fields:
+最低字段：
 
-- All Standard fields.
-- `decisions_made` as JSON array text.
-- `errors` as JSON array text, using `none` with the current CLI when no
-  errors occurred.
-- `harness_friction`, using `none` only after checking for friction.
-- `duration_seconds` or a note explaining why duration is unavailable.
-- `token_estimate` or a note explaining why token estimate is unavailable.
-- `notes` when one trace covers multiple stories, multiple risk flags, or
-  skipped validation.
+- 全部 Standard 字段。
+- `decisions_made` 为 JSON array 文本。
+- `errors` 为 JSON array 文本；当前 CLI 无错误时用 `none`。
+- `harness_friction`；检查后无 friction 才用 `none`。
+- `duration_seconds`，或说明 duration 不可用的 note。
+- `token_estimate`，或说明 token estimate 不可用的 note。
+- 一条 trace 覆盖多条 story、多个 risk flag 或跳过 validation 时填 `notes`。
 
-Required for:
+必需于：
 
-- High-risk tasks.
-- Changes touching architecture direction, source-of-truth hierarchy,
-  validation requirements, auth, authorization, data loss, audit/security, or
-  external provider behavior.
-- Benchmark or release work where later review needs precise proof.
+- High-risk 任务。
+- 触及 architecture direction、source-of-truth hierarchy、validation requirement、auth、authorization、data loss、audit/security 或 external provider behavior 的变更。
+- 后续审查需精确 proof 的 benchmark 或 release 工作。
 
-For high-risk work, `decisions_made` in the trace summarizes what was decided.
-It does not replace a durable decision record. If the work changes behavior,
-architecture, authorization, data ownership, API shape, or validation
-requirements, add a `docs/decisions/NNNN-*.md` file and record it with
-`scripts/bin/harness-cli decision add`.
+High-risk 工作中 trace 的 `decisions_made` 摘要已做决策，不替代持久 decision 记录。若工作改变 behavior、architecture、authorization、data ownership、API shape 或 validation requirement，添加 `docs/decisions/NNNN-*.md` 并用 `scripts/bin/harness-cli decision add` 记录。
 
-## Lane Mapping
+## Lane 映射
 
-| Lane | Expected Tier | Minimum Trace Behavior |
+| Lane | Expected Tier | 最低 Trace 行为 |
 | --- | --- | --- |
-| Tiny | Minimal | Record summary and outcome; use Standard if friction or Harness docs changed. |
-| Normal | Standard | Record intake, actions, files read, files changed, outcome, and friction/errors. |
-| High-risk | Detailed | Record all fields or explicitly explain unavailable duration/token estimates. |
+| Tiny | Minimal | 记录 summary 与 outcome；有 friction 或 Harness 文档变更时用 Standard。 |
+| Normal | Standard | 记录 intake、actions、files read、files changed、outcome 与 friction/errors。 |
+| High-risk | Detailed | 记录全部字段，或显式说明不可用的 duration/token estimate。 |
 
-## Friction Capture Protocol
+## Friction 捕获协议
 
-Populate `harness_friction` when any of these occur:
+下列任一情况时填写 `harness_friction`：
 
-- The agent had to infer a missing rule or source of truth.
-- Required validation was unclear, unavailable, or too expensive to run.
-- A document, durable record, or story packet was stale or contradictory.
-- The task revealed a repeated manual step that should become a template,
-  command, or checklist.
-- A requested change was out of scope but likely important later.
-- A benchmark or review failure could not be attributed to a component.
+- Agent 须推断缺失 rule 或 source of truth。
+- 所需 validation 不清晰、不可用或运行成本过高。
+- 文档、durable record 或 story packet 陈旧或矛盾。
+- 任务暴露应变为 template、command 或 checklist 的重复手工步骤。
+- 请求变更 out of scope 但日后可能重要。
+- benchmark 或 review 失败无法归因到 component。
 
-How to write friction:
+如何写 friction：
 
-- Name the concrete pain, not a vague mood.
-- Include the missing capability or contradiction.
-- If the friction should become work, also add or update a backlog item with
-  `scripts/bin/harness-cli backlog add`.
-- If there was no friction, use `none` only for Detailed traces.
+- 写具体痛点，非模糊情绪。
+- 含缺失 capability 或矛盾。
+- 若 friction 应变为工作，另用 `scripts/bin/harness-cli backlog add` 添加或更新 backlog 项。
+- 无 friction 时仅 Detailed trace 用 `none`。
 
-Good friction:
+良好 friction：
 
 ```text
 New Phase 2 docs are not copied by scripts/install-harness.sh, but installer
 propagation is out of scope for docs-only Phase 2.
 ```
 
-Weak friction:
+薄弱 friction：
 
 ```text
 docs confusing
 ```
 
-## Examples
+## 示例
 
-### Good Trace (Detailed)
+### 良好 Trace（Detailed）
 
 ```bash
 scripts/bin/harness-cli trace \
@@ -159,7 +144,7 @@ scripts/bin/harness-cli trace \
   --notes "Detailed trace required because the task touched authorization and audit behavior."
 ```
 
-### Adequate Trace (Standard)
+### 合格 Trace（Standard）
 
 ```bash
 scripts/bin/harness-cli trace \
@@ -174,7 +159,7 @@ scripts/bin/harness-cli trace \
   --friction "none"
 ```
 
-### Insufficient Trace
+### 不足 Trace
 
 ```bash
 scripts/bin/harness-cli trace \
@@ -182,23 +167,20 @@ scripts/bin/harness-cli trace \
   --outcome completed
 ```
 
-Why this is insufficient for normal-lane Phase 2 work:
+对 normal-lane Phase 2 工作不足的原因：
 
-- It does not identify actions.
-- It does not list files read or changed.
-- It does not connect to intake or stories.
-- It gives no friction or error signal.
+- 未标识 actions。
+- 未列出 files read 或 changed。
+- 未关联 intake 或 story。
+- 无 friction 或 error 信号。
 
-## Review Checklist
+## 审查清单
 
-Before the final response, check:
+final response 前检查：
 
-- The trace tier matches the lane.
-- Review the score printed automatically by `scripts/bin/harness-cli trace`.
-  Use `scripts/bin/harness-cli score-trace --id N` when re-checking a specific
-  historical trace.
-- `files_changed` matches the actual changed-file set at a useful level.
-- `errors` names real blockers or is `none` for Detailed traces when the
-  current CLI is used.
-- `harness_friction` either names a concrete issue or is intentionally `none`.
-- Any friction that should become future work is recorded in the backlog.
+- trace tier 与 lane 匹配。
+- 查看 `scripts/bin/harness-cli trace` 自动打印的 score。重查历史 trace 用 `scripts/bin/harness-cli score-trace --id N`。
+- `files_changed` 在有用粒度上与实际变更文件集一致。
+- `errors` 命名真实 blocker，或 Detailed trace 在当前 CLI 下为 `none`。
+- `harness_friction` 命名具体问题或有意为 `none`。
+- 应变为未来工作的 friction 已记入 backlog。

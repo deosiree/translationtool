@@ -1,29 +1,20 @@
-# Product Docs
+# 产品文档（Product Docs）
 
-This directory is intentionally generic and mostly empty in Harness v0.
+本目录在 Harness v0 中有意保持通用且基本为空。
 
-When a user provides a project spec, derive smaller product contract files here
-instead of keeping one large spec as the living plan. Name files by the product
-domains that actually exist in that spec, for example `overview.md`,
-`billing.md`, `workflows.md`, `permissions.md`, or `api-conventions.md`.
+当用户提供项目规格时，在此推导较小的产品契约文件，而不是把一份大规格当作活计划。按规格中真实存在的产品域命名，例如 `overview.md`、`billing.md`、`workflows.md`、`permissions.md` 或 `api-conventions.md`。
 
-Do not create domain files before the spec just to fill the folder. Empty
-structure is healthier than fake product truth.
+规格尚未提供前，不要为了「填目录」而创建域文件。空结构比虚假产品真相更健康。
 
-## Current Product Contracts
+## 当前产品契约
 
-No consumer-project-specific product contract is shipped in this generic
-directory. The upstream `repository-harness` product contract lives in the
-root README, Harness operating documents, versioned orchestration contract,
-story packets, and executable tests.
+本通用目录不附带消费者项目专用产品契约。上游 `repository-harness` 的产品契约位于根 README、Harness 操作文档、版本化编排契约、故事包与可执行测试中。
 
-## Update Rule
+## 更新规则
 
-When behavior changes:
+行为变更时：
 
-1. Update the affected product doc.
-2. Update or create the story packet.
-3. Update durable proof status with `scripts/bin/harness-cli story add` or
-   `scripts/bin/harness-cli story update`.
-4. Record a decision if the change affects architecture, scope, risk, or a
-   previously settled product rule.
+1. 更新受影响的产品文档。
+2. 更新或创建故事包。
+3. 用 `scripts/bin/harness-cli story add` 或 `scripts/bin/harness-cli story update` 更新持久证明状态。
+4. 若变更影响架构、范围、风险或既有产品规则，记录决策。

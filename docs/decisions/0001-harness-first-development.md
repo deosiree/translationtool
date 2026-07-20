@@ -1,4 +1,4 @@
-# 0001 Harness-First Development
+# 0001 — Harness 优先开发
 
 Date: 2026-05-05
 
@@ -8,42 +8,37 @@ Accepted
 
 ## Context
 
-The repository currently contains a product README and a large product
-specification. There is no application implementation yet.
+仓库当前仅有产品 README 与一份体量很大的产品规格说明，尚无应用实现。
 
-The project will likely involve human direction plus agent implementation over
-many evolving stories. A single massive specification is not enough for safe
-agent work because it becomes hard to locate current truth, risk, proof, and
-change history.
+项目很可能在较长时间内由人类定方向、Agent 负责实现，且需求会以多条演进中的 story 形式持续变化。单靠一份巨型规格说明不足以支撑安全的 Agent 协作，因为难以定位当前事实、风险、验证依据与变更历史。
 
 ## Decision
 
-Create Harness v0 before scaffolding product code.
+在搭建产品代码脚手架之前，先创建 Harness v0。
 
-Harness v0 defines:
+Harness v0 定义：
 
-- Agent entrypoint.
-- Product doc split.
-- Feature intake and risk lanes.
-- Story packet templates.
-- Decision records.
-- Test matrix.
-- Harness backlog.
+- Agent 入口。
+- 产品文档拆分。
+- Feature intake 与风险车道（risk lanes）。
+- Story packet 模板。
+- 决策记录（decision records）。
+- 测试矩阵（test matrix）。
+- Harness backlog。
 
-No application code, fake scripts, CI, or tests are created in this decision.
+本决策不创建应用代码、占位脚本、CI 或测试。
 
 ## Consequences
 
 Positive:
 
-- Agents have a clear operating model before implementation starts.
-- Product truth can split away from the massive spec.
-- Risky work has a slower lane before code changes.
-- Harness growth becomes part of the work.
+- 实现开始前，Agent 即有清晰的操作模型。
+- 产品事实可从巨型规格中拆出。
+- 高风险工作在改代码前进入更慢车道。
+- Harness 自身的演进纳入日常工作。
 
 Tradeoffs:
 
-- Some docs are placeholders until real stories exercise them.
-- Validation commands are only contracts until implementation begins.
-- The harness must stay small enough to revise from real friction.
-
+- 部分文档在真实 story 跑通前仅为占位。
+- 验证命令在实现开始前只是契约。
+- Harness 须保持足够精简，以便根据真实摩擦持续修订。

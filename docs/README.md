@@ -8,7 +8,7 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `HARNESS.md` | 人与 Agent 如何协作；含 Git 提交说明（中文约定） |
+| `HARNESS.md` | 人与 Agent 如何协作；含语言约定与 Git 提交说明（简体中文） |
 | `FEATURE_INTAKE.md` | 需求分拣：tiny / normal / 高风险，以及 backend 落点 |
 | `ARCHITECTURE.md` | 业务模块边界：前端、Java 维护面、Python 新后端 |
 | `TEST_MATRIX.md` | 历史证明矩阵说明；当前状态用 `harness-cli query matrix` 查询 |
@@ -39,7 +39,7 @@
 ## 本仓库当前状态
 
 - **产品**：词条翻译管理平台；双后端（Java 维护面 + Python 新能力默认落点）。权威说明见 `ARCHITECTURE.md` 与 `decisions/0009-*.md`。
-- **Harness**：已落地 intake、story、trace、评分与 backlog CLI；Eval dry 套件与 `workflow_tree_hash` 基线已接入 CI smoke。
+- **Harness**：已落地 intake、story、trace、评分与 backlog CLI；Eval dry 套件与 `workflow_tree_hash` 基线已接入 CI smoke。给人看的 Harness 文案统一简体中文（决策 `0011-harness-human-docs-zh`）；CLI 参数与机器契约标识保留英文。
 - **变更 intake**：本仓库的变更 intake 流程已通过 Harness 分类（变更请求 / tiny 车道）验证。
 
 上游 Harness 模板仓库另有通用 CLI/安装器说明；**不要**据此假设本业务仓已具备与模板 demo 相同的应用栈或部署流水线——以本仓库 `ARCHITECTURE.md` 与模块 README 为准。

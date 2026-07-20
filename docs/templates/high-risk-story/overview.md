@@ -1,22 +1,21 @@
-# Overview
+# 概览（Overview）
 
-## Current Behavior
+## Current Behavior（当前行为）
 
-Describe the current product or repo behavior.
+描述当前产品或仓库行为。
 
-## Target Behavior
+## Target Behavior（目标行为）
 
-Describe the behavior after the story is complete.
+描述故事完成后的行为。
 
-## Affected Users
+## Affected Users（受影响用户）
 
-- Role.
+- 角色。
 
-## Affected Product Docs
+## Affected Product Docs（受影响产品文档）
 
 - `docs/product/...`
 
-## Non-Goals
+## Non-Goals（非目标）
 
-- Item.
-
+- 条目。
