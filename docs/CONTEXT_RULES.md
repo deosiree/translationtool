@@ -29,6 +29,8 @@
 | `README.md` | 应当 | 必须 | 必须 |
 | `docs/HARNESS.md` | 应当 | 必须 | 必须 |
 | `docs/ARCHITECTURE.md` | 跳过 | 应当 | 必须 |
+| `docs/API_CONTRACTS.md` | 触及 API 字段时应当 | 契约/字段变更时必须 | 必须 |
+| `docs/HARNESS_REVIEW.md` | 跳过 | Harness 改进时应当 | 人类审查/导览变更时必须 |
 | 相关 `docs/product/*` | 无关则跳过 | 产品行为变则必须 | 必须 |
 | 相关 `docs/stories/*` | 无关则跳过 | 已有故事则必须 | 必须 |
 | `docs/decisions/*` | 跳过 | 触及架构或持久规则时应当 | 必须 |
@@ -45,6 +47,7 @@
 | `docs/templates/high-risk-story/*` | 跳过 | 除非风险升级否则跳过 | 必须 |
 | `docs/ARCHITECTURE.md` | 跳过 | 代码或边界变更时应当 | 必须 |
 | `docs/TEST_MATRIX.md` 或 `scripts/bin/harness-cli query matrix` | 应当 | 必须 | 必须 |
+| `docs/QUALITY_LOOP.md` | 应当 | 必须 | 必须 |
 | 相关决策 | 跳过 | 应当 | 必须 |
 | `docs/HARNESS_MATURITY.md` | 跳过 | Harness 改进时应当 | 成熟度或流程变更时必须 |
 | `docs/HARNESS_BACKLOG.md` 与 `scripts/bin/harness-cli query backlog` | 跳过 | 摩擦重复时应当 | 改变 Harness 行为时必须 |
@@ -72,6 +75,8 @@
 | --- | --- | --- | --- |
 | 故事验收标准 | 应当 | 必须 | 必须 |
 | `docs/TEST_MATRIX.md` 或 `scripts/bin/harness-cli query matrix` | 应当 | 必须 | 必须 |
+| `docs/QUALITY_LOOP.md` | 应当 | 必须 | 必须 |
+| `docs/API_CONTRACTS.md` | 触及 API 时应当 | 字段/路径变更时必须 | 必须 |
 | 故事包验证节 | 无故事则跳过 | 必须 | 必须 |
 | `docs/templates/validation-report.md` | 跳过 | 重要证明时应当 | 高风险证明时必须 |
 | README/包文档中的相关命令 | 应当 | 必须 | 必须 |
@@ -117,7 +122,9 @@
 | Harness Eval 业务题 **B02** / 工作台播种路由考试 | 阅读 `evals/suites/product/B02-workbench-verify-seed/`；dry：`node evals/scripts/run-question.mjs --question B02-workbench-verify-seed --mode dry --fixture pass`。 |
 | 任务触及 CLI 命令行为或安装器分发 | 阅读 `docs/decisions/0005-prebuilt-rust-harness-cli.md`、`scripts/README.md`、相关 `crates/harness-cli/*`、CLI 帮助与安装器文档。 |
 | 任务触及鉴权、授权、审计/安全、数据丢失或外部提供方 | 按 high-risk 处理，阅读 `docs/templates/high-risk-story/*`，实现前检查既有决策。 |
-| 任务改变公开 API 形态、产品行为或用户可见工作流 | 编辑前阅读相关 `docs/product/*`、故事包与验证期望。 |
+| 任务改变公开 API 形态、产品行为或用户可见工作流 | 编辑前阅读相关 `docs/product/*`、故事包与验证期望；字段级先查 `docs/API_CONTRACTS.md`。 |
+| 任务准备声称 DONE / 收尾验证 | 阅读 `docs/QUALITY_LOOP.md`；按触及面跑外证；normal+/L2 做对抗审查。 |
+| 人类要审查 Harness 导览 / 五模块权威文件 | 打开 `docs/HARNESS_REVIEW.md`。 |
 | 任务改变 Harness 策略、信源层级、风险分类或验证要求 | 阅读 `docs/HARNESS.md`、`docs/FEATURE_INTAKE.md`、`docs/ARCHITECTURE.md`、`docs/decisions/*`；方向模糊时暂停。 |
 | 任务发现重复困惑、过时文档或缺失证明 | 阅读 `docs/HARNESS_BACKLOG.md`，记录 `harness_friction`，修复超出范围时增加 backlog 项。 |
 | 任务做成熟度、可观测、trace 质量或 benchmark 声明 | 阅读 `docs/HARNESS_COMPONENTS.md`、`docs/HARNESS_MATURITY.md`、`docs/TRACE_SPEC.md`。 |

@@ -179,8 +179,16 @@ Validation: unit, integration, E2E.
 | 前端需求 | 页面、组件、路由、Electron、proxy | `translation/` | Vue 3 + Ant Design Vue；大弹窗/回填类组件注意状态回归 |
 | **新后端 / Agent 需求** | FastAPI 路由、Graph、节点、prompt、pytest | `terminology-agent/` | **默认后端落点**；LangGraph 可测；密钥走 `.env` |
 | **Java 维护需求** | 遗留 Controller/Service/Mapper/SQL/鉴权修补 | `translationtoolservice/` | 最小 diff；破坏性 API/表结构 → high-risk + 人类确认 |
-| 全栈需求 | UI + Python（常见）或含 Java 维护 | 多目录 | 拆 story；先定契约；含 Java 时单独标 `java-maintain` |
+| 全栈需求 | UI + Python（常见）或含 Java 维护 | 多目录 | 拆 story；先定契约（见 `docs/API_CONTRACTS.md`）；含 Java 时单独标 `java-maintain` |
 | Infra / 本地开发 | compose、根 `pnpm dev*`、JDK 脚本 | 根目录 / `docker-compose.yml` | 端口契约 `18000/18001/18002` 勿随意改 |
+
+### 完成证明（分拣后须知）
+
+- 声称 DONE 前按 [`QUALITY_LOOP.md`](./QUALITY_LOOP.md) 贴本仓外证；人类总览见 [`HARNESS_REVIEW.md`](./HARNESS_REVIEW.md)。
+- 改 API 字段先查 [`API_CONTRACTS.md`](./API_CONTRACTS.md)，禁止只看前端 http 封装定契约。
+
+**🔴 CHECKPOINT**：尚未标明证据层（L0/L1/L2）或 `backend=*` 时，禁止开始改代码。  
+**🛑 STOP**：用户只要解释/计划，却准备 bootstrap / intake / 写仓库——立即停，改回只读。
 
 ### 本仓库附加风险旗标
 
