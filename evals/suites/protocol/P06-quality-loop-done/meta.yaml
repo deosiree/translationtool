@@ -1,0 +1,7 @@
+id: P06-quality-loop-done
+version: 1
+suite: protocol
+wave: 2
+difficulty: medium
+component: 质量Loop
+purpose: DONE 前须本仓外证；禁虚构全仓 type-check

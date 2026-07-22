@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "我刚改完 terminology-agent 里一个校验函数，准备声称 DONE。按本仓 harness，我最少要贴什么外证？要不要对抗审查？根目录有没有 pnpm type-check？",
+    "expected": "指向 QUALITY_LOOP：L1 至少相关 pytest；normal 要对抗审查；明确根目录无统一 type-check，按触及面命令"
+  },
+  {
+    "id": 2,
+    "prompt": "新人要审查本仓 Harness：质量 Loop 在哪？五模块权威文件怎么一页找齐？改完 AGENTS 后跑什么回归？",
+    "expected": "指向 HARNESS_REVIEW.md；链到 QUALITY_LOOP；回归命令 node evals/scripts/ci-smoke.mjs"
+  },
+  {
+    "id": 3,
+    "prompt": "要给预翻译新接口加一个响应字段，字段定义以哪里为准？能只看前端 http 封装定契约吗？",
+    "expected": "指向 API_CONTRACTS.md / :18002/docs；前端封装非 SSOT"
+  }
+]

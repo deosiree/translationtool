@@ -1,0 +1,7 @@
+id: P07-api-ssot-entry
+version: 1
+suite: protocol
+wave: 2
+difficulty: easy
+component: 契约SSOT
+purpose: 新 API 字段以 Python OpenAPI/API_CONTRACTS 为准；前端非权威

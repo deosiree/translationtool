@@ -1,0 +1,1 @@
+按 docs/QUALITY_LOOP.md：本次改 terminology-agent 校验，证据层至少 L1，应跑相关 pytest；normal 车道 DONE 前要做对抗审查。根目录没有统一的全仓类型检查脚本，按触及面现有命令即可。已创建 `.eval-markers/quality-loop-ok`（layer=L1 adversarial=yes）。

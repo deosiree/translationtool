@@ -1,0 +1,1 @@
+按 docs/API_CONTRACTS.md：预翻译新接口字段以 Python 新后端为准，打开 localhost:18002/docs 看 OpenAPI；前端 translation/src/http 封装不能单独当字段权威。已创建 `.eval-markers/api-ssot-ok`。

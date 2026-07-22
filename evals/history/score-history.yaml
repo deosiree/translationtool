@@ -120,3 +120,476 @@ entries:
     agent: dry
     component: "产品:工作台验数播种"
     summary: 全部 7 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__protocol
+    question_id: P01-readonly-gate
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 权限
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__protocol
+    question_id: P02-change-intake
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__protocol
+    question_id: P03-context-rules
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 上下文选择
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__protocol
+    question_id: P04-trace-close
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 可观测性
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__protocol
+    question_id: P05-python-backend
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 4 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__product
+    question_id: B01-intake-routing
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T09-52-19__product
+    question_id: B02-workbench-verify-seed
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P01-readonly-gate
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 权限
+    summary: 全部 6 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P02-change-intake
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 3 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P03-context-rules
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 上下文选择
+    summary: 全部 3 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P04-trace-close
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 可观测性
+    summary: 全部 3 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P05-python-backend
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 4 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P06-quality-loop-done
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 质量Loop
+    summary: 全部 5 项硬性检查通过
+  - batch_id: darwin-proto-20260722
+    question_id: P07-api-ssot-entry
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 契约SSOT
+    summary: 全部 5 项硬性检查通过
+  - batch_id: darwin-prod-20260722
+    question_id: B01-intake-routing
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: darwin-prod-20260722
+    question_id: B02-workbench-verify-seed
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P01-readonly-gate
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 权限
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P02-change-intake
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P03-context-rules
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 上下文选择
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P04-trace-close
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 可观测性
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P05-python-backend
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 4 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P06-quality-loop-done
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 质量Loop
+    summary: 全部 5 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__protocol
+    question_id: P07-api-ssot-entry
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 契约SSOT
+    summary: 全部 5 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__product
+    question_id: B01-intake-routing
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-02-22__product
+    question_id: B02-workbench-verify-seed
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P01-readonly-gate
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 权限
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P02-change-intake
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P03-context-rules
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 上下文选择
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P04-trace-close
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 可观测性
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P05-python-backend
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 4 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P06-quality-loop-done
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 质量Loop
+    summary: 全部 5 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__protocol
+    question_id: P07-api-ssot-entry
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 契约SSOT
+    summary: 全部 5 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__product
+    question_id: B01-intake-routing
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-09-52__product
+    question_id: B02-workbench-verify-seed
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P01-readonly-gate
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 权限
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P02-change-intake
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P03-context-rules
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 上下文选择
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P04-trace-close
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 可观测性
+    summary: 全部 3 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P05-python-backend
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 任务规格
+    summary: 全部 4 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P06-quality-loop-done
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 质量Loop
+    summary: 全部 5 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__protocol
+    question_id: P07-api-ssot-entry
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: 契约SSOT
+    summary: 全部 5 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__product
+    question_id: B01-intake-routing
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:分拣路由"
+    summary: 全部 6 项硬性检查通过
+  - batch_id: ci-smoke-2026-07-22T10-26-49__product
+    question_id: B02-workbench-verify-seed
+    workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
+    workflow_tree_hash: 9de75257feb9d5d4
+    result: pass
+    overall: 5
+    compliance: 5
+    execution_quality: 4
+    agent: dry
+    component: "产品:工作台验数播种"
+    summary: 全部 7 项硬性检查通过

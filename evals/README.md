@@ -1,6 +1,6 @@
 # Harness 评测（Eval）
 
-可回归的 Harness 工作流考试：改 rules / AGENTS / intake 策略后，用固定题库量化是否进步。
+可回归的 Harness 工作流考试：改 rules / AGENTS / intake 策略后，用固定题库量化是否进步。升级后可用性对照见 `evals/darwin-harness-usability/`；协议套件含 `P06-quality-loop-done`（外证 DONE）、`P07-api-ssot-entry`（API SSOT）。
 
 **语言约定：** 题面（`task.md`）、阅卷标准（`rubric.md`）、人工审查用的 prompt/注释/汇总报告一律使用**中文**；脚本标识符与 `env.yaml` 检查类型名保持英文以便解析。
 

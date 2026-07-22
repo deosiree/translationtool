@@ -1,0 +1,7 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-07-22T18:00	baseline	translationtool-harness	-	52	baseline	-	升级前缺口对照	full_test
+2026-07-22T18:05	post-upgrade	translationtool-harness	52	88	keep	可用性/dim8	with=10 without=3；P06/P07	full_test
+2026-07-22T18:10	p2-baseline	translationtool-harness	-	75.8	baseline	-	9维结构基线：弱dim4/6/9	dry_run
+2026-07-22T18:20	p2-batch	translationtool-harness	75.8	81.7	keep	dim3/4/9+挂链	QUALITY_LOOP三段式+🔴/🛑+黑名单；CONTEXT/INTAKE/API挂链	full_test
+2026-07-22T18:25	p2-r-intake-cp	translationtool-harness	81.7	82.3	keep	dim4	FEATURE_INTAKE完成证明🔴/🛑；Δ0.6	full_test
+2026-07-22T18:30	p2-r-review-link	translationtool-harness	82.3	82.7	keep	dim6	HARNESS_REVIEW旁证链CONTEXT+darwin；Δ0.4；HL-4	full_test

@@ -1,12 +1,12 @@
-updated_at: 2026-07-18
-workflow_tree_hash: a5e3016249a42127
-workflow_rev: e6bf20649e3ba5c3bfce70dd461dd847f6442220
+updated_at: 2026-07-22
+workflow_tree_hash: 9de75257feb9d5d4
+workflow_rev: 49a89d36e24d2c359ee2bbc4ad11b7b0e0af1aa9
 note: compare-baseline --update-baseline 更新
 suites:
   protocol:
     mode: dry
-    total: 5
-    min_pass: 5
+    total: 7
+    min_pass: 7
 
   product:
     mode: dry
