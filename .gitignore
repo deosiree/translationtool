@@ -12,3 +12,8 @@ translation_check/
 /.codegraph/
 *.png
 review.txt
+/evals
+harness.db
+.reasonix
+scripts
+*-workspace
