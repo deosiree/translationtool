@@ -9,13 +9,16 @@
 | 文件 | 用途 |
 | --- | --- |
 | `HARNESS.md` | 人与 Agent 如何协作；含语言约定与 Git 提交说明（简体中文） |
+| `HARNESS_REVIEW.md` | 人类审查导览：五模块权威文件、心智写入、改宪法后回归 |
+| `QUALITY_LOOP.md` | 声称 DONE 前的外证门禁：证据阶梯、对抗审查、提交/推送检查 |
 | `FEATURE_INTAKE.md` | 需求分拣：tiny / normal / 高风险，以及 backend 落点 |
-| `ARCHITECTURE.md` | 业务模块边界：前端、Java 维护面、Python 新后端 |
+| `ARCHITECTURE.md` | 业务模块边界：前端、Java 维护面、Python 新后端；主域排查分层 |
+| `API_CONTRACTS.md` | 业务 API 字段/路径 SSOT 入口（Python OpenAPI / Java Swagger） |
 | `TEST_MATRIX.md` | 历史证明矩阵说明；当前状态用 `harness-cli query matrix` 查询 |
 | `HARNESS_BACKLOG.md` | 历史改进清单说明；当前记录用 `harness-cli backlog` |
 | `HARNESS_MATURITY.md` | Harness 成熟度（H0–H5）与当前进度 |
 | `GLOSSARY.md` | 共享术语 |
-| `contracts/` | 可选的机器可读契约（给外部编排器用） |
+| `contracts/` | 可选的机器可读契约（给外部编排器用；非业务 HTTP SSOT） |
 
 ## 目录
 

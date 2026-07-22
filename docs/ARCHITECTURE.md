@@ -73,6 +73,19 @@ translationtool/
 
 **工作台 ≠ Java**：工作台**新需求 / 新 API** 仍走 Python（`:18002`）；**仅**给旧 Java API 加参/出参等维护才动 `translationtoolservice/`。持久可见可分 A（Agent 表）/ B（`agent_meta` 会话）/ C（工作台持久，**优先新 Python 读接口**）——详见 `docs/decisions/0010-dual-backend-read-vs-write-persistence.md`。
 
+## 主域与排查分层
+
+业务 bug / 新能力排查默认只盯**主域**，避免一上来扫旁路目录或主动扩 Java。
+
+| 层级 | 范围 | 默认动作 |
+| --- | --- | --- |
+| 主域（默认） | `translation/`（UI）、`terminology-agent/`（新后端 / Agent） | 先在此定位与修改 |
+| 维护域（须确认） | `translationtoolservice/` | 仅当需求点名维护、或人类确认必须动 Java 时再进 |
+| 旁路（默认不改） | `translation-assistant/`、`translationtool_ai/`、`translation_check/`、`knowledge/`、`references/` 等 | 除非需求点名，否则不打开当改动面 |
+| 协作面 | `docs/`、`AGENTS.md`、`evals/`、`scripts/`（harness） | 改协作约定时进入；产品 DONE 外证见 `docs/QUALITY_LOOP.md` |
+
+现象 → 落点仍用上方「改动落点启发式」。跨层契约先查 `docs/API_CONTRACTS.md`。
+
 ## Discovery Before Shape（仍适用）
 
 实现前确认：
@@ -80,7 +93,7 @@ translationtool/
 - 触及哪些表面（UI / API / Agent / infra）
 - **新字段要持久出现在哪张 UI**（Agent 页 / 预翻译会话 / 工作台主表）
 - 是否跨模块契约变更
-- 最小验证路径（见 `docs/TEST_MATRIX.md`）
+- 最小验证路径（见 `docs/TEST_MATRIX.md`）；声称 DONE 前见 `docs/QUALITY_LOOP.md`
 - 是否已有决策可继承（`docs/decisions/`）
 
 ## 依赖规则（业务侧）

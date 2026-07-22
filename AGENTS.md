@@ -16,9 +16,19 @@
 
 1. 本文件 + `docs/FEATURE_INTAKE.md`（工作分拣）
 2. `docs/ARCHITECTURE.md`（模块边界与调用关系）
-3. `docs/TEST_MATRIX.md`（怎么算做完）
-4. `docs/decisions/`（历史决策，改契约前先查）
-5. 模块内 README：`translation/`、`terminology-agent/README.md`；Java 仅在维护任务时读 `translationtoolservice/`
+3. `docs/HARNESS_REVIEW.md`（人类审查导览）+ `docs/QUALITY_LOOP.md`（声称 DONE 前的外证）
+4. `docs/TEST_MATRIX.md`（模块证明词汇）+ `docs/API_CONTRACTS.md`（API 字段 SSOT 入口）
+5. `docs/decisions/`（历史决策，改契约前先查）
+6. 模块内 README：`translation/`、`terminology-agent/README.md`；Java 仅在维护任务时读 `translationtoolservice/`
+
+### Skills 发现优先级
+
+| 优先级 | 来源 | 规则 |
+| --- | --- | --- |
+| 1 | 本文件 + `docs/`（含 FEATURE_INTAKE / ARCHITECTURE / QUALITY_LOOP） | **宪法最高**；领域 skill 不得压过双后端策略与硬约束 |
+| 2 | 仓内 ops / story / ADR | 任务相关再读 |
+| 3 | `huiyanSkills/translateTool-skills`（如 `db-回滚数据库`、`工作台验数播种`） | 操作流程可复用；红线仍以本仓 docs 为准 |
+| 4 | 其它通用 skill | 仅在与本仓宪法不冲突时使用 |
 
 ### 硬约束
 
@@ -41,6 +51,7 @@
 
 - 若结果只需回答、解释、评审、诊断、计划或状态报告：只读所需材料，保持只读。不要 bootstrap、初始化或迁移数据库、录入 intake，也不要记录 trace。
 - 若用户明确要求修改、构建、修复或写入仓库产物：先在 macOS/Linux 运行 `scripts/bootstrap-harness.sh`，或在 Windows 运行 `.\scripts\bootstrap-harness.ps1`。然后按 `docs/FEATURE_INTAKE.md` 分类并录入请求；在 macOS/Linux 查询 `scripts/bin/harness-cli query matrix --active --summary`，或在 Windows 查询 `.\scripts\bin\harness-cli.exe query matrix --active --summary`；并只拉取 `docs/CONTEXT_RULES.md` 中与车道和任务相关的上下文。
+- 变更类任务声称 DONE 前，按 `docs/QUALITY_LOOP.md` 贴外证；人类总览见 `docs/HARNESS_REVIEW.md`。
 <!-- HARNESS:END -->
 
 ## Notes

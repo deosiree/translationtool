@@ -356,30 +356,23 @@ Agent 可直接更新：
 
 - 请求的变更已完成，或阻塞已文档化。
 - 相关文档、故事与测试矩阵条目保持最新。
-- 存在的验证命令已运行。
+- **外证已按 [`QUALITY_LOOP.md`](./QUALITY_LOOP.md) 跑过并可贴出**（禁止自评充绿）；模块证明词汇见 [`TEST_MATRIX.md`](./TEST_MATRIX.md)。
 - 已用 `scripts/bin/harness-cli trace` 记录 trace。
 - 相关时，缺失的 Harness 能力已用 `scripts/bin/harness-cli backlog add` 记录。
 - 最终回复说明改了什么、以及未尝试什么。
 
-## 未来验证阶梯
+人类审查总览：[`HARNESS_REVIEW.md`](./HARNESS_REVIEW.md)。
 
-目前尚无验证脚本。实现开始后，期望的阶梯为：
+## 验证阶梯（权威在 QUALITY_LOOP）
+
+历史上曾用「未来验证阶梯」占位。**当前权威**为 [`QUALITY_LOOP.md`](./QUALITY_LOOP.md) 的证据阶梯（L0 / L1 / L2）与提交/推送门禁；模块面最小证明见 [`TEST_MATRIX.md`](./TEST_MATRIX.md)。
+
+概念对应（便于读旧文）：
 
 ```text
-validate:quick
-  格式、lint、类型检查、单元测试、架构检查
-
-test:integration
-  按栈需要的后端、数据库、提供方或服务检查
-
-test:e2e
-  用户可见的端到端流程
-
-test:platform
-  按栈需要的 shell、移动、桌面或部署冒烟
-
-test:release
-  全量套件、日志检查与性能冒烟
+L0 机械     ≈ validate:quick（按触及面现有 lint / 编译 / ci-smoke）
+L1 逻辑     ≈ 单元/集成测（本仓以 agent pytest 等为主）
+L2 UI/跨层  ≈ e2e / 平台冒烟（本仓以 pnpm dev / compose 主路径手测为准）
 ```
 
-在这些命令存在且已实际运行之前，Agent 不得声称它们已通过。
+在对应命令**已实际运行并贴出外证**之前，Agent 不得声称该层已通过。根目录无统一 `type-check` 脚本时，不得虚构全仓 type-check 已绿。
