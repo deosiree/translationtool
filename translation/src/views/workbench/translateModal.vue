@@ -46,6 +46,9 @@
                 <a-col>
                   <a-button type="primary" size="small" @click="exportExcel">导出Excel</a-button>
                 </a-col>
+                <a-col v-if="canShowDelete">
+                  <a-button type="primary" size="small" danger @click="deleteTaskEntry">删除</a-button>
+                </a-col>
                 <!-- <a-col>
                   <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
                     <a-button type="primary" size="small">翻译导入</a-button>
@@ -331,6 +334,7 @@ import {
   importCommonExcle,
   capitalizeWords,
   replaceWords,
+  deleteEntryInfoByTaskID,
 } from "@/http/api/workbench";
 import { translate, workImportExcleTrans } from "@/http/api/entryManage";
 import { entryExportByCondition } from "@/http/api/download";
@@ -348,8 +352,9 @@ import {
   SettingOutlined,
   CheckOutlined,
   CloseOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
-import { message } from "ant-design-vue";
+import { message, Modal as AntModal } from "ant-design-vue";
 import key from "keymaster";
 import dayjs from "dayjs";
 import {
@@ -384,6 +389,8 @@ import {
   clearAllEntry as clearAllEntryUtil,
   onSelectChange as onSelectChangeUtil,
 } from "@/utils/selectionUtils";
+import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
+import { createVNode } from "vue";
 export default {
   components: {
     Modal,
@@ -393,6 +400,7 @@ export default {
     DownOutlined,
     CheckOutlined,
     CloseOutlined,
+    ExclamationCircleOutlined,
     RulesDropdown,
     TransStateSelect,
     TransStateBadge,
@@ -552,9 +560,59 @@ export default {
       this.$forceUpdate();
     },
   },
+  computed: {
+    canShowDelete() {
+      return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+  },
   methods: {
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+    },
+    // 删除词条（词条审核员 + 本任务指派人）
+    deleteTaskEntry() {
+      if (this.selectedRows.length === 0) {
+        return;
+      }
+      AntModal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          let deleteIds = [];
+          let delCount = {
+            num: 0,
+            childNum: 0,
+          };
+          this.selectedRows.forEach((item) => {
+            deleteIds.push(item.id);
+            delCount.num++;
+            if (item.children && item.children.length > 0) {
+              delCount.childNum += item.children.length;
+              item.children.forEach((child) => {
+                deleteIds.push(child.id);
+              });
+            }
+          });
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
+          deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteIds)
+            .then((res) => {
+              let text = `删除成功${delCount.num - delCount.childNum}条`;
+              if (delCount.childNum > 0) {
+                text += `(聚合${delCount.childNum}条)`;
+              }
+              message.success(text);
+              this.getTranslateEntry();
+            })
+            .catch((err) => {
+              message.error("删除失败！", err.message);
+            });
+        },
+        onCancel: () => {},
+      });
     },
     // // 设置翻译列展示的语种
     // setTranslateColumn() {

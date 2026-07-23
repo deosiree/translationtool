@@ -11,6 +11,7 @@
         <span style="margin-left:10px">翻译状态：</span>
         <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
+        <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
         <WorkbenchActionGroup inline-offset>
           <WorkbenchColumnActions
             v-model="checkedColumn"
@@ -103,7 +104,7 @@ import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { cloneDeep, iteratee } from "lodash-es";
-import { getEntryInfoList, getI18nAdress } from "@/http/api/workbench";
+import { getEntryInfoList, getI18nAdress, deleteEntryInfoByTaskID } from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
 import { setInfo } from "@/http/api/i18Server";
 import {
@@ -140,6 +141,7 @@ import {
   onSelectChange as onSelectChangeUtil,
 } from "@/utils/selectionUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
+import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   components: {
@@ -263,9 +265,59 @@ export default {
       },
     },
   },
+  computed: {
+    canShowDelete() {
+      return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+  },
   methods: {
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+    },
+    // 删除词条（词条审核员 + 本任务指派人）
+    deleteTaskEntry() {
+      if (this.selectedRows.length === 0) {
+        return;
+      }
+      Modal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          let deleteIds = [];
+          let delCount = {
+            num: 0,
+            childNum: 0,
+          };
+          this.selectedRows.forEach((item) => {
+            deleteIds.push(item.id);
+            delCount.num++;
+            if (item.children && item.children.length > 0) {
+              delCount.childNum += item.children.length;
+              item.children.forEach((child) => {
+                deleteIds.push(child.id);
+              });
+            }
+          });
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
+          deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteIds)
+            .then((res) => {
+              let text = `删除成功${delCount.num - delCount.childNum}条`;
+              if (delCount.childNum > 0) {
+                text += `(聚合${delCount.childNum}条)`;
+              }
+              message.success(text);
+              this.getTaskEntry();
+            })
+            .catch((err) => {
+              message.error("删除失败！", err.message);
+            });
+        },
+        onCancel: () => {},
+      });
     },
     // 获取词条
     getTaskEntry() {

@@ -14,6 +14,7 @@
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
         <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
+        <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
         <WorkbenchActionGroup inline-offset>
           <WorkbenchColumnActions
             v-model="checkedColumn"
@@ -176,8 +177,9 @@ import {
   updateEntryTemp,
   getEntryInfoList,
   updateEntryList,
+  deleteEntryInfoByTaskID,
 } from "@/http/api/workbench";
-import { message } from "ant-design-vue";
+import { message, Modal as AntModal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
@@ -199,7 +201,8 @@ import {
 } from "@/utils/selectionUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { byteLength } from "@/utils/validationUtils";
-import { computed, defineComponent, ref } from "vue";
+import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
+import { computed, defineComponent, ref, createVNode } from "vue";
 import {
   CheckOutlined,
   CloseOutlined,
@@ -209,6 +212,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
   SettingOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import key from "keymaster";
 export default {
@@ -221,6 +225,7 @@ export default {
     CaretDownOutlined,
     CaretRightOutlined,
     SettingOutlined,
+    ExclamationCircleOutlined,
     TransStateSelect,
     IsExistBadge,
     EntryStateBadge,
@@ -339,9 +344,59 @@ export default {
       },
     },
   },
+  computed: {
+    canShowDelete() {
+      return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+  },
   methods: {
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+    },
+    // 删除词条（词条审核员 + 本任务指派人）
+    deleteTaskEntry() {
+      if (this.selectedRows.length === 0) {
+        return;
+      }
+      AntModal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          let deleteIds = [];
+          let delCount = {
+            num: 0,
+            childNum: 0,
+          };
+          this.selectedRows.forEach((item) => {
+            deleteIds.push(item.id);
+            delCount.num++;
+            if (item.children && item.children.length > 0) {
+              delCount.childNum += item.children.length;
+              item.children.forEach((child) => {
+                deleteIds.push(child.id);
+              });
+            }
+          });
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
+          deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteIds)
+            .then((res) => {
+              let text = `删除成功${delCount.num - delCount.childNum}条`;
+              if (delCount.childNum > 0) {
+                text += `(聚合${delCount.childNum}条)`;
+              }
+              message.success(text);
+              this.getTaskEntry();
+            })
+            .catch((err) => {
+              message.error("删除失败！", err.message);
+            });
+        },
+        onCancel: () => {},
+      });
     },
     // 获取待审核词条
     getTaskEntry() {
