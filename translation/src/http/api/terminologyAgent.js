@@ -461,3 +461,18 @@ export function importCommentRules(file, overwritePreferAbbr = false) {
     data: formData,
   });
 }
+
+// ── 智能助手 Chat ──
+
+/**
+ * 发送对话消息到智能助手
+ * @param {{ messages: Array<{role: string, content: string}>, session_id?: string }} data
+ * @returns {Promise<{ data: { reply: string, session_id: string } }>}
+ */
+export function postChat(data) {
+  return request({
+    url: "/agent/chat",
+    method: "POST",
+    data,
+  });
+}

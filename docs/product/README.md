@@ -10,6 +10,8 @@
 
 本通用目录不附带消费者项目专用产品契约。上游 `repository-harness` 的产品契约位于根 README、Harness 操作文档、版本化编排契约、故事包与可执行测试中。
 
+例外（学习驱动开发，非产品域契约）：`learning-plan.md`（总路线图）、`learning-log.md`（倒序里程碑日志）。
+
 ## 更新规则
 
 行为变更时：

@@ -31,6 +31,7 @@
             </a-col>
         </a-row>
         <FloatingToolBox v-if="$currentDepartment && $currentDepartment.ops?.has('toolBox')" />
+        <ChatWidget />
     </div>
 </template>
 <script>
@@ -51,12 +52,17 @@ import {
 const FloatingToolBox = defineAsyncComponent(() =>
     import('@/components/FloatingToolBox/index.vue')
 )
+// 异步加载智能助手对话组件
+const ChatWidget = defineAsyncComponent(() =>
+    import('@/components/ChatWidget/index.vue')
+)
 export default {
     name: 'layout',
     components: {
         LeftOutlined,
         RightOutlined,
-        FloatingToolBox
+        FloatingToolBox,
+        ChatWidget
     },
     data() {
         return {

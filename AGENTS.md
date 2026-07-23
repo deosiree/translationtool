@@ -58,3 +58,5 @@
 
 - 保存项目当前开发状态总览
 - 让reasonix记住“项目当前开发状态总览”的记忆
+- **学习驱动开发**：当前项目同时服务「AI 大模型应用面试准备」目标。总路线图见 `docs/product/learning-plan.md`，里程碑倒序日志见 `docs/product/learning-log.md`（ADR: `docs/decisions/0012-learning-driven-development.md`）。当用户说「继续学习」「下一步」「推进」时，先读 plan + log，再读 harness matrix，然后主动给出 2-3 个下一步选项供选择。
+- **ChatWidget 智能助手**：`translation/src/components/ChatWidget/index.vue` + `terminology-agent/app/api/chat.py`，已完成 MVP（三态切换、拖拽、对话；后端为硬编码 Prompt + LLM 直调），待接入 RAG 知识库。
