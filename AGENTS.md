@@ -59,4 +59,6 @@
 - 保存项目当前开发状态总览
 - 让reasonix记住“项目当前开发状态总览”的记忆
 - **学习驱动开发**：当前项目同时服务「AI 大模型应用面试准备」目标。总路线图见 `docs/product/learning-plan.md`，里程碑倒序日志见 `docs/product/learning-log.md`（ADR: `docs/decisions/0012-learning-driven-development.md`）。当用户说「继续学习」「下一步」「推进」时，先读 plan + log，再读 harness matrix，然后主动给出 2-3 个下一步选项供选择。
+- **记住里程碑并提交（默认）**：用户说「记住里程碑并提交」时，将**本次全部相关改动**总结为 **一条** `learning-log` 里程碑（同一日期+标题），再做 **一次** git commit；**一提交 ↔ 一日志里程碑**。仅当用户明确要求「分批次写里程碑 / 分批提交」时才拆多条；禁止同一批改动拆多个日志标题却一次提交（或反过来）。
 - **ChatWidget 智能助手**：`translation/src/components/ChatWidget/index.vue` + `terminology-agent/app/api/chat.py`，已完成 MVP（三态切换、拖拽、对话；后端为硬编码 Prompt + LLM 直调），待接入 RAG 知识库。
+- **RAG 语料场**：操作指南 SSOT 见 `docs/product/rag-corpus-guide.md`。物理目录 `data/rag-corpus/` 仅**本机**（**代码仓零语料**，整树 gitignore）。衍生索引 `data/rag-index/` / `.rag/` 亦不入库。用户问语料/清洗素材/截图怎么放时，先读该指南；**禁止**将语料正文 `git add`。

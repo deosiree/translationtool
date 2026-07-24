@@ -16,9 +16,9 @@
 
 ## 当前进度（摘要）
 
-- **已完成**：阶段 0 — ChatWidget MVP + `POST /agent/chat`（硬编码 System Prompt + LLM 直调，非 Agent）。详情见 [[learning-log]]
-- **进行中 / 下一步**：Phase 1 RAG（R1 语料清洗起）
-- 勿在本文追加日期条目；新里程碑只写入 [[learning-log]] 文首
+- **已完成**：阶段 0 ChatWidget MVP；**RAG 语料场一条里程碑**（全产品素材、门禁 v1.1、跨模块旅程、截图齐套、零语料 + 本机 zip 同步）
+- **下一步**：R2 Chunk；或把 `RAG_CORPUS_SYNC_ROOT` 指到网盘日常 pack
+- 勿在本文追加日期条目；新里程碑只写入 [[learning-log]] 文首（**默认一提交一条**）
 
 ## 待做（按优先级排列）
 
@@ -26,7 +26,7 @@
 
 | # | 任务 | 覆盖知识点 |
 |---|------|-----------|
-| R1 | 数据清洗管线：将 `docs/` + `README.md` + 源码注释整理为结构化的文档素材 | 数据清洗 |
+| R1 | 语料场：全产品操作面素材（模块说明书 + 架构 + ingest 双链）；清洗管线代码后续。见 `docs/product/rag-corpus-guide.md` | 数据清洗（素材侧） |
 | R2 | Chunk 策略：实现固定大小切分 + SmallToBig 父子档，对比效果 | Chunk 设计 |
 | R3 | Embedding 接入：BGE-M3 / 千问 Embedding → Milvus Lite / FAISS | Embedding 模型 |
 | R4 | 多路召回：Dense（向量）+ Sparse（BM25）→ RRF 融合 | 混合检索 |
@@ -81,6 +81,7 @@
 ## 关联资源
 
 - 学习日志：[[learning-log]]
+- RAG 语料场指南：`docs/product/rag-corpus-guide.md`（物理目录 `data/rag-corpus/`）
 - 面试知识体系：`F:\Documents\Default-Obsidian\语言\AI面经\葵花宝典.md`
 - 项目架构：`docs/ARCHITECTURE.md`
 - 质量门禁：`docs/QUALITY_LOOP.md`

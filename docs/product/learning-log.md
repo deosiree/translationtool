@@ -1,7 +1,45 @@
 # 学习日志
 
-> 维护规则：仅记里程碑（新能力 / 阶段完成）；改 bug 不入账。
-> 新条目用「`YYYY-MM-DD` + 标题」插在正文最上方（倒序追加）。
+> 维护规则：
+> 1. 仅记里程碑（新能力 / 阶段完成）；改 bug 不入账。  
+> 2. 新条目用「`YYYY-MM-DD` + 标题」插在正文最上方（倒序追加）。  
+> 3. **默认：一次「记住里程碑并提交」= 一条里程碑 + 一次 git commit**（该次提交的全部相关改动总结进同一时间戳标题下）。  
+> 4. **仅当用户明确说「分批次写里程碑/分批提交」时**，才拆成多条里程碑；且仍须 **一提交 ↔ 一日志里程碑** 一一对应。
+
+## 2026-07-23 RAG 语料场：从素材到可门禁测集 + 代码仓零语料
+
+围绕智能助手后续 RAG，完成本机语料场建设、诚实收工门禁、跨模块操作旅程、模块截图齐套，以及「语料不进 Git」的仓内契约与本机同步方案。语料正文仅本机 `data/rag-corpus/`；仓内入库指南、门禁/旅程/同步脚本与本日志。
+
+### 做了什么
+
+- **语料范围**：从仅助手 → 全产品侧栏七大模块 + 工具箱；说明书 / FAQ / 排障 / 场景 / SOP / 架构 / ops / ingest 双链  
+- **诚实门禁**：`EVAL_GATES`（v1.0→v1.1）+ `check-rag-corpus-gates.py`（去垫体量、覆盖矩阵、金标 split/溯源、journeys）；废除垫字附录计入  
+- **跨模块旅程**：`styles/journeys/**` + `journeys-matrix.yaml`（含工作台→Excel 人工译→更新翻译→翻译审核→归档/回写闭环及 handoff/atoms）；控件级加厚对齐 Vue 原文  
+- **多格式与截图**：`export-rag-formats-raw.py`；`SCREENSHOT_GUIDE-modules` 目标 PNG **本机已齐**（人审）  
+- **代码仓零语料**：`data/rag-corpus/` 整树 gitignore；禁止 `git add` 语料正文  
+- **本机同步**：`scripts/sync-rag-corpus.ps1`（pack/restore/status）+ 指南「本机语料同步方案」；默认同步根 `RAG_CORPUS_SYNC_ROOT` 或 `data/_rag-corpus-sync/`  
+- **仓内脚本**：`check-rag-corpus-gates.py`、`expand-rag-corpus-wave.py`、`export-rag-formats-raw.py`、`gen-rag-journeys*.py`、`sync-rag-corpus.ps1`
+
+### Harness
+
+- intake **#15**（Harness improvement / tiny）  
+- decision **`0013-rag-corpus-zero-in-git`**（accepted）  
+- intervention **#1**（approval）· trace **#10–#11**
+
+### 学到什么（面试可讲）
+
+- canonical 语料 ≠ 向量库：源材料本机/对象存储，索引可重建且 ignore  
+- 门禁要防「有文件即 done / 垫字过体量」；跨模块旅程比单模块 SOP 更贴近真实操作  
+- Git 适合契约与脚本；语料用 zip/同步根传递，而不是塞进代码仓
+
+### 明确未做与下一步
+
+- 向量 hit@k / Chunk / Embedding 未接  
+- 下一步：R2 Chunk；或把 `RAG_CORPUS_SYNC_ROOT` 指到网盘做日常 pack
+
+### 关联
+
+- [[learning-plan]] · `docs/product/rag-corpus-guide.md` · `.gitignore` · decision `0013`
 
 ## 2026-07-23 ChatWidget 智能助手 MVP
 
@@ -56,13 +94,7 @@
 - 无服务端会话持久化；`session_id` 仅作客户端关联键
 - harness 仅有 intake #13/#14，未升 story / matrix / API 契约条目
 
-**下一步（按 [[learning-plan]] Phase 1，下个可记账里程碑方向）：**
-
-1. **R1 语料清洗**：把平台文档整理成可入库素材
-2. **R2–R3 Chunk + Embedding**：切分策略 + 向量库（如 FAISS / Milvus Lite）
-3. **R4–R5 多路召回 + 精排**：Dense+BM25 → RRF，再 Cross-Encoder
-4. **把检索结果注入现有 `chat` 提示词**：从「纯 LLM」升级为「RAG 增强对话」（仍可先不引入 Agent）
-5. Agent/Tool（Phase 3）、长短期记忆（Phase 2）排在 RAG 入口打通之后
+**下一步（按 [[learning-plan]] Phase 1）：** 见上一条里程碑（语料场已推进）；再往 R2 Chunk / Embedding。
 
 ### 关联
 
