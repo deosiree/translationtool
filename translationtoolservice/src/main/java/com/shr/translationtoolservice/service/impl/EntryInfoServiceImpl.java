@@ -892,58 +892,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             /* 加版本号 */
             if(fileName.endsWith(".xlsx")){
                 EntryImportFileTypeVO modeType = EntryImportFileTypeVO.parse(request.getParameter("templateType"));
-                // if(departmentType.equals("装置开发部")){
-                //     EntryImportFileTypeVO modeType = EntryImportFileTypeVO.parse(request.getParameter("templateType"));
-                //     if(modeType == null){
-                //         throw new NullPointerException("传递的modeType参数不正确或为null");
-                //     }
-                //     if(modeType == EntryImportFileTypeVO.NEW_FILE_VERSION){
-                //         throw new Exception("暂不支持,请使用其他模板");
-                //         // entryInfoEntities = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, multipartFile.getInputStream(), fileName);
-                //         // zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                //     }else if(modeType == EntryImportFileTypeVO.OLD_FILE_VERSION){
-                //         List<ImportExcleEntry> excelToEntity = excelUtils.readZZExcelToEntity(taskInfoEntity.getTranslateType(),ImportExcleEntry.class, fileInputStreamEntitiy.getInputStream(), fileName);
-                //         entryInfoEntities = new ArrayList<>();
-                //         zzEntryHandle(excelToEntity, entryInfoEntities, userName, taskInfoEntity, fileName);
-                //     }else if(modeType == EntryImportFileTypeVO.COMMON_VERSION){
-                //         entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
-                //         zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                //     }else{
-                //         throw new Exception("当前不支持该文件类型: " + request.getParameter("modeType"));
-                //     }
-                // }else{
-                //     entryInfoEntities = excelUtils.readExcelToEntity(taskInfoEntity.getTranslateType(),EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName).getParsedObjects().stream().collect(Collectors.toList());
-                //     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                // }
+
                 entryInfoEntities = entryInfoEntityImportHandler.importExcel(fileInputStreamEntitiy, user, modeType, taskInfoEntity, encoding);
             }else if(fileName.endsWith(".csv")){
-                // Map<String,String> kwargs = new HashMap<>();
-                // kwargs.put("encoding", encoding);
-                // entryInfoEntities = excelUtils.readCSVToEntity(EntryInfoEntity.class, fileInputStreamEntitiy.getInputStream(), fileName, kwargs).getParsedObjects().stream().collect(Collectors.toList());
-                // if(departmentType.equals("装置开发部")){
-                //     zzEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                // }else{
-                //     ptEntryHandle(entryInfoEntities, userName, taskInfoEntity, fileName);
-                // }
+
                 entryInfoEntities = entryInfoEntityImportHandler.importCSV(fileInputStreamEntitiy, user, taskInfoEntity, encoding);
             }else if(fileName.endsWith(".xml")){
                 String template = request.getParameter("templateType");
-                // if(departmentType.equals("装置开发部")){
-                //     String template = request.getParameter("templateType");
-                //     if(template == null){
-                //         throw new Exception("请确定xml采用何种模板");
-                //     }
-                //     if(template.equals("可视化词条")){
-                //         entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(),new XMLUtils.XMLHandlerForEquipment());
-                //     }else if(template.equals("装置辞典")){
-                //         entryInfoEntities = XMLUtils.parseXML(fileInputStreamEntitiy.getInputStream(),new XMLUtils.XMLHandlerForEquipment2());
-                //     }else{
-                //         throw new Exception("当前不支持该版本的xml导入: " + template);
-                //     }
-                //     zzEntryHandleForXML(entryInfoEntities, userName, taskInfoEntity, fileName);
-                // }else{
-                //     throw new Exception("暂不支持XML导入");
-                // }
+
                 entryInfoEntities = entryInfoEntityImportHandler.importXML(fileInputStreamEntitiy, user, taskInfoEntity, template);
             }else if(fileName.endsWith(".ts")){
                 entryInfoEntities = entryInfoEntityImportHandler.importTS(fileInputStreamEntitiy, user, taskInfoEntity);
@@ -1253,7 +1209,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 entryInfoEntity.setProductID(taskInfoEntity.getProductId());
             }
 
-            String transID = setTranslate(entryInfoEntity, taskInfoEntity.getTranslateType(), department);
+            setTranslate(entryInfoEntity, department);
 
             //版本和任务不为空 才往关系表中写入
 
@@ -3286,7 +3242,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
     }
 
-
+    private void setTranslate(EntryInfoEntity entryInfoEntity, String department) {
+        Map<String, String> translateMap = ConstantInterface.translateMap();
+        for(Map.Entry<String,String> translateEntry : translateMap.entrySet()){
+            String translateType = translateEntry.getValue();
+            this.setTranslate(entryInfoEntity, translateType, department);
+        }
+        return;
+    }
 
     private String setTranslate(EntryInfoEntity entryInfoEntity, String translateType, String department) {
         String translate = "";
@@ -3335,7 +3298,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 translateLength = entryInfoEntity.getSpaCharLength();
                 entryInfoEntity.setFraTransId(translateID);
                 break;
-
+            default:
+                return "";
         }
 
         addTranslateEntity(entryInfoEntity, translateType, translate, translateLength, translateID, department);

@@ -98,7 +98,7 @@ swagger:
   enabled: true
 
 ldap:
-  ldapURL: ldap://ldap.sieyuan.top:389
+  ldapURL: ldap://10.17.196.129:389
   accountSuffix: "@sp5000.com"
   base: "DC=sp5000,DC=com"
   user: "Administrator"
