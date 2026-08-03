@@ -17,3 +17,4 @@ harness.db
 .reasonix
 scripts
 *-workspace
+data/

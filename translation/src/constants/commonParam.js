@@ -177,6 +177,20 @@ export default {
       // -----2.词条管理-右键-去重回填(并且是管理员)；
       // -dev正在开发中的功能，暂时只放开给平台部
     },
+    测试部: {
+      label: "测试部",
+      importTypes: ["file", "ts", "database", "dictionary", "config", "enum"], // 导入类型
+      value: "test",
+      classfyID: "9",
+      ops: new Set([
+        "needIP",
+        "needExamine",
+        "needDelete",
+        "needBranch",
+        "toolBox",
+        "fileUpdate",
+        "dev",
+      ]),
     监控系统部: {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"], // 导入类型
