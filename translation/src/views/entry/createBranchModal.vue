@@ -151,11 +151,11 @@
             buttonTitle="读取配置"
             @configList="createOtherProductByAnalysis"
           />
-          <ImportButton
+          <!-- <ImportButton
             size="small"
             buttonTitle="配置新增"
             @configList="createOtherProduct"
-          />
+          /> -->
           <!-- <a-button type="primary" size="small" @click="addIgnore">
             <template #icon>
               <PlusOutlined />

@@ -191,6 +191,7 @@ export default {
         "fileUpdate",
         "dev",
       ]),
+    },
     监控系统部: {
       label: "监控系统部",
       importTypes: ["file", "ts", "database", "dictionary", "config", "enum"], // 导入类型
