@@ -902,4 +902,63 @@ describe('filterExcel - 文件管理组件权限控制测试', () => {
       expect(wrapper.vm.$store.state.user).toBeNull()
     })
   })
+
+  describe('beforeUpload CSV 扩展名校验', () => {
+    it('非 csv 时 notification 且不调用 entryReadExcel', async () => {
+      const { entryReadExcel } = await import('@/http/api/entryManage')
+      const { notification } = await import('ant-design-vue')
+
+      wrapper = mount(filterExcel, {
+        global: {
+          stubs: {
+            SearchBox: true,
+            DataBox: {
+              template: '<div><slot name="operate"></slot><slot name="data"></slot></div>',
+              props: ['title', 'height', 'showOperate']
+            },
+            BackFillModal: true,
+            BackFillModal_v2: true,
+            BackFillModal_v2_5: true,
+            BackFillModal_v3: true,
+            BackFillModal_v1_5: true,
+            ExportButton: true,
+            SelectCols: true,
+            EntryStateSelect: true,
+            TransStateSelect: true,
+            EntryStateBadge: true,
+            TransStateBadge: true,
+            ResetButton: true,
+            ColumnFilter: true,
+            FileSelectWithEncoding: true,
+            'a-button': true,
+            'a-config-provider': true,
+            'a-table': true,
+            'a-tooltip': true,
+          },
+          mocks: {
+            $store: {
+              state: {
+                user: { userName: 'test', department: '通用平台部' },
+                admin: false
+              }
+            },
+            $currentDepartment: {
+              label: '通用平台部',
+              value: 'common',
+              ops: new Set(['fileUpdate'])
+            }
+          }
+        },
+        props: { boxHeight: 600 }
+      })
+
+      await nextTick()
+      const result = await wrapper.vm.beforeUpload({ name: 'bad.xlsx' })
+      expect(result).toBe(false)
+      expect(notification.error).toHaveBeenCalled()
+      const arg = notification.error.mock.calls.at(-1)[0]
+      expect(arg.description).toBe('请选择 .csv 格式的文件！')
+      expect(entryReadExcel).not.toHaveBeenCalled()
+    })
+  })
 })

@@ -34,6 +34,7 @@
                     v-model:encoding="fileEncoding"
                     v-model:filePath="filePath"
                     :accept="accept"
+                    :encoding-locked="true"
                     showPathInput
                     path-placeholder="请选择词条文件"
                     :path-input-style="{ width: '140px', maxWidth: '140px', flexShrink: 0 }"
@@ -592,6 +593,7 @@ import { handleAsyncRequest } from "@/utils/requestUtils";
 import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vue";
 import {
   DEFAULT_ENCODING,
+  CSV_ONLY_ACCEPT,
   shouldShowEncoding,
 } from "@/components/FileSelectWithEncoding/constants";
 import { assertCsvEncodingMatch } from "@/utils/encodingDetectUtils";
@@ -682,7 +684,7 @@ export default {
       },
       selectedRowKeys: [],
       selectedRows: [],
-      accept: ".xls,.xlsx,.csv,.xml",
+      accept: CSV_ONLY_ACCEPT,
       tsOptions: [],
       selectTitle: "",
       tsFile: {
@@ -1141,17 +1143,7 @@ export default {
         });
     },
     beforeUpload(file, fileList) {
-      // console.log("before");
-      // 去掉后缀必须是_zz\_common的限制，由入参来进行部门之间的隔离
-      // if (
-      //   !file.name.includes("zz.xlsx") &&
-      //   !file.name.includes("common.xlsx") &&
-      //   !file.name.includes("jk.xlsx")
-      // ) {
-      //   message.info("请选择正确的文件！");
-      //   console.log("请选择正确的文件！",file);
-      //   return;
-      // }
+      // 扩展名校验由 FileSelectWithEncoding（validateAcceptOnSelect）统一 notification
       if (file.path != undefined) {
         this.filePath = file.path;
       } else {

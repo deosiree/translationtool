@@ -7,32 +7,13 @@
     @handleOK="handleOK" style="width: 800px;">
     <div class="content">
       <a-form ref="backFillForm" :model="formModel">
-        <!-- 文件类型 + 文件编码：同一行，提高信息密度 -->
-        <a-row v-if="showFileTypeSelect || showEncodingUI" :gutter="16">
-          <a-col v-if="showFileTypeSelect" :span="showEncodingUI ? 12 : 24">
-            <a-form-item label="文件类型" name="importType"
-              :rules="[{ required: true, message: '请选择!' }]">
-              <a-select
-                v-model:value="formModel.importType"
-                placeholder="请选择文件类型"
-                :options="importTypes"
-                allowClear
-                style="width: 160px"
-              />
-            </a-form-item>
-          </a-col>
-          <a-col v-if="showEncodingUI" :span="showFileTypeSelect ? 12 : 24">
-            <a-form-item label="文件编码" name="encoding">
-              <FileSelectWithEncoding
-                v-model:encoding="formModel.encoding"
-                :file-type="'csv'"
-                :show-file-select="false"
-                :show-encoding-label="false"
-                size="middle"
-              />
-            </a-form-item>
-          </a-col>
-        </a-row>
+        <!-- 文件类型 + 文件编码：灰禁固定 csv / UTF-8 -->
+        <LockedCsvImportMeta
+          :show-file-type="true"
+          :show-encoding="true"
+          :accept="backFillAccept"
+          as-form-items
+        />
 
         <!-- 共同部分：回填字段（回填字段） -->
         <a-form-item :label="needRelationFile ? '回填字段' : '更新字段'" name="backfillFields"
@@ -308,17 +289,19 @@ import {
 } from '@ant-design/icons-vue';
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
-import { entryBatchImportExcel_V1_5, entryValidate_v2, resolveImportTypeFromAccept, updateEntryInfosUnified } from "@/utils/excelUtils";
+import { entryBatchImportExcel_V1_5, entryValidate_v2, updateEntryInfosUnified } from "@/utils/excelUtils";
 import { downloadJsonFile, downloadBlobResponse, handleFileUpload, removeFile } from "@/utils/fileUtils";
 import { downloadFileFromUrl } from "@/http/api/download";
 import commonParam from "@/constants/commonParam.js";
 import { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden, stopDomEvent } from "@/utils/domUtils";
 import { handleErrorNotification } from "@/utils/notificationUtils";
-import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vue";
+import LockedCsvImportMeta from "@/components/LockedCsvImportMeta/index.vue";
 import {
   DEFAULT_ENCODING,
-  shouldShowEncoding,
+  CSV_ONLY_ACCEPT,
+  LOCKED_IMPORT_TYPE,
+  assertAcceptExtension,
 } from "@/components/FileSelectWithEncoding/constants";
 import { assertCsvEncodingMatchAll } from "@/utils/encodingDetectUtils";
 import { transMapWire2Stable } from "@/utils/dataStructureUtils";
@@ -331,7 +314,7 @@ export default {
     FileExcelOutlined,
     WarningOutlined,
     DownloadOutlined,
-    FileSelectWithEncoding,
+    LockedCsvImportMeta,
   },
   emits: ["handleClose", "handleOK", "importSuccess"],
   props: {
@@ -346,9 +329,9 @@ export default {
     },
     showFileTypeSelect: {
       type: Boolean,
-      default: false,
+      default: true,
     },
-    /** 是否展示编码选择（文件管理页可关闭，强制 UTF-8） */
+    /** @deprecated 编码已灰禁固定 UTF-8，保留 prop 兼容调用方 */
     showEncodingSelect: {
       type: Boolean,
       default: true,
@@ -371,14 +354,14 @@ export default {
     },
     defaultAccept: {
       type: String,
-      default: null, // 如 ".csv"、".xls,.xlsx"。有选择器时据此从 importTypes 反查 value 作默认选中；无选择器时直接作上传 accept 及扩展名校验。
+      default: CSV_ONLY_ACCEPT,
     },
   },
   data() {
     return {
       internalVisible: false, // 内部控制的 visible（按钮模式使用）
       formModel: {
-        importType: null, // 文件类型（csv/excel）
+        importType: LOCKED_IMPORT_TYPE, // 文件类型固定 csv
         encoding: DEFAULT_ENCODING,
         relationFile: null,
         relationFileList: [],// id映射文件
@@ -433,42 +416,23 @@ export default {
     };
   },
   computed: {
-    // 回填文件的 accept：以 importType 为准（有选择器时），否则使用 defaultAccept
+    /** 当前仅允许 CSV（日后扩格式只改 defaultAccept / CSV_ONLY_ACCEPT） */
     backFillAccept() {
-      if (this.showFileTypeSelect) {
-        if (!this.formModel.importType) return null;
-        const selectedType = this.importTypes.find(
-          (type) => type.value === this.formModel.importType
-        );
-        return selectedType ? selectedType.accept : null;
-      }
-      return this.defaultAccept;
+      return this.defaultAccept || CSV_ONLY_ACCEPT;
     },
     /**
-     * 当前导入是否按 CSV 处理（据此决定是否展示/传递 encoding）
+     * 当前导入是否按 CSV 处理
      * @returns {boolean}
      */
     isCsvImport() {
-      return shouldShowEncoding({
-        accept: this.backFillAccept || this.defaultAccept,
-        fileType: this.formModel.importType,
-        fileName: this.formModel.backFillFile?.name,
-      });
+      return this.formModel.importType === LOCKED_IMPORT_TYPE;
     },
     /**
-     * 是否展示编码选择 UI（需开启 showEncodingSelect 且为 CSV）
-     * @returns {boolean}
-     */
-    showEncodingUI() {
-      return this.showEncodingSelect && this.isCsvImport;
-    },
-    /**
-     * 提交用编码：CSV 时返回编码；隐藏选择时强制 UTF-8；非 CSV 返回 undefined
-     * @returns {string|undefined}
+     * 提交用编码：固定 UTF-8
+     * @returns {string}
      */
     submitEncoding() {
-      if (!this.isCsvImport) return undefined;
-      return this.showEncodingSelect ? this.formModel.encoding : DEFAULT_ENCODING;
+      return DEFAULT_ENCODING;
     },
     // 判断校验是否完全成功（无任何问题）
     isValidationSuccess() {
@@ -502,15 +466,6 @@ export default {
         setModalAriaHidden(this, document);
       }
     },
-    "formModel.importType": {
-      handler(newValue, oldValue) {
-        if (newValue !== oldValue && this.showFileTypeSelect) {
-          // 文件类型变化时，清空已选择的文件
-          this.removeBackFillFile();
-        }
-      },
-      immediate: false,
-    },
     "formModel.backfillFields": {
       handler(newValue, oldValue) {
         if (newValue !== oldValue) {
@@ -522,11 +477,8 @@ export default {
     },
   },
   mounted() {
-    // 有选择器且传了 defaultAccept：根据 accept 从 importTypes 反查 value，作为默认选中
-    if (this.defaultAccept && this.showFileTypeSelect) {
-      const v = resolveImportTypeFromAccept(this.defaultAccept, this.importTypes);
-      if (v) this.formModel.importType = v;
-    }
+    this.formModel.importType = LOCKED_IMPORT_TYPE;
+    this.formModel.encoding = DEFAULT_ENCODING;
     // 同步 visible
     if (this.mode === "modal") {
       this.internalVisible = this.visible;
@@ -571,17 +523,13 @@ export default {
       }
     },
     resetForm() {
-      // 重置 importType：有选择器且传了 defaultAccept 时，根据 accept 反查 value，否则为 null
-      const importType = this.defaultAccept && this.showFileTypeSelect
-        ? resolveImportTypeFromAccept(this.defaultAccept, this.importTypes) : null;
-
       this.formModel = {
         relationFile: null,
         backFillFile: null,
         backfillFields: [],
         relationFileList: [],
         backFillFileList: [],
-        importType: importType,
+        importType: LOCKED_IMPORT_TYPE,
         encoding: DEFAULT_ENCODING,
         dedupOriginExcel: null,
         dedupOriginExcelList: [],
@@ -686,30 +634,14 @@ export default {
     },
     // 通用文件扩展名验证方法
     validateFileExtension(file) {
-      // 如果启用了文件类型选择，根据选择的类型验证文件扩展名
-      if (this.showFileTypeSelect && this.formModel.importType) {
-        const selectedType = this.importTypes.find(
-          (type) => type.value === this.formModel.importType
-        );
-        if (selectedType) {
-          const extensions = selectedType.accept.split(",").map((ext) => ext.trim());
-          const fileName = file.name.toLowerCase();
-          const isValid = extensions.some((ext) => fileName.endsWith(ext.replace(".", "")));
-          if (!isValid) {
-            return Promise.reject(`请选择 ${selectedType.accept} 格式的文件！`);
-          }
-        }
-      } else {
-        // 如果没有启用文件类型选择，使用 defaultAccept 验证
-        if (this.defaultAccept) {
-          const extensions = this.defaultAccept.split(",").map((ext) => ext.trim());
-          const fileName = file.name.toLowerCase();
-          const isValid = extensions.some((ext) => fileName.endsWith(ext.replace(".", "")));
-          if (!isValid) {
-            return Promise.reject(`请选择 ${this.defaultAccept} 格式的文件！`);
-          }
-        }
-        // 如果没有 defaultAccept，不验证文件扩展名（允许任何文件）
+      const accept = this.backFillAccept || CSV_ONLY_ACCEPT;
+      const { ok, message } = assertAcceptExtension(file?.name, accept);
+      if (!ok) {
+        notification.error({
+          message: "文件类型不匹配",
+          description: message,
+        });
+        return Promise.reject(message);
       }
       return Promise.resolve();
     },

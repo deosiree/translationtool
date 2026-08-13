@@ -30,14 +30,14 @@
       </a-upload>
     </template>
 
-    <!-- 编码选择：仅 CSV 时展示 -->
+    <!-- 编码选择：锁定时始终展示；否则仅 CSV 时展示 -->
     <template v-if="showEncoding">
       <span v-if="showEncodingLabel" class="encoding-label">文件编码：</span>
       <a-select
-        :value="encoding"
+        :value="effectiveEncoding"
         :options="encodingOptions"
         :size="size"
-        :disabled="disabled"
+        :disabled="disabled || encodingLocked"
         class="encoding-select"
         @update:value="onEncodingChange"
       />
@@ -65,10 +65,13 @@
 
 <script>
 import { QuestionCircleOutlined } from "@ant-design/icons-vue";
+import { notification } from "ant-design-vue";
 import {
   DEFAULT_ENCODING,
   ENCODING_OPTIONS,
   ENCODING_TIP,
+  CSV_ONLY_ACCEPT,
+  assertAcceptExtension,
   shouldShowEncoding,
 } from "./constants";
 
@@ -95,7 +98,7 @@ export default {
     },
     accept: {
       type: String,
-      default: ".xls,.xlsx,.csv",
+      default: CSV_ONLY_ACCEPT,
     },
     /** 是否展示文件选择（false 时仅编码+tips，供已有 upload 的场景复用） */
     showFileSelect: {
@@ -109,6 +112,14 @@ export default {
     },
     /** 是否展示编码下拉（false 时隐藏，由外部强制 encoding） */
     showEncodingSelect: {
+      type: Boolean,
+      default: true,
+    },
+    /**
+     * 编码灰禁：始终展示编码下拉且不可改，值锁为 UTF-8
+     * （ENCODING_OPTIONS 仍含 GBK，但永不启用）
+     */
+    encodingLocked: {
       type: Boolean,
       default: true,
     },
@@ -162,6 +173,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** 选文件时是否按 accept 校验扩展名并 notification */
+    validateAcceptOnSelect: {
+      type: Boolean,
+      default: true,
+    },
     beforeUpload: {
       type: Function,
       default: null,
@@ -190,11 +206,19 @@ export default {
       return this.filePath || this.selectedFileName || "";
     },
     /**
-     * 是否展示编码选择（需开启 showEncodingSelect 且判定为 csv）
+     * 锁定时强制 UTF-8
+     * @returns {string}
+     */
+    effectiveEncoding() {
+      return this.encodingLocked ? DEFAULT_ENCODING : this.encoding;
+    },
+    /**
+     * 是否展示编码选择
      * @returns {boolean}
      */
     showEncoding() {
       if (!this.showEncodingSelect) return false;
+      if (this.encodingLocked) return true;
       return shouldShowEncoding({
         accept: this.accept,
         fileName: this.selectedFileName || this.filePath,
@@ -230,15 +254,33 @@ export default {
         this.selectedFileName = list[0].name;
       }
     },
+    encodingLocked: {
+      immediate: true,
+      handler(locked) {
+        if (locked && this.encoding !== DEFAULT_ENCODING) {
+          this.$emit("update:encoding", DEFAULT_ENCODING);
+        }
+      },
+    },
   },
   methods: {
     /**
-     * Upload beforeUpload 代理：有外部钩子则调用，否则阻止默认上传
+     * Upload beforeUpload 代理：先按 accept 校验，再调外部钩子
      * @param {File} file
      * @param {File[]} fileList
      * @returns {boolean|Promise}
      */
     onBeforeUpload(file, fileList) {
+      if (this.validateAcceptOnSelect) {
+        const { ok, message } = assertAcceptExtension(file?.name, this.accept);
+        if (!ok) {
+          notification.error({
+            message: "文件类型不匹配",
+            description: message,
+          });
+          return false;
+        }
+      }
       if (typeof this.beforeUpload === "function") {
         return this.beforeUpload(file, fileList);
       }
@@ -270,11 +312,12 @@ export default {
       this.$emit("remove", file);
     },
     /**
-     * 编码下拉变更
+     * 编码下拉变更（锁定时忽略）
      * @param {string} val - 编码值（UTF-8 / GBK）
      * @returns {void}
      */
     onEncodingChange(val) {
+      if (this.encodingLocked) return;
       this.$emit("update:encoding", val);
     },
   },

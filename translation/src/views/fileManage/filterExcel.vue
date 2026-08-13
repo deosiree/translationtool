@@ -200,12 +200,13 @@
           </a-tooltip>
           <FileSelectWithEncoding
             v-model:encoding="csvEncoding"
-            accept=".csv"
+            :accept="csvAccept"
             button-text="导入csv"
             :button-icon="UploadOutlined"
             size="middle"
             :loading="importLoading"
-            :show-encoding-select="false"
+            :encoding-locked="true"
+            :validate-accept-on-select="false"
             :before-upload="beforeUpload"
           />
           <a-button
@@ -402,7 +403,6 @@
       :visible="importBackfillVisible_v3"
       :needRelationFile="true"
       :defaultAccept="'.csv'"
-      :show-encoding-select="false"
       @handleClose="handleImportBackfillClose_v3"
       @handleOK="handleImportBackfillOK_v3"
     />
@@ -411,7 +411,6 @@
       :visible="importBackfillVisible_v2_5"
       :needRelationFile="true"
       :defaultAccept="'.csv'"
-      :show-encoding-select="false"
       @handleClose="handleImportBackfillClose_v2_5"
       @handleOK="handleImportBackfillOK_v2_5"
     />
@@ -483,6 +482,8 @@ import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vu
 import {
   DEFAULT_ENCODING,
   FILE_MANAGE_CSV_TIP,
+  CSV_ONLY_ACCEPT,
+  assertAcceptExtension,
 } from "@/components/FileSelectWithEncoding/constants";
 import { assertCsvEncodingMatch } from "@/utils/encodingDetectUtils";
 import { defineComponent, ref } from "vue";
@@ -577,6 +578,7 @@ export default {
       deleteLoading: false,
       importLoading: false,
       csvEncoding: DEFAULT_ENCODING,
+      csvAccept: CSV_ONLY_ACCEPT,
       fileManageCsvTip: FILE_MANAGE_CSV_TIP,
       UploadOutlined,
       importBackfillVisible: false,
@@ -789,9 +791,15 @@ export default {
      * @returns {Promise<false>} 始终返回 false 以阻止 a-upload 默认上传
      */
     async beforeUpload(file) {
-      const isCsv = file.name.endsWith(".csv");
-      if (!isCsv) {
-        message.error("只能上传 CSV 文件!");
+      const { ok, message: acceptMsg } = assertAcceptExtension(
+        file?.name,
+        this.csvAccept || CSV_ONLY_ACCEPT
+      );
+      if (!ok) {
+        notification.error({
+          message: "文件类型不匹配",
+          description: acceptMsg,
+        });
         return false;
       }
       // 文件管理页强制 csv UTF-8：先做前端编码探测，避免打到后端报晦涩错

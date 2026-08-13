@@ -122,7 +122,7 @@ export async function assertCsvEncodingMatch(
   }
 
   const label = name ? `「${name}」` : "所选文件";
-  const message = `${label}检测编码为 ${detected}，与当前设置的 ${expected} 不一致。请改选编码，或另存为 ${expected} 的 CSV 后再导入。`;
+  const message = `${label}检测编码为 ${detected}，与当前设置的 ${expected} 不一致。`;
 
   if (notify) {
     notification.error({
@@ -165,7 +165,7 @@ export async function assertCsvEncodingMatchAll(items, expectedEncoding) {
 
   notification.error({
     message: "CSV 编码不匹配",
-    description: `${description}。请改选编码，或另存为对应编码的 CSV 后再导入。`,
+    description: `${description}。`,
     duration: 8,
   });
 
