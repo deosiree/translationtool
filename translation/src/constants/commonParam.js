@@ -392,7 +392,25 @@ export const entryAllCols = [
  */
 export const entryPresets = {
   /** 词条管理：唯一覆盖 allCols hidden 的场景，ColumnFilter 展示全量列 */
-  productEntry: { ovrd: [], defaults: { hidden: false } },
+  productEntry: {
+    ovrd: [
+      // --- 后端无有效值 / 纯内部 id，词条管理展示列不暴露（保留 allCols 定义供导出） ---
+      { value: "dbRID", hidden: true },
+      { value: "enTransId", hidden: true },
+      { value: "ruTransId", hidden: true },
+      { value: "spaTransId", hidden: true },
+      { value: "fraTransId", hidden: true },
+      { value: "zhTransId", hidden: true },
+      { value: "repeatEntryId", hidden: true },
+      { value: "classifyId", hidden: true },
+      { value: "importType", hidden: true },
+      { value: "entryLabel", hidden: true },
+      { value: "srcTabName", hidden: true },
+      { value: "isLatestVersion", hidden: true },
+      { value: "environmentRemark", hidden: true },
+    ],
+    defaults: { hidden: false },
+  },
   /** 导出字段：继承 allCols，hidden:true 列自动排除 */
   export: { ovrd: [], defaults: null },
   /** Excel 筛选：在 allCols 基础上页级差异 */
@@ -474,16 +492,10 @@ const entry_checkedSearchCondition = defaultSelectionFromCols(
   entry_searchConditionList,
 );
 export const entryParams = {
-  inputColumn: [
-    "abbr",
-    "entryLength",
-    "partOfSpeech",
-    "remark",
-    "maxLength",
-    "diFileName",
-    "comment",
-    "writeType",
-  ].concat(default_languageList.map((item) => item.interpretation)),
+  textareaInputColumn: ["abbr", "remark", "comment"].concat(
+    default_languageList.map((item) => item.interpretation)
+  ),
+  inputColumn: ["partOfSpeech", "diFileName"],
   translateColumn: default_languageList.map((item) => item.value),
   overlayStyle: columnFilterOverlayStyle,
   exportFields: entry_exportFields,

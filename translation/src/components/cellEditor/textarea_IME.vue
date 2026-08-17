@@ -33,7 +33,7 @@ export default {
   computed: {
     textareaStyle() {
       return {
-        margin: "-5px 0",
+        margin: "2px 0",
         width: "100%",
         boxSizing: "border-box",
       };

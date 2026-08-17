@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ProductEntry from '@/views/entry/productEntry.vue'
 import ColumnFilter from '@/components/ColumnFilter/ColumnFilter.vue'
-import { entryAllCols, entryPresets } from '@/constants/commonParam.js'
+import { entryAllCols, entryPresets, entryParams } from '@/constants/commonParam.js'
 import { resolvePresetCols } from '@/components/ColumnFilter/colPreset.js'
 import { setTableHeight as setTableHeightMock } from '@/utils/tableUtils'
 
@@ -482,32 +482,131 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
     textAreas.forEach((area) => {
       expect(area.props('autoSize')).toEqual({ minRows: 1, maxRows: 5 })
     })
+
+    const commentCell = wrapper.find('[data-col="comment"]')
+    expect(commentCell.findComponent({ name: 'TextAreaIME' }).exists()).toBe(true)
+    expect(commentCell.find('.cell-overflow-tooltip-stub').exists()).toBe(false)
   })
 
-  it('编辑态 inputColumn 仍使用 Input', async () => {
+  it('编辑态 inputColumn 仍使用 Input（如 diFileName）', async () => {
     wrapper = mountWithTableStub()
     await nextTick()
     wrapper.vm.dataSource = [
       {
         id: 'entry-1',
         entry: '词条',
-        comment: '单行备注',
+        diFileName: 'path/to.dic',
       },
     ]
     wrapper.vm.columns = [
       { dataIndex: 'entry', title: '词条', colValue: 'entry' },
-      { dataIndex: 'comment', title: 'comment', colValue: 'comment' },
+      { dataIndex: 'diFileName', title: '辞典名称', colValue: 'diFileName' },
     ]
     wrapper.vm.editableData = {
       'entry-1': {
         entry: '词条',
-        comment: '单行备注',
+        diFileName: 'path/to.dic',
       },
     }
     await nextTick()
 
-    const commentCell = wrapper.find('[data-col="comment"]')
-    expect(commentCell.findComponent({ name: 'InputIME' }).exists()).toBe(true)
-    expect(commentCell.find('.cell-overflow-tooltip-stub').exists()).toBe(false)
+    const diCell = wrapper.find('[data-col="diFileName"]')
+    expect(diCell.findComponent({ name: 'InputIME' }).exists()).toBe(true)
+    expect(diCell.find('.cell-overflow-tooltip-stub').exists()).toBe(false)
+  })
+
+  it('编辑态 remark/abbr 使用 TextArea', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.dataSource = [
+      {
+        id: 'entry-1',
+        entry: '词条',
+        remark: '备注',
+        abbr: 'abbr',
+      },
+    ]
+    wrapper.vm.columns = [
+      { dataIndex: 'remark', title: '备注', colValue: 'remark' },
+      { dataIndex: 'abbr', title: 'abbr', colValue: 'abbr' },
+    ]
+    wrapper.vm.editableData = {
+      'entry-1': { remark: '备注', abbr: 'abbr' },
+    }
+    await nextTick()
+
+    expect(wrapper.find('[data-col="remark"]').findComponent({ name: 'TextAreaIME' }).exists()).toBe(true)
+    expect(wrapper.find('[data-col="abbr"]').findComponent({ name: 'TextAreaIME' }).exists()).toBe(true)
+  })
+
+  it('编辑态 maxLength、entryLength 与 writeType 使用专用控件', async () => {
+    wrapper = mountWithTableStub({
+      stubs: {
+        'a-input-number': {
+          name: 'AInputNumber',
+          template: '<input class="ant-input-number-stub" />',
+        },
+        'a-select': {
+          name: 'ASelect',
+          template: '<select class="ant-select-stub" />',
+        },
+      },
+    })
+    await nextTick()
+    wrapper.vm.dataSource = [
+      { id: 'entry-1', entryLength: 10, maxLength: 100, writeType: 'TS' },
+    ]
+    wrapper.vm.columns = [
+      { dataIndex: 'entryLength', title: '词条字符数', colValue: 'entryLength' },
+      { dataIndex: 'maxLength', title: '翻译最大长度', colValue: 'maxLength' },
+      { dataIndex: 'writeType', title: '回写类型', colValue: 'writeType' },
+    ]
+    wrapper.vm.editableData = {
+      'entry-1': { entryLength: 10, maxLength: 100, writeType: 'TS' },
+    }
+    await nextTick()
+
+    expect(wrapper.find('[data-col="entryLength"]').find('.ant-input-number-stub').exists()).toBe(true)
+    expect(wrapper.find('[data-col="maxLength"]').find('.ant-input-number-stub').exists()).toBe(true)
+    expect(wrapper.find('[data-col="writeType"]').find('.ant-select-stub').exists()).toBe(true)
+  })
+
+  it('writeTypeOptions 选项 label 为 TS/DI', () => {
+    wrapper = mountWithTableStub()
+    expect(wrapper.vm.writeTypeOptions).toEqual([
+      { label: 'TS', value: 'TS' },
+      { label: 'DI', value: 'DI' },
+    ])
+  })
+
+  it('prepareEntryForSave 将 entryLength/maxLength 数字转为字符串', () => {
+    wrapper = mountWithTableStub()
+    expect(wrapper.vm.prepareEntryForSave({ id: '1', entryLength: 10, maxLength: 120 })).toEqual({
+      id: '1',
+      entryLength: '10',
+      maxLength: '120',
+    })
+    expect(wrapper.vm.prepareEntryForSave({ id: '1', entryLength: null, maxLength: null })).toEqual({
+      id: '1',
+      entryLength: '',
+      maxLength: '',
+    })
+  })
+
+  it('entryParams 列数组互斥且 inputColumn 不含 entryLength/maxLength/writeType', () => {
+    const overlap = entryParams.inputColumn.filter((col) =>
+      entryParams.textareaInputColumn.includes(col)
+    )
+    expect(overlap).toEqual([])
+    expect(entryParams.inputColumn).not.toContain('entryLength')
+    expect(entryParams.inputColumn).not.toContain('maxLength')
+    expect(entryParams.inputColumn).not.toContain('writeType')
+  })
+
+  it('productEntry preset 不暴露内部 id 列', () => {
+    const cols = resolvePresetCols(entryPresets.productEntry, entryAllCols)
+    const values = cols.map((c) => c.value)
+    expect(values).not.toContain('enTransId')
+    expect(values).not.toContain('dbRID')
   })
 })

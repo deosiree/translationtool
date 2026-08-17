@@ -32,6 +32,8 @@ describe("TextAreaIME", () => {
     expect(ta.attributes("data-auto-size")).toBe('{"minRows":1}');
     const style = ta.attributes("style") || "";
     expect(style).toContain("width");
+    expect(style).toContain("2px");
+    expect(style).not.toContain("-5px");
     expect(style).not.toContain("max-height");
   });
 

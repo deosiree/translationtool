@@ -515,16 +515,6 @@
                     </CellOverflowTooltip>
                   </template>
                 </template>
-                <template v-else-if="inputColumn.includes(column.dataIndex)">
-                  <template v-if="editableData[record.id]">
-                    <Input
-                      v-model:value="editableData[record.id][column.dataIndex]"
-                    />
-                  </template>
-                  <template v-else>
-                    <CellOverflowTooltip :content="formatCellText(text)" />
-                  </template>
-                </template>
                 <template
                   v-else-if="translateColumn.includes(column.dataIndex)"
                 >
@@ -548,6 +538,70 @@
                         />
                       </a-form-item>
                     </a-form>
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
+                </template>
+                <template
+                  v-else-if="textareaInputColumn.includes(column.dataIndex)"
+                >
+                  <template v-if="editableData[record.id]">
+                    <TextArea
+                      v-model:value="editableData[record.id][column.dataIndex]"
+                      :autoSize="{ minRows: 1, maxRows: 5 }"
+                    />
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
+                </template>
+                <template v-else-if="column.dataIndex === 'entryLength'">
+                  <template v-if="editableData[record.id]">
+                    <a-input-number
+                      v-model:value="editableData[record.id].entryLength"
+                      :min="0"
+                      :precision="0"
+                      style="width: 100%"
+                    />
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
+                </template>
+                <template v-else-if="column.dataIndex === 'maxLength'">
+                  <template v-if="editableData[record.id]">
+                    <a-input-number
+                      v-model:value="editableData[record.id].maxLength"
+                      :min="0"
+                      :precision="0"
+                      style="width: 100%"
+                      placeholder="字节上限"
+                    />
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
+                </template>
+                <template v-else-if="column.dataIndex === 'writeType'">
+                  <template v-if="editableData[record.id]">
+                    <a-select
+                      v-model:value="editableData[record.id].writeType"
+                      :options="writeTypeOptions"
+                      placeholder="请选择"
+                      allowClear
+                      style="width: 100%"
+                    />
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
+                </template>
+                <template v-else-if="inputColumn.includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]">
+                    <Input
+                      v-model:value="editableData[record.id][column.dataIndex]"
+                    />
                   </template>
                   <template v-else>
                     <CellOverflowTooltip :content="formatCellText(text)" />
@@ -1098,7 +1152,12 @@ export default {
       columnSettingsList: [],
       checkedColumn: [],
       inputColumn: entryParams.inputColumn,
+      textareaInputColumn: entryParams.textareaInputColumn,
       translateColumn: entryParams.translateColumn,
+      writeTypeOptions: [
+        { label: "TS", value: "TS" },
+        { label: "DI", value: "DI" },
+      ],
       commonParam: commonParam,
       langTranslateStateList: commonParam.langTranslateStateList,
       langNameList: commonParam.langNameList,
@@ -1852,7 +1911,8 @@ export default {
         // 所有表单校验通过，执行后续逻辑
         if (id.startsWith("new") || id.startsWith("copy")) {
           // 新增词条/升级词条
-          addSingleEntry(this.editableData[id]).then((res) => {
+          addSingleEntry(this.prepareEntryForSave(this.editableData[id])).then(
+            (res) => {
             message.success("新增成功!");
             let index = this.dataSource.findIndex((item) => item.id === id);
             this.dataSource.splice(index, 1);
@@ -1862,7 +1922,7 @@ export default {
             this.pagination.total = this.pagination.total + 1;
           });
         } else {
-          this.editEntry = [this.editableData[id]];
+          this.editEntry = [this.prepareEntryForSave(this.editableData[id])];
           this.editVisible = true;
           setModalAriaHidden(this, document);
         }
@@ -1955,7 +2015,7 @@ export default {
     batchSave() {
       let edit = [];
       for (let key in this.editableData) {
-        edit.push(this.editableData[key]);
+        edit.push(this.prepareEntryForSave(this.editableData[key]));
       }
       this.editEntry = edit;
       this.editVisible = true;
@@ -2405,6 +2465,18 @@ export default {
           this.rowClassify2Option[record.id] = [];
           message.error(err.message);
         });
+    },
+    prepareEntryForSave(row) {
+      const payload = { ...row };
+      for (const key of ["entryLength", "maxLength"]) {
+        const v = payload[key];
+        if (v == null || v === "") {
+          payload[key] = "";
+        } else if (typeof v === "number") {
+          payload[key] = String(v);
+        }
+      }
+      return payload;
     },
     formatEntryText(text) {
       if (text == null || text === "") return "";
