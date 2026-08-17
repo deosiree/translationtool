@@ -210,6 +210,7 @@ describe('ProductEntry - user 属性重构测试', () => {
         allCols: entryAllCols,
         preset: entryPresets.productEntry,
         colPrefName: 'colPref-productEntry',
+        lockCellSize: true,
       })
     )
   })
@@ -335,5 +336,178 @@ describe('ProductEntry - getEntryByClassfy customCheckTransLength', () => {
     expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
     const [, data] = getEntryByClassfyMock.mock.calls[0]
     expect(data).not.toHaveProperty('customCheckTransLength')
+  })
+})
+
+describe('ProductEntry - 浏览省略与编辑文本域', () => {
+  let wrapper
+
+  const tableBodyStub = {
+    name: 'ATable',
+    props: ['columns', 'dataSource'],
+    template: `
+      <div class="table-stub">
+        <div class="header-cell">
+          <slot name="headerCell" :title="'词条'" :column="{ colValue: 'entry', dataIndex: 'entry', title: '词条' }" />
+        </div>
+        <template v-for="record in (dataSource || [])" :key="record.id">
+          <div
+            v-for="col in (columns || [])"
+            :key="col.dataIndex"
+            class="cell"
+            :data-col="col.dataIndex"
+          >
+            <slot name="bodyCell" :column="col" :record="record" :text="record[col.dataIndex]" />
+          </div>
+        </template>
+      </div>
+    `,
+  }
+
+  function mountWithTableStub(extra = {}) {
+    return mount(ProductEntry, {
+      props: {
+        currentProduct: testProduct,
+        boxHeight: 600,
+        productEdit: false,
+      },
+      global: {
+        mocks: createUserStoreMock(),
+        stubs: {
+          SearchBox: {
+            template: '<div><slot name="form" /></div>',
+          },
+          'a-form': {
+            template: '<form><slot /></form>',
+          },
+          'a-row': {
+            template: '<div class="a-row"><slot /></div>',
+          },
+          'a-form-item': {
+            template: '<div class="a-form-item"><slot /></div>',
+          },
+          DataBox: {
+            template: '<div><slot name="data" /></div>',
+          },
+          OperationArea: true,
+          'a-table': tableBodyStub,
+          'a-button': true,
+          'a-config-provider': {
+            template: '<div><slot /></div>',
+          },
+          AccurSearchButton: true,
+          EntryStateSelect: true,
+          TransStateSelect: true,
+          EditReason: true,
+          CreateVersionModal: true,
+          SecondClassify: true,
+          Dictionary: true,
+          CustomModal: true,
+          BackFillModal: true,
+          BackFillModal_v2: true,
+          BackFillModal_v2_5: true,
+          BackFillModal_v3: true,
+          GitCommitButton: true,
+          ColumnFilter: true,
+          EntryStateBadge: true,
+          TransStateBadge: true,
+          CellOverflowTooltip: {
+            name: 'CellOverflowTooltip',
+            props: ['content'],
+            template: '<span class="cell-overflow-tooltip-stub"><slot /></span>',
+          },
+          ...extra.stubs,
+        },
+      },
+    })
+  }
+
+  afterEach(() => {
+    if (wrapper) {
+      wrapper.unmount()
+    }
+    vi.clearAllMocks()
+  })
+
+  it('浏览态应渲染 CellOverflowTooltip', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.dataSource = [
+      {
+        id: 'entry-1',
+        entry: '短词条',
+        english: 'a'.repeat(200),
+        comment: '备注',
+      },
+    ]
+    wrapper.vm.columns = [
+      { dataIndex: 'entry', title: '词条', colValue: 'entry' },
+      { dataIndex: 'english', title: '英文', colValue: 'english' },
+      { dataIndex: 'comment', title: 'comment', colValue: 'comment' },
+    ]
+    await nextTick()
+    expect(wrapper.findAll('.cell-overflow-tooltip-stub').length).toBeGreaterThan(0)
+  })
+
+  it('编辑态 entry/translate 使用 TextArea 且传 autoSize.maxRows，不包浏览 Tooltip', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.dataSource = [
+      {
+        id: 'entry-1',
+        entry: '编辑词条',
+        english: 'edit english',
+        comment: '备注',
+      },
+    ]
+    wrapper.vm.columns = [
+      { dataIndex: 'entry', title: '词条', colValue: 'entry' },
+      { dataIndex: 'english', title: '英文', colValue: 'english' },
+      { dataIndex: 'comment', title: 'comment', colValue: 'comment' },
+    ]
+    wrapper.vm.editableData = {
+      'entry-1': {
+        entry: '编辑词条',
+        english: 'edit english',
+        comment: '备注',
+      },
+    }
+    await nextTick()
+
+    const entryCell = wrapper.find('[data-col="entry"]')
+    expect(entryCell.find('.cell-overflow-tooltip-stub').exists()).toBe(false)
+
+    const textAreas = wrapper.findAllComponents({ name: 'TextAreaIME' })
+    expect(textAreas.length).toBeGreaterThanOrEqual(2)
+    textAreas.forEach((area) => {
+      expect(area.props('autoSize')).toEqual({ minRows: 1, maxRows: 5 })
+    })
+  })
+
+  it('编辑态 inputColumn 仍使用 Input', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.dataSource = [
+      {
+        id: 'entry-1',
+        entry: '词条',
+        comment: '单行备注',
+      },
+    ]
+    wrapper.vm.columns = [
+      { dataIndex: 'entry', title: '词条', colValue: 'entry' },
+      { dataIndex: 'comment', title: 'comment', colValue: 'comment' },
+    ]
+    wrapper.vm.editableData = {
+      'entry-1': {
+        entry: '词条',
+        comment: '单行备注',
+      },
+    }
+    await nextTick()
+
+    const commentCell = wrapper.find('[data-col="comment"]')
+    expect(commentCell.findComponent({ name: 'InputIME' }).exists()).toBe(true)
+    expect(commentCell.find('.cell-overflow-tooltip-stub').exists()).toBe(false)
   })
 })

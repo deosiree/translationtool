@@ -26,6 +26,7 @@
       </WorkbenchFormBar>
       <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
         :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :expandIconColumnIndex="2" :customRow="customRow" :row-selection="{ 
+                columnWidth: 48,
                 selectedRowKeys: selectedRowKeys, 
                 selectedRows: selectedRows,
                 onChange: onSelectChange,
@@ -34,18 +35,34 @@
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                 ]
             }" ref="archiveTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
+        <template #headerCell="{ title, column }">
+          <CellOverflowTooltip v-if="column.colValue" :content="title">
+            {{ title }}
+          </CellOverflowTooltip>
+        </template>
         <template #bodyCell="{ column,text }">
           <template v-if="column.dataIndex === 'entry'">
-            <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
+            <CellOverflowTooltip :content="formatEntryText(text)">
+              {{ formatEntryText(text) }}
+            </CellOverflowTooltip>
           </template>
-          <template v-if="column.dataIndex === 'isExist'">
-            <IsExistBadge :isExist="text" />
+          <template v-else-if="column.dataIndex === 'isExist'">
+            <CellOverflowTooltip :content="isExistLabel(text)">
+              <IsExistBadge :isExist="text" />
+            </CellOverflowTooltip>
           </template>
-          <template v-if="column.dataIndex === 'entryState'">
-            <EntryStateBadge :entryState="text" />
+          <template v-else-if="column.dataIndex === 'entryState'">
+            <CellOverflowTooltip :content="entryStateLabel(text)">
+              <EntryStateBadge :entryState="text" />
+            </CellOverflowTooltip>
           </template>
-          <template v-if="translateStateList.includes(column.dataIndex)">
-            <TransStateBadge :translateState="text" />
+          <template v-else-if="translateStateList.includes(column.dataIndex)">
+            <CellOverflowTooltip :content="translateStateLabel(text)">
+              <TransStateBadge :translateState="text" />
+            </CellOverflowTooltip>
+          </template>
+          <template v-else-if="column.dataIndex">
+            <CellOverflowTooltip :content="formatCellText(text)" />
           </template>
         </template>
         <template #expandIcon="props">
@@ -103,6 +120,7 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import { getEntryInfoList, getI18nAdress, deleteEntryInfoByTaskID } from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
@@ -157,6 +175,7 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
+    CellOverflowTooltip,
     WorkbenchFormBar,
     WorkbenchActionGroup,
     WorkbenchTaskInfo,
@@ -259,6 +278,7 @@ export default {
               normalWidth: 100,
               needFilter: true,
               filterCols: filterWbColsForCtx,
+              lockCellSize: true,
             });
           });
         }
@@ -273,6 +293,38 @@ export default {
   methods: {
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+    },
+    formatEntryText(text) {
+      if (text == null || text === "") return "";
+      return String(text).replace(/\n/g, "\\n");
+    },
+    formatCellText(text) {
+      if (text == null || text === "") return "";
+      return String(text);
+    },
+    isExistLabel(value) {
+      if (value === 0) return "新建";
+      if (value === 1) return "已存在";
+      return "";
+    },
+    entryStateLabel(value) {
+      const map = {
+        0: "新建",
+        1: "审核中",
+        2: "审核不通过",
+        3: "已审核",
+        "-1": "禁用",
+      };
+      return map[value] ?? "";
+    },
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
     },
     // 删除词条（词条审核员 + 本任务指派人）
     deleteTaskEntry() {
@@ -658,6 +710,13 @@ export default {
 }
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;
+}
+:deep(.ant-table-cell) {
+  overflow: hidden;
+}
+:deep(.cell-overflow-tooltip) {
+  display: block;
+  max-width: 100%;
 }
 :deep(.ant-pagination) {
   margin: 8px 0;

@@ -463,6 +463,7 @@
               :row-selection="
                 batchSelectFlag
                   ? {
+                      columnWidth: 48,
                       selectedRowKeys: selectedRowKeys,
                       onChange: onSelectChange,
                       onSelect: onSelect,
@@ -480,165 +481,125 @@
               :customRow="customRow"
               @change="handleTableChange"
             >
+              <template #headerCell="{ title, column }">
+                <CellOverflowTooltip v-if="column.colValue" :content="title">
+                  {{ title }}
+                </CellOverflowTooltip>
+              </template>
               <template #bodyCell="{ column, record, text }">
                 <template v-if="column.dataIndex === 'entry'">
-                  <div>
-                    <template v-if="editableData[record.id]">
-                      <a-form
-                        :model="editableData[record.id]"
-                        :rules="rules[record.id]"
-                        :ref="
-                          'form' +
-                          record.id.replaceAll('-', '') +
-                          column.dataIndex
-                        "
-                        autocomplete="off"
-                      >
-                        <a-form-item :name="column.dataIndex">
-                          <!-- <a-textarea
-                            v-model:value.lazy="
-                              editableData[record.id][column.dataIndex]
-                            "
-                            style="margin: -5px 0"
-                            @click="clickInput"
-                            :auto-size="{ minRows: 1 }"
-                          /> -->
-                          <TextArea
-                            v-model:value="
-                              editableData[record.id][column.dataIndex]
-                            "
-                          />
-                        </a-form-item>
-                      </a-form>
-                    </template>
-                    <template v-else>
-                      <!-- {{ text }} -->
+                  <template v-if="editableData[record.id]">
+                    <a-form
+                      :model="editableData[record.id]"
+                      :rules="rules[record.id]"
+                      :ref="
+                        'form' +
+                        record.id.replaceAll('-', '') +
+                        column.dataIndex
+                      "
+                      autocomplete="off"
+                    >
+                      <a-form-item :name="column.dataIndex">
+                        <TextArea
+                          v-model:value="
+                            editableData[record.id][column.dataIndex]
+                          "
+                          :autoSize="{ minRows: 1, maxRows: 5 }"
+                        />
+                      </a-form-item>
+                    </a-form>
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatEntryText(text)">
                       <span v-html="text"></span>
-                      <!-- <span v-text="text.replace(/\n/g, '\\n')"></span> -->
-                    </template>
-                  </div>
+                    </CellOverflowTooltip>
+                  </template>
                 </template>
-                <template v-if="inputColumn.includes(column.dataIndex)">
-                  <div>
-                    <template v-if="editableData[record.id]">
-                      <!-- <a-input
-                        v-model:value="
-                          editableData[record.id][column.dataIndex]
-                        "
-                        style="margin: -5px 0"
-                        @click="clickInput"
-                      /> -->
-                      <Input
-                        v-model:value="
-                          editableData[record.id][column.dataIndex]
-                        "
-                      />
-                    </template>
-                    <template v-else>
-                      {{ text }}
-                    </template>
-                  </div>
+                <template v-else-if="inputColumn.includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]">
+                    <Input
+                      v-model:value="editableData[record.id][column.dataIndex]"
+                    />
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
                 </template>
-                <template v-if="translateColumn.includes(column.dataIndex)">
-                  <div>
-                    <template v-if="editableData[record.id]">
-                      <a-form
-                        :model="editableData[record.id]"
-                        :rules="rules[record.id]"
-                        :ref="
-                          'form' +
-                          record.id.replaceAll('-', '') +
-                          column.dataIndex
-                        "
-                        autocomplete="off"
-                      >
-                        <a-form-item :name="column.dataIndex">
-                          <!-- <a-textarea
-                            v-model:value="
-                              editableData[record.id][column.dataIndex]
-                            "
-                            style="margin: -5px 0"
-                            @click="clickInput"
-                            :auto-size="{ minRows: 1 }"
-                          /> -->
-                          <TextArea
-                            v-model:value="
-                              editableData[record.id][column.dataIndex]
-                            "
-                          />
-                        </a-form-item>
-                      </a-form>
-                    </template>
-                    <template v-else>
-                      {{ text }}
-                    </template>
-                  </div>
+                <template
+                  v-else-if="translateColumn.includes(column.dataIndex)"
+                >
+                  <template v-if="editableData[record.id]">
+                    <a-form
+                      :model="editableData[record.id]"
+                      :rules="rules[record.id]"
+                      :ref="
+                        'form' +
+                        record.id.replaceAll('-', '') +
+                        column.dataIndex
+                      "
+                      autocomplete="off"
+                    >
+                      <a-form-item :name="column.dataIndex">
+                        <TextArea
+                          v-model:value="
+                            editableData[record.id][column.dataIndex]
+                          "
+                          :autoSize="{ minRows: 1, maxRows: 5 }"
+                        />
+                      </a-form-item>
+                    </a-form>
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
                 </template>
-                <template v-if="column.dataIndex === 'classfy1'">
-                  <div>
-                    <template v-if="editableData[record.id]">
-                      <a-select
-                        v-model:value="
-                          editableData[record.id][column.dataIndex]
-                        "
-                        style="width: 100%"
-                        placeholder="请选择"
-                        :fieldNames="{ label: 'title', value: 'title' }"
-                        :options="classify1Option"
-                        @change="getRowClassify2Option(record)"
-                        allowClear
-                      >
-                      </a-select>
-                    </template>
-                    <template v-else>
-                      {{ text }}
-                    </template>
-                  </div>
+                <template v-else-if="column.dataIndex === 'classfy1'">
+                  <template v-if="editableData[record.id]">
+                    <a-select
+                      v-model:value="editableData[record.id][column.dataIndex]"
+                      style="width: 100%"
+                      placeholder="请选择"
+                      :fieldNames="{ label: 'title', value: 'title' }"
+                      :options="classify1Option"
+                      @change="getRowClassify2Option(record)"
+                      allowClear
+                    >
+                    </a-select>
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
                 </template>
-                <template v-if="column.dataIndex === 'classfy2'">
-                  <div>
-                    <template v-if="editableData[record.id]">
-                      <a-select
-                        v-model:value="
-                          editableData[record.id][column.dataIndex]
-                        "
-                        style="width: 100%"
-                        placeholder="请选择"
-                        :fieldNames="{ label: 'name', value: 'name' }"
-                        :options="rowClassify2Option[record.id]"
-                        allowClear
-                      >
-                      </a-select>
-                    </template>
-                    <template v-else>
-                      {{ text }}
-                    </template>
-                  </div>
+                <template v-else-if="column.dataIndex === 'classfy2'">
+                  <template v-if="editableData[record.id]">
+                    <a-select
+                      v-model:value="editableData[record.id][column.dataIndex]"
+                      style="width: 100%"
+                      placeholder="请选择"
+                      :fieldNames="{ label: 'name', value: 'name' }"
+                      :options="rowClassify2Option[record.id]"
+                      allowClear
+                    >
+                    </a-select>
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatCellText(text)" />
+                  </template>
                 </template>
-                <template v-if="column.dataIndex === 'tag'">
-                  <div>
-                    <template v-if="editableData[record.id]">
-                      <!-- <a-input
-                        v-model:value="
-                          editableData[record.id][column.dataIndex]
-                        "
-                        style="margin: -5px 0; width: 90%"
-                        @click="clickInput"
-                      /> -->
-                      <Input
-                        v-model:value="
-                          editableData[record.id][column.dataIndex]
-                        "
-                      />
-                      <a-tooltip placement="top">
-                        <template #title>
-                          <span>多个tag按分号分割！</span>
-                        </template>
-                        <InfoCircleOutlined style="margin-left: 3px" />
-                      </a-tooltip>
-                    </template>
-                    <template v-else>
-                      <!-- {{ text }} -->
+                <template v-else-if="column.dataIndex === 'tag'">
+                  <template v-if="editableData[record.id]">
+                    <Input
+                      v-model:value="editableData[record.id][column.dataIndex]"
+                    />
+                    <a-tooltip placement="top">
+                      <template #title>
+                        <span>多个tag按分号分割！</span>
+                      </template>
+                      <InfoCircleOutlined style="margin-left: 3px" />
+                    </a-tooltip>
+                  </template>
+                  <template v-else>
+                    <CellOverflowTooltip :content="formatTagText(text)">
                       <span>
                         <a-tag
                           v-for="(tag, index) in companyCut(text)"
@@ -649,19 +610,22 @@
                           <span>{{ tag }}</span>
                         </a-tag>
                       </span>
-                    </template>
-                  </div>
+                    </CellOverflowTooltip>
+                  </template>
                 </template>
-                <template v-if="column.dataIndex === 'entryState'">
-                  <EntryStateBadge :entryState="text" />
+                <template v-else-if="column.dataIndex === 'entryState'">
+                  <CellOverflowTooltip :content="entryStateLabel(text)">
+                    <EntryStateBadge :entryState="text" />
+                  </CellOverflowTooltip>
                 </template>
-                <!-- ['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState']-->
                 <template
-                  v-if="langTranslateStateList.includes(column.dataIndex)"
+                  v-else-if="langTranslateStateList.includes(column.dataIndex)"
                 >
-                  <TransStateBadge :translateState="text" />
+                  <CellOverflowTooltip :content="translateStateLabel(text)">
+                    <TransStateBadge :translateState="text" />
+                  </CellOverflowTooltip>
                 </template>
-                <template v-if="column.dataIndex === 'operation'">
+                <template v-else-if="column.dataIndex === 'operation'">
                   <div class="editable-row-operations">
                     <span v-if="editableData[record.id]">
                       <a-button
@@ -688,9 +652,11 @@
                         @click.stop="entryDetails(record)"
                         >详情</a-button
                       >
-                      <!-- <a-button type="primary" ghost size="small" @click.stop="entryUpgrade(record)">升级</a-button> -->
                     </span>
                   </div>
+                </template>
+                <template v-else-if="column.dataIndex">
+                  <CellOverflowTooltip :content="formatCellText(text)" />
                 </template>
               </template>
               <!-- 设置表格行展开子行的样式 -->
@@ -934,6 +900,7 @@ import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import TextArea from "@/components/cellEditor/textarea_IME.vue";
 import Input from "@/components/cellEditor/input_IME.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -1028,6 +995,7 @@ export default {
     TransStateBadge,
     TextArea,
     Input,
+    CellOverflowTooltip,
     EditReason,
     CreateVersionModal,
     SecondClassify,
@@ -2101,6 +2069,7 @@ export default {
         colPrefName: "colPref-productEntry",
         normalWidth: 200,
         needFilter: false,
+        lockCellSize: true,
       });
     },
     syncColumnsFromPref() {
@@ -2437,6 +2406,36 @@ export default {
           message.error(err.message);
         });
     },
+    formatEntryText(text) {
+      if (text == null || text === "") return "";
+      return String(text).replace(/\n/g, "\\n");
+    },
+    formatCellText(text) {
+      if (text == null || text === "") return "";
+      return String(text);
+    },
+    formatTagText(text) {
+      return this.companyCut(text).join("; ");
+    },
+    entryStateLabel(value) {
+      const map = {
+        0: "新建",
+        1: "审核中",
+        2: "审核不通过",
+        3: "已审核",
+        "-1": "禁用",
+      };
+      return map[value] ?? "";
+    },
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
+    },
     // 切割字符串
     companyCut(message) {
       let res = [];
@@ -2579,6 +2578,34 @@ export default {
 
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;
+}
+
+:deep(.ant-table-cell) {
+  overflow: hidden;
+}
+
+:deep(.cell-overflow-tooltip) {
+  display: block;
+  max-width: 100%;
+}
+
+:deep(.tag-content:hover) {
+  white-space: nowrap;
+}
+
+:deep(.ant-table-cell .ant-form-item-control-input),
+:deep(.ant-table-cell .ant-input-textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+:deep(.ant-table-cell textarea.ant-input) {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  word-break: break-word;
+  overflow-x: auto;
 }
 
 :deep(.ant-pagination) {

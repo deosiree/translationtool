@@ -34,14 +34,44 @@ function resolveDataIndex(def, ctx) {
 }
 
 /**
+ * 将列宽转为 CSS 尺寸（数字补 px）
+ * @param {number|string|undefined} width
+ * @returns {string|undefined}
+ */
+function toCssSize(width) {
+  if (width == null || width === "") return undefined;
+  return typeof width === "number" ? `${width}px` : String(width);
+}
+
+/**
+ * 锁定单元格 width/min-width/max-width，并关闭原生 title
+ * @param {Object} col Ant Table 列配置
+ * @returns {Object}
+ */
+export function applyLockCellSize(col) {
+  if (!col) return col;
+  col.ellipsis = { showTitle: false };
+  col.customCell = () => {
+    const w = toCssSize(col.width);
+    return { style: { width: w, minWidth: w, maxWidth: w } };
+  };
+  col.customHeaderCell = () => {
+    const w = toCssSize(col.width);
+    return { style: { width: w, minWidth: w, maxWidth: w } };
+  };
+  return col;
+}
+
+/**
  * 构建序号列（含分页偏移的 customRender）
  * @param {import('./colPreset.js').ColDef} def 列定义
  * @param {Object} ctx 含 pagination 的上下文
+ * @param {boolean} [lockCellSize=false] 是否锁定单元格宽
  * @returns {Object} Ant Table 列配置
  */
-function buildIndexCol(def, ctx) {
+function buildIndexCol(def, ctx, lockCellSize = false) {
   const pagination = ctx?.pagination || { pageSize: 20, current: 1 };
-  return {
+  const col = {
     title: def.label,
     dataIndex: "index",
     align: "center",
@@ -52,6 +82,7 @@ function buildIndexCol(def, ctx) {
     customRender: (text) =>
       text.index + 1 + pagination.pageSize * (pagination.current - 1),
   };
+  return lockCellSize ? applyLockCellSize(col) : col;
 }
 
 /**
@@ -146,11 +177,18 @@ function applyValueBehaviors(col, def, needFilter) {
  * @param {Object} ctx buildCol 上下文
  * @param {number} [normalWidth=100] 默认列宽
  * @param {boolean} [needFilter=false] 是否启用列头筛选
+ * @param {boolean} [lockCellSize=false] 是否锁定单元格宽并关闭原生 title
  * @returns {Object} Ant Table 列配置（含 colValue）
  */
-export function buildCol(def, ctx, normalWidth = 100, needFilter = false) {
+export function buildCol(
+  def,
+  ctx,
+  normalWidth = 100,
+  needFilter = false,
+  lockCellSize = false
+) {
   if (def.value === "index") {
-    return buildIndexCol(def, ctx);
+    return buildIndexCol(def, ctx, lockCellSize);
   }
 
   const col = {
@@ -165,7 +203,7 @@ export function buildCol(def, ctx, normalWidth = 100, needFilter = false) {
   };
 
   applyValueBehaviors(col, def, needFilter);
-  return col;
+  return lockCellSize ? applyLockCellSize(col) : col;
 }
 
 /**
@@ -188,6 +226,7 @@ export function filterWbColsForCtx(cols, ctx) {
  * @param {number} [normalWidth=100] 默认列宽
  * @param {boolean} [needFilter=false] 是否启用列头筛选
  * @param {Function|null} [filterCols] 二次过滤函数 (resolvedCols, ctx) => cols
+ * @param {boolean} [lockCellSize=false] 是否锁定单元格宽并关闭原生 title
  * @returns {{ columnSettingsList: Array, columns: Array }}
  */
 export function buildTable(
@@ -196,7 +235,8 @@ export function buildTable(
   ctx,
   normalWidth = 100,
   needFilter = false,
-  filterCols = null
+  filterCols = null,
+  lockCellSize = false
 ) {
   const resolved = resolvePresetCols(preset, allCols);
   const filtered = filterCols ? filterCols(resolved, ctx) : resolved;
@@ -217,7 +257,7 @@ export function buildTable(
   const columns = defaultValues
     .map((v) => defMap.get(v))
     .filter(Boolean)
-    .map((def) => buildCol(def, ctx, normalWidth, needFilter))
+    .map((def) => buildCol(def, ctx, normalWidth, needFilter, lockCellSize))
     .sort((a, b) => a.index - b.index);
 
   return { columnSettingsList, columns };

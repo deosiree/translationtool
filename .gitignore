@@ -18,3 +18,9 @@ harness.db
 scripts
 *-workspace
 data/
+
+# local harness + human docs — do not upload
+**/docs/**
+**/humanDocs/**
+AGENTS.md
+.harness/

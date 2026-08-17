@@ -153,7 +153,8 @@ export function changeColumn(
         def,
         vm.colBuildCtx,
         normalWidth,
-        needFilter
+        needFilter,
+        !!vm.$columnFilterPref?.lockCellSize
       );
       vm.columns.splice(-1, 0, newCol);
     }
@@ -223,6 +224,7 @@ export function getColPref(
  * @param {number} [options.normalWidth=100] 默认列宽
  * @param {boolean} [options.needFilter=false] 是否启用列头筛选
  * @param {Function} [options.filterCols] 二次过滤 columnSettingsList 的函数
+ * @param {boolean} [options.lockCellSize=false] 是否锁定单元格宽并关闭原生 title
  */
 export function applyTable(vm, options) {
   const {
@@ -233,6 +235,7 @@ export function applyTable(vm, options) {
     normalWidth = 100,
     needFilter = false,
     filterCols = null,
+    lockCellSize = false,
   } = options;
 
   vm.colBuildCtx = ctx;
@@ -242,11 +245,12 @@ export function applyTable(vm, options) {
     ctx,
     normalWidth,
     needFilter,
-    filterCols
+    filterCols,
+    lockCellSize
   );
   vm.columnSettingsList = columnSettingsList;
   vm.columns = columns;
-  vm.$columnFilterPref = { colPrefName, normalWidth, needFilter };
+  vm.$columnFilterPref = { colPrefName, normalWidth, needFilter, lockCellSize };
   getColPref(colPrefName, normalWidth, vm, needFilter, columnSettingsList);
 }
 

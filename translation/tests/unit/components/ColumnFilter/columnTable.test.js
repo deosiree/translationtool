@@ -72,6 +72,59 @@ describe('columnBuilder', () => {
       dataIndex: 'english',
     })
   })
+
+  it('默认不应锁定单元格宽，ellipsis 仍为 true', () => {
+    const col = buildCol({ label: '词条', value: 'entry', index: 1 }, {}, 100)
+    expect(col.ellipsis).toBe(true)
+    expect(col.customCell).toBeUndefined()
+    expect(col.customHeaderCell).toBeUndefined()
+  })
+
+  it('lockCellSize 应为列设置 ellipsis.showTitle=false 与三宽', () => {
+    const col = buildCol(
+      { label: '词条', value: 'entry', index: 1, width: 200 },
+      {},
+      100,
+      false,
+      true
+    )
+    expect(col.ellipsis).toEqual({ showTitle: false })
+    expect(col.customCell()).toEqual({
+      style: { width: '200px', minWidth: '200px', maxWidth: '200px' },
+    })
+    expect(col.customHeaderCell()).toEqual({
+      style: { width: '200px', minWidth: '200px', maxWidth: '200px' },
+    })
+  })
+
+  it('lockCellSize 序号列同样锁定宽并关闭原生 title', () => {
+    const col = buildCol(
+      { label: '序号', value: 'index', index: 0 },
+      { pagination: { pageSize: 20, current: 1 } },
+      100,
+      false,
+      true
+    )
+    expect(col.ellipsis).toEqual({ showTitle: false })
+    expect(col.customCell().style).toEqual({
+      width: '50px',
+      minWidth: '50px',
+      maxWidth: '50px',
+    })
+  })
+
+  it('lockCellSize 下 customCell 应读取拖列后的 col.width', () => {
+    const col = buildCol(
+      { label: '词条', value: 'entry', index: 1, width: 100 },
+      {},
+      100,
+      false,
+      true
+    )
+    col.width = 180
+    expect(col.customCell().style.minWidth).toBe('180px')
+    expect(col.customHeaderCell().style.width).toBe('180px')
+  })
 })
 
 describe('columnTable', () => {
@@ -186,6 +239,33 @@ describe('columnTable', () => {
         'entry',
         'operation',
       ])
+    })
+
+    it('应从 $columnFilterPref.lockCellSize 给新增列锁定宽', () => {
+      const vm = {
+        checkedColumn: [],
+        colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
+        columnSettingsList: mockColumnSettingsList,
+        columns: [
+          { dataIndex: 'index', colValue: 'index', index: 0 },
+          { dataIndex: 'entry', colValue: 'entry', index: 2 },
+          { dataIndex: 'operation', colValue: 'operation', index: 100 },
+        ],
+        $columnFilterPref: { lockCellSize: true },
+      }
+
+      changeColumn(
+        colPrefName,
+        100,
+        ['index', 'entry', 'tag', 'operation'],
+        vm,
+        false,
+        mockColumnSettingsList
+      )
+
+      const tagCol = vm.columns.find((c) => c.colValue === 'tag')
+      expect(tagCol.ellipsis).toEqual({ showTitle: false })
+      expect(tagCol.customCell().style.width).toBe('100px')
     })
   })
 

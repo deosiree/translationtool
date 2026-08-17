@@ -24,7 +24,12 @@ export {
   defaultSelectionFromCols,
   colsToFieldOptions,
 } from "./colPreset.js";
-export { buildCol, buildTable, filterWbColsForCtx } from "./columnBuilder.js";
+export {
+  buildCol,
+  buildTable,
+  filterWbColsForCtx,
+  applyLockCellSize,
+} from "./columnBuilder.js";
 export {
   mergeColumnSelection,
   getDefaultColumnSelection,
