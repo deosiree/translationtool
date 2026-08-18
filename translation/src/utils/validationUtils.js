@@ -71,37 +71,148 @@ export function getMaxLength(record_, vm, colName = "foreignMaxByte") {
 }
 
 /**
- * 使用校验规则
- * 不能在表单回车事件中使用（outofDate）,暂时闲置不用
- * 可以在点击编辑操作-保存时使用，但是为了与表单回车事件一致，取消使用了
- *
- * @param {Object} refs - 包含多个表单引用对象的容器，值为对应的表单引用（如 Element Plus 的 FormInstance）
- * @param {string} refName - 用于从 refs 中获取目标表单引用的键名，如 'form1'、'editForm' 等
- * @returns {Promise<void>} - 返回一个 Promise，通常由调用方 await
+ * 从 form ref 名解析 recordId（form{idNoDash}{columnKey}）
  */
-export async function useRefRules(refs, refName, columnValue) {
-  const formRef = refs[refName];
+export function resolveRecordIdFromFormRef(vm, refName, columnKey) {
+  const prefix = "form";
+  if (!refName?.startsWith(prefix) || !columnKey) return null;
+  const idPart = refName.slice(prefix.length, refName.length - columnKey.length);
+  for (const recordId of Object.keys(vm.editableData || {})) {
+    if (recordId.replaceAll("-", "") === idPart) return recordId;
+  }
+  for (const row of vm.dataSource || []) {
+    if (row.id?.replaceAll("-", "") === idPart) return row.id;
+  }
+  return null;
+}
+
+/**
+ * 命令式校验单元格（不依赖单元格内 a-form）
+ * @param {Object} vm
+ * @param {string} recordId
+ * @param {string} columnKey
+ * @returns {Promise<void>}
+ */
+export async function validateEditableCell(vm, recordId, columnKey) {
+  const rules = vm.rules?.[recordId]?.[columnKey];
+  if (!rules?.length) return;
+
+  const value = vm.editableData?.[recordId]?.[columnKey];
+
+  const hasRequiredRule = rules.some((r) => r.required);
+  if (!hasRequiredRule && isBlankTranslation(value)) return;
+
+  const columnName = getColumnLabelByValue(columnKey);
+
+  for (const rule of rules) {
+    if (rule.required && (value == null || value === "")) {
+      const errorMessage =
+        typeof rule.message === "string" ? rule.message : "请输入!";
+      return Promise.reject({ columnName, errorMessage });
+    }
+    if (rule.validator) {
+      try {
+        await rule.validator(rule, value);
+      } catch (err) {
+        const errorMessage =
+          typeof err === "string"
+            ? err
+            : err?.message || String(err || "校验失败");
+        return Promise.reject({ columnName, errorMessage });
+      }
+    }
+  }
+}
+
+export function clearCellError(vm, recordId, columnKey) {
+  if (vm.cellErrors?.[recordId]?.[columnKey]) {
+    delete vm.cellErrors[recordId][columnKey];
+    if (Object.keys(vm.cellErrors[recordId]).length === 0) {
+      delete vm.cellErrors[recordId];
+    }
+  }
+}
+
+export function setCellError(vm, recordId, columnKey, errorMessage) {
+  if (!vm.cellErrors) vm.cellErrors = {};
+  if (!vm.cellErrors[recordId]) vm.cellErrors[recordId] = {};
+  vm.cellErrors[recordId][columnKey] = errorMessage;
+}
+
+/**
+ * 编辑态单元格输入 SSOT：写 editableData + 仅用户改值时清校验红字
+ */
+export function onEditableCellInput(vm, recordId, columnKey, value) {
+  const row = vm.editableData?.[recordId];
+  if (!row) return;
+  const prev = row[columnKey];
+  row[columnKey] = value;
+  if (value !== prev) clearCellError(vm, recordId, columnKey);
+}
+
+/**
+ * 批量清除指定行的单元格错误
+ */
+export function clearCellErrorsForRecords(vm, recordIds = []) {
+  if (!vm.cellErrors) return;
+  for (const recordId of recordIds) {
+    delete vm.cellErrors[recordId];
+  }
+}
+
+/**
+ * 命令式校验并写入 cellErrors（不 throw，供 bulk 校验链路使用）
+ */
+export async function applyCellValidationAfterOpenEdit(vm, recordId, columnKey) {
+  try {
+    await validateEditableCell(vm, recordId, columnKey);
+    clearCellError(vm, recordId, columnKey);
+  } catch (err) {
+    const errorMessage =
+      err?.errorMessage || err?.message || String(err || "校验失败");
+    setCellError(vm, recordId, columnKey, errorMessage);
+  }
+}
+
+/**
+ * 使用校验规则（命令式；保留 refName 签名以兼容既有调用）
+ */
+export async function useRefRules(refs, refName, columnValue, vm) {
+  if (vm && columnValue) {
+    const recordId = resolveRecordIdFromFormRef(vm, refName, columnValue);
+    if (recordId) {
+      return validateEditableCell(vm, recordId, columnValue);
+    }
+  }
+
+  const formRef = refs?.[refName];
   if (formRef) {
     try {
-      // console.log("进入表单验证", formRef, formRef.validate)
-      await formRef.validate(); // 双击打开编辑框时设置的校验规则
+      await formRef.validate();
       return Promise.resolve();
     } catch (err) {
-      // console.log("验证失败", err);// 不弹窗，通过ref提示
-      // 兼容：若传入 columnValue，则返回结构化错误供外层聚合展示；否则保持旧字符串格式
       if (columnValue) {
         const columnName = getColumnLabelByValue(columnValue);
         const errors = err?.errorFields?.[0]?.errors || [];
-        const errorMessage = Array.isArray(errors) ? errors.join("；") : String(errors || "");
+        const errorMessage = Array.isArray(errors)
+          ? errors.join("；")
+          : String(errors || "");
         return Promise.reject({ columnName, errorMessage });
       }
-      return Promise.reject(`编辑-保存校验失败:${err?.errorFields?.[0]?.errors}`);
+      return Promise.reject(
+        `编辑-保存校验失败:${err?.errorFields?.[0]?.errors}`
+      );
     }
   }
-  else {
-    // console.log("没有formRef")
-    return Promise.reject(new Error(`未找到 ref 名称为 "${refName}" 的表单引用`));
+
+  if (vm && columnValue) {
+    const recordId = resolveRecordIdFromFormRef(vm, refName, columnValue);
+    if (recordId) {
+      return validateEditableCell(vm, recordId, columnValue);
+    }
   }
+
+  return Promise.reject(new Error(`未找到 ref 名称为 "${refName}" 的表单引用`));
 }
 
 /**
@@ -125,11 +236,32 @@ export function setRefRules(vm, record, cols) {
       ];
     }
     else {
-      vm.rules[record.id][col] = [
-        { validator: validateRefRules(record, vm, "foreignMaxByte", col) },
-      ];
+      const translateRules = buildTranslateRules(vm, record, col);
+      vm.rules[record.id][col] = translateRules;
     }
   }
+}
+
+export function getEnabledVerifyMethods(vm) {
+  const options = Array.isArray(vm?.rulesOptions) ? vm.rulesOptions : null;
+  if (!options) return ["toLong", "special"];
+  return options.filter((o) => o.checked).map((o) => o.key);
+}
+
+export function buildTranslateRules(vm, record, columnKey) {
+  const verifyMethods = getEnabledVerifyMethods(vm);
+  if (verifyMethods.length === 0) return [];
+  return [
+    {
+      validator: validateRefRules(
+        record,
+        vm,
+        "foreignMaxByte",
+        columnKey,
+        verifyMethods
+      ),
+    },
+  ];
 }
 
 /**
@@ -143,16 +275,29 @@ export function setRefRules(vm, record, cols) {
  * @param {string} language - 当前校验的语种类型，如english,chinese
  * @returns {(rule: any, value: any) => Promise<void>} - 返回一个异步校验函数，符合 Element Plus 的 validator 要求
  */
-export function validateRefRules(record, vm, colName, language) {
+/**
+ * 翻译列空白判定（null / "" / 纯空白字符视为空白）
+ */
+export function isBlankTranslation(value) {
+  return value == null || String(value).trim() === "";
+}
+
+export function validateRefRules(record, vm, colName, language,
+  verifyMethods = ["toLong", "special"]) {
   return async (rule, value) => {
-    const maxLength = getMaxLength(record, vm, colName);
-    let length = byteLength(value);
-    if (maxLength && length > maxLength) {
-      // 表单项内仍使用字符串以保证控件正常显示错误；外层聚合展示由 useRefRules/editSave 负责
-      return Promise.reject(`允许最大字符数为${maxLength}(1中文=2字符)`);
+    if (language && isBlankTranslation(value)) {
+      return Promise.resolve();
+    }
+    if (verifyMethods.includes("toLong")) {
+      const maxLength = getMaxLength(record, vm, colName);
+      let length = byteLength(value);
+      if (maxLength && length > maxLength) {
+        // 表单项内仍使用字符串以保证控件正常显示错误；外层聚合展示由 useRefRules/editSave 负责
+        return Promise.reject(`允许最大字符数为${maxLength}(1中文=2字符)`);
+      }
     }
 
-    if (language) {// 需要拿翻译与词条进行比较，所以词条本身不需要进行特殊字符校验
+    if (language && verifyMethods.includes("special")) {// 需要拿翻译与词条进行比较，所以词条本身不需要进行特殊字符校验
       const datas = [
         {
           id: record.id,
@@ -205,7 +350,7 @@ export function openSetEdit(record, cols, vm) {
  * @param {Object} vm - Vue 实例对象，包含 `dataSource`（数据源）等属性
  */
 export async function verifyArray_workbench_page(pagination, language, vm,
-  verifyMethods = ["toLong", "special"]) {
+  verifyMethods) {
   let data = vm.dataSource.slice(
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
@@ -231,7 +376,8 @@ export async function verifyArray_workbench_page(pagination, language, vm,
  *   - specialIds: 特殊字符校验不通过的记录ID集合
  */
 export async function verifyArray_workbench(vm, array, language,
-  verifyMethods = ["toLong", "special"]) {
+  verifyMethods) {
+  const methods = verifyMethods ?? getEnabledVerifyMethods(vm);
   let arr = {
     acceptIds: new Set(),// 所有校验通过
     errorIds: new Set(),// 所有校验不通过
@@ -246,33 +392,38 @@ export async function verifyArray_workbench(vm, array, language,
       translate: vm.editableData[record.id]?.[language] || record[language],
       maxLength: getMaxLength(record, vm),
     };
+    if (isBlankTranslation(data.translate)) {
+      arr.acceptIds.add(record.id);
+      continue;
+    }
     datas.push(data);
-    if (verifyMethods.includes("toLong")) {// 校验长度
-      // console.log("校验长度",data)
+    if (methods.includes("toLong")) {
       if (data.maxLength && byteLength(data.translate) > data.maxLength) {
         arr.toLongIds.add(record.id);
       }
     }
   }
 
-  if (verifyMethods.includes("special")) {// 校验特殊字符
+  if (methods.includes("special") && datas.length > 0) {
     try {
-      const res = await checkSykEntryBeforeSave(datas);//调用后端接口
+      const res = await checkSykEntryBeforeSave(datas);
       arr.specialIds = new Set(res.data?.map(item => item.id));
     } catch (err) { }
   }
 
   for (const record of array) {
+    if (arr.acceptIds.has(record.id)) continue;
     if (!arr.toLongIds.has(record.id) && !arr.specialIds.has(record.id)) {
-      arr.acceptIds.add(record.id);// 记录通过校验的词条id
+      arr.acceptIds.add(record.id);
     }
     else {
       // 注意：单条验证会遍历触发checkSykEntryBeforeSave，不要整个dataSource都遍历，一次遍历检查当前页的表单校验即可
       arr.errorIds.add(record.id);
-      // 打开编辑态;设置校验规则(工作台只为翻译列配置)
       await openSetEdit(record, [language], vm);
-      // 使用校验规则-翻译列
-      useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${language}`);
+      await applyCellValidationAfterOpenEdit(vm, record.id, language);
+      if (typeof vm.showEditOperation === "function") {
+        vm.showEditOperation();
+      }
     }
   }
   // console.log("函数内", arr)
@@ -292,10 +443,11 @@ export async function verifyArray_workbench(vm, array, language,
  * @returns {Promise<boolean>} 校验结果
  */
 export async function verifyRecord_entry(vm, record, colList,
-  verifyMethods = ["toLong", "special"]) {
+  verifyMethods) {
+  const methods = verifyMethods ?? getEnabledVerifyMethods(vm);
   let flag = true;
 
-  if (verifyMethods.includes("toLong")) {// 校验长度
+  if (methods.includes("toLong")) {// 校验长度
     for (const col of colList) {
       if (col == "entry") {
         const maxLength = getMaxLength(record, vm, "maxByte");
@@ -311,7 +463,7 @@ export async function verifyRecord_entry(vm, record, colList,
       }
     }
   }
-  if (verifyMethods.includes("special")) {// 校验特殊字符
+  if (methods.includes("special")) {// 校验特殊字符
     const datas = [];
     for (const language of colList) {
       if (language == "entry") continue;
@@ -333,11 +485,10 @@ export async function verifyRecord_entry(vm, record, colList,
   if (flag) {
     return true;
   } else {
-    await openSetEdit(record, colList, vm); // 打开编辑态，为多列配置校验规则
-    for (const col of colList) {// 对应的每一列都校验一遍
-      if (record[col]) {
-        useRefRules(vm.$refs, `form${record.id.replaceAll('-', '')}${col}`);
-      }
+    await openSetEdit(record, colList, vm);
+    for (const col of colList) {
+      if (col === "entry") continue;
+      await applyCellValidationAfterOpenEdit(vm, record.id, col);
     }
     return false;
   }

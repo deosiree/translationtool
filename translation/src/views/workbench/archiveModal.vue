@@ -24,7 +24,7 @@
           />
         </WorkbenchActionGroup>
       </WorkbenchFormBar>
-      <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
+      <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
         :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :expandIconColumnIndex="2" :customRow="customRow" :row-selection="{ 
                 columnWidth: 48,
                 selectedRowKeys: selectedRowKeys, 
@@ -61,7 +61,7 @@
               <TransStateBadge :translateState="text" />
             </CellOverflowTooltip>
           </template>
-          <template v-else-if="column.dataIndex">
+          <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
             <CellOverflowTooltip :content="formatCellText(text)" />
           </template>
         </template>
@@ -121,6 +121,8 @@ import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatEntryText, formatCellText } from "@/components/table/cellText";
+import "@/assets/style/common.less";
 import { cloneDeep, iteratee } from "lodash-es";
 import { getEntryInfoList, getI18nAdress, deleteEntryInfoByTaskID } from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
@@ -294,14 +296,8 @@ export default {
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
     },
-    formatEntryText(text) {
-      if (text == null || text === "") return "";
-      return String(text).replace(/\n/g, "\\n");
-    },
-    formatCellText(text) {
-      if (text == null || text === "") return "";
-      return String(text);
-    },
+    formatEntryText,
+    formatCellText,
     isExistLabel(value) {
       if (value === 0) return "新建";
       if (value === 1) return "已存在";
@@ -710,13 +706,6 @@ export default {
 }
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;
-}
-:deep(.ant-table-cell) {
-  overflow: hidden;
-}
-:deep(.cell-overflow-tooltip) {
-  display: block;
-  max-width: 100%;
 }
 :deep(.ant-pagination) {
   margin: 8px 0;

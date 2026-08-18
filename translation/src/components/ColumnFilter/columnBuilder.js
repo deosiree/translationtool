@@ -139,7 +139,7 @@ function applyValueBehaviors(col, def, needFilter) {
   if (["entry", "entryState", "index"].includes(v)) {
     col.fixed = col.fixed || "left";
   }
-  if (["operation", "abbr"].includes(v)) {
+  if (v === "operation") {
     col.fixed = col.fixed || "right";
   }
 

@@ -321,7 +321,7 @@
           />
         </template>
       </WorkbenchFormBar>
-      <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
+      <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
         :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :customRow="customRow" :expandIconColumnIndex="2" :row-selection="{selectedRowKeys: selectedRowKeys, 
                 onChange: onSelectChange,
                 checkStrictly: false,
@@ -330,84 +330,78 @@
                     {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
                 ]
             }" ref="workTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
+        <template #headerCell="{ title, column }">
+          <CellOverflowTooltip v-if="column.colValue" :content="title">
+            {{ title }}
+          </CellOverflowTooltip>
+        </template>
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.dataIndex === 'entry'">
-            <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
+            <CellOverflowTooltip :content="formatEntryText(text)">
+              {{ formatEntryText(text) }}
+            </CellOverflowTooltip>
           </template>
-          <template v-if="editList_needValidate.includes(column.dataIndex)">
-            <div>
-              <template v-if="editableData[record.id]">
-                <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
-                  autocomplete="off">
-                  <a-form-item :name="column.dataIndex">
-                    <InputIME
-                      :value="editableData[record.id][column.dataIndex]"
-                      @update:value="val => handleCellValueChange(val, record, column)"
-                      @pressEnter="editSave(record)"
-                    />
-                  </a-form-item>
-                </a-form>
-              </template>
-              <template v-else>
-                {{ text }}
-              </template>
-            </div>
+          <template v-else-if="editableTextAreaColumns.includes(column.dataIndex)">
+            <template v-if="editableData[record.id]">
+              <TableCellTextArea
+                :value="editableData[record.id][column.dataIndex] ?? ''"
+                @update:value="(val) => onCellInput(val, record, column)"
+                :error-message="cellErrors[record.id]?.[column.dataIndex]"
+              />
+            </template>
+            <template v-else>
+              <CellOverflowTooltip :content="formatCellText(text)" />
+            </template>
           </template>
-          <template v-if="editList.includes(column.dataIndex)">
-            <div>
-              <template v-if="editableData[record.id]">
-                <InputIME
-                  :value="editableData[record.id][column.dataIndex]"
-                  @update:value="val => handleCellValueChange(val, record, column)"
-                  @pressEnter="editSave(record)"
-                />
-              </template>
-              <template v-else>
-                {{ text }}
-              </template>
-            </div>
+          <template v-else-if="column.dataIndex === 'diFileName'">
+            <template v-if="editableData[record.id]">
+              <InputIME
+                :value="editableData[record.id][column.dataIndex]"
+                @update:value="(val) => onCellInput(val, record, column)"
+              />
+            </template>
+            <template v-else>
+              <CellOverflowTooltip :content="formatCellText(text)" />
+            </template>
           </template>
-          <template v-if="column.dataIndex === 'tag'">
-            <div>
-              <template v-if="editableData[record.id]">
-                <InputIME
-                  :value="editableData[record.id][column.dataIndex]"
-                  @update:value="val => handleCellValueChange(val, record, column)"
-                  @pressEnter="editSave(record)"
-                />
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>多个Tag按分号分割！</span>
-                  </template>
-                  <InfoCircleOutlined style="margin-left:3px" />
-                </a-tooltip>
-              </template>
-              <template v-else>
+          <template v-else-if="column.dataIndex === 'tag'">
+            <template v-if="editableData[record.id]">
+              <InputIME
+                :value="editableData[record.id][column.dataIndex]"
+                @update:value="(val) => onCellInput(val, record, column)"
+              />
+              <a-tooltip placement="top">
+                <template #title>
+                  <span>多个Tag按分号分割！</span>
+                </template>
+                <InfoCircleOutlined style="margin-left:3px" />
+              </a-tooltip>
+            </template>
+            <template v-else>
+              <CellOverflowTooltip :content="formatTagText(text)">
                 <span>
                   <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
                     {{tag}}
                   </a-tag>
                 </span>
-              </template>
-            </div>
+              </CellOverflowTooltip>
+            </template>
           </template>
-          <template v-if="column.dataIndex === 'isExist'">
-            <IsExistBadge :isExist="text" />
+          <template v-else-if="column.dataIndex === 'isExist'">
+            <CellOverflowTooltip :content="isExistLabel(text)">
+              <IsExistBadge :isExist="text" />
+            </CellOverflowTooltip>
           </template>
-          <template v-if="column.dataIndex === 'entryState'">
-            <EntryStateBadge :entryState="text" />
+          <template v-else-if="column.dataIndex === 'entryState'">
+            <CellOverflowTooltip :content="entryStateLabel(text)">
+              <EntryStateBadge :entryState="text" />
+            </CellOverflowTooltip>
           </template>
-          <template v-if="translateStateList.includes(column.dataIndex)">
-            <TransStateBadge :translateState="text" />
+          <template v-else-if="translateStateList.includes(column.dataIndex)">
+            <CellOverflowTooltip :content="translateStateLabel(text)">
+              <TransStateBadge :translateState="text" />
+            </CellOverflowTooltip>
           </template>
-          <!-- <template v-else-if="column.dataIndex === 'label'">
-                        <div class="editable-row-operations">
-                            <span>
-                                <a-checkable-tag :checked="record.auditState === 1" :class="record.auditState === 1 ? 'passTagChecked' : 'passTag' " >通过</a-checkable-tag>
-                                <a-checkable-tag :checked="record.auditState === 0" :class="record.auditState === 0 ? 'rejectTagChecked' : 'rejectTag'" >驳回</a-checkable-tag>
-                            </span>
-                        </div>
-                    </template> -->
           <template v-else-if="column.dataIndex === 'editOperation'">
             <div class="editable-row-operations">
               <span v-if="editableData[record.id]">
@@ -425,6 +419,9 @@
                 </a-tooltip>
               </span>
             </div>
+          </template>
+          <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
+            <CellOverflowTooltip :content="formatCellText(text)" />
           </template>
         </template>
         <template #expandIcon="props">
@@ -569,10 +566,18 @@ import {
   byteLength,
   verifyArray_workbench,
   openSetEdit,
-  useRefRules,
+  applyCellValidationAfterOpenEdit,
+  validateEditableCell,
+  setCellError,
+  clearCellError,
+  clearCellErrorsForRecords,
+  onEditableCellInput,
 } from "@/utils/validationUtils";
 import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatEntryText, formatCellText } from "@/components/table/cellText";
 import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
@@ -621,6 +626,8 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     InputIME,
+    TableCellTextArea,
+    CellOverflowTooltip,
     WorkbenchFormBar,
     WorkbenchTaskInfo,
     WorkbenchColumnActions,
@@ -720,6 +727,7 @@ export default {
       treeData: [],
       saveLoading: false,
       rules: {},
+      cellErrors: {},
       // classifyLimit:{
       //     间隔: 10
       // },
@@ -781,6 +789,15 @@ export default {
     // 从全局 store 注入当前用户，避免直接读取 this.$store.state.user 为空时报错
     this.user = (this.$store && this.$store.state && this.$store.state.user) || {};
   },
+  computed: {
+    editableTextAreaColumns() {
+      const dedicatedInputCols = ["diFileName", "tag"];
+      return [
+        ...(this.editList_needValidate || []),
+        ...(this.editList || []),
+      ].filter((col) => !dedicatedInputCols.includes(col));
+    },
+  },
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
@@ -822,6 +839,7 @@ export default {
               normalWidth: 100,
               needFilter: false,
               filterCols: filterWbColsForCtx,
+              lockCellSize: true,
             });
           });
         }
@@ -858,16 +876,43 @@ export default {
     getRowClassName(record, index) {
       return getRowClassName(record, index, this.selectedRowIndex);
     },
-    // 单元格输入更新：集中处理 editableData 写入，防止 IME 组合期间给 undefined 赋值
-    handleCellValueChange(value, record, column) {
-      const row = this.editableData[record.id];
-      if (!row) return;
-      row[column.dataIndex] = value;
+    onCellInput(value, record, column) {
+      onEditableCellInput(this, record.id, column.dataIndex, value);
+    },
+    formatEntryText,
+    formatCellText,
+    formatTagText(text) {
+      return this.companyCut(text).join("; ");
+    },
+    isExistLabel(value) {
+      if (value === 0) return "新建";
+      if (value === 1) return "已存在";
+      return "";
+    },
+    entryStateLabel(value) {
+      const map = {
+        0: "新建",
+        1: "审核中",
+        2: "审核不通过",
+        3: "已审核",
+        "-1": "禁用",
+      };
+      return map[value] ?? "";
+    },
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
     },
     handleResizeColumn,
     // 保存词条
     async saveEntrys() {
       this.saveLoading = true;
+      clearCellErrorsForRecords(this, this.selectedRowKeys);
       const currentLang = this.task.transMap.value;
       let hasNoInter = false;
       let arr = {
@@ -2017,25 +2062,37 @@ export default {
           }
           // 打开编辑态;设置校验规则(工作台只为翻译列配置)
           await openSetEdit(record, [this.task.transMap.value], this);
-          // 使用校验规则-翻译列
-          useRefRules(
-            this.$refs,
-            `form${record.id.replaceAll("-", "")}${this.task.transMap.value}`
+          await applyCellValidationAfterOpenEdit(
+            this,
+            record.id,
+            this.task.transMap.value
           );
           this.showEditOperation(); // 显示编辑操作列
         },
       };
     },
     // 编辑-保存
-    editSave(record) {
+    async editSave(record) {
+      const transCol = this.task.transMap.value;
+      try {
+        await validateEditableCell(this, record.id, transCol);
+      } catch (err) {
+        setCellError(
+          this,
+          record.id,
+          transCol,
+          err.errorMessage || String(err)
+        );
+        return;
+      }
       for (const [key, value] of Object.entries(this.editableData[record.id])) {
         if (record.hasOwnProperty(key) && value != null && value !== "") {
-          // 如果record中存在该键，并且值不为空，则更新record
           record[key] = value;
-          delete this.editableData[record.id];
-          this.hideEditOperation();
         }
       }
+      delete this.editableData[record.id];
+      clearCellError(this, record.id, transCol);
+      this.hideEditOperation();
     },
     // 取消编辑
     cancel(record) {
@@ -2525,9 +2582,6 @@ export default {
     background-color: #fbb31f;
     color: white;
   }
-}
-.ant-form-item {
-  margin-bottom: 0;
 }
 :deep(.ant-pagination) {
   margin: 8px 0;

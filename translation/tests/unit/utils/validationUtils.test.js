@@ -4,7 +4,16 @@ import {
   getMaxLength, 
   setRefRules, 
   openSetEdit,
-  useRefRules
+  useRefRules,
+  validateEditableCell,
+  setCellError,
+  clearCellError,
+  clearCellErrorsForRecords,
+  onEditableCellInput,
+  applyCellValidationAfterOpenEdit,
+  verifyArray_workbench,
+  verifyArray_workbench_page,
+  isBlankTranslation,
 } from '@/utils/validationUtils'
 import { cloneDeep } from 'lodash'
 
@@ -237,7 +246,218 @@ describe('validationUtils - 表单校验工具函数', () => {
     })
   })
 
+  describe('validateEditableCell', () => {
+    it('无规则时应直接通过', async () => {
+      const vm = {
+        editableData: { r1: { english: 'ok' } },
+        rules: { r1: {} },
+      }
+      await expect(validateEditableCell(vm, 'r1', 'english')).resolves.toBeUndefined()
+    })
+
+    it('required 失败时应 reject 结构化错误', async () => {
+      const vm = {
+        editableData: { r1: { english: '' } },
+        rules: {
+          r1: {
+            english: [{ required: true, message: '请输入!' }],
+          },
+        },
+      }
+      await expect(validateEditableCell(vm, 'r1', 'english')).rejects.toMatchObject({
+        errorMessage: '请输入!',
+      })
+    })
+
+    it('validator 超长失败时应 reject errorMessage', async () => {
+      const vm = {
+        editableData: { r1: { english: 'x'.repeat(20) } },
+        rules: {
+          r1: {
+            english: [
+              {
+                validator: async (_rule, value) => {
+                  if (value.length > 10) {
+                    return Promise.reject('允许最大字符数为10！')
+                  }
+                },
+              },
+            ],
+          },
+        },
+      }
+      await expect(validateEditableCell(vm, 'r1', 'english')).rejects.toMatchObject({
+        errorMessage: '允许最大字符数为10！',
+      })
+    })
+  })
+
+  describe('setCellError / clearCellError', () => {
+    it('应写入并清除单元格错误', () => {
+      const vm = { cellErrors: {} }
+      setCellError(vm, 'r1', 'english', '错误')
+      expect(vm.cellErrors.r1.english).toBe('错误')
+      clearCellError(vm, 'r1', 'english')
+      expect(vm.cellErrors.r1).toBeUndefined()
+    })
+  })
+
+  describe('onEditableCellInput', () => {
+    it('值变化时应写入 editableData 并清除 cellError', () => {
+      const vm = {
+        editableData: { r1: { english: 'old' } },
+        cellErrors: { r1: { english: '旧错误' } },
+      }
+      onEditableCellInput(vm, 'r1', 'english', 'new')
+      expect(vm.editableData.r1.english).toBe('new')
+      expect(vm.cellErrors.r1).toBeUndefined()
+    })
+
+    it('同值回放时不应清除 cellError', () => {
+      const vm = {
+        editableData: { r1: { english: 'bad' } },
+        cellErrors: { r1: { english: '允许最大字符数为20' } },
+      }
+      onEditableCellInput(vm, 'r1', 'english', 'bad')
+      expect(vm.editableData.r1.english).toBe('bad')
+      expect(vm.cellErrors.r1.english).toBe('允许最大字符数为20')
+    })
+  })
+
+  describe('clearCellErrorsForRecords', () => {
+    it('应批量清除指定行错误', () => {
+      const vm = {
+        cellErrors: {
+          r1: { english: 'e1' },
+          r2: { english: 'e2' },
+        },
+      }
+      clearCellErrorsForRecords(vm, ['r1'])
+      expect(vm.cellErrors.r1).toBeUndefined()
+      expect(vm.cellErrors.r2.english).toBe('e2')
+    })
+  })
+
+  describe('applyCellValidationAfterOpenEdit', () => {
+    it('校验失败应写入 cellErrors 且不 throw', async () => {
+      const vm = {
+        editableData: { r1: { english: '' } },
+        rules: {
+          r1: {
+            english: [{ required: true, message: '请输入!' }],
+          },
+        },
+        cellErrors: {},
+      }
+      await expect(
+        applyCellValidationAfterOpenEdit(vm, 'r1', 'english')
+      ).resolves.toBeUndefined()
+      expect(vm.cellErrors.r1.english).toBe('请输入!')
+    })
+
+    it('校验通过应清除对应 cellError', async () => {
+      const vm = {
+        editableData: { r1: { english: 'ok' } },
+        rules: { r1: {} },
+        cellErrors: { r1: { english: '旧错误' } },
+      }
+      await applyCellValidationAfterOpenEdit(vm, 'r1', 'english')
+      expect(vm.cellErrors.r1).toBeUndefined()
+    })
+  })
+
+  describe('verifyArray_workbench', () => {
+    it('长度失败行应 openSetEdit 并写入 cellErrors', async () => {
+      const record = {
+        id: 'r-long',
+        entry: 'test',
+        english: 'a'.repeat(30),
+        maxLength: 20,
+      }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        showEditOperation: vi.fn(),
+      }
+      const arr = await verifyArray_workbench(vm, [record], 'english', ['toLong'])
+      expect(arr.errorIds.has('r-long')).toBe(true)
+      expect(vm.editableData['r-long']).toBeDefined()
+      expect(vm.cellErrors['r-long']?.english).toContain('允许最大字符数为20')
+      expect(vm.showEditOperation).toHaveBeenCalled()
+    })
+
+    it('未传 verifyMethods 且 rulesOptions 关闭 special 时不调 API、不进编辑态', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r-special' }] })
+
+      const record = {
+        id: 'r-special',
+        entry: 'Press %1 to continue',
+        english: 'Press % 1 to continue',
+      }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        rulesOptions: [
+          { key: 'special', checked: false },
+          { key: 'toLong', checked: true },
+        ],
+        showEditOperation: vi.fn(),
+      }
+      const arr = await verifyArray_workbench(vm, [record], 'english')
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(arr.acceptIds.has('r-special')).toBe(true)
+      expect(arr.errorIds.has('r-special')).toBe(false)
+      expect(vm.editableData['r-special']).toBeUndefined()
+      expect(vm.cellErrors['r-special']).toBeUndefined()
+      expect(vm.showEditOperation).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('verifyArray_workbench_page rulesOptions SSOT', () => {
+    it('未传 verifyMethods 且 special 未勾选时不调 API', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: '1' }] })
+
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [
+          { id: '1', entry: 'Press %1', english: 'Press % 1' },
+          { id: '2', entry: 'ok', english: 'ok' },
+        ],
+        rulesOptions: [
+          { key: 'special', checked: false },
+          { key: 'toLong', checked: true },
+        ],
+        showEditOperation: vi.fn(),
+      }
+      await verifyArray_workbench_page({ current: 1, pageSize: 10 }, 'english', vm)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(vm.editableData['1']).toBeUndefined()
+    })
+  })
+
   describe('useRefRules', () => {
+    it('传入 vm 与 columnValue 时应走命令式 validateEditableCell', async () => {
+      const vm = {
+        editableData: { 'entry-1': { english: '' } },
+        rules: {
+          'entry-1': {
+            english: [{ required: true, message: '请输入!' }],
+          },
+        },
+      }
+      await expect(
+        useRefRules({}, 'formentry1english', 'english', vm)
+      ).rejects.toMatchObject({ errorMessage: '请输入!' })
+    })
+
     it('应该在验证成功时返回 resolved Promise', async () => {
       const refs = {
         'form1': {
@@ -265,6 +485,50 @@ describe('validationUtils - 表单校验工具函数', () => {
       const refs = {}
 
       await expect(useRefRules(refs, 'form1')).rejects.toThrow('未找到 ref 名称为 "form1" 的表单引用')
+    })
+  })
+
+  describe('isBlankTranslation', () => {
+    it('null / undefined / "" / 纯空白 均视为空白', () => {
+      expect(isBlankTranslation(null)).toBe(true)
+      expect(isBlankTranslation(undefined)).toBe(true)
+      expect(isBlankTranslation('')).toBe(true)
+      expect(isBlankTranslation('   ')).toBe(true)
+    })
+    it('有实际字符返回 false', () => {
+      expect(isBlankTranslation('hello')).toBe(false)
+      expect(isBlankTranslation(' x ')).toBe(false)
+    })
+  })
+
+  describe('validateEditableCell 空白翻译早退', () => {
+    it('非 required 规则 + 空白值 → 直接通过不触发 validator', async () => {
+      const vm = {
+        rules: { r1: { english: [{ validator: vi.fn().mockRejectedValue('fail') }] } },
+        editableData: { r1: { english: '' } },
+        cellErrors: {},
+      }
+      await validateEditableCell(vm, 'r1', 'english')
+      expect(vm.rules.r1.english[0].validator).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('verifyArray_workbench 空白翻译跳过', () => {
+    it('空白翻译行直接进入 acceptIds，不调用 API', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [] })
+
+      const vm = {
+        editableData: { r1: { english: '' } },
+        cellErrors: {},
+        rules: {},
+        dataSource: [],
+      }
+      const array = [{ id: 'r1', entry: 'test', english: '', maxByte: 100 }]
+      const result = await verifyArray_workbench(vm, array, 'english', ['toLong', 'special'])
+      expect(result.acceptIds.has('r1')).toBe(true)
+      expect(result.errorIds.has('r1')).toBe(false)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
     })
   })
 })

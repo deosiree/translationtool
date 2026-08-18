@@ -6,7 +6,6 @@
     @click.stop
     @compositionstart="onCompositionStart"
     @compositionend="onCompositionEnd"
-    @blur="onBlur"
   />
 </template>
 
@@ -46,6 +45,10 @@ export default {
         this.innerValue = newVal ?? "";
       }
     },
+    innerValue(newVal) {
+      if (this.isComposing) return;
+      this.$emit("update:value", newVal ?? "");
+    },
   },
   methods: {
     onCompositionStart() {
@@ -53,15 +56,8 @@ export default {
     },
     onCompositionEnd(event) {
       this.isComposing = false;
-      const v =
+      this.innerValue =
         (event && event.target && event.target.value) ?? this.innerValue ?? "";
-      this.innerValue = v;
-      this.$emit("update:value", v);
-    },
-    onBlur() {
-      if (!this.isComposing) {
-        this.$emit("update:value", this.innerValue ?? "");
-      }
     },
   },
 };

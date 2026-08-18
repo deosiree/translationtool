@@ -116,7 +116,7 @@
         <div style="width: 100%; position: absolute">
           <a-table
             bordered
-            class="ant-table-striped"
+            class="ant-table-striped table-cell-overflow"
             :columns="columns"
             :data-source="dataSource"
             :row-key="(record) => record.id"
@@ -137,29 +137,34 @@
                 : null
             "
           >
+            <template #headerCell="{ title, column }">
+              <CellOverflowTooltip v-if="column.colValue" :content="title">
+                {{ title }}
+              </CellOverflowTooltip>
+            </template>
             <template #bodyCell="{ column, record, text }">
               <template v-if="column.dataIndex === 'translate'">
-                <div>
-                  <template v-if="editableData[record.id]">
-                    <!-- <a-input v-model:value="editableData[record.id][column.dataIndex]" @pressEnter="editOK(record)" style="margin: -5px 0"
-                        @click="clickInput" :ref="el => inputRefs[record.id] = el" /> -->
-                    <Input
-                      :value="editableData[record.id]?.[column.dataIndex] ?? ''"
-                      @update:value="
-                        (val) => handleTranslateChange(val, record, column)
-                      "
-                      @pressEnter="editOK(record)"
-                    />
-                  </template>
-                  <template v-else>
+                <template v-if="editableData[record.id]">
+                  <TextArea
+                    :value="editableData[record.id]?.[column.dataIndex] ?? ''"
+                    @update:value="
+                      (val) => handleTranslateChange(val, record, column)
+                    "
+                    :autoSize="{ minRows: 1, maxRows: 5 }"
+                  />
+                </template>
+                <template v-else>
+                  <CellOverflowTooltip :content="formatCellText(text)">
                     <span @dblclick="dbclickEdited(record.id)">{{ text }}</span>
-                  </template>
-                </div>
+                  </CellOverflowTooltip>
+                </template>
               </template>
-              <template v-if="column.dataIndex === 'translateState'">
-                <TransStateBadge :translateState="text" />
+              <template v-else-if="column.dataIndex === 'translateState'">
+                <CellOverflowTooltip :content="translateStateLabel(text)">
+                  <TransStateBadge :translateState="text" />
+                </CellOverflowTooltip>
               </template>
-              <template v-if="column.dataIndex === 'operation'">
+              <template v-else-if="column.dataIndex === 'operation'">
                 <div class="editable-row-operations">
                   <span v-if="editableData[record.id]">
                     <a-button
@@ -189,6 +194,9 @@
                   </span>
                 </div>
               </template>
+              <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
+                <CellOverflowTooltip :content="formatCellText(text)" />
+              </template>
             </template>
           </a-table>
         </div>
@@ -212,8 +220,12 @@ import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
 import Input from "@/components/cellEditor/input_IME.vue";
+import TextArea from "@/components/cellEditor/textarea_IME.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatCellText } from "@/components/table/cellText";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import { cloneDeep, flatMap } from "lodash-es";
+import { onEditableCellInput } from "@/utils/validationUtils";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -265,6 +277,8 @@ export default {
     TransStateBadge,
     RelationModal,
     Input,
+    TextArea,
+    CellOverflowTooltip,
     ColumnFilter,
     PlusOutlined,
     DeleteOutlined,
@@ -355,6 +369,7 @@ export default {
         colPrefName: "colPref-glossary",
         normalWidth: 150,
         needFilter: false,
+        lockCellSize: true,
       });
       /** 控制table的高度 */
       window.onresize = function () {
@@ -577,6 +592,16 @@ export default {
     cancel(id) {
       delete this.editableData[id];
     },
+    formatCellText,
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
+    },
     // 回车编辑框
     editOK(record) {
       this.save(record.id);
@@ -584,11 +609,7 @@ export default {
       // delete this.editableData[record.id];
     },
     handleTranslateChange(value, record, column) {
-      // 行已经不在编辑态了，直接忽略，避免给 undefined 赋值
-      if (!this.editableData[record.id]) return;
-
-      // 只更新当前列，比如 translate
-      this.editableData[record.id][column.dataIndex] = value;
+      onEditableCellInput(this, record.id, column.dataIndex, value);
     },
     // 查看详情
     viewRelation(record) {

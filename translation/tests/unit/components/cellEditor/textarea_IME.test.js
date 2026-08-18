@@ -62,6 +62,42 @@ describe("TextAreaIME", () => {
     await wrapper.setProps({ value: "external" });
     expect(wrapper.vm.innerValue).toBe("a");
     wrapper.vm.onCompositionEnd({ target: { value: "abc" } });
+    await wrapper.vm.$nextTick();
     expect(wrapper.emitted("update:value")?.pop()).toEqual(["abc"]);
+  });
+
+  it("innerValue 变化时立即 emit update:value", async () => {
+    wrapper = mount(TextAreaIME, {
+      props: { value: "" },
+      global: {
+        stubs: { "a-textarea": TextareaStub },
+      },
+    });
+    wrapper.vm.innerValue = "hello";
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("update:value")?.slice(-1)[0]).toEqual(["hello"]);
+  });
+
+  it("组合输入期间 innerValue 变化不 emit", async () => {
+    wrapper = mount(TextAreaIME, {
+      props: { value: "" },
+      global: {
+        stubs: { "a-textarea": TextareaStub },
+      },
+    });
+    wrapper.vm.onCompositionStart();
+    wrapper.vm.innerValue = "pin";
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("update:value")).toBeUndefined();
+  });
+
+  it("不再提供 onBlur 同步", () => {
+    wrapper = mount(TextAreaIME, {
+      props: { value: "a" },
+      global: {
+        stubs: { "a-textarea": TextareaStub },
+      },
+    });
+    expect(wrapper.vm.onBlur).toBeUndefined();
   });
 });

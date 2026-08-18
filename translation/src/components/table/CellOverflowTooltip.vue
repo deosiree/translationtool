@@ -29,7 +29,7 @@ export default {
     },
     emptyText: {
       type: String,
-      default: "-",
+      default: "",
     },
   },
   data() {

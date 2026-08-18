@@ -441,12 +441,14 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
       },
     ]
     wrapper.vm.columns = [
+      { dataIndex: 'index', title: '序号', colValue: 'index' },
       { dataIndex: 'entry', title: '词条', colValue: 'entry' },
       { dataIndex: 'english', title: '英文', colValue: 'english' },
       { dataIndex: 'comment', title: 'comment', colValue: 'comment' },
     ]
     await nextTick()
     expect(wrapper.findAll('.cell-overflow-tooltip-stub').length).toBeGreaterThan(0)
+    expect(wrapper.find('[data-col="index"]').find('.cell-overflow-tooltip-stub').exists()).toBe(false)
   })
 
   it('编辑态 entry/translate 使用 TextArea 且传 autoSize.maxRows，不包浏览 Tooltip', async () => {

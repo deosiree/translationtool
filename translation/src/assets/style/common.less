@@ -116,6 +116,46 @@
   border-color: #FBB31F
 }
 
+.table-cell-overflow {
+  .ant-table-cell {
+    overflow: hidden;
+  }
+  .cell-overflow-tooltip {
+    display: block;
+    max-width: 100%;
+  }
+  .table-cell-editor {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .table-cell-editor-error {
+    margin-top: 2px;
+    color: #ff4d4f;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .table-cell-editor--error textarea.ant-input {
+    border-color: #ff4d4f;
+  }
+  .table-cell-editor .ant-input-textarea,
+  .ant-table-cell .ant-input-textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .ant-table-cell textarea.ant-input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    word-break: break-word;
+    overflow-x: auto;
+  }
+}
+
 .tag-content {
   // tag标签显示的样式（超出容器90%的会缩略，悬浮会换行显示，拖拽表格也可以显示完全）
   max-width: 90%;

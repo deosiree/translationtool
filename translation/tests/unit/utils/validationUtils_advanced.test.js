@@ -130,6 +130,24 @@ describe('validationUtils - 高级校验功能', () => {
       const callArgs = checkSykEntryBeforeSave.mock.calls[0][0]
       expect(callArgs.length).toBeLessThanOrEqual(2) // 最多2条数据
     })
+
+    it('rulesOptions 关闭 special 时不应调用 checkSykEntryBeforeSave', async () => {
+      mockVm.dataSource = [
+        { id: '1', entry: 'Press %1', english: 'Press % 1', classfy1: 'category1' },
+        { id: '2', entry: 'test2', english: 'test2', classfy1: 'category1' },
+      ]
+      mockVm.rulesOptions = [
+        { key: 'special', checked: false },
+        { key: 'toLong', checked: true },
+      ]
+      const pagination = { current: 1, pageSize: 2 }
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: '1' }] })
+
+      await verifyArray_workbench_page(pagination, 'english', mockVm)
+
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(mockVm.editableData['1']).toBeUndefined()
+    })
   })
 
   describe('verifyRecord_entry', () => {

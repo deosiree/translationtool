@@ -457,7 +457,7 @@
           <a-config-provider :locale="locale">
             <a-table
               bordered
-              class="ant-table-striped"
+              class="ant-table-striped table-cell-overflow"
               :columns="columns"
               :data-source="dataSource"
               :row-selection="
@@ -489,25 +489,11 @@
               <template #bodyCell="{ column, record, text }">
                 <template v-if="column.dataIndex === 'entry'">
                   <template v-if="editableData[record.id]">
-                    <a-form
-                      :model="editableData[record.id]"
-                      :rules="rules[record.id]"
-                      :ref="
-                        'form' +
-                        record.id.replaceAll('-', '') +
-                        column.dataIndex
-                      "
-                      autocomplete="off"
-                    >
-                      <a-form-item :name="column.dataIndex">
-                        <TextArea
-                          v-model:value="
-                            editableData[record.id][column.dataIndex]
-                          "
-                          :autoSize="{ minRows: 1, maxRows: 5 }"
-                        />
-                      </a-form-item>
-                    </a-form>
+                    <TableCellTextArea
+                      :value="editableData[record.id][column.dataIndex] ?? ''"
+                      @update:value="(val) => onCellInput(val, record, column)"
+                      :error-message="cellErrors[record.id]?.[column.dataIndex]"
+                    />
                   </template>
                   <template v-else>
                     <CellOverflowTooltip :content="formatEntryText(text)">
@@ -516,40 +502,13 @@
                   </template>
                 </template>
                 <template
-                  v-else-if="translateColumn.includes(column.dataIndex)"
+                  v-else-if="editableTextAreaColumns.includes(column.dataIndex)"
                 >
                   <template v-if="editableData[record.id]">
-                    <a-form
-                      :model="editableData[record.id]"
-                      :rules="rules[record.id]"
-                      :ref="
-                        'form' +
-                        record.id.replaceAll('-', '') +
-                        column.dataIndex
-                      "
-                      autocomplete="off"
-                    >
-                      <a-form-item :name="column.dataIndex">
-                        <TextArea
-                          v-model:value="
-                            editableData[record.id][column.dataIndex]
-                          "
-                          :autoSize="{ minRows: 1, maxRows: 5 }"
-                        />
-                      </a-form-item>
-                    </a-form>
-                  </template>
-                  <template v-else>
-                    <CellOverflowTooltip :content="formatCellText(text)" />
-                  </template>
-                </template>
-                <template
-                  v-else-if="textareaInputColumn.includes(column.dataIndex)"
-                >
-                  <template v-if="editableData[record.id]">
-                    <TextArea
-                      v-model:value="editableData[record.id][column.dataIndex]"
-                      :autoSize="{ minRows: 1, maxRows: 5 }"
+                    <TableCellTextArea
+                      :value="editableData[record.id][column.dataIndex] ?? ''"
+                      @update:value="(val) => onCellInput(val, record, column)"
+                      :error-message="cellErrors[record.id]?.[column.dataIndex]"
                     />
                   </template>
                   <template v-else>
@@ -709,7 +668,7 @@
                     </span>
                   </div>
                 </template>
-                <template v-else-if="column.dataIndex">
+                <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
                   <CellOverflowTooltip :content="formatCellText(text)" />
                 </template>
               </template>
@@ -952,14 +911,14 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
-import TextArea from "@/components/cellEditor/textarea_IME.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import Input from "@/components/cellEditor/input_IME.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
 import Dictionary from "@/views/entry/dictionary.vue";
-import { message, Modal, notification } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
 import { getLanguage } from "@/http/api/translate";
@@ -1020,13 +979,17 @@ import {
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { normalizeEditableRow } from "@/utils/dataUtils";
+import { formatEntryText, formatCellText } from "@/components/table/cellText";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import {
   byteLength,
   getMaxLength,
   setRefRules,
-  useRefRules,
+  validateEditableCell,
+  setCellError,
+  clearCellError,
   openSetEdit,
+  onEditableCellInput,
 } from "@/utils/validationUtils";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
@@ -1047,7 +1010,7 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
-    TextArea,
+    TableCellTextArea,
     Input,
     CellOverflowTooltip,
     EditReason,
@@ -1181,6 +1144,7 @@ export default {
       selectEntry: [], // 已选词条（可能会跨产品，还涉及了分页）
       createVisible: false,
       rules: {},
+      cellErrors: {},
       batchSelectFlag: false,
       classify1Option: [],
       secondClassifyVisible: false,
@@ -1207,6 +1171,14 @@ export default {
   },
   created() {
     this.applyColumnPreference();
+  },
+  computed: {
+    editableTextAreaColumns() {
+      return [
+        ...(this.translateColumn || []),
+        ...(this.textareaInputColumn || []),
+      ];
+    },
   },
   mounted() {
     this.$nextTick(() => {
@@ -1776,13 +1748,17 @@ export default {
             );
             let cols = new Set(this.columns.map((item) => item.dataIndex));
             for (const col of ["entry", ...commonParam.langValList]) {
-              // 对应的每一列都校验一遍
-              if (record[col] && cols.has(col)) {
-                // 对应列有值且展示了对应列（展示的才有表单引用）
-                useRefRules(
-                  this.$refs,
-                  `form${record.id.replaceAll("-", "")}${col}`
-                );
+              if (record[col] && cols.has(col) && this.rules[record.id]?.[col]) {
+                try {
+                  await validateEditableCell(this, record.id, col);
+                } catch (err) {
+                  setCellError(
+                    this,
+                    record.id,
+                    col,
+                    err.errorMessage || String(err)
+                  );
+                }
               }
             }
             // this.editableData[record.id] = cloneDeep(
@@ -1891,25 +1867,32 @@ export default {
         this.pagination.pageSize = this.pagination.pageSize - 1;
       }
     },
+    onCellInput(value, record, column) {
+      onEditableCellInput(this, record.id, column.dataIndex, value);
+    },
     // 编辑-保存
     async editSave(id) {
       const validateArrSum = ["entry", ...commonParam.langValList];
-      const formRefNameList = [];
-      this.columns.forEach((column) => {
-        if (validateArrSum.includes(column.dataIndex)) {
-          formRefNameList.push({
-            refName: `form${id.replaceAll("-", "")}${column.dataIndex}`,
-            columnValue: column.dataIndex,
-          });
+      const columnKeys = this.columns
+        .map((column) => column.dataIndex)
+        .filter((key) => validateArrSum.includes(key));
+
+      for (const columnValue of columnKeys) {
+        if (!this.rules[id]?.[columnValue]) continue;
+        try {
+          await validateEditableCell(this, id, columnValue);
+        } catch (err) {
+          setCellError(
+            this,
+            id,
+            columnValue,
+            err.errorMessage || String(err)
+          );
+          return;
         }
-      });
-      try {
-        for (const { refName, columnValue } of formRefNameList) {
-          // 使用校验规则
-          await useRefRules(this.$refs, refName, columnValue);
-        }
-        // 所有表单校验通过，执行后续逻辑
-        if (id.startsWith("new") || id.startsWith("copy")) {
+      }
+
+      if (id.startsWith("new") || id.startsWith("copy")) {
           // 新增词条/升级词条
           addSingleEntry(this.prepareEntryForSave(this.editableData[id])).then(
             (res) => {
@@ -1932,84 +1915,8 @@ export default {
           (item) => item.id === id
         );
         if (selectedIndex !== -1) {
-          // 更新选中行数据
           this.selectedRows[selectedIndex] = { ...this.editableData[id] };
         }
-      } catch (err) {
-        console.error(err);
-        // 校验失败：用 notification.error 聚合展示（兼容 string/object/array）
-        const normalizeErrors = (e) => {
-          if (!e) return [];
-          if (typeof e === "string")
-            return [{ columnName: "", errorMessage: e }];
-          if (Array.isArray(e)) return e;
-          if (typeof e === "object") return [e];
-          return [{ columnName: "", errorMessage: String(e) }];
-        };
-        const errorList = normalizeErrors(err).filter(Boolean);
-        const description = errorList
-          .map((item) => {
-            const col = item.columnName ? `${item.columnName}：` : "";
-            const msg = item.errorMessage || item.message || "";
-            return `${col}${msg}`;
-          })
-          .filter(Boolean)
-          .join("\n");
-        notification.error({
-          message: "校验失败",
-          description: description || "请检查输入内容",
-          duration: 5,
-        });
-        // 阻止后续保存
-        return;
-      }
-
-      // // 校验字段长度是否超限
-      // let flagArr = ["entry", ...commonParam.langValList];
-      // let list = [];
-      // this.columns.forEach((column) => {
-      //   if (flagArr.includes(column.dataIndex)) {
-      //     list.push(
-      //       eval(
-      //         "this.$refs.form" + id.replaceAll("-", "") + column.dataIndex
-      //       ).validate()
-      //     );
-      //   }
-      // });
-      // Promise.all(list)
-      //   .then(() => {
-      //     // 校验成功
-      //     if (id.startsWith("new") || id.startsWith("copy")) {
-      //       // 新增词条/升级词条
-      //       addSingleEntry(this.editableData[id]).then((res) => {
-      //         message.success("新增成功!");
-      //         // this.getEntryByClassfy()
-      //         let index = this.dataSource.findIndex((item) => item.id === id);
-      //         this.dataSource.splice(index, 1);
-      //         this.dataSource.splice(index, 0, res.data);
-      //         delete this.editableData[id];
-      //         delete this.rowClassify2Option[id];
-      //         this.pagination.total = this.pagination.total + 1;
-      //       });
-      //     } else {
-      //       this.editEntry = [this.editableData[id]];
-      //       this.editVisible = true;
-      //       setModalAriaHidden(this, document);
-      //     }
-
-      //     // 更新选中的值
-      //     const selectedIndex = this.selectedRows.findIndex(
-      //       (item) => item.id === id
-      //     );
-      //     if (selectedIndex !== -1) {
-      //       // 更新选中行数据
-      //       this.selectedRows[selectedIndex] = { ...this.editableData[id] };
-      //     }
-      //   })
-      //   .catch((err) => {
-      //     // console.log(err,"保存失败")
-      //     // message.error(err.message);校验不通过，不用弹窗提示，通过ref进行提示
-      //   });
     },
     // 批量保存
     batchSave() {
@@ -2478,14 +2385,8 @@ export default {
       }
       return payload;
     },
-    formatEntryText(text) {
-      if (text == null || text === "") return "";
-      return String(text).replace(/\n/g, "\\n");
-    },
-    formatCellText(text) {
-      if (text == null || text === "") return "";
-      return String(text);
-    },
+    formatEntryText,
+    formatCellText,
     formatTagText(text) {
       return this.companyCut(text).join("; ");
     },
@@ -2648,36 +2549,8 @@ export default {
   }
 }
 
-.ant-table-cell .ant-form-item {
-  margin-bottom: 0%;
-}
-
-:deep(.ant-table-cell) {
-  overflow: hidden;
-}
-
-:deep(.cell-overflow-tooltip) {
-  display: block;
-  max-width: 100%;
-}
-
 :deep(.tag-content:hover) {
   white-space: nowrap;
-}
-
-:deep(.ant-table-cell .ant-form-item-control-input),
-:deep(.ant-table-cell .ant-input-textarea) {
-  min-width: 0;
-  max-width: 100%;
-}
-
-:deep(.ant-table-cell textarea.ant-input) {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  resize: none;
-  word-break: break-word;
-  overflow-x: auto;
 }
 
 :deep(.ant-pagination) {

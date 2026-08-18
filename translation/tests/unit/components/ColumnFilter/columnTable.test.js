@@ -40,6 +40,16 @@ describe('columnBuilder', () => {
     expect(col.colValue).toBe('entry')
   })
 
+  it('buildCol abbr 不应 fixed right', () => {
+    const col = buildCol({ label: 'abbr', value: 'abbr', index: 23 }, {}, 100)
+    expect(col.fixed).toBeUndefined()
+  })
+
+  it('buildCol operation 仍应 fixed right', () => {
+    const col = buildCol({ label: '操作', value: 'operation', index: 100 }, {}, 100)
+    expect(col.fixed).toBe('right')
+  })
+
   it('buildCol 在 needFilter 时为 entrySource 添加筛选', () => {
     const col = buildCol(
       { label: '词条来源', value: 'entrySource', index: 2 },

@@ -36,57 +36,48 @@
       </template>
       <template v-slot:data>
         <div style="width:100%;position: absolute;">
-          <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
+          <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource"
             :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" :row-key="record => record.id" :scroll="tableHeight"
             :pagination='false' :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn"
             :customRow="customRow">
+            <template #headerCell="{ title, column }">
+              <CellOverflowTooltip v-if="column.dataIndex && column.dataIndex !== 'operation'" :content="title">
+                {{ title }}
+              </CellOverflowTooltip>
+            </template>
             <template #bodyCell="{ column, text, record }">
-              <template v-if="['translate', 'unique', 'remark'].includes(column.dataIndex)">
-                <div>
-                  <template v-if="editableData[record.id]">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </div>
+              <template v-if="column.dataIndex === 'entry' || column.dataIndex === 'type'">
+                <CellOverflowTooltip :content="formatCellText(text)" />
               </template>
-              <!-- <template v-else-if="column.dataIndex === 'type'">
-                                <div>
-                                    <template v-if="editableData[record.id]">
-                                        <a-select
-                                        v-model:value="editableData[record.id][column.dataIndex]"
-                                        style="width: 100%"
-                                        placeholder="请选择内容"
-                                        :options='translateTypes'
-                                        :fieldNames="{label:'name',value:'name'}"
-                                        >
-                                        </a-select>
-                                    </template>
-                                    <template v-else>
-                                        {{ text }}
-                                    </template>
-                                </div>
-                            </template> -->
+              <template v-else-if="column.dataIndex === 'translate' || column.dataIndex === 'remark'">
+                <template v-if="editableData[record.id]">
+                  <TextArea
+                    v-model:value="editableData[record.id][column.dataIndex]"
+                    :autoSize="{ minRows: 1, maxRows: 5 }"
+                  />
+                </template>
+                <template v-else>
+                  <CellOverflowTooltip :content="formatCellText(text)" />
+                </template>
+              </template>
+              <template v-else-if="column.dataIndex === 'unique'">
+                <template v-if="editableData[record.id]">
+                  <InputIME v-model:value="editableData[record.id][column.dataIndex]" />
+                </template>
+                <template v-else>
+                  <CellOverflowTooltip :content="formatCellText(text)" />
+                </template>
+              </template>
               <template v-else-if="column.dataIndex === 'operation'">
                 <div class="editable-row-operations">
                   <span v-if="editableData[record.id]">
                     <a-button type="primary" ghost size="small" @click.stop="save(record)">保存</a-button>
                     <a-button type="primary" ghost size="small" danger @click.stop="cancel(record)">取消</a-button>
-                    <!-- <a-tooltip placement="top">
-                                            <template #title>
-                                            <span>保存</span>
-                                            </template>
-                                            <CheckOutlined style="color:#369FFF;margin-left:8px" @click="save(record)"/>
-                                        </a-tooltip>
-                                        <a-tooltip placement="top">
-                                            <template #title>
-                                            <span>取消</span>
-                                            </template>
-                                            <CloseOutlined style="color:red;margin-left:8px" @click="cancel(record)"/>
-                                        </a-tooltip> -->
                   </span>
                 </div>
+              </template>
+              <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
+                <CellOverflowTooltip :content="formatCellText(text)" />
               </template>
             </template>
           </a-table>
@@ -116,6 +107,12 @@ import { getLanguage } from "@/http/api/translate";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { setTableHeight } from "@/utils/tableUtils";
+import InputIME from "@/components/cellEditor/input_IME.vue";
+import TextArea from "@/components/cellEditor/textarea_IME.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatCellText } from "@/components/table/cellText";
+import { applyLockCellSize } from "@/components/ColumnFilter";
+import "@/assets/style/common.less";
 export default {
   components: {
     SearchBox,
@@ -126,6 +123,9 @@ export default {
     CheckOutlined,
     CloseOutlined,
     ExclamationCircleOutlined,
+    InputIME,
+    TextArea,
+    CellOverflowTooltip,
   },
   emits: [],
   props: {
@@ -205,7 +205,9 @@ export default {
     };
   },
 
-  created() {},
+  created() {
+    this.columns = this.columns.map((col) => applyLockCellSize(col));
+  },
   mounted() {
     this.box = this.boxHeight;
     this.common = this.currentCommon;
@@ -228,6 +230,7 @@ export default {
     },
   },
   methods: {
+    formatCellText,
     init() {
       // console.log(this.common)
       this.getLanguage();
@@ -294,12 +297,12 @@ export default {
                 (item) => item.dataIndex === "operation"
               ) === -1
             ) {
-              let operation = {
+              let operation = applyLockCellSize({
                 title: "操作",
                 dataIndex: "operation",
                 align: "center",
                 width: 80,
-              };
+              });
               this.columns.push(operation);
             }
           }
