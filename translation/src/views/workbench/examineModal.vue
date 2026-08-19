@@ -155,6 +155,21 @@
               </span>
             </div>
           </template>
+          <template v-else-if="column.dataIndex === 'maxLength'">
+            <template v-if="editableData[record.id]">
+              <a-input-number
+                v-model:value="editableData[record.id].maxLength"
+                :min="0"
+                :precision="0"
+                style="width: 100%"
+                placeholder="0 表示无限制"
+                @change="(val) => onCellInput(val, record, column)"
+              />
+            </template>
+            <template v-else>
+              <CellOverflowTooltip :content="formatMaxLengthText(text)" />
+            </template>
+          </template>
           <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
             <CellOverflowTooltip :content="formatCellText(text)" />
           </template>
@@ -217,7 +232,7 @@ import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
-import { formatEntryText, formatCellText } from "@/components/table/cellText";
+import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { cloneDeep, iteratee } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -262,7 +277,6 @@ import { interpretation2value } from "@/utils/translationUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
 import {
-  byteLength,
   onEditableCellInput,
   clearCellErrorsForRecords,
   openSetEdit,
@@ -270,6 +284,7 @@ import {
   classifyArr,
   openFailRows,
   revalidateLoaded,
+  verifyArray_workbench_page,
   saveEdit,
   cancelEdit,
   // as 别名：避免 methods 里同名递归
@@ -379,7 +394,7 @@ export default {
   mounted() {  },
   computed: {
     editableTextAreaColumns() {
-      const dedicatedInputCols = ["diFileName", "tag"];
+      const dedicatedInputCols = ["diFileName", "tag", "maxLength"];
       return [
         ...(this.editList_needValidate || []),
         ...(this.editList || []),
@@ -450,6 +465,7 @@ export default {
     },
     formatEntryText,
     formatCellText,
+    formatMaxLengthText,
     formatTagText(text) {
       return this.companyCut(text).join("; ");
     },
@@ -793,47 +809,6 @@ export default {
         },
       };
     },
-    // 校验输入数据的长度
-    vilidFildLength(record, language) {
-      // console.log("校验语种：",language)
-      return (rule, value) => {
-        let type = "";
-        if (language === "chinese") {
-          type = "maxByte";
-        } else {
-          type = "foreignMaxByte";
-        }
-        let maxLength = null;
-        if (
-          this.classifyLimit[record.classfy1] === undefined ||
-          this.classifyLimit[record.classfy1] === null
-        ) {
-          if (record.maxLength != null && record.maxLength != "") {
-            maxLength = record.maxLength;
-            // console.log("maxLength = record.maxLength;", record);
-          } else {
-            return Promise.resolve();
-          }
-        } else {
-          maxLength = this.classifyLimit[record.classfy1][type];
-          // console.log("maxLength = this.classifyLimit[record.classfy1][type];",this.classifyLimit,record.classfy1,type);
-        }
-        if (
-          maxLength === null ||
-          maxLength === "" ||
-          maxLength === undefined ||
-          maxLength === 0
-        ) {
-          return Promise.resolve();
-        }
-        // 获取输入数据的长度
-        let length = byteLength(value);
-        if (length > maxLength) {
-          return Promise.reject("允许最大字符数为" + maxLength + "！");
-        }
-        return Promise.resolve();
-      };
-    },
     // 行内 ✓ / 编辑框回车：公共 saveEdit；本页回写全部字段并置翻译状态为待审核
     async edit(record) {
       const transCol = this.task.transMap.value;
@@ -1005,16 +980,11 @@ export default {
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
-
-      // 翻页时校验已审核数据的长度
-      let data = this.dataSource.slice((page - 1) * pageSize, page * pageSize);
-      let arr = [];
-      data.forEach((item) => {
-        if (item.auditState >= 0) {
-          arr.push(item);
-        }
-      });
-      this.verifyTranslationLength(arr);
+      verifyArray_workbench_page(
+        this.pagination,
+        this.task.transMap.value,
+        this
+      );
     },
     // 语种切换
     filterLanguageChange() {
@@ -1036,70 +1006,6 @@ export default {
         });
         this.selectAllName = "取消全选";
       }
-    },
-    // 校验翻译长度
-    verifyTranslationLength(array) {
-      let flag = 0;
-      array.forEach((record) => {
-        let maxLength = null;
-        if (record.classfy1 === null || record.classfy1 === "") {
-          if (record.maxLength != null && record.maxLength != "") {
-            maxLength = record.maxLength;
-          } else {
-            return;
-          }
-        } else {
-          maxLength = this.classifyLimit[record.classfy1]
-            ? this.classifyLimit[record.classfy1]["foreignMaxByte"]
-            : null;
-        }
-        if (
-          maxLength === null ||
-          maxLength === "" ||
-          maxLength === undefined ||
-          maxLength === 0
-        ) {
-          return;
-        }
-        // 是否编辑中
-        let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][this.task.transMap.value]
-          : record[this.task.transMap.value];
-        // if (common.byteLength(text) > maxLength) {
-        if (byteLength(text) > maxLength) {
-          // 若校验不通过，会调用 addEdit 方法将该词条设为编辑状态，并对其表单进行校验
-          flag++;
-          this.addEdit(record).then((res) => {
-            eval(
-              "this.$refs.form" +
-                record.id.replaceAll("-", "") +
-                this.task.transMap.value
-            )
-              .validate()
-              .then(() => {})
-              .catch((err) => {
-                // message.error("3", err.message);
-              });
-          });
-        }
-      });
-      return flag;
-    },
-    addEdit(record) {
-      this.editableData[record.id] = this.editableData.hasOwnProperty(record.id)
-        ? this.editableData[record.id]
-        : cloneDeep(record);
-      // 设置校验规则
-      this.rules[record.id] = {
-        entry: [
-          { validator: this.vilidFildLength(record, "chinese") },
-          { required: true, message: "请输入!" },
-        ],
-      };
-      this.rules[record.id][this.task.transMap.value] = [
-        { validator: this.vilidFildLength(record, this.task.transMap.value) },
-      ];
-      return Promise.resolve();
     },
     // 表格change事件
     handleTableChange(pagination, filters) {

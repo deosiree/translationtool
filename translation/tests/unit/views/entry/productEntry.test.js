@@ -573,6 +573,20 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
     expect(wrapper.find('[data-col="writeType"]').find('.ant-select-stub').exists()).toBe(true)
   })
 
+  it('浏览态 maxLength 为 0 时 Tooltip 内容留空', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.dataSource = [{ id: 'entry-1', maxLength: 0 }]
+    wrapper.vm.columns = [
+      { dataIndex: 'maxLength', title: '翻译最大长度', colValue: 'maxLength' },
+    ]
+    wrapper.vm.editableData = {}
+    await nextTick()
+    const tip = wrapper.find('[data-col="maxLength"]').findComponent({ name: 'CellOverflowTooltip' })
+    expect(tip.exists()).toBe(true)
+    expect(tip.props('content')).toBe('')
+  })
+
   it('writeTypeOptions 选项 label 为 TS/DI', () => {
     wrapper = mountWithTableStub()
     expect(wrapper.vm.writeTypeOptions).toEqual([

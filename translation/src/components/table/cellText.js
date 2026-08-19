@@ -21,3 +21,15 @@ export function formatCellText(text) {
   if (text == null || text === "") return "";
   return String(text);
 }
+
+/**
+ * 翻译最大长度：0 / "0" / 空视为无限制，浏览态留空
+ * @param {*} text
+ * @returns {string}
+ */
+export function formatMaxLengthText(text) {
+  if (text == null || text === "") return "";
+  const n = Number(text);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  return String(text);
+}

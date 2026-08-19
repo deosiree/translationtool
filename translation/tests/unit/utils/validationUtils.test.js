@@ -175,6 +175,32 @@ describe('validationUtils - 表单校验工具函数', () => {
 
       expect(getMaxLength(record, vm)).toBe(200)
     })
+
+    it('无分类时 maxLength 为 0 或 "0" 应返回 null（无限制）', () => {
+      const vm = { editableData: {} }
+      expect(getMaxLength({ maxLength: 0 }, vm)).toBeNull()
+      expect(getMaxLength({ maxLength: '0' }, vm)).toBeNull()
+    })
+
+    it('模块 foreignMaxByte 为 0 / "0" 应返回 null', () => {
+      const record = { classfy1: 'cat0' }
+      const vm = {
+        editableData: {},
+        classifyLimit: { cat0: { foreignMaxByte: 0, maxByte: '0' } },
+      }
+      expect(getMaxLength(record, vm, 'foreignMaxByte')).toBeNull()
+      expect(getMaxLength(record, vm, 'maxByte')).toBeNull()
+    })
+
+    it('有分类时词条 maxLength=0 仍应用模块 foreignMaxByte', () => {
+      const record = { id: 'r0', classfy1: 'cat', maxLength: 0 }
+      const vm = {
+        editableData: {},
+        classifyLimit: { cat: { foreignMaxByte: 50, maxByte: 30 } },
+      }
+      expect(getMaxLength(record, vm, 'foreignMaxByte')).toBe(50)
+      expect(getMaxLength(record, vm, 'maxByte')).toBe(30)
+    })
   })
 
   describe('setRefRules', () => {
@@ -393,6 +419,34 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(vm.editableData['r-long']).toBeDefined()
       expect(vm.cellErrors['r-long']?.english).toContain('允许最大字符数为20')
       expect(vm.showEditOperation).toHaveBeenCalled()
+    })
+
+    it('maxLength 为 0 或 "0" 时不应判超长', async () => {
+      const makeVm = (maxLength) => {
+        const record = {
+          id: 'r-unlim',
+          entry: 'test',
+          english: 'a'.repeat(30),
+          maxLength,
+        }
+        return {
+          record,
+          vm: {
+            editableData: {},
+            rules: {},
+            cellErrors: {},
+            dataSource: [record],
+            showEditOperation: vi.fn(),
+          },
+        }
+      }
+      for (const maxLength of [0, '0']) {
+        const { record, vm } = makeVm(maxLength)
+        const arr = await verifyArray_workbench(vm, [record], 'english', ['toLong'])
+        expect(arr.acceptIds.has('r-unlim')).toBe(true)
+        expect(arr.errorIds.has('r-unlim')).toBe(false)
+        expect(vm.editableData['r-unlim']).toBeUndefined()
+      }
     })
 
     it('未传 verifyMethods 且 rulesOptions 关闭 special 时不调 API、不进编辑态', async () => {

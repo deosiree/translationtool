@@ -420,6 +420,21 @@
               </span>
             </div>
           </template>
+          <template v-else-if="column.dataIndex === 'maxLength'">
+            <template v-if="editableData[record.id]">
+              <a-input-number
+                v-model:value="editableData[record.id].maxLength"
+                :min="0"
+                :precision="0"
+                style="width: 100%"
+                placeholder="0 表示无限制"
+                @change="(val) => onCellInput(val, record, column)"
+              />
+            </template>
+            <template v-else>
+              <CellOverflowTooltip :content="formatMaxLengthText(text)" />
+            </template>
+          </template>
           <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
             <CellOverflowTooltip :content="formatCellText(text)" />
           </template>
@@ -580,7 +595,7 @@ import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
-import { formatEntryText, formatCellText } from "@/components/table/cellText";
+import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
@@ -794,7 +809,7 @@ export default {
   },
   computed: {
     editableTextAreaColumns() {
-      const dedicatedInputCols = ["diFileName", "tag"];
+      const dedicatedInputCols = ["diFileName", "tag", "maxLength"];
       return [
         ...(this.editList_needValidate || []),
         ...(this.editList || []),
@@ -892,6 +907,7 @@ export default {
     },
     formatEntryText,
     formatCellText,
+    formatMaxLengthText,
     formatTagText(text) {
       return this.companyCut(text).join("; ");
     },

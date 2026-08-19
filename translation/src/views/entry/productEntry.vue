@@ -535,11 +535,11 @@
                       :min="0"
                       :precision="0"
                       style="width: 100%"
-                      placeholder="字节上限"
+                      placeholder="0 表示无限制"
                     />
                   </template>
                   <template v-else>
-                    <CellOverflowTooltip :content="formatCellText(text)" />
+                    <CellOverflowTooltip :content="formatMaxLengthText(text)" />
                   </template>
                 </template>
                 <template v-else-if="column.dataIndex === 'writeType'">
@@ -979,7 +979,7 @@ import {
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { normalizeEditableRow } from "@/utils/dataUtils";
-import { formatEntryText, formatCellText } from "@/components/table/cellText";
+import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import {
   byteLength,
@@ -2406,6 +2406,7 @@ export default {
     },
     formatEntryText,
     formatCellText,
+    formatMaxLengthText,
     formatTagText(text) {
       return this.companyCut(text).join("; ");
     },

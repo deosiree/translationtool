@@ -155,6 +155,21 @@
                 </span>
               </div>
             </template>
+            <template v-else-if="column.dataIndex === 'maxLength'">
+              <template v-if="editableData[record.id]">
+                <a-input-number
+                  v-model:value="editableData[record.id].maxLength"
+                  :min="0"
+                  :precision="0"
+                  style="width: 100%"
+                  placeholder="0 表示无限制"
+                  @change="(val) => onCellInput(val, record, column)"
+                />
+              </template>
+              <template v-else>
+                <CellOverflowTooltip :content="formatMaxLengthText(text)" />
+              </template>
+            </template>
             <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
               <CellOverflowTooltip :content="formatCellText(text)" />
             </template>
@@ -331,7 +346,7 @@ import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
-import { formatEntryText, formatCellText } from "@/components/table/cellText";
+import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
@@ -732,6 +747,7 @@ export default {
     },
     formatEntryText,
     formatCellText,
+    formatMaxLengthText,
     formatTagText(text) {
       return this.companyCut(text).join("; ");
     },
@@ -1107,7 +1123,7 @@ export default {
         },
       };
     },
-    // 行内 ✓ / 编辑-保存：公共 saveEdit；本页只回写翻译列与 transId
+    // 行内 ✓ / 编辑-保存：公共 saveEdit；回写翻译列、transId 与 maxLength
     async editSave(record) {
       const transCol = this.language.value;
       await saveEdit(this, record, {
@@ -1115,6 +1131,7 @@ export default {
         commit: (rec, row) => {
           rec[transCol] = row[transCol];
           rec[this.language.transIdName] = row[this.language.transIdName];
+          rec.maxLength = row.maxLength;
         },
       });
     },

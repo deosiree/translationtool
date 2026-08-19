@@ -52,26 +52,25 @@ export function byteLength(str) {
  * @param {String} colName - 两种最大长度
  * 1. 词条："maxByte"；
  * 2. 翻译（具体语种english,chinese,...）:"foreignMaxByte"
- * @returns {number|null} - 最大长度，如果不存在则返回 null
+ * @returns {number|null} - 正整数上限；0 / "0" / 空 / 非法视为无限制，返回 null
  */
 export function getMaxLength(record_, vm, colName = "foreignMaxByte") {
   let record = record_;
   if (vm.editableData[record.id]) {// 若处于编辑态，则使用编辑态数据
     record = vm.editableData[record.id];
   }
+  let raw;
   if (!record.classfy1) {
-    // console.log("无一级分类", record)
-    return record.maxLength || null;
+    raw = record.maxLength;
+  } else if (colName == "foreignMaxByte") {
+    raw = vm.classifyLimit?.[record.classfy1]?.foreignMaxByte;
+  } else if (colName == "maxByte") {
+    raw = vm.classifyLimit?.[record.classfy1]?.maxByte;
   }
-  // console.log("长度的相关信息：", vm.classifyLimit, record.classfy1, colName)
-  if (colName == "foreignMaxByte") {
-    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.foreignMaxByte);
-    return vm.classifyLimit?.[record.classfy1]?.foreignMaxByte || null;
-  }
-  else if (colName == "maxByte") {
-    // console.log("获取最大长度:", vm.classifyLimit?.[record.classfy1]?.maxByte);
-    return vm.classifyLimit?.[record.classfy1]?.maxByte || null;
-  }
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n;
 }
 
 /**
