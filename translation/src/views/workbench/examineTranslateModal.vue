@@ -16,8 +16,7 @@
           :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
-        <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="pass">通过</a-button>
-        <a-button type="primary" size="small" style="margin-left:8px" class="rejectBtn" @click="reject">驳回</a-button>
+        <AuditButtons @pass="pass" @reject="reject" />
         <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
         <WorkbenchActionGroup inline-offset>
           <WorkbenchColumnActions
@@ -88,14 +87,12 @@
             </CellOverflowTooltip>
           </template>
           <template v-else-if="column.dataIndex === 'operation'">
-            <div class="editable-row-operations">
-              <span>
-                <a-checkable-tag :checked="record.auditState === 1" :class="record.auditState === 1 ? 'passTagChecked' : 'passTag' "
-                  @change="passTagChange(record)">通过</a-checkable-tag>
-                <a-checkable-tag :checked="record.auditState === 0" :class="record.auditState === 0 ? 'rejectTagChecked' : 'rejectTag'"
-                  @change="rejectTagChange(record)">驳回</a-checkable-tag>
-              </span>
-            </div>
+            <AuditTags
+              :audit-state="record.auditState"
+              :disabled="!!record.parentID"
+              @pass="passTagChange(record)"
+              @reject="rejectTagChange(record)"
+            />
           </template>
           <template v-else-if="column.dataIndex === 'editOperation'">
             <div class="editable-row-operations">
@@ -206,6 +203,8 @@ import {
   WorkbenchActionGroup,
   WorkbenchTaskInfo,
   WorkbenchColumnActions,
+  AuditTags,
+  AuditButtons,
 } from "@/components/Workbench";
 import {
   handleResizeColumn,
@@ -277,6 +276,8 @@ export default {
     WorkbenchTaskInfo,
     WorkbenchColumnActions,
     RulesDropdown,
+    AuditTags,
+    AuditButtons,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -924,7 +925,6 @@ export default {
 };
 </script>
 <style scoped lang="less">
-@import "./wb-audit.scss";
 .ant-divider {
   margin: 15px 0;
 }
@@ -938,19 +938,6 @@ export default {
   align-items: flex-start;
   gap: 16px;
   align-self: stretch;
-
-  .rejectBtn {
-    background: #fbb31f;
-    border-color: #fbb31f;
-  }
-  .rejectBtn:hover {
-    background: #fbb31f;
-    border-color: #fbb31f;
-  }
-  .rejectBtn:focus {
-    background: #fbb31f;
-    border-color: #fbb31f;
-  }
 }
 :deep(.ant-pagination) {
   margin: 8px 0;

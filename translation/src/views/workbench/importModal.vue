@@ -2499,35 +2499,6 @@ export default {
     height: 50px;
     // height: 38px;
   }
-
-  .rejectBtn {
-    background: #fbb31f;
-    border-color: #fbb31f;
-  }
-  .rejectBtn:hover {
-    background: #fbb31f;
-    border-color: #fbb31f;
-  }
-  .rejectBtn:focus {
-    background: #fbb31f;
-    border-color: #fbb31f;
-  }
-  .passTag {
-    border: 1px solid #36bf7d;
-    color: #36bf7d;
-  }
-  .passTagChecked {
-    background-color: #36bf7d;
-    color: white;
-  }
-  .rejectTag {
-    border: 1px solid #fbb31f;
-    color: #fbb31f;
-  }
-  .rejectTagChecked {
-    background-color: #fbb31f;
-    color: white;
-  }
 }
 :deep(.ant-pagination) {
   margin: 8px 0;
