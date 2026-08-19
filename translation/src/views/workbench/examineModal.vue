@@ -498,7 +498,8 @@ export default {
           this.dataSource.forEach((item) => {
             item.auditState = -1;
 
-            // 配置最大字符长度(此处对应的是翻译的最大字符长度，所以不用maxLength这个属性)
+            // 装置部：行上展示模块上限（词条表不落这些字段）
+            item.maxByte = this.classifyLimit[item.classfy1]?.["maxByte"];
             item.foreignMaxByte =
               this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
             // console.log("打印词条", item);

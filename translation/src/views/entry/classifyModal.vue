@@ -13,11 +13,11 @@
         <a-form-item v-if="modalTitle === '编辑分类'&&$currentDepartment && $currentDepartment.ops.has('needBranch')" label="批量修改分支" name="codeBranchs">
           <a-input v-model:value="classify.codeBranch" placeholder="批量修改其中所有产品的归档分支" style="width:100%"></a-input>
         </a-form-item>
-        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="词条字符数" name="maxByte">
-          <a-input-number v-model:value="classify.maxByte" placeholder="请输入词条最大字符数" style="width:100%"></a-input-number>
+        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="中文限制字符数" name="maxByte">
+          <a-input-number v-model:value="classify.maxByte" placeholder="请输入中文限制字符数" style="width:100%"></a-input-number>
         </a-form-item>
-        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="翻译字符数" name="foreignMaxByte">
-          <a-input-number v-model:value="classify.foreignMaxByte" placeholder="请输入翻译最大字符数" style="width:100%"></a-input-number>
+        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="外文限制字符数" name="foreignMaxByte">
+          <a-input-number v-model:value="classify.foreignMaxByte" placeholder="请输入外文限制字符数" style="width:100%"></a-input-number>
         </a-form-item>
       </a-form>
     </div>
@@ -47,7 +47,7 @@ export default {
   },
   data() {
     return {
-      labelCol: { style: { width: "100px" } },
+      labelCol: { style: { width: "130px" } },
       modalWidth: "400px",
       classify: {
         title: "",
@@ -155,7 +155,7 @@ export default {
 </script>
 <style scoped>
 :deep(.ant-form-item-label) {
-  width: 85px;
+  width: 130px;
 }
 .content {
   width: 100%;

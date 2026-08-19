@@ -89,4 +89,27 @@ describe('colPreset', () => {
       'translate',
     ])
   })
+
+  it('长度列 key 与 label 对齐：模块上限用 maxByte/foreignMaxByte，旧别名 hidden，zhCharLength 保留', async () => {
+    const { entryAllCols, entryPresets, wbAllCols } = await import('@/constants/commonParam.js')
+    const productCols = resolvePresetCols(entryPresets.productEntry, entryAllCols)
+    const productByValue = Object.fromEntries(productCols.map((c) => [c.value, c]))
+    expect(productByValue.maxByte.label).toBe('中文限制字符数')
+    expect(productByValue.foreignMaxByte.label).toBe('外文限制字符数')
+    expect(productByValue.zhCharLength.label).toBe('中文术语字符数')
+    expect(productByValue.entryLength.label).toBe('词条字符数')
+    expect(productByValue.maxLength.label).toBe('翻译最大长度')
+    expect(productCols.some((c) => c.value === 'maxChineseLength')).toBe(false)
+    expect(productCols.some((c) => c.value === 'foreignMaxLength')).toBe(false)
+
+    const exportCols = resolvePresetCols(entryPresets.export, entryAllCols)
+    expect(exportCols.some((c) => c.value === 'maxByte')).toBe(true)
+    expect(exportCols.some((c) => c.value === 'zhCharLength')).toBe(true)
+    expect(exportCols.some((c) => c.value === 'maxChineseLength')).toBe(false)
+
+    const wbByValue = Object.fromEntries(wbAllCols.map((c) => [c.value, c]))
+    expect(wbByValue.foreignMaxByte.label).toBe('外文限制字符数')
+    expect(wbByValue.maxByte.label).toBe('中文限制字符数')
+    expect(wbByValue.maxLength.label).toBe('翻译最大长度')
+  })
 })

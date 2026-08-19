@@ -195,8 +195,8 @@
                 </a-form-item>
               </a-col>
               <a-col :span="8">
-                <a-form-item label="限制长度">
-                  <a-input-number v-model:value="dataLibrary.maxLength" style="width:100%" size="small" placeholder="请输入限制长度" />
+                <a-form-item label="翻译最大长度">
+                  <a-input-number v-model:value="dataLibrary.maxLength" style="width:100%" size="small" placeholder="请输入翻译最大长度" />
                 </a-form-item>
               </a-col>
               <a-col :span="8">
@@ -1593,8 +1593,8 @@ export default {
           this.sortArray(this.dataSource, "isExist");
           this.dataSource.forEach((item) => {
             item.auditState = 1;
-            // 装置部的需求
-            // 配置最大字符长度(此处对应的是翻译的最大字符长度，所以不用maxLength这个属性)
+            // 装置部：行上展示模块上限（词条表不落这些字段）
+            item.maxByte = this.classifyLimit[item.classfy1]?.["maxByte"];
             item.foreignMaxByte =
               this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
             // console.log("打印词条", item,this.classifyLimit);

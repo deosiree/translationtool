@@ -612,3 +612,56 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
     expect(values).not.toContain('dbRID')
   })
 })
+
+describe('ProductEntry - 模块上限挂到词条行', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) {
+      wrapper.unmount()
+    }
+    vi.clearAllMocks()
+  })
+
+  it('paintModuleLimits 按 classfy1 刷 maxByte/foreignMaxByte，含子行', () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.classifyLimit = {
+      模组A: { maxByte: 50, foreignMaxByte: 120 },
+    }
+    wrapper.vm.dataSource = [
+      {
+        id: '1',
+        classfy1: '模组A',
+        children: [{ id: '1-1', classfy1: '模组A' }],
+      },
+      { id: '2', classfy1: '未知' },
+    ]
+    wrapper.vm.paintModuleLimits()
+    expect(wrapper.vm.dataSource[0].maxByte).toBe(50)
+    expect(wrapper.vm.dataSource[0].foreignMaxByte).toBe(120)
+    expect(wrapper.vm.dataSource[0].children[0].maxByte).toBe(50)
+    expect(wrapper.vm.dataSource[1].maxByte).toBeNull()
+    expect(wrapper.vm.dataSource[1].foreignMaxByte).toBeNull()
+  })
+
+  it('模块下新增词条 maxLength 用 foreignMaxByte，展示列用模块上限', () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.product = {
+      type: 'module',
+      title: '模组A',
+      parentId: 'p1',
+      key: 'm1',
+      maxByte: 50,
+      foreignMaxByte: 120,
+    }
+    wrapper.vm.pagination = { current: 1, pageSize: 10, total: 0 }
+    wrapper.vm.dataSource = []
+    wrapper.vm.getRowClassify2Option = vi.fn()
+    wrapper.vm.$nextTick = () => {}
+    wrapper.vm.addEntry()
+    const row = wrapper.vm.dataSource[0]
+    expect(row.maxLength).toBe(120)
+    expect(row.maxByte).toBe(50)
+    expect(row.foreignMaxByte).toBe(120)
+  })
+})

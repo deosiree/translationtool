@@ -132,7 +132,7 @@ export default {
     { label: "词条来源", value: "entrySource", index: 21 },
     { label: "回写辞典", value: "diFileName", index: 22 },
     { label: "abbr", value: "abbr", index: 23 },
-    { label: "外文字符上限", value: "foreignMaxByte", index: 24 },
+    { label: "外文限制字符数", value: "foreignMaxByte", index: 24 },
     { label: "来源表名", value: "srcTabName", index: 25 },
     { label: "数据库记录ID", value: "dbRID", index: 26 },
     // {label:'审核意见',value:'auditSuggess',index:18},// 归档：后端传来的是auditSuggess，与翻译审核中有值的效果不一样；翻译审核和翻译处的值是前端根据翻译语种动态锁定的
@@ -355,8 +355,10 @@ export const entryAllCols = [
   { label: "备注", value: "remark", index: 28, visible: false },
   { label: "来源表名", value: "srcTabName", index: 29, visible: false, hidden: true },
   { label: "数据库记录ID", value: "dbRID", index: 30, visible: false, hidden: true },
-  { label: "中文字符上限", value: "maxChineseLength", index: 31, visible: false },
-  { label: "外文字符上限", value: "foreignMaxLength", index: 32, visible: false },
+  { label: "中文限制字符数", value: "maxByte", index: 31, visible: false },
+  { label: "外文限制字符数", value: "foreignMaxByte", index: 32, visible: false },
+  { label: "中文字符上限", value: "maxChineseLength", index: 31, visible: false, hidden: true }, // 旧表头别名，对应模块 maxByte
+  { label: "外文字符上限", value: "foreignMaxLength", index: 32, visible: false, hidden: true }, // 旧表头别名，对应模块 foreignMaxByte
   { label: "创建人", value: "creator", index: 33, visible: false, hidden: true },
   { label: "创建时间", value: "createTime", index: 34, visible: false, hidden: true },
   { label: "修改人", value: "update", index: 35, visible: false },
@@ -408,6 +410,8 @@ export const entryPresets = {
       { value: "srcTabName", hidden: true },
       { value: "isLatestVersion", hidden: true },
       { value: "environmentRemark", hidden: true },
+      { value: "maxChineseLength", hidden: true },
+      { value: "foreignMaxLength", hidden: true },
     ],
     defaults: { hidden: false },
   },
@@ -481,12 +485,12 @@ const entry_readonlyFields = [
   "ruCharLength", // 俄文术语字符数
   "spaCharLength", // 西文术语字符数
   "fraCharLength", // 法文术语字符数
-  "maxChineseLength", // 中文字符上限
-  "foreignMaxLength", // 外文字符上限
+  "maxByte", // 中文限制字符数（模块上限，行上只读展示）
+  "foreignMaxByte", // 外文限制字符数（模块上限，行上只读展示）
 ];
 const entryvalid_readonlyFields = [
-  "maxChineseLength", // 中文字符上限
-  "foreignMaxLength", // 外文字符上限
+  "maxByte", // 中文限制字符数
+  "foreignMaxByte", // 外文限制字符数
 ];
 const entry_checkedSearchCondition = defaultSelectionFromCols(
   entry_searchConditionList,
@@ -659,9 +663,11 @@ export const wbAllCols = [
   { label: "词条来源", value: "entrySource", index: 21, visible: false },
   { label: "回写辞典", value: "diFileName", index: 22, visible: false },
   { label: "abbr", value: "abbr", index: 23, visible: true },
-  { label: "外文字符上限", value: "foreignMaxByte", index: 24, visible: false },
+  { label: "外文限制字符数", value: "foreignMaxByte", index: 24, visible: false },
   { label: "来源表名", value: "srcTabName", index: 25, visible: false },
   { label: "数据库记录ID", value: "dbRID", index: 26, visible: false },
+  { label: "中文限制字符数", value: "maxByte", index: 27, visible: false },
+  { label: "翻译最大长度", value: "maxLength", index: 28, visible: false },
   { label: "审核意见", value: "auditSuggest", index: 99, fixed: "right" },
   { label: "词条状态", value: "entryState", index: 100, fixed: "right" },
   {

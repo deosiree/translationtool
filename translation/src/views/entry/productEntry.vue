@@ -1572,6 +1572,7 @@ export default {
         .then((res) => {
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
+          this.paintModuleLimits();
         })
         .catch((err) => {
           message.error(err.message);
@@ -1608,6 +1609,7 @@ export default {
           this.search.hasRedundantRls = true; // 显示“重新执行”
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
+          this.paintModuleLimits();
         } else if (res.data.state === 2) {
           // 有结果,但校验异常
           this.search.hasRedundantRls = true; // 显示“重新执行”
@@ -1700,6 +1702,7 @@ export default {
         dataSource.push(item);
       });
       this.dataSource = dataSource;
+      this.paintModuleLimits();
       this.loading = false;
     },
     changeVersion(version) {
@@ -1783,6 +1786,19 @@ export default {
         },
       };
     },
+    // 从模块上限刷到词条行（只展示，不落词条表）
+    paintModuleLimits(records = this.dataSource) {
+      const walk = (list) => {
+        if (!Array.isArray(list)) return;
+        list.forEach((record) => {
+          const limit = this.classifyLimit?.[record.classfy1];
+          record.maxByte = limit?.maxByte ?? null;
+          record.foreignMaxByte = limit?.foreignMaxByte ?? null;
+          if (record.children?.length) walk(record.children);
+        });
+      };
+      walk(records);
+    },
     // 获得限制长度[遍历分类级-产品级-模块级]
     getClassfy(PID) {
       let params = {
@@ -1795,6 +1811,7 @@ export default {
           res.data.list.forEach((element) => {
             this.classifyLimit[element.title] = element;
           });
+          this.paintModuleLimits();
         })
         .catch((err) => {
           message.err(err.message);
@@ -2180,7 +2197,9 @@ export default {
         id: `new${this.dataSource.length + 1}`,
         entryState: 0,
         classfy1: this.product.type === "module" ? this.product.title : "",
-        maxLength: this.product.type === "module" ? this.product.maxByte : "",
+        maxLength: this.product.type === "module" ? this.product.foreignMaxByte : "",
+        maxByte: this.product.type === "module" ? this.product.maxByte : "",
+        foreignMaxByte: this.product.type === "module" ? this.product.foreignMaxByte : "",
         versionID: this.currentVersion,
         productID:
           this.product.type === "module"
@@ -2215,9 +2234,9 @@ export default {
       this.getRowClassify2Option(newData);
       // 滚动到最底部
       this.$nextTick(() => {
-        let container =
-          this.$refs.entryTable.$el.querySelector(".ant-table-body");
-        container.scrollTop = container.scrollHeight;
+        const container =
+          this.$refs.entryTable?.$el?.querySelector(".ant-table-body");
+        if (container) container.scrollTop = container.scrollHeight;
       });
     },
     // 词条升级
