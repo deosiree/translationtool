@@ -14,7 +14,9 @@ translation_check/
 review.txt
 /evals
 harness.db
-.reasonix
+# Reasonix 本地缓存与权限（已跟踪的 .reasonix 需配合 git rm -r --cached）
+.reasonix/
+reasonix.toml
 scripts
 *-workspace
 data/
