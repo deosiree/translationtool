@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ExamineModal from '@/views/workbench/examineModal.vue'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
@@ -322,6 +322,8 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
     const record = { id: 'entry-1', entry: '%1', english: 'Press %1 to continue', auditState: undefined, maxLength: 200 }
     wrapper.vm.dataSource = [record]
     wrapper.vm.rulesOptions = [{ key: 'special', checked: false }, { key: 'toLong', checked: true }]
+    await nextTick()
+    await flushPromises()
 
     const rowEvents = wrapper.vm.doubleClick(record, 0)
     await rowEvents.onDblclick()
@@ -358,6 +360,7 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
     await wrapper.vm.handleOK()
     await nextTick()
 
+    expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
     expect(updateEntryList).toHaveBeenCalled()
   })
 
@@ -377,6 +380,8 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
 
     // 第一步：关闭 special，让错误翻译通过行内 ✓ 退出编辑态
     wrapper.vm.rulesOptions = [{ key: 'special', checked: false }, { key: 'toLong', checked: true }]
+    await nextTick()
+    await flushPromises()
     const rowEvents = wrapper.vm.doubleClick(record, 0)
     await rowEvents.onDblclick()
     wrapper.vm.onCellInput('Press % 1 to continue', record, { dataIndex: 'english' })
@@ -412,6 +417,8 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
     const record = { id: 'entry-1', entry: '%1', english: 'Press %1 to continue', auditState: undefined, maxLength: 1 }
     wrapper.vm.dataSource = [record]
     wrapper.vm.rulesOptions = [{ key: 'special', checked: false }, { key: 'toLong', checked: false }]
+    await nextTick()
+    await flushPromises()
 
     const rowEvents = wrapper.vm.doubleClick(record, 0)
     await rowEvents.onDblclick()
@@ -421,6 +428,49 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
 
     expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
     expect(wrapper.vm.cellErrors?.['entry-1']?.english).toBeUndefined()
+  })
+
+  it('先开 special 出红字再全关，行内 ✓ 应能保存', async () => {
+    const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+    checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'entry-1' }] })
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    wrapper.vm.columns = [
+      { dataIndex: 'english', title: '英文' },
+      { dataIndex: 'editOperation', title: '编辑操作' },
+    ]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: true },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const record = {
+      id: 'entry-1',
+      entry: '%1',
+      english: 'Press % 1 to continue',
+      auditState: undefined,
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [record]
+    const rowEvents = wrapper.vm.doubleClick(record, 0)
+    await rowEvents.onDblclick()
+    await nextTick()
+    wrapper.vm.cellErrors = { 'entry-1': { english: '特殊字符不一致' } }
+
+    checkSykEntryBeforeSave.mockClear()
+    wrapper.vm.rulesOptions.forEach((o) => { o.checked = false })
+    await nextTick()
+    await flushPromises()
+
+    expect(wrapper.vm.cellErrors?.['entry-1']).toBeUndefined()
+    expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
+    expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
   })
 
   it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {

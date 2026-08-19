@@ -388,12 +388,15 @@ import {
   verifyArray_workbench_page,
   verifyArray_workbench,
   openSetEdit,
-  clearCellError,
-  setCellError,
-  validateEditableCell,
   clearCellErrorsForRecords,
-  applyCellValidationAfterOpenEdit,
   onEditableCellInput,
+  getMethods,
+  revalidateLoaded,
+  saveEdit,
+  cancelEdit,
+  // as 别名：避免 methods 里同名递归
+  showEditOperation as showEditOp,
+  hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils"; // 引入工具函数
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { WorkbenchFormBar, WorkbenchTaskInfo, WorkbenchColumnActions } from "@/components/Workbench";
@@ -553,6 +556,14 @@ export default {
       );
       this.search.department = this.task.department; // 默认部门
       // this.setTranslateColumn();
+    },
+    rulesOptions: {
+      deep: true,
+      async handler() {
+        const transCol = this.language?.value;
+        if (!transCol) return;
+        await revalidateLoaded(this, transCol);
+      },
     },
     visible: {
       async handler(newVal) {
@@ -790,30 +801,31 @@ export default {
         specialIds: new Set(), // 校验特殊字符
       };
 
-      // 1.保存编辑框中的所有信息
-      for (let key in this.editableData) {
-        if (this.selectedRowKeys.includes(key)) {
-          const index = this.dataSource.findIndex((item) => item.id === key);
-          if (index != -1) {
-            this.dataSource[index] = cloneDeep(this.editableData[key]);
-            // this.dataSource.splice(index, 1);
-            // this.dataSource.splice(index, 0, this.editableData[key]);
-          }
-          delete this.editableData[key];
-        }
-      }
-
-      // 2.保存前校验
+      // 1.先校验（classifyArr 优先读 editableData；失败行保持编辑）
       clearCellErrorsForRecords(this, this.selectedRowKeys);
-      const verifyMethods = this.rulesOptions
-        .filter((option) => option.checked)
-        .map((option) => option.key);
+      const methods = getMethods(this);
       arr = await verifyArray_workbench(
         this,
         this.selectedRows,
         currentLang,
-        verifyMethods
+        methods
       );
+
+      // 2.仅通过行：merge 进 dataSource，再把 selectedRows 换成同行，避免验/存到旧引用
+      for (let key in this.editableData) {
+        if (!this.selectedRowKeys.includes(key)) continue;
+        if (!arr.acceptIds.has(key)) continue;
+        const index = this.dataSource.findIndex((item) => item.id === key);
+        if (index != -1) {
+          this.dataSource[index] = cloneDeep(this.editableData[key]);
+        }
+        delete this.editableData[key];
+      }
+      this.selectedRows = this.selectedRows.map((row) => {
+        const found = this.dataSource.find((item) => item.id === row.id);
+        return found || row;
+      });
+
       let arrCount = {
         updateArr: [],
         toLongNum: arr.toLongIds.size,
@@ -1083,9 +1095,9 @@ export default {
           if (this.editableData.hasOwnProperty(record.id)) {
             return;
           }
+          // 打开编辑态并设置翻译列规则；不在此处 applyCell（校验在 ✓ / 底部保存）
           await openSetEdit(record, [this.language.value], this);
-          await applyCellValidationAfterOpenEdit(this, record.id, this.language.value);
-          this.showEditOperation();
+          this.showEditOperation(); // 显示编辑操作列
         },
         style: {
           // 标红的那一行的<tr></tr>，文字颜色变红
@@ -1095,51 +1107,28 @@ export default {
         },
       };
     },
-    // 编辑-保存
+    // 行内 ✓ / 编辑-保存：公共 saveEdit；本页只回写翻译列与 transId
     async editSave(record) {
       const transCol = this.language.value;
-      try {
-        await validateEditableCell(this, record.id, transCol);
-      } catch (err) {
-        setCellError(this, record.id, transCol, err);
-        return;
-      }
-      record[transCol] = this.editableData[record.id][transCol];
-      record[this.language.transIdName] =
-        this.editableData[record.id][this.language.transIdName];
-      delete this.editableData[record.id];
-      clearCellError(this, record.id, transCol);
-      this.hideEditOperation();
+      await saveEdit(this, record, {
+        transCol,
+        commit: (rec, row) => {
+          rec[transCol] = row[transCol];
+          rec[this.language.transIdName] = row[this.language.transIdName];
+        },
+      });
     },
     // 取消编辑
     editCancel(record) {
-      delete this.editableData[record.id];
-      this.hideEditOperation();
+      cancelEdit(this, record.id);
     },
     // 显示编辑操作列
     showEditOperation() {
-      if (this.columns.at(-1).dataIndex === "editOperation") {
-        // 如果编辑操作列已经存在，则不再添加
-        return;
-      }
-      const editOperationColumn = {
-        title: "编辑操作",
-        dataIndex: "editOperation",
-        align: "center",
-        width: 100,
-        resizable: true,
-        fixed: "right",
-        index: 101, // 确保该列在最右侧，可根据实际情况调整
-      };
-      this.columns.push(editOperationColumn);
+      showEditOp(this);
     },
     // 删除操作列
     hideEditOperation() {
-      if (Object.keys(this.editableData).length === 0) {
-        this.columns = this.columns.filter((item) => {
-          return item.dataIndex != "editOperation";
-        });
-      }
+      hideEditOp(this);
     },
     handleResizeColumn: (w, col) => {
       col.width = w;

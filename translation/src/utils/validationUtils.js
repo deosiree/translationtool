@@ -1,6 +1,10 @@
 /**
  * 表单校验工具函数
  * 包含表单验证规则设置、词条校验等功能
+ *
+ * 规则 SSOT：RulesDropdown → vm.rulesOptions → getMethods(vm)
+ * 校验只在两处触发：行内 ✓（saveEdit）与底部保存（verifyArray_workbench / classifyArr）
+ * 双击只 openSetEdit，不跑 applyCell（避免未勾选 special 仍调接口、或进编辑却无红字）
  */
 import { cloneDeep } from 'lodash';
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
@@ -161,9 +165,10 @@ export function clearCellErrorsForRecords(vm, recordIds = []) {
 }
 
 /**
- * 命令式校验并写入 cellErrors（不 throw，供 bulk 校验链路使用）
+ * 按当前 rules 写/清该单元格 cellErrors（不 throw）
+ * 行内 ✓ / 词条管理 verifyRecord_entry 用；bulk 失败行改走 openFailRows 按判定结果打红字
  */
-export async function applyCellValidationAfterOpenEdit(vm, recordId, columnKey) {
+export async function applyCell(vm, recordId, columnKey) {
   try {
     await validateEditableCell(vm, recordId, columnKey);
     clearCellError(vm, recordId, columnKey);
@@ -242,23 +247,25 @@ export function setRefRules(vm, record, cols) {
   }
 }
 
-export function getEnabledVerifyMethods(vm) {
+/**
+ * 当前已勾选的校验键（toLong / special）
+ * 原名 getEnabledVerifyMethods。无 rulesOptions 时与历史默认一致：两项全开
+ */
+export function getMethods(vm) {
   const options = Array.isArray(vm?.rulesOptions) ? vm.rulesOptions : null;
   if (!options) return ["toLong", "special"];
   return options.filter((o) => o.checked).map((o) => o.key);
 }
 
 export function buildTranslateRules(vm, record, columnKey) {
-  const verifyMethods = getEnabledVerifyMethods(vm);
-  if (verifyMethods.length === 0) return [];
+  // 始终挂 validator，执行时再 getMethods；避免打开编辑时把勾选快照进闭包
   return [
     {
       validator: validateRefRules(
         record,
         vm,
         "foreignMaxByte",
-        columnKey,
-        verifyMethods
+        columnKey
       ),
     },
   ];
@@ -282,22 +289,54 @@ export function isBlankTranslation(value) {
   return value == null || String(value).trim() === "";
 }
 
+/** 屏幕展示值：有编辑行则用其字段（含空串），否则浏览态 */
+export function shownTranslate(vm, record, language) {
+  const edit = vm.editableData?.[record.id];
+  if (edit) return edit[language];
+  return record[language];
+}
+
+/** 已加载词条一人一行：展平 dataSource 树；editableData 孤儿才补入，不把同一 id 塞两份 */
+function flattenLoaded(vm) {
+  const byId = new Map();
+  const walk = (rows) => {
+    for (const r of rows || []) {
+      if (r?.id != null && !byId.has(r.id)) byId.set(r.id, r);
+      if (r.children?.length) walk(r.children);
+    }
+  };
+  walk(vm.dataSource);
+  for (const row of Object.values(vm.editableData || {})) {
+    if (row?.id != null && !byId.has(row.id)) byId.set(row.id, row);
+  }
+  return [...byId.values()];
+}
+
+/** 超长红字；validateRefRules 与 openFailRows 共用，避免文案漂移 */
+function msgToLong(maxLength) {
+  return `允许最大字符数为${maxLength}(1中文=2字符)`;
+}
+
+/** 特殊字符红字；validateRefRules 与 openFailRows 共用 */
+const MSG_SPECIAL = "特殊字符不一致\r\n(如%1翻译成% 1)";
+
 export function validateRefRules(record, vm, colName, language,
-  verifyMethods = ["toLong", "special"]) {
+  verifyMethods) {
   return async (rule, value) => {
+    const methods = verifyMethods ?? getMethods(vm);
     if (language && isBlankTranslation(value)) {
       return Promise.resolve();
     }
-    if (verifyMethods.includes("toLong")) {
+    if (methods.includes("toLong")) {
       const maxLength = getMaxLength(record, vm, colName);
       let length = byteLength(value);
       if (maxLength && length > maxLength) {
         // 表单项内仍使用字符串以保证控件正常显示错误；外层聚合展示由 useRefRules/editSave 负责
-        return Promise.reject(`允许最大字符数为${maxLength}(1中文=2字符)`);
+        return Promise.reject(msgToLong(maxLength));
       }
     }
 
-    if (language && verifyMethods.includes("special")) {// 需要拿翻译与词条进行比较，所以词条本身不需要进行特殊字符校验
+    if (language && methods.includes("special")) {// 需要拿翻译与词条进行比较，所以词条本身不需要进行特殊字符校验
       const datas = [
         {
           id: record.id,
@@ -315,7 +354,7 @@ export function validateRefRules(record, vm, colName, language,
       } catch (err) { }
       if (specialCharNum > 0)
         // 只要 res.data 非空即视为失败（后端返回 data 表示不通过）
-        return Promise.reject(`特殊字符不一致\r\n(如%1翻译成% 1)`);
+        return Promise.reject(MSG_SPECIAL);
     }
 
     return Promise.resolve();
@@ -343,41 +382,31 @@ export function openSetEdit(record, cols, vm) {
 
 /**
  * 校验词条数组（工作台场景）-当前页数据版
- * 1.-保存前（区分通过/不通过校验词条）
- * 2.-不通过的打开编辑态
- * @param {Object} pagination - 分页信息对象，包含 `current`（当前页码）和 `pageSize`（每页显示数量）属性
- * @param {string} language - 当前语种类型，用于指定要校验的翻译字段
- * @param {Object} vm - Vue 实例对象，包含 `dataSource`（数据源）等属性
+ * 1. 保存前区分通过/不通过
+ * 2. 不通过的打开编辑态（由 verifyArray_workbench → openFailRows 完成）
+ * @param {Object} pagination - current / pageSize
+ * @param {string} language - 当前任务翻译列，如 english
+ * @param {Object} vm - 含 dataSource、rulesOptions
+ * @param {string[]} [methods] - 未传时 verifyArray_workbench 内 getMethods(vm)（导入后/翻页依赖此默认）
  */
 export async function verifyArray_workbench_page(pagination, language, vm,
-  verifyMethods) {
+  methods) {
   let data = vm.dataSource.slice(
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
   );
-  // console.log("当前页校验", data)
-  await verifyArray_workbench(vm, data, language, verifyMethods);
+  await verifyArray_workbench(vm, data, language, methods);
 }
 
 /**
- * 校验词条数组（工作台场景）
- * 1.-保存前（区分通过/不通过校验词条）
- * 2.-不通过的打开编辑态
- * @param {Object} vm - Vue 实例对象
- * @param {Array<Object>} array - 待校验的词条数组
- * @param {string} language - 编辑数据用任务语种存储了起来：english,chinese,...，
- *   - 如英文任务存储到：editableData[record.id].[english]
- * @param {Array<string>} verifyMethods - 需要执行的校验方法集合，可选值：
- *   - "toLong": 执行长度校验（检查翻译内容是否超过最大长度限制）
- *   - "special": 执行特殊字符校验（检查翻译与原文的特殊字符是否一致）
- * @returns {Promise<Object>} 校验结果对象，包含以下 Set 类型的属性：
- *   - acceptIds: 通过所有校验的记录ID集合
- *   - toLongIds: 长度超标的记录ID集合
- *   - specialIds: 特殊字符校验不通过的记录ID集合
+ * 纯判定：按 methods 分成 accept/error，无 UI 副作用
+ * 与 openFailRows 拆开，避免「bulk 按全开规则失败、红字按勾选通过」的分裂态
+ * 若行仍在编辑态，展示值取 editableData（含空串），否则 dataSource
+ * @param {string[]} [methods] toLong / special；未传则 getMethods(vm)
+ * @returns {Promise<{acceptIds:Set, errorIds:Set, toLongIds:Set, specialIds:Set}>}
  */
-export async function verifyArray_workbench(vm, array, language,
-  verifyMethods) {
-  const methods = verifyMethods ?? getEnabledVerifyMethods(vm);
+export async function classifyArr(vm, array, language, methods) {
+  const m = methods ?? getMethods(vm);
   let arr = {
     acceptIds: new Set(),// 所有校验通过
     errorIds: new Set(),// 所有校验不通过
@@ -389,7 +418,7 @@ export async function verifyArray_workbench(vm, array, language,
     const data = {
       id: record.id,
       entry: record.entry,
-      translate: vm.editableData[record.id]?.[language] || record[language],
+      translate: shownTranslate(vm, record, language),
       maxLength: getMaxLength(record, vm),
     };
     if (isBlankTranslation(data.translate)) {
@@ -397,14 +426,15 @@ export async function verifyArray_workbench(vm, array, language,
       continue;
     }
     datas.push(data);
-    if (methods.includes("toLong")) {
+    if (m.includes("toLong")) {
       if (data.maxLength && byteLength(data.translate) > data.maxLength) {
         arr.toLongIds.add(record.id);
       }
     }
   }
 
-  if (methods.includes("special") && datas.length > 0) {
+  if (m.includes("special") && datas.length > 0) {
+    // special 未勾选时不得请求 checkSykEntryBeforeSave
     try {
       const res = await checkSykEntryBeforeSave(datas);
       arr.specialIds = new Set(res.data?.map(item => item.id));
@@ -415,19 +445,76 @@ export async function verifyArray_workbench(vm, array, language,
     if (arr.acceptIds.has(record.id)) continue;
     if (!arr.toLongIds.has(record.id) && !arr.specialIds.has(record.id)) {
       arr.acceptIds.add(record.id);
-    }
-    else {
-      // 注意：单条验证会遍历触发checkSykEntryBeforeSave，不要整个dataSource都遍历，一次遍历检查当前页的表单校验即可
+    } else {
       arr.errorIds.add(record.id);
-      await openSetEdit(record, [language], vm);
-      await applyCellValidationAfterOpenEdit(vm, record.id, language);
-      if (typeof vm.showEditOperation === "function") {
-        vm.showEditOperation();
-      }
     }
   }
-  // console.log("函数内", arr)
   return arr;
+}
+
+/**
+ * 仅对 classifyArr 得到的 errorIds 开编辑态并写红字
+ * 红字由 toLongIds / specialIds 直接 setCellError，不再 applyCell（避免 special 再打单条接口）
+ * 两者都失败时优先超长文案，与 validateRefRules 先 toLong 再 special 一致
+ */
+export async function openFailRows(vm, array, arr, language) {
+  for (const record of array) {
+    if (!arr.errorIds.has(record.id)) continue;
+    await openSetEdit(record, [language], vm);
+    if (arr.toLongIds.has(record.id)) {
+      setCellError(vm, record.id, language, msgToLong(getMaxLength(record, vm)));
+    } else if (arr.specialIds.has(record.id)) {
+      setCellError(vm, record.id, language, MSG_SPECIAL);
+    }
+    // 页面有同名实例方法时走页面（模板绑定）；单测 mock 也可接到这里
+    if (typeof vm.showEditOperation === "function") {
+      vm.showEditOperation();
+    } else {
+      showEditOperation(vm);
+    }
+  }
+}
+
+/**
+ * 校验词条数组（工作台场景）
+ * 1. 保存前区分通过/不通过（classifyArr）
+ * 2. 不通过的打开编辑态（openFailRows）
+ * 导入后/分页未传 methods 时内部 getMethods(vm)
+ */
+export async function verifyArray_workbench(vm, array, language, methods) {
+  const arr = await classifyArr(vm, array, language, methods ?? getMethods(vm));
+  await openFailRows(vm, array, arr, language);
+  return arr;
+}
+
+/**
+ * 勾选变化 / 导入后：按展示值对已加载表一人一行复检
+ * 通过：编辑态退回浏览并写回展示译文；失败：浏览态进编辑打红字
+ * methods 为空全部视为通过，不调 special
+ */
+export async function revalidateLoaded(vm, transCol) {
+  const rows = flattenLoaded(vm);
+  if (!rows.length) return;
+  clearCellErrorsForRecords(vm, rows.map((r) => r.id));
+  const methods = getMethods(vm);
+  const acceptIds = new Set();
+  if (methods.length === 0) {
+    for (const r of rows) acceptIds.add(r.id);
+  } else {
+    const arr = await classifyArr(vm, rows, transCol, methods);
+    await openFailRows(vm, rows, arr, transCol);
+    for (const id of arr.acceptIds) acceptIds.add(id);
+  }
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  for (const id of acceptIds) {
+    const edit = vm.editableData?.[id];
+    if (!edit) continue;
+    const rec = byId.get(id);
+    if (rec) rec[transCol] = edit[transCol];
+    delete vm.editableData[id];
+    clearCellError(vm, id, transCol);
+  }
+  hideEditOperation(vm);
 }
 
 /**
@@ -444,7 +531,7 @@ export async function verifyArray_workbench(vm, array, language,
  */
 export async function verifyRecord_entry(vm, record, colList,
   verifyMethods) {
-  const methods = verifyMethods ?? getEnabledVerifyMethods(vm);
+  const methods = verifyMethods ?? getMethods(vm);
   let flag = true;
 
   if (methods.includes("toLong")) {// 校验长度
@@ -470,7 +557,7 @@ export async function verifyRecord_entry(vm, record, colList,
       const data = {
         id: record.id,
         entry: record.entry,
-        translate: vm.editableData[record.id]?.[language] || record[language],
+        translate: shownTranslate(vm, record, language),
       };
       datas.push(data);
     }
@@ -488,8 +575,63 @@ export async function verifyRecord_entry(vm, record, colList,
     await openSetEdit(record, colList, vm);
     for (const col of colList) {
       if (col === "entry") continue;
-      await applyCellValidationAfterOpenEdit(vm, record.id, col);
+      await applyCell(vm, record.id, col);
     }
     return false;
   }
+}
+
+/**
+ * 显示表格「编辑操作」列。四页逻辑相同，抽到此处避免再复制一份
+ * 若列已存在则不再添加；index:101 保证在最右侧
+ */
+export function showEditOperation(vm) {
+  if (!Array.isArray(vm.columns) || vm.columns.length === 0) return;
+  if (vm.columns.at(-1).dataIndex === "editOperation") return; // 已有编辑操作列
+  vm.columns.push({
+    title: "编辑操作",
+    dataIndex: "editOperation",
+    align: "center",
+    width: 100,
+    resizable: true,
+    fixed: "right",
+    index: 101, // 确保该列在最右侧
+  });
+}
+
+/** 删除操作列：editableData 空时收起「编辑操作」列 */
+export function hideEditOperation(vm) {
+  if (!Array.isArray(vm.columns)) return;
+  if (Object.keys(vm.editableData || {}).length === 0) {
+    vm.columns = vm.columns.filter((item) => item.dataIndex != "editOperation");
+  }
+}
+
+/** 取消编辑：丢弃 editableData 并可能收起编辑列 */
+export function cancelEdit(vm, recordId) {
+  delete vm.editableData[recordId];
+  hideEditOperation(vm);
+}
+
+/**
+ * 行内 ✓：校验 → commit → 退出编辑态
+ * commit 由各页传入（写回字段/状态策略不同）；失败则保留编辑态并 setCellError
+ */
+export async function saveEdit(vm, record, { transCol, commit }) {
+  try {
+    await validateEditableCell(vm, record.id, transCol);
+  } catch (err) {
+    setCellError(
+      vm,
+      record.id,
+      transCol,
+      err?.errorMessage || err?.message || String(err)
+    );
+    return false;
+  }
+  commit(record, vm.editableData[record.id]);
+  delete vm.editableData[record.id];
+  clearCellError(vm, record.id, transCol);
+  hideEditOperation(vm);
+  return true;
 }

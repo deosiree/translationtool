@@ -10,10 +10,17 @@ import {
   clearCellError,
   clearCellErrorsForRecords,
   onEditableCellInput,
-  applyCellValidationAfterOpenEdit,
+  applyCell,
   verifyArray_workbench,
   verifyArray_workbench_page,
   isBlankTranslation,
+  getMethods,
+  classifyArr,
+  openFailRows,
+  revalidateLoaded,
+  saveEdit,
+  cancelEdit,
+  showEditOperation,
 } from '@/utils/validationUtils'
 import { cloneDeep } from 'lodash'
 
@@ -338,7 +345,7 @@ describe('validationUtils - 表单校验工具函数', () => {
     })
   })
 
-  describe('applyCellValidationAfterOpenEdit', () => {
+  describe('applyCell', () => {
     it('校验失败应写入 cellErrors 且不 throw', async () => {
       const vm = {
         editableData: { r1: { english: '' } },
@@ -350,7 +357,7 @@ describe('validationUtils - 表单校验工具函数', () => {
         cellErrors: {},
       }
       await expect(
-        applyCellValidationAfterOpenEdit(vm, 'r1', 'english')
+        applyCell(vm, 'r1', 'english')
       ).resolves.toBeUndefined()
       expect(vm.cellErrors.r1.english).toBe('请输入!')
     })
@@ -361,7 +368,7 @@ describe('validationUtils - 表单校验工具函数', () => {
         rules: { r1: {} },
         cellErrors: { r1: { english: '旧错误' } },
       }
-      await applyCellValidationAfterOpenEdit(vm, 'r1', 'english')
+      await applyCell(vm, 'r1', 'english')
       expect(vm.cellErrors.r1).toBeUndefined()
     })
   })
@@ -416,6 +423,35 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(vm.cellErrors['r-special']).toBeUndefined()
       expect(vm.showEditOperation).not.toHaveBeenCalled()
     })
+
+    it('未传 methods 且 special 勾选时才调 API', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r-special' }] })
+
+      const record = {
+        id: 'r-special',
+        entry: 'Press %1 to continue',
+        english: 'Press % 1 to continue',
+        maxLength: 200,
+      }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }],
+        rulesOptions: [
+          { key: 'special', checked: true },
+          { key: 'toLong', checked: true },
+        ],
+        showEditOperation: vi.fn(),
+      }
+      const arr = await verifyArray_workbench(vm, [record], 'english')
+      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(arr.specialIds.has('r-special')).toBe(true)
+      expect(arr.errorIds.has('r-special')).toBe(true)
+      expect(vm.cellErrors['r-special']?.english).toContain('特殊字符不一致')
+    })
   })
 
   describe('verifyArray_workbench_page rulesOptions SSOT', () => {
@@ -440,6 +476,31 @@ describe('validationUtils - 表单校验工具函数', () => {
       await verifyArray_workbench_page({ current: 1, pageSize: 10 }, 'english', vm)
       expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
       expect(vm.editableData['1']).toBeUndefined()
+    })
+
+    it('未传 methods 且 special 勾选时才调 API', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: '1' }] })
+
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [
+          { id: '1', entry: 'Press %1', english: 'Press % 1', maxLength: 200 },
+          { id: '2', entry: 'ok', english: 'ok', maxLength: 200 },
+        ],
+        columns: [{ dataIndex: 'english' }],
+        rulesOptions: [
+          { key: 'special', checked: true },
+          { key: 'toLong', checked: true },
+        ],
+        showEditOperation: vi.fn(),
+      }
+      await verifyArray_workbench_page({ current: 1, pageSize: 10 }, 'english', vm)
+      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(vm.cellErrors['1']?.english).toContain('特殊字符不一致')
+      expect(vm.editableData['2']).toBeUndefined()
     })
   })
 
@@ -529,6 +590,305 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(result.acceptIds.has('r1')).toBe(true)
       expect(result.errorIds.has('r1')).toBe(false)
       expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+    })
+
+    it('编辑框清空时按空串跳过，不回落到浏览态旧译文', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r1' }] })
+      const record = { id: 'r1', entry: '%1', english: 'Press % 1 to continue', maxLength: 200 }
+      const vm = {
+        editableData: { r1: { ...record, english: '' } },
+        cellErrors: {},
+        rules: {},
+        dataSource: [record],
+      }
+      const result = await classifyArr(vm, [record], 'english', ['toLong', 'special'])
+      expect(result.acceptIds.has('r1')).toBe(true)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('getMethods', () => {
+    it('无 rulesOptions 时回退 toLong + special', () => {
+      expect(getMethods({})).toEqual(['toLong', 'special'])
+    })
+    it('rulesOptions 关 special 时只返回 toLong', () => {
+      expect(getMethods({
+        rulesOptions: [
+          { key: 'special', checked: false },
+          { key: 'toLong', checked: true },
+        ],
+      })).toEqual(['toLong'])
+    })
+  })
+
+  describe('classifyArr / openFailRows', () => {
+    it('classifyArr 不打开编辑态', async () => {
+      const record = {
+        id: 'r-long',
+        entry: 'test',
+        english: 'a'.repeat(30),
+        maxLength: 20,
+      }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }],
+      }
+      const arr = await classifyArr(vm, [record], 'english', ['toLong'])
+      expect(arr.errorIds.has('r-long')).toBe(true)
+      expect(vm.editableData['r-long']).toBeUndefined()
+    })
+
+    it('openFailRows 只处理 errorIds', async () => {
+      const fail = { id: 'fail', entry: 'a', english: 'b', maxLength: 20 }
+      const ok = { id: 'ok', entry: 'a', english: 'ok', maxLength: 200 }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [fail, ok],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+      }
+      const arr = {
+        acceptIds: new Set(['ok']),
+        errorIds: new Set(['fail']),
+        toLongIds: new Set(['fail']),
+        specialIds: new Set(),
+      }
+      await openFailRows(vm, [fail, ok], arr, 'english')
+      expect(vm.editableData.fail).toBeDefined()
+      expect(vm.editableData.ok).toBeUndefined()
+      expect(vm.showEditOperation).toHaveBeenCalled()
+    })
+
+    it('openFailRows 已有 specialIds 时不再请求 special 接口，仍写红字', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'fail' }] })
+
+      const fail = { id: 'fail', entry: '%1', english: '% 1', maxLength: 200 }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [fail],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+      }
+      const arr = {
+        acceptIds: new Set(),
+        errorIds: new Set(['fail']),
+        toLongIds: new Set(),
+        specialIds: new Set(['fail']),
+      }
+      await openFailRows(vm, [fail], arr, 'english')
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(vm.editableData.fail).toBeDefined()
+      expect(vm.cellErrors.fail.english).toContain('特殊字符不一致')
+    })
+
+    it('openFailRows 同时超长与 special 时优先超长文案且不调 API', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      const fail = { id: 'fail', entry: '%1', english: 'a'.repeat(30), maxLength: 20 }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [fail],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+      }
+      await openFailRows(vm, [fail], {
+        acceptIds: new Set(),
+        errorIds: new Set(['fail']),
+        toLongIds: new Set(['fail']),
+        specialIds: new Set(['fail']),
+      }, 'english')
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(vm.cellErrors.fail.english).toContain('允许最大字符数为20')
+    })
+  })
+
+  describe('勾选快照 vs 运行时 getMethods', () => {
+    it('setRefRules 后取消勾选，saveEdit 按当前勾选通过且不调 API', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r1' }] })
+      const record = { id: 'r1', entry: '%1', english: '% 1', maxLength: 200 }
+      const vm = {
+        editableData: { r1: { ...record } },
+        rules: {},
+        cellErrors: {},
+        columns: [{ dataIndex: 'english' }, { dataIndex: 'editOperation' }],
+        rulesOptions: [
+          { key: 'special', checked: true },
+          { key: 'toLong', checked: true },
+        ],
+      }
+      setRefRules(vm, record, ['english'])
+      vm.rulesOptions = [
+        { key: 'special', checked: false },
+        { key: 'toLong', checked: false },
+      ]
+      checkSykEntryBeforeSave.mockClear()
+      const ok = await saveEdit(vm, record, {
+        transCol: 'english',
+        commit: (rec, row) => { rec.english = row.english },
+      })
+      expect(ok).toBe(true)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(vm.editableData.r1).toBeUndefined()
+    })
+  })
+
+  describe('revalidateLoaded', () => {
+    it('全关后退出编辑无红字；再勾 special 进编辑打红字且 API 一次', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      const record = { id: 'fail', entry: '%1', english: '% 1', maxLength: 200 }
+      const vm = {
+        editableData: { fail: { ...record } },
+        rules: {},
+        cellErrors: { fail: { english: '特殊字符不一致\r\n(如%1翻译成% 1)' } },
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }, { dataIndex: 'editOperation' }],
+        showEditOperation: vi.fn(),
+        rulesOptions: [
+          { key: 'special', checked: false },
+          { key: 'toLong', checked: false },
+        ],
+      }
+      await revalidateLoaded(vm, 'english')
+      expect(vm.cellErrors.fail).toBeUndefined()
+      expect(vm.editableData.fail).toBeUndefined()
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+
+      vm.rulesOptions = [
+        { key: 'special', checked: true },
+        { key: 'toLong', checked: true },
+      ]
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'fail' }] })
+      await revalidateLoaded(vm, 'english')
+      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(vm.cellErrors.fail.english).toContain('特殊字符不一致')
+      expect(vm.editableData.fail).toBeDefined()
+    })
+
+    it('同一 id 只按编辑展示值校验，special 请求该 id 只出现一次', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r1' }] })
+      const record = { id: 'r1', entry: '%1', english: 'Press %1 to continue', maxLength: 200 }
+      const vm = {
+        editableData: { r1: { ...record, english: 'Press % 1 to continue' } },
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+        rulesOptions: [
+          { key: 'special', checked: true },
+          { key: 'toLong', checked: true },
+        ],
+      }
+      await revalidateLoaded(vm, 'english')
+      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(checkSykEntryBeforeSave.mock.calls[0][0]).toEqual([
+        { id: 'r1', entry: '%1', translate: 'Press % 1 to continue', maxLength: 200 },
+      ])
+      expect(vm.editableData.r1).toBeDefined()
+      expect(vm.cellErrors.r1.english).toContain('特殊字符不一致')
+      expect(record.english).toBe('Press %1 to continue')
+    })
+
+    it('浏览态失败行勾上 special 后进编辑出红字', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r1' }] })
+      const record = { id: 'r1', entry: '%1', english: 'Press % 1', maxLength: 200 }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+        rulesOptions: [
+          { key: 'special', checked: true },
+          { key: 'toLong', checked: true },
+        ],
+      }
+      await revalidateLoaded(vm, 'english')
+      expect(vm.editableData.r1).toBeDefined()
+      expect(vm.cellErrors.r1.english).toContain('特殊字符不一致')
+    })
+
+    it('编辑态通过行写回展示译文并退回浏览', async () => {
+      const record = { id: 'ok', entry: 'hello', english: 'old', maxLength: 200 }
+      const vm = {
+        editableData: { ok: { ...record, english: 'new ok' } },
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }, { dataIndex: 'editOperation' }],
+        showEditOperation: vi.fn(),
+        rulesOptions: [
+          { key: 'special', checked: false },
+          { key: 'toLong', checked: true },
+        ],
+      }
+      await revalidateLoaded(vm, 'english')
+      expect(vm.editableData.ok).toBeUndefined()
+      expect(record.english).toBe('new ok')
+    })
+  })
+
+  describe('saveEdit / cancelEdit / showEditOperation', () => {
+    it('saveEdit 失败保留编辑态并写红字', async () => {
+      const record = { id: 'r1', english: '' }
+      const vm = {
+        editableData: { r1: { english: '' } },
+        rules: { r1: { english: [{ required: true, message: '请输入!' }] } },
+        cellErrors: {},
+        columns: [{ dataIndex: 'english' }],
+      }
+      const ok = await saveEdit(vm, record, { transCol: 'english', commit: () => {} })
+      expect(ok).toBe(false)
+      expect(vm.editableData.r1).toBeDefined()
+      expect(vm.cellErrors.r1.english).toBe('请输入!')
+    })
+
+    it('saveEdit 成功则 commit 并退出编辑态', async () => {
+      const record = { id: 'r1', english: 'old' }
+      const vm = {
+        editableData: { r1: { english: 'new' } },
+        rules: { r1: {} },
+        cellErrors: { r1: { english: '旧' } },
+        columns: [{ dataIndex: 'english' }, { dataIndex: 'editOperation' }],
+      }
+      const ok = await saveEdit(vm, record, {
+        transCol: 'english',
+        commit: (rec, row) => { rec.english = row.english },
+      })
+      expect(ok).toBe(true)
+      expect(record.english).toBe('new')
+      expect(vm.editableData.r1).toBeUndefined()
+      expect(vm.columns.some((c) => c.dataIndex === 'editOperation')).toBe(false)
+    })
+
+    it('cancelEdit 丢弃 editableData', () => {
+      const vm = {
+        editableData: { r1: { english: 'x' } },
+        columns: [{ dataIndex: 'english' }, { dataIndex: 'editOperation' }],
+      }
+      cancelEdit(vm, 'r1')
+      expect(vm.editableData.r1).toBeUndefined()
+    })
+
+    it('showEditOperation 不重复加列', () => {
+      const vm = { columns: [{ dataIndex: 'english' }] }
+      showEditOperation(vm)
+      showEditOperation(vm)
+      expect(vm.columns.filter((c) => c.dataIndex === 'editOperation')).toHaveLength(1)
     })
   })
 })

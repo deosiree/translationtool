@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ImportModal from '@/views/workbench/importModal.vue'
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
@@ -22,7 +22,15 @@ vi.mock('@/http/api/workbench', () => ({
     data: {
       list: []
     }
-  }))
+  })),
+  insertEntry: vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } })),
+  updateEntryList: vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } })),
+  getEntryTempByTaskID: vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } })),
+  getEntryInfoList: vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } })),
+}))
+
+vi.mock('@/http/api/glossary', () => ({
+  checkSykEntryBeforeSave: vi.fn(() => Promise.resolve({ data: [] })),
 }))
 
 vi.mock('ant-design-vue', () => ({
@@ -304,29 +312,32 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
   })
 
   it('editSave 校验失败应保持编辑态并在翻译列写入 cellErrors', async () => {
-    const validateSpy = vi
-      .spyOn(validationUtils, 'validateEditableCell')
-      .mockRejectedValue({ errorMessage: '特殊字符不一致' })
     wrapper = mountWithTableStub()
     await nextTick()
     await seedEditRow()
     wrapper.vm.task = { transMap: { value: 'english' } }
+    wrapper.vm.rules = {
+      'entry-1': {
+        english: [{ validator: () => Promise.reject('特殊字符不一致') }],
+      },
+    }
     const record = wrapper.vm.dataSource[0]
     await wrapper.vm.editSave(record)
     expect(wrapper.vm.editableData['entry-1']).toBeDefined()
     expect(wrapper.vm.cellErrors['entry-1'].english).toBe('特殊字符不一致')
-    validateSpy.mockRestore()
   })
 
   it('editSave 写入 cellErrors 后同值 onCellInput 不应清掉红字', async () => {
-    const validateSpy = vi
-      .spyOn(validationUtils, 'validateEditableCell')
-      .mockRejectedValue({ errorMessage: '允许最大字符数为20' })
     wrapper = mountWithTableStub()
     await nextTick()
     await seedEditRow()
     wrapper.vm.task = { transMap: { value: 'english' } }
     wrapper.vm.editableData['entry-1'].english = '超长文本内容'
+    wrapper.vm.rules = {
+      'entry-1': {
+        english: [{ validator: () => Promise.reject('允许最大字符数为20') }],
+      },
+    }
     const record = wrapper.vm.dataSource[0]
     await wrapper.vm.editSave(record)
     expect(wrapper.vm.cellErrors['entry-1'].english).toBe('允许最大字符数为20')
@@ -336,17 +347,14 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
       { dataIndex: 'english' }
     )
     expect(wrapper.vm.cellErrors['entry-1'].english).toBe('允许最大字符数为20')
-    validateSpy.mockRestore()
   })
 
   it('editSave 校验通过应退出编辑态', async () => {
-    const validateSpy = vi
-      .spyOn(validationUtils, 'validateEditableCell')
-      .mockResolvedValue(undefined)
     wrapper = mountWithTableStub()
     await nextTick()
     await seedEditRow()
     wrapper.vm.task = { transMap: { value: 'english' } }
+    wrapper.vm.rules = { 'entry-1': {} }
     wrapper.vm.columns.push({
       dataIndex: 'editOperation',
       title: '编辑操作',
@@ -354,7 +362,25 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     const record = wrapper.vm.dataSource[0]
     await wrapper.vm.editSave(record)
     expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
-    validateSpy.mockRestore()
+  })
+
+  it('双击只开编辑态，不写 cellErrors', async () => {
+    const applySpy = vi.spyOn(validationUtils, 'applyCell')
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { transMap: { value: 'english' } }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    const record = { id: 'entry-1', entry: '%1', english: 'Press % 1' }
+    wrapper.vm.dataSource = [record]
+    wrapper.vm.editableData = {}
+    wrapper.vm.cellErrors = {}
+    const rowEvents = wrapper.vm.customRow(record, 0)
+    await rowEvents.onDblclick()
+    await nextTick()
+    expect(wrapper.vm.editableData['entry-1']).toBeDefined()
+    expect(applySpy).not.toHaveBeenCalled()
+    expect(wrapper.vm.cellErrors['entry-1']).toBeUndefined()
+    applySpy.mockRestore()
   })
 
   it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {
@@ -372,5 +398,210 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
+  })
+
+  it('先开 special 出红字再全关：红字消失，行内 ✓ 能保存', async () => {
+    const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+    checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'entry-1' }] })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { transMap: { value: 'english', state: 'englishState' } }
+    wrapper.vm.columns = [
+      { dataIndex: 'english', title: '英文' },
+      { dataIndex: 'editOperation', title: '编辑操作' },
+    ]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: true },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const record = {
+      id: 'entry-1',
+      entry: 'Slot %1 then %2 end',
+      english: 'Slot %1 only',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [record]
+    const rowEvents = wrapper.vm.customRow(record, 0)
+    await rowEvents.onDblclick()
+    await nextTick()
+    wrapper.vm.cellErrors = { 'entry-1': { english: '特殊字符不一致' } }
+
+    checkSykEntryBeforeSave.mockClear()
+    wrapper.vm.rulesOptions.forEach((o) => { o.checked = false })
+    await nextTick()
+    await flushPromises()
+
+    expect(wrapper.vm.cellErrors['entry-1']).toBeUndefined()
+    expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
+    expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+  })
+
+  it('取勾浏览态再勾上 special：失败行进编辑并出红字', async () => {
+    const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+    checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'entry-1' }] })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { transMap: { value: 'english', state: 'englishState' } }
+    wrapper.vm.columns = [{ dataIndex: 'english', title: '英文' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: false },
+    ]
+    await nextTick()
+    await flushPromises()
+    const record = {
+      id: 'entry-1',
+      entry: 'Slot %1 then %2 end',
+      english: 'Slot %1 only',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [record]
+    wrapper.vm.editableData = {}
+    wrapper.vm.cellErrors = {}
+
+    checkSykEntryBeforeSave.mockClear()
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: true },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+
+    expect(wrapper.vm.editableData['entry-1']).toBeDefined()
+    expect(wrapper.vm.cellErrors['entry-1'].english).toContain('特殊字符不一致')
+    expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ImportModal - saveEntrys 校验与状态', () => {
+  let wrapper
+
+  function mountWithTableStub() {
+    return mount(ImportModal, {
+      props: {
+        visible: true,
+        currentTask: { translateType: '英文' },
+      },
+      global: {
+        mocks: {
+          ...createUserStoreMock(),
+          $currentDepartment: null,
+        },
+        stubs: {
+          CustomModal: { template: '<div><slot /></div>' },
+          'a-table': { template: '<div></div>' },
+          'a-form': { template: '<form><slot /></form>' },
+          'a-form-item': { template: '<div><slot /></div>' },
+          'a-button': true,
+          'a-select': true,
+          'a-upload': true,
+          'a-input': true,
+          'a-radio': true,
+          'a-radio-group': true,
+          WorkbenchFormBar: { template: '<div><slot /></div>' },
+          WorkbenchTaskInfo: true,
+          WorkbenchColumnActions: true,
+          WorkbenchLanguageFilter: true,
+          FileSelectWithEncoding: true,
+          Dict: true,
+          RulesDropdown: true,
+          IsExistBadge: true,
+          EntryStateBadge: true,
+          TransStateBadge: true,
+          CellOverflowTooltip: { template: '<span></span>' },
+        },
+      },
+    })
+  }
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('saveEntrys 用 editableData 校验，通过后翻译列不是 1、状态字段才是 1', async () => {
+    const { insertEntry } = await import('@/http/api/workbench')
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const stale = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'old',
+      englishState: '0',
+      entryState: 1,
+      englishInterpretation: '释义',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [{ ...stale }]
+    wrapper.vm.selectedRows = [stale]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = {
+      'entry-1': { ...stale, english: 'hello from edit' },
+    }
+    wrapper.vm.allData = [{ id: 'entry-1' }]
+
+    await wrapper.vm.saveEntrys()
+    await nextTick()
+
+    expect(insertEntry).toHaveBeenCalled()
+    const payload = insertEntry.mock.calls[0][1]
+    expect(payload[0].english).toBe('hello from edit')
+    expect(payload[0].english).not.toBe('1')
+    expect(payload[0].englishState).toBe('1')
+  })
+
+  it('saveEntrys 验的是当前编辑值，不是 selectedRows 旧引用', async () => {
+    const { insertEntry } = await import('@/http/api/workbench')
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const stale = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'ok',
+      englishState: '0',
+      entryState: 1,
+      englishInterpretation: '释义',
+      maxLength: 20,
+    }
+    wrapper.vm.dataSource = [{ ...stale }]
+    wrapper.vm.selectedRows = [stale]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = {
+      'entry-1': { ...stale, english: 'a'.repeat(30) },
+    }
+    wrapper.vm.allData = [{ id: 'entry-1' }]
+
+    await wrapper.vm.saveEntrys()
+    await nextTick()
+    await flushPromises()
+
+    expect(insertEntry).not.toHaveBeenCalled()
+    expect(wrapper.vm.editableData['entry-1']).toBeDefined()
+    expect(wrapper.vm.cellErrors['entry-1'].english).toContain('允许最大字符数为20')
+    expect(wrapper.vm.dataSource[0].english).toBe('ok')
   })
 })

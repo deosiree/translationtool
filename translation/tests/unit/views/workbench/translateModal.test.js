@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import TranslateModal from '@/views/workbench/translateModal.vue'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
+import * as validationUtils from '@/utils/validationUtils'
 
 vi.mock('@/utils/domUtils', () => ({
   setModalAriaHidden: vi.fn(),
@@ -138,6 +139,25 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     expect(wrapper.find('[data-col="englishAuditSuggest"]').find('.cell-overflow-tooltip-stub').exists()).toBe(true)
   })
 
+  it('双击只开编辑态，不调用 applyCell', async () => {
+    const applySpy = vi.spyOn(validationUtils, 'applyCell')
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.language = { value: 'english' }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    const record = { id: 'entry-1', entry: '%1', english: 'Press % 1' }
+    wrapper.vm.dataSource = [record]
+    wrapper.vm.editableData = {}
+    wrapper.vm.cellErrors = {}
+    const rowEvents = wrapper.vm.customRow(record, 0)
+    await rowEvents.onDblclick()
+    await nextTick()
+    expect(wrapper.vm.editableData['entry-1']).toBeDefined()
+    expect(applySpy).not.toHaveBeenCalled()
+    expect(wrapper.vm.cellErrors['entry-1']).toBeUndefined()
+    applySpy.mockRestore()
+  })
+
   it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {
     wrapper = mountWithTableStub()
     wrapper.vm.language = { value: 'english' }
@@ -149,5 +169,78 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
+  })
+
+  it('handleOK 先校验当前 editableData，失败行不先被清掉编辑态', async () => {
+    const { updateEntryList } = await import('@/http/api/workbench')
+    updateEntryList.mockResolvedValue({ data: { totalNum: 0 } })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { id: 'task-1' }
+    wrapper.vm.language = { value: 'english', state: 'englishState' }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    const stale = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'ok',
+      englishState: '0',
+      maxLength: 20,
+    }
+    wrapper.vm.dataSource = [{ ...stale }]
+    wrapper.vm.selectedRows = [stale]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = {
+      'entry-1': { ...stale, english: 'a'.repeat(30) },
+    }
+    wrapper.vm.allData = [{ id: 'entry-1' }]
+
+    await wrapper.vm.handleOK()
+    await nextTick()
+
+    expect(wrapper.vm.editableData['entry-1']).toBeDefined()
+    expect(wrapper.vm.cellErrors['entry-1'].english).toContain('允许最大字符数为20')
+    const saved = updateEntryList.mock.calls[0]?.[1] || []
+    expect(saved.find((r) => r.id === 'entry-1')).toBeUndefined()
+  })
+
+  it('handleOK 通过后再 merge，保存的是当前编辑译文', async () => {
+    const { updateEntryList } = await import('@/http/api/workbench')
+    updateEntryList.mockResolvedValue({ data: { totalNum: 0, list: [] } })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { id: 'task-1' }
+    wrapper.vm.language = { value: 'english', state: 'englishState' }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    const stale = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'old',
+      englishState: '0',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [{ ...stale }]
+    wrapper.vm.selectedRows = [stale]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = {
+      'entry-1': { ...stale, english: 'hello from edit' },
+    }
+    wrapper.vm.allData = [{ id: 'entry-1' }]
+
+    await wrapper.vm.handleOK()
+    await nextTick()
+
+    expect(updateEntryList).toHaveBeenCalled()
+    const payload = updateEntryList.mock.calls[0][1]
+    expect(payload[0].english).toBe('hello from edit')
+    expect(payload[0].englishState).toBe('1')
+    expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
   })
 })

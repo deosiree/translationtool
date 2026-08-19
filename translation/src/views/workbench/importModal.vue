@@ -566,12 +566,15 @@ import {
   byteLength,
   verifyArray_workbench,
   openSetEdit,
-  applyCellValidationAfterOpenEdit,
-  validateEditableCell,
-  setCellError,
-  clearCellError,
   clearCellErrorsForRecords,
   onEditableCellInput,
+  getMethods, // RulesDropdown 勾选 → toLong/special
+  revalidateLoaded,
+  saveEdit,
+  cancelEdit,
+  // as 别名：避免 methods 里 showEditOperation() 递归调用自身
+  showEditOperation as showEditOp,
+  hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils";
 import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
@@ -803,6 +806,14 @@ export default {
       this.task = newval;
       this.task.transMap = commonParam.languageMap[this.task.translateType];
     },
+    rulesOptions: {
+      deep: true,
+      async handler() {
+        const transCol = this.task?.transMap?.value;
+        if (!transCol) return;
+        await revalidateLoaded(this, transCol);
+      },
+    },
     visible: {
       async handler(newVal) {
         // console.log("打开工作台-导入", newVal);
@@ -921,39 +932,13 @@ export default {
         toLongIds: new Set(), // 校验长度
         specialIds: new Set(), // 校验特殊字符
       };
-      // 1.保存编辑框中的所有信息
-      for (let key in this.editableData) {
-        if (this.selectedRowKeys.includes(key)) {
-          // let entry = this.dataSource.find((item) => item.id === key);
-          // entry = cloneDeep(this.editableData[key]);
-
-          // if (entry[currentLang] != null) {
-          //   // 翻译存在  则状态为待审核状态
-          //   entry[this.task.transMap.state] = "1";
-          // }
-
-          // 保存编辑框中的所有信息
-          const index = this.dataSource.findIndex((item) => item.id === key);
-          if (index != -1) {
-            if (this.editableData[key][currentLang] != null) {
-              // 翻译存在  则状态为待审核状态
-              this.editableData[key][currentLang] = "1";
-            }
-            this.dataSource[index] = cloneDeep(this.editableData[key]);
-          }
-
-          delete this.editableData[key];
-        }
-      }
-      // 2.保存前校验
-      const verifyMethods = this.rulesOptions
-        .filter((option) => option.checked)
-        .map((option) => option.key);
+      // 1.先校验（classifyArr 优先读 editableData；失败行保持编辑）
+      const methods = getMethods(this);
       arr = await verifyArray_workbench(
         this,
         this.selectedRows,
         currentLang,
-        verifyMethods
+        methods
       );
       let arrCount = {
         updateArr: [],
@@ -970,6 +955,25 @@ export default {
       if (this.allData.length === 0) {
         return;
       }
+
+      // 2.仅通过行：merge 进 dataSource，状态写到 transMap.state（不要写翻译列）
+      const stateKey = this.task.transMap.state;
+      for (let key in this.editableData) {
+        if (!this.selectedRowKeys.includes(key)) continue;
+        if (!arr.acceptIds.has(key)) continue;
+        const index = this.dataSource.findIndex((item) => item.id === key);
+        if (index != -1) {
+          if (this.editableData[key][currentLang] != null) {
+            this.editableData[key][stateKey] = "1";
+          }
+          this.dataSource[index] = cloneDeep(this.editableData[key]);
+        }
+        delete this.editableData[key];
+      }
+      this.selectedRows = this.selectedRows.map((row) => {
+        const found = this.dataSource.find((item) => item.id === row.id);
+        return found || row;
+      });
 
       // 3.修改状态
       // 去除this.selectedRows中的子词条，因为父词条中已经包含了
@@ -1142,21 +1146,16 @@ export default {
           this.selectedRows = [];
           this.selectedRowKeys = [];
           this.selectedRowIndex = null;
-          // 无数据则关闭弹窗；有数据则检验当前页
+          // 无数据则关闭弹窗；有数据则按展示值复检已加载表
           if (this.dataSource.length === 0) {
             this.handleClose();
           } else {
             try {
-              // 校验当前页数据
-              await verifyArray_workbench_page(
-                this.pagination,
-                this.task.transMap.value,
-                this
-              );
+              await revalidateLoaded(this, this.task.transMap.value);
             } catch (err) {
               // 仅兜底：不阻断保存流程
               // eslint-disable-next-line no-console
-              console.warn("[importModal] verifyArray_workbench_page failed", err);
+              console.warn("[importModal] revalidateLoaded failed", err);
             }
           }
         })
@@ -1833,12 +1832,7 @@ export default {
             if (!otherFn) {
               // 不进去其他函数（即非实时库）
               closeLoading();
-              // 校验当前页数据
-              verifyArray_workbench_page(
-                this.pagination,
-                this.task.transMap.value,
-                this
-              );
+              revalidateLoaded(this, this.task.transMap.value);
             }
           });
       } else {
@@ -2060,69 +2054,37 @@ export default {
             // 当前行在编辑状态
             return;
           }
-          // 打开编辑态;设置校验规则(工作台只为翻译列配置)
+          // 打开编辑态并设置翻译列规则（openSetEdit）；不在此处 applyCell
           await openSetEdit(record, [this.task.transMap.value], this);
-          await applyCellValidationAfterOpenEdit(
-            this,
-            record.id,
-            this.task.transMap.value
-          );
           this.showEditOperation(); // 显示编辑操作列
         },
       };
     },
-    // 编辑-保存
+    // 行内 ✓ / 编辑框回车：公共 saveEdit；本页只写非空字段
     async editSave(record) {
       const transCol = this.task.transMap.value;
-      try {
-        await validateEditableCell(this, record.id, transCol);
-      } catch (err) {
-        setCellError(
-          this,
-          record.id,
-          transCol,
-          err.errorMessage || String(err)
-        );
-        return;
-      }
-      for (const [key, value] of Object.entries(this.editableData[record.id])) {
-        if (record.hasOwnProperty(key) && value != null && value !== "") {
-          record[key] = value;
-        }
-      }
-      delete this.editableData[record.id];
-      clearCellError(this, record.id, transCol);
-      this.hideEditOperation();
+      await saveEdit(this, record, {
+        transCol,
+        commit: (rec, row) => {
+          for (const [key, value] of Object.entries(row)) {
+            if (rec.hasOwnProperty(key) && value != null && value !== "") {
+              rec[key] = value;
+            }
+          }
+        },
+      });
     },
     // 取消编辑
     cancel(record) {
-      delete this.editableData[record.id];
-      this.hideEditOperation();
+      cancelEdit(this, record.id);
     },
     // 显示编辑操作列
     showEditOperation() {
-      if (this.columns.at(-1).dataIndex === "editOperation") {
-        // 如果编辑操作列已经存在，则不再添加
-        return;
-      }
-      const editOperationColumn = {
-        title: "编辑操作",
-        dataIndex: "editOperation",
-        align: "center",
-        width: 100,
-        resizable: true,
-        fixed: "right",
-        index: 101, // 确保该列在最右侧，可根据实际情况调整
-      };
-      this.columns.push(editOperationColumn);
+      showEditOp(this);
     },
     // 删除操作列
     hideEditOperation() {
-      if (Object.keys(this.editableData).length === 0) {
-        this.columns = this.columns.filter((item) => {
-          return item.dataIndex != "editOperation";
-        });
-      }
+      hideEditOp(this);
     },
     // 聚合
     aggregation() {

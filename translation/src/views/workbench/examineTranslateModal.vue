@@ -204,13 +204,18 @@ import {
 import { setModalAriaHidden } from "@/utils/domUtils";
 import {
   byteLength,
-  validateEditableCell,
-  setCellError,
-  clearCellError,
   onEditableCellInput,
-  verifyArray_workbench,
   clearCellErrorsForRecords,
   openSetEdit,
+  getMethods,
+  classifyArr,
+  openFailRows,
+  revalidateLoaded,
+  saveEdit,
+  cancelEdit,
+  // as 别名：避免 methods 里同名递归
+  showEditOperation as showEditOp,
+  hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
@@ -341,6 +346,14 @@ export default {
     currentTask(newval, oldval) {
       this.task = newval;
       this.task.transMap = commonParam.languageMap[this.task.translateType];
+    },
+    rulesOptions: {
+      deep: true,
+      async handler() {
+        const transCol = this.task?.transMap?.value;
+        if (!transCol) return;
+        await revalidateLoaded(this, transCol);
+      },
     },
     visible: {
       async handler(newVal) {
@@ -499,19 +512,18 @@ export default {
       this.saveLoading = true;
 
       const transCol = this.task.transMap.value;
-      const verifyMethods = this.rulesOptions
-        .filter((o) => o.checked)
-        .map((o) => o.key);
+      const methods = getMethods(this);
 
-      // 1. 底部保存前按当前勾选规则复检所有待流转词条
-      // 若某行仍在编辑态，verifyArray_workbench 会优先读取 editableData 中的最新值
+      // 1. 底部保存：按当前勾选复检所有待流转词条
+      // 若某行仍在编辑态，classifyArr 优先读 editableData 中的最新值
       const updateArrCandidate = this.dataSource.filter(
         (item) => item.auditState === 1 || item.auditState === 0
       );
       if (updateArrCandidate.length > 0) {
         clearCellErrorsForRecords(this, updateArrCandidate.map((r) => r.id));
-        const verifyResult = await verifyArray_workbench(this, updateArrCandidate, transCol, verifyMethods);
+        const verifyResult = await classifyArr(this, updateArrCandidate, transCol, methods);
         if (verifyResult.errorIds.size > 0) {
+          await openFailRows(this, updateArrCandidate, verifyResult, transCol);
           message.warn(`校验不通过 ${verifyResult.errorIds.size} 条，请检查翻译列红字`);
           this.saveLoading = false;
           this.loading = false;
@@ -645,7 +657,7 @@ export default {
             return;
           }
           await openSetEdit(record, [this.task.transMap.value], this);
-          this.showEditOperation(); // 显示编辑操作列
+          this.showEditOperation(); // 显示编辑操作列；双击不跑 applyCell
         },
       };
     },
@@ -688,60 +700,34 @@ export default {
         return Promise.resolve();
       };
     },
-    // 编辑，也是编辑框的回车事件
+    // 行内 ✓ / 编辑框回车：公共 saveEdit；本页回写非空字段并置翻译状态为待审核
     async edit(record) {
       const transCol = this.task.transMap.value;
-      try {
-        await validateEditableCell(this, record.id, transCol);
-      } catch (err) {
-        setCellError(
-          this,
-          record.id,
-          transCol,
-          err.errorMessage || String(err)
-        );
-        return;
-      }
-      for (const [key, value] of Object.entries(this.editableData[record.id])) {
-        if (record.hasOwnProperty(key) && value != null && value !== "") {
-          record[key] = value;
-        }
-      }
-      if (record[transCol] != null) {
-        record[this.task.transMap.state] = "1";
-      }
-      delete this.editableData[record.id];
-      this.hideEditOperation();
+      await saveEdit(this, record, {
+        transCol,
+        commit: (rec, row) => {
+          for (const [key, value] of Object.entries(row)) {
+            if (rec.hasOwnProperty(key) && value != null && value !== "") {
+              rec[key] = value;
+            }
+          }
+          if (rec[transCol] != null) {
+            rec[this.task.transMap.state] = "1";
+          }
+        },
+      });
     },
     // 取消编辑
     cancel(record) {
-      delete this.editableData[record.id];
-      this.hideEditOperation();
+      cancelEdit(this, record.id);
     },
     // 显示编辑操作列
     showEditOperation() {
-      if (this.columns.at(-1).dataIndex === "editOperation") {
-        // 如果编辑操作列已经存在，则不再添加
-        return;
-      }
-      const editOperationColumn = {
-        title: "编辑操作",
-        dataIndex: "editOperation",
-        align: "center",
-        width: 100,
-        resizable: true,
-        fixed: "right",
-        index: 101, // 确保该列在最右侧，可根据实际情况调整
-      };
-      this.columns.push(editOperationColumn);
+      showEditOp(this);
     },
     // 删除操作列
     hideEditOperation() {
-      if (Object.keys(this.editableData).length === 0) {
-        this.columns = this.columns.filter((item) => {
-          return item.dataIndex != "editOperation";
-        });
-      }
+      hideEditOp(this);
     },
     // 下一个词条 快捷键
     nextEntry() {
