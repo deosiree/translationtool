@@ -26,9 +26,9 @@ spring:
     password: 123456
     druid:
       # 连接池配置
-      initial-size: 5                # 初始化连接数
-      min-idle: 5                    # 最小空闲连接数（建议不要设为0）
-      max-active: 20                 # 最大活跃连接数
+      initial-size: 10                # 初始化连接数
+      min-idle: 10                    # 最小空闲连接数（建议不要设为0）
+      max-active: 40                 # 最大活跃连接数
       max-wait: 60000                # 获取连接的最大等待时间
       
       # 关键：连接有效性检测（解决通信失败的核心）

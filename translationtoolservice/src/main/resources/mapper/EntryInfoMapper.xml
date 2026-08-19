@@ -66,7 +66,7 @@
         <result property="entryVersionID" column="entry_version_type" jdbcType="VARCHAR"/>
         <result property="parentID" column="parent_id" jdbcType="VARCHAR"/>
         <result property="diFileName" column="di_file_name" jdbcType="VARCHAR"/>
-        <result property="maxLength" column="max_length" jdbcType="VARCHAR"/>
+        <result property="maxLength" column="max_length" jdbcType="INTEGER"/>
 
         <result property="classfy1" column="classfy1" jdbcType="VARCHAR"/>
         <result property="classfy2" column="classfy2" jdbcType="VARCHAR"/>
@@ -706,9 +706,10 @@
         is_exist,
         classfy1,
         classfy2,
-         comment,
-         source_table,
-         db_record_id
+        comment,
+        source_table,
+        db_record_id,
+        max_length
         )
         values
 
@@ -777,7 +778,8 @@
             #{entryInfoEntity.classfy2,jdbcType=VARCHAR},
             #{entryInfoEntity.comment,jdbcType=VARCHAR},
             #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
-            #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+            #{entryInfoEntity.dbRID,jdbcType=VARCHAR},
+            #{entryInfoEntity.maxLength,jdbcType=INTEGER}
 
             )
         </foreach>
