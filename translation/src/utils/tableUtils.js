@@ -37,6 +37,7 @@ export function clearFilters(vm) {
 
 /**
  * 筛选功能-表格 change 事件
+ * 同步 filters / filteredValue；vm.filteredData 为历史字段（archive 仍写入，仓库内无读取方）
  */
 export function handleTableChange(pagination, filters, vm) {
   vm.filters = filters;

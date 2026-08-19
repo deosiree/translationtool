@@ -81,9 +81,9 @@
           <div style="padding: 8px">
             <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
               style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
+              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
             <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
               <template #icon>
                 <SearchOutlined />
               </template>搜索</a-button>
@@ -142,13 +142,16 @@ import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import {
-  handleSearch,
-  handleReset,
-  clearFilters,
-  handleTableChange,
+  handleTableChange as tableHandleTableChange,
+  handleReset as tableHandleReset,
   handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
+import { defaultPagination } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
 import {
   WorkbenchFormBar,
   WorkbenchActionGroup,
@@ -211,16 +214,7 @@ export default {
       loading: false,
       columns: [],
       dataSource: [],
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
-      },
+      pagination: defaultPagination(this.pageChange),
       entryState: null,
       translateState: null,
       selectedRowIndex: null,
@@ -237,7 +231,8 @@ export default {
         searchedColumn: "",
       },
       filters: null,
-      filteredData: [],
+      // 历史字段 filteredData：曾由 tableUtils.handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
+      antClearFilter: null,
       saveLoading: false,
       selectedRowKeys: [],
       selectedRows: [],
@@ -478,55 +473,26 @@ export default {
       this.keyWords = "";
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
-      this.clearFilters();
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
     },
-    // 筛选功能(可封装)
-    // 列筛选
-    handleSearch(selectedKeys, confirm, dataIndex) {
-      handleSearch(selectedKeys, confirm, dataIndex, this);
-      // confirm();
-      // this.state.searchText = selectedKeys[0];
-      // this.state.searchedColumn = dataIndex;
+    // 列头自定义筛选 + 保存 Ant clearFilters
+    handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
+    // 列筛选重置
     handleReset(clearFilters) {
-      handleReset(clearFilters, this);
-      // clearFilters({ confirm: true });
-      // this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
-    // 清空表格筛选条件
-    clearFilters() {
-      clearFilters(this);
-      // if (this.filters) {
-      //   for (let key in this.filters) {
-      //     this.columns.forEach((col) => {
-      //       if (col.dataIndex === key) {
-      //         col.filteredValue = null;
-      //       }
-      //     });
-      //   }
-      // }
-    },
-    // 表格change事件
+    // 同步 filters / filteredValue（供全部选择；filteredData 写入见 tableUtils）
     handleTableChange(pagination, filters) {
-      handleTableChange(pagination, filters, this);
-      // this.filters = filters;
-      // for (let key in filters) {
-      //   this.columns.forEach((col) => {
-      //     if (col.dataIndex === key) {
-      //       col.filteredValue = filters[key];
-      //     }
-      //   });
-      // }
-      // // 获取筛选后的数据
-      // let isExistData = this.dataSource.filter((item) => {
-      //   return filters.isExist && filters.isExist.includes(item.isExist);
-      // });
-      // let sourceData = this.dataSource.filter((item) => {
-      //   return (
-      //     filters.entrySource && item.entrySource.includes(filters.entrySource)
-      //   );
-      // });
-      // this.filteredData = this.intersection(isExistData, sourceData);
+      tableHandleTableChange(pagination, filters, this);
     },
     // // 两个数组取并集(可封装)
     // intersection(nums1, nums2) {
@@ -550,7 +516,7 @@ export default {
         this.tableHeight.y = 415;
       }
     },
-    // 分页切换
+    // 分页（archive 无当前页校验）
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;

@@ -210,7 +210,15 @@ import {
 import {
   handleResizeColumn,
   getRowClassName,
+  handleReset as tableHandleReset,
 } from "@/utils/tableUtils";
+import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
+import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
+import { editTextCols } from "@/views/workbench/utils/editCols";
 import {
   selectAllEntry as selectAllEntryUtil,
   clearAllEntry as clearAllEntryUtil,
@@ -225,7 +233,6 @@ import {
   classifyArr,
   openFailRows,
   revalidateLoaded,
-  verifyArray_workbench_page,
   saveEdit,
   cancelEdit,
   // as 别名：避免 methods 里同名递归
@@ -300,16 +307,7 @@ export default {
       columns: [],
       dataSource: [],
       allData: [],
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
-      },
+      pagination: defaultPagination(this.pageChange),
       selectedRowKeys: [],
       selectedRows: [],
       editableData: {},
@@ -323,7 +321,7 @@ export default {
         searchText: "",
         searchedColumn: "",
       },
-      clearFilters: null,
+      antClearFilter: null,
       selectAllName: "全选",
       rejectReasonVisible: false,
       rejectReason: {
@@ -347,11 +345,7 @@ export default {
   mounted() {},
   computed: {
     editableTextAreaColumns() {
-      const dedicatedInputCols = ["diFileName", "tag", "maxLength"];
-      return [
-        ...(this.editList_needValidate || []),
-        ...(this.editList || []),
-      ].filter((col) => !dedicatedInputCols.includes(col));
+      return editTextCols(this, { withEditList: true });
     },
     canShowDelete() {
       return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
@@ -496,9 +490,8 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText(text) {
-      return this.companyCut(text).join("; ");
-    },
+    formatTagText,
+    companyCut,
     isExistLabel(value) {
       if (value === 0) return "新建";
       if (value === 1) return "已存在";
@@ -852,16 +845,19 @@ export default {
         }
       });
     },
-    // 列筛选
+    // 列头自定义筛选 + 保存 Ant clearFilters
     handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
-      this.clearFilters = clearFilters;
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
+    // 列筛选重置
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
     // 动态设置表格高度
     setTableHeight(height, type) {
@@ -871,15 +867,9 @@ export default {
         this.tableHeight.y = 415;
       }
     },
-    // 分页切换
+    // 分页 + 当前页校验（见 composables/page）
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      verifyArray_workbench_page(
-        this.pagination,
-        this.task.transMap.value,
-        this
-      );
+      wbPageChange(this, page, pageSize, () => this.task.transMap.value);
     },
     // 全选
     selectAll() {
@@ -904,18 +894,6 @@ export default {
     clearAllEntry() {
       clearAllEntryUtil(this);
     },
-    // 切割字符串
-    companyCut(message) {
-      let res = [];
-      if (message === null || message === "") {
-        return res;
-      }
-      const regex = /[;；]/;
-      res = message.split(regex);
-      res = res.filter((item) => item != "");
-      return res;
-    },
-    // 编辑原因确定
     rejectReasonOK() {
       this.selectedRows.forEach((item) => {
         item.auditState = 0;
@@ -939,11 +917,14 @@ export default {
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
       this.selectAllName = "全选";
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
     },
   },
 };
 </script>
 <style scoped lang="less">
+@import "./wb-audit.scss";
 .ant-divider {
   margin: 15px 0;
 }
@@ -969,22 +950,6 @@ export default {
   .rejectBtn:focus {
     background: #fbb31f;
     border-color: #fbb31f;
-  }
-  .passTag {
-    border: 1px solid #36bf7d;
-    color: #36bf7d;
-  }
-  .passTagChecked {
-    background-color: #36bf7d;
-    color: white;
-  }
-  .rejectTag {
-    border: 1px solid #fbb31f;
-    color: #fbb31f;
-  }
-  .rejectTagChecked {
-    background-color: #fbb31f;
-    color: white;
   }
 }
 :deep(.ant-pagination) {

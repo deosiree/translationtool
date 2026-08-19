@@ -387,20 +387,26 @@ import {
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
+  handleReset as tableHandleReset,
 } from "@/utils/tableUtils";
 import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { colsToFieldOptions, resolvePresetCols } from "@/components/ColumnFilter";
-import { pageChange } from "@/utils/selectionUtils";
 import { encodeParams } from "@/utils/requestUtils";
+import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
+import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
+import { editTextCols } from "@/views/workbench/utils/editCols";
 import {
   byteLength,
   getMaxLength,
   validateRefRules,
   setRefRules,
   useRefRules,
-  verifyArray_workbench_page,
   verifyArray_workbench,
   openSetEdit,
   clearCellErrorsForRecords,
@@ -487,16 +493,7 @@ export default {
         redHighlightIds: new Set(),
       },
       editableData: {},
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
-      },
+      pagination: defaultPagination(this.pageChange),
       suggest: {
         local: [],
         web: [],
@@ -524,7 +521,7 @@ export default {
         searchText: "",
         searchedColumn: "",
       },
-      clearFilters: null,
+      antClearFilter: null,
       saveLoading: false,
       replaceVisible: false,
       replaceModal: {
@@ -555,7 +552,7 @@ export default {
   },
   computed: {
     editableTextAreaColumns() {
-      return [...(this.editList_needValidate || [])];
+      return editTextCols(this, { withEditList: false });
     },
     canShowDelete() {
       return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
@@ -748,9 +745,8 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText(text) {
-      return this.companyCut(text).join("; ");
-    },
+    formatTagText,
+    companyCut,
     translateStateLabel(value) {
       const map = {
         0: "未翻译",
@@ -1397,10 +1393,8 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.editableData = {};
-      if (this.clearFilters) {
-        this.clearFilters({ confirm: true });
-        this.state.searchText = "";
-      }
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
       this.selectedRowIndex = null;
       this.search = {
         keyWords: "",
@@ -1655,16 +1649,19 @@ export default {
         }
       });
     },
-    // 列筛选
+    // 列头自定义筛选 + 保存 Ant clearFilters
     handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
-      this.clearFilters = clearFilters;
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
+    // 列筛选重置
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
     // 动态设置表格高度
     setTableHeight(height, type) {
@@ -1674,22 +1671,9 @@ export default {
         this.tableHeight.y = 415;
       }
     },
-    // 分页切换
+    // 分页 + 当前页校验（见 composables/page）
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      // 校验当前页数据
-      verifyArray_workbench_page(this.pagination, this.language.value, this);
-    },
-    companyCut(message) {
-      let res = [];
-      if (message === null || message === "") {
-        return res;
-      }
-      const regex = /[;；]/;
-      res = message.split(regex);
-      res = res.filter((item) => item != "");
-      return res;
+      wbPageChange(this, page, pageSize, () => this.language.value);
     },
     // 获取用户偏好
     queryPartiality() {

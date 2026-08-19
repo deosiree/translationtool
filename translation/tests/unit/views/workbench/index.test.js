@@ -27,9 +27,13 @@ vi.mock('@/http/api/translate', () => ({
   }))
 }))
 
-vi.mock('@/utils/tableUtils', () => ({
-  setTableHeight: vi.fn()
-}))
+vi.mock('@/utils/tableUtils', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    setTableHeight: vi.fn(),
+  }
+})
 
 vi.mock('ant-design-vue', () => ({
   default: {

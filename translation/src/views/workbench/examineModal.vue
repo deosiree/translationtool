@@ -190,9 +190,9 @@
           <div style="padding: 8px">
             <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
               style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
+              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
             <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
               <template #icon>
                 <SearchOutlined />
               </template>搜索</a-button>
@@ -264,9 +264,17 @@ import {
   WorkbenchLanguageFilter,
 } from "@/components/Workbench";
 import { filterLanguageChange as applyLanguageFilter } from "@/composables/workbench/useLanguageFilter";
+import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
+import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
+import { editTextCols } from "@/views/workbench/utils/editCols";
 import {
   handleResizeColumn,
   getRowClassName,
+  handleReset as tableHandleReset,
 } from "@/utils/tableUtils";
 import {
   selectAllEntry as selectAllEntryUtil,
@@ -284,7 +292,6 @@ import {
   classifyArr,
   openFailRows,
   revalidateLoaded,
-  verifyArray_workbench_page,
   saveEdit,
   cancelEdit,
   // as 别名：避免 methods 里同名递归
@@ -348,16 +355,7 @@ export default {
       selectedRowKeys: [],
       selectedRows: [],
       editableData: {},
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
-      },
+      pagination: defaultPagination(this.pageChange),
       rules: {},
       cellErrors: {},
       entryState: "1",
@@ -379,7 +377,8 @@ export default {
         searchedColumn: "",
       },
       filters: null,
-      filteredData: [],
+      // 历史字段 filteredData：曾由 handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
+      antClearFilter: null,
       selectAllName: "全选",
       saveLoading: false,
       rejectReasonVisible: false,
@@ -394,11 +393,7 @@ export default {
   mounted() {  },
   computed: {
     editableTextAreaColumns() {
-      const dedicatedInputCols = ["diFileName", "tag", "maxLength"];
-      return [
-        ...(this.editList_needValidate || []),
-        ...(this.editList || []),
-      ].filter((col) => !dedicatedInputCols.includes(col));
+      return editTextCols(this, { withEditList: true });
     },
   },
   watch: {
@@ -466,9 +461,8 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText(text) {
-      return this.companyCut(text).join("; ");
-    },
+    formatTagText,
+    companyCut,
     isExistLabel(value) {
       if (value === 0) return "新建";
       if (value === 1) return "已存在";
@@ -911,7 +905,8 @@ export default {
       this.pagination.pageSize = 20;
       this.selectAllName = "全选";
 
-      this.clearFilters();
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
     },
     // 删除词条
     deleteTaskEntry() {
@@ -958,15 +953,19 @@ export default {
         onCancel: () => {},
       });
     },
-    // 列筛选
-    handleSearch(selectedKeys, confirm, dataIndex) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
+    // 列头自定义筛选 + 保存 Ant clearFilters
+    handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
+    // 列筛选重置
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
     // 动态设置表格高度
     setTableHeight(height, type) {
@@ -976,15 +975,9 @@ export default {
         this.tableHeight.y = 415;
       }
     },
-    // 分页切换
+    // 分页 + 当前页校验（见 composables/page）
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      verifyArray_workbench_page(
-        this.pagination,
-        this.task.transMap.value,
-        this
-      );
+      wbPageChange(this, page, pageSize, () => this.task.transMap.value);
     },
     // 语种切换
     filterLanguageChange() {
@@ -1007,7 +1000,7 @@ export default {
         this.selectAllName = "取消全选";
       }
     },
-    // 表格change事件
+    // 同步 filters / filteredValue（供全部选择）
     handleTableChange(pagination, filters) {
       this.filters = filters;
       for (let key in filters) {
@@ -1017,60 +1010,36 @@ export default {
           }
         });
       }
-      // 获取筛选后的数据
-      let isExistData = this.dataSource.filter((item) => {
-        return filters.isExist && filters.isExist.includes(item.isExist);
-      });
-      let sourceData = this.dataSource.filter((item) => {
-        return (
-          filters.entrySource && item.entrySource.includes(filters.entrySource)
-        );
-      });
-      this.filteredData = this.intersection(isExistData, sourceData);
+      // 以下 filteredData 计算为历史遗留（examine 交集）；均未被消费。保留便于对照；确认无回归后可删除。
+      // let isExistData = this.dataSource.filter((item) => {
+      //   return filters.isExist && filters.isExist.includes(item.isExist);
+      // });
+      // let sourceData = this.dataSource.filter((item) => {
+      //   return (
+      //     filters.entrySource && item.entrySource.includes(filters.entrySource)
+      //   );
+      // });
+      // this.filteredData = this.intersection(isExistData, sourceData);
     },
-    // 两个数组取并集
-    intersection(nums1, nums2) {
-      if (nums1.length === 0) {
-        return nums2;
-      }
-      if (nums2.length === 0) {
-        return nums1;
-      }
-      let a = new Set(nums1);
-      let b = new Set(nums2);
-      let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
-      return arr;
-    },
-    // 清空表格筛选条件
-    clearFilters() {
-      if (this.filters) {
-        for (let key in this.filters) {
-          this.columns.forEach((col) => {
-            if (col.dataIndex === key) {
-              col.filteredValue = null;
-            }
-          });
-        }
-      }
-    },
+    // 历史 helper：曾为 filteredData 做集合合并；现无调用方。
+    // intersection(nums1, nums2) {
+    //   if (nums1.length === 0) {
+    //     return nums2;
+    //   }
+    //   if (nums2.length === 0) {
+    //     return nums1;
+    //   }
+    //   let a = new Set(nums1);
+    //   let b = new Set(nums2);
+    //   let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
+    //   return arr;
+    // },
     selectAllEntry() {
       selectAllEntryUtil(this);
     },
     clearAllEntry() {
       clearAllEntryUtil(this);
     },
-    // 切割字符串
-    companyCut(message) {
-      let res = [];
-      if (message === null || message === "") {
-        return res;
-      }
-      const regex = /[;；]/;
-      res = message.split(regex);
-      res = res.filter((item) => item != "");
-      return res;
-    },
-    // 编辑原因确定
     rejectReasonOK() {
       this.selectedRows.forEach((item) => {
         item.auditState = 0;
@@ -1096,6 +1065,7 @@ export default {
 };
 </script>
 <style scoped lang="less">
+@import "./wb-audit.scss";
 .ant-divider {
   margin: 15px 0;
 }
@@ -1121,22 +1091,6 @@ export default {
   .rejectBtn:focus {
     background: #fbb31f;
     border-color: #fbb31f;
-  }
-  .passTag {
-    border: 1px solid #36bf7d;
-    color: #36bf7d;
-  }
-  .passTagChecked {
-    background-color: #36bf7d;
-    color: white;
-  }
-  .rejectTag {
-    border: 1px solid #fbb31f;
-    color: #fbb31f;
-  }
-  .rejectTagChecked {
-    background-color: #fbb31f;
-    color: white;
   }
 }
 :deep(.ant-pagination) {

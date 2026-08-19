@@ -455,9 +455,9 @@
           <div style="padding: 8px">
             <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
               style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
+              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
             <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
               <template #icon>
                 <SearchOutlined />
               </template>搜索</a-button>
@@ -576,7 +576,6 @@ import {
   clearAllEntry as clearAllEntryUtil,
 } from "@/utils/selectionUtils";
 import {
-  verifyArray_workbench_page,
   getMaxLength,
   byteLength,
   verifyArray_workbench,
@@ -606,9 +605,17 @@ import {
   WorkbenchLanguageFilter,
 } from "@/components/Workbench";
 import { filterLanguageChange as applyLanguageFilter } from "@/composables/workbench/useLanguageFilter";
+import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
+import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
+import { editTextCols } from "@/views/workbench/utils/editCols";
 import {
   handleResizeColumn,
   getRowClassName,
+  handleReset as tableHandleReset,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
@@ -697,16 +704,7 @@ export default {
       dataSource: [],
       editableData: {},
       allData: [],
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
-      },
+      pagination: defaultPagination(this.pageChange),
       selectedRowKeys: [],
       selectedRows: [],
       accept: CSV_ONLY_ACCEPT,
@@ -772,7 +770,8 @@ export default {
         searchedColumn: "",
       },
       filters: null,
-      filteredData: [],
+      // 历史字段 filteredData：曾由 handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
+      antClearFilter: null,
       filterLanguage: null,
       filterSource: [],
       templateVisible: false,
@@ -809,11 +808,7 @@ export default {
   },
   computed: {
     editableTextAreaColumns() {
-      const dedicatedInputCols = ["diFileName", "tag", "maxLength"];
-      return [
-        ...(this.editList_needValidate || []),
-        ...(this.editList || []),
-      ].filter((col) => !dedicatedInputCols.includes(col));
+      return editTextCols(this, { withEditList: true });
     },
   },
   watch: {
@@ -908,9 +903,8 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText(text) {
-      return this.companyCut(text).join("; ");
-    },
+    formatTagText,
+    companyCut,
     isExistLabel(value) {
       if (value === 0) return "新建";
       if (value === 1) return "已存在";
@@ -2187,7 +2181,8 @@ export default {
       };
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
-      this.clearFilters();
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
     },
     // 创建辞典
     createDictionary() {
@@ -2201,15 +2196,19 @@ export default {
     createDictClose() {
       this.createDictVisible = false;
     },
-    // 列筛选
-    handleSearch(selectedKeys, confirm, dataIndex) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
+    // 列头自定义筛选 + 保存 Ant clearFilters
+    handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
+    // 列筛选重置
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
     // 动态设置表格高度
     setTableHeight(height, type) {
@@ -2260,23 +2259,15 @@ export default {
       if (this.templateObj.type === "default") this.templateObj.type = null; // 如果是默认部门，则不设置模板类型，否则会报错
       this.templateObj.exportType = null;
     },
-    // 分页切换
+    // 分页 + 当前页校验（见 composables/page）
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-
-      // 校验当前页数据
-      verifyArray_workbench_page(
-        this.pagination,
-        this.task.transMap.value,
-        this
-      );
+      wbPageChange(this, page, pageSize, () => this.task.transMap.value);
     },
     // 语种切换
     filterLanguageChange() {
       applyLanguageFilter(this);
     },
-    // 表格change事件
+    // 同步 filters / filteredValue（供全部选择）
     handleTableChange(pagination, filters) {
       this.filters = filters;
       for (let key in filters) {
@@ -2286,28 +2277,16 @@ export default {
           }
         });
       }
-      // 获取筛选后的数据
-      let isExistData = this.dataSource.filter((item) => {
-        return filters.isExist && filters.isExist.includes(item.isExist);
-      });
-      let sourceData = this.dataSource.filter((item) => {
-        return (
-          filters.entrySource && item.entrySource.includes(filters.entrySource)
-        );
-      });
-      this.filteredData = Array.from(new Set([...isExistData, ...sourceData]));
-    },
-    // 清空表格筛选条件
-    clearFilters() {
-      if (this.filters) {
-        for (let key in this.filters) {
-          this.columns.forEach((col) => {
-            if (col.dataIndex === key) {
-              col.filteredValue = null;
-            }
-          });
-        }
-      }
+      // 以下 filteredData 计算为历史遗留（import 并集）；均未被消费。保留便于对照；确认无回归后可删除。
+      // let isExistData = this.dataSource.filter((item) => {
+      //   return filters.isExist && filters.isExist.includes(item.isExist);
+      // });
+      // let sourceData = this.dataSource.filter((item) => {
+      //   return (
+      //     filters.entrySource && item.entrySource.includes(filters.entrySource)
+      //   );
+      // });
+      // this.filteredData = Array.from(new Set([...isExistData, ...sourceData]));
     },
     selectAllEntry() {
       selectAllEntryUtil(this);
@@ -2315,17 +2294,6 @@ export default {
 
     clearAllEntry() {
       clearAllEntryUtil(this);
-    },
-    // 切割字符串
-    companyCut(message) {
-      let res = [];
-      if (message === null || message === "") {
-        return res;
-      }
-      const regex = /[;；]/;
-      res = message.split(regex);
-      res = res.filter((item) => item != "");
-      return res;
     },
     // 获取i18服务器ip
     getIPs() {
